@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2021  Fraunhofer FKIE
+    Copyright (C) 2015-2022  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,7 +25,11 @@ import tempfile
 from shlex import split
 from subprocess import Popen, TimeoutExpired
 
-from fact_base import FactBase
+try:
+    from fact_base import FactBase
+except (ImportError, ModuleNotFoundError):
+    sys.exit(1)
+
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import run_cmd_with_logging
@@ -41,7 +45,7 @@ class UwsgiServer:
     def start(self):
         config_parameter = f' --pyargv {self.config_path}' if self.config_path else ''
         command = f'uwsgi --thunder-lock --ini  {get_config_dir()}/uwsgi_config.ini{config_parameter}'
-        self.process = Popen(split(command), cwd=get_src_dir())
+        self.process = Popen(split(command), cwd=get_src_dir())  # pylint: disable=consider-using-with
 
     def shutdown(self):
         if self.process:
@@ -81,4 +85,4 @@ class FactFrontend(FactBase):
 
 if __name__ == '__main__':
     FactFrontend().main()
-    sys.exit()
+    sys.exit(0)

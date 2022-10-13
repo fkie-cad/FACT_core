@@ -39,5 +39,5 @@ def _get_plugin_src_dirs(base_dir: str) -> List[str]:
         if plugin_code_dir.is_dir():
             plugins.append(str(plugin_code_dir))
         else:
-            logging.warning('Plugin has no code directory: {}'.format(plugin_path))
+            logging.warning(f'Plugin has no code directory: {plugin_path}')
     return plugins

@@ -2,14 +2,14 @@ from configparser import ConfigParser
 from typing import NamedTuple
 
 import pytest
-from flask import Flask
 from prompt_toolkit import PromptSession
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.input.base import PipeInput
 from prompt_toolkit.output import DummyOutput
 
 from manage_users import setup_argparse, start_user_management
-from web_interface.security.authentication import add_config_from_configparser_to_app, add_flask_security_to_app
+from web_interface.app import create_app
+from web_interface.security.authentication import add_flask_security_to_app
 
 
 class Prompt(NamedTuple):
@@ -21,15 +21,12 @@ class Prompt(NamedTuple):
 @pytest.fixture()
 def prompt(monkeypatch):
     monkeypatch.setattr('getpass.getpass', lambda _: 'mock_password')
-    pipe = create_pipe_input()
-    try:
+    with create_pipe_input() as pipe:
         session = PromptSession(
             input=pipe,
             output=DummyOutput(),
         )
         yield Prompt(session, pipe)
-    finally:
-        pipe.close()
 
 
 def test_setup_argparse(monkeypatch):
@@ -39,21 +36,19 @@ def test_setup_argparse(monkeypatch):
 
 
 def _setup_frontend():
-    test_app = Flask(__name__)
-    test_app.config['SECRET_KEY'] = 'secret_key'
     parser = ConfigParser()
     # See add_config_from_configparser_to_app for needed values
     parser.read_dict({
-        'data_storage': {
+        'data-storage': {
             # We want an in memory database for testing
-            'user_database': 'sqlite://',
-            'password_salt': 'salt'
+            'user-database': 'sqlite://',
+            'password-salt': 'salt'
         },
-        'ExpertSettings': {
+        'expert-settings': {
             'authentication': 'true'
         },
     })
-    add_config_from_configparser_to_app(test_app, parser)
+    test_app = create_app(parser)
     db, store = add_flask_security_to_app(test_app)
     return test_app, store, db
 
@@ -74,6 +69,7 @@ def _setup_frontend():
 ])
 def test_integration_try_actions(action_and_inputs, prompt):
     action_and_inputs.append('exit')
+    assert prompt.input.fileno() < 1024  # prompt will crash and test will be caught in endless loop if FP is too high
     for action in action_and_inputs:
         prompt.input.send_text(f'{action}\n')
     start_user_management(*_setup_frontend(), prompt.session)

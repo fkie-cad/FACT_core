@@ -21,9 +21,7 @@ class ComparePlugin(CompareBasePlugin):
     '''
     NAME = 'File_Header'
     DEPENDENCIES = []
-
-    def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=__file__):
-        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)
+    FILE = __file__
 
     def compare_function(self, fo_list):
         binaries = [fo.binary for fo in fo_list]
@@ -45,7 +43,7 @@ class ComparePlugin(CompareBasePlugin):
         ascii_string = '<p style="font-family: monospace; color: #eee;"><br />'
         for index in range(number_of_rows):
             partial = bytes_in_ascii[index * COLUMN_WIDTH:(index + 1) * COLUMN_WIDTH]
-            ascii_string += '| {} |<br />'.format(self._replace_forbidden_html_characters(partial))
+            ascii_string += f'| {self._replace_forbidden_html_characters(partial)} |<br />'
 
         return Markup(ascii_string + '</p>')
 
@@ -65,7 +63,7 @@ class ComparePlugin(CompareBasePlugin):
                 highlighted_string += '<br />'
 
             to_highlight = first_binary_in_hex[2 * index:2 * index + 2]
-            highlighted_string += '<span style="color: #{}">{}</span>&nbsp;'.format(color, to_highlight)
+            highlighted_string += f'<span style="color: #{color}">{to_highlight}</span>&nbsp;'
 
         return Markup(highlighted_string + '</p>')
 
@@ -74,12 +72,12 @@ class ComparePlugin(CompareBasePlugin):
 
         offsets_string = '<p style="font-family: monospace; color: #eee;"><br />'
         for row in range(number_of_rows):
-            offsets_string += '0x{:03X}<br />'.format(row * COLUMN_WIDTH)
+            offsets_string += f'0x{row * COLUMN_WIDTH:03X}<br />'
 
         return Markup(offsets_string + '</p>')
 
     def _get_byte_mask(self, binaries, lower_bound):
-        mask = list()
+        mask = []
 
         for index in range(lower_bound):
             reference = binaries[0][index]

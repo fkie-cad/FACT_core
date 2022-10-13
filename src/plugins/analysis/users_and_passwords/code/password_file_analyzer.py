@@ -6,15 +6,17 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Callable, List
 
-from common_helper_process import execute_shell_command
+from docker.types import Mount
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.docker import run_docker_container
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 JOHN_PATH = Path(__file__).parent.parent / 'bin' / 'john'
+JOHN_POT = Path(__file__).parent.parent / 'bin' / 'john.pot'
 WORDLIST_PATH = Path(get_src_dir()) / 'bin' / 'passwords.txt'
 USER_NAME_REGEX = br'[a-zA-Z][a-zA-Z0-9_-]{2,15}'
 UNIX_REGEXES = [
@@ -27,6 +29,7 @@ HTPASSWD_REGEXES = [
     USER_NAME_REGEX + br':\{SHA\}[a-zA-Z0-9\./+]{27}=',  # SHA-1
 ]
 MOSQUITTO_REGEXES = [br'[a-zA-Z][a-zA-Z0-9_-]{2,15}\:\$6\$[a-zA-Z0-9+/=]+\$[a-zA-Z0-9+/]{86}==']
+RESULTS_DELIMITER = '=== Results: ==='
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -37,11 +40,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DESCRIPTION = 'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
-    VERSION = '0.5.0'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        self.config = config
-        super().__init__(plugin_administrator, config=config, recursive=recursive, no_multithread=True, plugin_path=__file__)
+    VERSION = '0.5.1'
+    FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if self.NAME not in file_object.processed_analysis:
@@ -79,27 +79,28 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 def generate_unix_entry(entry: bytes) -> dict:
     user_name, pw_hash, *_ = entry.split(b':')
-    result_entry = {'type': 'unix', 'entry': entry}
+    result_entry = {'type': 'unix', 'entry': _to_str(entry)}
     try:
         if pw_hash.startswith(b'$') or _is_des_hash(pw_hash):
-            result_entry['password-hash'] = pw_hash
+            result_entry['password-hash'] = _to_str(pw_hash)
             result_entry['cracked'] = crack_hash(b':'.join((user_name, pw_hash)), result_entry)
     except (IndexError, AttributeError, TypeError):
         logging.warning(f'Unsupported password format: {entry}', exc_info=True)
-    return {f'{user_name.decode(errors="replace")}:unix': result_entry}
+    return {f'{_to_str(user_name)}:unix': result_entry}
 
 
 def generate_htpasswd_entry(entry: bytes) -> dict:
     user_name, pw_hash = entry.split(b':')
-    result_entry = {'type': 'htpasswd', 'entry': entry, 'password-hash': pw_hash}
-    result_entry['cracked'] = crack_hash(b':'.join((user_name, pw_hash)), result_entry)
-    return {f'{user_name.decode(errors="replace")}:htpasswd': result_entry}
+    result_entry = {'type': 'htpasswd', 'entry': _to_str(entry), 'password-hash': _to_str(pw_hash)}
+    result_entry['cracked'] = crack_hash(entry, result_entry)
+    return {f'{_to_str(user_name)}:htpasswd': result_entry}
 
 
 def generate_mosquitto_entry(entry: bytes) -> dict:
-    user, _, _, salt_hash, passwd_hash, *_ = re.split(r'[:$]', entry.decode(errors='replace'))
+    entry_decoded = _to_str(entry)
+    user, _, _, salt_hash, passwd_hash, *_ = re.split(r'[:$]', entry_decoded)
     passwd_entry = f'{user}:$dynamic_82${b64decode(passwd_hash).hex()}$HEX${b64decode(salt_hash).hex()}'
-    result_entry = {'type': 'mosquitto', 'entry': entry, 'password-hash': passwd_hash}
+    result_entry = {'type': 'mosquitto', 'entry': entry_decoded, 'password-hash': passwd_hash}
     result_entry['cracked'] = crack_hash(passwd_entry.encode(), result_entry, '--format=dynamic_82')
     return {f'{user}:mosquitto': result_entry}
 
@@ -112,14 +113,34 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
     with NamedTemporaryFile() as fp:
         fp.write(passwd_entry)
         fp.seek(0)
-        command = f'{JOHN_PATH} --wordlist={WORDLIST_PATH} {fp.name} {format_term}'
-        result_entry['log'] = execute_shell_command(command)
-        output = execute_shell_command(f'{JOHN_PATH} {fp.name} --show {format_term}').split('\n')
-    if len(output) > 1:
+        john_process = run_docker_container(
+            'fact/john:alpine-3.14',
+            command=f'/work/input_file {format_term}',
+            mounts=[
+                Mount('/work/input_file', fp.name, type='bind'),
+                Mount('/root/.john/john.pot', str(JOHN_POT), type='bind'),
+            ],
+            logging_label='users_and_passwords'
+        )
+        result_entry['log'] = john_process.stdout
+        output = parse_john_output(john_process.stdout)
+    if output:
+        if any('0 password hashes cracked' in line for line in output):
+            result_entry['ERROR'] = 'hash type is not supported'
+            return False
         with suppress(KeyError):
-            if '0 password hashes cracked' in output[-2]:
-                result_entry['ERROR'] = 'hash type is not supported'
-                return False
             result_entry['password'] = output[0].split(':')[1]
             return True
     return False
+
+
+def parse_john_output(john_output: str) -> List[str]:
+    if RESULTS_DELIMITER in john_output:
+        start_offset = john_output.find(RESULTS_DELIMITER) + len(RESULTS_DELIMITER) + 1  # +1 is '\n' after delimiter
+        return [line for line in john_output[start_offset:].split('\n') if line]
+    return []
+
+
+def _to_str(byte_str: bytes) -> str:
+    '''result entries must be converted from `bytes` to `str` in order to be saved as JSON'''
+    return byte_str.decode(errors='replace')

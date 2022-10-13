@@ -1,18 +1,14 @@
 from flask import render_template, request
 
-from helperFunctions.database import ConnectTo
+from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.web_interface import apply_filters_to_query
-from intercom.front_end_binding import InterComFrontEndBinding
-from statistic.update import StatisticUpdater
-from storage.db_interface_frontend import FrontEndDbInterface
-from storage.db_interface_statistic import StatisticDbViewer
+from statistic.update import StatsUpdater
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
 class StatisticRoutes(ComponentBase):
-
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/statistic', GET)
     def show_statistics(self):
@@ -21,27 +17,27 @@ class StatisticRoutes(ComponentBase):
             stats = self._get_stats_from_db()
         else:
             stats = self._get_live_stats(filter_query)
-        with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            device_classes = connection.get_device_class_list()
-            vendors = connection.get_vendor_list()
+        with get_shared_session(self.db.frontend) as frontend_db:
+            device_classes = frontend_db.get_device_class_list()
+            vendors = frontend_db.get_vendor_list()
         return render_template(
             'show_statistic.html',
             stats=stats,
             device_classes=device_classes,
             vendors=vendors,
             current_class=str(request.args.get('device_class')),
-            current_vendor=str(request.args.get('vendor'))
+            current_vendor=str(request.args.get('vendor')),
         )
 
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/system_health', GET)
     def show_system_health(self):
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+        with ConnectTo(self.intercom, self._config) as sc:
             plugin_dict = sc.get_available_analysis_plugins()
         return render_template('system_health.html', analysis_plugin_info=plugin_dict)
 
     def _get_stats_from_db(self):
-        with ConnectTo(StatisticDbViewer, self._config) as stats_db:
+        with get_shared_session(self.db.stats_viewer) as stats_db:
             stats_dict = {
                 'general_stats': stats_db.get_statistic('general'),
                 'firmware_meta_stats': stats_db.get_statistic('firmware_meta'),
@@ -59,8 +55,9 @@ class StatisticRoutes(ComponentBase):
         return stats_dict
 
     def _get_live_stats(self, filter_query):
-        with ConnectTo(StatisticUpdater, self._config) as stats_updater:
-            stats_updater.set_match(filter_query)
+        stats_updater = StatsUpdater(stats_db=self.db.stats_updater)
+        stats_updater.set_match(filter_query)
+        with stats_updater.db.get_read_only_session():
             stats_dict = {
                 'firmware_meta_stats': stats_updater.get_firmware_meta_stats(),
                 'file_type_stats': stats_updater.get_file_type_stats(),

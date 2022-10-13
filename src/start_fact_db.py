@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2021  Fraunhofer FKIE
+    Copyright (C) 2015-2022  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,12 +16,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-
+import logging
 import sys
 
-from fact_base import FactBase
+try:
+    from fact_base import FactBase
+except (ImportError, ModuleNotFoundError):
+    sys.exit(1)
+
+from sqlalchemy.exc import SQLAlchemyError
+
 from helperFunctions.program_setup import program_setup
-from storage.MongoMgr import MongoMgr
+from storage.db_interface_base import ReadOnlyDbInterface
 
 
 class FactDb(FactBase):
@@ -31,14 +37,18 @@ class FactDb(FactBase):
 
     def __init__(self):
         _, config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
-        self.mongo_server = MongoMgr(config=config)
+        self._check_postgres_connection(config)
         super().__init__()
 
-    def shutdown(self):
-        super().shutdown()
-        self.mongo_server.shutdown()
+    @staticmethod
+    def _check_postgres_connection(config):
+        try:
+            ReadOnlyDbInterface(config=config).connection.engine.connect()
+        except (SQLAlchemyError, ModuleNotFoundError):  # ModuleNotFoundError should handle missing psycopg2
+            logging.exception('Could not connect to PostgreSQL. Is the service running?')
+            sys.exit(1)
 
 
 if __name__ == '__main__':
     FactDb().main()
-    sys.exit()
+    sys.exit(0)

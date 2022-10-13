@@ -65,22 +65,6 @@ def error_message(error: str, targeted_url: str, request_data: Optional[dict] = 
     return message, return_code
 
 
-def convert_rest_request(data: bytes = None) -> dict:
-    '''
-    Convert binary encoded json request to a python dict.
-
-    :param data: json request as binary encoded string.
-    :return: dict containing converted request data.
-    '''
-    try:
-        test_dict = json.loads(data.decode())
-        return test_dict
-    except json.JSONDecodeError:
-        raise TypeError('Request should be a dict !')
-    except (AttributeError, UnicodeDecodeError) as error:
-        raise TypeError(str(error))
-
-
 def get_paging(request_parameters: ImmutableMultiDict) -> Tuple[int, int]:
     '''
     Parse paging parameter offset and limit from request parameters.
@@ -112,12 +96,12 @@ def get_query(request_parameters: ImmutableMultiDict) -> dict:
         query = request_parameters.get('query')
         query = json.loads(query if query else '{}')
     except (AttributeError, KeyError):
-        return dict()
+        return {}
     except json.JSONDecodeError:
         raise ValueError('Query must be a json document')
     if not isinstance(query, dict):
         raise ValueError('Query must be a json document')
-    return query if query else dict()
+    return query if query else {}
 
 
 def get_boolean_from_request(request_parameters: ImmutableMultiDict, name: str) -> bool:
@@ -135,7 +119,7 @@ def get_boolean_from_request(request_parameters: ImmutableMultiDict, name: str) 
     except (AttributeError, KeyError):
         return False
     except (json.JSONDecodeError, TypeError):
-        raise ValueError('{} must be true or false'.format(name))
+        raise ValueError(f'{name} must be true or false')
     return parameter
 
 

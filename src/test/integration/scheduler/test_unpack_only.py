@@ -1,35 +1,43 @@
+# pylint: disable=wrong-import-order,attribute-defined-outside-init
 import gc
-import unittest
 from multiprocessing import Queue
-from unittest.mock import patch
 
 from objects.firmware import Firmware
-from scheduler.Unpacking import UnpackingScheduler
-from test.common_helper import DatabaseMock, get_test_data_dir
+from scheduler.unpacking_scheduler import UnpackingScheduler
+from storage.unpacking_locks import UnpackingLockManager
+from test.common_helper import get_test_data_dir
 from test.integration.common import MockFSOrganizer, initialize_config
 
 
-class TestFileAddition(unittest.TestCase):
-    @patch('unpacker.unpack.FSOrganizer', MockFSOrganizer)
-    def setUp(self):
+class TestFileAddition:
+    def setup(self):
         self._config = initialize_config(tmp_dir=None)
         self._tmp_queue = Queue()
-        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._dummy_callback, db_interface=DatabaseMock())
+        unpacking_lock_manager = UnpackingLockManager()
+        self._unpack_scheduler = UnpackingScheduler(
+            config=self._config, post_unpack=self._dummy_callback, fs_organizer=MockFSOrganizer(),
+            unpacking_locks=unpacking_lock_manager
+        )
 
-    def tearDown(self):
+    def teardown(self):
         self._unpack_scheduler.shutdown()
         self._tmp_queue.close()
         gc.collect()
 
     def test_unpack_only(self):
-        test_fw = Firmware(file_path='{}/container/test.zip'.format(get_test_data_dir()))
+        test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
 
         self._unpack_scheduler.add_task(test_fw)
 
         processed_container = self._tmp_queue.get(timeout=5)
 
-        self.assertEqual(len(processed_container.files_included), 3, 'not all included files found')
-        self.assertIn('faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28', processed_container.files_included, 'certain file missing after unpacking')
+        assert len(processed_container.files_included) == 3, 'not all included files found'
+        included_uids = {
+            '289b5a050a83837f192d7129e4c4e02570b94b4924e50159fad5ed1067cfbfeb_20',
+            'd558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62',
+            'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28'
+        }
+        assert processed_container.files_included == included_uids, 'certain file missing after unpacking'
 
     def _dummy_callback(self, fw):
         self._tmp_queue.put(fw)

@@ -1,6 +1,6 @@
-import re
 from configparser import ConfigParser
-from typing import Any, Generic, Type, TypeVar
+from contextlib import contextmanager
+from typing import ContextManager, Generic, Type, TypeVar
 
 DatabaseInterface = TypeVar('DatabaseInterface')
 
@@ -29,20 +29,10 @@ class ConnectTo(Generic[DatabaseInterface]):
         return self.connection
 
     def __exit__(self, *args):
-        self.connection.shutdown()
+        pass
 
 
-def is_sanitized_entry(entry: Any) -> bool:
-    '''
-    Check a database entry if it was sanitized (meaning the database entry was too large for the MongoDB database and
-    was swapped to the file system).
-
-    :param entry: A database entry.
-    :return: `True` if the entry is sanitized and `False` otherwise.
-    '''
-    try:
-        if re.search(r'_[0-9a-f]{64}_[0-9]+', entry) is None:
-            return False
-        return True
-    except TypeError:  # DB entry has type other than string (e.g. integer or float)
-        return False
+@contextmanager
+def get_shared_session(database: DatabaseInterface) -> ContextManager[DatabaseInterface]:
+    with database.get_read_only_session():
+        yield database

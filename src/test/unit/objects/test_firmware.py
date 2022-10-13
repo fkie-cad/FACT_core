@@ -1,9 +1,8 @@
 import pytest
 from common_helper_files import get_binary_from_file
 
-from helperFunctions.tag import TagColor
 from objects.firmware import Firmware
-from test.common_helper import get_test_data_dir
+from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
 
 
 @pytest.mark.parametrize('input_data, expected_count', [
@@ -29,18 +28,6 @@ def test_set_part_name(input_data, expected_output):
     assert test_object.part == expected_output
 
 
-@pytest.mark.parametrize('tag_set, remove_items, expected_count', [
-    ({'a': TagColor.GRAY, 'b': TagColor.GREEN}, ['a'], 1),
-    ({'a': TagColor.GRAY, 'b': TagColor.BLUE}, ['a', 'b', 'a'], 0)
-])
-def test_remove_tag(tag_set, remove_items, expected_count):
-    test_fw = Firmware()
-    test_fw.tags = tag_set
-    for item in remove_items:
-        test_fw.remove_tag(item)
-    assert len(test_fw.tags.keys()) == expected_count
-
-
 def test_create_firmware_container_raw():
     test_object = Firmware()
     assert test_object.size is None
@@ -48,7 +35,7 @@ def test_create_firmware_container_raw():
 
 
 def test_create_firmware_from_file():
-    test_object = Firmware(file_path='{}/test_data_file.bin'.format(get_test_data_dir()))
+    test_object = Firmware(file_path=f'{get_test_data_dir()}/test_data_file.bin')
     assert test_object.device_name is None
     assert test_object.size == 19
     assert test_object.binary == b'test string in file'
@@ -57,7 +44,7 @@ def test_create_firmware_from_file():
 
 
 def test_set_binary():
-    binary = get_binary_from_file('{}/get_files_test/testfile1'.format(get_test_data_dir()))
+    binary = get_binary_from_file(f'{get_test_data_dir()}/get_files_test/testfile1')
     md5 = 'e802ca22f6cd2d9357cf3da1d191879e'
     firmware = Firmware()
     firmware.set_binary(binary)

@@ -1,10 +1,12 @@
+# pylint: disable=protected-access
 import unittest
 from os import path
 from subprocess import CalledProcessError
+from unittest import mock
 from unittest.mock import patch
 
 from helperFunctions import yara_binary_search
-from test.common_helper import get_config_for_testing, get_test_data_dir
+from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
 
 TEST_FILE_1 = 'binary_search_test'
 TEST_FILE_2 = 'binary_search_test_2'
@@ -14,35 +16,27 @@ TEST_FILE_3 = 'binary_search_test_3'
 class MockCommonDbInterface:
     def __init__(self, config):
         self.config = config
-        self.config['data_storage']['firmware_file_storage_directory'] = path.join(
+        self.config['data-storage']['firmware-file-storage-directory'] = path.join(
             get_test_data_dir(), TEST_FILE_1)
 
     @staticmethod
-    def get_uids_of_all_included_files(uid):
+    def get_all_files_in_fw(uid):
         if uid == 'single_firmware':
             return [TEST_FILE_2, TEST_FILE_3]
         return []
 
 
-def mock_connect_to_enter(_, config=None):
-    if config is None:
-        config = {'data_storage': {}}
-    return yara_binary_search.YaraBinarySearchScannerDbInterface(config)
-
-
-def mock_check_output(call, shell=True, stderr=None):
+def mock_check_output(call, *_, shell=True, stderr=None, **__):
     raise CalledProcessError(1, call, b'', stderr)
 
 
 class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
 
+    @mock.patch('helperFunctions.yara_binary_search.DbInterfaceCommon', MockCommonDbInterface)
     def setUp(self):
-        yara_binary_search.YaraBinarySearchScannerDbInterface.__bases__ = (MockCommonDbInterface,)
-        yara_binary_search.ConnectTo.__enter__ = mock_connect_to_enter
-        yara_binary_search.ConnectTo.__exit__ = lambda _, __, ___, ____: None
         self.yara_rule = b'rule test_rule {strings: $a = "test1234" condition: $a}'
         test_path = path.join(get_test_data_dir(), TEST_FILE_1)
-        test_config = {'data_storage': {'firmware_file_storage_directory': test_path}}
+        test_config = {'data-storage': {'firmware-file-storage-directory': test_path}}
         self.yara_binary_scanner = yara_binary_search.YaraBinarySearchScanner(test_config)
 
     def test_get_binary_search_result(self):
@@ -62,7 +56,7 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         assert isinstance(result, str)
         assert 'There seems to be an error in the rule file' in result
 
-    @patch('helperFunctions.yara_binary_search.execute_shell_command', side_effect=mock_check_output)
+    @patch('helperFunctions.yara_binary_search.subprocess.run', side_effect=mock_check_output)
     def test_get_binary_search_yara_error(self, _):
         result = self.yara_binary_scanner.get_binary_search_result((self.yara_rule, None))
         assert isinstance(result, str)
@@ -91,18 +85,8 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         )
         self.assertTrue('test_rule' in result)
 
-
-class TestYaraBinarySearchScannerDbInterface(unittest.TestCase):
-
-    def setUp(self):
-        yara_binary_search.YaraBinarySearchScannerDbInterface.__bases__ = (MockCommonDbInterface,)
-        self.db_interface = yara_binary_search.YaraBinarySearchScannerDbInterface(get_config_for_testing())
-
-    def test_is_mocked(self):
-        assert not hasattr(self.db_interface, 'get_object')
-
     def test_get_file_paths_of_files_included_in_fo(self):
-        result = self.db_interface.get_file_paths_of_files_included_in_fo('single_firmware')
+        result = self.yara_binary_scanner._get_file_paths_of_files_included_in_fw('single_firmware')
         assert len(result) == 2
         assert path.basename(result[0]) == TEST_FILE_2
         assert path.basename(result[1]) == TEST_FILE_3

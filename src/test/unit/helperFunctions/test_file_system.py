@@ -22,7 +22,7 @@ def restore_cwd():
 def test_get_src_dir_cwd(restore_cwd, working_directory):
     real_src_dir = get_src_dir()
     os.chdir(working_directory)
-    assert os.path.exists('{}/helperFunctions/fileSystem.py'.format(real_src_dir)), 'fileSystem.py found in correct place'
+    assert os.path.exists(f'{real_src_dir}/helperFunctions/fileSystem.py'), 'fileSystem.py found in correct place'
     assert get_src_dir() == real_src_dir, 'same source dir before and after chdir'
 
 

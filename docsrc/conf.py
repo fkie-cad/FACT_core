@@ -17,7 +17,7 @@ sys.path.insert(0, str(FACT_SRC))
 
 # pylint: disable=redefined-builtin,invalid-name
 project = 'FACT'
-copyright = '2020, Fraunhofer FKIE'
+copyright = '2020-2022  Fraunhofer FKIE'
 author = 'jstucke'
 
 
@@ -60,7 +60,6 @@ autodoc_mock_imports = [
     'common_helper_encoder',
     'common_helper_files',
     'common_helper_mongo',
-    'common_helper_process',
     'distro',
     'docker',
     'flask',
@@ -70,9 +69,11 @@ autodoc_mock_imports = [
     'passlib',
     'pluginbase',
     'psutil',
+    'pydantic',
     'pymongo',
     'requests',
     'si_prefix',
+    'sqlalchemy',
     'ssdeep',
     'tlsh',
     'werkzeug',

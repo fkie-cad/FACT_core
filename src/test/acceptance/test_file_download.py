@@ -30,9 +30,8 @@ class TestAcceptanceDownloadFile(TestAcceptanceBaseWithDb):
         test_fw = create_test_firmware()
         test_fw.processed_analysis.pop('dummy')
         test_fw.uid = test_fw.uid
-        self.db_backend.add_firmware(test_fw)
+        self.db_backend.add_object(test_fw)
         self.fs_organizer.store_file(test_fw)
-        assert self.db_backend.firmwares.find_one(test_fw.uid) is not None
 
         self._show_analysis_page(test_fw)
         self._start_binary_download(test_fw)

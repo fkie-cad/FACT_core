@@ -42,10 +42,6 @@ def get_ssdeep(code):
     return raw_hash.digest()
 
 
-def get_ssdeep_comparison(first, second):
-    return ssdeep.compare(first, second)
-
-
 def get_tlsh(code):
     tlsh_hash = tlsh.hash(make_bytes(code))  # pylint: disable=c-extension-no-member
     return tlsh_hash if tlsh_hash != 'TNULL' else ''
@@ -71,7 +67,7 @@ def get_imphash(file_object):
                 functions = normalize_lief_items(lief.parse(file_object.file_path).imported_functions)
             return md5(','.join(sorted(functions)).encode()).hexdigest()
         except Exception:
-            logging.error('Could not compute imphash for {}'.format(file_object.file_path), exc_info=True)
+            logging.exception(f'Could not compute imphash for {file_object.file_path}')
     return None
 
 

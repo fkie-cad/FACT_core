@@ -3,8 +3,8 @@
 import string
 
 from objects.file import FileObject
-from test.common_helper import get_test_data_dir
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.binwalk import AnalysisPlugin
 
@@ -20,23 +20,19 @@ DECIMAL       HEXADECIMAL     DESCRIPTION
 
 
 class TestAnalysisPluginBinwalk(AnalysisPluginTest):
-    PLUGIN_NAME = 'binwalk'
 
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        # additional setup can go here
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_NAME = 'binwalk'
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_signature_analysis(self):
-        test_file = FileObject(file_path='{}/container/test.zip'.format(get_test_data_dir()))
+        test_file = FileObject(file_path=f'{get_test_data_dir()}/container/test.zip')
         processed_file = self.analysis_plugin.process_object(test_file)
         results = processed_file.processed_analysis[self.PLUGIN_NAME]
         self.assertGreater(len(results['signature_analysis']), 0, 'no binwalk signature analysis found')
         self.assertTrue('DECIMAL' in results['signature_analysis'], 'no valid binwalk signature analysis')
 
     def test_entropy_graph(self):
-        test_file = FileObject(file_path='{}/container/test.zip'.format(get_test_data_dir()))
+        test_file = FileObject(file_path=f'{get_test_data_dir()}/container/test.zip')
         processed_file = self.analysis_plugin.process_object(test_file)
         results = processed_file.processed_analysis[self.PLUGIN_NAME]
         self.assertGreater(len(results['entropy_analysis_graph']), 0, 'no binwalk entropy graph found')

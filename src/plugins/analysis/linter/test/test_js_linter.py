@@ -1,14 +1,7 @@
 from pathlib import Path
 from subprocess import CompletedProcess
 
-import pytest
-
-from ..internal.js_linter import JavaScriptLinter
-
-
-@pytest.fixture(scope='function')
-def stub_linter():
-    return JavaScriptLinter()
+from ..internal.linters import run_eslint
 
 
 def run_docker_container_stub(*_, **__):
@@ -40,9 +33,9 @@ def run_docker_container_stub(*_, **__):
     return CompletedProcess(args=None, returncode=1, stdout=stdout, stderr=None)
 
 
-def test_do_analysis(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.js_linter.run_docker_container', run_docker_container_stub)
-    result = stub_linter.do_analysis('test_file_path.js')
+def test_do_analysis(monkeypatch):
+    monkeypatch.setattr('plugins.analysis.linter.internal.linters.run_docker_container', run_docker_container_stub)
+    result = run_eslint('test_file_path.js')
     assert result
     assert len(result) == 1
     assert result[0] == {
@@ -53,8 +46,8 @@ def test_do_analysis(stub_linter, monkeypatch):
     }
 
 
-def test_do_analysis_with_docker(stub_linter):
+def test_do_analysis_with_docker():
     hello_world_js = Path(__file__).parent / 'data/hello_world.js'
-    issues = stub_linter.do_analysis(hello_world_js)
+    issues = run_eslint(hello_world_js)
     # We mostly don't care about the output we just want no exceptions
     assert len(issues) != 0

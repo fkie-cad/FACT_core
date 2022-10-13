@@ -9,13 +9,35 @@ from flask_security import hash_password
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 
-from config.ascii import FACT_ASCII_ART
 from helperFunctions.config import get_config_dir, load_config
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
-from web_interface.frontend_main import WebFrontEnd
+from web_interface.app import create_app
+from web_interface.security.authentication import add_flask_security_to_app
 from web_interface.security.privileges import ROLES
 from web_interface.security.terminal_validators import ActionValidator, ActionValidatorReverse
+
+
+FACT_ASCII_ART = '''
+                                                      ***********.
+                                                   *******************.
+   *****************  ***********************   ********'       .********   *********************.
+  *****************  ***********************  .******                ***      *********************
+ *****              *****             *****  *****'                                   '****
+.****              *****             *****  *****                                      *****
+****'              ****              ****  .****                                        ****
+****              *****             *****  ****                                         *****
+**********        ***********************  ****                                          ****
+**********        ***********************  ****                                          ****
+****              *****             *****  ****.                                        *****
+****.              ****              ****  '****                                        ****
+ ****              *****             *****  *****                                      *****
+ *****              *****             *****  ******                                   *****
+  *****              *****             *****  '******               .***             *****
+   ******             *****             *****   *********       .********           *****
+                                                   *******************
+                                                      ***********'
+'''
 
 
 def setup_argparse():
@@ -178,7 +200,7 @@ def initialise_roles(app, interface, db):
                 db.session.commit()
 
 
-def prompt_loop(app, store, db, session):
+def prompt_loop(app, store, db, session):  # pylint: disable=too-complex
     print(FACT_ASCII_ART)
     print('\nWelcome to the FACT User Management (FACTUM)\n')
     initialise_roles(app, store, db)
@@ -216,12 +238,11 @@ def start_user_management(app, store, db, session):
 
 def main():
     args = setup_argparse()
+    config = load_config(Path(args.config_file).name)
+    app = create_app(config)
+    user_db, user_datastore = add_flask_security_to_app(app)
 
-    file_name = Path(args.config_file).name
-    config = load_config(file_name)
-    frontend = WebFrontEnd(config)
-
-    start_user_management(frontend.app, frontend.user_datastore, frontend.user_db, PromptSession())
+    start_user_management(app, user_datastore, user_db, PromptSession())
 
     return 0
 

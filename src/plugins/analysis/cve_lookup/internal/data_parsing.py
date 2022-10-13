@@ -18,7 +18,7 @@ except (ImportError, SystemError):
     from helper_functions import CveEntry, CveLookupException, CveSummaryEntry
 
 CPE_FILE = 'official-cpe-dictionary_v2.3.xml'
-CPE_URL = 'https://nvd.nist.gov/feeds/xml/cpe/dictionary/{}.zip'.format(CPE_FILE)
+CPE_URL = f'https://nvd.nist.gov/feeds/xml/cpe/dictionary/{CPE_FILE}.zip'
 CVE_URL = 'https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-{}.json.zip'
 
 

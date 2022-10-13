@@ -62,16 +62,16 @@ def main():
     parser.set_defaults(func=lambda _: parser.print_usage())
     subparsers = parser.add_subparsers()
 
-    upgrade_p = subparsers.add_parser('upgrade', help='Upgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    upgrade_p.set_defaults(func=upgrade)
+    upgrade_process = subparsers.add_parser('upgrade', help='Upgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    upgrade_process.set_defaults(func=upgrade)
 
-    downgrade_p = subparsers.add_parser('downgrade', help='Downgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    downgrade_p.set_defaults(func=downgrade)
+    downgrade_process = subparsers.add_parser('downgrade', help='Downgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    downgrade_process.set_defaults(func=downgrade)
     args = parser.parse_args()
 
     config = load_config('main.cfg')
 
-    db_path = config['data_storage']['user_database'][len('sqlite:///'):]
+    db_path = config['data-storage']['user-database'][len('sqlite:///'):]
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()

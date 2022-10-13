@@ -1,9 +1,9 @@
 import logging
-import os
+from typing import Optional
 
-from flask import Flask
-
+from intercom.front_end_binding import InterComFrontEndBinding
 from version import __VERSION__
+from web_interface.app import create_app
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
 from web_interface.components.compare_routes import CompareRoutes
@@ -14,35 +14,36 @@ from web_interface.components.miscellaneous_routes import MiscellaneousRoutes
 from web_interface.components.plugin_routes import PluginRoutes
 from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.components.user_management_routes import UserManagementRoutes
+from web_interface.frontend_database import FrontendDatabase
 from web_interface.rest.rest_base import RestBase
-from web_interface.security.authentication import add_config_from_configparser_to_app, add_flask_security_to_app
+from web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd:
-    def __init__(self, config=None):
+    def __init__(self, config=None, db: Optional[FrontendDatabase] = None, intercom=None):
         self.config = config
         self.program_version = __VERSION__
+
+        self.intercom = InterComFrontEndBinding if intercom is None else intercom
+        self.db = FrontendDatabase(config) if db is None else db
 
         self._setup_app()
         logging.info('Web front end online')
 
     def _setup_app(self):
-        self.app = Flask(__name__)
-        self.app.config.from_object(__name__)
-
-        self.app.config['SECRET_KEY'] = os.urandom(24)
-        add_config_from_configparser_to_app(self.app, self.config)
+        self.app = create_app(self.config)
         self.user_db, self.user_datastore = add_flask_security_to_app(self.app)
+        base_args = dict(app=self.app, config=self.config, db=self.db, intercom=self.intercom)
 
-        AjaxRoutes(self.app, self.config)
-        AnalysisRoutes(self.app, self.config)
-        CompareRoutes(self.app, self.config)
-        DatabaseRoutes(self.app, self.config)
-        IORoutes(self.app, self.config)
-        MiscellaneousRoutes(self.app, self.config)
-        StatisticRoutes(self.app, self.config)
-        UserManagementRoutes(self.app, self.config, user_db=self.user_db, user_db_interface=self.user_datastore)
+        AjaxRoutes(**base_args)
+        AnalysisRoutes(**base_args)
+        CompareRoutes(**base_args)
+        DatabaseRoutes(**base_args)
+        IORoutes(**base_args)
+        MiscellaneousRoutes(**base_args)
+        StatisticRoutes(**base_args)
+        UserManagementRoutes(**base_args, user_db=self.user_db, user_db_interface=self.user_datastore)
 
-        rest_base = RestBase(app=self.app, config=self.config)
-        PluginRoutes(self.app, self.config, api=rest_base.api)
-        FilterClass(self.app, self.program_version, self.config)
+        rest_base = RestBase(**base_args)
+        PluginRoutes(**base_args, api=rest_base.api)
+        FilterClass(self.app, self.program_version, self.config, self.db)

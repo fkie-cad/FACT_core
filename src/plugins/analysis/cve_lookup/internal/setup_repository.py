@@ -91,7 +91,7 @@ def init_cve_summaries_table(summary_list: list, table_name: str):
 
 
 def get_cve_import_content(cve_extraction_path: str, year_selection: list) -> Tuple[list, list]:
-    cve_list, summary_list = list(), list()
+    cve_list, summary_list = [], []
     dp.download_cve(cve_extraction_path, years=year_selection)
     for file in get_cve_json_files(cve_extraction_path):
         cve_data, summary_data = dp.extract_cve(file)
@@ -111,10 +111,6 @@ def get_cve_update_content(cve_extraction_path: str) -> Tuple[list, list]:
 
 def get_cve_json_files(cve_extraction_path: str) -> List[str]:
     return glob(cve_extraction_path + 'nvdcve*.json')
-
-
-def cve_summaries_can_be_imported(extracted_summaries: list) -> bool:
-    return bool(extracted_summaries)
 
 
 def update_cve_repository(cve_extract_path: str):
@@ -278,7 +274,7 @@ def main():
     check_validity_of_arguments(years=years)
     extraction_path = args.extraction_path
     if not extraction_path.endswith('/'):
-        extraction_path = '{}/'.format(extraction_path)
+        extraction_path = f'{extraction_path}/'
 
     try:
         if args.update:

@@ -22,4 +22,4 @@ def test_build_pdf_report():
     pdf_path = build_pdf_report(TEST_FW, docker_mount_base_dir)
 
     assert get_file_type_from_binary(pdf_path.read_bytes())['mime'] == 'application/pdf'
-    assert pdf_path.name == '{}_analysis_report.pdf'.format(TEST_FW.device_name.replace(' ', '_'))
+    assert pdf_path.name == f"{TEST_FW.device_name.replace(' ', '_')}_analysis_report.pdf"

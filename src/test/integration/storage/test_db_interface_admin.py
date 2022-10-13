@@ -1,129 +1,92 @@
-# pylint: disable=protected-access
-import gc
-import os
-import unittest
-from shutil import copyfile
-from tempfile import TemporaryDirectory
-
-from intercom.common_mongo_binding import InterComListener
-from storage.db_interface_admin import AdminDbInterface
-from storage.db_interface_backend import BackEndDbInterface
-from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
-
-TESTS_DIR = get_test_data_dir()
-TEST_FILE_ORIGINAL = os.path.join(TESTS_DIR, 'get_files_test/testfile1')
-TEST_FILE_COPY = os.path.join(TESTS_DIR, 'get_files_test/testfile_copy')
-TEST_FIRMWARE_ORIGINAL = os.path.join(TESTS_DIR, 'container/test.zip')
-TEST_FIRMWARE_COPY = os.path.join(TESTS_DIR, 'container/test_copy.zip')
-TMP_DIR = TemporaryDirectory(prefix='fact_test_')
+from ...common_helper import create_test_firmware
+from .helper import TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child
 
 
-class TestStorageDbInterfaceAdmin(unittest.TestCase):
+def test_delete_fo(db):
+    assert db.common.exists(TEST_FW.uid) is False
+    db.backend.insert_object(TEST_FW)
+    assert db.common.exists(TEST_FW.uid) is True
+    db.admin.delete_object(TEST_FW.uid)
+    assert db.common.exists(TEST_FW.uid) is False
 
-    @classmethod
-    def setUpClass(cls):
-        cls.config = get_config_for_testing(TMP_DIR)
-        cls.config.set('data_storage', 'sanitize_database', 'tmp_sanitize')
-        cls.config.set('data_storage', 'report_threshold', '32')
-        cls.mongo_server = MongoMgr(config=cls.config)
 
-    def setUp(self):
-        self.admin_interface = AdminDbInterface(config=self.config)
-        self.db_backend_interface = BackEndDbInterface(config=self.config)
-        copyfile(TEST_FIRMWARE_ORIGINAL, TEST_FIRMWARE_COPY)
-        self.test_firmware = create_test_firmware(bin_path='container/test_copy.zip')
-        self.uid = self.test_firmware.uid
-        self.test_firmware.virtual_file_path = {self.uid: ['|{}|'.format(self.test_firmware.uid)]}
-        copyfile(TEST_FILE_ORIGINAL, TEST_FILE_COPY)
-        self.child_fo = create_test_file_object(TEST_FILE_COPY)
-        self.child_fo.virtual_file_path = {self.uid: ['|{}|/folder/{}'.format(self.uid, self.child_fo.file_name)]}
-        self.test_firmware.files_included = [self.child_fo.uid]
-        self.child_uid = self.child_fo.uid
+def test_delete_cascade(db):
+    fo, fw = create_fw_with_child_fo()
+    assert db.common.exists(fo.uid) is False
+    assert db.common.exists(fw.uid) is False
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
+    assert db.common.exists(fo.uid) is True
+    assert db.common.exists(fw.uid) is True
+    db.admin.delete_object(fw.uid)
+    assert db.common.exists(fw.uid) is False
+    assert db.common.exists(fo.uid) is False, 'deletion should be cascaded to child objects'
 
-    def tearDown(self):
-        self.admin_interface.client.drop_database(self.config.get('data_storage', 'main_database'))
-        self.admin_interface.client.drop_database(self.config.get('data_storage', 'sanitize_database'))
-        self.admin_interface.shutdown()
-        self.db_backend_interface.shutdown()
-        gc.collect()
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.mongo_server.shutdown()
-        for test_file in [TEST_FILE_COPY, TEST_FIRMWARE_COPY]:
-            if os.path.isfile(test_file):
-                os.remove(test_file)
-        TMP_DIR.cleanup()
+def test_remove_vp_no_other_fw(db):
+    fo, fw = create_fw_with_child_fo()
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
 
-    def test_remove_object_field(self):
-        self.db_backend_interface.add_file_object(self.child_fo)
-        self.assertIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
-        self.admin_interface.remove_object_field(self.child_uid, 'virtual_file_path.{}'.format(self.uid))
-        self.assertNotIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
+    with db.admin.get_read_write_session() as session:
+        removed_vps, deleted_uids = db.admin._remove_virtual_path_entries(fw.uid, fo.uid, session)  # pylint: disable=protected-access
 
-    def test_remove_virtual_path_entries_no_other_roots(self):
-        self.db_backend_interface.add_file_object(self.child_fo)
-        self.assertIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
-        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.uid)
-        self.assertIsNone(self.db_backend_interface.file_objects.find_one(self.child_uid))
-        self.assertEqual(removed_vps, 0)
-        self.assertEqual(deleted_files, 1)
+    assert removed_vps == 0
+    assert deleted_uids == {fo.uid}
 
-    def test_remove_virtual_path_entries_other_roots(self):
-        self.child_fo.virtual_file_path.update({'someuid': ['|someuid|/some/virtual/path']})
-        self.db_backend_interface.add_file_object(self.child_fo)
-        self.assertIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
-        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.uid)
-        self.assertNotIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
-        self.assertEqual(removed_vps, 1)
-        self.assertEqual(deleted_files, 0)
 
-    def test_delete_swapped_analysis_entries(self):
-        self.test_firmware.processed_analysis = {'test_plugin': {'result': 10000000000, 'misc': 'delete_swap_test'}}
-        self.db_backend_interface.add_firmware(self.test_firmware)
-        self.admin_interface.client.drop_database(self.config.get('data_storage', 'sanitize_database'))
-        self.admin_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.uid)
-        self.assertIn('test_plugin_result_{}'.format(self.test_firmware.uid), self.admin_interface.sanitize_fs.list())
-        self.admin_interface._delete_swapped_analysis_entries(self.admin_interface.firmwares.find_one(self.uid))
-        self.assertNotIn('test_plugin_result_{}'.format(self.test_firmware.uid), self.admin_interface.sanitize_fs.list())
+def test_remove_vp_other_fw(db):
+    fo, fw = create_fw_with_child_fo()
+    fo.virtual_file_path.update({'some_other_fw_uid': ['some_vfp']})
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
 
-    def test_delete_file_object(self):
-        self.db_backend_interface.add_file_object(self.child_fo)
-        db_entry = self.db_backend_interface.file_objects.find_one(self.child_fo.uid)
-        self.assertIsNotNone(db_entry)
-        self.admin_interface._delete_file_object(db_entry)
-        self.assertIsNone(self.db_backend_interface.file_objects.find_one(self.child_fo.uid), 'file not deleted from db')
-        delete_tasks = self._get_delete_tasks()
-        self.assertIn(self.child_fo.uid, delete_tasks, 'file not found in delete tasks')
+    with db.admin.get_read_write_session() as session:
+        removed_vps, deleted_files = db.admin._remove_virtual_path_entries(fw.uid, fo.uid, session)  # pylint: disable=protected-access
+    fo_entry = db.common.get_object(fo.uid)
 
-    def test_delete_firmware(self):
-        self.db_backend_interface.add_firmware(self.test_firmware)
-        self.db_backend_interface.add_file_object(self.child_fo)
-        self.assertIsNotNone(self.db_backend_interface.firmwares.find_one(self.uid))
-        self.assertIsNotNone(self.db_backend_interface.file_objects.find_one(self.child_uid))
-        self.assertTrue(os.path.isfile(self.test_firmware.file_path))
-        self.assertTrue(os.path.isfile(self.child_fo.file_path))
-        removed_vps, deleted_files = self.admin_interface.delete_firmware(self.uid)
-        self.assertIsNone(self.db_backend_interface.firmwares.find_one(self.uid), 'firmware not deleted from db')
-        self.assertIsNone(self.db_backend_interface.file_objects.find_one(self.child_uid), 'child not deleted from db')
-        self.assertEqual(removed_vps, 0)
-        self.assertEqual(deleted_files, 2, 'number of removed files not correct')
+    assert fo_entry is not None
+    assert removed_vps == 1
+    assert deleted_files == set()
+    assert fw.uid not in fo_entry.virtual_file_path
 
-        # check if file delete tasks were created
-        delete_tasks = self._get_delete_tasks()
-        self.assertIn(self.test_firmware.uid, delete_tasks, 'fw delete task not found')
-        self.assertIn(self.child_fo.uid, delete_tasks, 'child delete task not found')
-        self.assertEqual(len(delete_tasks), 2, 'number of delete tasks not correct')
 
-    def _get_delete_tasks(self):
-        intercom = InterComListener(config=self.config)
-        intercom.CONNECTION_TYPE = 'file_delete_task'
-        delete_tasks = []
-        while True:
-            tmp = intercom.get_next_task()
-            if tmp is None:
-                break
-            delete_tasks.append(tmp['_id'])
-        intercom.shutdown()
-        return delete_tasks
+def test_delete_firmware(db):
+    fw, parent, child = create_fw_with_parent_and_child()
+    db.backend.insert_object(fw)
+    db.backend.insert_object(parent)
+    db.backend.insert_object(child)
+
+    removed_vps, deleted_files = db.admin.delete_firmware(fw.uid)
+
+    assert removed_vps == 0
+    assert deleted_files == 3
+    assert child.uid in db.admin.intercom.deleted_files
+    assert parent.uid in db.admin.intercom.deleted_files
+    assert fw.uid in db.admin.intercom.deleted_files
+    assert db.common.exists(fw.uid) is False
+    assert db.common.exists(parent.uid) is False, 'should have been deleted by cascade'
+    assert db.common.exists(child.uid) is False, 'should have been deleted by cascade'
+
+
+def test_delete_but_fo_is_in_fw(db):
+    fo, fw = create_fw_with_child_fo()
+    fw2 = create_test_firmware()
+    fw2.uid = 'fw2_uid'
+    fo.parents.append(fw2.uid)
+    fo.virtual_file_path.update({fw2.uid: [f'|{fw2.uid}|/some/path']})
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fw2)
+    db.backend.insert_object(fo)
+
+    removed_vps, deleted_files = db.admin.delete_firmware(fw.uid)
+
+    assert removed_vps == 1
+    assert deleted_files == 1
+    assert fo.uid not in db.admin.intercom.deleted_files
+    fo_entry = db.common.get_object(fo.uid)
+    assert fw.uid not in fo_entry.virtual_file_path
+    assert fw2.uid in fo_entry.virtual_file_path
+    assert fw.uid in db.admin.intercom.deleted_files
+    assert db.common.exists(fw.uid) is False
+    assert db.common.exists(fo.uid) is True, 'should have been spared by cascade delete because it is in another FW'

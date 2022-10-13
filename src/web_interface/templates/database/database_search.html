@@ -2,36 +2,46 @@
 
 {% set active_page = "Database" %}
 
+{% block head %}
+	{# bootstrap-select import #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='web_css/bootstrap-select.min.css') }}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/bootstrap-select.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/loading.js') }}"></script>
+    <script>
+        $(window).bind("pageshow", function(event) {
+          // if we come back to the page make sure that the loading gif is not covering up the form
+          hideImg();
+        });
+    </script>
+{% endblock %}
+
+
 {% block body %}
-
-
 <div class="row justify-content-center">
 
     <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
         <h3 class="mb-3">Search Firmware Database</h3>
-        <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+        <form class="form-horizontal" action="" method=post enctype=multipart/form-data id="form">
 
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                <label class="control-label" for="device_class">Device Class:</label>
-                <select class="form-control" name='device_class_dropdown' id="device_class">
-                    <option value=''></option>
-                    {% for class in device_classes | sort %}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label class="control-label" for="device_class">Device Class:</label>
+                    <select class="selectpicker" name='device_class' id="device_class" multiple>
+                        {% for class in device_classes | sort %}
                         <option value='{{ class }}'>{{ class }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <div class="form-group col-md-6">
-                <label class="control-label" for="device_class">Vendor:</label>
-                <select class="form-control" name='vendor' id="vendor">
-                    <option value=''></option>
-                    {% for vendor in vendors | sort %}
+                <div class="form-group col-md-6">
+                    <label class="control-label" for="vendor">Vendor:</label>
+                    <select class="selectpicker" name='vendor' id="vendor" multiple>
+                        {% for vendor in vendors | sort %}
                         <option value='{{ vendor }}'>{{ vendor }}</option>
-                    {% endfor %}
-                </select>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-        </div>
 
             {% set input_form_text = [
                 ("File Name", "file_name"),
@@ -47,11 +57,23 @@
             </div>
             {% endfor %}
 
-            <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick='showImg()'>
+            <div class="form-group">
+                <label class="control-label" for="tags">Tags:</label>
+                <select class="selectpicker" name='tags' id="tags" multiple>
+                    {% for tag in tag_list | sort %}
+                    <option value='{{ tag }}'>{{ tag }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
+            <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick="showImg()">
                 <i class="fas fa-search"></i> Search
             </button>
 
         </form>
+
+        <img id="loading_img" src="{{ url_for('.static', filename='Pacman.gif') }}" style="display: none; margin: auto;"/>
     </div>
 </div>
 

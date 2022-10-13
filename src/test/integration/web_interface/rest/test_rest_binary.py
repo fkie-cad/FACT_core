@@ -1,10 +1,9 @@
-# pylint: disable=attribute-defined-outside-init
-
+# pylint: disable=attribute-defined-outside-init,unused-argument,wrong-import-order
 from base64 import standard_b64encode
 from multiprocessing import Queue
 
 from intercom.back_end_binding import InterComBackEndBinding
-from storage.db_interface_backend import BackEndDbInterface
+from storage.db_interface_backend import BackendDbInterface
 from test.common_helper import create_test_firmware, store_binary_on_file_system
 from test.integration.intercom import test_backend_scheduler
 from test.integration.web_interface.rest.base import RestTestBase
@@ -14,15 +13,13 @@ class TestRestDownload(RestTestBase):
 
     def setup(self):
         super().setup()
-        self.db_interface = BackEndDbInterface(self.config)
+        self.db_interface = BackendDbInterface(self.config)
         self.test_queue = Queue()
 
     def teardown(self):
         self.test_queue.close()
-        self.db_interface.shutdown()
-        super().teardown()
 
-    def test_rest_download_valid(self):
+    def test_rest_download_valid(self, db):
         backend_binding = InterComBackEndBinding(
             config=self.config,
             analysis_service=test_backend_scheduler.AnalysisServiceMock(),
@@ -31,18 +28,18 @@ class TestRestDownload(RestTestBase):
         )
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         store_binary_on_file_system(self.tmp_dir.name, test_firmware)
-        self.db_interface.add_firmware(test_firmware)
+        self.db_interface.add_object(test_firmware)
 
         try:
-            rv = self.test_client.get('/rest/binary/{}'.format(test_firmware.uid), follow_redirects=True)
+            response = self.test_client.get(f'/rest/binary/{test_firmware.uid}', follow_redirects=True).data.decode()
         finally:
             backend_binding.shutdown()
 
-        assert standard_b64encode(test_firmware.binary) in rv.data
-        assert '"file_name": "{}"'.format(test_firmware.file_name).encode() in rv.data
-        assert '"SHA256": "{}"'.format(test_firmware.sha256).encode() in rv.data
+        assert standard_b64encode(test_firmware.binary).decode() in response
+        assert f'"file_name": "{test_firmware.file_name}"' in response
+        assert f'"SHA256": "{test_firmware.sha256}"' in response
 
-    def test_rest_download_invalid_uid(self):
+    def test_rest_download_invalid_uid(self, db):
         rv = self.test_client.get('/rest/binary/not%20existing%20uid', follow_redirects=True)
 
         assert b'No firmware with UID not existing uid found in database' in rv.data

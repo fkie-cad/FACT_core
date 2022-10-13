@@ -14,6 +14,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_BLACKLIST = MIME_BLACKLIST_COMPRESSED
     DESCRIPTION = 'extracts strings and their offsets from the files consisting of printable characters'
     VERSION = '0.3.4'
+    FILE = __file__
 
     STRING_REGEXES = [
         (b'[\x09-\x0d\x20-\x7e]{$len,}', 'utf-8'),
@@ -21,14 +22,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
     FALLBACK_MIN_LENGTH = '8'
 
-    def __init__(self, plugin_administrator, config=None, recursive=True, plugin_path=__file__):
-        '''
-        recursive flag: If True recursively analyze included files
-        default flags should be edited above. Otherwise the scheduler cannot overwrite them.
-        '''
-        self.config = config
+    def additional_setup(self):
         self.regexes = self._compile_regexes()
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
     def _compile_regexes(self) -> List[Tuple[Pattern[bytes], str]]:
         min_length = self._get_min_length_from_config()
@@ -39,7 +34,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_min_length_from_config(self):
         try:
-            min_length = self.config[self.NAME]['min_length']
+            min_length = self.config[self.NAME]['min-length']
         except KeyError:
             min_length = self.FALLBACK_MIN_LENGTH
         return min_length

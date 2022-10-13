@@ -64,7 +64,7 @@
                 {% if not firmware.files_included %}
                     {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', danger=False, disabled=True) }}
                 {% else %}
-                    {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', 'window.location.href = \'/dependency-graph/' + firmware.uid + '/' + root_uid + '\'') }}
+                    {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', "window.location.href='/dependency-graph/{}/{}'".format(firmware.uid, root_uid)) }}
                 {% endif %}
                 {% if firmware.vendor %}
                     {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
@@ -111,7 +111,7 @@
             <h3>
                 {{ firmware.get_hid(root_uid=root_uid) }}<br />
                 {% if firmware.analysis_tags or firmware.tags %}
-                    {{ firmware.analysis_tags | render_analysis_tags | safe }} {{ firmware.tags | render_tags | safe }}<br />
+                    {{ firmware.analysis_tags | render_analysis_tags | safe }}{{ firmware.tags | render_fw_tags | safe }}<br />
                 {% endif %}
                 <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
             </h3>
@@ -305,7 +305,6 @@
                     </div>
                     <script>
                         const selected_analysis = "{{ selected_analysis }}";
-                        const loading_gif = document.getElementById("loading-summary-gif");
                     </script>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_summary.js') }}"></script>
                     

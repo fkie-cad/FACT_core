@@ -2,6 +2,7 @@
 import os
 from base64 import b64decode, b64encode
 from pathlib import Path
+from subprocess import CompletedProcess
 from unittest import TestCase
 
 import pytest
@@ -9,12 +10,14 @@ from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
-from test.common_helper import TEST_FW, create_test_firmware, get_config_for_testing, get_test_data_dir
+from test.common_helper import (
+    TEST_FW, CommonDatabaseMock, create_test_firmware, get_config_for_testing, get_test_data_dir
+)
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code import qemu_exec
-from ..code.qemu_exec import EXECUTABLE
+from ..code.qemu_exec import EXECUTABLE, AnalysisPlugin
 
 TEST_DATA_DIR = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir'
 TEST_DATA_DIR_2 = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir_2'
@@ -46,9 +49,7 @@ class MockUnpacker:
 
 @pytest.fixture
 def execute_shell_fails(monkeypatch):
-    def mock_execute_shell(*_, **__):
-        return '', 1
-    monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', mock_execute_shell)
+    monkeypatch.setattr(qemu_exec, 'subprocess.run', CompletedProcess('DONT_CARE', 1))
 
 
 class ContainerMock:
@@ -82,18 +83,16 @@ class DockerClientMock:
 
 @pytest.fixture
 def execute_docker_error(monkeypatch):
-    monkeypatch.setattr('docker.client.from_env', lambda: DockerClientMock())
+    monkeypatch.setattr('docker.client.from_env', DockerClientMock)
 
 
 class TestPluginQemuExec(AnalysisPluginTest):
 
     PLUGIN_NAME = 'qemu_exec'
+    PLUGIN_CLASS = AnalysisPlugin
 
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.mock_unpacker = MockUnpacker()
-        self.analysis_plugin = qemu_exec.AnalysisPlugin(self, config=config, unpacker=self.mock_unpacker)
+    def setup_plugin(self):
+        return AnalysisPlugin(self, config=self.config, unpacker=MockUnpacker(), view_updater=CommonDatabaseMock())
 
     def test_has_relevant_type(self):
         assert self.analysis_plugin._has_relevant_type(None) is False
@@ -154,7 +153,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert test_uid in result['files']
         assert result['files'][test_uid]['executable'] is True
 
-    @pytest.mark.timeout(10)
+    @pytest.mark.timeout(15)
     def test_process_object(self):
         self.analysis_plugin.OPTIONS = ['-h']
         test_fw = self._set_up_fw_for_process_object()
@@ -410,8 +409,8 @@ def test_process_strace_output():
     input_data = {'strace': {'stdout': 'foobar'}}
     qemu_exec.process_strace_output(input_data)
     result = input_data['strace']
-    assert isinstance(result, bytes)
-    assert result[:2].hex() == '789c'  # magic string for zlib compressed data
+    assert isinstance(result, str)
+    assert b64decode(result)[:2].hex() == '789c'  # magic string for zlib compressed data
 
 
 class TestQemuExecUnpacker(TestCase):
@@ -420,7 +419,7 @@ class TestQemuExecUnpacker(TestCase):
         self.name_prefix = 'FACT_plugin_qemu'
         self.config = get_config_for_testing()
         self.unpacker = qemu_exec.Unpacker(config=self.config)
-        qemu_exec.BinaryServiceDbInterface = MockBinaryService
+        qemu_exec.FSOrganizer = MockFSOrganizer
 
     def test_unpack_fo(self):
         test_fw = create_test_firmware()
@@ -465,14 +464,12 @@ class TestQemuExecUnpacker(TestCase):
         assert tmp_dir is None
 
 
-class MockBinaryService:
+class MockFSOrganizer:
     def __init__(self, config=None):
         self.config = config
 
-    def get_file_name_and_path(self, uid):
-        if uid != 'foo':
-            return {'file_path': os.path.join(get_test_data_dir(), 'container/test.zip')}
+    @staticmethod
+    def generate_path(fo):
+        if fo.uid != 'foo':
+            return os.path.join(get_test_data_dir(), 'container/test.zip')
         return None
-
-    def shutdown(self):
-        pass

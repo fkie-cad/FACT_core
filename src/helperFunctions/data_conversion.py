@@ -1,5 +1,4 @@
-from datetime import datetime
-from pickle import dumps
+import datetime
 from typing import Any, AnyStr, Dict, Iterable, List, Optional, TypeVar, Union
 
 _KT = TypeVar('_KT')  # Key type
@@ -29,16 +28,6 @@ def make_unicode_string(code: Any) -> str:
     if isinstance(code, bytes):
         return code.decode(errors='replace')
     return code.__str__()
-
-
-def get_dict_size(dict_object: dict) -> int:
-    '''
-    Get the size of a dict, measured as length of the pickled dict.
-
-    :param dict_object: The dict to calculate the size of.
-    :return: The size.
-    '''
-    return len(dumps(dict_object))
 
 
 def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
@@ -93,30 +82,31 @@ def none_to_none(input_data: Optional[str]) -> Optional[str]:
     return None if input_data == 'None' else input_data
 
 
-def convert_str_to_time(string):
-    '''
-    Firmware release dates are entered in the form 'YYYY-MM-DD' and need to be converted to MongoDB date objects
-    in order to be stored in the database.
-
-    :param string: date string of the form 'YYYY-MM-DD'
-    :return: datetime object (compatible with pymongo)
-    '''
-    try:
-        return datetime.strptime(string, '%Y-%m-%d')
-    except ValueError:
-        return datetime.fromtimestamp(0)
-
-
 def convert_time_to_str(time_obj: Any) -> str:
     '''
-    Convert a time object to a string. The time object may be a datetime object or a string. If it is anything else,
+    Convert a time object to a string. The time object may be a datetime.date object or a string. If it is anything else,
     the output defaults to `"1970-01-01"`.
 
     :param time_obj: The time object, that is converted to string.
     :return: The converted time object as string or a default date (if the conversion fails).
     '''
-    if isinstance(time_obj, datetime):
+    if isinstance(time_obj, datetime.date):
         return time_obj.strftime('%Y-%m-%d')
     if isinstance(time_obj, str):
         return time_obj
     return '1970-01-01'
+
+
+def convert_str_to_bool(string: str) -> bool:
+    '''
+    Convert a string to a boolean, e.g. `"0"` to `False` or `"Y"` to `True`.
+    Replaces `distutils.util.strtobool` which was deprecated in Python 3.10.
+    '''
+    if not isinstance(string, str):
+        raise ValueError(f'Expected type str and not {type(string)}')
+    lower: str = string.lower()
+    if lower in ('1', 'true', 't', 'yes', 'y'):
+        return True
+    if lower in ('0', 'false', 'f', 'no', 'n'):
+        return False
+    raise ValueError(f'Value {string} can not be converted to boolean')

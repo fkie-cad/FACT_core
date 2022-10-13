@@ -7,9 +7,7 @@ from ..code.file_header import ComparePlugin, replace_none_ascii_with_dots
 
 class TestComparePluginFileHeader(ComparePluginTest):
     PLUGIN_NAME = 'File_Header'
-
-    def setup_plugin(self):
-        return ComparePlugin(self, config=self.config, plugin_path=None)
+    PLUGIN_CLASS = ComparePlugin
 
     def test_compare(self):
         result = self.c_plugin.compare_function([self.fw_one, self.fw_two, self.fw_three])

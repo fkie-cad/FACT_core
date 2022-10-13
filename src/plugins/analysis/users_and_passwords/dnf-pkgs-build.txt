@@ -1,9 +1,0 @@
-bzip2-devel
-gcc
-git
-gmp-devel
-libpcap-devel
-lshw
-make
-openssl-devel
-yasm

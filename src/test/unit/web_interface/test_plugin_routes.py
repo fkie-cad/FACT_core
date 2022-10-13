@@ -1,26 +1,29 @@
+# pylint: disable=no-self-use,protected-access,wrong-import-order,attribute-defined-outside-init
 import os
 from itertools import chain
-from unittest import TestCase
 
 from flask import Flask
 from flask_restx import Api
 
 from helperFunctions.fileSystem import get_src_dir
 from test.common_helper import get_config_for_testing
-from test.unit.web_interface.rest.conftest import decode_response
-from web_interface.components.plugin_routes import PLUGIN_CATEGORIES, PluginRoutes
+from web_interface.components.plugin_routes import (
+    PLUGIN_CATEGORIES, PluginRoutes, _find_plugins, _get_modules_in_path, _module_has_routes
+)
 
 
 class PluginRoutesMock(PluginRoutes):
-    def __init__(self, app, config, api=None):
+    def __init__(self, app, config, db=None, intercom=None, api=None):
         self._app = app
         self._config = config
         self._api = api
+        self.db = db
+        self.intercom = intercom
 
 
-class TestPluginRoutes(TestCase):
+class TestPluginRoutes:
 
-    def setUp(self):
+    def setup(self):
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
         self.api = Api(self.app)
@@ -28,14 +31,13 @@ class TestPluginRoutes(TestCase):
 
     def test_get_modules_in_path(self):
         plugin_dir_path = os.path.join(get_src_dir(), 'plugins')
-        plugin_folder_modules = PluginRoutes._get_modules_in_path(plugin_dir_path)
+        plugin_folder_modules = _get_modules_in_path(plugin_dir_path)
         assert len(plugin_folder_modules) >= 3
         for category in PLUGIN_CATEGORIES:
             assert category in plugin_folder_modules
 
     def test_find_plugins(self):
-        plugin_routes = PluginRoutesMock(self.app, self.config, api=self.api)
-        result = plugin_routes._find_plugins()
+        result = _find_plugins()
         categories, plugins = zip(*result)
         plugins = chain(*plugins)
         assert all(c in categories for c in PLUGIN_CATEGORIES)
@@ -43,9 +45,8 @@ class TestPluginRoutes(TestCase):
         assert 'file_coverage' in plugins
 
     def test_module_has_routes(self):
-        plugin_routes = PluginRoutes(self.app, self.config, api=self.api)
-        assert plugin_routes._module_has_routes('dummy', 'analysis') is True
-        assert plugin_routes._module_has_routes('file_type', 'analysis') is False
+        assert _module_has_routes('dummy', 'analysis') is True
+        assert _module_has_routes('file_type', 'analysis') is False
 
     def test_import_module_routes(self):
         dummy_endpoint = 'plugins/dummy'
@@ -69,7 +70,7 @@ class TestPluginRoutes(TestCase):
         plugin_routes._import_module_routes('dummy', 'analysis')
 
         test_client = self.app.test_client()
-        result = decode_response(test_client.get(dummy_endpoint))
+        result = test_client.get(dummy_endpoint).json
         assert 'dummy' in result
         assert 'rest' in result['dummy']
 

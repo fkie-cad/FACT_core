@@ -1,15 +1,16 @@
+import binascii
 import json
 import logging
 import random
 import re
 import zlib
-from base64 import standard_b64encode
+from base64 import b64decode, standard_b64encode
 from collections import defaultdict
 from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import AnyStr, Dict, List, Match, Optional, Tuple, Union
+from typing import Dict, List, Match, Optional, Tuple, Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -40,9 +41,9 @@ def generic_nice_representation(i):  # pylint: disable=too-many-return-statement
 
 def nice_number_filter(i):
     if isinstance(i, int):
-        return '{:,}'.format(i)
+        return f'{i:,}'
     if isinstance(i, float):
-        return '{:,.2f}'.format(i)
+        return f'{i:,.2f}'
     if i is None:
         return 'not available'
     return i
@@ -52,7 +53,7 @@ def byte_number_filter(i, verbose=False):
     if not isinstance(i, (float, int)):
         return 'not available'
     if verbose:
-        return '{} ({})'.format(human_readable_file_size(i), format(i, ',d') + ' bytes')
+        return f'{human_readable_file_size(i)} ({i:,d} bytes)'
     return human_readable_file_size(i)
 
 
@@ -73,7 +74,7 @@ def list_group(input_data):
     if isinstance(input_data, list):
         http_list = '<ul class="list-group list-group-flush">\n'
         for item in input_data:
-            http_list += '\t<li class="list-group-item">{}</li>\n'.format(_handle_generic_data(item))
+            http_list += f'\t<li class="list-group-item">{_handle_generic_data(item)}</li>\n'
         http_list += '</ul>\n'
         return http_list
     return input_data
@@ -103,7 +104,7 @@ def nice_dict(input_data):
         key_list = list(input_data.keys())
         key_list.sort()
         for item in key_list:
-            tmp += '{}: {}<br />'.format(item, input_data[item])
+            tmp += f'{item}: {input_data[item]}<br />'
         return tmp
     return input_data
 
@@ -123,7 +124,7 @@ def uids_to_link(input_data, root_uid=None):
     tmp = str(input_data)
     uid_list = get_all_uids_in_string(tmp)
     for match in uid_list:
-        tmp = tmp.replace(match, '<a href="/analysis/{0}/ro/{1}">{0}</a>'.format(match, root_uid))
+        tmp = tmp.replace(match, f'<a href="/analysis/{match}/ro/{root_uid}">{match}</a>')
     return tmp
 
 
@@ -195,7 +196,7 @@ def sort_chart_list_by_name(input_data):
     try:
         input_data.sort(key=lambda x: x[0])
     except (AttributeError, IndexError, KeyError, TypeError):
-        logging.error('Could not sort chart list {}'.format(input_data), exc_info=True)
+        logging.exception(f'Could not sort chart list {input_data}')
         return []
     return input_data
 
@@ -204,7 +205,7 @@ def sort_chart_list_by_value(input_data):
     try:
         input_data.sort(key=lambda x: x[1], reverse=True)
     except (AttributeError, IndexError, KeyError, TypeError):
-        logging.error('Could not sort chart list {}'.format(input_data), exc_info=True)
+        logging.exception(f'Could not sort chart list {input_data}')
         return []
     return input_data
 
@@ -213,7 +214,7 @@ def sort_comments(comment_list):
     try:
         comment_list.sort(key=itemgetter('time'), reverse=True)
     except (AttributeError, KeyError, TypeError):
-        logging.error('Could not sort comment list {}'.format(comment_list), exc_info=True)
+        logging.exception(f'Could not sort comment list {comment_list}')
         return []
     return comment_list
 
@@ -259,16 +260,15 @@ def comment_out_regex_meta_chars(input_data):
     meta_chars = ['^', '$', '.', '[', ']', '|', '(', ')', '?', '*', '+', '{', '}']
     for char in meta_chars:
         if char in input_data:
-            input_data = input_data.replace(char, '\\{}'.format(char))
+            input_data = input_data.replace(char, f'\\{char}')
     return input_data
 
 
-def render_tags(tag_dict, additional_class='', size=14):
+def render_fw_tags(tag_dict, size=14):
     output = ''
     if tag_dict:
-        for tag in sorted(tag_dict.keys()):
-            output += '<span class="badge badge-{} {}" style="font-size: {}px;">{}</span>\n'.format(
-                _fix_color_class(tag_dict[tag]), additional_class, size, tag)
+        for tag, color in sorted(tag_dict.items()):
+            output += render_template('generic_view/tags.html', color=color, value=tag, size=size)
     return output
 
 
@@ -277,14 +277,14 @@ def render_analysis_tags(tags, size=14):
     if tags:
         for plugin_name in tags:
             for key, tag in tags[plugin_name].items():
-                output += '<span class="badge badge-{}" style="font-size: {}px;" data-toggle="tooltip" title="{}: {}">{}</span>\n'.format(
-                    _fix_color_class(tag['color']), size, replace_underscore_filter(plugin_name), replace_underscore_filter(key), tag['value']
+                if key == 'root_uid':
+                    continue
+                color = tag['color'] if tag['color'] in TagColor.ALL else TagColor.BLUE
+                output += render_template(
+                    'generic_view/tags.html',
+                    color=color, value=tag['value'], tooltip=f'{plugin_name}: {key}', size=size
                 )
     return output
-
-
-def _fix_color_class(tag_color_class):
-    return tag_color_class if tag_color_class in TagColor.ALL else TagColor.BLUE
 
 
 def fix_cwe(string):
@@ -301,6 +301,8 @@ def vulnerability_class(score):
         return 'warning'
     if score == 'low':
         return 'active'
+    if score == 'none':
+        return 'success'
     return None
 
 
@@ -324,19 +326,17 @@ def sort_roles_by_number_of_privileges(roles, privileges=None):
 def filter_format_string_list_with_offset(offset_tuples):  # pylint: disable=invalid-name
     max_offset_len = len(str(max(list(zip(*offset_tuples))[0]))) if offset_tuples else 0
     lines = [
-        '{0: >{width}}: {1}'.format(offset, repr(string)[1:-1], width=max_offset_len)
+        f'{offset: >{max_offset_len}}: {repr(string)[1:-1]}'
         for offset, string in sorted(offset_tuples)
     ]
     return '\n'.join(lines)
 
 
-def decompress(string: AnyStr) -> str:
-    if isinstance(string, bytes):
-        try:
-            return zlib.decompress(string).decode()
-        except zlib.error:
-            return string.decode()
-    return string
+def decompress(string: str) -> str:
+    try:
+        return zlib.decompress(b64decode(string)).decode()
+    except (zlib.error, binascii.Error, TypeError):
+        return string
 
 
 def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
@@ -360,11 +360,11 @@ def random_collapse_id():
 
 def create_firmware_version_links(firmware_list, selected_analysis=None):
     if selected_analysis:
-        template = '<a href="/analysis/{{}}/{}">{{}}</a>'.format(selected_analysis)
+        template = f'<a href="/analysis/{{}}/{selected_analysis}">{{}}</a>'
     else:
         template = '<a href="/analysis/{}">{}</a>'
 
-    return [template.format(firmware['_id'], firmware['version']) for firmware in firmware_list]
+    return [template.format(uid, version) for uid, version in firmware_list]
 
 
 def elapsed_time(start_time: float) -> int:
@@ -410,3 +410,15 @@ def linter_reformat_issues(issues) -> Dict[str, List[Dict[str, str]]]:
         content = {'line': issue['line'], 'column': issue['column'], 'message': issue['message']}
         reformatted[symbol].append(content)
     return reformatted
+
+
+def hide_dts_binary_data(device_tree: str) -> str:
+    # textual device tree data can contain huge chunks of binary data -> hide them from view if they are too large
+    device_tree = re.sub(r'\[[0-9a-f ]{32,}]', '(BINARY DATA ...)', device_tree)
+    return re.sub(r'<(0x[0-9a-f]+ ?){10,}>', '(BINARY DATA ...)', device_tree)
+
+
+def get_searchable_crypto_block(crypto_material: str) -> str:
+    '''crypto material plugin results contain spaces and line breaks -> get a contiguous block without those'''
+    blocks = crypto_material.replace(' ', '').split('\n')
+    return sorted(blocks, key=len, reverse=True)[0]

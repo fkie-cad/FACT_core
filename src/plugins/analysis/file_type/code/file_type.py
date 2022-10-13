@@ -10,18 +10,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'file_type'
     DESCRIPTION = 'identify the file type'
     VERSION = '1.0'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        '''
-        recursive flag: If True recursively analyze included files
-        propagate flag: If True add analysis result of child to parent object
-        default flags should be edited above. Otherwise the scheduler cannot overwrite them.
-        '''
-        self.config = config
-
-        # additional init stuff can go here
-
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+    FILE = __file__
 
     def process_object(self, file_object):
         '''

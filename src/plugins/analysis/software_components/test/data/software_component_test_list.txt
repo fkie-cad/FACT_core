@@ -6,10 +6,12 @@ CUPS v1.4.4
 ChaiVM 7.0
 Contiki/2.4
 EFI Shell Version 1.0
+FRRouting 7.2.1
 FileX ARM9/Green Hills Version G5.1.5.1
 GoAhead-Webs
 Hewlett-Packard FTP Print Server Version 3.0
 InterNiche Portable TCP/IP Demo for Multitasking DOS, v1.8
+KC NetUSB General Driver
 Linux version 2.6.30
 Lua: Lua 5.1.4 Copyright (C) 1994-2008
 LynxOS 3.1
@@ -18,6 +20,8 @@ Micrium OS
 MicroC/OS-II
 MiniUPNP 1.7
 MyTestRule 1.2.3
+NTP daemon program - Ver. 4.2.8p10
+NetUSB module for Linux
 Netgear Smart Wizard 3.0
 OpenSSL 0.9.8
 OpenSSL 1.0.1f
@@ -36,6 +40,7 @@ UPnP/1.0, Portable SDK for UPnP devices/1.3.1
 VxWorks 6.5
 VxWorks5.5.1
 X-Powered-By: PHP/7.3.5
+[v1.10-41.1]
 avahi-0.6.31
 bftpd-V1.00
 cadaver 0.23.3
@@ -59,6 +64,7 @@ libpcap version 1.5.2
 libsqlite3-3.8.11.1.so
 libupnp-1.6.18
 lighttpd-1.4.18
+nc -h for help
 netatalk-2.2.0
 nginx version: nginx/1.13.3
 perl/5.30.0
@@ -69,6 +75,8 @@ redis_version:%s
 ro.build.version.name=Fire OS 5.5.0.3
 samba-3.0.37
 siproxd-0.5.10
+squid/3.5.27
+strongSwan 5.6.2
 telnetd-V1.01
 uC/OS
 udhcp 0.9.7

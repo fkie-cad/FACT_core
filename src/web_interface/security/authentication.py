@@ -1,7 +1,7 @@
 import base64
 import os
 
-from flask_security import AnonymousUser, LoginForm, RoleMixin, Security, UserMixin, uia_username_mapper
+from flask_security import AnonymousUser, LoginForm, RoleMixin, Security, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.local import LocalProxy
 from wtforms import StringField
@@ -9,21 +9,6 @@ from wtforms.validators import DataRequired
 
 from web_interface.security.privileges import PRIVILEGES
 from web_interface.security.user_role_db_interface import UserRoleDbInterface
-
-
-def add_config_from_configparser_to_app(app, config):
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECURITY_PASSWORD_SALT'] = config.get('data_storage', 'password_salt').encode()
-    app.config['SQLALCHEMY_DATABASE_URI'] = config.get('data_storage', 'user_database', fallback='sqlite:///')
-    # FIXME fix redirect loop here
-    app.config['SECURITY_UNAUTHORIZED_VIEW'] = '/login'
-    app.config['LOGIN_DISABLED'] = not config.getboolean('ExpertSettings', 'authentication')
-
-    # As we want to use ONLY usernames and no emails but email is hardcoded in
-    # flask-security we change the validation mapper of 'email'.
-    # Note that from the perspective of flask-security we still use emails.
-    # This means that we do not want to enable SECURITY_USERNAME_ENABLE
-    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [{'email': {'mapper': uia_username_mapper, 'case_insensitive': True}}]
 
 
 def add_flask_security_to_app(app):
@@ -81,7 +66,7 @@ def _build_api_key():
 
 
 def _auth_is_disabled(user):
-    user_object = user._get_current_object() if isinstance(user, LocalProxy) else user
+    user_object = user._get_current_object() if isinstance(user, LocalProxy) else user  # pylint: disable=protected-access
     return isinstance(user_object, AnonymousUser)
 
 

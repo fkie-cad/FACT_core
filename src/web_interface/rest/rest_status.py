@@ -1,8 +1,6 @@
 from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
-from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_statistic import StatisticDbViewer
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -24,11 +22,10 @@ class RestStatus(RestResourceBase):
         '''
         components = ['frontend', 'database', 'backend']
         status = {}
-        with ConnectTo(StatisticDbViewer, self.config) as stats_db:
-            for component in components:
-                status[component] = stats_db.get_statistic(component)
+        for component in components:
+            status[component] = self.db.stats_viewer.get_statistic(component)
 
-        with ConnectTo(InterComFrontEndBinding, self.config) as sc:
+        with ConnectTo(self.intercom, self.config) as sc:
             plugins = sc.get_available_analysis_plugins()
 
         if not any(bool(status[component]) for component in components):

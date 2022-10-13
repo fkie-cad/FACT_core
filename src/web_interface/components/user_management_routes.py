@@ -14,8 +14,8 @@ from web_interface.security.privileges import PRIVILEGES, ROLES
 
 class UserManagementRoutes(ComponentBase):
 
-    def __init__(self, app, config, api=None, user_db=None, user_db_interface=None):
-        super().__init__(app, config, api=api)
+    def __init__(self, user_db=None, user_db_interface=None, **kwargs):
+        super().__init__(**kwargs)
         self._user_db = user_db
         self._user_db_interface = user_db_interface
 
@@ -54,7 +54,7 @@ class UserManagementRoutes(ComponentBase):
             with self.user_db_session('Error while creating user'):
                 self._user_db_interface.create_user(email=name, password=hash_password(password))
                 flash('Successfully created user', 'success')
-                logging.info('Created user: {}'.format(name))
+                logging.info(f'Created user: {name}')
 
     @roles_accepted(*PRIVILEGES['manage_users'])
     @AppRoute('/admin/user/<user_id>', GET)

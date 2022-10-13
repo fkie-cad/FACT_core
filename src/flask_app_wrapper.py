@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2022  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,60 +19,39 @@
 
 import configparser
 import logging
-import os
 import pickle
 import sys
+from pathlib import Path
 
-from common_helper_files import create_dir_for_file
-
+from helperFunctions.program_setup import setup_logging
 from web_interface.frontend_main import WebFrontEnd
 
 
 def _get_console_output_level(debug_flag):
     if debug_flag:
         return logging.DEBUG
-    else:
-        return logging.INFO
-
-
-def _setup_logging(config, debug_flag=False):
-    log_level = getattr(logging, config['Logging']['logLevel'], None)
-    log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    logger = logging.getLogger('')
-    logger.setLevel(logging.DEBUG)
-    create_dir_for_file(config['Logging']['logFile'])
-    file_log = logging.FileHandler(config['Logging']['logFile'])
-    file_log.setLevel(log_level)
-    file_log.setFormatter(log_format)
-    console_log = logging.StreamHandler()
-    console_log.setLevel(_get_console_output_level(debug_flag))
-    console_log.setFormatter(log_format)
-    logger.addHandler(file_log)
-    logger.addHandler(console_log)
+    return logging.INFO
 
 
 def _load_config(args):
     config = configparser.ConfigParser()
     config.read(args.config_file)
     if args.log_file is not None:
-        config['Logging']['logFile'] = args.log_file
+        config['logging']['logfile'] = args.log_file
     if args.log_level is not None:
-        config['Logging']['logLevel'] = args.log_level
+        config['logging']['loglevel'] = args.log_level
     return config
 
 
-def shutdown(*_):
-    web_interface.shutdown()
+def create_web_interface():
+    args_path = Path(sys.argv[-1])
+    if args_path.is_file():
+        args = pickle.loads(args_path.read_bytes())
+        config = _load_config(args)
+        setup_logging(config, args, component='frontend')
+        return WebFrontEnd(config=config)
+    return WebFrontEnd()
 
 
-args_path = sys.argv[-1]
-if os.path.isfile(args_path):
-    with open(args_path, 'br') as fp:
-        args = pickle.loads(fp.read())
-    config = _load_config(args)
-    _setup_logging(config, args.debug)
-    web_interface = WebFrontEnd(config=config)
-else:
-    web_interface = WebFrontEnd()
-
+web_interface = create_web_interface()
 app = web_interface.app

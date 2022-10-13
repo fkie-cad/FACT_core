@@ -3,6 +3,9 @@
 import glob
 import sys
 from pathlib import Path
+from subprocess import CompletedProcess
+
+import pytest
 
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -23,16 +26,19 @@ except ImportError:
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
-class ExtractIKConfigTest(AnalysisPluginTest):
-    PLUGIN_NAME = 'kernel_config'
+class KernelConfigTest(AnalysisPluginTest):
 
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_NAME = 'kernel_config'
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_probably_kernel_config_true(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
+        test_file.processed_analysis['file_type'] = dict(mime='text/plain')
+
+        assert self.analysis_plugin.probably_kernel_config(test_file.binary)
+
+    def test_old_style_config(self):
+        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/old_config_build_file'))
         test_file.processed_analysis['file_type'] = dict(mime='text/plain')
 
         assert self.analysis_plugin.probably_kernel_config(test_file.binary)
@@ -189,7 +195,7 @@ def test_checksec_existing_config():
 
 
 def test_checksec_no_valid_json(monkeypatch):
-    monkeypatch.setattr('plugins.analysis.kernel_config.internal.checksec_check_kernel.execute_shell_command', lambda _: 'invalid json')
+    monkeypatch.setattr('plugins.analysis.kernel_config.internal.checksec_check_kernel.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout='invalid json'))
     assert check_kernel_config('no_real_config') == {}
 
 
@@ -206,3 +212,15 @@ def test_check_kernel_hardening():
 
 def test_check_hardening_no_results():
     assert check_kernel_hardening('CONFIG_FOOBAR=y') == []
+
+
+@pytest.mark.parametrize('full_type, expected_output', [
+    ('foobar 123', False),
+    ('Linux make config build file, ASCII text', True),
+    ('Linux make config build file (old)', True),
+])
+def test_foo1(full_type, expected_output):
+    test_file = FileObject()
+    test_file.processed_analysis['file_type'] = dict(full=full_type)
+
+    assert AnalysisPlugin.has_kconfig_type(test_file) == expected_output

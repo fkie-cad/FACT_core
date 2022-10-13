@@ -1,14 +1,15 @@
 import logging
 import os
+import subprocess
 from contextlib import suppress
 from pathlib import Path
+from subprocess import PIPE, STDOUT
 
 import requests
-from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, dnf_install_packages, install_pip_packages, load_main_config, remove_folder,
-    run_cmd_with_logging
+    InstallationError, OperateInDirectory, apt_install_packages, dnf_install_packages, install_pip_packages,
+    load_main_config, remove_folder, run_cmd_with_logging
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
@@ -18,22 +19,22 @@ PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 
 def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
     for command in commands:
-        bad_return = error if error else 'execute {}'.format(command)
-        output, return_code = execute_shell_command_get_return_code(command)
-        if return_code != 0:
-            raise InstallationError('Failed to {}\n{}'.format(bad_return, output))
+        bad_return = error if error else f'execute {command}'
+        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        if cmd_process.returncode != 0:
+            raise InstallationError(f'Failed to {bad_return}\n{cmd_process.stdout}')
 
 
 def wget_static_web_content(url, target_folder, additional_actions, resource_logging_name=None):
-    logging.info('Install static {} content'.format(resource_logging_name if resource_logging_name else url))
+    logging.info(f'Install static {resource_logging_name if resource_logging_name else url} content')
     with OperateInDirectory(target_folder):
-        wget_output, wget_code = execute_shell_command_get_return_code('wget -nc {}'.format(url))
-        if wget_code != 0:
-            raise InstallationError('Failed to fetch resource at {}\n{}'.format(url, wget_output))
+        wget_process = subprocess.run(f'wget -nc {url}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        if wget_process.returncode != 0:
+            raise InstallationError(f'Failed to fetch resource at {url}\n{wget_process.stdout}')
         for action in additional_actions:
-            action_output, action_code = execute_shell_command_get_return_code(action)
-            if action_code != 0:
-                raise InstallationError('Problem in processing resource at {}\n{}'.format(url, action_output))
+            action_process = subprocess.run(action, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            if action_process.returncode != 0:
+                raise InstallationError(f'Problem in processing resource at {url}\n{action_process.stdout}')
 
 
 def _build_highlight_js():
@@ -51,7 +52,7 @@ def _build_highlight_js():
 
     commands = [
         'wget {url} --header="Host: highlightjs.org" --header="User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0" --header="Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" --header="Accept-Language: en-GB,en;q=0.5" --header="Accept-Encoding: gzip, deflate, br" --header="Referer: https://highlightjs.org/download/" --header="Content-Type: application/x-www-form-urlencoded" --header="Cookie: csrftoken={token}" --header="DNT: 1" --header="Connection: keep-alive" --header="Upgrade-Insecure-Requests: 1" --post-data="apache.js=on&bash.js=on&coffeescript.js=on&cpp.js=on&cs.js=on&csrfmiddlewaretoken={token}&css.js=on&diff.js=on&http.js=on&ini.js=on&java.js=on&javascript.js=on&json.js=on&makefile.js=on&markdown.js=on&nginx.js=on&objectivec.js=on&perl.js=on&php.js=on&python.js=on&ruby.js=on&shell.js=on&sql.js=on&xml.js=on" -O {zip}'.format(url=highlight_js_url, token=csrf_token, zip=highlight_js_zip),  # pylint: disable=line-too-long
-        'unzip {} -d {}'.format(highlight_js_zip, highlight_js_dir)
+        f'unzip {highlight_js_zip} -d {highlight_js_dir}'
     ]
     execute_commands_and_raise_on_return_code(commands, error='Failed to set up highlight.js')
     Path(highlight_js_zip).unlink()
@@ -61,15 +62,15 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
     logging.info('Creating directory for authentication')
 
     config = load_main_config()
-    dburi = config.get('data_storage', 'user_database')
+    dburi = config.get('data-storage', 'user-database')
     # pylint: disable=fixme
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
-    mkdir_output, mkdir_code = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(factauthdir))
-    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown {}:{} {}'.format(os.getuid(), os.getgid(), factauthdir))
+    mkdir_process = subprocess.run(f'sudo mkdir -p --mode=0744 {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    chown_process = subprocess.run(f'sudo chown {os.getuid()}:{os.getgid()} {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
 
-    if not all(return_code == 0 for return_code in [mkdir_code, chown_code]):
-        raise InstallationError('Error in creating directory for authentication database.\n{}'.format('\n'.join((mkdir_output, chown_output))))
+    if not all(return_code == 0 for return_code in [mkdir_process.returncode, chown_process.returncode]):
+        raise InstallationError('Error in creating directory for authentication database.\n{}'.format('\n'.join((mkdir_process.stdout, mkdir_process.stdout))))
 
 
 def _install_nginx(distribution):
@@ -85,16 +86,16 @@ def _install_nginx(distribution):
             'sudo semanage fcontext -at httpd_log_t "/var/log/fact(/.*)?" || true',
             'sudo restorecon -v -R /var/log/fact'
         ], error='restore selinux context')
-    nginx_output, nginx_code = execute_shell_command_get_return_code('sudo nginx -s reload')
-    if nginx_code != 0:
-        raise InstallationError('Failed to start nginx\n{}'.format(nginx_output))
+    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    if nginx_process.returncode != 0:
+        raise InstallationError(f'Failed to start nginx\n{nginx_process.stderr}')
 
 
 def _generate_and_install_certificate():
     logging.info('Generating self-signed certificate')
     execute_commands_and_raise_on_return_code([
         'openssl genrsa -out fact.key 4096',
-        'echo "{}" | openssl req -new -key fact.key -out fact.csr'.format(DEFAULT_CERT),
+        f'echo "{DEFAULT_CERT}" | openssl req -new -key fact.key -out fact.csr',
         'openssl x509 -req -days 730 -in fact.csr -signkey fact.key -out fact.crt',
         'sudo mv fact.key fact.csr fact.crt /etc/nginx'
     ], error='generate SSL certificate')
@@ -128,6 +129,7 @@ def _install_css_and_js_files():
             'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css',
             'https://unpkg.com/vis-network@8.5.6/styles/vis-network.min.css',
             'https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css',
+            'https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css',
         ]:
             wget_static_web_content(css_url, 'web_css', [])
 
@@ -139,6 +141,7 @@ def _install_css_and_js_files():
             'https://raw.githubusercontent.com/moment/moment/develop/moment.js',
             'https://unpkg.com/vis-network@8.5.6/standalone/umd/vis-network.min.js',
             'https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js',
+            'https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js',
         ]:
             wget_static_web_content(js_url, 'web_js', [])
 
@@ -159,15 +162,15 @@ def _install_docker_images(radare):
         logging.info('Initializing docker container for radare')
 
         with OperateInDirectory('radare'):
-            output, return_code = execute_shell_command_get_return_code('docker-compose build')
-            if return_code != 0:
-                raise InstallationError('Failed to initialize radare container:\n{}'.format(output))
+            docker_compose_process = subprocess.run('docker-compose build', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            if docker_compose_process.returncode != 0:
+                raise InstallationError(f'Failed to initialize radare container:\n{docker_compose_process.stdout}')
 
     # pull pdf report container
     logging.info('Pulling pdf report container')
-    output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_pdf_report')
-    if return_code != 0:
-        raise InstallationError('Failed to pull pdf report container:\n{}'.format(output))
+    docker_process = subprocess.run('docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if docker_process.returncode != 0:
+        raise InstallationError(f'Failed to pull pdf report container:\n{docker_process.stdout}')
 
 
 def main(skip_docker, radare, nginx, distribution):

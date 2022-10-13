@@ -13,7 +13,7 @@ except ImportError:
     from key_parser import read_asn1_key, read_pkcs_cert, read_ssl_cert
 
 
-Match = NamedTuple('Match', [('offset', int), ('label', str), ('matched_string', bytes)])
+Match = NamedTuple('Match', [('offset', int), ('label', str), ('matched_string', str)])
 
 
 class AnalysisPlugin(YaraBasePlugin):
@@ -22,17 +22,16 @@ class AnalysisPlugin(YaraBasePlugin):
     '''
     NAME = 'crypto_material'
     DESCRIPTION = 'detects crypto material like SSH keys and SSL certificates'
+    VERSION = '0.5.2'
+    MIME_BLACKLIST = ['filesystem']
+    FILE = __file__
+
     STARTEND = ['PgpPublicKeyBlock', 'PgpPrivateKeyBlock', 'PgpPublicKeyBlock_GnuPG', 'genericPublicKey',
                 'SshRsaPrivateKeyBlock', 'SshEncryptedRsaPrivateKeyBlock', 'SSLPrivateKey']
     STARTONLY = ['SshRsaPublicKeyBlock']
-    MIME_BLACKLIST = ['filesystem']
     PKCS8 = 'Pkcs8PrivateKey'
     PKCS12 = 'Pkcs12Certificate'
     SSLCERT = 'SSLCertificate'
-    VERSION = '0.5.2'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
@@ -68,7 +67,7 @@ class AnalysisPlugin(YaraBasePlugin):
             return self.get_pkcs12_cert
         if match == self.SSLCERT:
             return self.get_ssl_cert
-        logging.warning('Unknown crypto rule match: {}'.format(match))
+        logging.warning(f'Unknown crypto rule match: {match}')
         return None
 
     def extract_labeled_keys(self, matches: List[Match], binary, min_key_len=128) -> List[str]:
@@ -81,7 +80,7 @@ class AnalysisPlugin(YaraBasePlugin):
     @staticmethod
     def extract_start_only_key(matches: List[Match], **_) -> List[str]:
         return [
-            match.matched_string.decode(encoding='utf_8', errors='replace')
+            match.matched_string
             for match in matches
             if match.label == '$start_string'
         ]

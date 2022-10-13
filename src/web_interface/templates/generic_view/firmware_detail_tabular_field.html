@@ -1,12 +1,12 @@
-<li class="list-group-item p-2 clickable li-hover bg-light" onclick="location.href='/analysis/{{ firmware[0] }}'">
-    <a href='/analysis/{{ firmware[0] }}'>
+<li class="list-group-item p-2 clickable li-hover bg-light" onclick="location.href='/analysis/{{ firmware.uid }}'">
+    <a href='/analysis/{{ firmware.uid }}'>
         <div class="d-flex justify-content-between align-items-center" style="width: 100%; height: 100%; font-size: 14px; color: #515151;">
-            {{ firmware[1] }}
-            <span>{{ firmware[2] | render_tags(size=11) | safe}}</span>
+            {{ firmware.hid }}
+            <span>{{ firmware.tags | render_fw_tags(size=11) | safe }}</span>
         </div>
     </a>
     <div class="d-flex justify-content-between align-items-center">
-        <span class="footnote text-muted">{{ firmware[3] | nice_unix_time | safe }}</span>
-    	<a href="/download/{{ firmware[0] }}" class="pull-right"><i class="fas fa-download"></i></a>
+        <span class="footnote text-muted">{{ firmware.submission_date | nice_unix_time | safe }}</span>
+    	<a href="/download/{{ firmware.uid }}" class="pull-right"><i class="fas fa-download"></i></a>
     </div>
 </li>

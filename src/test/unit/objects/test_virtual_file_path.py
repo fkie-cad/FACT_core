@@ -27,7 +27,7 @@ def test_add_file_object_to_file_object():
 def test_add_file_object_path_already_present():
     root = create_test_firmware()
     child = create_test_file_object()
-    child.virtual_file_path = {root.uid: ['{}|some/known/path'.format(root.uid)]}
+    child.virtual_file_path = {root.uid: [f'{root.uid}|some/known/path']}
     root.add_included_file(child)
     assert len(child.virtual_file_path.keys()) == 1, 'there should be just one root object'
     assert len(child.virtual_file_path[root.uid]) == 1, 'number of paths should be one'

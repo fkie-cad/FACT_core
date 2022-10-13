@@ -18,7 +18,7 @@
                         {% for cve_id, entry in result | sort_cve() %}
                         <tr>
                             <td>
-                                <a href="https://nvd.nist.gov/vuln/detail/{{ cve_id }}">{{ cve_id }}</a>
+                                <a href="https://nvd.nist.gov/vuln/detail/{{ cve_id }}" target="_blank" rel="noopener noreferrer">{{ cve_id }} </a>
                             </td>
                             {% for score in [entry.get("score2", "N/A"), entry.get("score3", "N/A")] %}
                                 {% set class = "secondary" if score == "N/A" else ("success" if score|float < 4 else ("warning" if score|float < 7 else "danger")) %}

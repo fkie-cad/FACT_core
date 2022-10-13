@@ -2,8 +2,7 @@ from typing import Dict, List, Set
 
 from flask_restx import Namespace
 
-from helperFunctions.database import ConnectTo
-from storage.db_interface_frontend import FrontEndDbInterface
+from helperFunctions.database import get_shared_session
 from web_interface.rest.helper import success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -23,12 +22,10 @@ class RestMissingAnalyses(RestResourceBase):
         Search for missing files or missing analyses
         Search for missing or orphaned files and missing or failed analyses
         '''
-        with ConnectTo(FrontEndDbInterface, self.config) as db:
+        with get_shared_session(self.db.frontend) as frontend_db:
             missing_analyses_data = {
-                'missing_files': self._make_json_serializable(db.find_missing_files()),
-                'missing_analyses': self._make_json_serializable(db.find_missing_analyses()),
-                'failed_analyses': db.find_failed_analyses(),
-                'orphaned_objects': db.find_orphaned_objects(),
+                'missing_analyses': self._make_json_serializable(frontend_db.find_missing_analyses()),
+                'failed_analyses': self._make_json_serializable(frontend_db.find_failed_analyses()),
             }
         return success_message(missing_analyses_data, self.URL)
 

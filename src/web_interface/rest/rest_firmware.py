@@ -5,14 +5,12 @@ from base64 import standard_b64decode
 from flask import request
 from flask_restx import Namespace, fields
 from flask_restx.fields import MarshallingError
-from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
-from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
-from intercom.front_end_binding import InterComFrontEndBinding
+from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
 from objects.firmware import Firmware
-from storage.db_interface_frontend import FrontEndDbInterface
+from storage.db_interface_base import DbInterfaceError
 from web_interface.rest.helper import (
     error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
 )
@@ -72,10 +70,9 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
 
         parameters = dict(offset=offset, limit=limit, query=query, recursive=recursive, inverted=inverted)
         try:
-            with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                uids = connection.rest_get_firmware_uids(**parameters)
+            uids = self.db.frontend.rest_get_firmware_uids(**parameters)
             return success_message(dict(uids=uids), self.URL, parameters)
-        except PyMongoError:
+        except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)
 
     @staticmethod
@@ -117,7 +114,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         except binascii.Error:
             return dict(error_message='Could not parse binary (must be valid base64!)')
         firmware_object = convert_analysis_task_to_fw_obj(data)
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+        with ConnectTo(self.intercom, self.config) as intercom:
             intercom.add_analysis_task(firmware_object)
         data.pop('binary')
 
@@ -140,11 +137,9 @@ class RestFirmwareGetWithUid(RestResourceBase):
         '''
         summary = get_boolean_from_request(request.args, 'summary')
         if summary:
-            with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                firmware = connection.get_complete_object_including_all_summaries(uid)
+            firmware = self.db.frontend.get_complete_object_including_all_summaries(uid)
         else:
-            with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                firmware = connection.get_firmware(uid)
+            firmware = self.db.frontend.get_object(uid)
         if not firmware or not isinstance(firmware, Firmware):
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
@@ -171,8 +166,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
         return self._update_analysis(uid, update)
 
     def _update_analysis(self, uid, update):
-        with ConnectTo(FrontEndDbInterface, self.config) as connection:
-            firmware = connection.get_firmware(uid)
+        firmware = self.db.frontend.get_object(uid)
         if not firmware:
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
@@ -182,7 +176,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
 
         firmware.scheduled_analysis = update
 
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+        with ConnectTo(self.intercom, self.config) as intercom:
             supported_plugins = intercom.get_available_analysis_plugins().keys()
             for item in update:
                 if item not in supported_plugins:

@@ -2,19 +2,15 @@ import os
 
 from common_helper_files import get_dir_of_file
 
-from test.unit.analysis.AbstractSignatureTest import AbstractSignatureTest
+from test.unit.analysis.AbstractSignatureTest import AbstractSignatureTest  # pylint: disable=wrong-import-order
 
 from ..code.crypto_material import AnalysisPlugin
 
 
 class CryptoCodeMaterialTest(AbstractSignatureTest):
     PLUGIN_NAME = 'crypto_material'
+    PLUGIN_CLASS = AnalysisPlugin
     TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
-
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
 
     def test_gnupg(self):
         self._rule_match('0x6C2DF2C5-pub.asc', 'PgpPublicKeyBlock', len(['PgpPublicKeyBlock', 'PgpPublicKeyBlock_GnuPG']))

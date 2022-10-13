@@ -1,5 +1,6 @@
 libjpeg-dev
 libssl-dev
+redis
 
 # checksec dependencies
 binutils

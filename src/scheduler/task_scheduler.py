@@ -1,5 +1,6 @@
 import logging
 from copy import copy
+from time import time
 from typing import List, Set, Union
 
 from helperFunctions.merge_generators import shuffled
@@ -64,10 +65,18 @@ class AnalysisTaskScheduler:
 
     def reschedule_failed_analysis_task(self, fw_object: Union[Firmware, FileObject]):
         failed_plugin, cause = fw_object.analysis_exception
-        fw_object.processed_analysis[failed_plugin] = {'failed': cause}
+        fw_object.processed_analysis[failed_plugin] = self._get_failed_analysis_result(cause, failed_plugin)
         for plugin in fw_object.scheduled_analysis[:]:
             if failed_plugin in self.plugins[plugin].DEPENDENCIES:
                 fw_object.scheduled_analysis.remove(plugin)
                 logging.warning(f'Unscheduled analysis {plugin} for {fw_object.uid} because dependency {failed_plugin} failed')
-                fw_object.processed_analysis[plugin] = {'failed': f'Analysis of dependency {failed_plugin} failed'}
+                fw_object.processed_analysis[plugin] = self._get_failed_analysis_result(
+                    f'Analysis of dependency {failed_plugin} failed', plugin)
         fw_object.analysis_exception = None
+
+    def _get_failed_analysis_result(self, cause: str, plugin: str) -> dict:
+        return {
+            'failed': cause,
+            'plugin_version': self.plugins[plugin].VERSION,
+            'analysis_date': time(),
+        }

@@ -26,7 +26,7 @@ def test_exception_safe_process():
 
 def test_check_worker_exceptions():
     config = get_config_for_testing()
-    config.set('ExpertSettings', 'throw_exceptions', 'true')
+    config.set('expert-settings', 'throw-exceptions', 'true')
 
     process_list = [ExceptionSafeProcess(target=breaking_process, args=(True, ))]
     process_list[0].start()
@@ -42,7 +42,7 @@ def test_check_worker_exceptions():
 
 def test_check_worker_restart(caplog):
     config = get_config_for_testing()
-    config.set('ExpertSettings', 'throw_exceptions', 'false')
+    config.set('expert-settings', 'throw-exceptions', 'false')
 
     worker = ExceptionSafeProcess(target=breaking_process, args=(True, ))
     process_list = [worker]

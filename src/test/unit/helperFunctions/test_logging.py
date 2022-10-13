@@ -16,4 +16,4 @@ def test_coloring_formatter():
     formatter = ColoringFormatter(fmt='[%(levelname)s]: %(message)s')
     formatted_string = formatter.format(logging.LogRecord('foo', logging.ERROR, '', 24, TEST_STRING, (), None))
     assert formatted_string.endswith(TEST_STRING)
-    assert '[{}{}{}]'.format(TerminalColors.RED, 'ERROR', TerminalColors.ENDC) in formatted_string
+    assert f'[{TerminalColors.RED}ERROR{TerminalColors.ENDC}]' in formatted_string

@@ -12,8 +12,6 @@ from intercom.back_end_binding import (
     InterComBackEndSingleFileTask, InterComBackEndTarRepackTask
 )
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.fsorganizer import FSOrganizer
-from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_firmware, get_config_for_testing
 
 
@@ -32,24 +30,18 @@ class TestInterComTaskCommunication(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
         cls.config = get_config_for_testing(temp_dir=cls.tmp_dir)
-        cls.config.set('ExpertSettings', 'communication_timeout', '1')
-        cls.mongo_server = MongoMgr(config=cls.config)
+        cls.config.set('expert-settings', 'communication-timeout', '1')
 
     def setUp(self):
         self.frontend = InterComFrontEndBinding(config=self.config)
         self.backend = None
 
     def tearDown(self):
-        for connection in self.frontend.connections.values():
-            self.frontend.client.drop_database(connection['name'])
-        if self.backend:
-            self.backend.shutdown()
-        self.frontend.shutdown()
+        self.frontend.redis.redis.flushdb()
         gc.collect()
 
     @classmethod
     def tearDownClass(cls):
-        cls.mongo_server.shutdown()
         cls.tmp_dir.cleanup()
 
     def test_analysis_task(self):
@@ -75,20 +67,12 @@ class TestInterComTaskCommunication(unittest.TestCase):
 
     def test_re_analyze_task(self):
         self.backend = InterComBackEndReAnalyzeTask(config=self.config)
-        fs_organizer = FSOrganizer(config=self.config)
         test_fw = create_test_firmware()
-        fs_organizer.store_file(test_fw)
-        original_file_path = test_fw.file_path
-        original_binary = test_fw.binary
         test_fw.file_path = None
         test_fw.binary = None
         self.frontend.add_re_analyze_task(test_fw)
         task = self.backend.get_next_task()
         self.assertEqual(task.uid, test_fw.uid, 'uid not correct')
-        self.assertIsNotNone(task.file_path, 'file path not set')
-        self.assertEqual(task.file_path, original_file_path)
-        self.assertIsNotNone(task.binary, 'binary not set')
-        self.assertEqual(task.binary, original_binary, 'binary content not correct')
 
     def test_compare_task(self):
         self.backend = InterComBackEndCompareTask(config=self.config)

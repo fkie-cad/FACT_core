@@ -69,6 +69,6 @@ def _find_pdf(folder: Path) -> Path:
     pdf_path = None
     for file_path in (folder / 'pdf').rglob('*.pdf'):
         if pdf_path:
-            logging.warning('Indistinct pdf name. Found: {}'.format(file_path.name))
+            logging.warning(f'Indistinct pdf name. Found: {file_path.name}')
         pdf_path = file_path
     return pdf_path

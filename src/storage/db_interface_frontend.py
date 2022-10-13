@@ -1,338 +1,425 @@
-import json
-import logging
-import sys
-from copy import deepcopy
-from itertools import chain
-from typing import Dict, List
+import re
+from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
-from helperFunctions.compare_sets import remove_duplicates_from_list
+from sqlalchemy import Column, func, select
+from sqlalchemy.dialects.postgresql import JSONB
+
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
-from helperFunctions.virtual_file_path import get_top_of_virtual_path
+from helperFunctions.virtual_file_path import get_top_of_virtual_path, get_uids_from_virtual_path
 from objects.firmware import Firmware
-from storage.db_interface_common import MongoInterfaceCommon
-from web_interface.database_structure import visualize_complete_tree
-from web_interface.file_tree.file_tree import VirtualPathFileTree
+from storage.db_interface_common import DbInterfaceCommon
+from storage.query_conversion import build_generic_search_query, build_query_from_dict, query_parent_firmware
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, SearchCacheEntry, included_files_table
+from web_interface.components.dependency_graph import DepGraphData
+from web_interface.file_tree.file_tree import FileTreeData, VirtualPathFileTree
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
+RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
 
-class FrontEndDbInterface(MongoInterfaceCommon):
 
-    READ_ONLY = True
+class MetaEntry(NamedTuple):
+    uid: str
+    hid: str
+    tags: dict
+    submission_date: int
 
-    def get_meta_list(self, firmware_list=None):
-        list_of_firmware_data = []
-        if firmware_list is None:
-            firmware_list = self.firmwares.find()
-        for firmware in firmware_list:
-            if firmware:
-                tags = firmware['tags'] if 'tags' in firmware else dict()
-                tags[self._get_unpacker_name(firmware)] = TagColor.LIGHT_BLUE
-                submission_date = firmware['submission_date'] if 'submission_date' in firmware else 0
-                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags, submission_date))
-        return list_of_firmware_data
 
-    def _get_unpacker_name(self, firmware):
-        if 'unpacker' not in firmware['processed_analysis']:
-            return 'NOP'
-        if firmware['processed_analysis']['unpacker']['file_system_flag']:
-            return self.retrieve_analysis(deepcopy(firmware['processed_analysis']))['unpacker']['plugin_used']
-        return firmware['processed_analysis']['unpacker']['plugin_used']
+class CachedQuery(NamedTuple):
+    query: str
+    yara_rule: str
 
-    def get_hid(self, uid, root_uid=None):
+
+class FrontEndDbInterface(DbInterfaceCommon):
+
+    def get_last_added_firmwares(self, limit: int = 10) -> List[MetaEntry]:
+        with self.get_read_only_session() as session:
+            query = select(FirmwareEntry).order_by(FirmwareEntry.submission_date.desc()).limit(limit)
+            return [
+                self._get_meta_for_entry(fw_entry)
+                for fw_entry in session.execute(query).scalars()
+            ]
+
+    # --- HID ---
+
+    def get_hid(self, uid, root_uid=None) -> str:
         '''
-        returns a human readable identifier (hid) for a given uid
+        returns a human-readable identifier (hid) for a given uid
         returns an empty string if uid is not in Database
         '''
-        hid = self._get_hid_firmware(uid)
-        if hid is None:
-            hid = self._get_hid_fo(uid, root_uid)
-        if hid is None:
-            return ''
-        return hid
-
-    def get_data_for_nice_list(self, uid_list, root_uid):
-        query = self._build_search_query_for_uid_list(uid_list)
-        result = self.generate_nice_list_data(chain(self.firmwares.find(query), self.file_objects.find(query)), root_uid)
-        return result
-
-    def get_query_from_cache(self, query):
-        return self.search_query_cache.find_one({'_id': query})
+        with self.get_read_only_session() as session:
+            fo_entry = session.get(FileObjectEntry, uid)
+            if fo_entry is None:
+                return ''
+            if fo_entry.is_firmware:
+                return self._get_hid_firmware(fo_entry.firmware)
+            return self._get_hid_fo(fo_entry, root_uid)
 
     @staticmethod
-    def generate_nice_list_data(db_iterable, root_uid):
-        result = []
-        for db_entry in db_iterable:
-            if db_entry is not None:
-                virtual_file_path = db_entry['virtual_file_path']
-                result.append({
-                    'uid': db_entry['_id'],
-                    'files_included': db_entry['files_included'],
-                    'size': db_entry['size'],
-                    'file_name': db_entry['file_name'],
-                    'mime-type': db_entry['processed_analysis']['file_type']['mime'] if 'file_type' in db_entry['processed_analysis'] else 'file-type-plugin/not-run-yet',
-                    'current_virtual_path': virtual_file_path[root_uid] if root_uid in virtual_file_path else get_value_of_first_key(virtual_file_path)
-                })
+    def _get_hid_firmware(firmware: FirmwareEntry) -> str:
+        part = '' if firmware.device_part in ['', None] else f' {firmware.device_part}'
+        return f'{firmware.vendor} {firmware.device_name} -{part} {firmware.version} ({firmware.device_class})'
+
+    @staticmethod
+    def _get_hid_fo(fo_entry: FileObjectEntry, root_uid: Optional[str] = None) -> str:
+        vfp_list = fo_entry.virtual_file_paths.get(root_uid) or get_value_of_first_key(fo_entry.virtual_file_paths)
+        return get_top_of_virtual_path(vfp_list[0])
+
+    # --- "nice list" ---
+
+    def get_data_for_nice_list(self, uid_list: List[str], root_uid: Optional[str]) -> List[dict]:
+        with self.get_read_only_session() as session:
+            mime_dict = self._get_mime_types_for_uid_list(session, uid_list)
+            query = (
+                select(
+                    FileObjectEntry.uid,
+                    FileObjectEntry.size,
+                    FileObjectEntry.file_name,
+                    FileObjectEntry.virtual_file_paths
+                )
+                .filter(FileObjectEntry.uid.in_(uid_list))
+            )
+            nice_list_data = [
+                {
+                    'uid': uid,
+                    'size': size,
+                    'file_name': file_name,
+                    'mime-type': mime_dict.get(uid, 'file-type-plugin/not-run-yet'),
+                    'current_virtual_path': self._get_current_vfp(virtual_file_path, root_uid)
+                }
+                for uid, size, file_name, virtual_file_path in session.execute(query)
+            ]
+            self._replace_uids_in_nice_list(nice_list_data, root_uid)
+            return nice_list_data
+
+    def _replace_uids_in_nice_list(self, nice_list_data: List[dict], root_uid: str):
+        uids_in_vfp = set()
+        for item in nice_list_data:
+            uids_in_vfp.update(uid for vfp in item['current_virtual_path'] for uid in get_uids_from_virtual_path(vfp))
+        hid_dict = self._get_hid_dict(uids_in_vfp, root_uid)
+        for item in nice_list_data:
+            for index, vfp in enumerate(item['current_virtual_path']):
+                for uid in get_uids_from_virtual_path(vfp):
+                    vfp = vfp.replace(uid, hid_dict.get(uid, uid))
+                item['current_virtual_path'][index] = vfp.lstrip('|').replace('|', ' | ')
+
+    def _get_hid_dict(self, uid_set: Set[str], root_uid: str) -> Dict[str, str]:
+        with self.get_read_only_session() as session:
+            query = (
+                select(FileObjectEntry, FirmwareEntry)
+                .outerjoin(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
+                .filter(FileObjectEntry.uid.in_(uid_set))
+            )
+            result = {}
+            for fo_entry, fw_entry in session.execute(query):
+                if fw_entry is None:  # FO
+                    result[fo_entry.uid] = self._get_hid_fo(fo_entry, root_uid)
+                else:  # FW
+                    result[fo_entry.uid] = self._get_hid_firmware(fw_entry)
         return result
 
-    def get_file_name(self, uid):
-        file_object = self.get_object(uid, analysis_filter=[])
-        return file_object.file_name
+    @staticmethod
+    def _get_current_vfp(vfp: Dict[str, List[str]], root_uid: str) -> List[str]:
+        return vfp[root_uid] if root_uid in vfp else get_value_of_first_key(vfp)
 
-    def get_firmware_attribute_list(self, attribute, restrictions=None):
-        attribute_list = set()
-        query = self.firmwares.find(restrictions)
-        for item in query:
-            attribute_list.add(item[attribute])
-        return list(attribute_list)
+    def get_file_name(self, uid: str) -> str:
+        with self.get_read_only_session() as session:
+            entry = session.get(FileObjectEntry, uid)
+            return entry.file_name if entry is not None else 'unknown'
+
+    # --- misc. ---
+
+    def get_firmware_attribute_list(self, attribute: Column) -> List[Any]:
+        '''Get all distinct values of an attribute (e.g. all different vendors)'''
+        with self.get_read_only_session() as session:
+            query = select(attribute).filter(attribute.isnot(None)).distinct()
+            return sorted(session.execute(query).scalars())
 
     def get_device_class_list(self):
-        return self.get_firmware_attribute_list('device_class')
+        return self.get_firmware_attribute_list(FirmwareEntry.device_class)
 
     def get_vendor_list(self):
-        return self.get_firmware_attribute_list('vendor')
+        return self.get_firmware_attribute_list(FirmwareEntry.vendor)
+
+    def get_tag_list(self) -> List[str]:
+        with self.get_read_only_session() as session:
+            query = select(func.unnest(FirmwareEntry.firmware_tags)).distinct()
+            return sorted(session.execute(query).scalars())
 
     def get_device_name_dict(self):
         device_name_dict = {}
-        query = self.firmwares.find()
-        for item in query:
-            if item['device_class'] not in device_name_dict.keys():
-                device_name_dict[item['device_class']] = {item['vendor']: [item['device_name']]}
-            else:
-                if item['vendor'] not in device_name_dict[item['device_class']].keys():
-                    device_name_dict[item['device_class']][item['vendor']] = [item['device_name']]
-                else:
-                    if item['device_name'] not in device_name_dict[item['device_class']][item['vendor']]:
-                        device_name_dict[item['device_class']][item['vendor']].append(item['device_name'])
+        with self.get_read_only_session() as session:
+            query = select(FirmwareEntry.device_class, FirmwareEntry.vendor, FirmwareEntry.device_name)
+            for device_class, vendor, device_name in session.execute(query):
+                device_name_dict.setdefault(device_class, {}).setdefault(vendor, []).append(device_name)
         return device_name_dict
 
-    @staticmethod
-    def _get_one_virtual_path_of_fo(fo_dict, root_uid):
-        if root_uid is None or root_uid not in fo_dict['virtual_file_path'].keys():
-            root_uid = list(fo_dict['virtual_file_path'].keys())[0]
-        return get_top_of_virtual_path(fo_dict['virtual_file_path'][root_uid][0])
-
-    def _get_hid_firmware(self, uid):
-        firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'device_part': 1, 'version': 1, 'device_class': 1})
-        if firmware is not None:
-            part = ' -' if 'device_part' not in firmware or firmware['device_part'] == '' else ' - {}'.format(firmware['device_part'])
-            return '{} {}{} {} ({})'.format(firmware['vendor'], firmware['device_name'], part, firmware['version'], firmware['device_class'])
-        return None
-
-    def _get_hid_fo(self, uid, root_uid):
-        fo_data = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
-        if fo_data is not None:
-            return self._get_one_virtual_path_of_fo(fo_data, root_uid)
-        return None
-
-    def all_uids_found_in_database(self, uid_list):
-        if not uid_list:
-            return True
-        query = self._build_search_query_for_uid_list(uid_list)
-        number_of_results = self.get_firmware_number(query) + self.get_file_object_number(query)
-        return number_of_results >= len(uid_list)
-
-    def generic_search(self, search_dict, skip=0, limit=0, only_fo_parent_firmware=False, inverted=False):
-        try:
-            if isinstance(search_dict, str):
-                search_dict = json.loads(search_dict)
-
-            if not (inverted and only_fo_parent_firmware):
-                query = self.firmwares.find(search_dict, {'_id': 1}, skip=skip, limit=limit, sort=[('vendor', 1)])
-                result = [match['_id'] for match in query]
-            else:
-                result = []
-
-            if len(result) < limit or limit == 0:
-                max_firmware_results = self.get_firmware_number(query=search_dict)
-                skip = skip - max_firmware_results if skip > max_firmware_results else 0
-                limit = limit - len(result) if limit > 0 else 0
-                if not only_fo_parent_firmware:
-                    query = self.file_objects.find(search_dict, {'_id': 1}, skip=skip, limit=limit, sort=[('file_name', 1)])
-                    result.extend([match['_id'] for match in query])
-                else:  # only searching for parents of matching file objects
-                    parent_uids = self.file_objects.distinct('parent_firmware_uids', search_dict)
-                    query_filter = {'$nor': [{'_id': {('$in' if inverted else '$nin'): parent_uids}}, search_dict]}
-                    query = self.firmwares.find(query_filter, {'_id': 1}, skip=skip, limit=limit, sort=[('file_name', 1)])
-                    parents = [match['_id'] for match in query]
-                    result = remove_duplicates_from_list(result + parents)
-
-        except Exception as exception:
-            error_message = 'could not process search request: {} {}'.format(sys.exc_info()[0].__name__, exception)
-            logging.warning(error_message)
-            return error_message
-        return result
-
-    def get_other_versions_of_firmware(self, firmware_object: Firmware):
-        if not isinstance(firmware_object, Firmware):
+    def get_other_versions_of_firmware(self, firmware: Firmware) -> List[Tuple[str, str]]:
+        if not isinstance(firmware, Firmware):
             return []
-        query = {'vendor': firmware_object.vendor, 'device_name': firmware_object.device_name, 'device_part': firmware_object.part}
-        results = self.firmwares.find(query, {'_id': 1, 'version': 1})
-        return [r for r in results if r['_id'] != firmware_object.uid]
-
-    def get_specific_fields_for_multiple_entries(self, uid_list, field_dict):
-        query = self._build_search_query_for_uid_list(uid_list)
-        file_object_iterator = self.file_objects.find(query, field_dict)
-        firmware_iterator = self.firmwares.find(query, field_dict)
-        return chain(firmware_iterator, file_object_iterator)
-
-    # --- statistics
-
-    def get_last_added_firmwares(self, limit_x=10):
-        latest_firmwares = self.firmwares.find(
-            {'submission_date': {'$gt': 1}}, limit=limit_x, sort=[('submission_date', -1)]
-        )
-        return self.get_meta_list(latest_firmwares)
+        with self.get_read_only_session() as session:
+            query = (
+                select(FirmwareEntry.uid, FirmwareEntry.version)
+                .filter(
+                    FirmwareEntry.vendor == firmware.vendor,
+                    FirmwareEntry.device_name == firmware.device_name,
+                    FirmwareEntry.device_part == firmware.part,
+                    FirmwareEntry.uid != firmware.uid
+                )
+                .order_by(FirmwareEntry.version.asc())
+            )
+            return list(session.execute(query))
 
     def get_latest_comments(self, limit=10):
-        comments = []
-        for collection in [self.firmwares, self.file_objects]:
-            db_entries = collection.aggregate([
-                {'$match': {'comments': {'$not': {'$size': 0}}}},
-                {'$project': {'_id': 1, 'comments': 1}},
-                {'$unwind': {'path': '$comments'}},
-                {'$sort': {'comments.time': -1}},
-                {'$limit': limit}
-            ], allowDiskUse=True)
-            comments.extend([
-                {**entry['comments'], 'uid': entry['_id']}  # caution: >=python3.5 exclusive syntax
-                for entry in db_entries if entry['comments']
-            ])
-        comments.sort(key=lambda x: x['time'], reverse=True)
-        return comments
+        with self.get_read_only_session() as session:
+            subquery = select(func.jsonb_array_elements(FileObjectEntry.comments)).subquery()
+            query = select(subquery).order_by(subquery.c.jsonb_array_elements.cast(JSONB)['time'].desc())
+            return list(session.execute(query.limit(limit)).scalars())
+
+    @staticmethod
+    def create_analysis_structure():
+        return {}  # ToDo FixMe ???
+
+    # --- generic search ---
+
+    def generic_search(self, search_dict: dict, skip: int = 0, limit: int = 0,
+                       only_fo_parent_firmware: bool = False, inverted: bool = False, as_meta: bool = False):
+        with self.get_read_only_session() as session:
+            query = build_generic_search_query(search_dict, only_fo_parent_firmware, inverted)
+            query = self._apply_offset_and_limit(query, skip, limit)
+            results = session.execute(query).scalars()
+
+            if as_meta:
+                return [self._get_meta_for_entry(element) for element in results]
+            return [element.uid for element in results]
+
+    def _get_meta_for_entry(self, entry: Union[FirmwareEntry, FileObjectEntry]) -> MetaEntry:
+        if isinstance(entry, FirmwareEntry):
+            return self._get_meta_for_fw(entry)
+        if entry.is_firmware:
+            return self._get_meta_for_fw(entry.firmware)
+        return self._get_meta_for_fo(entry)
+
+    def _get_meta_for_fo(self, entry: FileObjectEntry) -> MetaEntry:
+        root_hid = self._get_fo_root_hid(entry)
+        tags = {self._get_unpacker_name(entry): TagColor.LIGHT_BLUE}
+        return MetaEntry(entry.uid, f'{root_hid}{self._get_hid_fo(entry)}', tags, 0)
+
+    @staticmethod
+    def _get_fo_root_hid(entry: FileObjectEntry) -> str:
+        for root_fo in entry.root_firmware:
+            root_fw = root_fo.firmware
+            root_hid = f'{root_fw.vendor} {root_fw.device_name} | '
+            break
+        else:
+            root_hid = ''
+        return root_hid
+
+    def _get_meta_for_fw(self, entry: FirmwareEntry) -> MetaEntry:
+        hid = self._get_hid_for_fw_entry(entry)
+        tags = {
+            **{tag: TagColor.GRAY for tag in entry.firmware_tags},
+            self._get_unpacker_name(entry): TagColor.LIGHT_BLUE
+        }
+        submission_date = entry.submission_date
+        return MetaEntry(entry.uid, hid, tags, submission_date)
+
+    @staticmethod
+    def _get_hid_for_fw_entry(entry: FirmwareEntry) -> str:
+        part = '' if entry.device_part == '' else f' {entry.device_part}'
+        return f'{entry.vendor} {entry.device_name} -{part} {entry.version} ({entry.device_class})'
+
+    def _get_unpacker_name(self, fw_entry: FirmwareEntry) -> str:
+        unpacker_analysis = self._get_analysis_entry(fw_entry.uid, 'unpacker')
+        if unpacker_analysis is None:
+            return 'NOP'
+        return unpacker_analysis.result['plugin_used']
+
+    def get_number_of_total_matches(self, search_dict: dict, only_parent_firmwares: bool, inverted: bool) -> int:
+        if search_dict == {}:  # if the query is empty: show only firmware on browse DB page
+            return self.get_firmware_number()
+
+        if not only_parent_firmwares:
+            return self.get_file_object_number(search_dict)
+
+        with self.get_read_only_session() as session:
+            query = query_parent_firmware(search_dict, inverted=inverted, count=True)
+            return session.execute(query).scalar()
 
     # --- file tree
 
-    def generate_file_tree_nodes_for_uid_list(self, uid_list: List[str], root_uid: str, parent_uid, whitelist=None):
-        query = self._build_search_query_for_uid_list(uid_list)
-        fo_data = self.file_objects.find(query, VirtualPathFileTree.FO_DATA_FIELDS)
-        fo_data_dict = {entry['_id']: entry for entry in fo_data}
-        for uid in uid_list:
-            fo_data_entry = fo_data_dict[uid] if uid in fo_data_dict else {}
-            for node in self.generate_file_tree_level(uid, root_uid, parent_uid, whitelist, fo_data_entry):
+    def generate_file_tree_nodes_for_uid_list(
+        self, uid_list: List[str], root_uid: str,
+        parent_uid: Optional[str], whitelist: Optional[List[str]] = None
+    ):
+        file_tree_data = self.get_file_tree_data(uid_list)
+        for entry in file_tree_data:
+            for node in self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry):
                 yield node
 
-    def generate_file_tree_level(self, uid, root_uid, parent_uid=None, whitelist=None, fo_data=None):
-        if fo_data is None:
-            fo_data = self.get_specific_fields_of_db_entry({'_id': uid}, VirtualPathFileTree.FO_DATA_FIELDS)
+    def generate_file_tree_level(
+        self, uid: str, root_uid: str,
+        parent_uid: Optional[str] = None, whitelist: Optional[List[str]] = None, data: Optional[FileTreeData] = None
+    ):
+        if data is None:
+            data = self.get_file_tree_data([uid])[0]
         try:
-            for node in VirtualPathFileTree(root_uid, parent_uid, fo_data, whitelist).get_file_tree_nodes():
+            for node in VirtualPathFileTree(root_uid, parent_uid, data, whitelist).get_file_tree_nodes():
                 yield node
-        except (KeyError, TypeError):  # the requested data is not in the DB aka the file has not been analyzed yet
-            yield FileTreeNode(uid, root_uid, not_analyzed=True, name='{uid} (not analyzed yet)'.format(uid=uid))
+        except (KeyError, TypeError):  # the file has not been analyzed yet
+            yield FileTreeNode(uid, root_uid, not_analyzed=True, name=f'{uid} (not analyzed yet)')
 
-    def get_number_of_total_matches(self, query, only_parent_firmwares, inverted):
-        if not only_parent_firmwares:
-            return self.get_firmware_number(query=query) + self.get_file_object_number(query=query)
-        if isinstance(query, str):
-            query = json.loads(query)
-        direct_matches = {match['_id'] for match in self.firmwares.find(query, {'_id': 1})} if not inverted else set()
-        if query == {}:
-            return len(direct_matches)
-        parent_matches = {
-            parent for match in self.file_objects.find(query, {'parent_firmware_uids': 1})
-            for parent in match['parent_firmware_uids']
-        }
-        if inverted:
-            parent_matches = {match['_id'] for match in self.firmwares.find({'_id': {'$nin': list(parent_matches)}}, {'_id': 1})}
-        return len(direct_matches.union(parent_matches))
-
-    def create_analysis_structure(self):
-        if self.client.varietyResults.file_objectsKeys.count_documents({}) == 0:
-            return 'Database statistics do not seem to be created yet.'
-
-        file_object_keys = self.client.varietyResults.file_objectsKeys.find()
-        all_field_strings = list(
-            key_item['_id']['key'] for key_item in file_object_keys
-            if key_item['_id']['key'].startswith('processed_analysis')
-            and key_item['percentContaining'] >= float(self.config['data_storage']['structural_threshold'])
-        )
-        stripped_field_strings = list(field[len('processed_analysis.'):] for field in all_field_strings if field != 'processed_analysis')
-
-        return visualize_complete_tree(stripped_field_strings)
-
-    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False, inverted=False):
-        if recursive:
-            return self.generic_search(search_dict=query, skip=offset, limit=limit, only_fo_parent_firmware=True, inverted=inverted)
-        return self.rest_get_object_uids(self.firmwares, offset, limit, query if query else dict())
-
-    def rest_get_file_object_uids(self, offset, limit, query=None):
-        return self.rest_get_object_uids(self.file_objects, offset, limit, query if query else dict())
+    def get_file_tree_data(self, uid_list: List[str]) -> List[FileTreeData]:
+        with self.get_read_only_session() as session:
+            # get included files in a separate query because it is way faster than FileObjectEntry.get_included_uids()
+            included_files = self._get_included_files_for_uid_list(session, uid_list)
+            # get analysis data in a separate query because the analysis may be missing (=> no row in joined result)
+            type_analyses = self._get_mime_types_for_uid_list(session, uid_list)
+            query = (
+                select(
+                    FileObjectEntry.uid,
+                    FileObjectEntry.file_name,
+                    FileObjectEntry.size,
+                    FileObjectEntry.virtual_file_paths,
+                )
+                .filter(FileObjectEntry.uid.in_(uid_list))
+            )
+            return [
+                FileTreeData(uid, file_name, size, vfp, type_analyses.get(uid), included_files.get(uid, set()))
+                for uid, file_name, size, vfp in session.execute(query)
+            ]
 
     @staticmethod
-    def rest_get_object_uids(database, offset, limit, query):
-        uid_cursor = database.find(query, {'_id': 1}).skip(offset).limit(limit)
-        return [result['_id'] for result in uid_cursor]
+    def _get_mime_types_for_uid_list(session, uid_list: List[str]) -> Dict[str, str]:
+        type_query = (
+            select(AnalysisEntry.uid, AnalysisEntry.result['mime'])
+            .filter(AnalysisEntry.plugin == 'file_type')
+            .filter(AnalysisEntry.uid.in_(uid_list))
+        )
+        return dict(iter(session.execute(type_query)))
 
-    def find_missing_files(self):
-        uids_in_db = set()
-        parent_to_included = {}
-        for collection in [self.file_objects, self.firmwares]:
-            for result in collection.find({}, {'_id': 1, 'files_included': 1}):
-                uids_in_db.add(result['_id'])
-                parent_to_included[result['_id']] = set(result['files_included'])
-        for parent_uid, included_files in list(parent_to_included.items()):
-            included_files.difference_update(uids_in_db)
-            if not included_files:
-                parent_to_included.pop(parent_uid)
-        return parent_to_included
+    @staticmethod
+    def _get_included_files_for_uid_list(session, uid_list: List[str]) -> Dict[str, List[str]]:
+        included_query = (
+            # aggregation `array_agg()` converts multiple rows to an array
+            select(FileObjectEntry.uid, func.array_agg(included_files_table.c.child_uid))
+            .filter(FileObjectEntry.uid.in_(uid_list))
+            .join(included_files_table, included_files_table.c.parent_uid == FileObjectEntry.uid)
+            .group_by(FileObjectEntry)
+        )
+        return dict(iter(session.execute(included_query)))
 
-    def find_orphaned_objects(self) -> Dict[str, List[str]]:
-        ''' find File Objects whose parent firmware is missing '''
-        orphans_by_parent = {}
-        fo_parent_uids = list(self.file_objects.aggregate([
-            {'$unwind': '$parent_firmware_uids'},
-            {'$group': {'_id': 0, 'all_parent_uids': {'$addToSet': '$parent_firmware_uids'}}}
-        ], allowDiskUse=True))
-        if fo_parent_uids:
-            fo_parent_firmware = set(fo_parent_uids[0]['all_parent_uids'])
-            missing_uids = fo_parent_firmware.difference(self._get_all_firmware_uids())
-            if missing_uids:
-                for fo_entry in self.file_objects.find({'parent_firmware_uids': {'$in': list(missing_uids)}}):
-                    for uid in missing_uids:
-                        if uid in fo_entry['parent_firmware_uids']:
-                            orphans_by_parent.setdefault(uid, []).append(fo_entry['_id'])
-        return orphans_by_parent
+    # --- REST ---
 
-    def _get_all_firmware_uids(self) -> List[str]:
-        pipeline = [{'$group': {'_id': 0, 'firmware_uids': {'$push': '$_id'}}}]
-        try:
-            return list(self.firmwares.aggregate(pipeline, allowDiskUse=True))[0]['firmware_uids']
-        except IndexError:  # DB is empty
-            return []
+    def rest_get_firmware_uids(self, offset: int, limit: int, query: dict = None, recursive=False, inverted=False):
+        if query is None:
+            query = {}
+        if recursive:
+            return self.generic_search(query, skip=offset, limit=limit, only_fo_parent_firmware=True, inverted=inverted)
+        with self.get_read_only_session() as session:
+            db_query = build_query_from_dict(query_dict=query, query=select(FirmwareEntry.uid), fw_only=True)
+            db_query = self._apply_offset_and_limit(db_query, offset, limit)
+            db_query = db_query.order_by(FirmwareEntry.uid.asc())
+            return list(session.execute(db_query).scalars())
 
-    def find_missing_analyses(self):
+    def rest_get_file_object_uids(self, offset: Optional[int], limit: Optional[int], query=None) -> List[str]:
+        if query:
+            return self.generic_search(query, skip=offset, limit=limit)
+        with self.get_read_only_session() as session:
+            db_query = select(FileObjectEntry.uid)
+            db_query = self._apply_offset_and_limit(db_query, offset, limit)
+            return list(session.execute(db_query).scalars())
+
+    # --- missing/failed analyses ---
+
+    def find_missing_analyses(self) -> Dict[str, Set[str]]:
+        # FixMe? Query could probably be accomplished more efficiently with left outer join (either that or the RAM could go up in flames)
         missing_analyses = {}
-        query_result = self.firmwares.aggregate([
-            {'$project': {'temp': {'$objectToArray': '$processed_analysis'}}},
-            {'$unwind': '$temp'},
-            {'$group': {'_id': '$_id', 'analyses': {'$addToSet': '$temp.k'}}},
-        ], allowDiskUse=True)
-        for result in query_result:
-            firmware_uid, analysis_list = result['_id'], result['analyses']
-            query = {'$and': [
-                {'virtual_file_path.{}'.format(firmware_uid): {'$exists': True}},
-                {'$or': [{'processed_analysis.{}'.format(plugin): {'$exists': False}} for plugin in analysis_list]}
-            ]}
-            for entry in self.file_objects.find(query, {'_id': 1}):
-                missing_analyses.setdefault(firmware_uid, set()).add(entry['_id'])
+        with self.get_read_only_session() as session:
+            fw_query = self._query_all_plugins_of_object(FileObjectEntry.is_firmware.is_(True))
+            for fw_uid, fw_plugin_list in session.execute(fw_query):
+                fo_query = self._query_all_plugins_of_object(FileObjectEntry.root_firmware.any(uid=fw_uid))
+                for fo_uid, fo_plugin_list in session.execute(fo_query):
+                    missing_plugins = set(fw_plugin_list) - set(fo_plugin_list)
+                    if missing_plugins:
+                        missing_analyses.setdefault(fw_uid, set()).add(fo_uid)
         return missing_analyses
 
-    def find_failed_analyses(self) -> Dict[str, List[str]]:
-        '''Returns a dictionary of failed analyses per plugin: {<plugin>: <UID list>}.'''
-        query_result = self.file_objects.aggregate([
-            {'$project': {'analysis': {'$objectToArray': '$processed_analysis'}}},
-            {'$unwind': '$analysis'},
-            {'$match': {'analysis.v.failed': {'$exists': 'true'}}},
-            {'$group': {'_id': '$analysis.k', 'UIDs': {'$addToSet': '$_id'}}},
-        ], allowDiskUse=True)
-        return {entry['_id']: entry['UIDs'] for entry in query_result}
-
-    def get_data_for_dependency_graph(self, uid, root_uid):
-        data = list(self.file_objects.find(
-            {'parents': uid, 'parent_firmware_uids': root_uid},
-            {'_id': 1, 'virtual_file_path': 1, 'processed_analysis.elf_analysis': 1, 'processed_analysis.file_type': 1, 'file_name': 1})
+    @staticmethod
+    def _query_all_plugins_of_object(query_filter):
+        return (
+            # array_agg() aggregates different values of field into array
+            select(AnalysisEntry.uid, func.array_agg(AnalysisEntry.plugin))
+            .join(FileObjectEntry, AnalysisEntry.uid == FileObjectEntry.uid)
+            .filter(query_filter)
+            .group_by(AnalysisEntry.uid)
         )
-        for entry in data:
-            self.retrieve_analysis(entry['processed_analysis'])
-        return data
+
+    def find_failed_analyses(self) -> Dict[str, List[str]]:
+        result = {}
+        with self.get_read_only_session() as session:
+            query = (
+                select(AnalysisEntry.uid, AnalysisEntry.plugin)
+                .filter(AnalysisEntry.result.has_key('failed'))  # noqa: W601
+            )
+            for fo_uid, plugin in session.execute(query):
+                result.setdefault(plugin, set()).add(fo_uid)
+        return result
+
+    # --- search cache ---
+
+    def get_query_from_cache(self, query_id: str) -> Optional[CachedQuery]:
+        with self.get_read_only_session() as session:
+            entry: SearchCacheEntry = session.get(SearchCacheEntry, query_id)
+            if entry is None:
+                return None
+            return CachedQuery(query=entry.query, yara_rule=entry.yara_rule)
+
+    def get_total_cached_query_count(self):
+        with self.get_read_only_session() as session:
+            query = select(func.count(SearchCacheEntry.uid))
+            return session.execute(query).scalar()
+
+    def search_query_cache(self, offset: int, limit: int):
+        with self.get_read_only_session() as session:
+            query = select(SearchCacheEntry).offset(offset).limit(limit)
+            return [
+                (entry.uid, entry.yara_rule, RULE_REGEX.findall(entry.yara_rule))  # FIXME Use a proper yara parser
+                for entry in (session.execute(query).scalars())
+            ]
+
+    # --- dependency graph ---
+
+    def get_data_for_dependency_graph(self, uid: str) -> List[DepGraphData]:
+        fo = self.get_object(uid)
+        if fo is None or not fo.files_included:
+            return []
+        with self.get_read_only_session() as session:
+            libraries_by_uid = self._get_elf_analysis_libraries(session, fo.files_included)
+            query = (
+                select(
+                    FileObjectEntry.uid, FileObjectEntry.file_name, FileObjectEntry.virtual_file_paths,
+                    AnalysisEntry.result['mime'], AnalysisEntry.result['full']
+                )
+                .filter(FileObjectEntry.uid.in_(fo.files_included))
+                .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
+                .filter(AnalysisEntry.plugin == 'file_type')
+            )
+            return [
+                DepGraphData(uid, file_name, vfp, mime, full_type, libraries_by_uid.get(uid))
+                for uid, file_name, vfp, mime, full_type in session.execute(query)
+            ]
+
+    @staticmethod
+    def _get_elf_analysis_libraries(session, uid_list: List[str]) -> Dict[str, Optional[List[str]]]:
+        elf_analysis_query = (
+            select(FileObjectEntry.uid, AnalysisEntry.result)
+            .filter(FileObjectEntry.uid.in_(uid_list))
+            .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
+            .filter(AnalysisEntry.plugin == 'elf_analysis')
+        )
+        return {
+            uid: elf_analysis_result.get('Output', {}).get('libraries', [])
+            for uid, elf_analysis_result in session.execute(elf_analysis_query)
+            if elf_analysis_result is not None
+        }

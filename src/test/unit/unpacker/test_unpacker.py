@@ -9,7 +9,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from objects.file import FileObject
-from test.common_helper import DatabaseMock, create_test_file_object, get_test_data_dir
+from storage.unpacking_locks import UnpackingLockManager
+from test.common_helper import create_test_file_object, get_test_data_dir
 from unpacker.unpack import Unpacker
 
 TEST_DATA_DIR = Path(get_test_data_dir())
@@ -28,14 +29,14 @@ class TestUnpackerBase(unittest.TestCase):
         else:
             docker_gid = grp.getgrnam('docker').gr_gid
             os.chown(self.docker_mount_base_dir, -1, docker_gid)
-        config.add_section('data_storage')
-        config.set('data_storage', 'firmware_file_storage_directory', self.ds_tmp_dir.name)
-        config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
+        config.add_section('data-storage')
+        config.set('data-storage', 'firmware-file-storage-directory', self.ds_tmp_dir.name)
+        config.set('data-storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         config.add_section('unpack')
-        config.set('unpack', 'max_depth', '3')
+        config.set('unpack', 'max-depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')
-        config.add_section('ExpertSettings')
-        self.unpacker = Unpacker(config=config, db_interface=DatabaseMock())
+        config.add_section('expert-settings')
+        self.unpacker = Unpacker(config=config, unpacking_locks=UnpackingLockManager())
         self.tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         self.test_fo = create_test_file_object()
 
@@ -54,7 +55,7 @@ class TestUnpackerCore(TestUnpackerBase):
         self.assertEqual(len(file_objects), 1, 'number of objects not correct')
         self.assertEqual(file_objects[0].file_name, 'testfile1', 'wrong object created')
         parent_uid = self.test_fo.uid
-        self.assertIn('|{}|/get_files_test/testfile1'.format(parent_uid), file_objects[0].virtual_file_path[self.test_fo.uid])
+        self.assertIn(f'|{parent_uid}|/get_files_test/testfile1', file_objects[0].virtual_file_path[self.test_fo.uid])
 
     def test_remove_duplicates_child_equals_parent(self):
         parent = FileObject(binary=b'parent_content')
@@ -62,10 +63,10 @@ class TestUnpackerCore(TestUnpackerBase):
         self.assertEqual(len(result), 0, 'parent not removed from list')
 
     def test_file_is_locked(self):
-        assert not self.unpacker.db_interface.check_unpacking_lock(self.test_fo.uid)
+        assert not self.unpacker.unpacking_locks.unpacking_lock_is_set(self.test_fo.uid)
         file_paths = [TEST_DATA_DIR / 'get_files_test' / 'testfile1']
         self.unpacker.generate_and_store_file_objects(file_paths, EXTRACTION_DIR, self.test_fo)
-        assert self.unpacker.db_interface.check_unpacking_lock(self.test_fo.uid)
+        assert self.unpacker.unpacking_locks.unpacking_lock_is_set(self.test_fo.uid)
 
 
 class TestUnpackerCoreMain(TestUnpackerBase):

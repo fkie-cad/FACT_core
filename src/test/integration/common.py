@@ -25,10 +25,13 @@ class MockFSOrganizer:
 
 class MockDbInterface:
     def __init__(self, *_, **__):
-        self._objects = dict()
+        self._objects = {}
 
     def add_object(self, fo_fw):
         self._objects[fo_fw.uid] = fo_fw
+
+    def get_analysis(self, *_):
+        pass
 
     def get_specific_fields_of_db_entry(self, uid, field_dict):
         pass
@@ -38,23 +41,23 @@ def initialize_config(tmp_dir):
     config = get_config_for_testing(temp_dir=tmp_dir)
 
     # Database
-    config.set('data_storage', 'main_database', 'tmp_integration_tests')
-    config.set('data_storage', 'intercom_database_prefix', 'tmp_integration_tests')
-    config.set('data_storage', 'statistic_database', 'tmp_integration_tests')
-    config.set('data_storage', 'view_storage', 'tmp_view_storage')
+    config.set('data-storage', 'main-database', 'tmp_integration_tests')
+    config.set('data-storage', 'intercom-database-prefix', 'tmp_integration_tests')
+    config.set('data-storage', 'statistic-database', 'tmp_integration_tests')
+    config.set('data-storage', 'view-storage', 'tmp_view_storage')
 
     # Analysis
     config.add_section('ip_and_uri_finder')
     config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-    config.set('default_plugins', 'plugins', 'file_hashes')
+    config.set('default-plugins', 'plugins', 'file_hashes')
 
     # Unpacker
     config.set('unpack', 'threads', '1')
-    config.set('ExpertSettings', 'unpack_throttle_limit', '20')
+    config.set('expert-settings', 'unpack-throttle-limit', '20')
 
     # Compare
-    config.set('ExpertSettings', 'ssdeep_ignore', '80')
-    config.set('ExpertSettings', 'block_delay', '1')
-    config.set('ExpertSettings', 'throw_exceptions', 'true')
+    config.set('expert-settings', 'ssdeep-ignore', '80')
+    config.set('expert-settings', 'block-delay', '1')
+    config.set('expert-settings', 'throw-exceptions', 'true')
 
     return config

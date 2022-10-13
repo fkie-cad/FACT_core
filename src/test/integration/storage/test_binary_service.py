@@ -1,36 +1,29 @@
 # pylint: disable=attribute-defined-outside-init,wrong-import-order,redefined-outer-name,invalid-name
 
 import gc
-from configparser import ConfigParser
 from tempfile import TemporaryDirectory
 
 import magic
 import pytest
 
 from storage.binary_service import BinaryService
-from storage.db_interface_backend import BackEndDbInterface
-from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_firmware, get_config_for_testing, store_binary_on_file_system
 
 TEST_FW = create_test_firmware()
 
 
 @pytest.fixture
-def binary_service():
+def binary_service(db):
     with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
         config = get_config_for_testing(temp_dir=tmp_dir)
-        mongo_server = MongoMgr(config=config)
-        _init_test_data(config, tmp_dir)
+        _init_test_data(tmp_dir, db)
         yield BinaryService(config=config)
-        mongo_server.shutdown()
     gc.collect()
 
 
-def _init_test_data(config: ConfigParser, tmp_dir: str):
-    backend_db_interface = BackEndDbInterface(config=config)
-    backend_db_interface.add_firmware(TEST_FW)
+def _init_test_data(tmp_dir: str, db):
+    db.backend.add_object(TEST_FW)
     store_binary_on_file_system(tmp_dir, TEST_FW)
-    backend_db_interface.shutdown()
 
 
 def test_get_binary_and_file_name(binary_service):

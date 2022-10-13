@@ -1,6 +1,6 @@
-import pytest
+from subprocess import CompletedProcess
 
-from ..internal.python_linter import PythonLinter
+from ..internal.linters import run_pylint
 
 MOCK_RESPONSE = '''[
     {
@@ -34,20 +34,15 @@ pylint: error: no such option: -a
 '''
 
 
-@pytest.fixture(scope='function')
-def stub_linter():
-    return PythonLinter()
-
-
-def test_do_analysis(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.python_linter.execute_shell_command', lambda command: MOCK_RESPONSE)
-    result = stub_linter.do_analysis('any/path')
+def test_do_analysis(monkeypatch):
+    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE))
+    result = run_pylint('any/path')
 
     assert len(result[0].keys()) == 5
     assert result[0]['type'] == 'warning'
 
 
-def test_do_analysis_bad_invokation(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.python_linter.execute_shell_command', lambda command: BAD_RESPONSE)
-    result = stub_linter.do_analysis('any/path')
+def test_do_analysis_bad_invokation(monkeypatch):
+    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 1, stdout=BAD_RESPONSE))
+    result = run_pylint('any/path')
     assert not result

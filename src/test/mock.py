@@ -18,7 +18,7 @@ class MockSpy:
 def mock_spy(o: object, method: str):
     spy = MockSpy()
     if not hasattr(o, method):
-        raise AttributeError('{} has no method {}'.format(type(o), method))
+        raise AttributeError(f'{type(o)} has no method {method}')
     tmp = getattr(o, method)
     try:
         setattr(o, method, spy.spy_function)
@@ -30,7 +30,7 @@ def mock_spy(o: object, method: str):
 @contextmanager
 def mock_patch(o: object, method: str, replacement_method: Callable):
     if not hasattr(o, method):
-        raise AttributeError('{} has no method {}'.format(type(o), method))
+        raise AttributeError(f'{type(o)} has no method {method}')
     tmp = getattr(o, method)
     try:
         setattr(o, method, replacement_method)

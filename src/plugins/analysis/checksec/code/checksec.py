@@ -1,9 +1,9 @@
 import json
 import logging
 import re
+import subprocess
 from pathlib import Path
-
-from common_helper_process import execute_shell_command_get_return_code
+from subprocess import PIPE, STDOUT
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
@@ -17,14 +17,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['file_type']
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     VERSION = '0.1.6'
+    FILE = __file__
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        self.config = config
-
+    def additional_setup(self):
         if not SHELL_SCRIPT.is_file():
             raise RuntimeError(f'checksec not found at path {SHELL_SCRIPT}. Please re-run the backend installation.')
-
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         try:
@@ -42,10 +39,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 def execute_checksec_script(file_path):
-    checksec_result, return_code = execute_shell_command_get_return_code(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended')
-    if return_code != 0:
-        raise ValueError(f'Checksec script exited with non-zero return code {return_code}')
-    return json.loads(checksec_result)[str(file_path)]
+    checksec_process = subprocess.run(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if checksec_process.returncode != 0:
+        raise ValueError(f'Checksec script exited with non-zero return code {checksec_process.returncode}')
+    return json.loads(checksec_process.stdout)[str(file_path)]
 
 
 def check_mitigations(file_path):

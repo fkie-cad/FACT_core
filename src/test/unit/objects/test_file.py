@@ -7,7 +7,7 @@ from test.common_helper import get_test_data_dir
 class TestObjectsFile:  # pylint: disable=no-self-use
 
     def test_get_file_from_binary(self):
-        file_path = '{}/test_data_file.bin'.format(get_test_data_dir())
+        file_path = f'{get_test_data_dir()}/test_data_file.bin'
         test_object = FileObject(file_path=file_path)
         assert test_object.size == 19, 'correct size'
         assert test_object.binary == b'test string in file', 'correct binary data'
@@ -20,7 +20,7 @@ class TestObjectsFile:  # pylint: disable=no-self-use
         assert test_object.binary is None, 'correct binary'
 
     def test_file_object_init_with_binary(self):
-        bin_data = get_binary_from_file('{}/test_data_file.bin'.format(get_test_data_dir()))
+        bin_data = get_binary_from_file(f'{get_test_data_dir()}/test_data_file.bin')
         test_object = FileObject(bin_data)
         assert test_object.sha256 == '268d870ffa2b21784e4dc955d8e8b8eb5f3bcddd6720a1e6d31d2cf84bd1bff8', 'correct sha256'
         assert test_object.file_name is None, 'correct file name'

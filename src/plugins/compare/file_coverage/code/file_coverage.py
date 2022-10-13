@@ -17,21 +17,23 @@ class ComparePlugin(CompareBasePlugin):
 
     NAME = 'File_Coverage'
     DEPENDENCIES = []
+    FILE = __file__
 
-    def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=__file__):
-        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)
-        self.ssdeep_ignore_threshold = self.config.getint('ExpertSettings', 'ssdeep_ignore')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ssdeep_ignore_threshold = self.config.getint('expert-settings', 'ssdeep-ignore')
 
     def compare_function(self, fo_list):
-        compare_result = dict()
-        compare_result['files_in_common'] = self._get_intersection_of_files(fo_list)
-        compare_result['exclusive_files'] = self._get_exclusive_files(fo_list)
+        compare_result = {
+            'files_in_common': self._get_intersection_of_files(fo_list),
+            'exclusive_files': self._get_exclusive_files(fo_list)
+        }
 
         self._handle_partially_common_files(compare_result, fo_list)
 
-        for key in compare_result:
-            if isinstance(compare_result[key], dict):
-                compare_result[key]['collapse'] = False
+        for result in compare_result.values():
+            if isinstance(result, dict):
+                result['collapse'] = False
 
         similar_files, similarity = self._get_similar_files(fo_list, compare_result['exclusive_files'])
         compare_result['similar_files'] = self.combine_similarity_results(similar_files, fo_list, similarity)
@@ -61,7 +63,7 @@ class ComparePlugin(CompareBasePlugin):
             compare_result['files_in_more_than_one_but_not_in_all'] = self._get_files_in_more_than_one_but_not_in_all(fo_list, compare_result)
             not_in_all = compare_result['files_in_more_than_one_but_not_in_all']
         else:
-            not_in_all = dict()
+            not_in_all = {}
         compare_result['non_zero_files_in_common'] = self._get_non_zero_common_files(compare_result['files_in_common'], not_in_all)
 
     @staticmethod
@@ -122,22 +124,22 @@ class ComparePlugin(CompareBasePlugin):
         if len(similarities_list) == 1:
             return similarities_list.pop()
         similarities_list = [int(v) for v in similarities_list]
-        return '{} ‒ {}'.format(min(similarities_list), max(similarities_list))
+        return f'{min(similarities_list)} ‒ {max(similarities_list)}'
 
     @staticmethod
     def _get_similar_file_id(file_uid: str, parent_uid: str) -> str:
-        return '{}:{}'.format(parent_uid, file_uid)
+        return f'{parent_uid}:{file_uid}'
 
     @staticmethod
     def _get_similar_file_group_id(similar_file_group: List[str]) -> str:
         group_id = ''
         for similar_file_id in similar_file_group:
             parent_uid, file_uid = similar_file_id.split(':')
-            group_id = '{}{}{}'.format(group_id, parent_uid[:4], file_uid[:4])
+            group_id = f'{group_id}{parent_uid[:4]}{file_uid[:4]}'
         return group_id
 
     def _get_non_zero_common_files(self, files_in_all, not_in_all):
-        non_zero_files = dict()
+        non_zero_files = {}
         if files_in_all['all']:
             self._evaluate_entropy_for_list_of_uids(files_in_all['all'], non_zero_files, 'all')
 
@@ -148,7 +150,7 @@ class ComparePlugin(CompareBasePlugin):
         return non_zero_files
 
     def _evaluate_entropy_for_list_of_uids(self, list_of_uids, new_result, firmware_uid):
-        non_zero_file_ids = list()
+        non_zero_file_ids = []
         for uid in list_of_uids:
             if self.database.get_entropy(uid) > 0.1:
                 non_zero_file_ids.append(uid)

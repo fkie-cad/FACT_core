@@ -146,7 +146,7 @@ function createFinishedAnalysisItem(uid, data) {
 }
 
 function getProgressParagraph(progressText) {
-    return `<p style="color: white; position: absolute; z-index: 3; width: 100%; margin-top: -3px; text-align: center;"><small>${progressText}</small></p>`;
+    return `<p style="color: white; position: absolute; z-index: 3; width: 100%; margin-top: -3px; text-align: center; padding-right: 15px;"><small>${progressText}</small></p>`;
 }
 
 function getDuration(start=null, duration=null) {

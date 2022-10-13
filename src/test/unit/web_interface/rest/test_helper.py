@@ -1,8 +1,7 @@
 import pytest
 
 from web_interface.rest.helper import (
-    convert_rest_request, error_message, get_boolean_from_request, get_current_gmt, get_paging, get_query, get_update,
-    success_message
+    error_message, get_boolean_from_request, get_current_gmt, get_paging, get_query, get_update, success_message
 )
 
 
@@ -55,17 +54,6 @@ def test_messages_with_request_data():
     assert message['request'] == request_data
 
 
-@pytest.mark.parametrize('data', [None, dict(), b'', b'{"param": False}', b'{1, 2, 3}'])
-def test_convert_rest_request_fails(data):
-    with pytest.raises(TypeError):
-        convert_rest_request(data)
-
-
-@pytest.mark.parametrize('data', [b'{}', b'{"param": true}', b'{"a": 1, "b": {"c": 3}}'])
-def test_convert_rest_request_succeeds(data):
-    assert isinstance(convert_rest_request(data), dict)
-
-
 def test_get_boolean_from_request():
     assert not get_boolean_from_request(None, 'flag')
 
@@ -75,7 +63,7 @@ def test_get_boolean_from_request():
     with pytest.raises(ValueError):
         get_boolean_from_request(dict(flag='2'), 'flag')
 
-    no_flag = get_boolean_from_request(dict(), 'flag')
+    no_flag = get_boolean_from_request({}, 'flag')
     assert not no_flag
 
     false_result = get_boolean_from_request(dict(flag='false'), 'flag')
@@ -85,7 +73,7 @@ def test_get_boolean_from_request():
     assert good_result
 
 
-@pytest.mark.parametrize('arguments', [None, dict(), dict(update='bad_string'), dict(update='[]'), dict(update='{}')])
+@pytest.mark.parametrize('arguments', [None, {}, dict(update='bad_string'), dict(update='[]'), dict(update='{}')])
 def test_get_update_bad(arguments):
     with pytest.raises(ValueError):
         get_update(arguments)

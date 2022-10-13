@@ -6,7 +6,6 @@ from time import sleep
 import pytest
 
 from intercom.back_end_binding import InterComBackEndBinding
-from storage.MongoMgr import MongoMgr
 from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
 
 # This number must be changed, whenever a listener is added or removed
@@ -67,11 +66,9 @@ def get_intercom_for_testing():
             unpacking_service=ServiceMock(test_queue)
         )
         interface.WAIT_TIME = 2
-        db = MongoMgr(config=config)
         yield interface
         interface.shutdown()
         test_queue.close()
-        db.shutdown()
     gc.collect()
 
 

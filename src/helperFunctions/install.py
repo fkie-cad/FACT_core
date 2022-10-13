@@ -6,11 +6,10 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from subprocess import PIPE, CalledProcessError
+from subprocess import DEVNULL, PIPE, STDOUT, CalledProcessError
 from typing import List, Tuple, Union
 
 import distro
-from common_helper_process import execute_shell_command_get_return_code
 
 
 class InstallationError(Exception):
@@ -52,8 +51,8 @@ def remove_folder(folder_name: str):
     try:
         shutil.rmtree(folder_name)
     except PermissionError:
-        logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
-        execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
+        logging.debug(f'Falling back on root permission for deleting {folder_name}')
+        subprocess.run(f'sudo rm -rf {folder_name}', shell=True)
     except Exception as exception:
         raise InstallationError(exception) from None
 
@@ -66,16 +65,16 @@ def log_current_packages(packages: Tuple[str], install: bool = True):
     :param install: Identifier to distinguish installation from removal.
     '''
     action = 'Installing' if install else 'Removing'
-    logging.info('{} {}'.format(action, ' '.join(packages)))
+    logging.info(f"{action} {' '.join(packages)}")
 
 
 def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
-    output, return_code = execute_shell_command_get_return_code(command)
-    if return_code != 0:
+    cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if cmd_process.returncode != 0:
         if add_output_on_error:
-            error = '{}\n{}'.format(error, output)
+            error = f'{error}\n{cmd_process.stdout}'
         raise InstallationError(error)
-    return output
+    return cmd_process.stdout
 
 
 def dnf_update_sources():
@@ -92,7 +91,7 @@ def dnf_install_packages(*packages: str):
     :param packages: Iterable containing packages to install.
     '''
     log_current_packages(packages)
-    return _run_shell_command_raise_on_return_code('sudo dnf install -y {}'.format(' '.join(packages)), 'Error in installation of package(s) {}'.format(' '.join(packages)), True)
+    return _run_shell_command_raise_on_return_code(f"sudo dnf install -y {' '.join(packages)}", f"Error in installation of package(s) {' '.join(packages)}", True)
 
 
 def dnf_remove_packages(*packages: str):
@@ -102,7 +101,7 @@ def dnf_remove_packages(*packages: str):
     :param packages: Iterable containing packages to remove.
     '''
     log_current_packages(packages, install=False)
-    return _run_shell_command_raise_on_return_code('sudo dnf remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
+    return _run_shell_command_raise_on_return_code(f"sudo dnf remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True)
 
 
 def apt_update_sources():
@@ -119,7 +118,7 @@ def apt_install_packages(*packages: str):
     :param packages: Iterable containing packages to install.
     '''
     log_current_packages(packages)
-    return _run_shell_command_raise_on_return_code('sudo apt-get install -y {}'.format(' '.join(packages)), 'Error in installation of package(s) {}'.format(' '.join(packages)), True)
+    return _run_shell_command_raise_on_return_code(f"sudo apt-get install -y {' '.join(packages)}", f"Error in installation of package(s) {' '.join(packages)}", True)
 
 
 def apt_remove_packages(*packages: str):
@@ -129,7 +128,7 @@ def apt_remove_packages(*packages: str):
     :param packages: Iterable containing packages to remove.
     '''
     log_current_packages(packages, install=False)
-    return _run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
+    return _run_shell_command_raise_on_return_code(f"sudo apt-get remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True)
 
 
 def check_if_command_in_path(command: str) -> bool:
@@ -139,10 +138,8 @@ def check_if_command_in_path(command: str) -> bool:
 
     :param command: Command to check.
     '''
-    _, return_code = execute_shell_command_get_return_code('command -v {}'.format(command))
-    if return_code != 0:
-        return False
-    return True
+    command_process = subprocess.run(f'command -v {command}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    return command_process.returncode == 0
 
 
 def install_github_project(project_path: str, commands: List[str]):
@@ -168,9 +165,9 @@ def install_github_project(project_path: str, commands: List[str]):
     with OperateInDirectory(folder_name, remove=True):
         error = None
         for command in commands:
-            output, return_code = execute_shell_command_get_return_code(command)
-            if return_code != 0:
-                error = 'Error while processing github project {}!\n{}'.format(project_path, output)
+            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            if cmd_process.returncode != 0:
+                error = f'Error while processing github project {project_path}!\n{cmd_process.stdout}'
                 break
 
     if error:
@@ -178,12 +175,12 @@ def install_github_project(project_path: str, commands: List[str]):
 
 
 def _checkout_github_project(github_path: str, folder_name: str):
-    clone_url = 'https://www.github.com/{}'.format(github_path)
-    _, return_code = execute_shell_command_get_return_code('git clone {}'.format(clone_url))
-    if return_code != 0:
-        raise InstallationError('Cloning from github failed for project {}\n {}'.format(github_path, clone_url))
+    clone_url = f'https://www.github.com/{github_path}'
+    git_process = subprocess.run(f'git clone {clone_url}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    if git_process.returncode != 0:
+        raise InstallationError(f'Cloning from github failed for project {github_path}\n {clone_url}')
     if not Path('.', folder_name).exists():
-        raise InstallationError('Repository creation failed on folder {}\n {}'.format(folder_name, clone_url))
+        raise InstallationError(f'Repository creation failed on folder {folder_name}\n {clone_url}')
 
 
 def load_main_config() -> configparser.ConfigParser:
@@ -195,7 +192,7 @@ def load_main_config() -> configparser.ConfigParser:
     config = configparser.ConfigParser()
     config_path = Path(Path(__file__).parent.parent, 'config', 'main.cfg')
     if not config_path.is_file():
-        raise InstallationError('Could not load config at path {}'.format(config_path))
+        raise InstallationError(f'Could not load config at path {config_path}')
     config.read(str(config_path))
     return config
 
@@ -213,24 +210,25 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool =
     logging.debug(f'Running: {cmd}')
     try:
         cmd_ = cmd if shell else shlex.split(cmd)
-        subprocess.run(cmd_, stdout=PIPE, stderr=PIPE, encoding='UTF-8', shell=shell, check=True, **kwargs)
+        subprocess.run(cmd_, stdout=PIPE, stderr=STDOUT, encoding='UTF-8', shell=shell, check=True, **kwargs)
     except CalledProcessError as err:
         # pylint:disable=no-else-raise
         if not silent:
-            logging.log(logging.ERROR if raise_error else logging.DEBUG, f'Failed to run {cmd}:\n{err.stderr}')
+            logging.log(logging.ERROR if raise_error else logging.DEBUG, f'Failed to run {cmd}:\n{err.stdout}')
         if raise_error:
             raise err
 
 
-def check_distribution():
+def check_distribution(allow_unsupported=False):
     '''
     Check if the distribution is supported by the installer.
 
     :return: The codename of the distribution
     '''
     bionic_code_names = ['bionic', 'tara', 'tessa', 'tina', 'disco']
-    debian_code_names = ['buster', 'stretch', 'kali-rolling']
+    debian_code_names = ['buster', 'stretch', 'bullseye', 'kali-rolling']
     focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma']
+    jammy_code_names = ['jammy', 'vanessa']
 
     codename = distro.codename().lower()
     if codename in bionic_code_names:
@@ -239,14 +237,21 @@ def check_distribution():
     if codename in focal_code_names:
         logging.debug('Ubuntu 20.04 detected')
         return 'focal'
+    if codename in jammy_code_names:
+        logging.debug('Ubuntu 22.04 detected')
+        return 'jammy'
     if codename in debian_code_names:
         logging.debug('Debian/Kali detected')
         return 'debian'
     if distro.id() == 'fedora':
         logging.debug('Fedora detected')
         return 'fedora'
-    logging.critical('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version()))
-    sys.exit(1)
+    msg = f'Your Distribution ({distro.id()} {distro.version()}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'
+    if allow_unsupported:
+        logging.info(msg)
+    else:
+        logging.critical(msg)
+        sys.exit(1)
 
 
 def install_pip_packages(package_file: Path):
@@ -265,10 +270,10 @@ def install_pip_packages(package_file: Path):
             run_cmd_with_logging(command, silent=True)
         except CalledProcessError as error:
             # don't fail if a package is already installed using apt and can't be upgraded
-            if 'distutils installed' in error.stderr:
+            if error.stdout is not None and 'distutils installed' in error.stdout:
                 logging.warning(f'Pip package {package} is already installed with distutils. This may Cause problems:\n{error.stderr}')
                 continue
-            logging.error(f'Pip package {package} could not be installed:\n{error.stderr}')
+            logging.error(f'Pip package {package} could not be installed:\n{error.stderr or error.stdout}')
             raise
 
 

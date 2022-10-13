@@ -1,4 +1,8 @@
-from typing import Dict, List
+from contextlib import suppress
+from typing import TYPE_CHECKING, Dict, List, Set
+
+if TYPE_CHECKING:  # avoid circular import
+    from objects.file import FileObject
 
 
 def split_virtual_path(virtual_path: str) -> List[str]:
@@ -38,3 +42,51 @@ def _split_vfp_list_by_base(vfp_list: List[str]) -> Dict[str, List[str]]:
     for path in vfp_list:
         vfp_list_by_base.setdefault(get_base_of_virtual_path(path), []).append(path)
     return vfp_list_by_base
+
+
+def get_parent_uids_from_virtual_path(file_object: 'FileObject') -> Set[str]:
+    '''
+    Get the UIDs of parent files (aka files with include this file) from the virtual file paths of a FileObject.
+
+    :param file_object: The FileObject whose virtual file paths are searched for parent UIDs
+    :return: A set of parent UIDs
+    '''
+    parent_uids = set()
+    for path_list in file_object.virtual_file_path.values():
+        for virtual_path in path_list:
+            with suppress(IndexError):
+                parent_uids.add(split_virtual_path(virtual_path)[-2])  # second last element is the parent object
+    return parent_uids
+
+
+def get_uids_from_virtual_path(virtual_path: str) -> List[str]:
+    '''
+    Get all UIDs from a virtual file path (one element from the virtual path list for one root UID of a FW).
+
+    :param virtual_path: A virtual path consisting of UIDs, separators ('|') and file paths
+    :return: A list of UIDs
+    '''
+    parts = split_virtual_path(virtual_path)
+    if len(parts) == 1:  # the virtual path of a FW consists only of its UID
+        return parts
+    return parts[:-1]  # included files have the file path as last element
+
+
+def update_virtual_file_path(new_vfp: Dict[str, List[str]], old_vfp: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    '''
+    Get updated dict of virtual file paths.
+    A file object can exist only once, multiple times inside the same firmware (e.g. sym links) or
+    even in multiple different firmware images (e.g. common files across patch levels).
+    Thus updating the virtual file paths dict requires some logic.
+    This function returns the combined dict across newfound virtual paths and existing ones.
+
+    :param new_vfp: current virtual file path dictionary
+    :param old_vfp: old virtual file path dictionary (existing DB entry)
+    :return: updated (merged) virtual file path dictionary
+    '''
+    for key in new_vfp:
+        if key in old_vfp:
+            old_vfp[key] = merge_vfp_lists(old_vfp[key], new_vfp[key])
+        else:
+            old_vfp[key] = new_vfp[key]
+    return old_vfp

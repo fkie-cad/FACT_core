@@ -1,5 +1,5 @@
 import logging
-from hashlib import algorithms_available
+from hashlib import algorithms_guaranteed
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.config import read_list_from_config
@@ -14,18 +14,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'calculate different hash values of the file'
     VERSION = '1.2'
+    FILE = __file__
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        '''
-        recursive flag: If True recursively analyze included files
-        default flags should be edited above. Otherwise the scheduler cannot overwrite them.
-        '''
-        self.config = config
-        self.hashes_to_create = self._get_hash_list_from_config()
-
-        # additional init stuff can go here
-
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=600)
+    def additional_setup(self):
+        self.hashes_to_create = self._get_hash_list_from_config(self.config)
 
     def process_object(self, file_object):
         '''
@@ -35,7 +27,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         '''
         file_object.processed_analysis[self.NAME] = {}
         for hash_ in self.hashes_to_create:
-            if hash_ in algorithms_available:
+            if hash_ in algorithms_guaranteed:
                 file_object.processed_analysis[self.NAME][hash_] = get_hash(hash_, file_object.binary)
             else:
                 logging.debug(f'algorithm {hash_} not available')
@@ -48,6 +40,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return file_object
 
-    def _get_hash_list_from_config(self):
-        hash_list = read_list_from_config(self.config, self.NAME, 'hashes', default=['sha256'])
-        return hash_list if hash_list else ['sha256']
+    def _get_hash_list_from_config(self, config):
+        hash_list = read_list_from_config(config, self.NAME, 'hashes')
+        return hash_list or ['sha256']

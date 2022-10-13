@@ -10,6 +10,7 @@ class TestAnalysisScheduling:
     class PluginMock:
         def __init__(self, dependencies):
             self.DEPENDENCIES = dependencies
+            self.VERSION = 1
 
     def setup_class(self):
         self.analysis_plugins = {}
@@ -83,10 +84,10 @@ class TestAnalysisScheduling:
         self.scheduler.reschedule_failed_analysis_task(task)
 
         assert 'foo' in task.processed_analysis
-        assert task.processed_analysis['foo'] == {'failed': error_message}
+        assert task.processed_analysis['foo']['failed'] == error_message
         assert 'bar' not in task.scheduled_analysis
         assert 'bar' in task.processed_analysis
-        assert task.processed_analysis['bar'] == {'failed': 'Analysis of dependency foo failed'}
+        assert task.processed_analysis['bar']['failed'] == 'Analysis of dependency foo failed'
         assert 'no_deps' in task.scheduled_analysis
 
     def test_smart_shuffle(self):

@@ -28,10 +28,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['file_type']
     VERSION = '0.3.3'
     MIME_WHITELIST = ['application/x-executable', 'application/x-pie-executable', 'application/x-object', 'application/x-sharedlib']
-
-    def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
-        self.config = config
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
+    FILE = __file__
 
     def process_object(self, file_object):
         try:
@@ -115,7 +112,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         elf_dict = {}
         try:
             parsed_binary = lief.parse(file_object.file_path)
-            binary_json_dict = json.loads(lief.to_json_from_abstract(parsed_binary))
+            binary_json_dict = json.loads(lief.to_json(parsed_binary))
             if parsed_binary.exported_functions:
                 binary_json_dict['exported_functions'] = normalize_lief_items(parsed_binary.exported_functions)
             if parsed_binary.imported_functions:

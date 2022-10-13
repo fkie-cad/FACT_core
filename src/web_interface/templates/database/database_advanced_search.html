@@ -54,18 +54,28 @@
             </p>
             <p>
                 With regular expression:<br />
-                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_name": {"$options": "si", "$regex": "Fritz.+Box"}}</span><br />
-                <span style="color:grey; font-size: 0.9em">Match field with regular expression. Options mean interpret dot as wildcard (s) and case insensitive (i)</span>
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_name": {"$regex": "Fritz.+Box 7[0-9]{3}"}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Match field with regular expression</span>
+            </p>
+            <p>
+                With substring (case-insensitive):<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"vendor": {"$like": "link"}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Match firmwares files that have "link" in their vendor name</span>
             </p>
             <p>
                 With arithmetic:<br />
                 <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"processed_analysis.file_type.mime": "application/x-executable", "size": {"$lt": 1337}}</span><br />
-                <span style="color:grey; font-size: 0.9em">Select only executables that are smaller then or equal 1337 bytes</span>
+                <span style="color:grey; font-size: 0.9em">Select only executables that are smaller than or equal 1337 bytes</span>
             </p>
             <p>
-                With existence check:<br />
-                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"vendor": {"$exists": true}, "size": {"$lt": 4200000}}</span><br />
-                <span style="color:grey; font-size: 0.9em">Select files that have a vendor field (outer container) and are smaller than 4.2 MB</span>
+                With list of possible values:<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_class": {"$in": ["router", "switch"]}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Select firmwares that have either device class "router" or "switch"</span>
+            </p>
+            <p>
+                Check existence (JSON columns only):<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"processed_analysis.software_components.BusyBox": {"$exists": true}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Select files where an entry for BusyBox exists in the result of the software components plugin</span>
             </p>
 
             For further usage also see <a href="https://docs.mongodb.com/v3.6/tutorial/query-documents/">the MongoDB documentation</a> or simply ask for help at our <a href="https://gitter.im/FACT_core/community">Gitter channel</a>.

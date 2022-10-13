@@ -1,58 +1,63 @@
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name,no-self-use,use-implicit-booleaness-not-comparison,attribute-defined-outside-init,wrong-import-order
 from base64 import b64encode
 from unittest import TestCase
 
+from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
-from helperFunctions.database import ConnectTo
 from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
-from test.unit.web_interface.rest.conftest import decode_response
 
 from ..code.file_system_metadata import AnalysisPlugin
 from ..routes import routes
+from ..routes.routes import _get_results_from_parent_fo
+
+
+def b64_encode(string):
+    return b64encode(string.encode()).decode()
 
 
 class DbInterfaceMock:
-    def __init__(self, config):
-        self.config = config
+    def __init__(self):
         self.fw = create_test_firmware()
         self.fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
         self.fo = create_test_file_object()
-        self.fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(self.fw.uid, 'some_file')]
+        self.fo.uid = 'foo'
+        self.fo.parents = [self.fw.uid]
+        self.fo.virtual_file_path['some_uid'] = [f'some_uid|{self.fw.uid}|/some_file']
 
     def get_object(self, uid):
         if uid == self.fw.uid:
             return self.fw
-        if uid == 'foo':
+        if uid == self.fo.uid:
             return self.fo
         if uid == 'bar':
             fo = create_test_file_object()
+            fo.parents = [self.fw.uid]
             fo.virtual_file_path = {'some_uid': ['a|b|c']}
             return fo
         return None
 
-    def shutdown(self):
-        pass
+    def get_analysis(self, uid, plugin):
+        if uid == self.fw.uid and plugin == AnalysisPlugin.NAME:
+            return {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
+        return None
+
+    @contextmanager
+    def get_read_only_session(self):
+        yield None
 
 
-class TestFileSystemMetadataRoutesStatic(TestCase):
-
-    def setUp(self):
-        self.config = get_config_for_testing()
-        routes.FsMetadataDbInterface.__bases__ = (DbInterfaceMock,)
+class TestFileSystemMetadataRoutesStatic:
 
     def test_get_results_from_parent_fos(self):
-        fw = create_test_firmware()
         fo = create_test_file_object()
         file_name = 'folder/file'
         encoded_name = b64_encode(file_name)
+        parent_result = {'files': {encoded_name: {'result': 'value'}}}
+        fo.virtual_file_path['some_uid'] = [f'some_uid|parent_uid|/{file_name}']
 
-        fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {encoded_name: {'result': 'value'}}}
-        fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(fw.uid, file_name)]
-
-        results = {}
-        routes.FsMetadataRoutesDbInterface.get_results_from_parent_fos(fw, fo, results)
+        results = _get_results_from_parent_fo(parent_result, 'parent_uid', fo)
 
         assert results != {}, 'result should not be empty'
         assert file_name in results, 'files missing from result'
@@ -61,18 +66,13 @@ class TestFileSystemMetadataRoutesStatic(TestCase):
         assert results[file_name]['result'] == 'value', 'wrong value of analysis result'
 
     def test_get_results_from_parent_fos__multiple_vfps_in_one_fw(self):
-        fw = create_test_firmware()
         fo = create_test_file_object()
+        fo.parents = ['parent_uid']
         file_names = ['file_a', 'file_b', 'file_c']
+        fo.virtual_file_path['some_uid'] = [f'some_uid|parent_uid|/{f}' for f in file_names]
+        parent_result = {'files': {b64_encode(f): {'result': 'value'} for f in file_names}}
 
-        fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {b64_encode(f): {'result': 'value'} for f in file_names}}
-
-        vfp = fo.virtual_file_path['some_uid'] = []
-        for f in file_names:
-            vfp.append('some_uid|{}|/{}'.format(fw.uid, f))
-
-        results = {}
-        routes.FsMetadataRoutesDbInterface.get_results_from_parent_fos(fw, fo, results)
+        results = _get_results_from_parent_fo(parent_result, 'parent_uid', fo)
 
         assert results is not None
         assert results != {}, 'result should not be empty'
@@ -82,8 +82,7 @@ class TestFileSystemMetadataRoutesStatic(TestCase):
         assert results[file_names[0]]['result'] == 'value', 'wrong value of analysis result'
 
     def test_get_analysis_results_for_included_uid(self):
-        with ConnectTo(routes.FsMetadataRoutesDbInterface, self.config) as db_interface:
-            result = db_interface.get_analysis_results_for_included_uid('foo')
+        result = routes.get_analysis_results_for_included_uid('foo', DbInterfaceMock())
 
         assert result is not None
         assert result != {}, 'result should not be empty'
@@ -91,35 +90,35 @@ class TestFileSystemMetadataRoutesStatic(TestCase):
         assert 'some_file' in result, 'files missing from result'
 
     def test_get_analysis_results_for_included_uid__uid_not_found(self):
-        with ConnectTo(routes.FsMetadataRoutesDbInterface, self.config) as db_interface:
-            result = db_interface.get_analysis_results_for_included_uid('not_found')
+        result = routes.get_analysis_results_for_included_uid('not_found', DbInterfaceMock())
 
         assert result is not None
         assert result == {}, 'result should be empty'
 
     def test_get_analysis_results_for_included_uid__parent_not_found(self):
-        with ConnectTo(routes.FsMetadataRoutesDbInterface, self.config) as db_interface:
-            result = db_interface.get_analysis_results_for_included_uid('bar')
+        result = routes.get_analysis_results_for_included_uid('bar', DbInterfaceMock())
 
         assert result is not None
         assert result == {}, 'result should be empty'
 
 
-class TestFileSystemMetadataRoutes(TestCase):
+class DbMock:
+    frontend = DbInterfaceMock()
 
-    def setUp(self):
-        routes.FrontEndDbInterface = DbInterfaceMock
+
+class TestFileSystemMetadataRoutes:
+
+    def setup(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
-        app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x
-        app.jinja_env.filters['nice_unix_time'] = lambda x: x
+        app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x  # pylint: disable=no-member
         config = get_config_for_testing()
-        self.plugin_routes = routes.PluginRoutes(app, config)
+        self.plugin_routes = routes.PluginRoutes(app, config, db=DbMock, intercom=None)
         self.test_client = app.test_client()
 
     def test_get_analysis_results_of_parent_fo(self):
-        rv = self.test_client.get('/plugins/file_system_metadata/ajax/{}'.format('foo'))
+        rv = self.test_client.get('/plugins/file_system_metadata/ajax/foo')
         assert 'test_result' in rv.data.decode()
         assert 'test_value' in rv.data.decode()
 
@@ -127,7 +126,6 @@ class TestFileSystemMetadataRoutes(TestCase):
 class TestFileSystemMetadataRoutesRest(TestCase):
 
     def setUp(self):
-        routes.FrontEndDbInterface = DbInterfaceMock
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
@@ -138,21 +136,17 @@ class TestFileSystemMetadataRoutesRest(TestCase):
             routes.FSMetadataRoutesRest,
             endpoint,
             methods=methods,
-            resource_class_kwargs={'config': config}
+            resource_class_kwargs={'config': config, 'db': DbMock}
         )
         self.test_client = app.test_client()
 
     def test_get_rest(self):
-        result = decode_response(self.test_client.get('/plugins/file_system_metadata/rest/{}'.format('foo')))
+        result = self.test_client.get('/plugins/file_system_metadata/rest/foo').json
         assert AnalysisPlugin.NAME in result
         assert 'some_file' in result[AnalysisPlugin.NAME]
         assert 'test_result' in result[AnalysisPlugin.NAME]['some_file']
 
     def test_get_rest__no_result(self):
-        result = decode_response(self.test_client.get('/plugins/file_system_metadata/rest/{}'.format('not_found')))
+        result = self.test_client.get('/plugins/file_system_metadata/rest/not_found').json
         assert AnalysisPlugin.NAME in result
         assert result[AnalysisPlugin.NAME] == {}
-
-
-def b64_encode(string):
-    return b64encode(string.encode()).decode()

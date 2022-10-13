@@ -1,65 +1,59 @@
 import logging
-import os
 from contextlib import suppress
 from pathlib import Path
+from shlex import split
+from subprocess import PIPE, CalledProcessError, run
 
-from common_helper_process import execute_shell_command_get_return_code
+from helperFunctions.install import InstallationError, OperateInDirectory
 
-from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages
-)
-
-MONGO_MIRROR_COMMANDS = {
-    'debian': {
-        'key': 'wget -qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -',
-        'sources': 'echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/3.6 main" | sudo tee /etc/apt/sources.list.d/mongo.list'
-    },
+CODENAME_TRANSLATION = {
+    'tara': 'bionic', 'tessa': 'bionic', 'tina': 'bionic', 'tricia': 'bionic',
+    'ulyana': 'focal', 'ulyssa': 'focal', 'uma': 'focal', 'una': 'focal',
 }
 
 
-def _get_db_directory():
-    output, return_code = execute_shell_command_get_return_code(r'grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf')
-    if return_code != 0:
-        raise InstallationError('Unable to locate target for database directory')
-    return output.strip()
+def install_postgres(version: int = 14):
+    codename = run('lsb_release -cs', universal_newlines=True, shell=True, stdout=PIPE, check=True).stdout.rstrip()
+    codename = CODENAME_TRANSLATION.get(codename, codename)
+    # based on https://www.postgresql.org/download/linux/ubuntu/
+    command_list = [
+        f'sudo sh -c \'echo "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt {codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list\'',
+        'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -',
+        'sudo apt-get update',
+        f'sudo apt-get -y install postgresql-{version}'
+    ]
+    for command in command_list:
+        process = run(command, universal_newlines=True, shell=True, check=False, stderr=PIPE)
+        if process.returncode != 0:
+            raise InstallationError(f'Failed to set up PostgreSQL: {process.stderr}')
+
+    # increase the maximum number of concurrent connections (and restart for the change to take effect)
+    config_path = f'/etc/postgresql/{version}/main/postgresql.conf'
+    run(f'sudo sed -i -E "s/max_connections = [0-9]+/max_connections = 999/g" {config_path}', shell=True, check=True)
+    run('sudo service postgresql restart', shell=True, check=True)
 
 
-def _add_mongo_mirror(distribution):
-    apt_key_output, apt_key_code = execute_shell_command_get_return_code(
-        MONGO_MIRROR_COMMANDS[distribution]['key']
-    )
-    tee_output, tee_code = execute_shell_command_get_return_code(
-        MONGO_MIRROR_COMMANDS[distribution]['sources']
-    )
-    if any(code != 0 for code in (apt_key_code, tee_code)):
-        raise InstallationError('Unable to set up mongodb installation\n{}'.format('\n'.join((apt_key_output, tee_output))))
+def postgres_is_installed():
+    try:
+        run(split('psql --version'), check=True)
+        return True
+    except (CalledProcessError, FileNotFoundError):
+        return False
 
 
-def main(distribution):
-    logging.info('Setting up mongo database')
-
-    if distribution == 'debian':
-        _add_mongo_mirror(distribution)
-        apt_update_sources()
-        apt_install_packages('mongodb-org')
-    elif distribution == 'fedora':
-        dnf_install_packages('mongodb-org-3.6.8')
+def main():
+    if postgres_is_installed():
+        logging.info('Skipping PostgreSQL installation. Reason: Already installed.')
     else:
-        apt_install_packages('mongodb')
+        logging.info('Setting up PostgreSQL database')
+        install_postgres()
 
-    # creating DB directory
-    fact_db_directory = _get_db_directory()
-    mkdir_output, _ = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(fact_db_directory))
-    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown {}:{} {}'.format(os.getuid(), os.getgid(), fact_db_directory))
-    if chown_code != 0:
-        raise InstallationError('Failed to set up database directory. Check if parent folder exists\n{}'.format('\n'.join((mkdir_output, chown_output))))
-
-    # initializing DB authentication
-    logging.info('Initialize database')
+    # initializing DB
+    logging.info('Initializing PostgreSQL database')
     with OperateInDirectory('..'):
-        init_output, init_code = execute_shell_command_get_return_code('python3 init_database.py')
-    if init_code != 0:
-        raise InstallationError('Unable to initialize database\n{}'.format(init_output))
+        process = run('python3 init_postgres.py', shell=True, universal_newlines=True, check=False, stderr=PIPE)
+        if process.returncode != 0:
+            raise InstallationError(f'Unable to initialize database\n{process.stderr}')
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):

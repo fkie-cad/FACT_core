@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2021  Fraunhofer FKIE
+    Copyright (C) 2015-2022  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,16 +20,22 @@
 import grp
 import logging
 import os
+import sys
 from pathlib import Path
 from time import sleep
 
+try:
+    from fact_base import FactBase
+except (ImportError, ModuleNotFoundError):
+    sys.exit(1)
+
 from analysis.PluginBase import PluginInitException
-from fact_base import FactBase
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
-from scheduler.Compare import CompareScheduler
-from scheduler.Unpacking import UnpackingScheduler
+from scheduler.comparison_scheduler import ComparisonScheduler
+from scheduler.unpacking_scheduler import UnpackingScheduler
+from storage.unpacking_locks import UnpackingLockManager
 
 
 class FactBackend(FactBase):
@@ -39,27 +45,30 @@ class FactBackend(FactBase):
 
     def __init__(self):
         super().__init__()
+        unpacking_lock_manager = UnpackingLockManager()
 
         try:
-            self.analysis_service = AnalysisScheduler(config=self.config)
+            self.analysis_service = AnalysisScheduler(config=self.config, unpacking_locks=unpacking_lock_manager)
         except PluginInitException as error:
             logging.critical(f'Error during initialization of plugin {error.plugin.NAME}. Shutting down FACT backend')
             complete_shutdown()
         self.unpacking_service = UnpackingScheduler(
             config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
-            analysis_workload=self.analysis_service.get_combined_analysis_workload
+            analysis_workload=self.analysis_service.get_combined_analysis_workload,
+            unpacking_locks=unpacking_lock_manager,
         )
-        self.compare_service = CompareScheduler(config=self.config)
+        self.compare_service = ComparisonScheduler(config=self.config)
         self.intercom = InterComBackEndBinding(
             config=self.config,
             analysis_service=self.analysis_service,
             compare_service=self.compare_service,
-            unpacking_service=self.unpacking_service
+            unpacking_service=self.unpacking_service,
+            unpacking_locks=unpacking_lock_manager,
         )
 
     def main(self):
-        docker_mount_base_dir = Path(self.config['data_storage']['docker-mount-base-dir'])
+        docker_mount_base_dir = Path(self.config['data-storage']['docker-mount-base-dir'])
         docker_mount_base_dir.mkdir(0o770, exist_ok=True)
         docker_gid = grp.getgrnam('docker').gr_gid
         try:
@@ -101,3 +110,4 @@ class FactBackend(FactBase):
 
 if __name__ == '__main__':
     FactBackend().main()
+    sys.exit(0)

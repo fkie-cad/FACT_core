@@ -16,6 +16,7 @@ Contents
    :maxdepth: 1
 
    main
+   migration
 
 
 .. toctree::

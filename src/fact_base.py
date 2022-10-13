@@ -3,10 +3,23 @@ import os
 import signal
 from time import sleep
 
-import psutil
+try:
+    import psutil
+    import psycopg2  # pylint: disable=unused-import  # noqa: F401  # new dependency of FACT>=4.0
 
-from helperFunctions.program_setup import program_setup
-from statistic.work_load import WorkLoadStatistic
+    from helperFunctions.program_setup import program_setup
+    from statistic.work_load import WorkLoadStatistic
+except (ImportError, ModuleNotFoundError):
+    logging.exception(
+        'Could not load dependencies. Please make sure that you have installed FACT correctly '
+        '(see INSTALL.md for more information). If you recently updated FACT, you may want to rerun the installation.'
+    )
+    logging.warning(
+        'The database of FACT switched from MongoDB to PostgreSQL with the release of FACT 4.0. '
+        'For instructions on how to upgrade FACT and how to migrate your database see '
+        'https://fkie-cad.github.io/FACT_core/migration.html'
+    )
+    raise
 
 
 class FactBase:

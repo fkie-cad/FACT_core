@@ -20,7 +20,7 @@ def visualize_complete_tree(list_of_dot_separated_strings: List[str]) -> Dict[st
 
 
 def _visualize_sub_tree(list_of_dot_separated_strings: List[str], analysis_plugin: str) -> List[str]:
-    subset = list(string for string in list_of_dot_separated_strings if string.startswith('{}.'.format(analysis_plugin)))
+    subset = list(string for string in list_of_dot_separated_strings if string.startswith(f'{analysis_plugin}.'))
     return _visualize_tree_structure_as_strings(_create_tree_structure(subset))
 
 
@@ -75,7 +75,7 @@ def _remove_obsolete_leaves(input_dict):
 
 
 def _indent_line(line: str, level: int) -> str:
-    return '{}{}'.format(INDENT * level, line)
+    return f'{INDENT * level}{line}'
 
 
 def _convert_multilines_to_single_string(dictionary_of_lists: Dict[str, List[str]]) -> Dict[str, str]:  # pylint: disable=invalid-name

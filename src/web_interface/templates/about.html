@@ -21,7 +21,7 @@
                 <h3 class="card-title">License Information</h3>
                 <h6 class="card-subtitle mb-2 text-muted">
                     Firmware Analysis and Comparison Tool (FACT)<br />
-                    Copyright (C) 2015-2021  Fraunhofer FKIE
+                    Copyright (C) 2015-2022  Fraunhofer FKIE
                 </h6>
                 <p class="card-text">
                     This program is free software: you can redistribute it and/or modify
@@ -54,18 +54,48 @@
 
 <div class="row justify-content-center">
     <div class="col-xl-8 col-lg-12" style="width:100%;column-count:2;column-rule:grey 1px dotted;column-gap:50px">
-        <h4>FACT 3.3-dev</h4>
+        <h4>FACT 4.0 (2022-07-21)</h4>
+        <ul>
+            <li>
+                <i class="fas fa-exclamation-triangle" style="color: red;"></i>
+                Switched analysis and comparison result database from MongoDB to PostgreSQL
+                For information on how to migrate from old MongoDB installations, please refer to
+                <a href="https://fkie-cad.github.io/FACT_core/migration.html">https://fkie-cad.github.io/FACT_core/migration.html</a>
+            </li>
+            <li>New dropdown menu for selecting the number of results on the database page.</li>
+            <li>Added and improved software and crypto signatures.</li>
+            <li>Added support for Ubuntu 22.04 Jammy Jellyfish.</li>
+            <li>Bug fixes.</li>
+        </ul>
+
+        <h4>FACT 3.3 (2022-05-06)</h4>
         <ul>
             <li>New or Improved Analysis
                 <ul>
                     <li>New plugin for finding and checking Linux kernel configurations.</li>
+                    <li>New plugin for finding device trees.</li>
+                    <li>New plugin for matching known software from the circ.lu hash library.</li>
+                    <li>New plugin for detecting unintentionally leaked information in firmware.</li>
+                    <li>New plugin for gathering hardware information.</li>
+                    <li>The results of the cve_lookup plugin are now sorted by severity.</li>
+                    <li>Added support for additional ISAs to the architecture detection plugin.</li>
+                    <li>Added ruby and php linters to the source code analysis plugin.</li>
                 </ul>
             </li>
             <li>Improved loading of analysis tags.</li>
+            <li>Added support for searching firmware tags to the "basic search".</li>
             <li>New Swagger documentation for all REST endpoints.</li>
             <li>Added software signatures.</li>
-            <li>Added new feature to force single analysis update (will be removed when scheduling problems are fixed).</li>
+            <li>Added new feature to force single analysis and whole firmware analysis update (will be removed when scheduling problems are fixed).</li>
             <li>Changed "update analysis" to skip the unpacking step ("re-do analysis" still unpacks).</li>
+            <li>Improved system monitoring page with live updates.</li>
+            <li>Improved dependency graph page.</li>
+            <li>New page for monitoring FACT logs.</li>
+            <li>New page for browsing previous "binary search" queries.</li>
+            <li>New hex preview for binary files on the analysis page.</li>
+            <li>New text file diffing feature.</li>
+            <li>Added support for Python virtual environments.</li>
+            <li>Improved CLI user management script.</li>
             <li>Updated the web framework Flask to version 2.0
                 <ul>
                     <li>
@@ -76,7 +106,8 @@
                     </li>
                 </ul>
             </li>
-            <li>Bug fixes.</li>
+            <li>Improved documentation.</li>
+            <li>Bug fixes, stability improvements and better error reporting.</li>
         </ul>
 
         <h4>FACT 3.2 (2021-05-21)</h4>

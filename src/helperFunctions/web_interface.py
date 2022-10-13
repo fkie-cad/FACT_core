@@ -55,12 +55,9 @@ def apply_filters_to_query(request, query: str) -> dict:
     '''
     query_dict = json.loads(query)
     for key in ['device_class', 'vendor']:
-        if request.args.get(key):
-            if key not in query_dict.keys():
-                query_dict[key] = request.args.get(key)
-            else:  # key was in the previous search query
-                query_dict['$and'] = [{key: query_dict[key]}, {key: request.args.get(key)}]
-                query_dict.pop(key)
+        value = request.args.get(key)
+        if value:
+            query_dict.update({key: value})
     return query_dict
 
 
@@ -73,7 +70,7 @@ def filter_out_illegal_characters(string: Optional[str]) -> Optional[str]:
     '''
     if string is None:
         return string
-    return re.sub('[^\\w {}!.-]'.format(SPECIAL_CHARACTERS), '', string)
+    return re.sub(f'[^\\w {SPECIAL_CHARACTERS}!.-]', '', string)
 
 
 def get_template_as_string(view_name: str) -> str:
@@ -111,11 +108,11 @@ def cap_length_of_element(hid_element: str, maximum: int = 55) -> str:
     :param maximum: The length after witch the element is capped.
     :return: The capped string.
     '''
-    return '~{}'.format(hid_element[-(maximum - 1):]) if len(hid_element) > maximum else hid_element
+    return f'~{hid_element[-(maximum - 1):]}' if len(hid_element) > maximum else hid_element
 
 
 def _format_si_prefix(number: float, unit: str) -> str:
-    return '{number}{unit}'.format(number=si_format(number, precision=2), unit=unit)
+    return f'{si_format(number, precision=2)}{unit}'
 
 
 def format_time(seconds: float) -> str:

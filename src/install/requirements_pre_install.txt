@@ -1,9 +1,8 @@
 virtualenv
 
 # Python Libraries for python based installation
-distro
-python-magic
-requests
+distro==1.7.0
+python-magic==0.4.25
+requests==2.27.1
 
 git+https://github.com/fkie-cad/common_helper_files.git
-git+https://github.com/fkie-cad/common_helper_process.git

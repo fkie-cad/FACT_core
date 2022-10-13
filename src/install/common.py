@@ -1,9 +1,10 @@
 import logging
+import subprocess
 from contextlib import suppress
 from pathlib import Path
 from platform import python_version_tuple
+from subprocess import PIPE, STDOUT
 
-from common_helper_process import execute_shell_command_get_return_code
 from pkg_resources import parse_version
 
 from helperFunctions.install import (
@@ -27,9 +28,9 @@ def install_pip():
 
     logging.info('Installing python3 pip')
     for command in [f'wget {pip_link}', 'sudo -EH python3 get-pip.py', 'rm get-pip.py']:
-        output, return_code = execute_shell_command_get_return_code(command)
-        if return_code != 0:
-            raise InstallationError(f'Error in pip installation for python3:\n{output}')
+        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True, check=False)
+        if cmd_process.returncode != 0:
+            raise InstallationError(f'Error in pip installation for python3:\n{cmd_process.stdout}')
 
 
 def main(distribution):  # pylint: disable=too-many-statements
@@ -72,11 +73,14 @@ def main(distribution):  # pylint: disable=too-many-statements
 
 
 def _update_submodules():
-    _, is_repository = execute_shell_command_get_return_code('git status')
-    if is_repository == 0:
-        git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")')
-        if git_code != 0:
-            raise InstallationError(f'Failed to update submodules\n{git_output}')
+    git_process = subprocess.run('git status', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True, check=False)
+    if git_process.returncode == 0:
+        git_submodule_process = subprocess.run(
+            '(cd ../../ && git submodule foreach "git pull")',
+            shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True, check=False
+        )
+        if git_submodule_process.returncode != 0:
+            raise InstallationError(f'Failed to update submodules\n{git_submodule_process.stdout}')
     else:
         logging.warning('FACT is not set up using git. Note that *adding submodules* won\'t work!!')
 

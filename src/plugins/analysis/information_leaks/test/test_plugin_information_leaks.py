@@ -9,12 +9,9 @@ TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
 class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
-    PLUGIN_NAME = 'information_leaks'
 
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_NAME = 'information_leaks'
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_find_path(self):
         fo = MockFileObject()

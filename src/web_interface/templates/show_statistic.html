@@ -81,7 +81,7 @@
             {% for item in (stats["crypto_material_stats"]["crypto_material"] | sort_chart_list_by_value) %}
                 <tr>
                     <td style="text-align: left; padding:5px; cursor:pointer;"
-                        {% set query = {"processed_analysis.crypto_material.summary": {"$eq": item[0]}} %}
+                        {% set query = {"processed_analysis.crypto_material.summary": item[0]} %}
                         onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
                         {{ item[0] }}
                     </td>
@@ -101,7 +101,7 @@
             {% for item in (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | sort_chart_list_by_value) %}
                 <tr>
                     <td style="text-align: left; padding:5px; cursor:pointer;"
-                        {% set query = {"processed_analysis.known_vulnerabilities.summary": {"$eq": item[0]}} %}
+                        {% set query = {"processed_analysis.known_vulnerabilities.summary": item[0]} %}
                         onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
                         {{ item[0] }}
                     </td>
@@ -132,16 +132,16 @@
 {# ------ Charts ------ #}
 
 {% set chart_list = [
-    ["Vendors", "vendor", stats["firmware_meta_stats"], {"vendor": {"$eq": "PLACEHOLDER"}}],
-    ["Device Classes", "device_class", stats["firmware_meta_stats"], {"device_class": {"$eq": "PLACEHOLDER"}}],
+    ["Vendors", "vendor", stats["firmware_meta_stats"], {"vendor": "PLACEHOLDER"}],
+    ["Device Classes", "device_class", stats["firmware_meta_stats"], {"device_class": "PLACEHOLDER"}],
     ["Firmware Container", "firmware_container", stats["file_type_stats"],
-        {"$and": [{"processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}, {"vendor": {"$exists": True}}]}],
-    ["File Types", "file_types", stats["file_type_stats"], {"processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
-    ["Unpacker Usage", "used_unpackers", stats["unpacker_stats"], {"processed_analysis.unpacker.plugin_used": {"$eq": "PLACEHOLDER"}}],
+        {"processed_analysis.file_type.mime": "PLACEHOLDER", "is_firmware": True}],
+    ["File Types", "file_types", stats["file_type_stats"], {"processed_analysis.file_type.mime": "PLACEHOLDER"}],
+    ["Unpacker Usage", "used_unpackers", stats["unpacker_stats"], {"processed_analysis.unpacker.plugin_used": "PLACEHOLDER"}],
     ["Unpacking Fail File Types", "packed_file_types", stats["unpacker_stats"],
-        {"processed_analysis.unpacker.summary": "packed","processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
+        {"processed_analysis.unpacker.summary": "packed","processed_analysis.file_type.mime": "PLACEHOLDER"}],
     ["Data Lost File Types", "data_loss_file_types", stats["unpacker_stats"],
-        {"processed_analysis.unpacker.summary": "data lost","processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
+        {"processed_analysis.unpacker.summary": "data lost","processed_analysis.file_type.mime": "PLACEHOLDER"}],
 	["Architectures", "cpu_architecture", stats["architecture_stats"], {"processed_analysis.cpu_architecture.summary": {"$regex": "PLACEHOLDER"}}],
 	["Software Components", "software_components", stats["software_stats"], {"processed_analysis.software_components.PLACEHOLDER": {"$exists": "true"}}],
 ]%}
@@ -208,9 +208,9 @@
 	{% if ips_v4_num > 0 %}
         {% call macros.stats_panel("IPv4 Addresses (Top {}/{})".format([10, ips_v4_num] | min, ips_v4_num), "globe") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
-            {% for ip in (stats["ip_and_uri_stats"]["ips_v4"] | sort_chart_list_by_value)[:10] %}
-                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
-                {{ macros.stats_table_row(ip[0], ip[1], link=query_url + query | json_dumps | urlencode) }}
+            {% for ip, count in (stats["ip_and_uri_stats"]["ips_v4"] | sort_chart_list_by_value)[:10] %}
+                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$contains": ip}} %}
+                {{ macros.stats_table_row(ip, count, link=query_url + query | json_dumps | urlencode) }}
             {% endfor %}
             </table>
         {% endcall %}
@@ -220,9 +220,9 @@
 	{% if ips_v6_num > 0 %}
         {% call macros.stats_panel("IPv6 Addresses (Top {}/{})".format([10, ips_v6_num] | min, ips_v6_num), "globe") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
-            {% for ip in (stats["ip_and_uri_stats"]["ips_v6"] | sort_chart_list_by_value)[:10] %}
-                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
-                {{ macros.stats_table_row(ip[0], ip[1], link=query_url + query | json_dumps | urlencode) }}
+            {% for ip, count in (stats["ip_and_uri_stats"]["ips_v6"] | sort_chart_list_by_value)[:10] %}
+                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$contains": ip}} %}
+                {{ macros.stats_table_row(ip, count, link=query_url + query | json_dumps | urlencode) }}
             {% endfor %}
             </table>
         {% endcall %}
@@ -232,9 +232,9 @@
 	{% if uri_num > 0 %}
         {% call macros.stats_panel("URIs (Top {}/{})".format([10, uri_num] | min, uri_num), "globe") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
-            {% for uri in (stats["ip_and_uri_stats"]["uris"] | sort_chart_list_by_value)[:10] %}
-                {% set query = {"processed_analysis.ip_and_uri_finder.uris": {"$eq": uri[0]}} %}
-                {{ macros.stats_table_row(uri[0], uri[1], link=query_url + query | json_dumps | urlencode) }}
+            {% for uri, count in (stats["ip_and_uri_stats"]["uris"] | sort_chart_list_by_value)[:10] %}
+                {% set query = {"processed_analysis.ip_and_uri_finder.uris": {"$contains": uri}} %}
+                {{ macros.stats_table_row(uri, count, link=query_url + query | json_dumps | urlencode) }}
             {% endfor %}
             </table>
         {% endcall %}
@@ -264,9 +264,7 @@
                     };
 
                     var data = {{ stats["release_date_stats"]["date_histogram_data"] | data_to_chart | safe }};
-
                     var ctx = document.getElementById("release_date_canvas");
-
                     var DateBarChart = new Chart(ctx, {type: "bar", data: data, options: options});
 
                     document.getElementById("release_date_canvas").onclick = function(evt){

@@ -2,6 +2,7 @@ import json
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from time import time
 from typing import List
 
 from fact_helper_file import get_file_type_from_path
@@ -15,53 +16,59 @@ from unpacker.unpack_base import UnpackBase
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, config=None, worker_id=None, db_interface=None):
+    def __init__(self, config=None, worker_id=None, fs_organizer=None, unpacking_locks=None):
         super().__init__(config=config, worker_id=worker_id)
-        self.file_storage_system = FSOrganizer(config=self.config)
-        self.db_interface = db_interface
+        self.file_storage_system = FSOrganizer(config=self.config) if fs_organizer is None else fs_organizer
+        self.unpacking_locks = unpacking_locks
 
     def unpack(self, current_fo: FileObject):
         '''
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
 
-        logging.debug('[worker {}] Extracting {}: Depth: {}'.format(self.worker_id, current_fo.uid, current_fo.depth))
+        logging.debug(f'[worker {self.worker_id}] Extracting {current_fo.uid}: Depth: {current_fo.depth}')
 
-        if current_fo.depth >= self.config.getint('unpack', 'max_depth'):
-            logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.uid, self.config.get('unpack', 'max_depth')))
+        if current_fo.depth >= self.config.getint('unpack', 'max-depth'):
+            logging.warning(f"{current_fo.uid} is not extracted since depth limit ({self.config.get('unpack', 'max-depth')}) is reached")
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
-        tmp_dir = TemporaryDirectory(prefix='fact_unpack_', dir=self.config['data_storage']['docker-mount-base-dir'])
+        with TemporaryDirectory(prefix='fact_unpack_', dir=self.config['data-storage']['docker-mount-base-dir']) as tmp_dir:
+            file_path = self._generate_local_file_path(current_fo)
+            extracted_files = self.extract_files_from_file(file_path, tmp_dir)
+            if extracted_files is None:
+                self._store_unpacking_error_skip_info(current_fo)
+                return []
 
-        file_path = self._generate_local_file_path(current_fo)
+            extracted_file_objects = self.generate_and_store_file_objects(extracted_files, Path(tmp_dir) / 'files', current_fo)
+            extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
+            self.add_included_files_to_object(extracted_file_objects, current_fo)
+            # set meta data
+            current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
 
-        extracted_files = self.extract_files_from_file(file_path, tmp_dir.name)
-
-        extracted_file_objects = self.generate_and_store_file_objects(extracted_files, Path(tmp_dir.name) / 'files', current_fo)
-        extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
-        self.add_included_files_to_object(extracted_file_objects, current_fo)
-
-        # set meta data
-        current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir.name, 'reports', 'meta.json').read_text())
-
-        self.cleanup(tmp_dir)
         return extracted_file_objects
+
+    @staticmethod
+    def _store_unpacking_error_skip_info(file_object: FileObject):
+        file_object.processed_analysis['unpacker'] = {
+            'plugin_used': 'None', 'number_of_unpacked_files': 0, 'plugin_version': '0.0', 'analysis_date': time(),
+            'info': 'Unpacking stopped because extractor raised a exception (possible timeout)',
+            'tags': {'extractor error': {'value': 'possible extractor timeout', 'color': TagColor.ORANGE, 'propagate': False}},
+        }
 
     @staticmethod
     def _store_unpacking_depth_skip_info(file_object: FileObject):
         file_object.processed_analysis['unpacker'] = {
-            'plugin_used': 'None', 'number_of_unpacked_files': 0,
+            'plugin_used': 'None', 'number_of_unpacked_files': 0, 'plugin_version': '0.0', 'analysis_date': time(),
             'info': 'Unpacking stopped because maximum unpacking depth was reached',
+            'tags': {'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}},
         }
-        tag_dict = {'unpacker': {'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}}}
-        file_object.analysis_tags.update(tag_dict)
 
     def cleanup(self, tmp_dir):
         try:
             tmp_dir.cleanup()
         except OSError as error:
-            logging.error('[worker {}] Could not CleanUp tmp_dir: {} - {}'.format(self.worker_id, type(error), str(error)))
+            logging.error(f'[worker {self.worker_id}] Could not CleanUp tmp_dir: {type(error)} - {str(error)}')
 
     @staticmethod
     def add_included_files_to_object(included_file_objects, root_file_object):
@@ -79,7 +86,7 @@ class Unpacker(UnpackBase):
                 if current_file.uid in extracted_files:  # the same file is extracted multiple times from one archive
                     extracted_files[current_file.uid].virtual_file_path[parent.get_root_uid()].append(current_virtual_path)
                 else:
-                    self.db_interface.set_unpacking_lock(current_file.uid)
+                    self.unpacking_locks.set_unpacking_lock(current_file.uid)
                     self.file_storage_system.store_file(current_file)
                     current_file.virtual_file_path = {parent.get_root_uid(): [current_virtual_path]}
                     current_file.parent_firmware_uids.add(parent.get_root_uid())

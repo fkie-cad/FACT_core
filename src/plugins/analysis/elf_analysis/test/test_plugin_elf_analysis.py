@@ -152,7 +152,7 @@ def test_pie(stub_plugin):
 
 def test_plugin(stub_plugin, stub_object, monkeypatch):
     monkeypatch.setattr('lief.parse', lambda _: MOCK_LIEF_RESULT)
-    monkeypatch.setattr('lief.to_json_from_abstract', lambda _: MOCK_DATA)
+    monkeypatch.setattr('lief.to_json', lambda _: MOCK_DATA)
 
     stub_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
     stub_plugin.process_object(stub_object)

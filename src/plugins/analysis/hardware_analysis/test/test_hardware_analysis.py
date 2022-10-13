@@ -1,26 +1,18 @@
 from pathlib import Path
 
 from objects.file import FileObject
-from test.common_helper import get_test_data_dir
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.hardware_analysis import AnalysisPlugin
 
 TEST_DATA = Path(get_test_data_dir())
 
 
-class test_hardware_analysis_plugin(AnalysisPluginTest):
+class TestHardwareAnalysis(AnalysisPluginTest):
 
     PLUGIN_NAME = 'hardware_analysis'
-
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
-
-    def tearDown(self):
-        super().tearDown()
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_cpu_architecture_found(self):
         test_object = FileObject()

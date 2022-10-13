@@ -11,7 +11,7 @@ TLV_KNOWN_STARTS = [0x30]
 def _get_start_and_size_of_der_field(binary=None, offset=None):
     if binary[offset + 1] > 127:
         length_of_length = binary[offset + 1] ^ 0x80
-        logging.debug('[LOG] - Length {}'.format(length_of_length))
+        logging.debug(f'[LOG] - Length {length_of_length}')
         form_string = _determine_format_string(length_of_length)
         return offset + 2 + length_of_length, unpack(form_string, binary[(offset + 2):(offset + 2 + length_of_length)])[0]
     return offset + 2, binary[offset + 1]

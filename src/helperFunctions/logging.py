@@ -24,7 +24,7 @@ def color_string(string: str, color: str) -> str:
     :param color: A color from ``TerminalColors`` or any other terminal compatible formatting string.
     :return: The formatted string.
     '''
-    return '{color}{s}{end}'.format(color=color, s=string, end=TerminalColors.ENDC)
+    return f'{color}{string}{TerminalColors.ENDC}'
 
 
 class ColoringFormatter(logging.Formatter):
@@ -48,8 +48,8 @@ class ColoringFormatter(logging.Formatter):
         '''
         formatted_text = super().format(record)
         for log_level, color in self.LOG_LEVEL_COLORS:
-            log_level_prefix = '[{}]'.format(log_level)
+            log_level_prefix = f'[{log_level}]'
             if log_level_prefix in formatted_text:
-                formatted_prefix = '[{}{}{}]'.format(color, log_level, TerminalColors.ENDC)
+                formatted_prefix = f'[{color}{log_level}{TerminalColors.ENDC}]'
                 formatted_text = formatted_text.replace(log_level_prefix, formatted_prefix)
         return formatted_text

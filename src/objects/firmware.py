@@ -1,4 +1,3 @@
-from contextlib import suppress
 from typing import Dict, Optional
 
 from helperFunctions.hash import get_md5
@@ -91,7 +90,7 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
         #:
         #: This attribute is **optional**, the dict may be empty.
-        self.tags: Dict[str, TagColor] = dict()
+        self.tags: Dict[str, TagColor] = {}
 
         self._update_root_id_and_virtual_path()
 
@@ -122,33 +121,21 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         self.root_uid = self.uid
         self.virtual_file_path = {self.uid: [self.uid]}
 
-    def set_tag(self, tag: str, tag_color: str = TagColor.GRAY):
+    def set_tag(self, tag: str):
         '''
-        Set a user-defined tag with color.
-
-        :param tag: Tag identifier
-        :type tag: str
-        :param tag_color: The tag's color, defaults to :class:`~helperFunctions.tag.TagColor.GRAY`
-        :type tag_color: str from :class:`~helperFunctions.tag.TagColor`
-        '''
-        self.tags[tag] = tag_color
-
-    def remove_tag(self, tag: str):
-        '''
-        Remove a user-defined tag.
+        Set a user-defined tag in the color gray.
 
         :param tag: Tag identifier
         :type tag: str
         '''
-        with suppress(KeyError):
-            self.tags.pop(tag)
+        self.tags[tag] = TagColor.GRAY
 
     def get_hid(self, root_uid: Optional[str] = None) -> str:
         '''
         See :meth:`objects.file.FileObject.get_hid`.
         '''
-        part = ' - {}'.format(self.part) if self.part else ''
-        return '{} {}{} v. {}'.format(self.vendor, self.device_name, part, self.version)
+        part = f' - {self.part}' if self.part else ''
+        return f'{self.vendor} {self.device_name}{part} v. {self.version}'
 
     def __str__(self) -> str:
         return (
