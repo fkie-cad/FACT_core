@@ -19,11 +19,6 @@ from helperFunctions.process import (
 )
 from unpacker.unpack import Unpacker
 
-WORKER_BASE_PORT = 9900
-BASE_URL = 'http://localhost:{port}'
-WORKER_COUNT = 8
-TARGET_DIR = Path('.') / 'extracted_files'
-
 
 class NoFreeWorker(RuntimeError):
     pass
@@ -79,7 +74,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     # ---- internal functions ----
 
     def start_container(self):
-        for _ in range(WORKER_COUNT):
+        for _ in range(self.config.getint('unpack', 'threads')):
             self._start_single_container()
 
     def stop_container(self):
@@ -92,15 +87,19 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 logging.error(f'Unable to delete worker folder {tmp_dir.name}', exc_info=True)
 
     def _start_single_container(self):
-        tmp_dir = TemporaryDirectory()
-        port = max(worker_port for worker_port, _, _ in self.workers) + 1 if self.workers else WORKER_BASE_PORT
+        tmp_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
+        port = (
+            max(worker_port for worker_port, _, _ in self.workers) + 1
+            if self.workers
+            else self.config.getint('unpack', 'base-port')
+        )
         volume = Mount('/tmp/extractor', str(tmp_dir.name), read_only=False, type='bind')
         client = docker.from_env()
 
         container = client.containers.run(
             image='fact_extractor_local',
             ports={'5000/tcp': port},
-            mem_limit='8g',
+            mem_limit=self.config['unpack']['memory-limit'],
             mounts=[volume],
             volumes={'/dev': {'bind': '/dev', 'mode': 'rw'}},
             privileged=True,
@@ -145,8 +144,8 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         raise NoFreeWorker()
 
     def work_thread(self, task, extraction_dir, port):
-        tmp_dir = TemporaryDirectory(dir=extraction_dir)
-        container_url = f'{BASE_URL.format(port=port)}/start/{Path(tmp_dir.name).name}'
+        tmp_dir = TemporaryDirectory(dir=extraction_dir)  # pylint: disable=consider-using-with
+        container_url = f'http://localhost:{port}/start/{Path(tmp_dir.name).name}'
 
         extracted_objects = self.unpacker.unpack(task, container_url, tmp_dir)
 

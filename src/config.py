@@ -5,6 +5,8 @@ from pathlib import Path
 from pydantic import BaseModel, Extra
 from werkzeug.local import LocalProxy
 
+# pylint: disable=global-statement,unspecified-encoding
+
 _cfg = None
 cfg: 'Config' = LocalProxy(lambda: _cfg)
 
@@ -68,15 +70,15 @@ class Logging(BaseModel):
 
 class Unpack(BaseModel):
     Config = _PydanticConfigExtraForbid
-    threads: str
+    threads: int
+    memory_limit: str = '2g'
     whitelist: list
     max_depth: int
-    memory_limit: int = 1024
+    base_port: int
 
 
 class DefaultPlugins(BaseModel):
     Config = _PydanticConfigExtraAllow
-    pass
 
 
 class Database(BaseModel):
