@@ -81,16 +81,15 @@ PROTECTS_AGAINST = {
     'CONFIG_SECURITY_LOCKDOWN_LSM': ['Changing Kernel Image'],
 }
 
-HardeningCheckResult = NamedTuple(
-    'HardeningCheckResult', [
-        ('option_name', str),
-        ('desired_value', str),
-        ('decision', str),
-        ('reason', str),
-        ('check_result', str),
-        ('actual_value', str),
-        ('vulnerabilities', List[str]),
-    ])
+
+class HardeningCheckResult(NamedTuple):
+    option_name: str
+    desired_value: str
+    decision: str
+    reason: str
+    check_result: str
+    actual_value: str
+    vulnerabilities: List[str]
 
 
 def check_kernel_hardening(kernel_config: str) -> List[HardeningCheckResult]:
@@ -109,7 +108,7 @@ def _get_kernel_hardening_data(kernel_config: str) -> List[List[str]]:
                 shell=True,
                 stdout=PIPE,
                 stderr=STDOUT,
-                universal_newlines=True,
+                text=True,
             )
             return json.loads(kconfig_process.stdout)
     except (JSONDecodeError, KeyError):

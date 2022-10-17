@@ -13,7 +13,7 @@ CODENAME_TRANSLATION = {
 
 
 def install_postgres(version: int = 14):
-    codename = run('lsb_release -cs', universal_newlines=True, shell=True, stdout=PIPE, check=True).stdout.rstrip()
+    codename = run('lsb_release -cs', text=True, shell=True, stdout=PIPE, check=True).stdout.rstrip()
     codename = CODENAME_TRANSLATION.get(codename, codename)
     # based on https://www.postgresql.org/download/linux/ubuntu/
     command_list = [
@@ -23,7 +23,7 @@ def install_postgres(version: int = 14):
         f'sudo apt-get -y install postgresql-{version}'
     ]
     for command in command_list:
-        process = run(command, universal_newlines=True, shell=True, check=False, stderr=PIPE)
+        process = run(command, text=True, shell=True, check=False, stderr=PIPE)
         if process.returncode != 0:
             raise InstallationError(f'Failed to set up PostgreSQL: {process.stderr}')
 
@@ -51,7 +51,7 @@ def main():
     # initializing DB
     logging.info('Initializing PostgreSQL database')
     with OperateInDirectory('..'):
-        process = run('python3 init_postgres.py', shell=True, universal_newlines=True, check=False, stderr=PIPE)
+        process = run('python3 init_postgres.py', shell=True, text=True, check=False, stderr=PIPE)
         if process.returncode != 0:
             raise InstallationError(f'Unable to initialize database\n{process.stderr}')
 

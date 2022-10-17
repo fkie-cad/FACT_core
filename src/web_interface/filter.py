@@ -221,7 +221,7 @@ def sort_comments(comment_list):
 
 def data_to_chart_with_value_percentage_pairs(data, limit=10):  # pylint: disable=invalid-name
     try:
-        label_list, value_list, percentage_list, *links = [list(d) for d in zip(*data)]
+        label_list, value_list, percentage_list, *links = (list(d) for d in zip(*data))
     except ValueError:
         return None
     label_list, value_list = set_limit_for_data_to_chart(label_list, limit, value_list)
@@ -355,7 +355,7 @@ def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List
 
 
 def random_collapse_id():
-    return ''.join((random.choice(ascii_letters) for _ in range(10)))
+    return ''.join(random.choice(ascii_letters) for _ in range(10))
 
 
 def create_firmware_version_links(firmware_list, selected_analysis=None):

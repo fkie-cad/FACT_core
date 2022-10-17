@@ -126,7 +126,7 @@ def install_statistic_cronjob():
     cron_content = f'0    *    *    *    *    {statistic_update_script_path} > /dev/null 2>&1\n'
     cron_content += f'30    0    *    *    0    {variety_update_script_path} > /dev/null 2>&1\n'
     crontab_file_path.write_text(cron_content)
-    crontab_process = subprocess.run(f'crontab {crontab_file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    crontab_process = subprocess.run(f'crontab {crontab_file_path}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
     if crontab_process.returncode != 0:
         logging.error(crontab_process.stdout)
     else:

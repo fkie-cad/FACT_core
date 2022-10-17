@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from subprocess import PIPE, run
+from subprocess import run
 from tempfile import NamedTemporaryFile
 from typing import Dict, List, NamedTuple, Optional, Union
 
@@ -78,7 +78,7 @@ def header_has_illegal_values(header: DeviceTreeHeader, max_size: int) -> bool:
 
 
 def convert_device_tree_to_str(file_path: Union[str, Path]) -> Optional[str]:
-    process = run(f'dtc -I dtb -O dts {file_path}', shell=True, stdout=PIPE, stderr=PIPE)  # pylint: disable=subprocess-run-check
+    process = run(f'dtc -I dtb -O dts {file_path}', shell=True, capture_output=True)  # pylint: disable=subprocess-run-check
     if process.returncode != 0:
         logging.warning(
             f'The Device Tree Compiler exited with non-zero return code {process.returncode}: {process.stderr}'

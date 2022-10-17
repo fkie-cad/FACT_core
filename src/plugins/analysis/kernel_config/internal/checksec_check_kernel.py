@@ -29,7 +29,7 @@ def check_kernel_config(kernel_config: str) -> dict:
             fp.write(kernel_config.encode())
             fp.seek(0)
             command = f'{CHECKSEC_PATH} --kernel={fp.name} --output=json'
-            checksec_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=DEVNULL, universal_newlines=True)
+            checksec_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=DEVNULL, text=True)
             result = json.loads(checksec_process.stdout)
             whitelist_configs(result)
             return result

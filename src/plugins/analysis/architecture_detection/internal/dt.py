@@ -31,7 +31,7 @@ def _get_compatible_entry(dts: str) -> Union[str, None]:
         input=dts,
         stdout=PIPE,
         stderr=DEVNULL,
-        universal_newlines=True,
+        text=True,
         check=True,
     )
 

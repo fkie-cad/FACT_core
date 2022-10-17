@@ -254,8 +254,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     ):
         file_tree_data = self.get_file_tree_data(uid_list)
         for entry in file_tree_data:
-            for node in self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry):
-                yield node
+            yield from self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry)
 
     def generate_file_tree_level(
         self, uid: str, root_uid: str,
@@ -264,8 +263,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         if data is None:
             data = self.get_file_tree_data([uid])[0]
         try:
-            for node in VirtualPathFileTree(root_uid, parent_uid, data, whitelist).get_file_tree_nodes():
-                yield node
+            yield from VirtualPathFileTree(root_uid, parent_uid, data, whitelist).get_file_tree_nodes()
         except (KeyError, TypeError):  # the file has not been analyzed yet
             yield FileTreeNode(uid, root_uid, not_analyzed=True, name=f'{uid} (not analyzed yet)')
 
