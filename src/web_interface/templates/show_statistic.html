@@ -202,20 +202,6 @@
 {% endif %}
 
 
-{# ------ Malware Stats ------ #}
-
-    {% if (stats["malware_stats"]["malware"] | length) > 0 %}
-        {% call macros.stats_panel("Malware", "exclamation-triangle") %}
-            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
-            {% for malware in (stats["malware_stats"]["malware"] | sort_chart_list_by_value) %}
-                {% set query = {"processed_analysis.malware_scanner.scans.ClamAV.result": malware[0]} %}
-                {{ macros.stats_table_row(malware[0], malware[1], link=query_url + query | json_dumps | urlencode) }}
-            {% endfor %}
-            </table>
-        {% endcall %}
-    {% endif %}
-
-
 {# ------ IP Stats ------ #}
 
     {% set ips_v4_num = stats["ip_and_uri_stats"]["ips_v4"] | length %}

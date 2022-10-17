@@ -9,7 +9,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class StatisticRoutes(ComponentBase):
-
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/statistic', GET)
     def show_statistics(self):
@@ -27,7 +26,7 @@ class StatisticRoutes(ComponentBase):
             device_classes=device_classes,
             vendors=vendors,
             current_class=str(request.args.get('device_class')),
-            current_vendor=str(request.args.get('vendor'))
+            current_vendor=str(request.args.get('vendor')),
         )
 
     @roles_accepted(*PRIVILEGES['status'])
@@ -43,7 +42,6 @@ class StatisticRoutes(ComponentBase):
                 'general_stats': stats_db.get_statistic('general'),
                 'firmware_meta_stats': stats_db.get_statistic('firmware_meta'),
                 'file_type_stats': stats_db.get_statistic('file_type'),
-                'malware_stats': stats_db.get_statistic('malware'),
                 'crypto_material_stats': stats_db.get_statistic('crypto_material'),
                 'unpacker_stats': stats_db.get_statistic('unpacking'),
                 'ip_and_uri_stats': stats_db.get_statistic('ips_and_uris'),
@@ -63,7 +61,6 @@ class StatisticRoutes(ComponentBase):
             stats_dict = {
                 'firmware_meta_stats': stats_updater.get_firmware_meta_stats(),
                 'file_type_stats': stats_updater.get_file_type_stats(),
-                'malware_stats': stats_updater.get_malware_stats(),
                 'crypto_material_stats': stats_updater.get_crypto_material_stats(),
                 'unpacker_stats': stats_updater.get_unpacking_stats(),
                 'ip_and_uri_stats': stats_updater.get_ip_stats(),
