@@ -95,14 +95,11 @@ def _install_docker_images(radare):
 
 
 def main(skip_docker, radare, nginx, distribution):
-    apt_packages_path = INSTALL_DIR / 'apt-pkgs-frontend.txt'
-    dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-frontend.txt'
-
     if distribution != 'fedora':
-        pkgs = read_package_list_from_file(apt_packages_path)
+        pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-frontend.txt')
         apt_install_packages(*pkgs)
     else:
-        pkgs = read_package_list_from_file(dnf_packages_path)
+        pkgs = read_package_list_from_file(INSTALL_DIR / 'dnf-pkgs-frontend.txt')
         dnf_install_packages(*pkgs)
 
     # flask-security is not maintained anymore and replaced by flask-security-too.
