@@ -33,26 +33,6 @@ def test_get_general_stats(db, stats_updater):
     assert stats['number_of_unique_files'] == 2, 'number of files not correct'
 
 
-def test_malware_stats(db, stats_updater):
-    assert stats_updater.get_malware_stats() == {'malware': []}
-
-    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
-    parent_fo.processed_analysis['malware_scanner'] = generate_analysis_entry(
-        analysis_result={'scans': {'ClamAV': {'result': 'clean'}}}
-    )
-    child_fo.processed_analysis['malware_scanner'] = generate_analysis_entry(
-        analysis_result={'scans': {'ClamAV': {'result': 'SomeMalware'}}}
-    )
-    db.backend.add_object(fw)
-    db.backend.add_object(parent_fo)
-    db.backend.add_object(child_fo)
-
-    assert stats_updater.get_malware_stats() == {'malware': [('SomeMalware', 1)]}
-
-    stats_updater.set_match({'vendor': fw.vendor})
-    assert stats_updater.get_malware_stats() == {'malware': [('SomeMalware', 1)]}
-
-
 def test_get_mitigation_stats(db, stats_updater):
     assert stats_updater.get_exploit_mitigations_stats() == {'exploit_mitigations': []}
 
