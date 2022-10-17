@@ -46,13 +46,13 @@
                 <tr>
                     {{ icon_tooltip_desk('memory', 'Memory status') }}
                     <td colspan="5" class="align-middle">
-                        <div class="progress" style="height: 20px;" id="{{ component }}-memory"></div>
+                        <div class="progress position-relative" style="height: 20px;" id="{{ component }}-memory"></div>
                     </td>
                 </tr>
                 <tr>
                     {{ icon_tooltip_desk('hdd', 'Disk status') }}
                     <td colspan="5" class="align-middle">
-                        <div class="progress" style="height: 20px;" id="{{ component }}-disk"></div>
+                        <div class="progress position-relative" style="height: 20px;" id="{{ component }}-disk"></div>
                     </td>
                 </tr>
                 {% if component == "backend" %}
@@ -121,7 +121,7 @@
 <div class="row justify-content-center mt-4">
     {% for component in ["frontend", "backend" ,"database"] %}
         {{ component_card(component) }}
-	{% endfor %}
+    {% endfor %}
 </div>
 
 <!-- Current Analyses -->

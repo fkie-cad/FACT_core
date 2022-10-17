@@ -7,8 +7,18 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 STATISTICS = [
-    'architecture', 'crypto_material', 'elf_executable', 'exploit_mitigations', 'file_type', 'firmware_meta',
-    'general', 'ips_and_uris', 'known_vulnerabilities', 'malware', 'release_date', 'software_components', 'unpacking',
+    'architecture',
+    'crypto_material',
+    'elf_executable',
+    'exploit_mitigations',
+    'file_type',
+    'firmware_meta',
+    'general',
+    'ips_and_uris',
+    'known_vulnerabilities',
+    'release_date',
+    'software_components',
+    'unpacking',
 ]
 
 api = Namespace('rest/statistics', description='Query all FACT statistics or a certain one')
@@ -45,10 +55,7 @@ class RestStatisticsWithoutName(RestResourceBase):
 
 @api.route(
     '/<string:stat_name>',
-    doc={
-        'description': 'Retrieves statistics for a specific category',
-        'params': {'stat_name': 'Statistic\'s name'}
-    }
+    doc={'description': 'Retrieves statistics for a specific category', 'params': {'stat_name': 'Statistic\'s name'}},
 )
 class RestStatisticsWithName(RestResourceBase):
     URL = '/rest/statistics'
@@ -62,6 +69,8 @@ class RestStatisticsWithName(RestResourceBase):
         statistic_dict = {stat_name: self.db.stats_viewer.get_statistic(stat_name)}
         _delete_id_and_check_empty_stat(statistic_dict)
         if stat_name not in STATISTICS:
-            return error_message(f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name))
+            return error_message(
+                f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name)
+            )
 
         return statistic_dict

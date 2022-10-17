@@ -22,14 +22,11 @@ PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_backend.txt'
 
 
 def main(skip_docker, distribution):
-    apt_packages_path = INSTALL_DIR / 'apt-pkgs-backend.txt'
-    dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-backend.txt'
-
     if distribution != 'fedora':
-        pkgs = read_package_list_from_file(apt_packages_path)
+        pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-backend.txt')
         apt_install_packages(*pkgs)
     else:
-        pkgs = read_package_list_from_file(dnf_packages_path)
+        pkgs = read_package_list_from_file(INSTALL_DIR / 'dnf-pkgs-backend.txt')
         dnf_install_packages(*pkgs)
 
     install_pip_packages(PIP_DEPENDENCIES)

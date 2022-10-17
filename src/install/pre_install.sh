@@ -71,6 +71,10 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
+# Setup npm repository as described in https://github.com/nodesource/distributions/blob/master/README.md#debinstall
+# This is required because the npm version that ships with Ubuntu 18.04 (bionic) is too old.
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+
 IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
 SUDO=""
 if [[ $IS_VENV == "False" ]]

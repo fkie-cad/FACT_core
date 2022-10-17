@@ -14,7 +14,7 @@
 {% block body %}
     <div class="row justify-content-center mt-4">
 
-    	<div class="p-0 m-2">
+        <div class="p-0 m-2">
             <center>
                 <img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}" style="max-width: 445px;">
 
@@ -62,11 +62,11 @@
                     </tbody>
                 </table>
             </center>
-    	</div>
+        </div>
         <script>
             function load_ajax_stats(){
                 let system_data = $.getJSON("/ajax/stats/system")
-                .success(function(system_data) {
+                .done(function(system_data) {
                     document.getElementById("cpu_percentage").innerHTML = system_data.backend_cpu_percentage;
 
                     let running_node =  document.getElementById("currently_running");
@@ -91,7 +91,7 @@
             }, {{ ajax_stats_reload_time }});
         </script>
 
-    	{% if (latest_firmware_submissions | length) > 0 %}
+        {% if (latest_firmware_submissions | length) > 0 %}
             <div class="card p-2 m-2 bg-light rounded border-0" style="width: 705px;">
                 <div class="card-body bg-light p-3">
                     <h4 class="card-title mb-3">Latest Firmware Submissions</h4>
@@ -102,12 +102,12 @@
                     </ul>
                 </div>
             </div>
-    	{% endif %}
+        {% endif %}
 
     </div>
 
     <div class="row justify-content-center">
-    	{% if (latest_comments | length) > 0 %}
+        {% if (latest_comments | length) > 0 %}
             <div class="card p-2 m-2 bg-light rounded border-0" style="width: 705px;">
                 <div class="card-body p-3">
                     <h4 class="card-title mb-3">Latest Comments</h4>
@@ -129,10 +129,10 @@
                     </ul>
                 </div>
             </div>
-    	{% endif %}
+        {% endif %}
 
         {# latest_comparison_results #}
-    	{% if (latest_comparison_results | length) > 0 %}
+        {% if (latest_comparison_results | length) > 0 %}
             <div class="card p-2 m-2 bg-light rounded border-0" style="width: 705px;">
                 <div class="card-body p-3">
                     <h4 class="card-title mb-3">Latest Comparisons</h4>
@@ -155,7 +155,7 @@
                     </ul>
                 </div>
             </div>
-    	{% endif %}
+        {% endif %}
     </div>
 
 {% endblock %}

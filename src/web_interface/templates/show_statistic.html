@@ -6,7 +6,7 @@
 {% set count = [] %}
 
 {% block head %}
-<script src="{{ url_for("static", filename="Chart.js") }}"></script>
+<script src="{{ url_for("static", filename="node_modules/chart.js/dist/Chart.js") }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/fact_statistics.js') }}"></script>
 {% endblock %}
 
@@ -57,7 +57,7 @@
 
 {# ------ General Stats ------ #}
 
- 	{% if stats["general_stats"] %}
+     {% if stats["general_stats"] %}
         {% call macros.stats_panel("General") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
                 {{ macros.stats_table_row("firmware samples", stats["general_stats"]["number_of_firmwares"] | nice_number) }}
@@ -75,7 +75,7 @@
 
 {# ------ Crypto Material Stats ------ #}
 
-	{% if (stats["crypto_material_stats"]["crypto_material"] | length) > 0 %}
+    {% if (stats["crypto_material_stats"]["crypto_material"] | length) > 0 %}
         {% call macros.stats_panel("Crypto Material", "lock") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for item in (stats["crypto_material_stats"]["crypto_material"] | sort_chart_list_by_value) %}
@@ -90,12 +90,12 @@
             {% endfor %}
             </table>
         {% endcall %}
-	{% endif %}
+    {% endif %}
 
 
 {# ------ Known Vulnerability Stats ------ #}
 
-	{% if (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | length) > 0 %}
+    {% if (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | length) > 0 %}
         {% call macros.stats_panel("Known Vulnerabilities", "bolt") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for item in (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | sort_chart_list_by_value) %}
@@ -110,12 +110,12 @@
             {% endfor %}
             </table>
         {% endcall %}
-	{% endif %}
+    {% endif %}
 
 
 {# ------ Unpacker Stats ------ #}
 
-	{% if stats["unpacker_stats"]["overall_unpack_ratio"] %}
+    {% if stats["unpacker_stats"]["overall_unpack_ratio"] %}
         {% call macros.stats_panel("Unpacker Stats", "file-archive") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
                 {{ macros.stats_table_row("Share of not-packed files", (stats["unpacker_stats"]["overall_unpack_ratio"] * 100) | nice_number, percent=True,
@@ -126,7 +126,7 @@
                    tooltip="Percentage of files that were unpacked (inner vertices in the file tree), where some data was probably lost (some files were not unpacked)") }}
             </table>
         {% endcall %}
-	{% endif %}
+    {% endif %}
 
 
 {# ------ Charts ------ #}
@@ -142,8 +142,8 @@
         {"processed_analysis.unpacker.summary": "packed","processed_analysis.file_type.mime": "PLACEHOLDER"}],
     ["Data Lost File Types", "data_loss_file_types", stats["unpacker_stats"],
         {"processed_analysis.unpacker.summary": "data lost","processed_analysis.file_type.mime": "PLACEHOLDER"}],
-	["Architectures", "cpu_architecture", stats["architecture_stats"], {"processed_analysis.cpu_architecture.summary": {"$regex": "PLACEHOLDER"}}],
-	["Software Components", "software_components", stats["software_stats"], {"processed_analysis.software_components.PLACEHOLDER": {"$exists": "true"}}],
+    ["Architectures", "cpu_architecture", stats["architecture_stats"], {"processed_analysis.cpu_architecture.summary": {"$regex": "PLACEHOLDER"}}],
+    ["Software Components", "software_components", stats["software_stats"], {"processed_analysis.software_components.PLACEHOLDER": {"$exists": "true"}}],
 ]%}
 
 {% for title, key, data_set, query in chart_list %}
@@ -167,7 +167,7 @@
 {# ------ Exploit Mitigation Stats ------ #}
 
 {% if stats["exploit_mitigations_stats"] %}
-	{% if stats["exploit_mitigations_stats"]["exploit_mitigations"] %}
+    {% if stats["exploit_mitigations_stats"]["exploit_mitigations"] %}
         {% call macros.stats_panel("Exploit Mitigations") %}
             <canvas id="exploit_mitigations_canvas" width="100%" height="{{ stats['exploit_mitigations_stats']['exploit_mitigations'] | get_canvas_height }}"></canvas>
             <script>
@@ -179,7 +179,7 @@
                 );
             </script>
         {% endcall %}
-	{% endif %}
+    {% endif %}
 {% endif %}
 
 
@@ -202,24 +202,10 @@
 {% endif %}
 
 
-{# ------ Malware Stats ------ #}
-
-	{% if (stats["malware_stats"]["malware"] | length) > 0 %}
-        {% call macros.stats_panel("Malware", "exclamation-triangle") %}
-            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
-            {% for malware in (stats["malware_stats"]["malware"] | sort_chart_list_by_value) %}
-                {% set query = {"processed_analysis.malware_scanner.scans.ClamAV.result": malware[0]} %}
-                {{ macros.stats_table_row(malware[0], malware[1], link=query_url + query | json_dumps | urlencode) }}
-            {% endfor %}
-            </table>
-        {% endcall %}
-	{% endif %}
-
-
 {# ------ IP Stats ------ #}
 
-	{% set ips_v4_num = stats["ip_and_uri_stats"]["ips_v4"] | length %}
-	{% if ips_v4_num > 0 %}
+    {% set ips_v4_num = stats["ip_and_uri_stats"]["ips_v4"] | length %}
+    {% if ips_v4_num > 0 %}
         {% call macros.stats_panel("IPv4 Addresses (Top {}/{})".format([10, ips_v4_num] | min, ips_v4_num), "globe") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for ip, count in (stats["ip_and_uri_stats"]["ips_v4"] | sort_chart_list_by_value)[:10] %}
@@ -228,10 +214,10 @@
             {% endfor %}
             </table>
         {% endcall %}
-	{% endif %}
+    {% endif %}
 
-	{% set ips_v6_num = stats["ip_and_uri_stats"]["ips_v6"] | length %}
-	{% if ips_v6_num > 0 %}
+    {% set ips_v6_num = stats["ip_and_uri_stats"]["ips_v6"] | length %}
+    {% if ips_v6_num > 0 %}
         {% call macros.stats_panel("IPv6 Addresses (Top {}/{})".format([10, ips_v6_num] | min, ips_v6_num), "globe") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for ip, count in (stats["ip_and_uri_stats"]["ips_v6"] | sort_chart_list_by_value)[:10] %}
@@ -240,10 +226,10 @@
             {% endfor %}
             </table>
         {% endcall %}
-	{% endif %}
+    {% endif %}
 
-	{% set uri_num = stats["ip_and_uri_stats"]["uris"] | length %}
-	{% if uri_num > 0 %}
+    {% set uri_num = stats["ip_and_uri_stats"]["uris"] | length %}
+    {% if uri_num > 0 %}
         {% call macros.stats_panel("URIs (Top {}/{})".format([10, uri_num] | min, uri_num), "globe") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for uri, count in (stats["ip_and_uri_stats"]["uris"] | sort_chart_list_by_value)[:10] %}
@@ -252,7 +238,7 @@
             {% endfor %}
             </table>
         {% endcall %}
-	{% endif %}
+    {% endif %}
 
 </div>
 
@@ -300,7 +286,7 @@
 {% if stats["general_stats"] %}
 
 <div class="row">
-	<div class="col-lg-12" style="text-align:center;">These statistics were generated at: <b>{{ stats["general_stats"]["creation_time"] | nice_unix_time }}</b> in <b>{{ stats["general_stats"]["benchmark"] | nice_time }}</b></div>
+    <div class="col-lg-12" style="text-align:center;">These statistics were generated at: <b>{{ stats["general_stats"]["creation_time"] | nice_unix_time }}</b> in <b>{{ stats["general_stats"]["benchmark"] | nice_time }}</b></div>
 </div>
 
 {% else %}
