@@ -1,52 +1,38 @@
-!.coveragerc
-*.log
-*.pyc
-*.yc
-*~
-.cache
-.coverage*
-.idea
-.project
-.pydevproject
-.pytest_cache
-.settings/
-.vscode/
-10k-most-common.txt
-coverage.xml
-docs/.buildinfo
-docs/_sources
-docs/objects.inv
-docsrc/_build
-htmlcov
-log/
-nose2-junit.xml
-src/bin
-src/bootstrap/doc
-src/bootstrap/man
-src/install/compose-env/
-src/log
+# Logging
+install.log
+src/install.log
+
+# Plugin artifacts
+src/analysis/signatures/
 src/plugins/*/*/bin
 src/plugins/analysis/crypto_hints/signatures/crypto_signatures.yar
 src/plugins/analysis/cve_lookup/internal/cve_cpe.db
-src/plugins/analysis/qemu_exec/**/lib
-src/test_unittests/data/arch_detection/
-src/web_interface/static/Chart.js
-src/web_interface/static/angular.min.js
-src/web_interface/static/bootstrap3-editable
-src/web_interface/static/entropy
-src/web_interface/static/google_charts
-src/web_interface/static/highlight.js
-src/web_interface/static/raw
-src/web_interface/static/vis
-src/web_interface/static/web_css
-src/web_interface/static/web_js
+src/plugins/analysis/qemu_exec/test/data/test_tmp_dir
+src/plugins/analysis/qemu_exec/test/data/test_tmp_dir_2
+src/plugins/analysis/users_and_passwords/internal/passwords/10k-most-common.txt
+
+# Misc
+__pycache__
+docsrc/_build/
+docs/.buildinfo/
+src/bin
+src/web_interface/static/node_modules
+
+# pytest
+.pytest_cache
+.coverage*
+!.coveragerc
+
+# Start scripts
 start_all_installed_fact_components
-start_all_installed_faf_components
 start_fact_backend
 start_fact_db
 start_fact_frontend
-start_faf_backend
-start_faf_db
-start_faf_frontend
-update_statistic.cron
-wget-lo*
+
+# Editor specific files
+.vscode
+.idea
+## Eclipse
+.project
+.settings
+.pydevproject
