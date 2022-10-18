@@ -1,6 +1,7 @@
 # pylint: disable=no-self-use,unused-argument
 import grp
 import os
+import shutil
 from base64 import standard_b64encode
 from configparser import ConfigParser
 from contextlib import contextmanager
@@ -16,6 +17,9 @@ from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_setup import DbSetup
+
+# TODO remove this hack as soon as the rest of the codebase allows this
+from ..conftest import _get_test_config_tuple
 
 
 def get_test_data_dir():
@@ -314,37 +318,16 @@ def get_firmware_for_rest_upload_test():
 
 
 def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = None):
-    if isinstance(temp_dir, TemporaryDirectory):
-        temp_dir = temp_dir.name
-    config = ConfigParser()
-    config.add_section('data-storage')
-    config.set('data-storage', 'report-threshold', '2048')
-    config.set('data-storage', 'password-salt', '1234')
-    config.set('data-storage', 'firmware-file-storage-directory', '/tmp/fact_test_fs_directory')
-    docker_mount_base_dir = create_docker_mount_base_dir()
-    config.set('data-storage', 'docker-mount-base-dir', str(docker_mount_base_dir))
-    config.add_section('unpack')
-    config.set('unpack', 'whitelist', '')
-    config.set('unpack', 'max-depth', '10')
-    config.add_section('default-plugins')
-    config.add_section('expert-settings')
-    config.set('expert-settings', 'block-delay', '0.1')
-    config.set('expert-settings', 'ssdeep-ignore', '1')
-    config.set('expert-settings', 'authentication', 'false')
-    config.set('expert-settings', 'intercom-poll-delay', '0.5')
-    config.set('expert-settings', 'nginx', 'false')
-    config.add_section('database')
-    config.set('database', 'results-per-page', '10')
-    load_users_from_main_config(config)
-    config.add_section('logging')
-    if temp_dir is not None:
-        config.set('data-storage', 'firmware-file-storage-directory', temp_dir)
-    config.set('expert-settings', 'radare2-host', 'localhost')
-    # -- postgres --
-    config.set('data-storage', 'postgres-server', 'localhost')
-    config.set('data-storage', 'postgres-port', '5432')
-    config.set('data-storage', 'postgres-database', 'fact_test')
-    return config
+    # This function is deprecated in favor of the fixtures `patch_cfg` and `cfg_tuple`
+    # TODO unused
+    _ = temp_dir
+
+    cfg, configparser_cfg = _get_test_config_tuple()
+
+    shutil.rmtree(cfg.data_storage.docker_mount_base_dir)
+    shutil.rmtree(cfg.data_storage.firmware_file_storage_directory)
+
+    return configparser_cfg
 
 
 def load_users_from_main_config(config: ConfigParser):
