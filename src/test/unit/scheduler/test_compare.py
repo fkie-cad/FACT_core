@@ -43,7 +43,7 @@ class TestSchedulerCompare(unittest.TestCase):
         self.bs_patch_new.start()
         self.bs_patch_init.start()
 
-        self.compare_scheduler = ComparisonScheduler(config=self.config, db_interface=MockDbInterface(config=self.config), testing=True)
+        self.compare_scheduler = ComparisonScheduler(db_interface=MockDbInterface(config=self.config), testing=True)
 
     def tearDown(self):
         self.compare_scheduler.shutdown()

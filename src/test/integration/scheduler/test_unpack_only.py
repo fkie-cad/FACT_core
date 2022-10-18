@@ -15,7 +15,7 @@ class TestFileAddition:
         self._tmp_queue = Queue()
         unpacking_lock_manager = UnpackingLockManager()
         self._unpack_scheduler = UnpackingScheduler(
-            config=self._config, post_unpack=self._dummy_callback, fs_organizer=MockFSOrganizer(),
+            post_unpack=self._dummy_callback, fs_organizer=MockFSOrganizer(),
             unpacking_locks=unpacking_lock_manager
         )
 

@@ -27,14 +27,14 @@ class TestFileAddition:
         unpacking_lock_manager = UnpackingLockManager()
 
         self._analysis_scheduler = AnalysisScheduler(
-            config=self._config, post_analysis=self.count_analysis_finished_event,
+            post_analysis=self.count_analysis_finished_event,
             unpacking_locks=unpacking_lock_manager
         )
         self._unpack_scheduler = UnpackingScheduler(
-            config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object,
+            post_unpack=self._analysis_scheduler.start_analysis_of_object,
             fs_organizer=MockFSOrganizer(), unpacking_locks=unpacking_lock_manager
         )
-        self._compare_scheduler = ComparisonScheduler(config=self._config, callback=self.trigger_compare_finished_event)
+        self._compare_scheduler = ComparisonScheduler(callback=self.trigger_compare_finished_event)
 
     def count_analysis_finished_event(self, uid, plugin, analysis_result):
         self.backend_interface.add_analysis(uid, plugin, analysis_result)

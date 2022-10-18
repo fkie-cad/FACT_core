@@ -69,7 +69,6 @@ class TestUnpackScheduler(TestCase):
 
     def _start_scheduler(self):
         self.scheduler = UnpackingScheduler(
-            config=self.config,
             post_unpack=self._mock_callback,
             analysis_workload=lambda: 3,
             unpacking_locks=UnpackingLockManager()

@@ -36,7 +36,7 @@ class AnalysisSchedulerTest(TestCase):
         config.set('default-plugins', 'default', 'file_hashes')
         self.tmp_queue = Queue()
         self.sched = AnalysisScheduler(
-            config=config, pre_analysis=lambda *_: None, post_analysis=self.dummy_callback,
+            pre_analysis=lambda *_: None, post_analysis=self.dummy_callback,
             db_interface=self.mocked_interface, unpacking_locks=UnpackingLockManager()
         )
 

@@ -106,7 +106,7 @@ def start_single_worker(process_index: int, label: str, function: Callable) -> E
 
 
 def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_label: str,
-                            config: Optional[ConfigParser] = None, worker_function: Optional[Callable] = None) -> bool:
+                            throw: bool = True, worker_function: Optional[Callable] = None) -> bool:
     '''
     Iterate over the `process_list` and check if exceptions occurred. In case of an exception, the process and its
     children will be terminated. If ``throw_exceptions`` in the FACT configuration is set to `false`, the worker
@@ -116,7 +116,7 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
 
     :param process_list: A list of worker processes.
     :param worker_label: A label used for logging (e.g. `Analysis` or `Unpacking`).
-    :param config: An instance of the FACT configuration.
+    :param config: An instance of the FACT configuration. TODO
     :param worker_function: A function used for restarting the worker (optional).
     :return: ``True`` if an exception occurred in any process and ``throw_exceptions`` in the FACT configuration is
              set to `true` and ``False`` otherwise.
@@ -128,7 +128,7 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
             logging.error(color_string(f'Exception in {worker_label} process:\n{stack_trace}', TerminalColors.FAIL))
             terminate_process_and_children(worker_process)
             process_list.remove(worker_process)
-            if config is None or config.getboolean('expert-settings', 'throw-exceptions'):
+            if throw:
                 return_value = True
             elif worker_function is not None:
                 process_index = int(worker_process.name.split('-')[-1])

@@ -85,11 +85,11 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
     def _start_backend(self, post_analysis=None, compare_callback=None):
         # pylint: disable=attribute-defined-outside-init
         unpacking_locks = UnpackingLockManager()
-        self.analysis_service = AnalysisScheduler(config=self.config, post_analysis=post_analysis, unpacking_locks=unpacking_locks)
+        self.analysis_service = AnalysisScheduler(post_analysis=post_analysis, unpacking_locks=unpacking_locks)
         self.unpacking_service = UnpackingScheduler(
-            config=self.config, post_unpack=self.analysis_service.start_analysis_of_object, unpacking_locks=unpacking_locks
+            post_unpack=self.analysis_service.start_analysis_of_object, unpacking_locks=unpacking_locks
         )
-        self.compare_service = ComparisonScheduler(config=self.config, callback=compare_callback)
+        self.compare_service = ComparisonScheduler(callback=compare_callback)
         self.intercom = InterComBackEndBinding(
             config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
             unpacking_service=self.unpacking_service, unpacking_locks=unpacking_locks
