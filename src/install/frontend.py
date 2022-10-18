@@ -5,16 +5,18 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
+from config import cfg, load_config
 from helperFunctions.install import (
     InstallationError,
     OperateInDirectory,
     apt_install_packages,
     dnf_install_packages,
     install_pip_packages,
-    load_main_config,
     read_package_list_from_file,
     run_cmd_with_logging,
 )
+
+load_config()
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
@@ -32,8 +34,7 @@ def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: 
 def _create_directory_for_authentication():  # pylint: disable=invalid-name
     logging.info('Creating directory for authentication')
 
-    config = load_main_config()
-    dburi = config.get('data-storage', 'user-database')
+    dburi = cfg.data_storage.user_database
     # pylint: disable=fixme
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
