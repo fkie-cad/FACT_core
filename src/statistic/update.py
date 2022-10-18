@@ -16,7 +16,9 @@ class StatsUpdater:
     '''
 
     def __init__(self, stats_db: Optional[StatsUpdateDbInterface] = None, config: Optional[ConfigParser] = None):
-        self.db = stats_db if stats_db else StatsUpdateDbInterface(config=config)
+        # TODO unused
+        _ = config
+        self.db = stats_db if stats_db else StatsUpdateDbInterface()
         self.start_time = None
         self.match = {}
 

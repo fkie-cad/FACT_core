@@ -1,7 +1,6 @@
 from typing import Dict
 
 from analysis.PluginBase import AnalysisBasePlugin
-from config import configparser_cfg
 from storage.fsorganizer import FSOrganizer
 
 try:
@@ -41,7 +40,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
 
     def __init__(self, plugin_administrator):
-        self._fs_organizer = FSOrganizer(configparser_cfg)
+        self._fs_organizer = FSOrganizer()
         super().__init__(plugin_administrator)
 
     def process_object(self, file_object):

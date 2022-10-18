@@ -6,7 +6,6 @@ from pathlib import Path
 from docker.types import Mount
 
 from analysis.PluginBase import AnalysisBasePlugin
-from config import configparser_cfg
 from helperFunctions.docker import run_docker_container
 from storage.fsorganizer import FSOrganizer
 
@@ -45,7 +44,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def additional_setup(self):
-        self._fs_organizer = FSOrganizer(configparser_cfg)
+        self._fs_organizer = FSOrganizer()
 
     def process_object(self, file_object):
         '''

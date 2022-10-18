@@ -100,8 +100,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
 
-        self.fs_organizer = FSOrganizer(config=config)
-        self.db_backend_service = db_interface if db_interface else BackendDbInterface(config=config)
+        self.fs_organizer = FSOrganizer()
+        self.db_backend_service = db_interface if db_interface else BackendDbInterface()
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
         self._start_runner_process()

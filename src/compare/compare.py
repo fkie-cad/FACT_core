@@ -26,7 +26,7 @@ class Compare:
 
     def compare(self, uid_list):
         logging.info(f'Compare in progress: {uid_list}')
-        bs = BinaryService(config=self.config)
+        bs = BinaryService()
 
         fo_list = []
         for uid in uid_list:

@@ -19,7 +19,7 @@ TEST_CONFIG = get_config_for_testing()
 
 @pytest.fixture(scope='function')
 def stats_updater() -> StatsUpdater:
-    updater = StatsUpdater(stats_db=StatsUpdateDbInterface(TEST_CONFIG))
+    updater = StatsUpdater(stats_db=StatsUpdateDbInterface())
     yield updater
 
 

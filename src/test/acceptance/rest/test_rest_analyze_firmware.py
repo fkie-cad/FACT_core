@@ -16,7 +16,7 @@ class TestRestFirmware(TestAcceptanceBase):
         super().setUp()
         self.analysis_finished_event = Event()
         self.elements_finished_analyzing = Value('i', 0)
-        self.db_backend_service = BackendDbInterface(config=self.config)
+        self.db_backend_service = BackendDbInterface()
         self._start_backend(post_analysis=self._analysis_callback)
         self.test_container_uid = '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787'
         time.sleep(2)  # wait for systems to start

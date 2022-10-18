@@ -18,7 +18,7 @@ class WorkLoadStatistic:
     def __init__(self, config, component):
         self.config = config
         self.component = component
-        self.db = StatsUpdateDbInterface(config=self.config)
+        self.db = StatsUpdateDbInterface()
         self.platform_information = self._get_platform_information()
         logging.debug(f'{self.component}: Online')
 

@@ -1,4 +1,3 @@
-from configparser import ConfigParser
 from typing import Optional
 
 from sqlalchemy import create_engine
@@ -6,16 +5,19 @@ from sqlalchemy.orm import sessionmaker
 
 from storage.schema import Base
 
+from config import cfg
+
 
 class DbConnection:
-    def __init__(self, config: ConfigParser, user: str = None, password: str = None, db_name: Optional[str] = None, **kwargs):
+    def __init__(self, user: str = None, password: str = None, db_name: Optional[str] = None, **kwargs):
         self.base = Base
-        self.config = config
-        address = config.get('data-storage', 'postgres-server')
-        port = config.get('data-storage', 'postgres-port')
-        user = self.config.get('data-storage', user)
-        password = self.config.get('data-storage', password)
-        database = db_name if db_name else config.get('data-storage', 'postgres-database')
+
+        address = cfg.data_storage.postgres_server
+        port = cfg.data_storage.postgres_port
+        user = getattr(cfg.data_storage, user)
+        password = getattr(cfg.data_storage, password)
+
+        database = db_name if db_name else cfg.data_storage.postgres_database
         engine_url = f'postgresql://{user}:{password}@{address}:{port}/{database}'
         self.engine = create_engine(engine_url, pool_size=100, future=True, **kwargs)
         self.session_maker = sessionmaker(bind=self.engine, future=True)  # future=True => sqlalchemy 2.0 support
@@ -25,23 +27,23 @@ class DbConnection:
 
 
 class ReadOnlyConnection(DbConnection):
-    def __init__(self, config: ConfigParser, user: str = 'postgres-ro-user', password: str = 'postgres-ro-pw', **kwargs):
-        super().__init__(config, user, password, **kwargs)
+    def __init__(self, user: str = 'postgres_ro_user', password: str = 'postgres_ro_pw', **kwargs):
+        super().__init__(user, password, **kwargs)
 
 
 class ReadWriteConnection(DbConnection):
-    def __init__(self, config: ConfigParser, user: str = 'postgres-rw-user', password: str = 'postgres-rw-pw', **kwargs):
-        super().__init__(config, user, password, **kwargs)
+    def __init__(self, user: str = 'postgres_rw_user', password: str = 'postgres_rw_pw', **kwargs):
+        super().__init__(user, password, **kwargs)
 
 
 class ReadWriteDeleteConnection(DbConnection):
-    def __init__(self, config: ConfigParser, user: str = 'postgres-del-user', password: str = 'postgres-del-pw', **kwargs):
-        super().__init__(config, user, password, **kwargs)
+    def __init__(self, user: str = 'postgres_del_user', password: str = 'postgres_del_pw', **kwargs):
+        super().__init__(user, password, **kwargs)
 
 
 class AdminConnection(DbConnection):
-    def __init__(self, config: ConfigParser, user: str = 'postgres-admin-user', password: str = 'postgres-admin-pw', **kwargs):
-        super().__init__(config, user, password, **kwargs)
+    def __init__(self, user: str = 'postgres_admin_user', password: str = 'postgres_admin_pw', **kwargs):
+        super().__init__(user, password, **kwargs)
 
     def create_tables(self):
         self.base.metadata.create_all(self.engine)

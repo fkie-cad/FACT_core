@@ -17,7 +17,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.db_backend_service = BackendDbInterface(config=cls.config)
+        cls.db_backend_service = BackendDbInterface()
         cls.analysis_finished_event = Event()
         cls.elements_finished_analyzing = Value('i', 0)
 

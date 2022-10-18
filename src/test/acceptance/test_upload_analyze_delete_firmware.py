@@ -31,7 +31,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
                           f'optional plugin {optional_plugin} erroneously checked or not found')
 
     def _show_analysis_page(self):
-        db = FrontEndDbInterface(self.config)
+        db = FrontEndDbInterface()
         assert db.exists(self.test_fw_a.uid), 'Error: Test firmware not found in DB!'
         rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
         self.assertIn(self.test_fw_a.uid.encode(), rv.data)
@@ -68,7 +68,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         self.assertIn(b'<input type="hidden" name="file_name" id="file_name" value="' + self.test_fw_a.file_name.encode() + b'">', rv.data, 'file name not set in re-do page')
 
     def _delete_firmware(self):
-        fs_backend = FSOrganizer(config=self.config)
+        fs_backend = FSOrganizer()
         local_firmware_path = Path(fs_backend.generate_path_from_uid(self.test_fw_a.uid))
         self.assertTrue(local_firmware_path.exists(), 'file not found before delete')
         rv = self.test_client.get(f'/admin/delete/{self.test_fw_a.uid}')

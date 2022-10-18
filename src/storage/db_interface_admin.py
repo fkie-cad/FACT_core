@@ -10,9 +10,9 @@ from storage.schema import FileObjectEntry
 
 class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
-    def __init__(self, config, connection: Optional[DbConnection] = None, intercom=None):
-        self.intercom = InterComFrontEndBinding(config=config) if intercom is None else intercom
-        super().__init__(config, connection=connection or ReadWriteDeleteConnection(config))
+    def __init__(self, connection: Optional[DbConnection] = None, intercom=None):
+        self.intercom = InterComFrontEndBinding() if intercom is None else intercom
+        super().__init__(connection=connection or ReadWriteDeleteConnection())
 
     # ===== Delete / DELETE =====
 

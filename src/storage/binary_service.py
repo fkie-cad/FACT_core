@@ -15,10 +15,9 @@ class BinaryService:
     This is a binary and database backend providing basic return functions
     '''
 
-    def __init__(self, config=None):
-        self.config = config
-        self.fs_organizer = FSOrganizer(config=config)
-        self.db_interface = BinaryServiceDbInterface(config=config)
+    def __init__(self):
+        self.fs_organizer = FSOrganizer()
+        self.db_interface = BinaryServiceDbInterface()
         logging.info('binary service online')
 
     def get_binary_and_file_name(self, uid: str) -> Tuple[Optional[bytes], Optional[str]]:

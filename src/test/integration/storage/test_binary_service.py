@@ -15,9 +15,9 @@ TEST_FW = create_test_firmware()
 @pytest.fixture
 def binary_service(db):
     with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
-        config = get_config_for_testing(temp_dir=tmp_dir)
+        # TODO this will break because of non matching temp dirs from cfg and this
         _init_test_data(tmp_dir, db)
-        yield BinaryService(config=config)
+        yield BinaryService()
     gc.collect()
 
 

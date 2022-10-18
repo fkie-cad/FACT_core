@@ -13,7 +13,7 @@ class TestRestDownload(RestTestBase):
 
     def setup(self):
         super().setup()
-        self.db_interface = BackendDbInterface(self.config)
+        self.db_interface = BackendDbInterface()
         self.test_queue = Queue()
 
     def teardown(self):

@@ -24,7 +24,7 @@ class UnpackingLockMock:
 @pytest.fixture(scope='function')
 def mock_listener(config):
     listener = InterComBackEndDeleteFile(config, unpacking_locks=UnpackingLockMock(), db_interface=CommonDatabaseMock())
-    listener.fs_organizer = MockFSOrganizer(None)
+    listener.fs_organizer = MockFSOrganizer()
     listener.config = config
     return listener
 

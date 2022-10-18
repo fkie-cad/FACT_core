@@ -19,7 +19,7 @@ class Unpacker(UnpackBase):
     def __init__(self, config=None, worker_id=None, fs_organizer=None, unpacking_locks=None):
         super().__init__(worker_id=worker_id)
         self.config = config
-        self.file_storage_system = FSOrganizer(config=self.config) if fs_organizer is None else fs_organizer
+        self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
         self.unpacking_locks = unpacking_locks
 
     def unpack(self, current_fo: FileObject):

@@ -57,7 +57,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
 
     def __init__(self, *args, db_interface=None, **kwargs):
-        self.db = db_interface if db_interface is not None else DbInterfaceCommon(config=configparser_cfg)
+        self.db = db_interface if db_interface is not None else DbInterfaceCommon()
         self.result = None
         super().__init__(*args, **kwargs)
 

@@ -53,7 +53,7 @@ def test_app(test_config):
 
 @pytest.fixture(scope='module')
 def test_scheduler(test_config, finished_event, intermediate_event):
-    interface = BackendDbInterface(config=test_config)
+    interface = BackendDbInterface()
     unpacking_lock_manager = UnpackingLockManager()
     elements_finished = Value('i', 0)
 

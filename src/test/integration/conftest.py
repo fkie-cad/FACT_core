@@ -28,14 +28,14 @@ class DB:
 @pytest.fixture(scope='session')
 def db_interface():
     config = get_config_for_testing()
-    admin = AdminDbInterface(config, intercom=MockIntercom())
+    admin = AdminDbInterface(intercom=MockIntercom())
     setup_test_tables(config)
-    ro_connection = ReadOnlyConnection(config)
-    rw_connection = ReadWriteConnection(config)
-    common = DbInterfaceCommon(config, connection=ro_connection)
-    backend = BackendDbInterface(config, connection=rw_connection)
-    frontend = FrontEndDbInterface(config, connection=ro_connection)
-    frontend_ed = FrontendEditingDbInterface(config, connection=rw_connection)
+    ro_connection = ReadOnlyConnection()
+    rw_connection = ReadWriteConnection()
+    common = DbInterfaceCommon(connection=ro_connection)
+    backend = BackendDbInterface(connection=rw_connection)
+    frontend = FrontEndDbInterface(connection=ro_connection)
+    frontend_ed = FrontendEditingDbInterface(connection=rw_connection)
     try:
         yield DB(common, backend, frontend, frontend_ed, admin)
     finally:
@@ -66,5 +66,4 @@ class MockIntercom:
 
 @pytest.fixture()
 def comp_db():
-    config = get_config_for_testing()
-    yield ComparisonDbInterface(config)
+    yield ComparisonDbInterface()

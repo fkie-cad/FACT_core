@@ -23,10 +23,10 @@ class FrontendDatabase:  # pylint: disable=too-many-instance-attributes
             stats_updater: Optional[Type[StatsUpdateDbInterface]] = None
     ):
         self.config = config
-        self._ro_connection = ReadOnlyConnection(config)
-        self._rw_connection = ReadWriteConnection(config)
-        self._del_connection = ReadWriteDeleteConnection(config)
-        self._admin_connection = AdminConnection(config)
+        self._ro_connection = ReadOnlyConnection()
+        self._rw_connection = ReadWriteConnection()
+        self._del_connection = ReadWriteDeleteConnection()
+        self._admin_connection = AdminConnection()
 
         self._frontend = frontend if frontend is not None else FrontEndDbInterface
         self._editing = editing if editing is not None else FrontendEditingDbInterface

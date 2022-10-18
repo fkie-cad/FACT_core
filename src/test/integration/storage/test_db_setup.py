@@ -11,8 +11,8 @@ def config():
 
 
 @pytest.fixture(scope='module')
-def db_setup(config):
-    yield DbSetup(config)
+def db_setup():
+    yield DbSetup()
 
 
 def test_user_exists(db, db_setup, config):

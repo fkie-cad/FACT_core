@@ -16,7 +16,7 @@ class TestRestBinarySearch(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend()
-        self.fs_organizer = FSOrganizer(self.config)
+        self.fs_organizer = FSOrganizer()
 
     def tearDown(self):
         self._stop_backend()

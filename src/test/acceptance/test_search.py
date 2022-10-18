@@ -8,7 +8,7 @@ class TestAcceptanceNormalSearch(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend()
-        self.db_backend_interface = BackendDbInterface(self.config)
+        self.db_backend_interface = BackendDbInterface()
         self.test_fw = create_test_firmware(device_name='test_fw')
         self.test_fw.release_date = '2001-02-03'
         self.db_backend_interface.add_object(self.test_fw)

@@ -15,7 +15,7 @@ class ComparisonScheduler:
 
     def __init__(self, config=None, db_interface=None, testing=False, callback=None):
         self.config = config
-        self.db_interface = db_interface if db_interface else ComparisonDbInterface(config=config)
+        self.db_interface = db_interface if db_interface else ComparisonDbInterface()
         self.stop_condition = Value('i', 1)
         self.in_queue = Queue()
         self.callback = callback

@@ -23,7 +23,7 @@ class TestFileAddition:
         self.analysis_finished_event = Event()
         self.compare_finished_event = Event()
 
-        self.backend_interface = BackendDbInterface(config=self._config)
+        self.backend_interface = BackendDbInterface()
         unpacking_lock_manager = UnpackingLockManager()
 
         self._analysis_scheduler = AnalysisScheduler(

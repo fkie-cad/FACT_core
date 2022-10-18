@@ -16,13 +16,13 @@ TEST_CONFIG = get_config_for_testing()
 
 @pytest.fixture
 def stats_db():
-    updater = StatsUpdateDbInterface(TEST_CONFIG)
+    updater = StatsUpdateDbInterface()
     yield updater
 
 
 @pytest.fixture
 def stats_viewer():
-    viewer = StatsDbViewer(TEST_CONFIG)
+    viewer = StatsDbViewer()
     yield viewer
 
 

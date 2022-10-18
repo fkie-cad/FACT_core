@@ -21,9 +21,18 @@ from test.common_helper import (  # pylint: disable=wrong-import-order
 )
 from web_interface.frontend_main import WebFrontEnd
 
+import pytest
+
 TMP_DB_NAME = 'tmp_acceptance_tests'
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'expert-settings': {
+            'authentication': 'false',
+        }
+    }
+)
 class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instance-attributes
 
     class TestFW:
@@ -85,7 +94,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
             config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
             unpacking_service=self.unpacking_service, unpacking_locks=unpacking_locks
         )
-        self.fs_organizer = FSOrganizer(config=self.config)
+        self.fs_organizer = FSOrganizer()
 
     def _setup_debugging_logging(self):
         # for debugging purposes only
@@ -108,7 +117,7 @@ class TestAcceptanceBaseWithDb(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend()
-        self.db_backend = BackendDbInterface(config=self.config)
+        self.db_backend = BackendDbInterface()
         time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
