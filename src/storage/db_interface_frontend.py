@@ -176,10 +176,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = select(subquery).order_by(subquery.c.jsonb_array_elements.cast(JSONB)['time'].desc())
             return list(session.execute(query.limit(limit)).scalars())
 
-    @staticmethod
-    def create_analysis_structure():
-        return {}  # ToDo FixMe ???
-
     # --- generic search ---
 
     def generic_search(self, search_dict: dict, skip: int = 0, limit: int = 0,

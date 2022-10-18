@@ -182,8 +182,7 @@ class DatabaseRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', GET)
     def show_advanced_search(self, error=None):
-        database_structure = self.db.frontend.create_analysis_structure()
-        return render_template('database/database_advanced_search.html', error=error, database_structure=database_structure)
+        return render_template('database/database_advanced_search.html', error=error)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/binary_search', GET, POST)
