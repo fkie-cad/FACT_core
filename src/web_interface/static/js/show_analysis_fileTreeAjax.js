@@ -28,10 +28,20 @@ $('#fileTreeAjax')
             $("#fileTreeSearch").removeClass("is-invalid");
         }
     });
+
+// source: https://stackoverflow.com/questions/1909441/how-to-delay-the-keyup-handler-until-the-user-stops-typing
+function delay(fn, ms) {
+    let timer = 0;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(fn.bind(this, ...args), ms || 0);
+    };
+}
+
 $(document).ready(function () {
-    $('#fileTreeSearch').keyup(function () {
-    $('#fileTreeAjax').jstree(true).show_all();
-    $('#fileTreeAjax').jstree('search', $(this).val());
-    $('#fileTreeAjax .jstree-hidden').hide();
-  });
+    $('#fileTreeSearch').keyup(delay(function () {
+        $('#fileTreeAjax').jstree(true).show_all();
+        $('#fileTreeAjax').jstree('search', $(this).val());
+        $('#fileTreeAjax .jstree-hidden').hide();
+    }, 1000));
 });
