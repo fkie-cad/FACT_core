@@ -18,9 +18,6 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_setup import DbSetup
 
-# TODO remove this hack as soon as the rest of the codebase allows this
-from ..conftest import _get_test_config_tuple
-
 
 def get_test_data_dir():
     '''
@@ -290,6 +287,11 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     # This function is deprecated in favor of the fixtures `patch_cfg` and `cfg_tuple`
     # TODO unused
     _ = temp_dir
+
+    # TODO remove this hack as soon as the rest of the codebase allows this
+    import sys
+    sys.path.append(str(Path(__file__).parent))
+    from conftest import _get_test_config_tuple
 
     cfg, configparser_cfg = _get_test_config_tuple()
 
