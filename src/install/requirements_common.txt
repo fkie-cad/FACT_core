@@ -22,6 +22,7 @@ ssdeep==3.4
 sqlalchemy==1.4.36
 xmltodict==0.12.0
 yara-python==4.2.0
+
 # Config validation
 pydantic==1.8.2
 
