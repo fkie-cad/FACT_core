@@ -54,14 +54,40 @@ def _setup_argparser():
     install_options.add_argument('-D', '--db', action='store_true', default=False, help='install db')
     install_options.add_argument('-C', '--common', action='store_true', default=False, help='install common')
     install_options.add_argument('--no-common', action='store_true', default=False, help='Skip common installation')
-    install_options.add_argument('--backend-docker-images', action='store_true', default=False, help='pull/build docker images required to run the backend')
-    install_options.add_argument('--frontend-docker-images', action='store_true', default=False, help='pull/build docker images required to run the frontend')
-    install_options.add_argument('-N', '--nginx', action='store_true', default=False, help='install and configure nginx')
-    install_options.add_argument('-R', '--no_radare', action='store_true', default=False, help='do not install radare view container')
-    install_options.add_argument('-U', '--statistic_cronjob', action='store_true', default=False, help='install cronjob to update statistics hourly')
+    install_options.add_argument(
+        '--backend-docker-images',
+        action='store_true',
+        default=False,
+        help='pull/build docker images required to run the backend',
+    )
+    install_options.add_argument(
+        '--frontend-docker-images',
+        action='store_true',
+        default=False,
+        help='pull/build docker images required to run the frontend',
+    )
+    install_options.add_argument(
+        '-N', '--nginx', action='store_true', default=False, help='install and configure nginx'
+    )
+    install_options.add_argument(
+        '-R', '--no_radare', action='store_true', default=False, help='do not install radare view container'
+    )
+    install_options.add_argument(
+        '-U',
+        '--statistic_cronjob',
+        action='store_true',
+        default=False,
+        help='install cronjob to update statistics hourly',
+    )
     logging_options = parser.add_argument_group('Logging and Output Options')
     logging_options.add_argument('-l', '--log_file', help='path to log file', default='./install.log')
-    logging_options.add_argument('-L', '--log_level', help='define the log level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='WARNING')
+    logging_options.add_argument(
+        '-L',
+        '--log_level',
+        help='define the log level',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
+        default='WARNING',
+    )
     logging_options.add_argument('-d', '--debug', action='store_true', help='print debug messages', default=False)
     return parser.parse_args()
 
@@ -75,7 +101,9 @@ def _get_console_output_level(debug_flag):
 def _setup_logging(log_level, log_file, debug_flag=False):
     try:
         log_level = getattr(logging, log_level, None)
-        log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        log_format = logging.Formatter(
+            fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
+        )
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
         create_dir_for_file(log_file, dir_description='logging directory')
