@@ -1,7 +1,6 @@
 {
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.4",
-    "angular": "^1.8.3",
     "bootstrap": "^4.6.2",
     "bootstrap-datepicker": "^1.9.0",
     "bootstrap-select": "^1.13.18",
