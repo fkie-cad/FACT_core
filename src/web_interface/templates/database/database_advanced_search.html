@@ -7,9 +7,6 @@
     {# angularJS import #}
     <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/advanced_search.js') }}"></script>
-    <script>
-        var database_structure = {{ database_structure | tojson }};
-    </script>
 {% endblock %}
 
 {% block styles %}
