@@ -81,7 +81,7 @@ class DefaultPlugins(BaseModel):
 class Database(BaseModel):
     Config = _PydanticConfigExtraForbid
     results_per_page: int
-    number_of_latest_firmwares_to_display: int
+    number_of_latest_firmwares_to_display: int = 10
     ajax_stats_reload_time: int
 
 
