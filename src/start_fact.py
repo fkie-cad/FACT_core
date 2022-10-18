@@ -92,6 +92,7 @@ def _process_is_running(process: Popen) -> bool:
 
 
 signal.signal(signal.SIGINT, shutdown)
+signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == '__main__':
     process_list = []
