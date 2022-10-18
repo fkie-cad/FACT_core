@@ -28,7 +28,7 @@ class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arg
         self.children = {}
 
     def __str__(self):
-        return 'Node \'{}\' with children {}'.format(self.name, self.get_names_of_children())
+        return f'Node \'{self.name}\' with children {self.get_names_of_children()}'
 
     def __repr__(self):
         return self.__str__()

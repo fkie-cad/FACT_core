@@ -7,15 +7,19 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 
 class TestRestStatistics(RestTestBase):
-
     def setup(self):
         super().setup()
         self.stats_updater = StatsUpdateDbInterface(config=self.config)
-        self.stats_updater.update_statistic('file_type', {
-            'file_types': [['application/gzip', 3454]],
-            'firmware_container': [['application/zip', 3], ['firmware/foo', 1]]
-        })
-        self.stats_updater.update_statistic('known_vulnerabilities', {'known_vulnerabilities': [['BackDoor_String', 1]]})
+        self.stats_updater.update_statistic(
+            'file_type',
+            {
+                'file_types': [['application/gzip', 3454]],
+                'firmware_container': [['application/zip', 3], ['firmware/foo', 1]],
+            },
+        )
+        self.stats_updater.update_statistic(
+            'known_vulnerabilities', {'known_vulnerabilities': [['BackDoor_String', 1]]}
+        )
 
     def test_rest_request_all_statistics(self, db):
         st = self.test_client.get('/rest/statistics', follow_redirects=True)
@@ -28,8 +32,6 @@ class TestRestStatistics(RestTestBase):
         assert b'known_vulnerabilities' in st.data
         assert bool(st_dict['known_vulnerabilities'])
         assert 'known_vulnerabilities' in st_dict['known_vulnerabilities']
-        assert b'malware' in st.data
-        assert not st_dict['malware']
         assert b'exploit_mitigations' in st.data
         assert not st_dict['exploit_mitigations']
 

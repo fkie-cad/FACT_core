@@ -273,7 +273,7 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
         return loads(result.stdout)
     except ReadTimeout:
         return {'error': 'timeout'}
-    except (DockerException, IOError):
+    except (DockerException, OSError):
         return {'error': 'process error'}
     except JSONDecodeError:
         return {'error': 'could not decode result'}

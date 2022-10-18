@@ -19,10 +19,10 @@
 
 
 {% block head %}
-	{# jstree import #}
-    <link rel="stylesheet" href="{{ url_for('static', filename='web_js/jstree/dist/themes/default/style.min.css') }}" />
-    <script type="text/javascript" src="{{ url_for('static', filename='web_js/jstree/dist/jstree.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='jstree-bootstrap-theme-1.0.2/dist/themes/proton/style.min.css') }}" />
+    {# jstree import #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/jstree/dist/themes/default/style.min.css') }}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='node_modules/jstree/dist/jstree.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/jstree-bootstrap-theme/dist/themes/proton/style.min.css') }}" />
 
     {# highlight.js import #}
     <script src="{{ url_for('static', filename='highlight.js/highlight.min.js') }}"></script>

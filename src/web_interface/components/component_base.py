@@ -9,7 +9,9 @@ GET = 'GET'
 POST = 'POST'
 
 
-Route = NamedTuple('Route', [('rule', str), ('methods', Tuple[str, ...])])
+class Route(NamedTuple):
+    rule: str
+    methods: Tuple[str, ...]
 
 
 class AppRoute:

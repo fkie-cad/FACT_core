@@ -40,7 +40,7 @@ def run_shellcheck(file_path):
         stdout=PIPE,
         stderr=STDOUT,
         check=False,
-        universal_newlines=True,
+        text=True,
     )
 
     if shellcheck_process.returncode == 2:
@@ -78,7 +78,7 @@ def run_luacheck(file_path):
         stdout=PIPE,
         stderr=STDOUT,
         check=False,
-        universal_newlines=True,
+        text=True,
     )
     return _luacheck_parse_linter_output(luacheck_process.stdout)
 
@@ -128,7 +128,7 @@ def run_pylint(file_path):
         stdout=PIPE,
         stderr=STDOUT,
         check=False,
-        universal_newlines=True
+        text=True
     )
 
     try:

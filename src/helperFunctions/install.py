@@ -69,7 +69,7 @@ def log_current_packages(packages: Tuple[str], install: bool = True):
 
 
 def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
-    cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
     if cmd_process.returncode != 0:
         if add_output_on_error:
             error = f'{error}\n{cmd_process.stdout}'
@@ -138,7 +138,7 @@ def check_if_command_in_path(command: str) -> bool:
 
     :param command: Command to check.
     '''
-    command_process = subprocess.run(f'command -v {command}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    command_process = subprocess.run(f'command -v {command}', shell=True, stdout=DEVNULL, stderr=DEVNULL, text=True)
     return command_process.returncode == 0
 
 
@@ -165,7 +165,7 @@ def install_github_project(project_path: str, commands: List[str]):
     with OperateInDirectory(folder_name, remove=True):
         error = None
         for command in commands:
-            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
             if cmd_process.returncode != 0:
                 error = f'Error while processing github project {project_path}!\n{cmd_process.stdout}'
                 break
@@ -176,7 +176,7 @@ def install_github_project(project_path: str, commands: List[str]):
 
 def _checkout_github_project(github_path: str, folder_name: str):
     clone_url = f'https://www.github.com/{github_path}'
-    git_process = subprocess.run(f'git clone {clone_url}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    git_process = subprocess.run(f'git clone {clone_url}', shell=True, stdout=DEVNULL, stderr=DEVNULL, text=True)
     if git_process.returncode != 0:
         raise InstallationError(f'Cloning from github failed for project {github_path}\n {clone_url}')
     if not Path('.', folder_name).exists():

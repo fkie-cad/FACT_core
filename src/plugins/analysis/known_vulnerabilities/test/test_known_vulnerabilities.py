@@ -19,7 +19,7 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
     def setUp(self):
         super().setUp()
-        with open(os.path.join(TEST_DATA_DIR, 'sc.json'), 'r') as json_file:
+        with open(os.path.join(TEST_DATA_DIR, 'sc.json')) as json_file:
             self._software_components_result = json.load(json_file)
 
     def test_process_object_yara(self):

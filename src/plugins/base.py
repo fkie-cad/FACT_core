@@ -30,7 +30,7 @@ class BasePlugin:
             logging.debug(f'{cls.NAME}: No view available! Generic view will be used.')
             return None
         if len(view_files) > 1:
-            logging.warning('{}: Plug-in provides more than one view! \'{}\' is used!'.format(cls.NAME, view_files[0]))
+            logging.warning(f'{cls.NAME}: Plug-in provides more than one view! \'{view_files[0]}\' is used!')
         return view_files[0]
 
     def register_plugin(self):

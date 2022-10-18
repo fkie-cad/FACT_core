@@ -156,7 +156,7 @@ def _get_uploaded_file_binary(request_file: FileStorage, config: ConfigParser) -
         try:
             request_file.save(str(tmp_file_path))
             return tmp_file_path.read_bytes()
-        except IOError:
+        except OSError:
             logging.error('Encountered error when trying to read uploaded file:', exc_info=True)
             return None
 
