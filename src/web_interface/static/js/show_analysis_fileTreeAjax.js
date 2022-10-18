@@ -24,8 +24,10 @@ $('#fileTreeAjax')
         if (str.nodes.length === 0) {
             $("#fileTreeAjax").jstree(true).hide_all();
             $("#fileTreeSearch").addClass("is-invalid");
+            $("#fileTreeSearchFeedback").show();
         } else {
             $("#fileTreeSearch").removeClass("is-invalid");
+            $("#fileTreeSearchFeedback").hide();
         }
     });
 
