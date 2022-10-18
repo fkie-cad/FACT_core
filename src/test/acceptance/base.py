@@ -52,7 +52,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
 
         self.tmp_dir = TemporaryDirectory(prefix='fact_test_')
         self.config.set('data-storage', 'firmware-file-storage-directory', self.tmp_dir.name)
-        self.frontend = WebFrontEnd(config=self.config)
+        self.frontend = WebFrontEnd()
         self.frontend.app.config['TESTING'] = not self.config.getboolean('expert-settings', 'authentication')
         self.test_client = self.frontend.app.test_client()
 

@@ -11,6 +11,8 @@ from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import create_docker_mount_base_dir, get_test_data_dir
 
+import pytest
+
 
 class TestUnpackScheduler(TestCase):
 
@@ -59,9 +61,15 @@ class TestUnpackScheduler(TestCase):
         result = self.scheduler._get_combined_analysis_workload()  # pylint: disable=protected-access
         self.assertEqual(result, 3, 'workload calculation not correct')
 
+    @pytest.mark.cfg_defaults(
+        {
+            'expert-settings': {
+                'unpack-throttle-limit': -1,
+            }
+        }
+    )
     def test_throttle(self):
         with patch(target='scheduler.unpacking_scheduler.sleep', new=self._trigger_sleep):
-            self.config.set('expert-settings', 'unpack-throttle-limit', '-1')
             self._start_scheduler()
             self.sleep_event.wait(timeout=10)
 

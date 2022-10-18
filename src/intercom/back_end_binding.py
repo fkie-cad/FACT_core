@@ -78,6 +78,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 class InterComBackEndAnalysisPlugInsPublisher(InterComRedisInterface):
 
     def __init__(self, analysis_service=None):
+        super().__init__()
         self.publish_available_analysis_plugins(analysis_service)
 
     def publish_available_analysis_plugins(self, analysis_service):
@@ -90,6 +91,7 @@ class InterComBackEndAnalysisTask(InterComListener):
     CONNECTION_TYPE = 'analysis_task'
 
     def __init__(self):
+        super().__init__()
         self.fs_organizer = FSOrganizer()
 
     def post_processing(self, task, task_id):
@@ -102,6 +104,7 @@ class InterComBackEndReAnalyzeTask(InterComListener):
     CONNECTION_TYPE = 're_analyze_task'
 
     def __init__(self):
+        super().__init__()
         self.fs_organizer = FSOrganizer()
 
     def post_processing(self, task: Firmware, task_id):
@@ -131,6 +134,7 @@ class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
     OUTGOING_CONNECTION_TYPE = 'raw_download_task_resp'
 
     def __init__(self):
+        super().__init__()
         self.binary_service = BinaryService()
 
     def get_response(self, task):
@@ -143,6 +147,7 @@ class InterComBackEndPeekBinaryTask(InterComListenerAndResponder):
     OUTGOING_CONNECTION_TYPE = 'binary_peek_task_resp'
 
     def __init__(self):
+        super().__init__()
         self.binary_service = BinaryService()
 
     def get_response(self, task: Tuple[str, int, int]) -> bytes:
@@ -155,6 +160,7 @@ class InterComBackEndTarRepackTask(InterComListenerAndResponder):
     OUTGOING_CONNECTION_TYPE = 'tar_repack_task_resp'
 
     def __init__(self):
+        super().__init__()
         self.binary_service = BinaryService()
 
     def get_response(self, task):
@@ -178,6 +184,7 @@ class InterComBackEndDeleteFile(InterComListener):
     CONNECTION_TYPE = 'file_delete_task'
 
     def __init__(self, unpacking_locks=None, db_interface=None):
+        super().__init__()
         self.fs_organizer = FSOrganizer()
         self.db = db_interface
         self.unpacking_locks: UnpackingLockManager = unpacking_locks
