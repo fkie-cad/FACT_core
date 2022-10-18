@@ -67,7 +67,7 @@ class Logging(BaseModel):
 
 class Unpack(BaseModel):
     Config = _PydanticConfigExtraForbid
-    threads: str
+    threads: int
     whitelist: list
     max_depth: int
     memory_limit: int = 1024
