@@ -1,6 +1,6 @@
 import configparser
 import logging
-from configparser import ConfigParser, NoOptionError, NoSectionError
+from configparser import ConfigParser
 from pathlib import Path
 
 from helperFunctions.fileSystem import get_src_dir
@@ -29,32 +29,6 @@ def get_config_dir():
     Returns the absolute path of the config directory
     '''
     return f'{get_src_dir()}/config'
-
-
-def read_list_from_config(config_file: ConfigParser, section: str, key: str, default=None):
-    '''
-    Parses a comma separated list in section `section` with key `key`.
-
-    :param config_file: The FACT configuration
-    :param section: The section to read from
-    :param key: The key holding the list
-
-    :return: A list holding the values defined in the config
-    '''
-    if default is None:
-        default = []
-
-    if not config_file:
-        return default
-
-    try:
-        config_entry = config_file.get(section, key)
-    except (NoOptionError, NoSectionError):
-        return default
-
-    if not config_entry:
-        return default
-    return [item.strip() for item in config_entry.split(',') if item]
 
 
 def get_temp_dir_path(config: ConfigParser = None) -> str:
