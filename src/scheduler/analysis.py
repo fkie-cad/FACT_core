@@ -10,8 +10,8 @@ from typing import Callable, List, Optional, Tuple
 from packaging.version import parse as parse_version
 
 from analysis.PluginBase import AnalysisBasePlugin
+from config import cfg, parse_comma_separated_list
 from helperFunctions.compare_sets import substring_is_in_list
-from helperFunctions.config import read_list_from_config
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
@@ -201,7 +201,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def _get_plugin_sets_from_config(self):
         try:
             return {
-                plugin_set: read_list_from_config(self.config, 'default-plugins', plugin_set)
+                plugin_set: parse_comma_separated_list(getattr(cfg.default_plugins, plugin_set))
                 for plugin_set in self.config['default-plugins']
             }
         except (TypeError, KeyError, AttributeError):
@@ -407,8 +407,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_config(self, analysis_plugin: str) -> Tuple[List, List]:
-        blacklist = read_list_from_config(self.config, analysis_plugin, 'mime_blacklist')
-        whitelist = read_list_from_config(self.config, analysis_plugin, 'mime_whitelist')
+        blacklist = parse_comma_separated_list(getattr(cfg, analysis_plugin)['mime_blacklist'])
+        whitelist = parse_comma_separated_list(getattr(cfg, analysis_plugin)['mime_whitelist'])
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> Tuple[List, List]:
