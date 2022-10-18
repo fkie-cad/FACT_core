@@ -13,9 +13,8 @@ class CompareBasePlugin(BasePlugin):
     # must be set by the plugin:
     FILE = None
 
-    def __init__(self, plugin_administrator, config=None, db_interface=None, view_updater=None):
+    def __init__(self, plugin_administrator, db_interface=None, view_updater=None):
         super().__init__(plugin_administrator, plugin_path=self.FILE, view_updater=view_updater)
-        self.config = config
         self.database = db_interface
         self.register_plugin()
 
