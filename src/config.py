@@ -87,7 +87,7 @@ class Database(BaseModel):
 
 class Statistics(BaseModel):
     Config = _PydanticConfigExtraForbid
-    max_elements_per_chart: int
+    max_elements_per_chart: int = 10
 
 
 class ExpertSettings(BaseModel):
