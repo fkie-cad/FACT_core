@@ -239,7 +239,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
             try:
                 thread_count = getattr(cfg, plugin)["threads"]
-            except AttributeError:
+            except (AttributeError, KeyError):
                 thread_count = 0
             # TODO this should not be a tuple but rather a dictionary/class
             result[plugin] = (
