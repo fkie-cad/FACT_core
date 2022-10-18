@@ -24,8 +24,8 @@ class TestAcceptanceMisc(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend(post_analysis=self._analysis_callback)
-        self.updater = StatsUpdater(config=self.config)
-        self.workload = WorkLoadStatistic(config=self.config, component='backend')
+        self.updater = StatsUpdater()
+        self.workload = WorkLoadStatistic(component='backend')
         time.sleep(2)  # wait for systems to start
 
     def tearDown(self):

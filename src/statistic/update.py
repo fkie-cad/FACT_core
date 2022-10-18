@@ -1,5 +1,4 @@
 import logging
-from configparser import ConfigParser
 from time import time
 from typing import Dict, List, Optional, Tuple
 
@@ -15,9 +14,7 @@ class StatsUpdater:
     This class handles statistic generation
     '''
 
-    def __init__(self, stats_db: Optional[StatsUpdateDbInterface] = None, config: Optional[ConfigParser] = None):
-        # TODO unused
-        _ = config
+    def __init__(self, stats_db: Optional[StatsUpdateDbInterface] = None):
         self.db = stats_db if stats_db else StatsUpdateDbInterface()
         self.start_time = None
         self.match = {}
