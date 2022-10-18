@@ -1,5 +1,6 @@
 [flake8]
-extend-ignore = E501,W503
+# black does not format like E203 would expect
+extend-ignore = E501,W503,E203
 extend-select = E504
 exclude =
     .git,
