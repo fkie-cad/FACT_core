@@ -6,7 +6,6 @@ from itertools import chain
 from flask import redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
-from helperFunctions.config import read_list_from_config
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.task_conversion import get_file_name_and_binary_from_request
@@ -18,6 +17,9 @@ from web_interface.components.component_base import GET, POST, AppRoute, Compone
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+from config import parse_comma_separated_list
+from config import cfg
 
 
 class DatabaseRoutes(ComponentBase):
@@ -147,7 +149,7 @@ class DatabaseRoutes(ComponentBase):
         return json.dumps(query)
 
     def _add_hash_query_to_query(self, query, value):
-        hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
+        hash_types = parse_comma_separated_list(getattr(cfg, "file_hashes")["hashes"])
         hash_query = {f'processed_analysis.file_hashes.{hash_type}': value for hash_type in hash_types}
         query.update({'$or': hash_query})
 
