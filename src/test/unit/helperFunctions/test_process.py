@@ -24,18 +24,19 @@ def test_exception_safe_process():
     assert str(process.exception[0]) == 'now that\'s annoying'
 
 
-def test_check_worker_exceptions():
+def test_check_worker_exceptions(cfg_tuple):
+    cfg, _ = cfg_tuple
     config = get_config_for_testing()
     config.set('expert-settings', 'throw-exceptions', 'true')
 
     process_list = [ExceptionSafeProcess(target=breaking_process, args=(True, ))]
     process_list[0].start()
 
-    result = check_worker_exceptions(process_list, 'foo', config=config)
+    result = check_worker_exceptions(process_list, 'foo', cfg.expert_settings.throw_exceptions)
     assert not result
     assert len(process_list) == 1
     sleep(1)
-    result = check_worker_exceptions(process_list, 'foo', config=config)
+    result = check_worker_exceptions(process_list, 'foo', cfg.expert_settings.throw_exceptions)
     assert result
     assert len(process_list) == 0
 
