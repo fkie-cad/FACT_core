@@ -94,7 +94,7 @@ class ExpertSettings(BaseModel):
     Config = _PydanticConfigExtraForbid
     block_delay: float
     ssdeep_ignore: int
-    communication_timeout: int
+    communication_timeout: int = 60
     unpack_threshold: float
     unpack_throttle_limit: int
     throw_exceptions: bool
