@@ -58,7 +58,7 @@ def _setup_argparser():
     install_options.add_argument('--frontend-docker-images', action='store_true', default=False, help='pull/build docker images required to run the frontend')
     install_options.add_argument('-N', '--nginx', action='store_true', default=False, help='install and configure nginx')
     install_options.add_argument('-R', '--no_radare', action='store_true', default=False, help='do not install radare view container')
-    install_options.add_argument('-U', '--statistic_cronjob', action='store_true', default=False, help='install cronjob to update statistics hourly and variety data once a week.')
+    install_options.add_argument('-U', '--statistic_cronjob', action='store_true', default=False, help='install cronjob to update statistics hourly')
     logging_options = parser.add_argument_group('Logging and Output Options')
     logging_options.add_argument('-l', '--log_file', help='path to log file', default='./install.log')
     logging_options.add_argument('-L', '--log_level', help='define the log level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='WARNING')
@@ -121,10 +121,8 @@ def install_statistic_cronjob():
     logging.info('install cronjob for statistic and variety data updates')
     current_dir = get_directory_of_current_file()
     statistic_update_script_path = current_dir / 'update_statistic.py'
-    variety_update_script_path = current_dir / 'update_variety_data.py'
     crontab_file_path = current_dir.parent / 'update_statistic.cron'
     cron_content = f'0    *    *    *    *    {statistic_update_script_path} > /dev/null 2>&1\n'
-    cron_content += f'30    0    *    *    0    {variety_update_script_path} > /dev/null 2>&1\n'
     crontab_file_path.write_text(cron_content)
     crontab_process = subprocess.run(f'crontab {crontab_file_path}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
     if crontab_process.returncode != 0:

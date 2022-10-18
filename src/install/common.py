@@ -9,8 +9,7 @@ from pkg_resources import parse_version
 
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages,
-    dnf_update_sources, install_github_project, install_pip_packages, is_virtualenv, read_package_list_from_file,
-    run_cmd_with_logging
+    dnf_update_sources, install_pip_packages, is_virtualenv, read_package_list_from_file, run_cmd_with_logging
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
@@ -57,12 +56,6 @@ def main(distribution):  # pylint: disable=too-many-statements
         # on fedora, extra setuptools will break some system tools like selinux ones
         run_cmd_with_logging('pip install -U pip wheel')
     install_pip_packages(PIP_DEPENDENCIES)
-
-    # VarietyJS (is executed by update_statistic.py)
-    if (BIN_DIR / 'spec').exists():
-        logging.warning('variety spec not overwritten')
-    else:
-        install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin/', 'mv -f spec ../../bin/'])
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
