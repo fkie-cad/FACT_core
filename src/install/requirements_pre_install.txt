@@ -4,5 +4,7 @@ virtualenv
 distro==1.7.0
 python-magic==0.4.25
 requests==2.27.1
+pydantic==1.8.2
 
 git+https://github.com/fkie-cad/common_helper_files.git
+
