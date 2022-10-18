@@ -48,7 +48,7 @@ class WebInterfaceTest:
         cls.db_mock = db_mock
         cls.intercom = intercom_mock
         cls._init_patches()
-        cls.frontend = WebFrontEnd(config=cls.config, db=FrontendDbMock(db_mock()), intercom=intercom_mock)
+        cls.frontend = WebFrontEnd(db=FrontendDbMock(db_mock()), intercom=intercom_mock)
         cls.frontend.app.config['TESTING'] = True
         cls.test_client = cls.frontend.app.test_client()
 

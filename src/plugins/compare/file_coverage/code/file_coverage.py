@@ -9,6 +9,8 @@ from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicate
 from helperFunctions.data_conversion import convert_uid_list_to_compare_id
 from objects.file import FileObject
 
+from config import cfg
+
 
 class ComparePlugin(CompareBasePlugin):
     '''
@@ -21,7 +23,7 @@ class ComparePlugin(CompareBasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.ssdeep_ignore_threshold = self.config.getint('expert-settings', 'ssdeep-ignore')
+        self.ssdeep_ignore_threshold = cfg.expert_settings.ssdeep_ignore
 
     def compare_function(self, fo_list):
         compare_result = {

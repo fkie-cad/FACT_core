@@ -18,6 +18,8 @@ from web_interface.frontend_database import FrontendDatabase
 from web_interface.rest.rest_base import RestBase
 from web_interface.security.authentication import add_flask_security_to_app
 
+from config import configparser_cfg
+
 
 class WebFrontEnd:
     def __init__(self, db: Optional[FrontendDatabase] = None, intercom=None):
@@ -30,9 +32,9 @@ class WebFrontEnd:
         logging.info('Web front end online')
 
     def _setup_app(self):
-        self.app = create_app(self.config)
+        self.app = create_app(configparser_cfg)
         self.user_db, self.user_datastore = add_flask_security_to_app(self.app)
-        base_args = dict(app=self.app, config=self.config, db=self.db, intercom=self.intercom)
+        base_args = dict(app=self.app, db=self.db, intercom=self.intercom)
 
         AjaxRoutes(**base_args)
         AnalysisRoutes(**base_args)
@@ -45,4 +47,4 @@ class WebFrontEnd:
 
         rest_base = RestBase(**base_args)
         PluginRoutes(**base_args, api=rest_base.api)
-        FilterClass(self.app, self.program_version, self.config, self.db)
+        FilterClass(self.app, self.program_version, self.db)

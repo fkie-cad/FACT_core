@@ -25,6 +25,13 @@ class BackendDbInterface:
         pass
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'default-plugins': {
+            'default': 'file_hashes',
+        }
+    }
+)
 class AnalysisSchedulerTest(TestCase):
 
     @mock.patch('plugins.base.ViewUpdater', lambda *_: ViewUpdaterMock())
@@ -130,7 +137,6 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         },
     })
     def test_skip_analysis_because_whitelist(self):
-        self.sched.config.set('dummy_plugin_for_testing_only', 'mime_whitelist', 'foo, bar')
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['file_hashes']
         test_fw.processed_analysis['file_type'] = {'mime': 'text/plain'}
@@ -180,14 +186,27 @@ class TestAnalysisSchedulerBlacklist:
         assert whitelist == []
         assert isinstance(blacklist, list)
 
+    # TODO somehow this does not work
+    @pytest.mark.cfg_defaults(
+        {
+            'test_plugin': {
+                'mime_blacklist': 'type1, type2',
+            }
+        }
+    )
     def test_get_blacklist_and_whitelist_from_config(self):
-        self._add_test_plugin_to_config()
         blacklist, whitelist = self.sched._get_blacklist_and_whitelist_from_config('test_plugin')
         assert blacklist == ['type1', 'type2']
         assert whitelist == []
 
+    @pytest.mark.cfg_defaults(
+        {
+            'test_plugin': {
+                'mime_blacklist': 'type1, type2',
+            }
+        }
+    )
     def test_get_blacklist_and_whitelist__in_config_and_plugin(self):
-        self._add_test_plugin_to_config()
         self.sched.analysis_plugins['test_plugin'] = self.PluginMock(['foo'], ['bar'])
         blacklist, whitelist = self.sched._get_blacklist_and_whitelist('test_plugin')
         assert blacklist == ['type1', 'type2']
@@ -243,9 +262,6 @@ class TestAnalysisSchedulerBlacklist:
             result = self.sched._get_file_type_from_object_or_db(file_object)
             assert result == 'foo_type'
 
-    def _add_test_plugin_to_config(self):
-        self.sched.config.add_section('test_plugin')
-        self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
 
 
 class TestAnalysisSkipping:

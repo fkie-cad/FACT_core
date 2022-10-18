@@ -119,11 +119,16 @@ def cfg_tuple(request):
     cfg, configparser_cfg = _get_test_config_tuple(cfg_defaults)
     yield cfg, configparser_cfg
 
-    # Don't clean up directorys we didn't create ourselves
-    if not cfg_defaults.get('data-storage', {}).get('docker-mount-base-dir', None):
-        shutil.rmtree(cfg.data_storage.docker_mount_base_dir)
-    if not cfg_defaults.get('data-storage', {}).get('firmware-file-storage-directory', None):
-        shutil.rmtree(cfg.data_storage.firmware_file_storage_directory)
+    try:
+        # Don't clean up directorys we didn't create ourselves
+        if not cfg_defaults.get('data-storage', {}).get('docker-mount-base-dir', None):
+            shutil.rmtree(cfg.data_storage.docker_mount_base_dir)
+        if not cfg_defaults.get('data-storage', {}).get('firmware-file-storage-directory', None):
+            shutil.rmtree(cfg.data_storage.firmware_file_storage_directory)
+    except FileNotFoundError:
+        # TODO once get_testing_config form common_helper is removed this except clause can be removed too
+        #      Currently both the fixture and the Teardown of the unitest module try to remove these directorys
+        pass
 
 
 @pytest.fixture(autouse=True)

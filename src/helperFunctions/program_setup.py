@@ -97,8 +97,10 @@ def setup_logging(config, args, component=None):
         logger.addHandler(console_log)
 
 
-def get_log_file_for_component(component: str, config: ConfigParser) -> str:
-    log_file = Path(config['logging']['logfile'])
+def get_log_file_for_component(component: str, config: ConfigParser = None) -> str:
+    # TODO unused
+    _ = config
+    log_file = Path(cfg.logging.logfile)
     if component is None:
-        return cfg.logging.log_file
+        return cfg.logging.logfile
     return f'{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}'

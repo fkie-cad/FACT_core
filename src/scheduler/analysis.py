@@ -257,7 +257,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def _task_runner(self):
         while self.stop_condition.value == 0:
             try:
-                task = self.process_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
                 task = self.process_queue.get(timeout=cfg.expert_settings.block_delay)
             except Empty:
                 pass
@@ -390,8 +389,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_config(self, analysis_plugin: str) -> Tuple[List, List]:
-        blacklist = parse_comma_separated_list(getattr(cfg, analysis_plugin)['mime_blacklist'])
-        whitelist = parse_comma_separated_list(getattr(cfg,  analysis_plugin)['mime_whitelist'])
+        blacklist = parse_comma_separated_list(getattr(cfg, analysis_plugin, {}).get('mime_blacklist', ''))
+        whitelist = parse_comma_separated_list(getattr(cfg,  analysis_plugin, {}).get('mime_whitelist', ''))
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> Tuple[List, List]:
