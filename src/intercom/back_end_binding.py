@@ -78,7 +78,6 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 class InterComBackEndAnalysisPlugInsPublisher(InterComRedisInterface):
 
     def __init__(self, analysis_service=None):
-        super().__init__()
         self.publish_available_analysis_plugins(analysis_service)
 
     def publish_available_analysis_plugins(self, analysis_service):
