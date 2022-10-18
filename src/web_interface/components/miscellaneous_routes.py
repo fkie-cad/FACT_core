@@ -13,6 +13,8 @@ from web_interface.components.component_base import GET, POST, AppRoute, Compone
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+from config import cfg
+
 
 class MiscellaneousRoutes(ComponentBase):
     def __init__(self, *args, **kwargs):
@@ -23,12 +25,12 @@ class MiscellaneousRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/', GET)
     def show_home(self):
-        latest_count = int(self._config['database'].get('number-of-latest-firmwares-to-display', '10'))
+        latest_count = cfg.database.number_of_latest_firmwares_to_display
         with get_shared_session(self.db.frontend) as frontend_db:
             latest_firmware_submissions = frontend_db.get_last_added_firmwares(latest_count)
             latest_comments = frontend_db.get_latest_comments(latest_count)
         latest_comparison_results = self.db.comparison.page_comparison_results(limit=10)
-        ajax_stats_reload_time = int(self._config['database']['ajax-stats-reload-time'])
+        ajax_stats_reload_time = cfg.database.ajax_stats_reload_time
         general_stats = self.stats_updater.get_general_stats()
 
         return render_template(
@@ -111,13 +113,13 @@ class MiscellaneousRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_logs'])
     @AppRoute('/admin/logs', GET)
     def show_logs(self):
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             backend_logs = '\n'.join(sc.get_backend_logs())
         frontend_logs = '\n'.join(self._get_frontend_logs())
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
 
     def _get_frontend_logs(self):
-        frontend_logs = Path(get_log_file_for_component('frontend', self._config))
+        frontend_logs = Path(get_log_file_for_component('frontend'))
         if frontend_logs.is_file():
             return frontend_logs.read_text().splitlines()[-100:]
         return []

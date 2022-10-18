@@ -100,5 +100,5 @@ def setup_logging(config, args, component=None):
 def get_log_file_for_component(component: str, config: ConfigParser) -> str:
     log_file = Path(config['logging']['logfile'])
     if component is None:
-        return config['logging']['logfile']
+        return cfg.logging.log_file
     return f'{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}'

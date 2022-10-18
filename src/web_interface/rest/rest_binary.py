@@ -44,7 +44,7 @@ class RestBinary(RestResourceBase):
         except ValueError as value_error:
             return error_message(str(value_error), self.URL, request_data=dict(uid=uid, tar=request.args.get('tar')))
 
-        with ConnectTo(self.intercom, self.config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             if not tar_flag:
                 binary, file_name = intercom.get_binary_and_filename(uid)
             else:

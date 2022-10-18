@@ -50,7 +50,7 @@ class RestComparePut(RestResourceBase):
                     request_data=request.json, return_code=404
                 )
 
-        with ConnectTo(self.intercom, self.config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             intercom.add_compare_task(compare_id, force=data['redo'])
         return success_message(
             {'message': 'Compare started. Please use GET to get the results.'},

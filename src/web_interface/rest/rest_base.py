@@ -13,9 +13,11 @@ from web_interface.rest.rest_missing_analyses import api as missing_analyses_api
 from web_interface.rest.rest_statistics import api as statistics_api
 from web_interface.rest.rest_status import api as status_api
 
+from config import configparser_cfg
+
 
 class RestBase:
-    def __init__(self, app=None, config=None, db=None, intercom=None):
+    def __init__(self, app=None, db=None, intercom=None):
         self.api = Api(app, doc='/doc/', title='FACT Rest API', version='1.0',
                        description='The FACT Rest API intends to offer close to 100 % functionality of FACT in a '
                                    'script-able and integrate-able interface. \n The API does not comply with all REST '
@@ -26,7 +28,7 @@ class RestBase:
             statistics_api, status_api, missing_analyses_api
         ]:
             for _, _, _, kwargs in api.resources:
-                kwargs['resource_class_kwargs'] = {'config': config, 'db': db, 'intercom': intercom}
+                kwargs['resource_class_kwargs'] = {'config': configparser_cfg, 'db': db, 'intercom': intercom}
             self.api.add_namespace(api)
 
         self._wrap_response(self.api)

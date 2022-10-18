@@ -87,7 +87,7 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_get_binary/<mime_type>/<uid>', GET)
     def ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
             return f'<pre class="line_numbering" style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
@@ -99,7 +99,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_hex_preview/<string:uid>/<int:offset>/<int:length>', GET)
     def ajax_get_hex_preview(self, uid: str, offset: int, length: int) -> str:
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             partial_binary = sc.peek_in_binary(uid, offset, length)
         hex_dump = preview_data_as_hex(partial_binary, offset=offset)
         return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'

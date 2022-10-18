@@ -12,21 +12,22 @@ from helperFunctions.config import get_temp_dir_path
 from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 
+from config import cfg, configparser_cfg
+
 OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
 
 
-def create_analysis_task(request: Request, config: ConfigParser) -> Dict[str, Any]:
+def create_analysis_task(request: Request) -> Dict[str, Any]:
     '''
     Create an analysis task from the data stored in the flask request object.
 
     :param request: The flask request object.
-    :param config: The FACT configuration.
     :return: A dict containing the analysis task data.
     '''
     task = _get_meta_from_request(request)
     if request.files['file']:
-        task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request, config)
+        task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request)
     task['uid'] = _get_uid_of_analysis_task(task)
     if task['release_date'] == '':
         # set default value if date field is empty
@@ -34,7 +35,7 @@ def create_analysis_task(request: Request, config: ConfigParser) -> Dict[str, An
     return task
 
 
-def get_file_name_and_binary_from_request(request: Request, config: ConfigParser) -> Tuple[str, bytes]:  # pylint: disable=invalid-name
+def get_file_name_and_binary_from_request(request: Request) -> Tuple[str, bytes]:  # pylint: disable=invalid-name
     '''
     Retrieves the file name and content from the flask request object.
 
@@ -46,7 +47,7 @@ def get_file_name_and_binary_from_request(request: Request, config: ConfigParser
         file_name = escape(request.files['file'].filename)
     except AttributeError:
         file_name = 'no name'
-    file_binary = _get_uploaded_file_binary(request.files['file'], config)
+    file_binary = _get_uploaded_file_binary(request.files['file'])
     return file_name, file_binary
 
 
@@ -140,7 +141,7 @@ def _get_uid_of_analysis_task(analysis_task: dict) -> Optional[str]:
     return None
 
 
-def _get_uploaded_file_binary(request_file: FileStorage, config: ConfigParser) -> Optional[bytes]:
+def _get_uploaded_file_binary(request_file: FileStorage) -> Optional[bytes]:
     '''
     Retrieves the binary from the request file storage and returns it as byte string. May return `None` if no
     binary was found or an exception occurred.
@@ -151,7 +152,7 @@ def _get_uploaded_file_binary(request_file: FileStorage, config: ConfigParser) -
     '''
     if not request_file:
         return None
-    with TemporaryDirectory(prefix='fact_upload_', dir=get_temp_dir_path(config)) as tmp_dir:
+    with TemporaryDirectory(prefix='fact_upload_', dir=get_temp_dir_path(configparser_cfg)) as tmp_dir:
         tmp_file_path = Path(tmp_dir) / 'upload.bin'
         try:
             request_file.save(str(tmp_file_path))

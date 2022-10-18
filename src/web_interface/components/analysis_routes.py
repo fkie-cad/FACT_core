@@ -23,6 +23,8 @@ from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+from config import cfg
+
 
 def get_analysis_view(view_name):
     view_path = os.path.join(get_src_dir(), f'web_interface/templates/analysis_plugins/{view_name}.html')
@@ -55,7 +57,7 @@ class AnalysisRoutes(ComponentBase):
                 root_uid = file_obj.uid
                 other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
             included_fo_analysis_complete = not frontend_db.all_uids_found_in_database(list(file_obj.files_included))
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template_string(
             self._get_correct_template(selected_analysis, file_obj),
@@ -91,7 +93,7 @@ class AnalysisRoutes(ComponentBase):
         file_object = self.db.frontend.get_object(uid)
         file_object.scheduled_analysis = request.form.getlist('analysis_systems')
         file_object.force_update = request.form.get('force_update') == 'true'
-        with ConnectTo(self.intercom, self._config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             intercom.add_single_file_task(file_object)
         return redirect(url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis))
 
@@ -122,11 +124,12 @@ class AnalysisRoutes(ComponentBase):
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
 
-        with ConnectTo(self.intercom, self._config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             plugin_dict = intercom.get_available_analysis_plugins()
 
         current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
-        analysis_presets = [current_analysis_preset] + list(self._config['default-plugins'])
+        # TODO is this right?!
+        analysis_presets = [current_analysis_preset] + list(cfg.default_plugins)
 
         title = 're-do analysis' if re_do else 'update analysis'
 
@@ -162,7 +165,7 @@ class AnalysisRoutes(ComponentBase):
             base_fw = self.db.frontend.get_object(uid)
             base_fw.force_update = force_reanalysis
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             sc.add_re_analyze_task(fw, unpack=re_do)
 
     @roles_accepted(*PRIVILEGES['delete'])

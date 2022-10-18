@@ -32,7 +32,7 @@ class StatisticRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/system_health', GET)
     def show_system_health(self):
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             plugin_dict = sc.get_available_analysis_plugins()
         return render_template('system_health.html', analysis_plugin_info=plugin_dict)
 

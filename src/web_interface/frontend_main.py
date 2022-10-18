@@ -20,12 +20,11 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd:
-    def __init__(self, config=None, db: Optional[FrontendDatabase] = None, intercom=None):
-        self.config = config
+    def __init__(self, db: Optional[FrontendDatabase] = None, intercom=None):
         self.program_version = __VERSION__
 
         self.intercom = InterComFrontEndBinding if intercom is None else intercom
-        self.db = FrontendDatabase(config) if db is None else db
+        self.db = FrontendDatabase() if db is None else db
 
         self._setup_app()
         logging.info('Web front end online')

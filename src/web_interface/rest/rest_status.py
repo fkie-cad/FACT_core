@@ -25,7 +25,7 @@ class RestStatus(RestResourceBase):
         for component in components:
             status[component] = self.db.stats_viewer.get_statistic(component)
 
-        with ConnectTo(self.intercom, self.config) as sc:
+        with ConnectTo(self.intercom) as sc:
             plugins = sc.get_available_analysis_plugins()
 
         if not any(bool(status[component]) for component in components):

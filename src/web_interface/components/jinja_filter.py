@@ -16,16 +16,17 @@ from storage.db_interface_frontend import MetaEntry
 from web_interface.filter import elapsed_time, random_collapse_id
 from web_interface.frontend_database import FrontendDatabase
 
+from config import cfg
+
 
 class FilterClass:
     '''
     This is WEB front end main class
     '''
 
-    def __init__(self, app, program_version, config, db: FrontendDatabase, **_):
+    def __init__(self, app, program_version, db: FrontendDatabase, **_):
         self._program_version = program_version
         self._app = app
-        self._config = config
         self.db = db
 
         self._setup_filters()
@@ -133,7 +134,7 @@ class FilterClass:
         return new_result
 
     def check_auth(self, _):
-        return self._config.getboolean('expert-settings', 'authentication')
+        return cfg.expert_settings.authentication
 
     def data_to_chart_limited(self, data, limit: Optional[int] = None, color_list=None):
         limit = self._get_chart_element_count() if limit is None else limit
@@ -149,7 +150,7 @@ class FilterClass:
         }
 
     def _get_chart_element_count(self):
-        limit = self._config.getint('statistics', 'max-elements-per-chart', fallback=10)
+        limit = cfg.statistics.max_elements_per_chart
         if limit > 100:
             logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
             return 100
