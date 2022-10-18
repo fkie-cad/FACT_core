@@ -8,8 +8,16 @@ from subprocess import PIPE, STDOUT
 from pkg_resources import parse_version
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages,
-    dnf_update_sources, install_pip_packages, is_virtualenv, read_package_list_from_file, run_cmd_with_logging
+    InstallationError,
+    OperateInDirectory,
+    apt_install_packages,
+    apt_update_sources,
+    dnf_install_packages,
+    dnf_update_sources,
+    install_pip_packages,
+    is_virtualenv,
+    read_package_list_from_file,
+    run_cmd_with_logging,
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
@@ -70,7 +78,11 @@ def _update_submodules():
     if git_process.returncode == 0:
         git_submodule_process = subprocess.run(
             '(cd ../../ && git submodule foreach "git pull")',
-            shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
+            shell=True,
+            stdout=PIPE,
+            stderr=STDOUT,
+            text=True,
+            check=False,
         )
         if git_submodule_process.returncode != 0:
             raise InstallationError(f'Failed to update submodules\n{git_submodule_process.stdout}')
