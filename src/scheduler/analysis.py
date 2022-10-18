@@ -191,17 +191,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.analysis_plugins[name] = plugin_instance
 
     def _get_plugin_sets_from_config(self):
-        try:
-            return {
-                plugin_set: parse_comma_separated_list(
-                    getattr(cfg.default_plugins, plugin_set)
-                )
-                # TODO iterate only extra data
-                for plugin_set in cfg.default_plugins
-            }
-        except (TypeError, KeyError, AttributeError):
-            logging.warning('default plug-ins not set in config')
-            return {}
+        return {
+            plugin_set: plugins for plugin_set, plugins in cfg.default_plugins
+        }
 
     def get_plugin_dict(self) -> dict:
         '''
