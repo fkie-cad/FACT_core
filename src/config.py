@@ -132,6 +132,8 @@ def load_config(path=None):
     The file must be an ini file and is read into an `config.Config` instance.
     This instance can be accessed with `config.cfg` after calling this function.
     For legacy code that needs a `ConfigParser` instance `config.configparser_cfg` is provided.
+
+    Returns the path of the config that was loaded.
     """
     if path is None:
         path = Path(__file__).parent / 'config/main.cfg'
@@ -146,6 +148,8 @@ def load_config(path=None):
     global _configparser_cfg
     _configparser_cfg = parser
     _cfg = Config(**parsed_sections)
+
+    return path
 
 
 def _replace_hyphens_with_underscores(sections):
