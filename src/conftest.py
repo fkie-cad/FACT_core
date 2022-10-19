@@ -56,7 +56,6 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'structural-threshold': '40',  # TODO
             'temp-dir-path': '/tmp',
             'docker-mount-base-dir': str(docker_mount_base_dir),
-            'variety-path': 'bin/variety.js',
          },
         'database': {
             'ajax-stats-reload-time': '10000',  # TODO
