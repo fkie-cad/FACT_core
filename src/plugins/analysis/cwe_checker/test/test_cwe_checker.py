@@ -31,7 +31,6 @@ class TestCweCheckerFunctions:
             }
         ]"""
         result = analysis_plugin._parse_cwe_checker_output(test_data)
-        print(result)
         assert isinstance(result, dict)
         assert len(result.keys()) == 1
         assert isinstance(result['CWE676'], dict)
