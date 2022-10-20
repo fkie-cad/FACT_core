@@ -32,3 +32,11 @@ max-public-methods = 40
 
 [tool.pylint.imports]
 known-third-party = ["enchant", "docker"]
+
+[tool.isort]
+line_length=120
+default_section = "THIRDPARTY"
+known_first_party = ["analysis", "compare", "helperFunctions", "install", "intercom", "objects", "plugins", "scheduler",
+    "statistic", "storage", "test", "unpacker", "version", "web_interface"]
+known_third_party = "docker"
+profile = "black"
