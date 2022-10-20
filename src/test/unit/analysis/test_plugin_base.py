@@ -127,10 +127,12 @@ class TestPluginNotRunning:
 
 
 @pytest.mark.AnalysisPluginClass.with_args(DummyPlugin)
-@pytest.mark.plugin_start_worker
-@pytest.mark.skip('TODO somehow setting analysis_plugin.TIMEOUT has no effect on AnalysisBasePlugin.TIMEOUT')
-def test_timeout(analysis_plugin):
+def test_timeout(analysis_plugin, monkeypatch):
+    # See the note in the docs of analysis_pluing fixture for why this is necessary
+    monkeypatch.undo()
     analysis_plugin.TIMEOUT = 0
+    analysis_plugin.start_worker()
+
     fo_in = FileObject(binary=b'test', scheduled_analysis=[])
     analysis_plugin.add_job(fo_in)
     fo_out = analysis_plugin.out_queue.get(timeout=5)
