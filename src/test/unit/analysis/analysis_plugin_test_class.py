@@ -2,7 +2,9 @@ import unittest.mock
 from configparser import ConfigParser
 
 from test.common_helper import (  # pylint: disable=wrong-import-order
-    CommonDatabaseMock, create_docker_mount_base_dir, load_users_from_main_config
+    CommonDatabaseMock,
+    create_docker_mount_base_dir,
+    load_users_from_main_config,
 )
 
 
@@ -26,7 +28,9 @@ class AnalysisPluginTest(unittest.TestCase):
 
     def setup_plugin(self):
         # overwrite in plugin tests if necessary
-        return self.PLUGIN_CLASS(self, config=self.config, view_updater=CommonDatabaseMock())  # pylint: disable=not-callable
+        return self.PLUGIN_CLASS(
+            self, config=self.config, view_updater=CommonDatabaseMock()
+        )  # pylint: disable=not-callable
 
     def tearDown(self):
         self.analysis_plugin.shutdown()  # pylint: disable=no-member

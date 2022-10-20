@@ -48,7 +48,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         field: InstrumentedAttribute,
         aggregation_function: Callable,
         q_filter: Optional[dict] = None,
-        firmware: bool = False
+        firmware: bool = False,
     ) -> Any:
         """
         :param field: The field that is aggregated (e.g. `FileObjectEntry.size`)
@@ -120,10 +120,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         with self.get_read_only_session() as session:
             # jsonb_array_elements() works somewhat like $unwind in MongoDB
             query = (
-                select(
-                    func.jsonb_array_elements(key).label('array_elements'),
-                    func.count('array_elements')
-                )
+                select(func.jsonb_array_elements(key).label('array_elements'), func.count('array_elements'))
                 .filter(AnalysisEntry.plugin == plugin)
                 .group_by('array_elements')
             )
@@ -203,10 +200,9 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
 
     def get_used_unpackers(self, q_filter: Optional[dict] = None) -> Stats:
         with self.get_read_only_session() as session:
-            query = (
-                select(AnalysisEntry.result['plugin_used'], AnalysisEntry.result['number_of_unpacked_files'])
-                .filter(AnalysisEntry.plugin == 'unpacker')
-            )
+            query = select(
+                AnalysisEntry.result['plugin_used'], AnalysisEntry.result['number_of_unpacked_files']
+            ).filter(AnalysisEntry.plugin == 'unpacker')
             if self._filter_is_not_empty(q_filter):
                 query = self._join_all(query)
                 query = query.filter_by(**q_filter)
@@ -226,14 +222,11 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
 
     def get_release_date_stats(self, q_filter: Optional[dict] = None) -> List[Tuple[int, int, int]]:
         with self.get_read_only_session() as session:
-            query = (
-                select(
-                    func.date_part('year', FirmwareEntry.release_date).label('year'),
-                    func.date_part('month', FirmwareEntry.release_date).label('month'),
-                    func.count(FirmwareEntry.uid),
-                )
-                .group_by('year', 'month')
-            )
+            query = select(
+                func.date_part('year', FirmwareEntry.release_date).label('year'),
+                func.date_part('month', FirmwareEntry.release_date).label('month'),
+                func.count(FirmwareEntry.uid),
+            ).group_by('year', 'month')
             if self._filter_is_not_empty(q_filter):
                 query = query.filter_by(**q_filter)
             return [(int(year), int(month), count) for year, month, count in session.execute(query)]
@@ -272,7 +265,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         query = query.join(
             FirmwareEntry,
             # is included FO | is root FO
-            (FileObjectEntry.root_firmware.any(uid=FirmwareEntry.uid)) | (FileObjectEntry.uid == FirmwareEntry.uid)
+            (FileObjectEntry.root_firmware.any(uid=FirmwareEntry.uid)) | (FileObjectEntry.uid == FirmwareEntry.uid),
         )
         return query
 
@@ -299,7 +292,7 @@ def _convert_to_tuples(query_result) -> Iterator[Tuple[str, int]]:
 def _avg(values: List[float]) -> float:
     if len(values) == 0:
         return 0
-    return sum(values)/len(values)
+    return sum(values) / len(values)
 
 
 class StatsDbViewer(ReadOnlyDbInterface):

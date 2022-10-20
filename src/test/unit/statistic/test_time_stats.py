@@ -9,21 +9,15 @@ def test_build_time_dict():
     assert _build_time_dict(test_input) == expected_result
 
 
-@pytest.mark.parametrize('input_data, expected', [
-    ({}, {}),
-    (
-        {2016: {1: 1, 4: 4}},
-        {2016: {1: 1, 2: 0, 3: 0, 4: 4}}
-    ),
-    (
-        {2000: {12: 1}, 2001: {2: 1}},
-        {2000: {12: 1}, 2001: {1: 0, 2: 1}}
-    ),
-    (
-        {2000: {11: 1}, 2001: {1: 1}},
-        {2000: {11: 1, 12: 0}, 2001: {1: 1}}
-    ),
-])
+@pytest.mark.parametrize(
+    'input_data, expected',
+    [
+        ({}, {}),
+        ({2016: {1: 1, 4: 4}}, {2016: {1: 1, 2: 0, 3: 0, 4: 4}}),
+        ({2000: {12: 1}, 2001: {2: 1}}, {2000: {12: 1}, 2001: {1: 0, 2: 1}}),
+        ({2000: {11: 1}, 2001: {1: 1}}, {2000: {11: 1, 12: 0}, 2001: {1: 1}}),
+    ],
+)
 def test_fill_in_time_gaps(input_data, expected):
     _fill_in_time_gaps(input_data)
     assert input_data == expected

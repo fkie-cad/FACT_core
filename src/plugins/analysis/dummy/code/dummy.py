@@ -5,6 +5,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This is a mock for testing
     '''
+
     NAME = 'dummy_plugin_for_testing_only'
     DEPENDENCIES = []
     VERSION = '0.0'

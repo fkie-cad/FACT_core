@@ -9,6 +9,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     Extracts all printable Strings
     '''
+
     NAME = 'printable_strings'
     DEPENDENCIES = []
     MIME_BLACKLIST = MIME_BLACKLIST_COMPRESSED
@@ -41,10 +42,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         strings, offsets = self._find_all_strings_and_offsets(file_object.binary)
-        file_object.processed_analysis[self.NAME] = {
-            'strings': strings,
-            'offsets': offsets
-        }
+        file_object.processed_analysis[self.NAME] = {'strings': strings, 'offsets': offsets}
         return file_object
 
     def _find_all_strings_and_offsets(self, source: bytes) -> Tuple[List[str], List[Tuple[int, str]]]:
@@ -55,10 +53,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _match_with_offset(regex: Pattern[bytes], source: bytes, encoding: str = 'utf-8') -> List[Tuple[int, str]]:
-        return [
-            (match.start(), match.group().decode(encoding))
-            for match in regex.finditer(source)
-        ]
+        return [(match.start(), match.group().decode(encoding)) for match in regex.finditer(source)]
 
     @staticmethod
     def _get_list_of_unique_strings(strings_with_offset: List[Tuple[int, str]]) -> List[str]:

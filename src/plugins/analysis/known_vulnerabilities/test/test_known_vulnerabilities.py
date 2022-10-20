@@ -59,7 +59,9 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
     def test_process_object_hash(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
-        test_file.processed_analysis['file_hashes'] = {'sha256': '7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'}
+        test_file.processed_analysis['file_hashes'] = {
+            'sha256': '7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'
+        }
         test_file.processed_analysis['software_components'] = {}
 
         results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]

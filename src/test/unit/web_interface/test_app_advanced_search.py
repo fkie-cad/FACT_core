@@ -5,10 +5,15 @@ from test.unit.web_interface.base import WebInterfaceTest
 
 
 class DbMock(CommonDatabaseMock):
-
     @staticmethod
-    def generic_search(search_dict: dict, skip: int = 0, limit: int = 0,  # pylint: disable=unused-argument
-                       only_fo_parent_firmware: bool = False, inverted: bool = False, as_meta: bool = False):  # pylint: disable=unused-argument
+    def generic_search(
+        search_dict: dict,
+        skip: int = 0,
+        limit: int = 0,  # pylint: disable=unused-argument
+        only_fo_parent_firmware: bool = False,
+        inverted: bool = False,
+        as_meta: bool = False,
+    ):  # pylint: disable=unused-argument
         result = []
         if TEST_FW_2.uid in str(search_dict) or search_dict == {}:
             result.append(TEST_FW_2.uid)
@@ -24,7 +29,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestAppAdvancedSearch(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)

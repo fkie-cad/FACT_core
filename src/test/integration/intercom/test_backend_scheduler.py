@@ -13,7 +13,6 @@ NUMBER_OF_LISTENERS = 11
 
 
 class ServiceMock:
-
     def __init__(self, test_queue):
         self.test_queue = test_queue
 
@@ -40,7 +39,6 @@ class CommunicationBackendMock:
 
 
 class AnalysisServiceMock:
-
     def __init__(self, config=None):
         pass
 
@@ -60,10 +58,11 @@ def get_intercom_for_testing():
         config = get_config_for_testing(tmp_dir)
         test_queue = Queue()
         interface = InterComBackEndBinding(
-            config=config, testing=True,
+            config=config,
+            testing=True,
             analysis_service=AnalysisServiceMock(),
             compare_service=ServiceMock(test_queue),
-            unpacking_service=ServiceMock(test_queue)
+            unpacking_service=ServiceMock(test_queue),
         )
         interface.WAIT_TIME = 2
         yield interface

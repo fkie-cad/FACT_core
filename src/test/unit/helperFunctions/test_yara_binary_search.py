@@ -16,8 +16,7 @@ TEST_FILE_3 = 'binary_search_test_3'
 class MockCommonDbInterface:
     def __init__(self, config):
         self.config = config
-        self.config['data-storage']['firmware-file-storage-directory'] = path.join(
-            get_test_data_dir(), TEST_FILE_1)
+        self.config['data-storage']['firmware-file-storage-directory'] = path.join(get_test_data_dir(), TEST_FILE_1)
 
     @staticmethod
     def get_all_files_in_fw(uid):
@@ -31,7 +30,6 @@ def mock_check_output(call, *_, shell=True, stderr=None, **__):
 
 
 class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
-
     @mock.patch('helperFunctions.yara_binary_search.DbInterfaceCommon', MockCommonDbInterface)
     def setUp(self):
         self.yara_rule = b'rule test_rule {strings: $a = "test1234" condition: $a}'
@@ -80,8 +78,7 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
     def test_execute_yara_search_for_single_file(self):
         test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')
         result = self.yara_binary_scanner._execute_yara_search(
-            test_rule_path,
-            target_path=path.join(get_test_data_dir(), TEST_FILE_1, TEST_FILE_1)
+            test_rule_path, target_path=path.join(get_test_data_dir(), TEST_FILE_1, TEST_FILE_1)
         )
         self.assertTrue('test_rule' in result)
 

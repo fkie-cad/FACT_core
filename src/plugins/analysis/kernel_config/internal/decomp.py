@@ -28,7 +28,7 @@ _COMPRESSIONS = [
     {'magic': b'\037\213', 'cls': GZDecompressor},
     {'magic': b'\3757zXZ', 'cls': lzma.LZMADecompressor},
     {'magic': b'\135\0\0\0', 'cls': lzma.LZMADecompressor},
-    {'magic': b'BZh', 'cls': bz2.BZ2Decompressor}
+    {'magic': b'BZh', 'cls': bz2.BZ2Decompressor},
 ]
 
 DECOMPRESS_CHUNK_SIZE = 8388608  # 8 MiB

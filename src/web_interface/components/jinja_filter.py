@@ -77,9 +77,13 @@ class FilterClass:
 
         return render_template(
             'generic_view/nice_fo_list.html',
-            fo_list=analyzed_uids, u_show_id=random_collapse_id(),
-            number_of_unanalyzed_files=number_of_unanalyzed_files, root_uid=root_uid,
-            selected_analysis=selected_analysis, first_item=first_item, filename_only=filename_only
+            fo_list=analyzed_uids,
+            u_show_id=random_collapse_id(),
+            number_of_unanalyzed_files=number_of_unanalyzed_files,
+            root_uid=root_uid,
+            selected_analysis=selected_analysis,
+            first_item=first_item,
+            filename_only=filename_only,
         )
 
     def _nice_virtual_path_list(self, virtual_path_list: List[str]) -> List[str]:
@@ -114,7 +118,10 @@ class FilterClass:
     def _render_general_information_table(firmware: MetaEntry, root_uid: str, other_versions, selected_analysis):
         return render_template(
             'generic_view/general_information.html',
-            firmware=firmware, root_uid=root_uid, other_versions=other_versions, selected_analysis=selected_analysis
+            firmware=firmware,
+            root_uid=root_uid,
+            other_versions=other_versions,
+            selected_analysis=selected_analysis,
         )
 
     @staticmethod
@@ -145,7 +152,7 @@ class FilterClass:
         color_list = get_color_list(len(value_list), limit=limit) if color_list is None else color_list
         return {
             'labels': label_list,
-            'datasets': [{'data': value_list, 'backgroundColor': color_list, 'borderColor': '#fff', 'borderWidth': 2}]
+            'datasets': [{'data': value_list, 'backgroundColor': color_list, 'borderColor': '#fff', 'borderWidth': 2}],
         }
 
     def _get_chart_element_count(self):
@@ -168,7 +175,9 @@ class FilterClass:
         self._app.jinja_env.filters['bytes_to_str'] = flt.bytes_to_str_filter
         self._app.jinja_env.filters['data_to_chart'] = self.data_to_chart
         self._app.jinja_env.filters['data_to_chart_limited'] = self.data_to_chart_limited
-        self._app.jinja_env.filters['data_to_chart_with_value_percentage_pairs'] = flt.data_to_chart_with_value_percentage_pairs
+        self._app.jinja_env.filters[
+            'data_to_chart_with_value_percentage_pairs'
+        ] = flt.data_to_chart_with_value_percentage_pairs
         self._app.jinja_env.filters['decompress'] = flt.decompress
         self._app.jinja_env.filters['dict_to_json'] = json.dumps
         self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._render_firmware_detail_tabular_field
@@ -215,7 +224,9 @@ class FilterClass:
         self._app.jinja_env.filters['sort_chart_list_by_value'] = flt.sort_chart_list_by_value
         self._app.jinja_env.filters['sort_comments'] = flt.sort_comments
         self._app.jinja_env.filters['sort_cve'] = flt.sort_cve_results
-        self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
+        self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(
+            privileges, key=lambda role: len(privileges[role]), reverse=True
+        )
         self._app.jinja_env.filters['sort_roles'] = flt.sort_roles_by_number_of_privileges
         self._app.jinja_env.filters['sort_users'] = flt.sort_users_by_name
         self._app.jinja_env.filters['split_user_and_password_type'] = self._split_user_and_password_type_entry

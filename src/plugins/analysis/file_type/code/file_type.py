@@ -7,6 +7,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This Plugin detects the mime type of the file
     '''
+
     NAME = 'file_type'
     DESCRIPTION = 'identify the file type'
     VERSION = '1.0'
@@ -19,7 +20,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         '''
         file_type = get_file_type_from_path(file_object.file_path)
         file_object.processed_analysis[self.NAME] = file_type
-        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
+        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(
+            file_object.processed_analysis[self.NAME]
+        )
         return file_object
 
     @staticmethod

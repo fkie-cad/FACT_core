@@ -10,12 +10,15 @@ import update_statistic
 from helperFunctions.fileSystem import get_src_dir
 
 
-@pytest.mark.parametrize('script, expected_str', [
-    ('start_fact.py', 'FACT Starter'),
-    ('start_fact_backend.py', 'FACT Backend'),
-    ('start_fact_frontend.py', 'FACT Frontend'),
-    ('start_fact_db.py', 'FACT DB-Service'),
-])
+@pytest.mark.parametrize(
+    'script, expected_str',
+    [
+        ('start_fact.py', 'FACT Starter'),
+        ('start_fact_backend.py', 'FACT Backend'),
+        ('start_fact_frontend.py', 'FACT Frontend'),
+        ('start_fact_db.py', 'FACT DB-Service'),
+    ],
+)
 def test_start_script_help_and_version(script, expected_str):
     cmd_process = subprocess.run(
         f'{os.path.join(get_src_dir(), script)} -h',

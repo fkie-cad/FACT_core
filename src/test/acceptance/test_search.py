@@ -4,7 +4,6 @@ from test.common_helper import create_test_firmware  # pylint: disable=wrong-imp
 
 
 class TestAcceptanceNormalSearch(TestAcceptanceBase):
-
     def setUp(self):
         super().setUp()
         self._start_backend()
@@ -37,13 +36,17 @@ class TestAcceptanceNormalSearch(TestAcceptanceBase):
             'device_name': '',
             'version': '',
             'release_date': '',
-            'hash_value': ''
+            'hash_value': '',
         }
-        rv = self.test_client.post('/database/search', content_type='multipart/form-data', follow_redirects=True, data=data)
+        rv = self.test_client.post(
+            '/database/search', content_type='multipart/form-data', follow_redirects=True, data=data
+        )
         assert self.test_fw.uid.encode() in rv.data, 'test firmware not found in empty search'
         data['file_name'] = self.test_fw.file_name
         data['vendor'] = self.test_fw.vendor
-        rv = self.test_client.post('/database/search', content_type='multipart/form-data', follow_redirects=True, data=data)
+        rv = self.test_client.post(
+            '/database/search', content_type='multipart/form-data', follow_redirects=True, data=data
+        )
         assert self.test_fw.uid.encode() in rv.data, 'test firmware not found in specific search'
 
     def _show_quick_search(self):

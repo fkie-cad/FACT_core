@@ -7,8 +7,14 @@ from subprocess import PIPE, CalledProcessError, run
 from helperFunctions.install import InstallationError, OperateInDirectory
 
 CODENAME_TRANSLATION = {
-    'tara': 'bionic', 'tessa': 'bionic', 'tina': 'bionic', 'tricia': 'bionic',
-    'ulyana': 'focal', 'ulyssa': 'focal', 'uma': 'focal', 'una': 'focal',
+    'tara': 'bionic',
+    'tessa': 'bionic',
+    'tina': 'bionic',
+    'tricia': 'bionic',
+    'ulyana': 'focal',
+    'ulyssa': 'focal',
+    'uma': 'focal',
+    'una': 'focal',
 }
 
 
@@ -20,7 +26,7 @@ def install_postgres(version: int = 14):
         f'sudo sh -c \'echo "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt {codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list\'',
         'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -',
         'sudo apt-get update',
-        f'sudo apt-get -y install postgresql-{version}'
+        f'sudo apt-get -y install postgresql-{version}',
     ]
     for command in command_list:
         process = run(command, text=True, shell=True, check=False, stderr=PIPE)

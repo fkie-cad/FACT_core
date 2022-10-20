@@ -25,15 +25,18 @@ def test_list_group_collapse(frontend):
     assert '<div class="list-group-item border-top">b</div>' in collapsed_list_group
 
 
-@pytest.mark.parametrize('tag_dict, output', [
-    ({'a': 'danger'}, '<span class="badge badge-danger mr-2" style="font-size: 14px;" > a</span>'),
-    (
-        {'a': 'danger', 'b': 'primary'},
-        '<span class="badge badge-danger mr-2" style="font-size: 14px;" > a</span>'
-        '<span class="badge badge-primary mr-2" style="font-size: 14px;" > b</span>'
-    ),
-    (None, '')
-])
+@pytest.mark.parametrize(
+    'tag_dict, output',
+    [
+        ({'a': 'danger'}, '<span class="badge badge-danger mr-2" style="font-size: 14px;" > a</span>'),
+        (
+            {'a': 'danger', 'b': 'primary'},
+            '<span class="badge badge-danger mr-2" style="font-size: 14px;" > a</span>'
+            '<span class="badge badge-primary mr-2" style="font-size: 14px;" > b</span>',
+        ),
+        (None, ''),
+    ],
+)
 def test_render_fw_tags(frontend, tag_dict, output):
     with frontend.app.app_context():
         assert render_fw_tags(tag_dict).replace('\n', '').replace('    ', ' ') == output

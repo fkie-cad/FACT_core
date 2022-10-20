@@ -38,9 +38,4 @@ class CompareBasePlugin(BasePlugin):
 
 
 def _get_unmatched_dependencies(fo_list: List[FileObject], dependency_list: List[str]) -> Set[str]:
-    return {
-        dependency
-        for dependency in dependency_list
-        for fo in fo_list
-        if dependency not in fo.processed_analysis
-    }
+    return {dependency for dependency in dependency_list for fo in fo_list if dependency not in fo.processed_analysis}

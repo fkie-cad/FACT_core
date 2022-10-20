@@ -48,7 +48,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.in_queue.close()
         logging.info('Unpacker Module offline')
 
-# ---- internal functions ----
+    # ---- internal functions ----
 
     def start_unpack_workers(self):
         threads = int(self.config['unpack']['threads'])
@@ -57,12 +57,16 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             self.workers.append(start_single_worker(process_index, 'Unpacking', self.unpack_worker))
 
     def unpack_worker(self, worker_id):
-        unpacker = Unpacker(self.config, worker_id=worker_id, fs_organizer=self.fs_organizer, unpacking_locks=self.unpacking_locks)
+        unpacker = Unpacker(
+            self.config, worker_id=worker_id, fs_organizer=self.fs_organizer, unpacking_locks=self.unpacking_locks
+        )
         while self.stop_condition.value == 0:
             with suppress(Empty):
                 fo = self.in_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
                 extracted_objects = unpacker.unpack(fo)
-                logging.debug(f'[worker {worker_id}] unpacking of {fo.uid} complete: {len(extracted_objects)} files extracted')
+                logging.debug(
+                    f'[worker {worker_id}] unpacking of {fo.uid} complete: {len(extracted_objects)} files extracted'
+                )
                 self.post_unpack(fo)
                 self.schedule_extracted_files(extracted_objects)
 
@@ -93,8 +97,11 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             else:
                 self.work_load_counter += 1
                 log_function = logging.debug
-            log_function(color_string(f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}',
-                                      TerminalColors.WARNING))
+            log_function(
+                color_string(
+                    f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}', TerminalColors.WARNING
+                )
+            )
 
             if workload < int(self.config['expert-settings']['unpack-throttle-limit']):
                 self.throttle_condition.value = 0
@@ -110,7 +117,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     def check_exceptions(self):
         shutdown = check_worker_exceptions(self.workers, 'Unpacking', self.config, self.unpack_worker)
 
-        list_with_load_process = [self.work_load_process, ]
+        list_with_load_process = [
+            self.work_load_process,
+        ]
         shutdown |= check_worker_exceptions(list_with_load_process, 'unpack-load', self.config, self._work_load_monitor)
         if new_worker_was_started(new_process=list_with_load_process[0], old_process=self.work_load_process):
             self.work_load_process = list_with_load_process.pop()

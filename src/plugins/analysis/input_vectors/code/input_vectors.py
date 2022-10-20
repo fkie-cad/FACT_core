@@ -24,6 +24,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     - stdin
     - kernel via syscalls
     '''
+
     NAME = 'input_vectors'
     DESCRIPTION = 'Determines possible input vectors of an ELF executable like stdin, network, or syscalls.'
     DEPENDENCIES = ['file_type']

@@ -7,7 +7,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class PluginRoutes(ComponentBase):
-
     def _init_component(self):
         self._app.add_url_rule('/plugins/dummy', 'plugins/dummy', self._get_dummy)
 

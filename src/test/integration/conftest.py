@@ -15,8 +15,12 @@ from test.common_helper import get_config_for_testing, setup_test_tables  # pyli
 
 class DB:
     def __init__(
-        self, common: DbInterfaceCommon, backend: BackendDbInterface, frontend: FrontEndDbInterface,
-        frontend_editing: FrontendEditingDbInterface, admin: AdminDbInterface
+        self,
+        common: DbInterfaceCommon,
+        backend: BackendDbInterface,
+        frontend: FrontEndDbInterface,
+        frontend_editing: FrontendEditingDbInterface,
+        admin: AdminDbInterface,
     ):
         self.common = common
         self.backend = backend

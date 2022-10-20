@@ -6,7 +6,6 @@ TEST_PLUGINS_BASE_PATH = 'test/data/plugin_system'
 
 
 class TestHelperFunctionsPlugin(unittest.TestCase):
-
     def test_get_plugin_src_dirs(self):
         result = _get_plugin_src_dirs(TEST_PLUGINS_BASE_PATH)
         self.assertIsInstance(result, list, 'result is not a list')

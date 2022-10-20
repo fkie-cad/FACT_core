@@ -28,6 +28,7 @@ class AppRoute:
     :param rule: The endpoint route (e.g. "/about")
     :param methods: supported HTML Methods (e.g. ``'GET', 'POST'``)
     '''
+
     def __init__(self, rule: str, *methods: str):
         self.route = Route(rule, methods)
 

@@ -24,4 +24,6 @@ def _add_config_to_app(app, config):
     # flask-security we change the validation mapper of 'email'.
     # Note that from the perspective of flask-security we still use emails.
     # This means that we do not want to enable SECURITY_USERNAME_ENABLE
-    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [{'email': {'mapper': uia_username_mapper, 'case_insensitive': True}}]
+    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [
+        {'email': {'mapper': uia_username_mapper, 'case_insensitive': True}}
+    ]

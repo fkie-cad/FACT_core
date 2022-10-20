@@ -13,7 +13,9 @@ class CryptoCodeMaterialTest(AbstractSignatureTest):
     TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
     def test_gnupg(self):
-        self._rule_match('0x6C2DF2C5-pub.asc', 'PgpPublicKeyBlock', len(['PgpPublicKeyBlock', 'PgpPublicKeyBlock_GnuPG']))
+        self._rule_match(
+            '0x6C2DF2C5-pub.asc', 'PgpPublicKeyBlock', len(['PgpPublicKeyBlock', 'PgpPublicKeyBlock_GnuPG'])
+        )
 
     def test_ssh_public(self):
         self._rule_match('id_rsa.pub', 'SshRsaPublicKeyBlock')

@@ -15,7 +15,6 @@ from test.integration.common import MockFSOrganizer, initialize_config  # pylint
 
 
 class TestFileAddition:
-
     def setup(self):
         self._tmp_dir = TemporaryDirectory()
         self._config = initialize_config(self._tmp_dir)
@@ -27,12 +26,15 @@ class TestFileAddition:
         unpacking_lock_manager = UnpackingLockManager()
 
         self._analysis_scheduler = AnalysisScheduler(
-            config=self._config, post_analysis=self.count_analysis_finished_event,
-            unpacking_locks=unpacking_lock_manager
+            config=self._config,
+            post_analysis=self.count_analysis_finished_event,
+            unpacking_locks=unpacking_lock_manager,
         )
         self._unpack_scheduler = UnpackingScheduler(
-            config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object,
-            fs_organizer=MockFSOrganizer(), unpacking_locks=unpacking_lock_manager
+            config=self._config,
+            post_unpack=self._analysis_scheduler.start_analysis_of_object,
+            fs_organizer=MockFSOrganizer(),
+            unpacking_locks=unpacking_lock_manager,
         )
         self._compare_scheduler = ComparisonScheduler(config=self._config, callback=self.trigger_compare_finished_event)
 
@@ -76,20 +78,13 @@ class TestFileAddition:
 
         assert result is not None, 'comparison result not found in DB'
         assert result['plugins']['Software'] == self._expected_result()['Software']
-        assert len(result['plugins']['File_Coverage']['files_in_common']) == len(self._expected_result()['File_Coverage']['files_in_common'])
+        assert len(result['plugins']['File_Coverage']['files_in_common']) == len(
+            self._expected_result()['File_Coverage']['files_in_common']
+        )
 
     @staticmethod
     def _expected_result():
         return {
-            'File_Coverage': {
-                'files_in_common': {
-                    'all': [],
-                    'collapse': False
-                }
-            },
-            'Software': {
-                'Compare Skipped': {
-                    'all': 'Required analysis not present: software_components'
-                }
-            }
+            'File_Coverage': {'files_in_common': {'all': [], 'collapse': False}},
+            'Software': {'Compare Skipped': {'all': 'Required analysis not present: software_components'}},
         }

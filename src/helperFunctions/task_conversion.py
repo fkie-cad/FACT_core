@@ -34,7 +34,9 @@ def create_analysis_task(request: Request, config: ConfigParser) -> Dict[str, An
     return task
 
 
-def get_file_name_and_binary_from_request(request: Request, config: ConfigParser) -> Tuple[str, bytes]:  # pylint: disable=invalid-name
+def get_file_name_and_binary_from_request(
+    request: Request, config: ConfigParser
+) -> Tuple[str, bytes]:  # pylint: disable=invalid-name
     '''
     Retrieves the file name and content from the flask request object.
 
@@ -74,7 +76,7 @@ def _get_meta_from_request(request: Request):
         'version': escape(request.form['version']),
         'release_date': escape(request.form['release_date']),
         'requested_analysis_systems': request.form.getlist('analysis_systems'),
-        'tags': escape(request.form['tags'])
+        'tags': escape(request.form['tags']),
     }
     _get_meta_from_dropdowns(meta, request)
 

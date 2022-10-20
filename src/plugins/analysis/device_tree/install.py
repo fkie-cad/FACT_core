@@ -8,6 +8,7 @@ try:
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
+
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 

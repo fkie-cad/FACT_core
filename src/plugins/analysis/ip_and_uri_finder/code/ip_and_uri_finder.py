@@ -13,24 +13,20 @@ from analysis.PluginBase import AnalysisBasePlugin
 
 GEOIP_DATABASE_PATH = Path(__file__).parent.parent / 'bin/GeoLite2-City/GeoLite2-City.mmdb'
 
-IP_V4_BLACKLIST = [
-    r'127.0.[0-9]+.1',  # localhost
-    r'255.[0-9]+.[0-9]+.[0-9]+'  # subnet masks
-]
-IP_V6_BLACKLIST = [  # trivial addresses
-    r'^[0-9A-Za-z]::$',
-    r'^::[0-9A-Za-z]$',
-    r'^[0-9A-Za-z]::[0-9A-Za-z]$',
-    r'^::$'
-]
+IP_V4_BLACKLIST = [r'127.0.[0-9]+.1', r'255.[0-9]+.[0-9]+.[0-9]+']  # localhost  # subnet masks
+IP_V6_BLACKLIST = [r'^[0-9A-Za-z]::$', r'^::[0-9A-Za-z]$', r'^[0-9A-Za-z]::[0-9A-Za-z]$', r'^::$']  # trivial addresses
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'ip_and_uri_finder'
     DEPENDENCIES = []
     MIME_WHITELIST = [
-        'text/plain', 'application/octet-stream', 'application/x-executable', 'application/x-object',
-        'application/x-sharedlib', 'application/x-dosexec'
+        'text/plain',
+        'application/octet-stream',
+        'application/x-executable',
+        'application/x-object',
+        'application/x-sharedlib',
+        'application/x-dosexec',
     ]
     DESCRIPTION = 'Search file for IP addresses and URIs based on regular expressions.'
     VERSION = '0.4.2'
@@ -75,7 +71,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         for ip in ip_addresses:
             try:
                 ip_tuple = ip, self.find_geo_location(ip)
-            except (AttributeError, AddressNotFoundError, FileNotFoundError, ValueError, InvalidDatabaseError) as exception:
+            except (
+                AttributeError,
+                AddressNotFoundError,
+                FileNotFoundError,
+                ValueError,
+                InvalidDatabaseError,
+            ) as exception:
                 logging.debug(f'Error during {self.NAME} analysis: {str(exception)}', exc_info=True)
                 ip_tuple = ip, ''
             linked_ip_geo_list.append(ip_tuple)

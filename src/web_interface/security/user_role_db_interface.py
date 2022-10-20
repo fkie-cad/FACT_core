@@ -3,7 +3,6 @@ from flask_security.utils import hash_password, verify_password
 
 
 class UserRoleDbInterface(SQLAlchemyUserDatastore):
-
     def list_users(self):
         user_list = self.user_model.query.all()
         return user_list

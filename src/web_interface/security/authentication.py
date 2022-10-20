@@ -29,7 +29,11 @@ def add_flask_security_to_app(app):
 def create_user_datastore(db):
     # pylint: disable=no-member
 
-    roles_users = db.Table('roles_users', db.Column('user_id', db.Integer(), db.ForeignKey('user.id')), db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+    roles_users = db.Table(
+        'roles_users',
+        db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+        db.Column('role_id', db.Integer(), db.ForeignKey('role.id')),
+    )
 
     class Role(db.Model, RoleMixin):
         id = db.Column(db.Integer(), primary_key=True)  # pylint: disable=invalid-name
@@ -66,7 +70,9 @@ def _build_api_key():
 
 
 def _auth_is_disabled(user):
-    user_object = user._get_current_object() if isinstance(user, LocalProxy) else user  # pylint: disable=protected-access
+    user_object = (
+        user._get_current_object() if isinstance(user, LocalProxy) else user
+    )  # pylint: disable=protected-access
     return isinstance(user_object, AnonymousUser)
 
 
