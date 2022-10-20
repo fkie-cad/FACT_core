@@ -7,7 +7,6 @@ from web_interface.frontend_main import WebFrontEnd
 
 
 class RestTestBase:
-
     @classmethod
     def setup_class(cls):
         cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')

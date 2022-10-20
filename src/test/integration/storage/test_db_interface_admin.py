@@ -29,7 +29,9 @@ def test_remove_vp_no_other_fw(db):
     db.backend.insert_object(fo)
 
     with db.admin.get_read_write_session() as session:
-        removed_vps, deleted_uids = db.admin._remove_virtual_path_entries(fw.uid, fo.uid, session)  # pylint: disable=protected-access
+        removed_vps, deleted_uids = db.admin._remove_virtual_path_entries(
+            fw.uid, fo.uid, session
+        )  # pylint: disable=protected-access
 
     assert removed_vps == 0
     assert deleted_uids == {fo.uid}
@@ -42,7 +44,9 @@ def test_remove_vp_other_fw(db):
     db.backend.insert_object(fo)
 
     with db.admin.get_read_write_session() as session:
-        removed_vps, deleted_files = db.admin._remove_virtual_path_entries(fw.uid, fo.uid, session)  # pylint: disable=protected-access
+        removed_vps, deleted_files = db.admin._remove_virtual_path_entries(
+            fw.uid, fo.uid, session
+        )  # pylint: disable=protected-access
     fo_entry = db.common.get_object(fo.uid)
 
     assert fo_entry is not None

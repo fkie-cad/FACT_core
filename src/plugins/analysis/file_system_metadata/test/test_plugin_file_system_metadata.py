@@ -64,9 +64,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.test_file_fs = TEST_DATA_DIR / 'squashfs.img'
 
     def setup_plugin(self):
-        return AnalysisPlugin(
-            self, config=self.config, view_updater=CommonDatabaseMock(), db_interface=DbMock()
-        )
+        return AnalysisPlugin(self, config=self.config, view_updater=CommonDatabaseMock(), db_interface=DbMock())
 
     def _extract_metadata_from_archive_mock(self, _):
         self.result = 'archive'
@@ -81,7 +79,9 @@ class TestFileSystemMetadata(AnalysisPluginTest):
             self.analysis_plugin._extract_metadata(fo)
             assert self.result == 'archive'
 
-        with mock_patch(self.analysis_plugin, '_extract_metadata_from_file_system', self._extract_metadata_from_file_system_mock):
+        with mock_patch(
+            self.analysis_plugin, '_extract_metadata_from_file_system', self._extract_metadata_from_file_system_mock
+        ):
             self.result = None
             fo = FoMock(None, 'filesystem/ext4')
             self.analysis_plugin._extract_metadata(fo)
@@ -180,7 +180,13 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         result = self.analysis_plugin.result
         assert all(
             _b64_encode(key) in result
-            for key in ['mount/testfile_sticky', 'mount/testfile_sgid', 'mount/testfile_suid', 'mount/testfile_all', 'mount/testfile_none']
+            for key in [
+                'mount/testfile_sticky',
+                'mount/testfile_sgid',
+                'mount/testfile_suid',
+                'mount/testfile_all',
+                'mount/testfile_none',
+            ]
         )
 
     def test_extract_metadata_from_tar__packed_tar_bz(self):
@@ -190,7 +196,13 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         result = self.analysis_plugin.result
         assert all(
             _b64_encode(key) in result
-            for key in ['mount/testfile_sticky', 'mount/testfile_sgid', 'mount/testfile_suid', 'mount/testfile_all', 'mount/testfile_none']
+            for key in [
+                'mount/testfile_sticky',
+                'mount/testfile_sgid',
+                'mount/testfile_suid',
+                'mount/testfile_all',
+                'mount/testfile_none',
+            ]
         )
 
     def test_extract_metadata_from_tar__tar_unreadable(self):
@@ -270,6 +282,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
     def test_tag_should_be_set(self):
         def _get_results(user, suid, sgid):
             return {'foo': {FsKeys.USER: user, FsKeys.SUID: suid, FsKeys.SGID: sgid}}
+
         test_data = [
             (_get_results(user='root', suid=True, sgid=True), True),
             (_get_results(user='root', suid=True, sgid=False), True),

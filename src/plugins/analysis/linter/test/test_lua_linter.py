@@ -16,27 +16,31 @@ MOCK_RESPONSE = '''/usr/share/nmap/nse_main.lua:88:7-12: (W211) unused variable 
 
 
 def test_do_analysis(monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE))
+    monkeypatch.setattr(
+        'plugins.analysis.linter.internal.linters.subprocess.run',
+        lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE),
+    )
     result = run_luacheck('any/path')
     assert result
     assert len(result) == 10
-    assert result[0] == {
-        'message': 'unused variable \'select\'',
-        'line': 88,
-        'column': 7,
-        'symbol': 'W211'
-    }
+    assert result[0] == {'message': 'unused variable \'select\'', 'line': 88, 'column': 7, 'symbol': 'W211'}
 
 
 def test_bad_lines(monkeypatch):
     bad_lines = MOCK_RESPONSE[0:2].replace(':', ' ')
-    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARRE', 0, bad_lines))
+    monkeypatch.setattr(
+        'plugins.analysis.linter.internal.linters.subprocess.run',
+        lambda *_, **__: CompletedProcess('DONT_CARRE', 0, bad_lines),
+    )
     result = run_luacheck('any/path')
     assert not result
 
 
 def test_skip_w6xy(monkeypatch):
     w6xy = MOCK_RESPONSE[0:1].replace('W211', 'W631')
-    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=w6xy))
+    monkeypatch.setattr(
+        'plugins.analysis.linter.internal.linters.subprocess.run',
+        lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=w6xy),
+    )
     result = run_luacheck('any/path')
     assert not result

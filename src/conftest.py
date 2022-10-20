@@ -33,7 +33,6 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'postgres-port': '5432',
             'postgres-database': 'fact_test',
             'postgres-test-database': 'fact_test',
-
             'postgres-ro-user': config.cfg.data_storage.postgres_ro_user,
             'postgres-ro-pw': config.cfg.data_storage.postgres_ro_pw,
             'postgres-rw-user': config.cfg.data_storage.postgres_rw_user,
@@ -42,25 +41,21 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'postgres-del-pw': config.cfg.data_storage.postgres_del_pw,
             'postgres-admin-user': config.cfg.data_storage.postgres_del_user,
             'postgres-admin-pw': config.cfg.data_storage.postgres_del_pw,
-
             'redis-fact-db': config.cfg.data_storage.redis_test_db,  # Note: This is unused in testing
             'redis-test-db': config.cfg.data_storage.redis_test_db,  # Note: This is unused in production
             'redis-host': config.cfg.data_storage.redis_host,
             'redis-port': config.cfg.data_storage.redis_port,
-
             'firmware-file-storage-directory': str(firmware_file_storage_directory),
-
             'user-database': 'sqlite:////media/data/fact_auth_data/fact_users.db',
             'password-salt': '1234',
-
             'structural-threshold': '40',  # TODO
             'temp-dir-path': '/tmp',
             'docker-mount-base-dir': str(docker_mount_base_dir),
-         },
+        },
         'database': {
             'ajax-stats-reload-time': '10000',  # TODO
             'number-of-latest-firmwares-to-display': '10',
-            'results-per-page': '10'
+            'results-per-page': '10',
         },
         'default-plugins': {
             'default': '',
@@ -76,21 +71,14 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'ssdeep-ignore': '1',
             'throw-exceptions': 'false',
             'unpack-threshold': '0.8',
-            'unpack_throttle_limit': '50'
+            'unpack_throttle_limit': '50',
         },
         'logging': {
             'logfile': '/tmp/fact_main.log',
             'loglevel': 'WARNING',
         },
-        'unpack': {
-            'max-depth': '10',
-            'memory-limit': '2048',
-            'threads': '4',
-            'whitelist': ''
-        },
-        'statistics': {
-            'max_elements_per_chart': '10'
-        },
+        'unpack': {'max-depth': '10', 'memory-limit': '2048', 'threads': '4', 'whitelist': ''},
+        'statistics': {'max_elements_per_chart': '10'},
     }
     # Update recursively
     for section_name in defaults if defaults else {}:

@@ -33,12 +33,15 @@ def test_get_template_dir():
     assert '.html' in file_suffixes_in_template_dir
 
 
-@pytest.mark.parametrize('base, offset, result, message', [
-    (Path('/foo/bar/com'), Path('/foo/'), '/bar/com', 'simple case with /'),
-    (Path('/foo/bar/com'), Path('/foo'), '/bar/com', 'simple case without /'),
-    (Path('/foo/bar/com'), Path('/bar'), '/foo/bar/com', 'non-matching root'),
-    (Path('/foo/fact_extracted/bar/com'), Path('/foo'), '/bar/com', 'including extracted'),
-])
+@pytest.mark.parametrize(
+    'base, offset, result, message',
+    [
+        (Path('/foo/bar/com'), Path('/foo/'), '/bar/com', 'simple case with /'),
+        (Path('/foo/bar/com'), Path('/foo'), '/bar/com', 'simple case without /'),
+        (Path('/foo/bar/com'), Path('/bar'), '/foo/bar/com', 'non-matching root'),
+        (Path('/foo/fact_extracted/bar/com'), Path('/foo'), '/bar/com', 'including extracted'),
+    ],
+)
 def test_get_relative_object_path(base, offset, result, message):
     assert get_relative_object_path(base, offset) == result, message
 

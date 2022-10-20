@@ -20,11 +20,7 @@ def get_output(command: str) -> dict:
     std_out, std_err, return_code = get_output_error_and_return_code(command)
     if return_code in TIMEOUT_ERROR_EXIT_CODES:
         return {'error': 'timeout'}
-    return {
-        'stdout': encode_as_str(std_out),
-        'stderr': encode_as_str(std_err),
-        'return_code': return_code
-    }
+    return {'stdout': encode_as_str(std_out), 'stderr': encode_as_str(std_err), 'return_code': return_code}
 
 
 def encode_as_str(std_out):

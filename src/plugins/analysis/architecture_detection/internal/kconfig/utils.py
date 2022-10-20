@@ -3,7 +3,7 @@ def kconfig_contains(kconfig: str, options):
         if line[-2:] != '=y':
             continue
 
-        if str.strip(line)[len('CONFIG_'):-len('=y')] in options:
+        if str.strip(line)[len('CONFIG_') : -len('=y')] in options:
             return True
 
     return False

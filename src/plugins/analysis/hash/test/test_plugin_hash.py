@@ -30,7 +30,9 @@ class TestAnalysisPluginHash(AnalysisPluginTest):
 
     def test_imphash(self):
         file_path = os.path.join(TEST_DATA_DIR, 'ls')
-        result = self.analysis_plugin.process_object(MockFileObject(file_path=file_path)).processed_analysis[self.PLUGIN_NAME]
+        result = self.analysis_plugin.process_object(MockFileObject(file_path=file_path)).processed_analysis[
+            self.PLUGIN_NAME
+        ]
 
         assert isinstance(result['imphash'], str), 'imphash should be a string'
         assert len(result['imphash']) == 32, 'imphash does not look like an md5'

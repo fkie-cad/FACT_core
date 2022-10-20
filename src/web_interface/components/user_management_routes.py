@@ -13,7 +13,6 @@ from web_interface.security.privileges import PRIVILEGES, ROLES
 
 
 class UserManagementRoutes(ComponentBase):
-
     def __init__(self, user_db=None, user_db_interface=None, **kwargs):
         super().__init__(**kwargs)
         self._user_db = user_db
@@ -37,10 +36,7 @@ class UserManagementRoutes(ComponentBase):
         if request.method == 'POST':
             self._add_user()
         user_list = self._user_db_interface.list_users()
-        return render_template(
-            'user_management/manage_users.html',
-            users=user_list
-        )
+        return render_template('user_management/manage_users.html', users=user_list)
 
     def _add_user(self):
         name = request.form['username']
@@ -65,10 +61,7 @@ class UserManagementRoutes(ComponentBase):
             return redirect(url_for('manage_users'))
         available_roles = sorted(ROLES)
         return render_template(
-            'user_management/edit_user.html',
-            available_roles=available_roles,
-            user=user,
-            privileges=PRIVILEGES
+            'user_management/edit_user.html', available_roles=available_roles, user=user, privileges=PRIVILEGES
         )
 
     @roles_accepted(*PRIVILEGES['manage_users'])

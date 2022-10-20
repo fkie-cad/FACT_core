@@ -7,7 +7,6 @@ UID_2 = 'decafbad' * 8 + '_2'
 
 
 class TestRestComparison(WebInterfaceTest):
-
     def test_bad_request(self):
         response = self.test_client.put('/rest/compare')
         assert response.status_code == 400

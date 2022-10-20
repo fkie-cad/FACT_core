@@ -17,7 +17,6 @@ class DbSerializationError(DbInterfaceError):
 
 
 class ReadOnlyDbInterface:
-
     def __init__(self, config, connection: Optional[DbConnection] = None):
         self.connection = connection or ReadOnlyConnection(config)
         self.ro_session = None
@@ -40,7 +39,6 @@ class ReadOnlyDbInterface:
 
 
 class ReadWriteDbInterface(ReadOnlyDbInterface):
-
     def __init__(self, config, connection: Optional[DbConnection] = None):
         super().__init__(config, connection=connection or ReadWriteConnection(config))
 

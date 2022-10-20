@@ -10,6 +10,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This Plugin creates several hashes of the file
     '''
+
     NAME = 'file_hashes'
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'calculate different hash values of the file'

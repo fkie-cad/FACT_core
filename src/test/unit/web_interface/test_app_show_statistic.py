@@ -12,7 +12,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestShowStatistic(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)
@@ -32,7 +31,7 @@ class TestShowStatistic(WebInterfaceTest):
             'total_file_size': 10,
             'average_file_size': 10,
             'creation_time': time(),
-            'benchmark': 1.1
+            'benchmark': 1.1,
         }
         page_content = self.test_client.get('/statistic').data.decode()
         assert 'General' in page_content

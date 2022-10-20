@@ -57,12 +57,8 @@ def _initialize_subfolder(folder: Path, firmware: Firmware) -> None:
     for subpath in ['data', 'pdf']:
         (folder / subpath).mkdir(parents=True, exist_ok=True)
 
-    (folder / 'data' / 'meta.json').write_text(
-        json.dumps(create_meta_dict(firmware), cls=ReportEncoder)
-    )
-    (folder / 'data' / 'analysis.json').write_text(
-        json.dumps(firmware.processed_analysis, cls=ReportEncoder)
-    )
+    (folder / 'data' / 'meta.json').write_text(json.dumps(create_meta_dict(firmware), cls=ReportEncoder))
+    (folder / 'data' / 'analysis.json').write_text(json.dumps(firmware.processed_analysis, cls=ReportEncoder))
 
 
 def _find_pdf(folder: Path) -> Path:

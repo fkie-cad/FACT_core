@@ -6,7 +6,6 @@ from test.unit.web_interface.base import WebInterfaceTest
 
 
 class TestAppCompare(WebInterfaceTest):
-
     def test_add_firmwares_to_compare(self):
         with self.test_client:
             rv = self.test_client.get(f'/comparison/add/{TEST_FW.uid}', follow_redirects=True)

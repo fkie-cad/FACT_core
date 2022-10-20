@@ -19,6 +19,7 @@ class ComparePlugin(CompareBasePlugin):
     '''
     Shows a "binwalk -Ww"-ish comparison of the FOs headers in highlighted hexadecimal
     '''
+
     NAME = 'File_Header'
     DEPENDENCIES = []
     FILE = __file__
@@ -42,7 +43,7 @@ class ComparePlugin(CompareBasePlugin):
         number_of_rows = self._get_number_of_rows(lower_bound)
         ascii_string = '<p style="font-family: monospace; color: #eee;"><br />'
         for index in range(number_of_rows):
-            partial = bytes_in_ascii[index * COLUMN_WIDTH:(index + 1) * COLUMN_WIDTH]
+            partial = bytes_in_ascii[index * COLUMN_WIDTH : (index + 1) * COLUMN_WIDTH]
             ascii_string += f'| {self._replace_forbidden_html_characters(partial)} |<br />'
 
         return Markup(ascii_string + '</p>')
@@ -62,7 +63,7 @@ class ComparePlugin(CompareBasePlugin):
             if index % COLUMN_WIDTH == 0:
                 highlighted_string += '<br />'
 
-            to_highlight = first_binary_in_hex[2 * index:2 * index + 2]
+            to_highlight = first_binary_in_hex[2 * index : 2 * index + 2]
             highlighted_string += f'<span style="color: #{color}">{to_highlight}</span>&nbsp;'
 
         return Markup(highlighted_string + '</p>')
@@ -116,4 +117,6 @@ class ComparePlugin(CompareBasePlugin):
 
 def replace_none_ascii_with_dots(binary_block):
     ascii_range = set(range(*ASCII_RANGE))
-    return b''.join((binary_block[index:index + 1] if char in ascii_range else b'.' for index, char in enumerate(binary_block)))
+    return b''.join(
+        (binary_block[index : index + 1] if char in ascii_range else b'.' for index, char in enumerate(binary_block))
+    )

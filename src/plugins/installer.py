@@ -3,7 +3,10 @@ from pathlib import Path
 from typing import Optional
 
 from helperFunctions.install import (
-    check_distribution, install_pip_packages, read_package_list_from_file, run_cmd_with_logging
+    check_distribution,
+    install_pip_packages,
+    read_package_list_from_file,
+    run_cmd_with_logging,
 )
 
 

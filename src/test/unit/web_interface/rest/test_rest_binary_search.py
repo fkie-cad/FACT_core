@@ -4,7 +4,6 @@ YARA_TEST_RULE = 'rule rulename {strings: $a = "foobar" condition: $a}'
 
 
 class TestRestBinarySearch(WebInterfaceTest):
-
     def test_no_data(self):
         response = self.test_client.post('/rest/binary_search')
         assert response.status_code == 400

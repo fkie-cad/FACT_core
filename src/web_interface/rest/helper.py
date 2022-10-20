@@ -21,7 +21,9 @@ def get_current_gmt() -> int:
     return int(calendar.timegm(time.gmtime()))
 
 
-def success_message(data: dict, targeted_url: str, request_data: Optional[dict] = None, return_code: int = 200) -> Tuple[dict, int]:
+def success_message(
+    data: dict, targeted_url: str, request_data: Optional[dict] = None, return_code: int = 200
+) -> Tuple[dict, int]:
     '''
     Create success response including requested data and useful meta information, such as the request parameters.
 
@@ -43,7 +45,9 @@ def success_message(data: dict, targeted_url: str, request_data: Optional[dict] 
     return message, return_code
 
 
-def error_message(error: str, targeted_url: str, request_data: Optional[dict] = None, return_code: int = 400) -> Tuple[dict, int]:
+def error_message(
+    error: str, targeted_url: str, request_data: Optional[dict] = None, return_code: int = 400
+) -> Tuple[dict, int]:
     '''
     Create error response including error message and useful meta information, such as the request parameters.
 

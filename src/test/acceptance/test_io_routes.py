@@ -6,15 +6,8 @@ from test.acceptance.base import TestAcceptanceBase  # pylint: disable=wrong-imp
 from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
 
 COMPARE_RESULT = {
-    'general': {
-        'a': {'id1': '<empty>', 'id2': '<empty>'},
-        'b': {'id1': '<empty>', 'id2': '<empty>'}
-    },
-    'plugins': {
-        'Ida_Diff_Highlighting': {
-            'idb_binary': 'The IDA database'
-        }
-    }
+    'general': {'a': {'id1': '<empty>', 'id2': '<empty>'}, 'b': {'id1': '<empty>', 'id2': '<empty>'}},
+    'plugins': {'Ida_Diff_Highlighting': {'idb_binary': 'The IDA database'}},
 }
 
 
@@ -23,7 +16,6 @@ def throwing_function(binary):
 
 
 class TestAcceptanceIoRoutes(TestAcceptanceBase):
-
     def setUp(self):
         super().setUp()
         self._start_backend()

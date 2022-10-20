@@ -6,8 +6,18 @@ from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.checksec import (
-    AnalysisPlugin, check_canary, check_clang_cfi, check_clang_safestack, check_fortify_source, check_nx, check_pie,
-    check_relro, check_rpath, check_runpath, check_stripped_symbols, execute_checksec_script
+    AnalysisPlugin,
+    check_canary,
+    check_clang_cfi,
+    check_clang_safestack,
+    check_fortify_source,
+    check_nx,
+    check_pie,
+    check_relro,
+    check_rpath,
+    check_runpath,
+    check_stripped_symbols,
+    execute_checksec_script,
 )
 
 PLUGIN_DIR = Path(__file__).parent.parent
@@ -40,32 +50,35 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
         assert 'NX enabled' in result['summary']
 
 
-@pytest.mark.parametrize('file_path, check, expected_result, expected_summary', [
-    (FILE_PATH_EXE, check_pie, {'PIE': 'enabled'}, 'PIE enabled'),
-    (FILE_PATH_OBJECT, check_pie, {'PIE': 'REL'}, 'PIE/REL present'),
-    (FILE_PATH_SHAREDLIB, check_pie, {'PIE': 'DSO'}, 'PIE/DSO present'),
-    (FILE_PATH_EXE_NO_PIE, check_pie, {'PIE': 'disabled'}, 'PIE disabled'),
-    # TODO: Test PIE: invalid ELF-File
-    (FILE_PATH_EXE, check_relro, {'RELRO': 'fully enabled'}, 'RELRO fully enabled'),
-    (FILE_PATH_OBJECT, check_relro, {'RELRO': 'disabled'}, 'RELRO disabled'),
-    (FILE_PATH_SHAREDLIB, check_relro, {'RELRO': 'partially enabled'}, 'RELRO partially enabled'),
-    (FILE_PATH_EXE, check_nx, {'NX': 'enabled'}, 'NX enabled'),
-    (FILE_PATH_OBJECT, check_nx, {'NX': 'disabled'}, 'NX disabled'),
-    (FILE_PATH_EXE, check_canary, {'CANARY': 'disabled'}, 'CANARY disabled'),
-    (FILE_PATH_EXE_CANARY, check_canary, {'CANARY': 'enabled'}, 'CANARY enabled'),
-    (FILE_PATH_EXE, check_fortify_source, {'FORTIFY_SOURCE': 'disabled'}, 'FORTIFY_SOURCE disabled'),
-    (FILE_PATH_EXE_FORTIFY, check_fortify_source, {'FORTIFY_SOURCE': 'enabled'}, 'FORTIFY_SOURCE enabled'),
-    (FILE_PATH_EXE, check_clang_cfi, {'CLANGCFI': 'disabled'}, 'CLANGCFI disabled'),
-    # TODO: Test CLANCFI: enabled
-    (FILE_PATH_EXE, check_clang_safestack, {'SAFESTACK': 'disabled'}, 'SAFESTACK disabled'),
-    (FILE_PATH_EXE_SAFESTACK, check_clang_safestack, {'SAFESTACK': 'enabled'}, 'SAFESTACK enabled'),
-    (FILE_PATH_EXE, check_rpath, {'RPATH': 'disabled'}, 'RPATH disabled'),
-    (FILE_PATH_EXE_RPATH, check_rpath, {'RPATH': 'enabled'}, 'RPATH enabled'),
-    (FILE_PATH_EXE, check_runpath, {'RUNPATH': 'disabled'}, 'RUNPATH disabled'),
-    (FILE_PATH_EXE_RUNPATH, check_runpath, {'RUNPATH': 'enabled'}, 'RUNPATH enabled'),
-    (FILE_PATH_EXE, check_stripped_symbols, {'STRIPPED SYMBOLS': 'disabled'}, 'STRIPPED SYMBOLS disabled'),
-    (FILE_PATH_EXE_STRIPPED, check_stripped_symbols, {'STRIPPED SYMBOLS': 'enabled'}, 'STRIPPED SYMBOLS enabled'),
-])
+@pytest.mark.parametrize(
+    'file_path, check, expected_result, expected_summary',
+    [
+        (FILE_PATH_EXE, check_pie, {'PIE': 'enabled'}, 'PIE enabled'),
+        (FILE_PATH_OBJECT, check_pie, {'PIE': 'REL'}, 'PIE/REL present'),
+        (FILE_PATH_SHAREDLIB, check_pie, {'PIE': 'DSO'}, 'PIE/DSO present'),
+        (FILE_PATH_EXE_NO_PIE, check_pie, {'PIE': 'disabled'}, 'PIE disabled'),
+        # TODO: Test PIE: invalid ELF-File
+        (FILE_PATH_EXE, check_relro, {'RELRO': 'fully enabled'}, 'RELRO fully enabled'),
+        (FILE_PATH_OBJECT, check_relro, {'RELRO': 'disabled'}, 'RELRO disabled'),
+        (FILE_PATH_SHAREDLIB, check_relro, {'RELRO': 'partially enabled'}, 'RELRO partially enabled'),
+        (FILE_PATH_EXE, check_nx, {'NX': 'enabled'}, 'NX enabled'),
+        (FILE_PATH_OBJECT, check_nx, {'NX': 'disabled'}, 'NX disabled'),
+        (FILE_PATH_EXE, check_canary, {'CANARY': 'disabled'}, 'CANARY disabled'),
+        (FILE_PATH_EXE_CANARY, check_canary, {'CANARY': 'enabled'}, 'CANARY enabled'),
+        (FILE_PATH_EXE, check_fortify_source, {'FORTIFY_SOURCE': 'disabled'}, 'FORTIFY_SOURCE disabled'),
+        (FILE_PATH_EXE_FORTIFY, check_fortify_source, {'FORTIFY_SOURCE': 'enabled'}, 'FORTIFY_SOURCE enabled'),
+        (FILE_PATH_EXE, check_clang_cfi, {'CLANGCFI': 'disabled'}, 'CLANGCFI disabled'),
+        # TODO: Test CLANCFI: enabled
+        (FILE_PATH_EXE, check_clang_safestack, {'SAFESTACK': 'disabled'}, 'SAFESTACK disabled'),
+        (FILE_PATH_EXE_SAFESTACK, check_clang_safestack, {'SAFESTACK': 'enabled'}, 'SAFESTACK enabled'),
+        (FILE_PATH_EXE, check_rpath, {'RPATH': 'disabled'}, 'RPATH disabled'),
+        (FILE_PATH_EXE_RPATH, check_rpath, {'RPATH': 'enabled'}, 'RPATH enabled'),
+        (FILE_PATH_EXE, check_runpath, {'RUNPATH': 'disabled'}, 'RUNPATH disabled'),
+        (FILE_PATH_EXE_RUNPATH, check_runpath, {'RUNPATH': 'enabled'}, 'RUNPATH enabled'),
+        (FILE_PATH_EXE, check_stripped_symbols, {'STRIPPED SYMBOLS': 'disabled'}, 'STRIPPED SYMBOLS disabled'),
+        (FILE_PATH_EXE_STRIPPED, check_stripped_symbols, {'STRIPPED SYMBOLS': 'enabled'}, 'STRIPPED SYMBOLS enabled'),
+    ],
+)
 def test_all_checks(file_path, check, expected_result, expected_summary):
     result, dict_summary = {}, {}
     dict_file_info = execute_checksec_script(file_path)

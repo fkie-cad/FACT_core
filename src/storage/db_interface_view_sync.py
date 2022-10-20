@@ -6,7 +6,6 @@ from storage.schema import WebInterfaceTemplateEntry
 
 
 class ViewUpdater(ReadWriteDbInterface):
-
     def update_view(self, plugin_name: str, content: bytes):
         with self.get_read_write_session() as session:
             entry = session.get(WebInterfaceTemplateEntry, plugin_name)
@@ -19,7 +18,6 @@ class ViewUpdater(ReadWriteDbInterface):
 
 
 class ViewReader(ReadOnlyDbInterface):
-
     def get_view(self, plugin_name: str) -> Optional[bytes]:
         with self.get_read_only_session() as session:
             entry = session.get(WebInterfaceTemplateEntry, plugin_name)

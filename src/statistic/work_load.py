@@ -14,7 +14,6 @@ from version import __VERSION__
 
 
 class WorkLoadStatistic:
-
     def __init__(self, config, component):
         self.config = config
         self.component = component
@@ -63,7 +62,7 @@ class WorkLoadStatistic:
             'memory_percent': memory_usage.percent,
             'disk_total': disk_usage.total,
             'disk_used': disk_usage.used,
-            'disk_percent': disk_usage.percent
+            'disk_percent': disk_usage.percent,
         }
         return result
 
@@ -72,8 +71,4 @@ class WorkLoadStatistic:
         operating_system = f'{distro.id()} {distro.version()}'
         python_version = '.'.join(str(x) for x in sys.version_info[0:3])
         fact_version = __VERSION__
-        return {
-            'os': operating_system,
-            'python': python_version,
-            'fact_version': fact_version
-        }
+        return {'os': operating_system, 'python': python_version, 'fact_version': fact_version}

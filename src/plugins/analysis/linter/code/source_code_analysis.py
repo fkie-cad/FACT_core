@@ -26,6 +26,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     TODO Implement proper view
     TODO implement additional linters (ruby, perl, php)
     '''
+
     NAME = 'source_code_analysis'
     DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
     DEPENDENCIES = ['file_type']
@@ -34,8 +35,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     # All linter methods must return an array of dicts.
     # These dicts must at least contain a value for the 'symbol' key.
     linter_impls = {
-        'javascript':  linters.run_eslint,
-        'lua':  linters.run_luacheck,
+        'javascript': linters.run_eslint,
+        'lua': linters.run_luacheck,
         'python': linters.run_pylint,
         'ruby': linters.run_rubocop,
         'shell': linters.run_shellcheck,
@@ -53,14 +54,20 @@ class AnalysisPlugin(AnalysisBasePlugin):
         '''
         script_type = self._get_script_type(file_object)
         if script_type is None:
-            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Is not a script or language could not be detected'}
+            file_object.processed_analysis[self.NAME] = {
+                'summary': [],
+                'warning': 'Is not a script or language could not be detected',
+            }
             return file_object
 
         script_type = script_type.lower()
 
         if script_type not in self.linter_impls:
             logging.debug(f'[{self.NAME}] {file_object.file_name} ({script_type}) is not a supported script.')
-            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': f'Unsupported script type: {script_type}'}
+            file_object.processed_analysis[self.NAME] = {
+                'summary': [],
+                'warning': f'Unsupported script type: {script_type}',
+            }
             return file_object
 
         issues = self.linter_impls[script_type](file_object.file_path)
@@ -68,8 +75,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if len(issues) == 0:
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
-            file_object.processed_analysis[self.NAME] = {'full': sorted(issues, key=lambda k: k['symbol']),
-                                                         'summary': [f'Warnings in {script_type} script']}
+            file_object.processed_analysis[self.NAME] = {
+                'full': sorted(issues, key=lambda k: k['symbol']),
+                'summary': [f'Warnings in {script_type} script'],
+            }
         return file_object
 
     def _get_script_type(self, file_object):
@@ -89,7 +98,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         # FIXME plugins should not set the output for other plugins
         # But due to performance reasons we don't want the filetype plugin to run linguist
-        file_object.processed_analysis['file_type']['linguist'] = ''.join([f'{k:<10} {str(v):<10}\n' for k, v in output_json[container_path].items()])
+        file_object.processed_analysis['file_type']['linguist'] = ''.join(
+            [f'{k:<10} {str(v):<10}\n' for k, v in output_json[container_path].items()]
+        )
 
         script_type = output_json[container_path].get('language')
 

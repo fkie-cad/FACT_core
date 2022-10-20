@@ -7,6 +7,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     Hardware Analysis Plug-in
     '''
+
     NAME = 'hardware_analysis'
     DESCRIPTION = 'Hardware Analysis Plug-in'
     DEPENDENCIES = ['cpu_architecture', 'elf_analysis', 'kernel_config']
@@ -24,11 +25,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME] = {
             'cpu architecture': cpu_architecture,
             'modinfo section': modinfo,
-            'kernel configuration': kernel_config
+            'kernel configuration': kernel_config,
         }
 
         # propagate summary to parent objects
-        file_object.processed_analysis[self.NAME]['summary'] = self.make_summary(cpu_architecture, modinfo, kernel_config)
+        file_object.processed_analysis[self.NAME]['summary'] = self.make_summary(
+            cpu_architecture, modinfo, kernel_config
+        )
 
         return file_object
 
@@ -49,11 +52,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # FIXME: finer filter
         if isinstance(kernel_config, str):
             kernel_config_list = kernel_config.splitlines()
-            kernel_config = [
-                line
-                for line in kernel_config_list
-                if line and not line.startswith('#')
-            ]
+            kernel_config = [line for line in kernel_config_list if line and not line.startswith('#')]
 
         else:
             kernel_config = None

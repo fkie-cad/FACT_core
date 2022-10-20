@@ -19,7 +19,9 @@ from ..code.file_system_metadata import AnalysisPlugin
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 
 
-def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface) -> dict:  # pylint: disable=invalid-name
+def get_analysis_results_for_included_uid(
+    uid: str, db_interface: FrontEndDbInterface
+) -> dict:  # pylint: disable=invalid-name
     results = {}
     with get_shared_session(db_interface) as db:
         this_fo = db.get_object(uid)
@@ -57,7 +59,11 @@ class PluginRoutes(ComponentBase):
         super().__init__(*args, **kwargs)
 
     def _init_component(self):
-        self._app.add_url_rule('/plugins/file_system_metadata/ajax/<uid>', 'plugins/file_system_metadata/ajax/<uid>', self._get_analysis_results_of_parent_fo)
+        self._app.add_url_rule(
+            '/plugins/file_system_metadata/ajax/<uid>',
+            'plugins/file_system_metadata/ajax/<uid>',
+            self._get_analysis_results_of_parent_fo,
+        )
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _get_analysis_results_of_parent_fo(self, uid):

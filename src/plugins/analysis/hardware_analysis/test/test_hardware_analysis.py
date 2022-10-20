@@ -34,7 +34,9 @@ class TestHardwareAnalysis(AnalysisPluginTest):
     def test_kernel_config_found(self):
 
         test_object = FileObject()
-        test_object.processed_analysis['kernel_config'] = {'kernel_config':  'This is a test\n#This is not important\nThis is important'}
+        test_object.processed_analysis['kernel_config'] = {
+            'kernel_config': 'This is a test\n#This is not important\nThis is important'
+        }
         result = self.analysis_plugin.filter_kernel_config(test_object)
 
         assert result[0] == 'This is a test'

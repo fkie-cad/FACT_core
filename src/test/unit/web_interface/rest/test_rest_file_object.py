@@ -11,7 +11,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestRestFileObject(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)

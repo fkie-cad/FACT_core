@@ -13,6 +13,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
     '''
     This should be the base for all YARA based analysis plugins
     '''
+
     NAME = 'Yara_Base_Plugin'
     DESCRIPTION = 'this is a Yara plugin'
     VERSION = '0.0'
@@ -93,7 +94,9 @@ def _split_output_in_rules_and_matches(output):
 def _append_match_to_result(match, resulting_matches: Dict[str, dict], rule):
     rule_name, meta_string, _, _ = rule
     _, offset, matched_tag, matched_string = match
-    resulting_matches.setdefault(rule_name, dict(rule=rule_name, matches=True, strings=[], meta=_parse_meta_data(meta_string)))
+    resulting_matches.setdefault(
+        rule_name, dict(rule=rule_name, matches=True, strings=[], meta=_parse_meta_data(meta_string))
+    )
     resulting_matches[rule_name]['strings'].append((int(offset, 16), matched_tag, matched_string))
 
 

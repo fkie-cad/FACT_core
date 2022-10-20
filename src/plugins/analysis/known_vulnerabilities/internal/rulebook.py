@@ -8,7 +8,7 @@ RELATIONS = {
     'lt': lambda x, y: x < y,
     'in': lambda x, y: x in y,
     'reverse_in': lambda x, y: y in x,
-    'intersection': lambda x, y: bool(set(x).intersection(set(y)))
+    'intersection': lambda x, y: bool(set(x).intersection(set(y))),
 }
 
 
@@ -35,22 +35,31 @@ class Vulnerability:
             (int(self.reliability) in range(0, 101), 'reliability must be between 0 and 100'),
             (self.score in ['low', 'medium', 'high'], 'score has to be one of low, medium or high'),
             (isinstance(self.description, str), 'description must be a string'),
-            (isinstance(self.rule, (SingleRule, MetaRule, SubPathRule)), f'rule must be of type in [SingleRule, MetaRule, SubPathRule]. Has type {type(rule)}'),
+            (
+                isinstance(self.rule, (SingleRule, MetaRule, SubPathRule)),
+                f'rule must be of type in [SingleRule, MetaRule, SubPathRule]. Has type {type(rule)}',
+            ),
             (isinstance(self.link, str) or not link, 'if link is set it has to be a string'),
-            (isinstance(self.short_name, str), 'short_name has to be a string')
+            (isinstance(self.short_name, str), 'short_name has to be a string'),
         ]:
             if not type_assertion:
                 raise ValueError(error_message)
 
     def get_dict(self):
-        return dict(description=self.description, score=self.score, reliability=self.reliability, link=self.link, short_name=self.short_name)
+        return dict(
+            description=self.description,
+            score=self.score,
+            reliability=self.reliability,
+            link=self.link,
+            short_name=self.short_name,
+        )
 
 
 class SingleRule:
     def __init__(self, value_path, relation, comparison):
         for assertion, error_message in [
             (isinstance(value_path, list), 'value_path must be list of dot separated access strings'),
-            (relation in RELATIONS, f'relation must be one of {list(RELATIONS.keys())}')
+            (relation in RELATIONS, f'relation must be one of {list(RELATIONS.keys())}'),
         ]:
             if not assertion:
                 raise BadRuleError(error_message)
@@ -64,7 +73,7 @@ class MetaRule:
     def __init__(self, rules, relation):
         for assertion, error_message in [
             (relation in [any, all], 'only any or all are allowed in MetaRule'),
-            (all(isinstance(rule, SingleRule) for rule in rules), 'all rules in MetaRule must be of type Rule')
+            (all(isinstance(rule, SingleRule) for rule in rules), 'all rules in MetaRule must be of type Rule'),
         ]:
             if not assertion:
                 raise BadRuleError(error_message)
@@ -77,7 +86,7 @@ class SubPathRule:
     def __init__(self, base_path, meta_rule):
         for assertion, error_message in [
             (isinstance(base_path, list), 'base_path must be list of dot separated access strings'),
-            (isinstance(meta_rule, MetaRule), 'rules must be a MetaRule')
+            (isinstance(meta_rule, MetaRule), 'rules must be a MetaRule'),
         ]:
             if not assertion:
                 raise BadRuleError(error_message)
@@ -148,7 +157,7 @@ def vulnerabilities():
     heartbleed_rule = SingleRule(
         value_path=['software_components.OpenSSL.meta.version'],
         relation='intersection',
-        comparison=[f'1.0.1{minor}' for minor in 'abcde']
+        comparison=[f'1.0.1{minor}' for minor in 'abcde'],
     )
     heartbleed_vulnerability = Vulnerability(
         rule=heartbleed_rule,
@@ -156,13 +165,13 @@ def vulnerabilities():
         description='The SSL Heartbleed bug allowing buffer over-read',
         score='high',
         reliability='90',
-        link='https://nvd.nist.gov/vuln/detail/CVE-2014-0160'
+        link='https://nvd.nist.gov/vuln/detail/CVE-2014-0160',
     )
 
     netgear_cgi_rule = SingleRule(
         value_path=['file_hashes.sha256'],
         relation='equals',
-        comparison='7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'
+        comparison='7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a',
     )
     netgear_cgi_vulnerability = Vulnerability(
         rule=netgear_cgi_rule,
@@ -170,7 +179,7 @@ def vulnerabilities():
         description='Netgear httpd vulnerable to "/cgi-bin/<shell command>" bug',
         score='medium',
         reliability='100',
-        link='https://nvd.nist.gov/vuln/detail/CVE-2016-6277'
+        link='https://nvd.nist.gov/vuln/detail/CVE-2016-6277',
     )
 
     return [heartbleed_vulnerability, netgear_cgi_vulnerability]

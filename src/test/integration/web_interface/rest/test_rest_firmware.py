@@ -9,7 +9,6 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 
 class TestRestFirmware(RestTestBase):
-
     def test_rest_firmware_existing(self, db):
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         db.backend.add_object(test_firmware)
@@ -59,7 +58,7 @@ class TestRestFirmware(RestTestBase):
             'vendor': 'test_vendor',
             'release_date': '1970-01-01',
             'tags': '',
-            'requested_analysis_systems': ['dummy']
+            'requested_analysis_systems': ['dummy'],
         }
         rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
         assert b'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17' in rv.data
@@ -75,7 +74,7 @@ class TestRestFirmware(RestTestBase):
             'vendor': 'test_vendor',
             'release_date': '01.01.1970',
             'tags': '',
-            'requested_analysis_systems': ['dummy']
+            'requested_analysis_systems': ['dummy'],
         }
         rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
         assert rv.json['message'] == 'Input payload validation failed'
@@ -130,5 +129,7 @@ class TestRestFirmware(RestTestBase):
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         db.backend.add_object(test_firmware)
 
-        request_with_summary = self.test_client.get(f'/rest/firmware/{test_firmware.uid}?summary=true', follow_redirects=True)
+        request_with_summary = self.test_client.get(
+            f'/rest/firmware/{test_firmware.uid}?summary=true', follow_redirects=True
+        )
         assert test_firmware.processed_analysis['dummy']['summary'][0].encode() in request_with_summary.data

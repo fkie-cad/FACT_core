@@ -47,10 +47,7 @@ class YaraBinarySearchScanner:
         return '\n'.join(result)
 
     def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> List[str]:
-        return [
-            self.fs_organizer.generate_path_from_uid(uid)
-            for uid in self.db.get_all_files_in_fw(fw_uid)
-        ]
+        return [self.fs_organizer.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
 
     @staticmethod
     def _parse_raw_result(raw_result: str) -> Dict[str, List[str]]:

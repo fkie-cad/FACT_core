@@ -19,6 +19,7 @@ class ConnectTo(Generic[DatabaseInterface]):
            with ConnectTo(FrontEndDbInterface, self.config) as connection:
                 query = connection.firmwares.find({})
     '''
+
     def __init__(self, connected_interface: Type[DatabaseInterface], config: ConfigParser):
         self.interface = connected_interface
         self.config = config

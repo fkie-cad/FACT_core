@@ -25,7 +25,6 @@ class BackendDbInterface:
 
 
 class AnalysisSchedulerTest(TestCase):
-
     @mock.patch('plugins.base.ViewUpdater', lambda *_: ViewUpdaterMock())
     def setUp(self):
         self.mocked_interface = BackendDbInterface()
@@ -35,8 +34,11 @@ class AnalysisSchedulerTest(TestCase):
         config.set('default-plugins', 'default', 'file_hashes')
         self.tmp_queue = Queue()
         self.sched = AnalysisScheduler(
-            config=config, pre_analysis=lambda *_: None, post_analysis=self.dummy_callback,
-            db_interface=self.mocked_interface, unpacking_locks=UnpackingLockManager()
+            config=config,
+            pre_analysis=lambda *_: None,
+            post_analysis=self.dummy_callback,
+            db_interface=self.mocked_interface,
+            unpacking_locks=UnpackingLockManager(),
         )
 
     def tearDown(self):
@@ -49,7 +51,6 @@ class AnalysisSchedulerTest(TestCase):
 
 
 class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
-
     def test_plugin_registration(self):
         assert 'dummy_plugin_for_testing_only' in self.sched.analysis_plugins, 'Dummy plugin not found'
 
@@ -202,7 +203,9 @@ class TestAnalysisSchedulerBlacklist:
         assert blacklisted is True
 
     def test_next_analysis_is_blacklisted__whitelist_precedes_blacklist(self):
-        self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['test_type'], whitelist=['test_type'])
+        self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(
+            blacklist=['test_type'], whitelist=['test_type']
+        )
         self.file_object.processed_analysis['file_type']['mime'] = 'test_type'
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
         assert blacklisted is False
@@ -228,7 +231,6 @@ class TestAnalysisSchedulerBlacklist:
 
 
 class TestAnalysisSkipping:
-
     class PluginMock:
         DEPENDENCIES = []
 
@@ -256,8 +258,8 @@ class TestAnalysisSkipping:
         cls.init_patch.stop()
 
     @pytest.mark.parametrize(
-        'plugin_version, plugin_system_version, analysis_plugin_version, '
-        'analysis_system_version, expected_output', [
+        'plugin_version, plugin_system_version, analysis_plugin_version, ' 'analysis_system_version, expected_output',
+        [
             ('1.0', None, '1.0', None, True),
             ('1.1', None, '1.0', None, False),
             ('1.0', None, '1.1', None, True),
@@ -265,24 +267,36 @@ class TestAnalysisSkipping:
             ('1.0', '2.0', '1.0', '2.1', True),
             ('1.0', '2.1', '1.0', '2.0', False),
             ('1.0', '2.0', '1.0', None, False),
-            (' 1.0', '1.1', '1.1', '1.0', False)  # invalid version string
-        ]
+            (' 1.0', '1.1', '1.1', '1.0', False),  # invalid version string
+        ],
     )
     def test_analysis_is_already_in_db_and_up_to_date(
-            self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output):
+        self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output
+    ):
         plugin = 'foo'
         analysis_entry = {
-            'plugin': plugin, 'plugin_version': analysis_plugin_version, 'system_version': analysis_system_version,
+            'plugin': plugin,
+            'plugin_version': analysis_plugin_version,
+            'system_version': analysis_system_version,
         }
         self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
         self.scheduler.analysis_plugins[plugin] = self.PluginMock(
-            version=plugin_version, system_version=plugin_system_version)
+            version=plugin_version, system_version=plugin_system_version
+        )
         assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') == expected_output
 
-    @pytest.mark.parametrize('db_entry', [
-        {'plugin': 'plugin', 'plugin_version': '0'},  # 'system_version' missing
-        {'plugin': 'plugin', 'result': {'failed': 'reason'}, 'plugin_version': '0', 'system_version': '0'},  # failed
-    ])
+    @pytest.mark.parametrize(
+        'db_entry',
+        [
+            {'plugin': 'plugin', 'plugin_version': '0'},  # 'system_version' missing
+            {
+                'plugin': 'plugin',
+                'result': {'failed': 'reason'},
+                'plugin_version': '0',
+                'system_version': '0',
+            },  # failed
+        ],
+    )
     def test_analysis_is_already_in_db_and_up_to_date__incomplete(self, db_entry):
         self.scheduler.db_backend_service = self.BackendMock(db_entry)
         self.scheduler.analysis_plugins['plugin'] = self.PluginMock(version='1.0', system_version='1.0')
@@ -321,18 +335,31 @@ class TestAnalysisShouldReanalyse:
         cls.scheduler = AnalysisScheduler()
         cls.init_patch.stop()
 
-    @pytest.mark.parametrize('plugin_date, dependency_date, plugin_version, system_version, db_plugin_version, db_system_version, expected_result', [
-        (10, 20, '1.0', None, '1.0', None, False),  # analysis date < dependency date => not up to date
-        (20, 10, '1.0', None, '1.0', None, True),  # analysis date > dependency date => up to date
-        (20, 10, '1.1', None, '1.0', None, False),  # plugin version > db version => not up to date
-        (20, 10, '1.0', None, '1.1', None, True),  # plugin version < db version => up to date
-        (20, 10, '1.0', '1.1', '1.0', '1.0', False),  # system version > db system version => not up to date
-        (20, 10, '1.0', '1.0', '1.0', '1.1', True),  # system version < db system version => up to date
-        (20, 10, '1.0', '1.0', '1.0', None, False),  # system version did not exist in db => not up to date
-    ])
-    def test_analysis_is_up_to_date(self, plugin_date, dependency_date, plugin_version, system_version,
-                                    db_plugin_version, db_system_version, expected_result):
-        analysis_db_entry = dict(plugin_version=db_plugin_version, analysis_date=plugin_date, system_version=db_system_version)
+    @pytest.mark.parametrize(
+        'plugin_date, dependency_date, plugin_version, system_version, db_plugin_version, db_system_version, expected_result',
+        [
+            (10, 20, '1.0', None, '1.0', None, False),  # analysis date < dependency date => not up to date
+            (20, 10, '1.0', None, '1.0', None, True),  # analysis date > dependency date => up to date
+            (20, 10, '1.1', None, '1.0', None, False),  # plugin version > db version => not up to date
+            (20, 10, '1.0', None, '1.1', None, True),  # plugin version < db version => up to date
+            (20, 10, '1.0', '1.1', '1.0', '1.0', False),  # system version > db system version => not up to date
+            (20, 10, '1.0', '1.0', '1.0', '1.1', True),  # system version < db system version => up to date
+            (20, 10, '1.0', '1.0', '1.0', None, False),  # system version did not exist in db => not up to date
+        ],
+    )
+    def test_analysis_is_up_to_date(
+        self,
+        plugin_date,
+        dependency_date,
+        plugin_version,
+        system_version,
+        db_plugin_version,
+        db_system_version,
+        expected_result,
+    ):
+        analysis_db_entry = dict(
+            plugin_version=db_plugin_version, analysis_date=plugin_date, system_version=db_system_version
+        )
         self.scheduler.db_backend_service = self.BackendMock(dependency_date)
         plugin = self.PluginMock(plugin_version, system_version)
         assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, plugin, 'uid') == expected_result
