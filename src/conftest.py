@@ -99,8 +99,8 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
 # FIXME When configparser is not used anymore this should not be named cfg_tuple but rather cfg
 @pytest.fixture
 def cfg_tuple(request):
-    """Returns a `config.Config` and a `configparser.ConfigParser` with testing defaults.
-    Defaults can be overwritten with the `cfg_defaults` pytest mark.
+    """Returns a ``config.Config`` and a ``configparser.ConfigParser`` with testing defaults.
+    Defaults can be overwritten with the ``cfg_defaults`` pytest mark.
     """
 
     cfg_defaults = {}
@@ -121,8 +121,8 @@ def cfg_tuple(request):
 
 @pytest.fixture(autouse=True)
 def patch_cfg(cfg_tuple):
-    """This fixture will replace `config.cfg` and `config.configparser_cfg` with the default test config.
-    See `cfg_tuple` on how to change defaults.
+    """This fixture will replace ``config.cfg`` and ``config.configparser_cfg`` with the default test config.
+    See ``cfg_tuple`` on how to change defaults.
     """
     cfg, configparser_cfg = cfg_tuple
     mpatch = pytest.MonkeyPatch()
@@ -152,38 +152,42 @@ class MockPluginAdministrator:
 def analysis_plugin(request, monkeypatch, patch_cfg):
     """Returns an instance of an AnalysisPlugin.
     The following pytest markers affect this fixture:
-        * AnalysisPluginClass: The plugin class type. Must be a class derived from `AnalysisBasePlugin`.
-            E.g `AnalysisPlugin`
-            The marker has to be set with `@pytest.mark.with_args` to work around pytest
-            [weirdness](https://docs.pytest.org/en/7.1.x/example/markers.html#passing-a-callable-to-custom-markers).
-        * plugin_start_worker: If set the AnalysisPluginClass.start_worker method will NOT be overwritten.
-            If not set the method is overwritten by a stub that does nothing.
-        * plugin_init_kwargs: Additional keyword arguments that shall be passed to the `AnalysisPluginClass` constructor
+
+    * AnalysisPluginClass: The plugin class type. Must be a class derived from ``AnalysisBasePlugin``.
+      The marker has to be set with ``@pytest.mark.with_args`` to work around pytest
+      `link weirdness <https://docs.pytest.org/en/7.1.x/example/markers.html#passing-a-callable-to-custom-markers>`.
+    * plugin_start_worker: If set the AnalysisPluginClass.start_worker method will NOT be overwritten.
+      If not set the method is overwritten by a stub that does nothing.
+    * plugin_init_kwargs: Additional keyword arguments that shall be passed to the ``AnalysisPluginClass`` constructor
 
     If this fixture does not fit your needs (which normally should not be necessary) you can define a fixture like this:
-    ```@pytest.fixture
-    def my_fancy_plugin(analysis_plugin)
-        # Make sure the marker is defined as expected
-        assert isinstance(analysis_plugin, MyFancyPlugin)
-        # Patch custom things
-        analysis_plugin.db_interface = CustomDbMock()
-        # Return the plugin instance
-        yield analysis_plugin
-    ```
 
-    Note: If you use the `plugin_start_worker` marker and want to modify plugin configuration like for example TIMEOUT
-          you have to put the following in your test:
+    .. code-block::
 
-    ```
-    @pytest.mark.AnalysisPluginClass.with_args(MyFancyPlugin)
-    # Don't use `plugin_start_worker`
-    def my_fancy_test(analysis_plugin, monkeypatch):
-        # Undo the patching of MyFancyPlugin.start_worker
-        monkeypatch.undo()
-        analysis_plugin.TIMEOUT = 0
-        # Now start the worker
-        analysis_plugin.start_worker()
-    ```
+        @pytest.fixture
+        def my_fancy_plugin(analysis_plugin)
+            # Make sure the marker is defined as expected
+            assert isinstance(analysis_plugin, MyFancyPlugin)
+            # Patch custom things
+            analysis_plugin.db_interface = CustomDbMock()
+            # Return the plugin instance
+            yield analysis_plugin
+
+    .. Note::
+
+        If you use the ``plugin_start_worker`` marker and want to modify plugin configuration like for example TIMEOUT
+        you have to put the following in your test:
+
+        .. code-block::
+
+            @pytest.mark.AnalysisPluginClass.with_args(MyFancyPlugin)
+            # Don't use `plugin_start_worker`
+            def my_fancy_test(analysis_plugin, monkeypatch):
+                # Undo the patching of MyFancyPlugin.start_worker
+                monkeypatch.undo()
+                analysis_plugin.TIMEOUT = 0
+                # Now start the worker
+                analysis_plugin.start_worker()
     """
     # IMPORTANT, READ BEFORE EDITING:
     # This fixture uses the default monkeypatch fixture.
