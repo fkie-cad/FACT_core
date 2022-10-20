@@ -2,8 +2,10 @@ import pytest
 
 from storage.db_interface_frontend import CachedQuery
 from storage.query_conversion import QueryConversionException
-from test.common_helper import generate_analysis_entry  # pylint: disable=wrong-import-order
-from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import (
+    generate_analysis_entry,  # pylint: disable=wrong-import-order; pylint: disable=wrong-import-order
+)
+from test.common_helper import create_test_file_object, create_test_firmware
 from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree_node import FileTreeNode
 

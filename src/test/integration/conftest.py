@@ -9,8 +9,10 @@ from storage.db_interface_common import DbInterfaceCommon
 from storage.db_interface_comparison import ComparisonDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from test.common_helper import clear_test_tables  # pylint: disable=wrong-import-order
-from test.common_helper import get_config_for_testing, setup_test_tables  # pylint: disable=wrong-import-order
+from test.common_helper import (
+    clear_test_tables,  # pylint: disable=wrong-import-order; pylint: disable=wrong-import-order
+)
+from test.common_helper import get_config_for_testing, setup_test_tables
 
 
 class DB:
