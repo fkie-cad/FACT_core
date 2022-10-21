@@ -9,8 +9,7 @@ class BasePlugin:
     NAME = 'base'
     DEPENDENCIES = []
 
-    def __init__(self, plugin_administrator, config=None, plugin_path=None, view_updater=None):
-        self.plugin_administrator = plugin_administrator
+    def __init__(self, config=None, plugin_path=None, view_updater=None):
         self.config = config
         self.view_updater = view_updater if view_updater is not None else ViewUpdater(config)
         if plugin_path:

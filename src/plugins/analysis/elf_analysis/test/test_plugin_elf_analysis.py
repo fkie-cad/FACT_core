@@ -15,11 +15,6 @@ TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
-class MockAdmin:
-    def register_plugin(self, name, administrator):
-        pass
-
-
 LiefResult = namedtuple(
     'LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions', 'sections']
 )
@@ -57,7 +52,7 @@ def stub_object():
 @pytest.fixture(scope='function')
 def stub_plugin(test_config, monkeypatch):
     monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
-    return AnalysisPlugin(MockAdmin(), test_config, offline_testing=True)
+    return AnalysisPlugin(test_config, offline_testing=True)
 
 
 @pytest.mark.parametrize(

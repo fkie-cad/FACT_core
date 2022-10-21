@@ -8,11 +8,6 @@ from ..code.hashlookup import AnalysisPlugin
 KNOWN_ZSH_HASH = 'A6F2177402114FC8B5E7ECF924FFA61A2AC25BD347BC3370FB92E07B76E0B44C'
 
 
-class MockAdmin:
-    def register_plugin(self, name, administrator):
-        pass
-
-
 @pytest.fixture(scope='function')
 def test_config():
     return get_config_for_testing()
@@ -21,7 +16,7 @@ def test_config():
 @pytest.fixture(scope='function')
 def stub_plugin(test_config, monkeypatch):
     monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
-    return AnalysisPlugin(MockAdmin(), test_config, offline_testing=True)
+    return AnalysisPlugin(test_config, offline_testing=True)
 
 
 @pytest.fixture(scope='function')

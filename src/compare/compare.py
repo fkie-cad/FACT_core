@@ -88,7 +88,7 @@ class Compare:
                 logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
             else:
                 self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(
-                    self, config=self.config, db_interface=self.db_interface
+                    config=self.config, db_interface=self.db_interface
                 )
 
     def _execute_compare_plugins(self, fo_list):
