@@ -12,11 +12,6 @@ from ..code.source_code_analysis import AnalysisPlugin
 PYLINT_TEST_FILE = Path(__file__).parent / 'data' / 'linter_test_file'
 
 
-class MockAdmin:
-    def register_plugin(self, name, administrator):
-        pass
-
-
 @pytest.fixture(scope='function')
 def test_config():
     return get_config_for_testing()
@@ -29,7 +24,7 @@ def test_object():
 
 @pytest.fixture(scope='function')
 def stub_plugin(test_config, monkeypatch):
-    return AnalysisPlugin(MockAdmin(), test_config, offline_testing=True, view_updater=CommonDatabaseMock())
+    return AnalysisPlugin(test_config, offline_testing=True, view_updater=CommonDatabaseMock())
 
 
 def test_process_object_not_supported(stub_plugin, test_object, monkeypatch):

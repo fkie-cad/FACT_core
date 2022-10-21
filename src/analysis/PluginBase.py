@@ -39,10 +39,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     MIME_BLACKLIST = []
     MIME_WHITELIST = []
 
-    def __init__(
-        self, plugin_administrator, config=None, no_multithread=False, offline_testing=False, view_updater=None
-    ):
-        super().__init__(plugin_administrator, config=config, plugin_path=self.FILE, view_updater=view_updater)
+    def __init__(self, config=None, no_multithread=False, offline_testing=False, view_updater=None):
+        super().__init__(config=config, plugin_path=self.FILE, view_updater=view_updater)
         self._check_plugin_attributes()
         self.check_config(no_multithread)
         self.additional_setup()

@@ -184,7 +184,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 # be missing dependencies. So if anything goes wrong we want to inform the user about it
                 logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
             else:
-                self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin(self, config=self.config)
+                self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin(config=self.config)
 
     def _get_plugin_sets_from_config(self):
         try:

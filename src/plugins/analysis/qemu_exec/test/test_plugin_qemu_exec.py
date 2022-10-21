@@ -96,7 +96,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
     PLUGIN_CLASS = AnalysisPlugin
 
     def setup_plugin(self):
-        return AnalysisPlugin(self, config=self.config, unpacker=MockUnpacker(), view_updater=CommonDatabaseMock())
+        return AnalysisPlugin(config=self.config, unpacker=MockUnpacker(), view_updater=CommonDatabaseMock())
 
     def test_has_relevant_type(self):
         assert self.analysis_plugin._has_relevant_type(None) is False

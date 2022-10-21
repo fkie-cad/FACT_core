@@ -21,7 +21,7 @@ class TestPluginBase(unittest.TestCase):
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def setUp(self):
         self.config = self.set_up_base_config()
-        self.base_plugin = DummyPlugin(self, self.config)
+        self.base_plugin = DummyPlugin(self.config)
 
     @staticmethod
     def set_up_base_config():
@@ -36,19 +36,12 @@ class TestPluginBase(unittest.TestCase):
         self.base_plugin.shutdown()
         gc.collect()
 
-    def register_plugin(self, name, plugin_object):  # pylint: disable=no-self-use
-        '''
-        This is a mock checking if the plugin registers correctly
-        '''
-        assert name == 'dummy_plugin_for_testing_only', 'plugin registers with wrong name'
-        assert plugin_object.NAME == 'dummy_plugin_for_testing_only', 'plugin object has wrong name'
-
 
 class TestPluginBaseCore(TestPluginBase):
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def test_attribute_check(self):
         with pytest.raises(PluginInitException):
-            AnalysisBasePlugin(self, config=self.config)
+            AnalysisBasePlugin(config=self.config)
 
     @staticmethod
     def test_start_stop_workers():
@@ -134,7 +127,7 @@ class TestPluginNotRunning(TestPluginBase):
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def multithread_config_test(self, multithread_flag, threads_in_config, threads_wanted):
         self.config.set('dummy_plugin_for_testing_only', 'threads', threads_in_config)
-        self.p_base = DummyPlugin(self, self.config, no_multithread=multithread_flag)
+        self.p_base = DummyPlugin(self.config, no_multithread=multithread_flag)
         self.assertEqual(
             self.p_base.config[self.p_base.NAME]['threads'], threads_wanted, 'number of threads not correct'
         )
@@ -148,7 +141,7 @@ class TestPluginNotRunning(TestPluginBase):
 
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def test_init_result_dict(self):
-        self.p_base = DummyPlugin(self, self.config)
+        self.p_base = DummyPlugin(self.config)
         resultdict = self.p_base.init_dict()
         self.assertIn('analysis_date', resultdict, 'analysis date missing')
         self.assertEqual(resultdict['plugin_version'], '0.0', 'plugin version field not correct')
@@ -166,12 +159,9 @@ class TestPluginTimeout(TestPluginBase):
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     @mock.patch('plugins.analysis.dummy.code.dummy.AnalysisPlugin.TIMEOUT', 0)
     def test_timeout(self):
-        self.p_base = DummyPlugin(self, self.config)
+        self.p_base = DummyPlugin(self.config)
         fo_in = FileObject(binary=b'test', scheduled_analysis=[])
         self.p_base.add_job(fo_in)
         fo_out = self.p_base.out_queue.get(timeout=5)
         self.p_base.shutdown()
         self.assertNotIn('summary', fo_out.processed_analysis['dummy_plugin_for_testing_only'])
-
-    def register_plugin(self, name, plugin_object):
-        pass
