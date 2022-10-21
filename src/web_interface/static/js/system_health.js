@@ -69,6 +69,7 @@ function updatePluginCard(pluginName, pluginData) {
     const activeElement = document.getElementById(`${pluginName}-active`);
     const queueIndicatorElement = document.getElementById(`${pluginName}-queue-indicator`);
     const queueElement = document.getElementById(`${pluginName}-queue`);
+    const statsElement = document.getElementById(`${pluginName}-stats`);
     if (pluginData.active > 0) {
         activeIndicatorElement.classList.add("fa-spin");
         activeIndicatorElement.style.color = BOOTSTRAP_PRIMARY_COLOR;
@@ -90,6 +91,40 @@ function updatePluginCard(pluginName, pluginData) {
         queueElement.style.color = "darkgrey";
     }
     queueElement.innerText = pluginData.queue.toString();
+    if (pluginData.stats !== null) {
+        statsElement.innerHTML = `
+            <table class="table table-sm table-striped" style="margin-left: 16px">
+                <tbody>
+                    <tr>
+                        <td style="width: 10px; text-align: right;">min</td>
+                        <td>${pluginData.stats.min}s</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 10px; text-align: right;">max</td>
+                        <td>${pluginData.stats.max}s</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 10px; text-align: right;">mean</td>
+                        <td>${pluginData.stats.mean}s</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 10px; text-align: right;">median</td>
+                        <td>${pluginData.stats.median}s</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 10px; text-align: right;">variance</td>
+                        <td>${pluginData.stats.variance}s</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 10px; text-align: right;">count</td>
+                        <td>${pluginData.stats.count}</td>
+                    </tr>
+                </tbody>
+            </table>
+        `;
+    } else {
+        statsElement.innerHTML = `N/A`;
+    }
 }
 
 function updateCurrentAnalyses(analysisData) {
@@ -101,7 +136,7 @@ function updateCurrentAnalyses(analysisData) {
         Object.entries(analysisData.recently_finished_analyses)
             .map(([uid, analysisStats], index) => createFinishedAnalysisItem(uid, analysisStats)),
     ).join("\n");
-    currentAnalysesElement.innerHTML = currentAnalysesHTML != "" ? currentAnalysesHTML : "No analysis in progress";
+    currentAnalysesElement.innerHTML = currentAnalysesHTML !== "" ? currentAnalysesHTML : "No analysis in progress";
 }
 
 function createCurrentAnalysisItem(uid, data) {

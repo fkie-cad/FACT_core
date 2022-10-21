@@ -53,6 +53,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.thread_count = int(self.config[self.NAME]['threads'])
         self.active = [Value('i', 0) for _ in range(self.thread_count)]
         self.register_plugin()
+        self.manager = Manager()
+        self.analysis_stats = self.manager.list()
         if not offline_testing:
             self.start_worker()
 
@@ -124,7 +126,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         else:
             file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
 
-    def init_dict(self):
+    def init_dict(self) -> dict:
         result_update = {'analysis_date': time(), 'plugin_version': self.VERSION}
         if self.SYSTEM_VERSION:
             result_update.update({'system_version': self.SYSTEM_VERSION})
@@ -150,12 +152,16 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def timeout_happened(process):
         return process.is_alive()
 
-    def worker_processing_with_timeout(self, worker_id, next_task):
-        manager = Manager()
-        result = manager.list()
+    def worker_processing_with_timeout(self, worker_id, next_task: FileObject):
+        result = self.manager.list()
         process = ExceptionSafeProcess(target=self.process_next_object, args=(next_task, result))
+        start = time()
         process.start()
         process.join(timeout=self.TIMEOUT)
+        duration = time() - start
+        if duration > 120:
+            logging.info(f'Analysis {self.NAME} on {next_task.uid} is slow: took {duration:.1f} seconds')
+        self.analysis_stats += [duration]
         if self.timeout_happened(process):
             self._handle_failed_analysis(next_task, process, worker_id, 'Timeout')
         elif process.exception:

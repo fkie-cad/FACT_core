@@ -104,6 +104,11 @@
                         {{ icon_tooltip_desk('flag', 'Whitelisted file types', icon_class='far') }}
                         <td>{{ whitelist | list_group_collapse | safe }}</td>
                     </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('chart-bar', 'Analysis stats', icon_class='far') }}
+                        <td id="{{ plugin_name }}-stats"></td>
+                    </tr>
+
                 </table>
             </div>
 
