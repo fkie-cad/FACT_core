@@ -23,6 +23,8 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
 
         assert 'user_paths' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['user_paths'] == [
+            '/home/multiple/file.a',
+            '/home/multiple/file.b',
             '/home/user/test/urandom',
             '/home/user/urandom',
         ]
@@ -35,6 +37,7 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
 
         assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == [
+            '/home/multiple',
             '/home/user/test/urandom',
             '/home/user/urandom',
             '/root/user_name/this_directory',
