@@ -184,18 +184,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 # be missing dependencies. So if anything goes wrong we want to inform the user about it
                 logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
             else:
-                plugin.AnalysisPlugin(self, config=self.config)
-
-    def register_plugin(self, name: str, plugin_instance: AnalysisBasePlugin):
-        '''
-        This function is used by analysis plugins to register themselves with this scheduler. During initialization the
-        plugins will call this functions giving their name and a reference to their object to allow the scheduler to
-        address them for running analyses.
-
-        :param name: The plugin name for addressing in runner and collector
-        :param plugin_instance: A reference to the plugin object
-        '''
-        self.analysis_plugins[name] = plugin_instance
+                self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin(self, config=self.config)
 
     def _get_plugin_sets_from_config(self):
         try:

@@ -32,6 +32,3 @@ class BasePlugin:
         if len(view_files) > 1:
             logging.warning(f'{cls.NAME}: Plug-in provides more than one view! \'{view_files[0]}\' is used!')
         return view_files[0]
-
-    def register_plugin(self):
-        self.plugin_administrator.register_plugin(self.NAME, self)
