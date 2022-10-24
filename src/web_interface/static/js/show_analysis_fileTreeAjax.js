@@ -42,8 +42,9 @@ function delay(fn, ms) {
 
 $(document).ready(function () {
     $('#fileTreeSearch').keyup(delay(function () {
-        $('#fileTreeAjax').jstree(true).show_all();
-        $('#fileTreeAjax').jstree('search', $(this).val());
+        let fileTree = $('#fileTreeAjax');
+        fileTree.jstree(true).show_all();
+        fileTree.jstree('search', $(this).val());
         $('#fileTreeAjax .jstree-hidden').hide();
     }, 1000));
 });
