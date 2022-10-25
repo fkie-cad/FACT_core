@@ -28,6 +28,9 @@ class MockDbInterface(CommonDatabaseMock):
             return self.test_object
         return None
 
+    def get_vfp_of_included_text_files(self, root_uid, blacklist=None):
+        return {}
+
 
 class TestSchedulerCompare(unittest.TestCase):
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
@@ -46,8 +49,9 @@ class TestSchedulerCompare(unittest.TestCase):
         self.bs_patch_new.start()
         self.bs_patch_init.start()
 
+        db_mock = MockDbInterface(config=self.config)
         self.compare_scheduler = ComparisonScheduler(
-            config=self.config, db_interface=MockDbInterface(config=self.config), testing=True
+            config=self.config, db_interface=db_mock, admin_db_interface=db_mock, testing=True
         )
 
     def tearDown(self):
