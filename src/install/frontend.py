@@ -148,7 +148,7 @@ def main(skip_docker, radare, nginx, distribution):
     if not skip_docker:
         _install_docker_images(radare)
 
-    with OperateInDirectory('../../'):
+    with OperateInDirectory(INSTALL_DIR.parent.parent):
         with suppress(FileNotFoundError):
             Path('start_fact_frontend').unlink()
         Path('start_fact_frontend').symlink_to('src/start_fact_frontend.py')

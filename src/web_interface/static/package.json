@@ -9,6 +9,7 @@
     "highlight.js": "^11.6.0",
     "jquery": "^3.5.0",
     "jstree": "^3.3.12",
+    "jstree-bootstrap-theme": "^1.0.1",
     "moment": "^2.29.4",
     "popper.js": "^1.16.1",
     "vis-network": "^8.5.6"
