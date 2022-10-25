@@ -13,6 +13,9 @@ class DbMock:  # pylint: disable=unused-argument,no-self-use
     def get_ssdeep_hash(self, uid):
         return '42'
 
+    def get_vfp_of_included_text_files(self, root_uid, blacklist=None):
+        return {}
+
 
 class TestComparePluginFileCoverage(ComparePluginTest):
 
@@ -61,7 +64,7 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         self.fw_one.list_of_all_included_files.append('foo')
         self.fw_two.list_of_all_included_files.append('foo')
         result = self.c_plugin.compare_function([self.fw_one, self.fw_two])
-        assert len(result.keys()) == 4
+        assert len(result.keys()) == 5
 
 
 @pytest.mark.parametrize(

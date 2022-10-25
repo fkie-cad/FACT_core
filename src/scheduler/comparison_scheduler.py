@@ -5,6 +5,7 @@ from queue import Empty
 from compare.compare import Compare
 from helperFunctions.data_conversion import convert_compare_id_to_list
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
+from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
 
 
@@ -13,9 +14,10 @@ class ComparisonScheduler:
     This module handles all request regarding comparisons
     '''
 
-    def __init__(self, config=None, db_interface=None, testing=False, callback=None):
+    def __init__(self, config=None, db_interface=None, admin_db_interface=None, testing=False, callback=None):
         self.config = config
-        self.db_interface = db_interface if db_interface else ComparisonDbInterface(config=config)
+        self.db_interface = db_interface or ComparisonDbInterface(config=config)
+        self.db_admin_interface = admin_db_interface or AdminDbInterface(config=config)
         self.stop_condition = Value('i', 1)
         self.in_queue = Queue()
         self.callback = callback
@@ -61,7 +63,7 @@ class ComparisonScheduler:
             return
         if self._comparison_should_start(comparison_id, redo, comparisons_done):
             if redo:
-                self.db_interface.delete_comparison(comparison_id)
+                self.db_admin_interface.delete_comparison(comparison_id)
             comparisons_done.add(comparison_id)
             self._process_comparison(comparison_id)
             if self.callback:

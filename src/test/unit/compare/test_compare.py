@@ -36,6 +36,9 @@ class MockDbInterface:
     def get_complete_object_including_all_summaries(self, uid):
         return self.get_object(uid)
 
+    def get_vfp_of_included_text_files(self, root_uid, blacklist=None):
+        return {}
+
 
 class TestCompare(unittest.TestCase):
     def setUp(self):
