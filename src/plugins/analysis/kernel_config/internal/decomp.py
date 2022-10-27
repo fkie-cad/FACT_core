@@ -35,7 +35,7 @@ DECOMPRESS_CHUNK_SIZE = 8388608  # 8 MiB
 
 
 def _collect_compression_indices(raw, magic_word: bytes) -> List[int]:
-    indices = list()
+    indices = []
 
     raw_offset = 0
     while True:
@@ -49,7 +49,7 @@ def _collect_compression_indices(raw, magic_word: bytes) -> List[int]:
 
 
 def _decompress_indices(raw: bytes, indices: List[int], decompressor: object) -> List[bytes]:
-    result = list()
+    result = []
     for index in indices:
         try:
             decompressed = decompressor.decompress(raw[index:])
@@ -62,7 +62,7 @@ def _decompress_indices(raw: bytes, indices: List[int], decompressor: object) ->
 
 
 def decompress(raw: bytes) -> List[bytes]:
-    result = list()
+    result = []
 
     for compression in _COMPRESSIONS:
         indices = _collect_compression_indices(raw, compression['magic'])
