@@ -14,6 +14,10 @@ class DbMock:  # pylint: disable=unused-argument,no-self-use
         return '42'
 
     def get_vfp_of_included_text_files(self, root_uid, blacklist=None):
+        if root_uid == '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787':
+            return {'/foo': {'uid_1'}, '/bar': {'uid_2', 'uid_3'}}
+        if root_uid == 'd38970f8c5153d1041810d0908292bc8df21e7fd88aab211a8fb96c54afe6b01_319':
+            return {'/foo': {'uid_4'}, '/bar': {'uid_5'}}
         return {}
 
 
@@ -65,6 +69,12 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         self.fw_two.list_of_all_included_files.append('foo')
         result = self.c_plugin.compare_function([self.fw_one, self.fw_two])
         assert len(result.keys()) == 5
+
+    def test_find_changed_text_files(self):
+        result = self.c_plugin._find_changed_text_files([self.fw_one, self.fw_two], common_files=[])
+        assert '/foo' in result and '/bar' in result
+        assert result['/foo'] == [('uid_1', 'uid_4')]
+        assert len(result['/bar']) == 2
 
 
 @pytest.mark.parametrize(
