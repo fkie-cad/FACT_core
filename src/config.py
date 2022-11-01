@@ -155,4 +155,5 @@ def _replace_hyphens_with_underscores(sections):
 
 
 def parse_comma_separated_list(list_string):
-    return [item.strip() for item in list_string.split(',')]
+    # str.split() returns an empty string when no separator is in the input
+    return [item.strip() for item in list_string.split(',') if item != '']

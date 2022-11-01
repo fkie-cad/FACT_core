@@ -9,7 +9,7 @@ from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
 from config import configparser_cfg
-from helperFunctions.config import get_temp_dir_path
+from helperFunctions.config_deprecated import get_temp_dir_path
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
