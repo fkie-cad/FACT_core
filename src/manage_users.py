@@ -9,7 +9,8 @@ from flask_security import hash_password
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 
-from helperFunctions.config import get_config_dir, load_config
+from config import load_config
+from helperFunctions.config_deprecated import get_config_dir
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.app import create_app
