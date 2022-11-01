@@ -9,7 +9,7 @@ from test.integration.web_interface.rest.base import RestTestBase
 class TestRestStatistics(RestTestBase):
     def setup(self):
         super().setup()
-        self.stats_updater = StatsUpdateDbInterface(config=self.config)
+        self.stats_updater = StatsUpdateDbInterface()
         self.stats_updater.update_statistic(
             'file_type',
             {

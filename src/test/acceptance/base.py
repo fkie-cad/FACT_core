@@ -6,6 +6,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 from tempfile import TemporaryDirectory
 
+import pytest
 from common_helper_files import create_dir_for_file
 
 from helperFunctions.config_deprecated import load_config
@@ -26,6 +27,13 @@ from web_interface.frontend_main import WebFrontEnd
 TMP_DB_NAME = 'tmp_acceptance_tests'
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'expert-settings': {
+            'authentication': 'false',
+        }
+    }
+)
 class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instance-attributes
     class TestFW:
         def __init__(self, uid, path, name):
@@ -44,7 +52,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
 
         self.tmp_dir = TemporaryDirectory(prefix='fact_test_')
         self.config.set('data-storage', 'firmware-file-storage-directory', self.tmp_dir.name)
-        self.frontend = WebFrontEnd(config=self.config)
+        self.frontend = WebFrontEnd()
         self.frontend.app.config['TESTING'] = not self.config.getboolean('expert-settings', 'authentication')
         self.test_client = self.frontend.app.test_client()
 
@@ -80,15 +88,16 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
     def _start_backend(self, post_analysis=None, compare_callback=None):
         # pylint: disable=attribute-defined-outside-init
         unpacking_locks = UnpackingLockManager()
+
         self.analysis_service = AnalysisScheduler(
-            config=self.config, post_analysis=post_analysis, unpacking_locks=unpacking_locks
+            post_analysis=post_analysis,
+            unpacking_locks=unpacking_locks,
         )
         self.unpacking_service = UnpackingScheduler(
-            config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
             unpacking_locks=unpacking_locks,
         )
-        self.compare_service = ComparisonScheduler(config=self.config, callback=compare_callback)
+        self.compare_service = ComparisonScheduler(callback=compare_callback)
         self.intercom = InterComBackEndBinding(
             config=self.config,
             analysis_service=self.analysis_service,
@@ -96,7 +105,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
             unpacking_service=self.unpacking_service,
             unpacking_locks=unpacking_locks,
         )
-        self.fs_organizer = FSOrganizer(config=self.config)
+        self.fs_organizer = FSOrganizer()
 
     def _setup_debugging_logging(self):
         # for debugging purposes only
@@ -121,7 +130,7 @@ class TestAcceptanceBaseWithDb(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend()
-        self.db_backend = BackendDbInterface(config=self.config)
+        self.db_backend = BackendDbInterface()
         time.sleep(2)  # wait for systems to start
 
     def tearDown(self):

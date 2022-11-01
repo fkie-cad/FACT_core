@@ -3,7 +3,7 @@ from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import time
 
-from config import cfg, configparser_cfg
+from config import cfg
 from helperFunctions.process import (
     ExceptionSafeProcess,
     check_worker_exceptions,
@@ -175,4 +175,4 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         logging.debug(f'worker {worker_id} stopped')
 
     def check_exceptions(self):
-        return check_worker_exceptions(self.workers, 'Analysis', configparser_cfg, self.worker)
+        return check_worker_exceptions(self.workers, 'Analysis', self.worker)

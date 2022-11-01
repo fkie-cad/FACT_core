@@ -13,7 +13,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         rv = self.test_client.get('/upload')
         self.assertIn(b'<h3 class="mb-3">Upload Firmware</h3>', rv.data, 'upload page not displayed correctly')
 
-        with ConnectTo(InterComFrontEndBinding, self.config) as connection:
+        with ConnectTo(InterComFrontEndBinding) as connection:
             plugins = connection.get_available_analysis_plugins()
 
         mandatory_plugins = [p for p in plugins if plugins[p][1]]
@@ -37,7 +37,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
             )
 
     def _show_analysis_page(self):
-        db = FrontEndDbInterface(self.config)
+        db = FrontEndDbInterface()
         assert db.exists(self.test_fw_a.uid), 'Error: Test firmware not found in DB!'
         rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
         self.assertIn(self.test_fw_a.uid.encode(), rv.data)
@@ -84,7 +84,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         )
 
     def _delete_firmware(self):
-        fs_backend = FSOrganizer(config=self.config)
+        fs_backend = FSOrganizer()
         local_firmware_path = Path(fs_backend.generate_path_from_uid(self.test_fw_a.uid))
         self.assertTrue(local_firmware_path.exists(), 'file not found before delete')
         rv = self.test_client.get(f'/admin/delete/{self.test_fw_a.uid}')

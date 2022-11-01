@@ -7,24 +7,21 @@ from scheduler.analysis import AnalysisScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
-from test.integration.common import MockDbInterface, MockFSOrganizer, initialize_config
+from test.integration.common import MockDbInterface, MockFSOrganizer
 
 
 class TestFileAddition:
     def setup(self):
-        self._config = initialize_config(None)
         self._tmp_queue = Queue()
 
         unpacking_lock_manager = UnpackingLockManager()
         self._analysis_scheduler = AnalysisScheduler(
-            config=self._config,
             pre_analysis=lambda *_: None,
             post_analysis=self._dummy_callback,
             db_interface=MockDbInterface(None),
             unpacking_locks=unpacking_lock_manager,
         )
         self._unpack_scheduler = UnpackingScheduler(
-            config=self._config,
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
             fs_organizer=MockFSOrganizer(),
             unpacking_locks=unpacking_lock_manager,

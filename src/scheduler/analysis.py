@@ -1,7 +1,5 @@
-import configparser
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from configparser import ConfigParser
 from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep, time
@@ -89,13 +87,11 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def __init__(
         self,
-        config: Optional[ConfigParser] = None,
         pre_analysis: Callable[[FileObject], None] = None,
         post_analysis: Callable[[str, str, dict], None] = None,
         db_interface=None,
         unpacking_locks=None,
     ):
-        self.config = config
         self.analysis_plugins = {}
         self._load_plugins()
         self.stop_condition = Value('i', 0)
@@ -105,8 +101,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
 
-        self.fs_organizer = FSOrganizer(config=config)
-        self.db_backend_service = db_interface if db_interface else BackendDbInterface(config=config)
+        self.fs_organizer = FSOrganizer()
+        self.db_backend_service = db_interface if db_interface else BackendDbInterface()
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
         self._start_runner_process()
@@ -188,14 +184,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
 
     def _get_plugin_sets_from_config(self):
-        try:
-            return {
-                plugin_set: parse_comma_separated_list(getattr(cfg.default_plugins, plugin_set))
-                for plugin_set in self.config['default-plugins']
-            }
-        except (TypeError, KeyError, AttributeError):
-            logging.warning('default plug-ins not set in config')
-            return {}
+        return {plugin_set: plugins for plugin_set, plugins in cfg.default_plugins}
 
     def get_plugin_dict(self) -> dict:
         '''
@@ -232,8 +221,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set]
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
             try:
-                thread_count = self.config.get(plugin, 'threads', fallback=0)
-            except configparser.NoSectionError:
+                thread_count = getattr(cfg, plugin)['threads']
+            except (AttributeError, KeyError):
                 thread_count = 0
             # TODO this should not be a tuple but rather a dictionary/class
             result[plugin] = (
@@ -259,7 +248,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def _task_runner(self):
         while self.stop_condition.value == 0:
             try:
-                task = self.process_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
+                task = self.process_queue.get(timeout=cfg.expert_settings.block_delay)
             except Empty:
                 pass
             else:
@@ -396,8 +385,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_config(self, analysis_plugin: str) -> Tuple[List, List]:
-        blacklist = parse_comma_separated_list(getattr(cfg, analysis_plugin)['mime_blacklist'])
-        whitelist = parse_comma_separated_list(getattr(cfg, analysis_plugin)['mime_whitelist'])
+
+        blacklist = parse_comma_separated_list(getattr(cfg, analysis_plugin, {}).get('mime_blacklist', ''))
+        whitelist = parse_comma_separated_list(getattr(cfg, analysis_plugin, {}).get('mime_whitelist', ''))
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> Tuple[List, List]:
@@ -429,7 +419,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                         self.post_analysis(fw.uid, plugin_name, fw.processed_analysis[plugin_name])
                     self._check_further_process_or_complete(fw)
             if nop:
-                sleep(float(self.config['expert-settings']['block-delay']))
+                sleep(cfg.expert_settings.block_delay)
 
     def _check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:

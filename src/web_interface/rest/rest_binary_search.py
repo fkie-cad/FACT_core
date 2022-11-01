@@ -42,7 +42,7 @@ class RestBinarySearchPost(RestResourceBase):
                 f'Firmware with UID {payload_data["uid"]} not found in database', self.URL, request_data=request.data
             )
 
-        with ConnectTo(self.intercom, self.config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             search_id = intercom.add_binary_search_request(payload_data['rule_file'].encode(), payload_data['uid'])
 
         return success_message(
@@ -71,7 +71,7 @@ class RestBinarySearchGet(RestResourceBase):
         The result of the search request can only be fetched once
         After this the search needs to be started again.
         '''
-        with ConnectTo(self.intercom, self.config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             result, _ = intercom.get_binary_search_result(search_id)
 
         if result is None:

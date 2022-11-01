@@ -14,7 +14,9 @@ def test_get_config_dir():
 
 
 def test_load_config(monkeypatch):
-    monkeypatch.setattr('helperFunctions.config.get_config_dir', lambda: f'{get_test_data_dir()}/helperFunctions')
+    monkeypatch.setattr(
+        'helperFunctions.config_deprecated.get_config_dir', lambda: f'{get_test_data_dir()}/helperFunctions'
+    )
     test_config = load_config('test.cfg')
     assert test_config['test']['test'] == 'test_config', 'config not correct'
 
