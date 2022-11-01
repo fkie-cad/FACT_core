@@ -1,4 +1,6 @@
 # pylint: disable=wrong-import-order
+import pytest
+
 from storage.db_interface_frontend import MetaEntry
 from test.common_helper import TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
@@ -28,14 +30,19 @@ class DbMock(CommonDatabaseMock):
         return result
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'database': {
+            'results-per-page': 10,
+        },
+    }
+)
 class TestAppAdvancedSearch(WebInterfaceTest):
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)
-        cls.config['database'] = {}
-        cls.config['database']['results-per-page'] = '10'
 
-    def test_advanced_search(self):
+    def test_advanced_search(self, cfg_tuple):
         response = self._do_advanced_search({'advanced_search': '{}'})
         assert TEST_FW_2.uid in response
         assert TEST_TEXT_FILE.uid not in response

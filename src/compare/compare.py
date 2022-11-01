@@ -15,18 +15,14 @@ class Compare:
 
     compare_plugins = {}
 
-    def __init__(self, config=None, db_interface: Optional[ComparisonDbInterface] = None):
-        '''
-        Constructor
-        '''
-        self.config = config
+    def __init__(self, db_interface: Optional[ComparisonDbInterface] = None):
         self.db_interface = db_interface
         self._setup_plugins()
         logging.info(f'Plug-ins available: {self.compare_plugins.keys()}')
 
     def compare(self, uid_list):
         logging.info(f'Compare in progress: {uid_list}')
-        bs = BinaryService(config=self.config)
+        bs = BinaryService()
 
         fo_list = []
         for uid in uid_list:
@@ -87,7 +83,7 @@ class Compare:
                 # For why this exception can occur see Analysis.AnalysisScheduler.load_plugins
                 logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
             else:
-                plugin.ComparePlugin(self, config=self.config, db_interface=self.db_interface)
+                plugin.ComparePlugin(self, db_interface=self.db_interface)
 
     def register_plugin(self, name, compare_plugin_instance):
         self.compare_plugins[name] = compare_plugin_instance

@@ -40,9 +40,8 @@ class AppRoute:
 
 
 class ComponentBase:
-    def __init__(self, app, config, db: FrontendDatabase, intercom, api=None):
+    def __init__(self, app, db: FrontendDatabase, intercom, api=None):
         self._app = app
-        self._config = config
         self._api = api
         self.db = db
         self.intercom = intercom

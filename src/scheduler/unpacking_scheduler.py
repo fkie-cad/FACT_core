@@ -4,6 +4,7 @@ from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep
 
+from config import cfg
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker, stop_processes
 from unpacker.unpack import Unpacker
@@ -14,8 +15,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     This scheduler performs unpacking on firmware objects
     '''
 
-    def __init__(self, config=None, post_unpack=None, analysis_workload=None, fs_organizer=None, unpacking_locks=None):
-        self.config = config
+    def __init__(self, post_unpack=None, analysis_workload=None, fs_organizer=None, unpacking_locks=None):
         self.stop_condition = Value('i', 0)
         self.throttle_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload
@@ -51,18 +51,20 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     # ---- internal functions ----
 
     def start_unpack_workers(self):
-        threads = int(self.config['unpack']['threads'])
+        threads = cfg.unpack.threads
         logging.debug(f'Starting {threads} working threads')
         for process_index in range(threads):
             self.workers.append(start_single_worker(process_index, 'Unpacking', self.unpack_worker))
 
     def unpack_worker(self, worker_id):
         unpacker = Unpacker(
-            self.config, worker_id=worker_id, fs_organizer=self.fs_organizer, unpacking_locks=self.unpacking_locks
+            worker_id=worker_id,
+            fs_organizer=self.fs_organizer,
+            unpacking_locks=self.unpacking_locks,
         )
         while self.stop_condition.value == 0:
             with suppress(Empty):
-                fo = self.in_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
+                fo = self.in_queue.get(timeout=cfg.expert_settings.block_delay)
                 extracted_objects = unpacker.unpack(fo)
                 logging.debug(
                     f'[worker {worker_id}] unpacking of {fo.uid} complete: {len(extracted_objects)} files extracted'
@@ -103,7 +105,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 )
             )
 
-            if workload < int(self.config['expert-settings']['unpack-throttle-limit']):
+            if workload < cfg.expert_settings.unpack_throttle_limit:
                 self.throttle_condition.value = 0
             else:
                 self.throttle_condition.value = 1
@@ -115,12 +117,19 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         return 0
 
     def check_exceptions(self):
-        shutdown = check_worker_exceptions(self.workers, 'Unpacking', self.config, self.unpack_worker)
+        shutdown = check_worker_exceptions(
+            self.workers, 'Unpacking', cfg.expert_settings.throw_exceptions, self.unpack_worker
+        )
 
         list_with_load_process = [
             self.work_load_process,
         ]
-        shutdown |= check_worker_exceptions(list_with_load_process, 'unpack-load', self.config, self._work_load_monitor)
+        shutdown |= check_worker_exceptions(
+            list_with_load_process,
+            'unpack-load',
+            cfg.expert_settings.throw_exceptions,
+            self._work_load_monitor,
+        )
         if new_worker_was_started(new_process=list_with_load_process[0], old_process=self.work_load_process):
             self.work_load_process = list_with_load_process.pop()
 

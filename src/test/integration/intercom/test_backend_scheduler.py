@@ -6,7 +6,6 @@ from time import sleep
 import pytest
 
 from intercom.back_end_binding import InterComBackEndBinding
-from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
 
 # This number must be changed, whenever a listener is added or removed
 NUMBER_OF_LISTENERS = 11
@@ -27,7 +26,7 @@ class CommunicationBackendMock:
 
     counter = Value('i', 0)
 
-    def __init__(self, config=None):
+    def __init__(self):
         pass
 
     def get_next_task(self):
@@ -39,9 +38,6 @@ class CommunicationBackendMock:
 
 
 class AnalysisServiceMock:
-    def __init__(self, config=None):
-        pass
-
     def update_analysis_of_object_and_children(self, fo):
         pass
 
@@ -54,21 +50,17 @@ class AnalysisServiceMock:
 
 @pytest.fixture(name='intercom')
 def get_intercom_for_testing():
-    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
-        config = get_config_for_testing(tmp_dir)
-        test_queue = Queue()
-        interface = InterComBackEndBinding(
-            config=config,
-            testing=True,
-            analysis_service=AnalysisServiceMock(),
-            compare_service=ServiceMock(test_queue),
-            unpacking_service=ServiceMock(test_queue),
-        )
-        interface.WAIT_TIME = 2
-        yield interface
-        interface.shutdown()
-        test_queue.close()
-    gc.collect()
+    test_queue = Queue()
+    interface = InterComBackEndBinding(
+        testing=True,
+        analysis_service=AnalysisServiceMock(),
+        compare_service=ServiceMock(test_queue),
+        unpacking_service=ServiceMock(test_queue),
+    )
+    interface.WAIT_TIME = 2
+    yield interface
+    interface.shutdown()
+    test_queue.close()
 
 
 def test_backend_worker(intercom):

@@ -92,7 +92,7 @@ class CompareRoutes(ComponentBase):
             if not redo and comparison_db.comparison_exists(comparison_id):
                 return redirect(url_for('show_compare_result', compare_id=comparison_id))
 
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             sc.add_compare_task(comparison_id, force=redo)
         return render_template('compare/wait.html', compare_id=comparison_id)
 
@@ -106,7 +106,7 @@ class CompareRoutes(ComponentBase):
     @AppRoute('/database/browse_compare', GET)
     def browse_comparisons(self):
         with get_shared_session(self.db.comparison) as comparison_db:
-            page, per_page = extract_pagination_from_request(request, self._config)[0:2]
+            page, per_page = extract_pagination_from_request(request)[0:2]
             try:
                 compare_list = comparison_db.page_comparison_results(skip=per_page * (page - 1), limit=per_page)
             except Exception as exception:
@@ -195,7 +195,7 @@ class CompareRoutes(ComponentBase):
         return ''.join(diff_list)
 
     def _get_data_for_file_diff(self, uid: str, root_uid: Optional[str]) -> FileDiffData:
-        with ConnectTo(self.intercom, self._config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             content, _ = intercom.get_binary_and_filename(uid)
 
         with get_shared_session(self.db.frontend) as frontend_db:

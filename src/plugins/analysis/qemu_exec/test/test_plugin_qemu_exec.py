@@ -476,9 +476,6 @@ class TestQemuExecUnpacker(TestCase):
 
 
 class MockFSOrganizer:
-    def __init__(self, config=None):
-        self.config = config
-
     @staticmethod
     def generate_path(fo):
         if fo.uid != 'foo':

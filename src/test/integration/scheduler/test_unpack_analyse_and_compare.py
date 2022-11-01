@@ -11,32 +11,29 @@ from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
-from test.integration.common import MockFSOrganizer, initialize_config  # pylint: disable=wrong-import-order
+from test.integration.common import MockFSOrganizer  # pylint: disable=wrong-import-order
 
 
 class TestFileAddition:
     def setup(self):
         self._tmp_dir = TemporaryDirectory()
-        self._config = initialize_config(self._tmp_dir)
         self.elements_finished_analyzing = Value('i', 0)
         self.analysis_finished_event = Event()
         self.compare_finished_event = Event()
 
-        self.backend_interface = BackendDbInterface(config=self._config)
+        self.backend_interface = BackendDbInterface()
         unpacking_lock_manager = UnpackingLockManager()
 
         self._analysis_scheduler = AnalysisScheduler(
-            config=self._config,
             post_analysis=self.count_analysis_finished_event,
             unpacking_locks=unpacking_lock_manager,
         )
         self._unpack_scheduler = UnpackingScheduler(
-            config=self._config,
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
             fs_organizer=MockFSOrganizer(),
             unpacking_locks=unpacking_lock_manager,
         )
-        self._compare_scheduler = ComparisonScheduler(config=self._config, callback=self.trigger_compare_finished_event)
+        self._compare_scheduler = ComparisonScheduler(callback=self.trigger_compare_finished_event)
 
     def count_analysis_finished_event(self, uid, plugin, analysis_result):
         self.backend_interface.add_analysis(uid, plugin, analysis_result)

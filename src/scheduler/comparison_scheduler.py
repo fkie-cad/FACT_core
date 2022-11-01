@@ -3,6 +3,7 @@ from multiprocessing import Queue, Value
 from queue import Empty
 
 from compare.compare import Compare
+from config import cfg
 from helperFunctions.data_conversion import convert_compare_id_to_list
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
 from storage.db_interface_comparison import ComparisonDbInterface
@@ -13,13 +14,12 @@ class ComparisonScheduler:
     This module handles all request regarding comparisons
     '''
 
-    def __init__(self, config=None, db_interface=None, testing=False, callback=None):
-        self.config = config
-        self.db_interface = db_interface if db_interface else ComparisonDbInterface(config=config)
+    def __init__(self, db_interface=None, testing=False, callback=None):
+        self.db_interface = db_interface if db_interface else ComparisonDbInterface()
         self.stop_condition = Value('i', 1)
         self.in_queue = Queue()
         self.callback = callback
-        self.comparison_module = Compare(config=self.config, db_interface=self.db_interface)
+        self.comparison_module = Compare(db_interface=self.db_interface)
         self.worker = ExceptionSafeProcess(target=self._comparison_scheduler_main)
         if not testing:
             self.start()
@@ -56,7 +56,7 @@ class ComparisonScheduler:
 
     def _compare_single_run(self, comparisons_done):
         try:
-            comparison_id, redo = self.in_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
+            comparison_id, redo = self.in_queue.get(timeout=cfg.expert_settings.block_delay)
         except Empty:
             return
         if self._comparison_should_start(comparison_id, redo, comparisons_done):
@@ -81,7 +81,9 @@ class ComparisonScheduler:
 
     def check_exceptions(self):
         processes_to_check = [self.worker]
-        shutdown = check_worker_exceptions(processes_to_check, 'Compare', self.config, self._comparison_scheduler_main)
+        shutdown = check_worker_exceptions(
+            processes_to_check, 'Compare', cfg.expert_settings.throw_exceptions, self._comparison_scheduler_main
+        )
         if not shutdown and new_worker_was_started(new_process=processes_to_check[0], old_process=self.worker):
             self.worker = processes_to_check.pop()
         return shutdown

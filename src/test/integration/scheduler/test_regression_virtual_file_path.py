@@ -28,32 +28,34 @@ class MockScheduler:
         pass
 
 
-@pytest.fixture(scope='module')
+# TODO scope
+# @pytest.fixture(scope='module')
+@pytest.fixture
 def finished_event():
     return Event()
 
 
-@pytest.fixture(scope='module')
+# TODO scope
+# @pytest.fixture(scope='module')
+@pytest.fixture
 def intermediate_event():
     return Event()
 
 
-@pytest.fixture(scope='module')
-def test_config():
-    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
-        yield initialize_config(tmp_dir)
-
-
-@pytest.fixture(scope='module')
-def test_app(test_config):
-    frontend = WebFrontEnd(config=test_config)
+# TODO scope
+# @pytest.fixture(scope='module')
+@pytest.fixture
+def test_app():
+    frontend = WebFrontEnd()
     frontend.app.config['TESTING'] = True
     return frontend.app.test_client()
 
 
-@pytest.fixture(scope='module')
-def test_scheduler(test_config, finished_event, intermediate_event):
-    interface = BackendDbInterface(config=test_config)
+# TODO scope
+# @pytest.fixture(scope='module')
+@pytest.fixture
+def test_scheduler(finished_event, intermediate_event):
+    interface = BackendDbInterface()
     unpacking_lock_manager = UnpackingLockManager()
     elements_finished = Value('i', 0)
 
@@ -66,13 +68,10 @@ def test_scheduler(test_config, finished_event, intermediate_event):
             intermediate_event.set()
 
     analyzer = AnalysisScheduler(
-        test_config, pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
+        pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
     )
-    unpacker = UnpackingScheduler(
-        config=test_config, post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager
-    )
+    unpacker = UnpackingScheduler(post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager)
     intercom = InterComBackEndBinding(
-        config=test_config,
         analysis_service=analyzer,
         unpacking_service=unpacker,
         compare_service=MockScheduler(),
