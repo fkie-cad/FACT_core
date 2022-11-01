@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 from common_helper_files import get_binary_from_file
 
 from config import cfg, configparser_cfg
-from helperFunctions.config import get_temp_dir_path
+from helperFunctions.config_deprecated import get_temp_dir_path
 from unpacker.unpack_base import UnpackBase
 
 

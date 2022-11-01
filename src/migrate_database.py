@@ -4,7 +4,7 @@ import argparse
 import sqlite3
 import uuid
 
-from helperFunctions.config import load_config
+from helperFunctions.config_deprecated import load_config
 
 
 def upgrade(cur):

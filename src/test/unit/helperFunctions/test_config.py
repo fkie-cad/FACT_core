@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from config import parse_comma_separated_list
-from helperFunctions.config import get_config_dir, get_temp_dir_path, load_config
+from helperFunctions.config_deprecated import get_config_dir, get_temp_dir_path, load_config
 from test.common_helper import get_test_data_dir
 
 

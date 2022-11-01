@@ -30,7 +30,7 @@ try:
 except (ImportError, ModuleNotFoundError):
     sys.exit(1)
 
-from helperFunctions.config import get_config_dir
+from helperFunctions.config_deprecated import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import run_cmd_with_logging
 

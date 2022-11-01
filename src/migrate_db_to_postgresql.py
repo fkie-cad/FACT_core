@@ -9,7 +9,7 @@ import gridfs
 from pymongo import MongoClient, errors
 from sqlalchemy.exc import StatementError
 
-from helperFunctions.config import load_config
+from helperFunctions.config_deprecated import load_config
 from helperFunctions.data_conversion import convert_time_to_str
 from helperFunctions.database import ConnectTo
 from objects.file import FileObject

@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 
 from common_helper_files import create_dir_for_file
 
-from helperFunctions.config import load_config
+from helperFunctions.config_deprecated import load_config
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
