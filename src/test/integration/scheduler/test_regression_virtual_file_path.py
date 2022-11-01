@@ -1,7 +1,6 @@
 # pylint: disable=redefined-outer-name,wrong-import-order
 from multiprocessing import Event, Value
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import pytest
 
@@ -12,7 +11,6 @@ from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
-from test.integration.common import initialize_config
 from web_interface.frontend_main import WebFrontEnd
 
 FIRST_ROOT_ID = '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415'
@@ -28,32 +26,34 @@ class MockScheduler:
         pass
 
 
-@pytest.fixture(scope='module')
+# TODO scope
+# @pytest.fixture(scope='module')
+@pytest.fixture
 def finished_event():
     return Event()
 
 
-@pytest.fixture(scope='module')
+# TODO scope
+# @pytest.fixture(scope='module')
+@pytest.fixture
 def intermediate_event():
     return Event()
 
 
-@pytest.fixture(scope='module')
-def test_config():
-    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
-        yield initialize_config(tmp_dir)
-
-
-@pytest.fixture(scope='module')
-def test_app(test_config):
-    frontend = WebFrontEnd(config=test_config)
+# TODO scope
+# @pytest.fixture(scope='module')
+@pytest.fixture
+def test_app():
+    frontend = WebFrontEnd()
     frontend.app.config['TESTING'] = True
     return frontend.app.test_client()
 
 
-@pytest.fixture(scope='module')
-def test_scheduler(test_config, finished_event, intermediate_event):
-    interface = BackendDbInterface(config=test_config)
+# TODO scope
+# @pytest.fixture(scope='module')
+@pytest.fixture
+def test_scheduler(finished_event, intermediate_event):
+    interface = BackendDbInterface()
     unpacking_lock_manager = UnpackingLockManager()
     elements_finished = Value('i', 0)
 
@@ -66,13 +66,10 @@ def test_scheduler(test_config, finished_event, intermediate_event):
             intermediate_event.set()
 
     analyzer = AnalysisScheduler(
-        test_config, pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
+        pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
     )
-    unpacker = UnpackingScheduler(
-        config=test_config, post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager
-    )
+    unpacker = UnpackingScheduler(post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager)
     intercom = InterComBackEndBinding(
-        config=test_config,
         analysis_service=analyzer,
         unpacking_service=unpacker,
         compare_service=MockScheduler(),

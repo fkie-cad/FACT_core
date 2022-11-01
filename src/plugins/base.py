@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from config import configparser_cfg
 from storage.db_interface_view_sync import ViewUpdater
 
 
@@ -11,7 +10,7 @@ class BasePlugin:
     DEPENDENCIES = []
 
     def __init__(self, plugin_path=None, view_updater=None):
-        self.view_updater = view_updater if view_updater is not None else ViewUpdater(configparser_cfg)
+        self.view_updater = view_updater if view_updater is not None else ViewUpdater()
         if plugin_path:
             self._sync_view(plugin_path)
 

@@ -93,7 +93,7 @@ class CompareRoutes(ComponentBase):
             if not redo and comparison_db.comparison_exists(comparison_id):
                 return redirect(url_for('show_compare_result', compare_id=comparison_id))
 
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             sc.add_compare_task(comparison_id, force=redo)
         return render_template('compare/wait.html', compare_id=comparison_id)
 
@@ -107,7 +107,7 @@ class CompareRoutes(ComponentBase):
     @AppRoute('/database/browse_compare', GET)
     def browse_comparisons(self):
         with get_shared_session(self.db.comparison) as comparison_db:
-            page, per_page = extract_pagination_from_request(request, self._config)[0:2]
+            page, per_page = extract_pagination_from_request(request)[0:2]
             try:
                 compare_list = comparison_db.page_comparison_results(skip=per_page * (page - 1), limit=per_page)
             except Exception as exception:  # pylint: disable=broad-except
@@ -190,7 +190,7 @@ class CompareRoutes(ComponentBase):
                 error=f'Can\'t compare non-text mimetypes. ({diff_files[0].mime} vs {diff_files[1].mime})',
             )
 
-        with ConnectTo(self.intercom, self._config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             diff_str = intercom.get_file_diff((uid_1, uid_2))
         if diff_str is None:
             return render_template('compare/error.html', error='File(s) not found.')

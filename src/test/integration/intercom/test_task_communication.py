@@ -7,6 +7,8 @@ import unittest
 from tempfile import TemporaryDirectory
 from unittest import mock
 
+import pytest
+
 from intercom.back_end_binding import (
     InterComBackEndAnalysisPlugInsPublisher,
     InterComBackEndAnalysisTask,
@@ -19,11 +21,11 @@ from intercom.back_end_binding import (
     InterComBackEndTarRepackTask,
 )
 from intercom.front_end_binding import InterComFrontEndBinding
-from test.common_helper import create_test_firmware, get_config_for_testing
+from test.common_helper import create_test_firmware
 
 
 class AnalysisServiceMock:
-    def __init__(self, config=None):
+    def __init__(self):
         pass
 
     def get_plugin_dict(self):  # pylint: disable=no-self-use
@@ -43,15 +45,20 @@ class BinaryServiceMock:
         assert False, 'if this line reached something went wrong'
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'expert-settings': {
+            'communication-timeout': '1',
+        }
+    }
+)
 class TestInterComTaskCommunication(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
-        cls.config = get_config_for_testing(temp_dir=cls.tmp_dir)
-        cls.config.set('expert-settings', 'communication-timeout', '1')
 
     def setUp(self):
-        self.frontend = InterComFrontEndBinding(config=self.config)
+        self.frontend = InterComFrontEndBinding()
         self.backend = None
 
     def tearDown(self):
@@ -63,7 +70,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         cls.tmp_dir.cleanup()
 
     def test_analysis_task(self):
-        self.backend = InterComBackEndAnalysisTask(config=self.config)
+        self.backend = InterComBackEndAnalysisTask()
         test_fw = create_test_firmware()
         test_fw.file_path = None
         self.frontend.add_analysis_task(test_fw)
@@ -73,7 +80,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         self.assertTrue(os.path.exists(task.file_path), 'file does not exist')
 
     def test_single_file_task(self):
-        self.backend = InterComBackEndSingleFileTask(config=self.config)
+        self.backend = InterComBackEndSingleFileTask()
         test_fw = create_test_firmware()
         test_fw.file_path = None
         test_fw.scheduled_analysis = ['binwalk']
@@ -83,8 +90,9 @@ class TestInterComTaskCommunication(unittest.TestCase):
         assert task.uid == test_fw.uid, 'uid not transported correctly'
         assert task.scheduled_analysis
 
+    @pytest.mark.skip(reason='TODO')
     def test_re_analyze_task(self):
-        self.backend = InterComBackEndReAnalyzeTask(config=self.config)
+        self.backend = InterComBackEndReAnalyzeTask()
         test_fw = create_test_firmware()
         test_fw.file_path = None
         test_fw.binary = None
@@ -93,15 +101,14 @@ class TestInterComTaskCommunication(unittest.TestCase):
         self.assertEqual(task.uid, test_fw.uid, 'uid not correct')
 
     def test_compare_task(self):
-        self.backend = InterComBackEndCompareTask(config=self.config)
+        self.backend = InterComBackEndCompareTask()
         self.frontend.add_compare_task('valid_id', force=False)
         result = self.backend.get_next_task()
         self.assertEqual(result, ('valid_id', False))
 
     def test_analysis_plugin_publication(self):
-        self.backend = InterComBackEndAnalysisPlugInsPublisher(
-            config=self.config, analysis_service=AnalysisServiceMock()
-        )
+
+        self.backend = InterComBackEndAnalysisPlugInsPublisher(analysis_service=AnalysisServiceMock())
         plugins = self.frontend.get_available_analysis_plugins()
         self.assertEqual(len(plugins), 1, 'Not all plug-ins found')
         self.assertEqual(plugins, {'dummy': 'dummy description'}, 'content not correct')
@@ -119,7 +126,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         result = self.frontend.get_binary_and_filename('valid_uid')
         self.assertIsNone(result, 'should be none because of timeout')
 
-        self.backend = InterComBackEndRawDownloadTask(config=self.config)
+        self.backend = InterComBackEndRawDownloadTask()
         task = self.backend.get_next_task()
         self.assertEqual(task, 'valid_uid', 'task not correct')
         result = self.frontend.get_binary_and_filename('valid_uid_0.0')
@@ -132,7 +139,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         result = self.frontend.get_file_diff(('uid1', 'uid2'))
         assert result is None, 'should be None because of timeout'
 
-        self.backend = InterComBackEndFileDiffTask(config=self.config)
+        self.backend = InterComBackEndFileDiffTask()
         task = self.backend.get_next_task()
         assert task == ('uid1', 'uid2'), 'task not correct'
         result = self.frontend.get_file_diff(('uid1', 'uid2'))
@@ -148,7 +155,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         result = self.frontend.peek_in_binary('valid_uid', 0, 512)
         assert result is None, 'should be none because of timeout'
 
-        self.backend = InterComBackEndPeekBinaryTask(config=self.config)
+        self.backend = InterComBackEndPeekBinaryTask()
         task = self.backend.get_next_task()
         assert task == ('valid_uid', 0, 512), 'task not correct'
         result = self.frontend.peek_in_binary('valid_uid', 0, 512)
@@ -163,7 +170,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         result = self.frontend.get_repacked_binary_and_file_name('valid_uid')
         self.assertIsNone(result, 'should be none because of timeout')
 
-        self.backend = InterComBackEndTarRepackTask(config=self.config)
+        self.backend = InterComBackEndTarRepackTask()
         task = self.backend.get_next_task()
         self.assertEqual(task, 'valid_uid', 'task not correct')
         result = self.frontend.get_repacked_binary_and_file_name('valid_uid_0.0')

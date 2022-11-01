@@ -6,7 +6,6 @@ from flask import Flask
 from flask_restx import Api
 
 from helperFunctions.fileSystem import get_src_dir
-from test.common_helper import get_config_for_testing
 from web_interface.components.plugin_routes import (
     PLUGIN_CATEGORIES,
     PluginRoutes,
@@ -17,9 +16,8 @@ from web_interface.components.plugin_routes import (
 
 
 class PluginRoutesMock(PluginRoutes):
-    def __init__(self, app, config, db=None, intercom=None, api=None):
+    def __init__(self, app, db=None, intercom=None, api=None):
         self._app = app
-        self._config = config
         self._api = api
         self.db = db
         self.intercom = intercom
@@ -30,7 +28,6 @@ class TestPluginRoutes:
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
         self.api = Api(self.app)
-        self.config = get_config_for_testing()
 
     def test_get_modules_in_path(self):
         plugin_dir_path = os.path.join(get_src_dir(), 'plugins')
@@ -53,7 +50,7 @@ class TestPluginRoutes:
 
     def test_import_module_routes(self):
         dummy_endpoint = 'plugins/dummy'
-        plugin_routes = PluginRoutesMock(self.app, self.config, api=self.api)
+        plugin_routes = PluginRoutesMock(self.app, api=self.api)
 
         assert dummy_endpoint not in self._get_app_endpoints(self.app)
 
@@ -66,7 +63,7 @@ class TestPluginRoutes:
 
     def test_import_module_routes__rest(self):
         dummy_endpoint = 'plugins/dummy/rest'
-        plugin_routes = PluginRoutesMock(self.app, self.config, api=self.api)
+        plugin_routes = PluginRoutesMock(self.app, api=self.api)
 
         assert dummy_endpoint not in self._get_app_endpoints(self.app)
 
