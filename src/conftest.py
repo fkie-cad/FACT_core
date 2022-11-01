@@ -80,6 +80,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
         'unpack': {'max-depth': '10', 'memory-limit': '2048', 'threads': '4', 'whitelist': ''},
         'statistics': {'max_elements_per_chart': '10'},
     }
+
     # Update recursively
     for section_name in defaults if defaults else {}:
         sections.setdefault(section_name, {}).update(defaults[section_name])

@@ -37,7 +37,7 @@ CONTAINER_TARGET_PATH = '/opt/firmware_root'
 class Unpacker(UnpackBase):
     def __init__(self, worker_id=None):
         super().__init__(worker_id=worker_id)
-        self.fs_organizer = FSOrganizer(configparser_cfg)
+        self.fs_organizer = FSOrganizer()
 
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
         file_path = file_object.file_path if file_object.file_path else self._get_path_from_fo(file_object)

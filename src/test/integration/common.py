@@ -1,8 +1,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from test.common_helper import get_config_for_testing
-
 
 class MockFSOrganizer:
     def __init__(self, *_, **__):
@@ -37,9 +35,9 @@ class MockDbInterface:
         pass
 
 
+# TODO Is this used? Where should this be patched??
 def initialize_config(tmp_dir):
-    config = get_config_for_testing(temp_dir=tmp_dir)
-
+    config = None
     # Database
     config.set('data-storage', 'main-database', 'tmp_integration_tests')
     config.set('data-storage', 'intercom-database-prefix', 'tmp_integration_tests')

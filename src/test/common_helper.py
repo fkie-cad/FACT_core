@@ -18,9 +18,6 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_setup import DbSetup
 
-# TODO remove this hack as soon as the rest of the codebase allows this
-from ..conftest import _get_test_config_tuple
-
 
 def get_test_data_dir():
     '''
@@ -322,6 +319,12 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     # TODO unused
     _ = temp_dir
 
+    # TODO remove this hack as soon as the rest of the codebase allows this
+    import sys
+
+    sys.path.append(str(Path(__file__).parent))
+    from conftest import _get_test_config_tuple
+
     cfg, configparser_cfg = _get_test_config_tuple()
 
     shutil.rmtree(cfg.data_storage.docker_mount_base_dir)
@@ -354,13 +357,13 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
 
 
 def setup_test_tables(config):
-    db_setup = DbSetup(config)
+    db_setup = DbSetup()
     db_setup.connection.create_tables()
     db_setup.set_table_privileges()
 
 
 def clear_test_tables(config):
-    db_setup = DbSetup(config)
+    db_setup = DbSetup()
     db_setup.connection.base.metadata.drop_all(db_setup.connection.engine)
 
 

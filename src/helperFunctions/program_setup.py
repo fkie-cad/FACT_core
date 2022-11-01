@@ -19,7 +19,6 @@
 import argparse
 import logging
 import sys
-from configparser import ConfigParser
 from pathlib import Path
 
 from common_helper_files import create_dir_for_file
@@ -87,7 +86,7 @@ def setup_logging(config, args, component=None):
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
 
-    log_file = get_log_file_for_component(component, config)
+    log_file = get_log_file_for_component(component)
     create_dir_for_file(log_file)
     file_log = logging.FileHandler(log_file)
     file_log.setLevel(log_level)
@@ -101,8 +100,8 @@ def setup_logging(config, args, component=None):
         logger.addHandler(console_log)
 
 
-def get_log_file_for_component(component: str, config: ConfigParser) -> str:
-    log_file = Path(config['logging']['logfile'])
+def get_log_file_for_component(component: str) -> str:
+    log_file = Path(cfg.logging.logfile)
     if component is None:
-        return config['logging']['logfile']
+        return cfg.logging.logfile
     return f'{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}'
