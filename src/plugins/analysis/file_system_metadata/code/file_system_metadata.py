@@ -11,7 +11,7 @@ from typing import List, NamedTuple, Tuple
 from docker.types import Mount
 
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg, configparser_cfg
+from config import cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
@@ -56,7 +56,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
 
     def __init__(self, *args, db_interface=None, **kwargs):
-        self.db = db_interface if db_interface is not None else DbInterfaceCommon(config=configparser_cfg)
+        self.db = db_interface if db_interface is not None else DbInterfaceCommon()
         self.result = None
         super().__init__(*args, **kwargs)
 

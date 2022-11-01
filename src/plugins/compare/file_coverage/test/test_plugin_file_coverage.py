@@ -32,7 +32,7 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         This function must be overwritten by the test instance.
         In most cases it is sufficient to copy this function.
         '''
-        return ComparePlugin(config=self.config, db_interface=DbMock(), view_updater=CommonDatabaseMock())
+        return ComparePlugin(db_interface=DbMock(), view_updater=CommonDatabaseMock())
 
     def test_get_intersection_of_files(self):
         self.fw_one.list_of_all_included_files.append('foo')

@@ -6,12 +6,11 @@ import pytest
 from helperFunctions.data_conversion import convert_str_to_bool
 from intercom.common_redis_binding import InterComListener
 from storage.redis_interface import REDIS_MAX_VALUE_SIZE
-from test.common_helper import get_config_for_testing
 
 
 @pytest.fixture(scope='function')
 def listener():
-    generic_listener = InterComListener(config=get_config_for_testing())
+    generic_listener = InterComListener()
     try:
         yield generic_listener
     finally:

@@ -1,24 +1,20 @@
 # pylint: disable=attribute-defined-outside-init,wrong-import-order,redefined-outer-name,invalid-name
 
-import gc
-from tempfile import TemporaryDirectory
-
 import magic
 import pytest
 
 from storage.binary_service import BinaryService
-from test.common_helper import create_test_firmware, get_config_for_testing, store_binary_on_file_system
+from test.common_helper import create_test_firmware, store_binary_on_file_system
 
 TEST_FW = create_test_firmware()
 
 
 @pytest.fixture
-def binary_service(db):
-    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
-        config = get_config_for_testing(temp_dir=tmp_dir)
-        _init_test_data(tmp_dir, db)
-        yield BinaryService(config=config)
-    gc.collect()
+def binary_service(db, cfg_tuple):
+    cfg, _ = cfg_tuple
+    # TODO somehow this does not work. Is the date even copied?!
+    _init_test_data(cfg.data_storage.firmware_file_storage_directory, db)
+    yield BinaryService()
 
 
 def _init_test_data(tmp_dir: str, db):
