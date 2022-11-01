@@ -8,7 +8,7 @@ from flask import Request
 from markupsafe import escape
 from werkzeug.datastructures import FileStorage
 
-from helperFunctions.config import get_temp_dir_path
+from helperFunctions.config_deprecated import get_temp_dir_path
 from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 
