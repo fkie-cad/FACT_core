@@ -126,12 +126,20 @@ def _parse_dict(sections):
     _replace_hyphens_with_underscores(sections)
 
 
+# TODO as we only allow importing by `import config` this should be renamed to `load` to avoid redundant namespacing.
 def load_config(path=None):
     # pylint: disable=global-statement
     """Load the config file located at `path`.
     The file must be an ini file and is read into an `config.Config` instance.
     This instance can be accessed with `config.cfg` after calling this function.
     For legacy code that needs a `ConfigParser` instance `config.configparser_cfg` is provided.
+
+    ..important::
+        This function may not be imported by ``from config import load_config``.
+        It may only be imported by `import config` and then used by ``config.load_config()``.
+        The reason is that testing code can't patch this function if it was already imported.
+        When you only import the ``config`` module the ``load_config`` function will be looked up at runtime.
+        See `this blog entry <https://alexmarandon.com/articles/python_mock_gotchas/>`_ for some more information.
     """
     if path is None:
         path = Path(__file__).parent / 'config/main.cfg'
