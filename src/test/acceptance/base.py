@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 import pytest
 from common_helper_files import create_dir_for_file
 
-from helperFunctions.config_deprecated import load_config
+from config import configparser_cfg
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
@@ -73,7 +73,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
 
     @classmethod
     def _set_config(cls):
-        cls.config = load_config('main.cfg')
+        cls.config = configparser_cfg
         test_db = cls.config.get('data-storage', 'postgres-test-database')
         cls.config.set('data-storage', 'postgres-database', test_db)
         cls.config.set('expert-settings', 'authentication', 'false')
