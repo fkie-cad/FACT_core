@@ -5,20 +5,12 @@ from pathlib import Path
 import pytest
 
 from config import parse_comma_separated_list
-from helperFunctions.config_deprecated import get_config_dir, get_temp_dir_path, load_config
+from helperFunctions.config_deprecated import get_config_dir, get_temp_dir_path
 from test.common_helper import get_test_data_dir
 
 
 def test_get_config_dir():
     assert os.path.exists(f'{get_config_dir()}/main.cfg'), 'main config file not found'
-
-
-def test_load_config(monkeypatch):
-    monkeypatch.setattr(
-        'helperFunctions.config_deprecated.get_config_dir', lambda: f'{get_test_data_dir()}/helperFunctions'
-    )
-    test_config = load_config('test.cfg')
-    assert test_config['test']['test'] == 'test_config', 'config not correct'
 
 
 @pytest.mark.parametrize(
