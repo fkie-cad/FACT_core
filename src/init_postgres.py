@@ -5,7 +5,8 @@ from shlex import split
 from subprocess import CalledProcessError, check_output
 from typing import List
 
-from config import cfg, load_config
+import config
+from config import cfg
 from storage.db_setup import DbSetup
 
 
@@ -45,7 +46,7 @@ def main(command_line_options=None, config_path: str = None, skip_user_creation:
     if command_line_options and command_line_options[-1] == '-t':
         return 0  # testing mode
 
-    load_config(config_path)
+    config.load_config(config_path)
 
     host = cfg.data_storage.postgres_server
     port = cfg.data_storage.postgres_port

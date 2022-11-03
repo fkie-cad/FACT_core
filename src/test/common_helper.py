@@ -1,13 +1,11 @@
 # pylint: disable=no-self-use,unused-argument
 import grp
 import os
-import shutil
 from base64 import standard_b64encode
 from configparser import ConfigParser
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import List, Optional, Union
 
 from helperFunctions.config_deprecated import load_config
@@ -312,25 +310,6 @@ def get_firmware_for_rest_upload_test():
         'requested_analysis_systems': ['software_components'],
     }
     return data
-
-
-def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = None):
-    # This function is deprecated in favor of the fixtures `patch_cfg` and `cfg_tuple`
-    # TODO unused
-    _ = temp_dir
-
-    # TODO remove this hack as soon as the rest of the codebase allows this
-    import sys
-
-    sys.path.append(str(Path(__file__).parent))
-    from conftest import _get_test_config_tuple
-
-    cfg, configparser_cfg = _get_test_config_tuple()
-
-    shutil.rmtree(cfg.data_storage.docker_mount_base_dir)
-    shutil.rmtree(cfg.data_storage.firmware_file_storage_directory)
-
-    return configparser_cfg
 
 
 def load_users_from_main_config(config: ConfigParser):
