@@ -1,6 +1,7 @@
 import pydantic
 import pytest
 
+# We explicitly don't want the patch_cfg fixture to be able to patch this function
 from config import cfg, configparser_cfg, load_config
 from test.common_helper import get_test_data_dir
 

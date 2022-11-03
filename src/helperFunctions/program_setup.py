@@ -24,8 +24,8 @@ from pathlib import Path
 
 from common_helper_files import create_dir_for_file
 
+import config
 from config import cfg, configparser_cfg
-from config import load_config as load_config_global
 from helperFunctions.config_deprecated import get_config_dir
 from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
@@ -39,7 +39,7 @@ def program_setup(name, description, component=None, version=__VERSION__, comman
     :return: A tuple (args, config) containing the parsed args from argparser and the config read
     '''
     args = _setup_argparser(name, description, command_line_options=command_line_options or sys.argv, version=version)
-    load_config_global(args.config_file)
+    config.load_config(args.config_file)
 
     if args.log_file is not None:
         configparser_cfg['logging']['logfile'] = args.log_file
