@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import shutil
 import tempfile
 from configparser import ConfigParser
@@ -128,6 +129,12 @@ def patch_cfg(cfg_tuple):
     # the patched config.
     mpatch.setattr('config._cfg', cfg)
     mpatch.setattr('config._configparser_cfg', configparser_cfg)
+    # Disallow code to load the actual, non-testing config
+    # This only works if `load_config` was not imported by `from config import load_config`.
+    # See doc comment of `load_config`.
+    mpatch.setattr(
+        'config.load_config', lambda _=None: logging.warn('Code tried to call `config.load_config`. Ignoring.')
+    )
     yield
 
     mpatch.undo()
