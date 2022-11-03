@@ -36,6 +36,9 @@ class MockDbInterface:
 
 
 # TODO Is this used? Where should this be patched??
+# This function is unused. The only relevant thing it did was to change database names.
+# Tbh this does not make very much sense since the database is only ever used in integration tests.
+# So these values could be the default
 def initialize_config(tmp_dir):
     config = None
     # Database
