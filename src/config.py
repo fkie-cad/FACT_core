@@ -56,7 +56,7 @@ class DataStorage(BaseModel):
 
     structural_threshold: int
 
-    temp_dir_path: str
+    temp_dir_path: str = '/tmp'
     docker_mount_base_dir: str
 
 
