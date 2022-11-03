@@ -1,27 +1,8 @@
-import configparser
 import logging
 from configparser import ConfigParser
 from pathlib import Path
 
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.process import complete_shutdown
-
-
-def load_config(config_file_name):
-    '''
-    This function should not be used in new code. Use `config.configparser_cfg` instead.
-
-    loads config of CONFIG_DIR/config_file_name.
-    Returns config object.
-    Note that this does return a new instance and not the instance provided by `config.configparser_cfg`.
-    The returned config may have wrong entries in the logging section.
-    '''
-    config = configparser.ConfigParser()
-    config_path = f'{get_config_dir()}/{config_file_name}'
-    if not Path(config_path).exists():
-        complete_shutdown(f'config file not found: {config_path}')
-    config.read(config_path)
-    return config
 
 
 def get_config_dir():

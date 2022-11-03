@@ -2,13 +2,11 @@
 import grp
 import os
 from base64 import standard_b64encode
-from configparser import ConfigParser
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional, Union
 
-from helperFunctions.config_deprecated import load_config
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
@@ -310,23 +308,6 @@ def get_firmware_for_rest_upload_test():
         'requested_analysis_systems': ['software_components'],
     }
     return data
-
-
-def load_users_from_main_config(config: ConfigParser):
-    fact_config = load_config('main.cfg')
-    # -- postgres --
-    config.set('data-storage', 'postgres-ro-user', fact_config.get('data-storage', 'postgres-ro-user'))
-    config.set('data-storage', 'postgres-ro-pw', fact_config.get('data-storage', 'postgres-ro-pw'))
-    config.set('data-storage', 'postgres-rw-user', fact_config.get('data-storage', 'postgres-rw-user'))
-    config.set('data-storage', 'postgres-rw-pw', fact_config.get('data-storage', 'postgres-rw-pw'))
-    config.set('data-storage', 'postgres-del-user', fact_config.get('data-storage', 'postgres-del-user'))
-    config.set('data-storage', 'postgres-del-pw', fact_config.get('data-storage', 'postgres-del-pw'))
-    config.set('data-storage', 'postgres-admin-user', fact_config.get('data-storage', 'postgres-del-user'))
-    config.set('data-storage', 'postgres-admin-pw', fact_config.get('data-storage', 'postgres-del-pw'))
-    # -- redis --
-    config.set('data-storage', 'redis-fact-db', fact_config.get('data-storage', 'redis-test-db'))
-    config.set('data-storage', 'redis-host', fact_config.get('data-storage', 'redis-host'))
-    config.set('data-storage', 'redis-port', fact_config.get('data-storage', 'redis-port'))
 
 
 def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Firmware]):
