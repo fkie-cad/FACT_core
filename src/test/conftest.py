@@ -3,11 +3,15 @@ import pytest
 from test.common_helper import clear_test_tables, setup_test_tables
 
 
-# TODO scope, documentation
-# IMO this is okay to be autoused because integration tests, test the integration of the system as a whole
-# so one would expect the db to work
+# TODO Consider changing this function to have a higher scope that function.
+# Currently this is not possible because the cfg_tuple fixture must have function
+# scope and this fixture needs it.
+# TODO This function should only be used by integration tests -> Move it to to integration/conftest.py
 @pytest.fixture
 def create_tables(cfg_tuple):
+    """Creates the tables that backend needs.
+    This is equivalent to executing ``init_postgres.py``.
+    """
     _, configparser_cfg = cfg_tuple
     setup_test_tables(configparser_cfg)
     yield
