@@ -83,7 +83,9 @@ def test_integration_try_actions(action_and_inputs, prompt):
     assert prompt.input.fileno() < 1024  # prompt will crash and test will be caught in endless loop if FP is too high
     for action in action_and_inputs:
         prompt.input.send_text(f'{action}\n')
-    start_user_management(*_setup_frontend(), prompt.session)
+    test_app, store, db = _setup_frontend()
+    with test_app.app_context():
+        start_user_management(test_app, store, db, prompt.session)
 
     # test will throw exception or stall if something is broken
     assert True, f'action sequence {action_and_inputs} caused error'
@@ -102,7 +104,9 @@ def test_add_role(prompt, capsys):
     ]
     for action in action_and_inputs:
         prompt.input.send_text(f'{action}\n')
-    start_user_management(*_setup_frontend(), prompt.session)
+    test_app, store, db = _setup_frontend()
+    with test_app.app_context():
+        start_user_management(test_app, store, db, prompt.session)
 
     captured = capsys.readouterr()
     assert 'test_user (guest)' in captured.out
@@ -113,8 +117,8 @@ def test_password_is_hashed(prompt):
     action_and_inputs = ['create_user', 'test_user', 'exit']
     for action in action_and_inputs:
         prompt.input.send_text(f'{action}\n')
-    app, store, db = _setup_frontend()
-    start_user_management(app, store, db, prompt.session)
-    with app.app_context():
+    test_app, store, db = _setup_frontend()
+    with test_app.app_context():
+        start_user_management(test_app, store, db, prompt.session)
         user = store.find_user(email='test_user')
     assert user.password != 'mock_password'

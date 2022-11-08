@@ -38,7 +38,7 @@ class MockReader:
         if address == '127.101.101.101':
             return MockResponse(location=MockLocation(latitude=4.1, longitude=4.1))
         if address == '1.1.2.345':
-            raise AddressNotFoundError()
+            raise AddressNotFoundError('')
         if address == 'aaa':
             raise ValueError()
 
