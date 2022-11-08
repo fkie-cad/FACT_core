@@ -15,6 +15,7 @@ from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
+from storage.db_setup import DbSetup
 from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import (  # pylint: disable=wrong-import-order
@@ -44,7 +45,8 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
 
     def setUp(self):
         self.config = configparser_cfg
-        setup_test_tables(self.config)
+        self._db_setup = DbSetup()
+        setup_test_tables(self._db_setup)
 
         self.frontend = WebFrontEnd()
         self.frontend.app.config['TESTING'] = not self.config.getboolean('expert-settings', 'authentication')
@@ -61,7 +63,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         )
 
     def tearDown(self):
-        clear_test_tables(self.config)
+        clear_test_tables(self._db_setup)
         gc.collect()
 
     def _stop_backend(self):
