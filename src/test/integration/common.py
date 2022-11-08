@@ -33,32 +33,3 @@ class MockDbInterface:
 
     def get_specific_fields_of_db_entry(self, uid, field_dict):
         pass
-
-
-# TODO Is this used? Where should this be patched??
-# This function is unused. The only relevant thing it did was to change database names.
-# Tbh this does not make very much sense since the database is only ever used in integration tests.
-# So these values could be the default
-def initialize_config(tmp_dir):
-    config = None
-    # Database
-    config.set('data-storage', 'main-database', 'tmp_integration_tests')
-    config.set('data-storage', 'intercom-database-prefix', 'tmp_integration_tests')
-    config.set('data-storage', 'statistic-database', 'tmp_integration_tests')
-    config.set('data-storage', 'view-storage', 'tmp_view_storage')
-
-    # Analysis
-    config.add_section('ip_and_uri_finder')
-    config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-    config.set('default-plugins', 'plugins', 'file_hashes')
-
-    # Unpacker
-    config.set('unpack', 'threads', '1')
-    config.set('expert-settings', 'unpack-throttle-limit', '20')
-
-    # Compare
-    config.set('expert-settings', 'ssdeep-ignore', '80')
-    config.set('expert-settings', 'block-delay', '1')
-    config.set('expert-settings', 'throw-exceptions', 'true')
-
-    return config
