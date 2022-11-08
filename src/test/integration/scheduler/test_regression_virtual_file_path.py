@@ -26,22 +26,16 @@ class MockScheduler:
         pass
 
 
-# TODO scope
-# @pytest.fixture(scope='module')
 @pytest.fixture
 def finished_event():
     return Event()
 
 
-# TODO scope
-# @pytest.fixture(scope='module')
 @pytest.fixture
 def intermediate_event():
     return Event()
 
 
-# TODO scope
-# @pytest.fixture(scope='module')
 @pytest.fixture
 def test_app():
     frontend = WebFrontEnd()
@@ -49,8 +43,6 @@ def test_app():
     return frontend.app.test_client()
 
 
-# TODO scope
-# @pytest.fixture(scope='module')
 @pytest.fixture
 def test_scheduler(finished_event, intermediate_event):
     interface = BackendDbInterface()
