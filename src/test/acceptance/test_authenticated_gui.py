@@ -60,8 +60,7 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
         '''
         pass  # pylint: disable=unnecessary-pass
 
-    # TODO remove this
-    @pytest.mark.skip(reason='Takes way too long')
+    @pytest.mark.skip(reason='TODO')
     def test_all_endpoints_need_authentication(self):
         fails = []
         for endpoint_rule in list(self.frontend.app.url_map.iter_rules()):
