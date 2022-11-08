@@ -38,7 +38,7 @@ def program_setup(name, description, component=None, version=__VERSION__, comman
     :return: A tuple (args, config) containing the parsed args from argparser and the config read
     '''
     args = _setup_argparser(name, description, command_line_options=command_line_options or sys.argv, version=version)
-    config.load_config(args.config_file)
+    config.load(args.config_file)
 
     if args.log_file is not None:
         configparser_cfg['logging']['logfile'] = args.log_file

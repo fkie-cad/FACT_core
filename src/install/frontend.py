@@ -17,7 +17,7 @@ from helperFunctions.install import (
     run_cmd_with_logging,
 )
 
-config.load_config()
+config.load()
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
