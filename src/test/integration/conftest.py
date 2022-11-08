@@ -75,11 +75,7 @@ def comp_db():
     yield ComparisonDbInterface()
 
 
-# IMO this is okay to be autoused because integration tests, test the integration of the system as a whole
-# so one would expect the db to work
+# Integration tests test the system as a whole so one can reasonably expect the database to be populated.
 @pytest.fixture(autouse=True)
-def _always_create_tables(cfg_tuple, create_tables):
-    _, configparser_cfg = cfg_tuple
-    setup_test_tables(configparser_cfg)
-    yield
-    clear_test_tables(configparser_cfg)
+def _always_create_tables(create_tables):
+    return
