@@ -4,7 +4,6 @@ import os
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
-from tempfile import TemporaryDirectory
 
 import pytest
 from common_helper_files import create_dir_for_file
@@ -17,11 +16,7 @@ from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
 from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import (  # pylint: disable=wrong-import-order
-    clear_test_tables,
-    create_docker_mount_base_dir,
-    setup_test_tables,
-)
+from test.common_helper import clear_test_tables, setup_test_tables  # pylint: disable=wrong-import-order
 from web_interface.frontend_main import WebFrontEnd
 
 TMP_DB_NAME = 'tmp_acceptance_tests'
@@ -42,16 +37,10 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
             self.name = name
             self.file_name = os.path.basename(self.path)
 
-    @classmethod
-    def setUpClass(cls):
-        cls._set_config()
-        create_docker_mount_base_dir()
-
     def setUp(self):
+        self.config = configparser_cfg
         setup_test_tables(self.config)
 
-        self.tmp_dir = TemporaryDirectory(prefix='fact_test_')
-        self.config.set('data-storage', 'firmware-file-storage-directory', self.tmp_dir.name)
         self.frontend = WebFrontEnd()
         self.frontend.app.config['TESTING'] = not self.config.getboolean('expert-settings', 'authentication')
         self.test_client = self.frontend.app.test_client()
@@ -68,15 +57,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
 
     def tearDown(self):
         clear_test_tables(self.config)
-        self.tmp_dir.cleanup()
         gc.collect()
-
-    @classmethod
-    def _set_config(cls):
-        cls.config = configparser_cfg
-        test_db = cls.config.get('data-storage', 'postgres-test-database')
-        cls.config.set('data-storage', 'postgres-database', test_db)
-        cls.config.set('expert-settings', 'authentication', 'false')
 
     def _stop_backend(self):
         with ThreadPoolExecutor(max_workers=4) as pool:
@@ -99,7 +80,6 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         )
         self.compare_service = ComparisonScheduler(callback=compare_callback)
         self.intercom = InterComBackEndBinding(
-            config=self.config,
             analysis_service=self.analysis_service,
             compare_service=self.compare_service,
             unpacking_service=self.unpacking_service,
