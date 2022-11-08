@@ -23,7 +23,7 @@ from helperFunctions.install import (
     read_package_list_from_file,
 )
 
-config.load_config()
+config.load()
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent

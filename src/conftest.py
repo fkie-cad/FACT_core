@@ -21,7 +21,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
 
     :arg defaults: Sections to overwrite
     """
-    config.load_config()
+    config.load()
 
     docker_mount_base_dir = create_docker_mount_base_dir()
     firmware_file_storage_directory = Path(tempfile.mkdtemp())
@@ -95,6 +95,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
     return cfg, configparser_cfg
 
 
+# TODO When configparser is not used anymore this should not be named cfg_tuple but rather cfg
 @pytest.fixture
 def cfg_tuple(request):
     """Returns a `config.Config` and a `configparser.ConfigParser` with testing defaults.
@@ -130,11 +131,9 @@ def patch_cfg(cfg_tuple):
     mpatch.setattr('config._cfg', cfg)
     mpatch.setattr('config._configparser_cfg', configparser_cfg)
     # Disallow code to load the actual, non-testing config
-    # This only works if `load_config` was not imported by `from config import load_config`.
-    # See doc comment of `load_config`.
-    mpatch.setattr(
-        'config.load_config', lambda _=None: logging.warn('Code tried to call `config.load_config`. Ignoring.')
-    )
+    # This only works if `load` was not imported by `from config import load`.
+    # See doc comment of `load`.
+    mpatch.setattr('config.load', lambda _=None: logging.warn('Code tried to call `config.load`. Ignoring.'))
     yield
 
     mpatch.undo()
