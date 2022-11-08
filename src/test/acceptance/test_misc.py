@@ -37,9 +37,6 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         super().tearDownClass()
 
     def _analysis_callback(self, uid: str, plugin: str, analysis_dict: dict):
-        # TODO convert this to a fixture
-        #      Previously this was instanciated in setUpClass (which is to be removed)
-        #      This does not work anymore because the fixture that patches the config (patch_cfg) is executed later
         db_backend_service = BackendDbInterface()
         db_backend_service.add_analysis(uid, plugin, analysis_dict)
         self.elements_finished_analyzing.value += 1
