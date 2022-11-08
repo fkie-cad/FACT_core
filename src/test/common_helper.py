@@ -12,7 +12,6 @@ from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_setup import DbSetup
 
 
 def get_test_data_dir():
@@ -316,14 +315,12 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
 
 
-def setup_test_tables(config):
-    db_setup = DbSetup()
+def setup_test_tables(db_setup):
     db_setup.connection.create_tables()
     db_setup.set_table_privileges()
 
 
-def clear_test_tables(config):
-    db_setup = DbSetup()
+def clear_test_tables(db_setup):
     db_setup.connection.base.metadata.drop_all(db_setup.connection.engine)
 
 

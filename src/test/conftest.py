@@ -1,5 +1,6 @@
 import pytest
 
+from storage.db_setup import DbSetup
 from test.common_helper import clear_test_tables, setup_test_tables
 
 
@@ -8,11 +9,11 @@ from test.common_helper import clear_test_tables, setup_test_tables
 # scope and this fixture needs it.
 # TODO This function should only be used by integration tests -> Move it to to integration/conftest.py
 @pytest.fixture
-def create_tables(cfg_tuple):
+def create_tables():
     """Creates the tables that backend needs.
     This is equivalent to executing ``init_postgres.py``.
     """
-    _, configparser_cfg = cfg_tuple
-    setup_test_tables(configparser_cfg)
+    db_setup = DbSetup()
+    setup_test_tables(db_setup)
     yield
-    clear_test_tables(configparser_cfg)
+    clear_test_tables(db_setup)
