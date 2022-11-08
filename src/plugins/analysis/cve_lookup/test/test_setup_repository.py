@@ -1047,7 +1047,7 @@ CPE_TABLE = [
 ]
 
 
-@pytest.fixture(scope='function', autouse=True)
+@pytest.fixture(autouse=True)
 def setup():
     with suppress(OSError):
         remove('cve_cpe.db')

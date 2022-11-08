@@ -1,2 +1,2 @@
-pyxdameraulevenshtein==1.7.0
+pyxdameraulevenshtein==1.7.1
 retry==0.9.2
