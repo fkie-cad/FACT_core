@@ -46,7 +46,7 @@ def main(command_line_options=None, config_path: str = None, skip_user_creation:
     if command_line_options and command_line_options[-1] == '-t':
         return 0  # testing mode
 
-    config.load_config(config_path)
+    config.load(config_path)
 
     host = cfg.data_storage.postgres_server
     port = cfg.data_storage.postgres_port
