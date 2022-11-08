@@ -125,7 +125,7 @@ class TestPluginNotRunning(TestPluginBase):
         pass
 
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
-    def multithread_config_test(self, multithread_flag, threads_in_config, threads_wanted):
+    def multithread_config_test(self, multithread_flag, threads_wanted):
         self.p_base = DummyPlugin(no_multithread=multithread_flag)
         self.assertEqual(self.p_base.thread_count, int(threads_wanted), 'number of threads not correct')
         self.p_base.shutdown()
@@ -138,7 +138,7 @@ class TestPluginNotRunning(TestPluginBase):
         }
     )
     def test_no_multithread(self):
-        self.multithread_config_test(True, '4', '1')
+        self.multithread_config_test(True, '4')
 
     @pytest.mark.cfg_defaults(
         {
@@ -148,7 +148,7 @@ class TestPluginNotRunning(TestPluginBase):
         }
     )
     def test_normal_multithread(self):
-        self.multithread_config_test(False, '2', '2')
+        self.multithread_config_test(False, '2')
 
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def test_init_result_dict(self):
