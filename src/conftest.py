@@ -98,10 +98,12 @@ def cfg_tuple(request):
     """Returns a `config.Config` and a `configparser.ConfigParser` with testing defaults.
     Defaults can be overwritten with the `cfg_defaults` pytest mark.
     """
-    # TODO Use iter_markers to be able to overwrite the config.
-    # Make sure to iterate in order from closest to farthest.
-    cfg_defaults_marker = request.node.get_closest_marker('cfg_defaults')
-    cfg_defaults = cfg_defaults_marker.args[0] if cfg_defaults_marker else {}
+
+    cfg_defaults = {}
+    # Not well documented but iter_markers iterates from closest to farthest
+    # https://docs.pytest.org/en/7.1.x/reference/reference.html?highlight=iter_markers#custom-marks
+    for cfg_defaults_marker in reversed(list(request.node.iter_markers('cfg_defaults'))):
+        cfg_defaults.update(cfg_defaults_marker.args[0])
 
     cfg, configparser_cfg = _get_test_config_tuple(cfg_defaults)
     yield cfg, configparser_cfg
