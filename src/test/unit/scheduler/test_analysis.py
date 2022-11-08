@@ -120,15 +120,8 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
             self.sched._process_next_analysis_task(test_fw)
             assert not spy.was_called(), 'unknown plugin should simply be skipped'
 
-    # TODO this marker should not completely overwrite the outer markers
     @pytest.mark.cfg_defaults(
         {
-            'file_hashes': {
-                'hashes': 'md5, sha1, sha256, sha512, ripemd160, whirlpool',
-            },
-            'printable_strings': {
-                'min-length': 6,
-            },
             'dummy_plugin_for_testing_only': {
                 'mime_whitelist': 'foo, bar',
             },
