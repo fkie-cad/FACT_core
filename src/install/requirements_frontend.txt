@@ -1,25 +1,25 @@
-bcrypt==3.2.2
-email-validator==1.2.1
-flask-login==0.6.1
-flask==2.1.2
+bcrypt==4.0.1
+email-validator==1.3.0
+flask-login==0.6.2
 flask-paginate==2022.1.8
-flask_restx==0.5.1
-flask-security-too==4.1.4
-flask_sqlalchemy==2.5.1
+flask-security-too==5.0.2
+flask==2.2.2
+flask_restx==1.0.3
+flask_sqlalchemy==3.0.2
 itsdangerous==2.1.2
-matplotlib==3.5.2
-prompt_toolkit==3.0.29
-more_itertools==8.12.0
+matplotlib==3.5.3
+more_itertools==9.0.0
+prompt_toolkit==3.0.32
 python-dateutil==2.8.2
 si-prefix==1.2.2
-uwsgi==2.0.20
+uwsgi==2.0.21
 virtualenv
 
 # must be below dependent packages (flask, flask-login, flask-restx)
-werkzeug==2.1.2
+werkzeug==2.2.2
 
 # Used for username validation by flask-security
-bleach==5.0.0
+bleach==5.0.1
 
 # Used to start radare
 docker-compose==1.29.2
