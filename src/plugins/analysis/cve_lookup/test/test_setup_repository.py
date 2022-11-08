@@ -1047,7 +1047,7 @@ CPE_TABLE = [
 ]
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='function', autouse=True)
 def setup():
     with suppress(OSError):
         remove('cve_cpe.db')
@@ -1107,30 +1107,28 @@ def test_exists(monkeypatch):
 
 def test_extract_relevant_feeds():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
-    assert [('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)] == sorted(
-        sr.extract_relevant_feeds(from_table='new', where_table='outdated')
-    )
+    assert sorted(sr.extract_relevant_feeds(from_table='new', where_table='outdated')) == [
+        ('CVE-2018-0002', 2018),
+        ('CVE-2018-0003', 2018),
+    ]
 
 
 def test_delete_outdated_feeds():
+    sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
     sr.delete_outdated_feeds(delete_outdated_from='outdated', use_for_selection='new')
     assert sr.DATABASE.fetch_one(query=QUERIES['select_all'].format('outdated'))[0] == 'CVE-2018-0001'
 
 
-def test_create():
+def test_create_insert_delete():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
     sr.create(query='test_create', table_name='test')
     assert sr.DATABASE.fetch_one(query=QUERIES['exist'].format('test'))[0] == 'test'
 
-
-def test_insert_into():
     sr.insert_into(query='test_insert', table_name='test', input_data=[(1,), (2,)])
-    assert [(1,), (2,)] == sorted(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('test')))
+    assert sorted(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('test'))) == [(1,), (2,)]
 
-
-def test_drop_table():
     sr.drop_table('test')
-    assert [] == list(sr.DATABASE.fetch_multiple(query=QUERIES['exist'].format('test')))
+    assert list(sr.DATABASE.fetch_multiple(query=QUERIES['exist'].format('test'))) == []
 
 
 def test_update_cpe(monkeypatch):
@@ -1358,7 +1356,7 @@ def test_update_cve_summaries():
 
 def test_get_years_from_database():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
-    assert sr.get_years_from_database() == [2018]
+    assert sorted(sr.get_years_from_database()) == [2012, 2018]
 
 
 def test_import_cve(monkeypatch):
