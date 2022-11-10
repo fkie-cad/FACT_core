@@ -25,7 +25,7 @@ from common_helper_files import create_dir_for_file
 
 import config
 from config import cfg, configparser_cfg
-from helperFunctions.config_deprecated import get_config_dir
+from helperFunctions.fileSystem import get_config_dir
 from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
 
