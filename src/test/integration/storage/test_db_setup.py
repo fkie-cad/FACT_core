@@ -4,8 +4,6 @@ import pytest
 from storage.db_setup import DbSetup
 
 
-# TODO scope with config
-# @pytest.fixture(scope='module')
 @pytest.fixture
 def db_setup():
     yield DbSetup()

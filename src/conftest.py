@@ -95,7 +95,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
     return cfg, configparser_cfg
 
 
-# TODO When configparser is not used anymore this should not be named cfg_tuple but rather cfg
+# FIXME When configparser is not used anymore this should not be named cfg_tuple but rather cfg
 @pytest.fixture
 def cfg_tuple(request):
     """Returns a `config.Config` and a `configparser.ConfigParser` with testing defaults.

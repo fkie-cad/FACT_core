@@ -4,7 +4,7 @@ from typing import ContextManager, Generic, Type, TypeVar
 DatabaseInterface = TypeVar('DatabaseInterface')
 
 
-# TODO this class does nothing and can be removed
+# FIXME this class does nothing and can be removed
 class ConnectTo(Generic[DatabaseInterface]):
     '''
     Open a database connection using the interface passed to the constructor. Intended to be used as a context manager.
