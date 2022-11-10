@@ -154,6 +154,14 @@ def load(path=None):
     _configparser_cfg = parser
     _cfg = Config(**parsed_sections)
 
+    _verify_config(_cfg)
+
+
+def _verify_config(config: Config):
+    """Analyze the config for simple errors that a sysadmin might make."""
+    if not Path(config.data_storage.temp_dir_path).exists():
+        raise ValueError('The "temp-dir-path" as specified in section "data-storage" does not exist.')
+
 
 def _replace_hyphens_with_underscores(sections):
     for section in list(sections.keys()):
