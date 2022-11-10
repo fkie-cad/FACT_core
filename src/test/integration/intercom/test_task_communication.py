@@ -63,9 +63,10 @@ class TestInterComTaskCommunication(unittest.TestCase):
         assert task.uid == test_fw.uid, 'uid not transported correctly'
         assert task.scheduled_analysis
 
-    @pytest.mark.skip(reason='TODO')
     def test_re_analyze_task(self):
         self.backend = InterComBackEndReAnalyzeTask()
+        # TODO if we patch this away what does this test do?!
+        self.backend.post_processing = lambda task, _: task
         test_fw = create_test_firmware()
         test_fw.file_path = None
         test_fw.binary = None
