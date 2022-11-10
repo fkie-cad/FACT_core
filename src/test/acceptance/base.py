@@ -1,14 +1,11 @@
 import gc
-import logging
 import os
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-from common_helper_files import create_dir_for_file
 
-from config import configparser_cfg
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
@@ -39,12 +36,12 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
             self.file_name = os.path.basename(self.path)
 
     def setUp(self):
-        self.config = configparser_cfg
         self._db_setup = DbSetup()
         setup_test_tables(self._db_setup)
 
         self.frontend = WebFrontEnd()
-        self.frontend.app.config['TESTING'] = not self.config.getboolean('expert-settings', 'authentication')
+        # TODO
+        # self.frontend.app.config['TESTING'] = not self.config.getboolean('expert-settings', 'authentication')
         self.test_client = self.frontend.app.test_client()
 
         self.test_fw_a = self.TestFW(
@@ -88,24 +85,6 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
             unpacking_locks=unpacking_locks,
         )
         self.fs_organizer = FSOrganizer()
-
-    def _setup_debugging_logging(self):
-        # for debugging purposes only
-        log_level = logging.DEBUG
-        log_format = logging.Formatter(
-            fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        logger = logging.getLogger('')
-        logger.setLevel(logging.DEBUG)
-        create_dir_for_file(self.config['logging']['logfile'])
-        file_log = logging.FileHandler(self.config['logging']['logfile'])
-        file_log.setLevel(log_level)
-        file_log.setFormatter(log_format)
-        console_log = logging.StreamHandler()
-        console_log.setLevel(logging.DEBUG)
-        console_log.setFormatter(log_format)
-        logger.addHandler(file_log)
-        logger.addHandler(console_log)
 
 
 class TestAcceptanceBaseWithDb(TestAcceptanceBase):
