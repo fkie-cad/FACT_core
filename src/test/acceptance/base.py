@@ -40,8 +40,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         setup_test_tables(self._db_setup)
 
         self.frontend = WebFrontEnd()
-        # TODO
-        # self.frontend.app.config['TESTING'] = not self.config.getboolean('expert-settings', 'authentication')
+        self.frontend.app.config['TESTING'] = True
         self.test_client = self.frontend.app.test_client()
 
         self.test_fw_a = self.TestFW(
