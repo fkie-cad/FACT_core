@@ -80,11 +80,8 @@ class TestInterComTaskCommunication(unittest.TestCase):
 
     def test_re_analyze_task(self):
         self.backend = InterComBackEndReAnalyzeTask()
-        # TODO if we patch this away what does this test do?!
-        self.backend.post_processing = lambda task, _: task
         test_fw = create_test_firmware()
         test_fw.file_path = None
-        test_fw.binary = None
         self.frontend.add_re_analyze_task(test_fw)
         task = self.backend.get_next_task()
         self.assertEqual(task.uid, test_fw.uid, 'uid not correct')
