@@ -9,8 +9,8 @@ jobs:
   build-ci:
     strategy:
       matrix:
-        os: [focal, jammy, buster, bullseye]
-    runs-on: [self-hosted, linux, x64, ${{ matrix.os }}]
+        os: [ focal, jammy, buster, bullseye ]
+    runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
     timeout-minutes: 45
     steps:
       - name: Add Masks
