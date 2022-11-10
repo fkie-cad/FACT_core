@@ -47,9 +47,8 @@ jobs:
         run: |
           python3 -m pip install codecov
           pytest --cov=.
-jobs:
-  focal:
-    runs-on: [self-hosted, linux, x64, focal]
+  jammy:
+    runs-on: [self-hosted, linux, x64, jammy]
     timeout-minutes: 45
     steps:
       - name: Add Masks
