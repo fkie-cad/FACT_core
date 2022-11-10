@@ -118,7 +118,8 @@ jobs:
         with:
           ref: ${{ github.ref }}
       - name: Set ulimit
-        run: ulimit -n 9999      - name: Pre-Installation
+        run: ulimit -n 9999
+      - name: Pre-Installation
         shell: 'script -q -e -c "bash {0}"'
         run: ./src/install/pre_install.sh
       - name: Install FACT
