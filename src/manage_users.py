@@ -11,7 +11,7 @@ from prompt_toolkit.completion import WordCompleter
 
 import config
 from config import configparser_cfg
-from helperFunctions.config_deprecated import get_config_dir
+from helperFunctions.fileSystem import get_config_dir
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.app import create_app

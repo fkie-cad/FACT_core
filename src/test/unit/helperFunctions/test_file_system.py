@@ -5,7 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from helperFunctions.fileSystem import file_is_empty, get_relative_object_path, get_src_dir, get_template_dir
+from helperFunctions.fileSystem import (
+    file_is_empty,
+    get_config_dir,
+    get_relative_object_path,
+    get_src_dir,
+    get_template_dir,
+)
 from test.common_helper import get_test_data_dir
 
 TEST_DATA_DIR = Path(get_test_data_dir())
@@ -53,3 +59,7 @@ def test_file_is_zero():
 
 def test_file_is_zero_broken_link():
     assert not file_is_empty(TEST_DATA_DIR / 'broken_link'), 'Broken link is not empty'
+
+
+def test_get_config_dir():
+    assert os.path.exists(f'{get_config_dir()}/main.cfg'), 'main config file not found'

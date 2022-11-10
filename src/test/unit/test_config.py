@@ -2,7 +2,7 @@ import pydantic
 import pytest
 
 # We explicitly don't want the patch_cfg fixture to be able to patch this function
-from config import cfg, configparser_cfg, load
+from config import cfg, configparser_cfg, load, parse_comma_separated_list
 from test.common_helper import get_test_data_dir
 
 
@@ -21,3 +21,18 @@ def test_load_missing_entrys():
     with pytest.raises(pydantic.error_wrappers.ValidationError, match='postgres_server'):
 
         load(path=cfg_path)
+
+
+@pytest.mark.parametrize(
+    'input_data, expected',
+    [
+        ('', []),
+        ('item1', ['item1']),
+        ('item1, item2, item3', ['item1', 'item2', 'item3']),
+        ('item1,item2,item3', ['item1', 'item2', 'item3']),
+        (' item1 , item2 , item3 ', ['item1', 'item2', 'item3']),
+    ],
+)
+def test_parse_comma_separeted_list(input_data, expected):
+    result = parse_comma_separated_list(input_data)
+    assert result == expected

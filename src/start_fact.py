@@ -31,7 +31,7 @@ try:
 except ImportError:
     sys.exit(1)
 
-from helperFunctions.config_deprecated import get_src_dir
+from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.program_setup import program_setup
 
 PROGRAM_NAME = 'FACT Starter'
