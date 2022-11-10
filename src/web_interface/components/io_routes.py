@@ -46,7 +46,6 @@ class IORoutes(ComponentBase):
             device_classes=device_class_list,
             vendors=vendor_list,
             error=error,
-            # TODO is this right?
             analysis_presets=list(cfg.default_plugins),
             device_names=json.dumps(device_name_dict, sort_keys=True),
             analysis_plugin_dict=analysis_plugins,

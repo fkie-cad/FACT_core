@@ -12,7 +12,6 @@ TEST_FW = create_test_firmware()
 @pytest.fixture
 def binary_service(db, cfg_tuple):
     cfg, _ = cfg_tuple
-    # TODO somehow this does not work. Is the date even copied?!
     _init_test_data(cfg.data_storage.firmware_file_storage_directory, db)
     yield BinaryService()
 
