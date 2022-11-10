@@ -29,9 +29,9 @@ jobs:
           echo "::add-mask::${{ secrets.INTERNAL_NODE_6 }}"
           echo "::add-mask::${{ secrets.INTERNAL_NODE_7 }}"
           echo "::add-mask::${{ secrets.INTERNAL_NODE_8 }}"
-          echo "::add-mask::${{ secrets.SECRET_STRINGS_1 }}"
-          echo "::add-mask::${{ secrets.SECRET_STRINGS_2 }}"
-          echo "::add-mask::${{ secrets.SECRET_STRINGS_3 }}"
+          echo "::add-mask::${{ secrets.SECRET_STRING_1 }}"
+          echo "::add-mask::${{ secrets.SECRET_STRING_2 }}"
+          echo "::add-mask::${{ secrets.SECRET_STRING_3 }}"
       - name: Checkout Branch
         uses: actions/checkout@v3
         with:
