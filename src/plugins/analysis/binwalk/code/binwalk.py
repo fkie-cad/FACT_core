@@ -8,8 +8,7 @@ from tempfile import TemporaryDirectory
 from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
-from config import configparser_cfg
-from helperFunctions.config_deprecated import get_temp_dir_path
+from config import cfg
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -23,7 +22,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         result = {}
-        with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=get_temp_dir_path(configparser_cfg)) as tmp_dir:
+        with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=cfg.data_storage.temp_dir_path) as tmp_dir:
             cmd_process = subprocess.run(
                 f'(cd {tmp_dir} && xvfb-run -a binwalk -BEJ {file_object.file_path})',
                 shell=True,
