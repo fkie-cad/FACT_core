@@ -7,8 +7,7 @@ from flask import Request
 from markupsafe import escape
 from werkzeug.datastructures import FileStorage
 
-from config import configparser_cfg
-from helperFunctions.config_deprecated import get_temp_dir_path
+from config import cfg
 from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 
@@ -150,7 +149,7 @@ def _get_uploaded_file_binary(request_file: FileStorage) -> Optional[bytes]:
     '''
     if not request_file:
         return None
-    with TemporaryDirectory(prefix='fact_upload_', dir=get_temp_dir_path(configparser_cfg)) as tmp_dir:
+    with TemporaryDirectory(prefix='fact_upload_', dir=cfg.data_storage.temp_dir_path) as tmp_dir:
         tmp_file_path = Path(tmp_dir) / 'upload.bin'
         try:
             request_file.save(str(tmp_file_path))
