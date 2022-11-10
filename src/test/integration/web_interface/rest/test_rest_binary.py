@@ -2,8 +2,6 @@
 from base64 import standard_b64encode
 from multiprocessing import Queue
 
-import pytest
-
 from intercom.back_end_binding import InterComBackEndBinding
 from storage.db_interface_backend import BackendDbInterface
 from test.common_helper import create_test_firmware, store_binary_on_file_system
@@ -20,18 +18,20 @@ class TestRestDownload(RestTestBase):
     def teardown(self):
         self.test_queue.close()
 
-    @pytest.mark.skip(reason='TODO')
-    def test_rest_download_valid(self, db):
+    def test_rest_download_valid(self, db, cfg_tuple):
+        cfg, _ = cfg_tuple
         backend_binding = InterComBackEndBinding(
             analysis_service=test_backend_scheduler.AnalysisServiceMock(),
             compare_service=test_backend_scheduler.ServiceMock(self.test_queue),
             unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue),
         )
-        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
-        store_binary_on_file_system(self.tmp_dir.name, test_firmware)
-        self.db_interface.add_object(test_firmware)
-
         try:
+            test_firmware = create_test_firmware(
+                device_class='test class', device_name='test device', vendor='test vendor'
+            )
+            store_binary_on_file_system(cfg.data_storage.firmware_file_storage_directory, test_firmware)
+            self.db_interface.add_object(test_firmware)
+
             response = self.test_client.get(f'/rest/binary/{test_firmware.uid}', follow_redirects=True).data.decode()
         finally:
             backend_binding.shutdown()
