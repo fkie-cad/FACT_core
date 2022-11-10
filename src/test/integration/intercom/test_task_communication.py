@@ -4,7 +4,6 @@ from __future__ import annotations
 import gc
 import os
 import unittest
-from tempfile import TemporaryDirectory
 from unittest import mock
 
 import pytest
@@ -25,9 +24,6 @@ from test.common_helper import create_test_firmware
 
 
 class AnalysisServiceMock:
-    def __init__(self):
-        pass
-
     def get_plugin_dict(self):  # pylint: disable=no-self-use
         return {'dummy': 'dummy description'}
 
@@ -53,10 +49,6 @@ class BinaryServiceMock:
     }
 )
 class TestInterComTaskCommunication(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
-
     def setUp(self):
         self.frontend = InterComFrontEndBinding()
         self.backend = None
@@ -64,10 +56,6 @@ class TestInterComTaskCommunication(unittest.TestCase):
     def tearDown(self):
         self.frontend.redis.redis.flushdb()
         gc.collect()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.tmp_dir.cleanup()
 
     def test_analysis_task(self):
         self.backend = InterComBackEndAnalysisTask()
