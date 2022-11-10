@@ -3,15 +3,16 @@ import logging
 import pickle
 import sys
 from base64 import b64encode
+from configparser import ConfigParser
+from pathlib import Path
 from typing import List, Optional, Union
 
 import gridfs
 from pymongo import MongoClient, errors
 from sqlalchemy.exc import StatementError
 
-from helperFunctions.config_deprecated import load_config
+import config
 from helperFunctions.data_conversion import convert_time_to_str
-from helperFunctions.database import ConnectTo
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
@@ -25,6 +26,34 @@ except ImportError:
 
 PERCENTAGE = '[progress.percentage]{task.percentage:>3.0f}%'
 DESCRIPTION = '[progress.description]{task.description}'
+
+
+class ConnectTo:
+    '''
+    Open a database connection using the interface passed to the constructor. Intended to be used as a context manager.
+
+    :param connected_interface: A database interface from the `storage` module (e.g. `FrontEndDbInterface`)
+    :param config: A FACT configuration.
+
+    :Example:
+
+        .. code-block:: python
+
+           with ConnectTo(FrontEndDbInterface, self.config) as connection:
+                query = connection.firmwares.find({})
+    '''
+
+    def __init__(self, connected_interface, config: ConfigParser):
+        self.interface = connected_interface
+        self.config = config
+        self.connection = None
+
+    def __enter__(self):
+        self.connection = self.interface(self.config)
+        return self.connection
+
+    def __exit__(self, *args):
+        pass
 
 
 class MongoInterface:
@@ -250,10 +279,13 @@ def _check_for_missing_fields(plugin, analysis_data):
 
 
 def main():
-    postgres_config = load_config('main.cfg')
-    postgres = BackendDbInterface(config=postgres_config)
+    # Load the new config for postgres
+    config.load()
+    postgres = BackendDbInterface()
 
-    mongo_config = load_config('migration.cfg')
+    mongo_config = ConfigParser()
+    mongo_config.read(Path(__file__).parent / 'config' / 'migration.cfg')
+
     try:
         with ConnectTo(MigrationMongoInterface, mongo_config) as db:
             with Progress(DESCRIPTION, BarColumn(), PERCENTAGE, TimeElapsedColumn()) as progress:
@@ -263,7 +295,7 @@ def main():
                     print('No firmware to migrate')
                 else:
                     print(f'Successfully migrated {migrated_fw_count} firmware DB entries')
-            migrate_comparisons(db, postgres_config)
+            migrate_comparisons(db)
     except errors.ServerSelectionTimeoutError:
         logging.error(
             'Could not connect to MongoDB database.\n\t'
@@ -333,9 +365,9 @@ class DbMigrator:
             raise
 
 
-def migrate_comparisons(mongo: MigrationMongoInterface, config):
+def migrate_comparisons(mongo: MigrationMongoInterface):
     count = 0
-    compare_db = ComparisonDbInterface(config=config)
+    compare_db = ComparisonDbInterface()
     for entry in mongo.compare_results.find({}):
         results = {key: value for key, value in entry.items() if key not in ['_id', 'submission_date']}
         comparison_id = entry['_id']
