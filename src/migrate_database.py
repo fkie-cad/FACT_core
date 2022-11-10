@@ -4,7 +4,8 @@ import argparse
 import sqlite3
 import uuid
 
-from helperFunctions.config_deprecated import load_config
+import config
+from config import cfg
 
 
 def upgrade(cur):
@@ -79,9 +80,9 @@ def main():
     downgrade_process.set_defaults(func=downgrade)
     args = parser.parse_args()
 
-    config = load_config('main.cfg')
+    config.load()
 
-    db_path = config['data-storage']['user-database'][len('sqlite:///') :]
+    db_path = cfg.data_storage.user_database[len('sqlite:///') :]
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
