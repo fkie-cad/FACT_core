@@ -3,11 +3,22 @@ import re
 import pytest
 
 from test.acceptance.auth_base import TestAuthenticatedAcceptanceBase
+from test.common_helper import get_test_data_dir
 
 NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger']
 REQUEST_FAILS = [b'404 Not Found', b'405 Method Not Allowed', b'The method is not allowed']
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'expert-settings': {
+            'authentication': 'true',
+        },
+        'data-storage': {
+            'user-database': ''.join(['sqlite:///', get_test_data_dir(), '/user_test.db']),
+        },
+    }
+)
 class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
     UNIQUE_LOGIN_STRING = b'<h3 class="mx-3 mt-4">Login</h3>'
     PERMISSION_DENIED_STRING = b'You do not have permission to view this resource.'
@@ -22,7 +33,6 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
         response = self.test_client.get('/', follow_redirects=True)
         self.assertIn(self.UNIQUE_LOGIN_STRING, response.data, 'no authorization required')
 
-    @pytest.mark.skip(reason='TODO The fix probably is to properly set authentication in the config')
     def test_api_key_auth(self):
         response = self.test_client.get('/', headers={'Authorization': self.guest.key}, follow_redirects=True)
         self.assertNotIn(self.UNIQUE_LOGIN_STRING, response.data, 'authorization not working')
