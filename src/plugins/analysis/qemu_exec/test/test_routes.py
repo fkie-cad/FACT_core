@@ -22,13 +22,19 @@ class DbInterfaceMock:
             'files': {
                 'foo': {'executable': False},
                 'bar': {
-                    'executable': True, 'path': '/some/path',
-                    'results': {'some-arch': {'-h': {'stdout': 'stdout result', 'stderr': 'stderr result', 'return_code': '1337'}}},
+                    'executable': True,
+                    'path': '/some/path',
+                    'results': {
+                        'some-arch': {
+                            '-h': {'stdout': 'stdout result', 'stderr': 'stderr result', 'return_code': '1337'}
+                        }
+                    },
                 },
                 'error-outside': {'executable': False, 'path': '/some/path', 'results': {'error': 'some error'}},
                 'error-inside': {
-                    'executable': False, 'path': '/some/path',
-                    'results': {'some-arch': {'error': 'some error'}}
+                    'executable': False,
+                    'path': '/some/path',
+                    'results': {'some-arch': {'error': 'some error'}},
                 },
             }
         }
@@ -60,7 +66,6 @@ class DbInterfaceMock:
 
 
 class TestQemuExecRoutesStatic:
-
     def setup(self):
         self.config = get_config_for_testing()
 
@@ -86,7 +91,6 @@ class DbMock:
 
 
 class TestFileSystemMetadataRoutes:
-
     def setup(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
@@ -121,7 +125,6 @@ class TestFileSystemMetadataRoutes:
 
 
 class TestFileSystemMetadataRoutesRest:
-
     def setup(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
@@ -130,10 +133,7 @@ class TestFileSystemMetadataRoutesRest:
         api = Api(app)
         endpoint, methods = routes.QemuExecRoutesRest.ENDPOINTS[0]
         api.add_resource(
-            routes.QemuExecRoutesRest,
-            endpoint,
-            methods=methods,
-            resource_class_kwargs={'config': config, 'db': DbMock}
+            routes.QemuExecRoutesRest, endpoint, methods=methods, resource_class_kwargs={'config': config, 'db': DbMock}
         )
         self.test_client = app.test_client()
 

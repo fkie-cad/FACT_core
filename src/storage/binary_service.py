@@ -49,7 +49,6 @@ class BinaryService:
 
 
 class BinaryServiceDbInterface(ReadOnlyDbInterface):
-
     def get_file_name(self, uid: str) -> Optional[str]:
         with self.get_read_only_session() as session:
             entry: FileObjectEntry = session.get(FileObjectEntry, uid)

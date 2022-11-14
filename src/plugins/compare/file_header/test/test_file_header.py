@@ -13,7 +13,9 @@ class TestComparePluginFileHeader(ComparePluginTest):
         result = self.c_plugin.compare_function([self.fw_one, self.fw_two, self.fw_three])
 
         assert all(key in result for key in ['hexdiff', 'ascii', 'offsets']), 'not all result keys given'
-        assert all(isinstance(result[key], Markup) for key in ['hexdiff', 'ascii', 'offsets']), 'partial results should be flask.Markup strings'
+        assert all(
+            isinstance(result[key], Markup) for key in ['hexdiff', 'ascii', 'offsets']
+        ), 'partial results should be flask.Markup strings'
 
         assert '>4B<' in result['hexdiff'], 'no bytes in hexdump or bad upper case conversion'
         assert '<br />' in result['hexdiff'], 'no linebreaks found'
@@ -21,8 +23,12 @@ class TestComparePluginFileHeader(ComparePluginTest):
     def test_at_least_two_are_common(self):
         should_be_true = [3, 2, 1, 2]
         should_be_false = [5, 4, 3, 1, 2, 6]
-        assert self.c_plugin._at_least_two_are_common(should_be_true), 'should find a commonality'  # pylint: disable=no-member,protected-access
-        assert not self.c_plugin._at_least_two_are_common(should_be_false), 'should not find a commonality'  # pylint: disable=no-member,protected-access
+        assert self.c_plugin._at_least_two_are_common(
+            should_be_true
+        ), 'should find a commonality'  # pylint: disable=no-member,protected-access
+        assert not self.c_plugin._at_least_two_are_common(
+            should_be_false
+        ), 'should not find a commonality'  # pylint: disable=no-member,protected-access
 
 
 def test_process_ascii_bytes():

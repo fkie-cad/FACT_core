@@ -1,8 +1,16 @@
 import pytest
 
 from ..internal.rulebook import (
-    RELATIONS, MetaRule, SingleRule, SubPathRule, _evaluate_meta_rule, _evaluate_single_rule, _evaluate_sub_path_rule,
-    _get_dotted_path_from_dictionary, _get_value, evaluate
+    RELATIONS,
+    MetaRule,
+    SingleRule,
+    SubPathRule,
+    _evaluate_meta_rule,
+    _evaluate_single_rule,
+    _evaluate_sub_path_rule,
+    _get_dotted_path_from_dictionary,
+    _get_value,
+    evaluate,
 )
 
 IPS = {
@@ -10,24 +18,12 @@ IPS = {
         'summary': ['1', '2', '3', '4', 'a', 'b', 'c'],
         'timestamp': 1000000,
         'ip_v4': [
-            {
-                'address': '1',
-                'location': [12, 13]
-            },
-            {
-                'address': '2',
-                'location': [22, 12]
-            },
-            {
-                'address': '3',
-                'location': [-1, 6]
-            },
-            {
-                'address': '4',
-                'location': [81, 42]
-            },
+            {'address': '1', 'location': [12, 13]},
+            {'address': '2', 'location': [22, 12]},
+            {'address': '3', 'location': [-1, 6]},
+            {'address': '4', 'location': [81, 42]},
         ],
-        'uri': ['a', 'b', 'c']
+        'uri': ['a', 'b', 'c'],
     }
 }
 
@@ -47,7 +43,9 @@ def test_get_value():
     assert _get_value(abc, ['a.b']) == [1, 2, 3]
 
     abc = {'a': {'b': [{'c': 5}]}}
-    assert _get_value(abc, ['a.b', 'c']) == [5, ]
+    assert _get_value(abc, ['a.b', 'c']) == [
+        5,
+    ]
 
     abc = {'a': {'b': [{'c': {'d': 1}}, {'c': {'d': 2}}, {'c': {'d': 3}}]}}
     assert _get_value(abc, ['a.b', 'c.d']) == [1, 2, 3]
@@ -63,15 +61,18 @@ def test_all_rules_are_booleans(relation):
     assert RELATIONS[relation]('12', '5') in [True, False]
 
 
-@pytest.mark.parametrize('relation_value_good_bad', [
-    ('equals', 5, 5, 4),
-    ('is', '42', '42', 42),
-    ('gt', 100, 99, 101),
-    ('lt', 100, 101, 99),
-    ('in', '42', 'i like 42', 'more a 1337 guy'),
-    ('reverse_in', [1, 3], 3, 2),
-    ('intersection', [1, 2, 3], [2, 3], [4, 5])  # 'exists' can not be tested this way since its never false
-])
+@pytest.mark.parametrize(
+    'relation_value_good_bad',
+    [
+        ('equals', 5, 5, 4),
+        ('is', '42', '42', 42),
+        ('gt', 100, 99, 101),
+        ('lt', 100, 101, 99),
+        ('in', '42', 'i like 42', 'more a 1337 guy'),
+        ('reverse_in', [1, 3], 3, 2),
+        ('intersection', [1, 2, 3], [2, 3], [4, 5]),  # 'exists' can not be tested this way since its never false
+    ],
+)
 def test_apply_relation(relation_value_good_bad):
     relation, value, good, bad = relation_value_good_bad
     assert RELATIONS[relation](value, good)

@@ -47,7 +47,6 @@ class TestUnpackerBase(unittest.TestCase):
 
 
 class TestUnpackerCore(TestUnpackerBase):
-
     def test_dont_store_zero_file(self):
         file_paths = [EXTRACTION_DIR / 'zero_byte', EXTRACTION_DIR / 'get_files_test' / 'testfile1']
         file_objects = self.unpacker.generate_and_store_file_objects(file_paths, EXTRACTION_DIR, self.test_fo)
@@ -78,7 +77,9 @@ class TestUnpackerCoreMain(TestUnpackerBase):
         assert len(test_object.files_included) == number_unpacked_files, 'not all files added to parent'
         assert len(extracted_files) == number_unpacked_files, 'not all files found'
         assert test_object.processed_analysis['unpacker']['plugin_used'] == first_unpacker, 'Wrong plugin in Meta'
-        assert test_object.processed_analysis['unpacker']['number_of_unpacked_files'] == number_unpacked_files, 'Number of unpacked files wrong in Meta'
+        assert (
+            test_object.processed_analysis['unpacker']['number_of_unpacked_files'] == number_unpacked_files
+        ), 'Number of unpacked files wrong in Meta'
         self.check_depths_of_children(test_object, extracted_files)
 
     @staticmethod

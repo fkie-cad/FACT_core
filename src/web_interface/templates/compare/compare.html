@@ -5,30 +5,30 @@
 
 
 {% block head %}
-	{# jstree import #}
-    <script src="{{ url_for('static', filename='web_js/jstree/dist/jstree.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='web_js/jstree/dist/themes/default/style.min.css') }}" />
+    {# jstree import #}
+    <script src="{{ url_for('static', filename='node_modules/jstree/dist/jstree.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/jstree/dist/themes/default/style.min.css') }}" />
 {% endblock %}
 
 
 {% block body %}
 
 <table class="table table-bordered mt-4">
-	<thead>
-		<tr>
-			<th>Firmware</th>
-			{% for uid in uid_list %}
-				<th>{{ result['general']['hid'][uid] }}</th>
-			{% endfor %}
-		</tr>
-	</thead>
-	<tbody>
-	
-	{# --- general information --- #}
-		<tr>
-			<th colspan="{{ uid_list | length + 1 }}" class="table-head-light" style="text-align:center;">General information</th>
-		</tr>
-		{% for feature in result['general'] | sort %}
+    <thead>
+        <tr>
+            <th>Firmware</th>
+            {% for uid in uid_list %}
+                <th>{{ result['general']['hid'][uid] }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    
+    {# --- general information --- #}
+        <tr>
+            <th colspan="{{ uid_list | length + 1 }}" class="table-head-light" style="text-align:center;">General information</th>
+        </tr>
+        {% for feature in result['general'] | sort %}
             {% if feature != 'hid' %}
                 <tr>
                     <td width="150px"> {{ feature | replace_underscore }} </td>
@@ -53,14 +53,14 @@
                     {% endif %}
                 </tr>
             {% endif %}
-		{% endfor %}
-		
-		{# --- plugin results --- #}
-		
-		{% for plugin in result['plugins'] | sort %}
-		<tr>
-			<th colspan="{{ uid_list | length  + 1 }}" class="table-head-light" style="text-align:center;">{{ plugin | replace_underscore }}</th>
-		</tr>
+        {% endfor %}
+        
+        {# --- plugin results --- #}
+        
+        {% for plugin in result['plugins'] | sort %}
+        <tr>
+            <th colspan="{{ uid_list | length  + 1 }}" class="table-head-light" style="text-align:center;">{{ plugin | replace_underscore }}</th>
+        </tr>
             {% if plugin in plugins_without_view %}
 
                 {# plugins without separate view #}
@@ -97,9 +97,9 @@
             {# individual plugin views #}
 
             {% endif %}
-		{% endfor %}
-		
-	</tbody>
+        {% endfor %}
+        
+    </tbody>
 </table>
 
 

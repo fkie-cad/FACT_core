@@ -12,8 +12,14 @@ from helperFunctions.hash import normalize_lief_items
 from helperFunctions.tag import TagColor
 
 LIEF_DATA_ENTRIES = (
-    'dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments',
-    'symbols_version'
+    'dynamic_entries',
+    'exported_functions',
+    'header',
+    'imported_functions',
+    'libraries',
+    'sections',
+    'segments',
+    'symbols_version',
 )
 TEMPLATE_FILE_PATH = Path(__file__).parent.parent / 'internal/matching_template.json'
 BEHAVIOUR_CLASSES = json.loads(TEMPLATE_FILE_PATH.read_text())
@@ -27,7 +33,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     DEPENDENCIES = ['file_type']
     VERSION = '0.3.3'
-    MIME_WHITELIST = ['application/x-executable', 'application/x-pie-executable', 'application/x-object', 'application/x-sharedlib']
+    MIME_WHITELIST = [
+        'application/x-executable',
+        'application/x-pie-executable',
+        'application/x-object',
+        'application/x-sharedlib',
+    ]
     FILE = __file__
 
     def process_object(self, file_object):
@@ -99,7 +110,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tag_name=entry,
                 value=entry,
                 color=self._get_color_codes(entry),
-                propagate=False
+                propagate=False,
             )
 
     @staticmethod

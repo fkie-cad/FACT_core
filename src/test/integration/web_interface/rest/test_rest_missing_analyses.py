@@ -7,7 +7,6 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 
 class TestRestMissingAnalyses(RestTestBase):
-
     def test_rest_get_missing_analyses(self, db):
         test_fw = create_test_firmware()
         test_fo = create_test_file_object()

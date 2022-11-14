@@ -7,9 +7,19 @@
     {# angularJS import #}
     <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/advanced_search.js') }}"></script>
-    <script>
-        var database_structure = {{ database_structure | tojson }};
-    </script>
+{% endblock %}
+
+{% block styles %}
+    <style>
+        .example-json {
+            font-family: 'Deja Vu Sans Mono', monospace;
+            font-size: 0.9em;
+        }
+        .example-comment {
+            color: grey;
+            font-size: 0.9em;
+        }
+    </style>
 {% endblock %}
 
 
@@ -49,33 +59,33 @@
 
             <p class="mt-4">
                 Simple:<br />
-                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_class": "Router", "vendor": "AVM"}</span><br />
-                <span style="color:grey; font-size: 0.9em">Select firmware files based on specific vendor and device class</span>
+                <span class="example-json">{"device_class": "Router", "vendor": "AVM"}</span><br />
+                <span class="example-comment">Select firmware files based on specific vendor and device class</span>
             </p>
             <p>
                 With regular expression:<br />
-                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_name": {"$regex": "Fritz.+Box 7[0-9]{3}"}}</span><br />
-                <span style="color:grey; font-size: 0.9em">Match field with regular expression</span>
+                <span class="example-json">{"device_name": {"$regex": "Fritz.+Box 7[0-9]{3}"}}</span><br />
+                <span class="example-comment">Match field with regular expression</span>
             </p>
             <p>
                 With substring (case-insensitive):<br />
-                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"vendor": {"$like": "link"}}</span><br />
-                <span style="color:grey; font-size: 0.9em">Match firmwares files that have "link" in their vendor name</span>
+                <span class="example-json">{"vendor": {"$like": "link"}}</span><br />
+                <span class="example-comment">Match firmwares files that have "link" in their vendor name</span>
             </p>
             <p>
                 With arithmetic:<br />
-                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"processed_analysis.file_type.mime": "application/x-executable", "size": {"$lt": 1337}}</span><br />
-                <span style="color:grey; font-size: 0.9em">Select only executables that are smaller than or equal 1337 bytes</span>
+                <span class="example-json">{"processed_analysis.file_type.mime": "application/x-executable", "size": {"$lt": 1337}}</span><br />
+                <span class="example-comment">Select only executables that are smaller than or equal 1337 bytes</span>
             </p>
             <p>
                 With list of possible values:<br />
-                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_class": {"$in": ["router", "switch"]}}</span><br />
-                <span style="color:grey; font-size: 0.9em">Select firmwares that have either device class "router" or "switch"</span>
+                <span class="example-json">{"device_class": {"$in": ["router", "switch"]}}</span><br />
+                <span class="example-comment">Select firmwares that have either device class "router" or "switch"</span>
             </p>
             <p>
                 Check existence (JSON columns only):<br />
-                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"processed_analysis.software_components.BusyBox": {"$exists": true}}</span><br />
-                <span style="color:grey; font-size: 0.9em">Select files where an entry for BusyBox exists in the result of the software components plugin</span>
+                <span class="example-json">{"processed_analysis.software_components.BusyBox": {"$exists": true}}</span><br />
+                <span class="example-comment">Select files where an entry for BusyBox exists in the result of the software components plugin</span>
             </p>
 
             For further usage also see <a href="https://docs.mongodb.com/v3.6/tutorial/query-documents/">the MongoDB documentation</a> or simply ask for help at our <a href="https://gitter.im/FACT_core/community">Gitter channel</a>.
@@ -112,42 +122,6 @@ Additional fields for outer container: (Mostly set by user, so depend on submiss
 - tags                  # User defined tags, e.g. Partial, Crawled
 - vendor                # e.g. EvilCorp
 - version               # e.g 1.0.0.312</pre>
-
-            <hr>
-
-            <h4>Structure of processed_analysis field:</h4>
-
-            {% if database_structure is mapping %}
-
-            <div ng-app="myApp" ng-controller="formCtrl">
-                <form>
-                    <div class="input-group mt-4">
-                        <div class="input-group-prepend"><span class="input-group-text">Select analysis plugin</span></div>
-                        <input class="form-control" type="text" ng-model="firstname">
-                        <div class="input-group-append"><span class="input-group-text">select&nbsp;<span style="font-weight: bold">complete</span>&nbsp;to see all</span></div>
-                    </div>
-                </form>
-                <table class="table mt-4" style="vertical-align: top;">
-                    <tr>
-                        <td>
-                            <p>Available plugins:</p>
-                            <pre class="border rounded p-2 bg-light">{a plugins | json a}</pre>
-                        </td>
-                        <td>
-                            <p>Structure for plugin <span style="font-weight: bold">{a firstname a}</span>:</p>
-                            <pre class="border rounded p-2 bg-light">{a data[firstname] a}</pre>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            {% else %}
-
-            <div class="alert alert-danger">
-                <strong>No structural data present!</strong><br /> Run <i>src/update_variety_data.py</i> program.
-            </div>
-
-            {% endif %}
     </div>
 </div>
 

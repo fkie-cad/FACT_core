@@ -8,7 +8,6 @@ from web_interface.security.authentication import create_user_datastore
 
 
 class TestUserRoleDbInterface(TestCase):
-
     def setUp(self):
         self.test_app = Flask(__name__)
         self.test_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'

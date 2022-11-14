@@ -6,7 +6,6 @@ from test.common_helper import create_test_firmware
 
 
 class TestRestDownloadFirmware(TestAcceptanceBaseWithDb):
-
     def setUp(self):
         super().setUp()
         self.test_fw = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')

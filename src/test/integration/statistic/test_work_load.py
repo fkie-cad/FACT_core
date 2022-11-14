@@ -8,7 +8,6 @@ from test.common_helper import get_config_for_testing  # pylint: disable=wrong-i
 
 
 class TestWorkloadStatistic:
-
     def setup(self):
         self.config = get_config_for_testing()
         self.workload_stat = WorkLoadStatistic(config=self.config, component='test')

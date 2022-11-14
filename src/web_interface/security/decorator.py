@@ -10,7 +10,9 @@ def roles_accepted(*roles):
             if not _get_authentication(args):
                 return fn(*args, **kwargs)
             return original_decorator(*roles)(fn)(*args, **kwargs)
+
         return decorated_view
+
     return wrapper
 
 

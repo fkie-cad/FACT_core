@@ -7,23 +7,29 @@ from subprocess import PIPE, CalledProcessError, run
 from helperFunctions.install import InstallationError, OperateInDirectory
 
 CODENAME_TRANSLATION = {
-    'tara': 'bionic', 'tessa': 'bionic', 'tina': 'bionic', 'tricia': 'bionic',
-    'ulyana': 'focal', 'ulyssa': 'focal', 'uma': 'focal', 'una': 'focal',
+    'tara': 'bionic',
+    'tessa': 'bionic',
+    'tina': 'bionic',
+    'tricia': 'bionic',
+    'ulyana': 'focal',
+    'ulyssa': 'focal',
+    'uma': 'focal',
+    'una': 'focal',
 }
 
 
 def install_postgres(version: int = 14):
-    codename = run('lsb_release -cs', universal_newlines=True, shell=True, stdout=PIPE, check=True).stdout.rstrip()
+    codename = run('lsb_release -cs', text=True, shell=True, stdout=PIPE, check=True).stdout.rstrip()
     codename = CODENAME_TRANSLATION.get(codename, codename)
     # based on https://www.postgresql.org/download/linux/ubuntu/
     command_list = [
         f'sudo sh -c \'echo "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt {codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list\'',
         'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -',
         'sudo apt-get update',
-        f'sudo apt-get -y install postgresql-{version}'
+        f'sudo apt-get -y install postgresql-{version}',
     ]
     for command in command_list:
-        process = run(command, universal_newlines=True, shell=True, check=False, stderr=PIPE)
+        process = run(command, text=True, shell=True, check=False, stderr=PIPE)
         if process.returncode != 0:
             raise InstallationError(f'Failed to set up PostgreSQL: {process.stderr}')
 
@@ -51,7 +57,7 @@ def main():
     # initializing DB
     logging.info('Initializing PostgreSQL database')
     with OperateInDirectory('..'):
-        process = run('python3 init_postgres.py', shell=True, universal_newlines=True, check=False, stderr=PIPE)
+        process = run('python3 init_postgres.py', shell=True, text=True, check=False, stderr=PIPE)
         if process.returncode != 0:
             raise InstallationError(f'Unable to initialize database\n{process.stderr}')
 

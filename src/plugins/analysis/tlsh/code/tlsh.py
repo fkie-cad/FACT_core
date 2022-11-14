@@ -12,6 +12,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     TLSH Plug-in
     '''
+
     NAME = 'tlsh'
     DESCRIPTION = 'find files with similar tlsh and calculate similarity value'
     DEPENDENCIES = ['file_hashes']

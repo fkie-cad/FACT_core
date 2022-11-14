@@ -8,9 +8,16 @@ from subprocess import PIPE, STDOUT
 from pkg_resources import parse_version
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages,
-    dnf_update_sources, install_github_project, install_pip_packages, is_virtualenv, read_package_list_from_file,
-    run_cmd_with_logging
+    InstallationError,
+    OperateInDirectory,
+    apt_install_packages,
+    apt_update_sources,
+    dnf_install_packages,
+    dnf_update_sources,
+    install_pip_packages,
+    is_virtualenv,
+    read_package_list_from_file,
+    run_cmd_with_logging,
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
@@ -28,7 +35,7 @@ def install_pip():
 
     logging.info('Installing python3 pip')
     for command in [f'wget {pip_link}', 'sudo -EH python3 get-pip.py', 'rm get-pip.py']:
-        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True, check=False)
+        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
         if cmd_process.returncode != 0:
             raise InstallationError(f'Error in pip installation for python3:\n{cmd_process.stdout}')
 
@@ -58,12 +65,6 @@ def main(distribution):  # pylint: disable=too-many-statements
         run_cmd_with_logging('pip install -U pip wheel')
     install_pip_packages(PIP_DEPENDENCIES)
 
-    # VarietyJS (is executed by update_statistic.py)
-    if (BIN_DIR / 'spec').exists():
-        logging.warning('variety spec not overwritten')
-    else:
-        install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin/', 'mv -f spec ../../bin/'])
-
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
             Path('start_all_installed_fact_components').unlink()
@@ -73,11 +74,15 @@ def main(distribution):  # pylint: disable=too-many-statements
 
 
 def _update_submodules():
-    git_process = subprocess.run('git status', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True, check=False)
+    git_process = subprocess.run('git status', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
     if git_process.returncode == 0:
         git_submodule_process = subprocess.run(
             '(cd ../../ && git submodule foreach "git pull")',
-            shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True, check=False
+            shell=True,
+            stdout=PIPE,
+            stderr=STDOUT,
+            text=True,
+            check=False,
         )
         if git_submodule_process.returncode != 0:
             raise InstallationError(f'Failed to update submodules\n{git_submodule_process.stdout}')

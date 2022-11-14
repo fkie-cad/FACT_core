@@ -16,14 +16,25 @@ from web_interface.rest.rest_status import api as status_api
 
 class RestBase:
     def __init__(self, app=None, config=None, db=None, intercom=None):
-        self.api = Api(app, doc='/doc/', title='FACT Rest API', version='1.0',
-                       description='The FACT Rest API intends to offer close to 100 % functionality of FACT in a '
-                                   'script-able and integrate-able interface. \n The API does not comply with all REST '
-                                   'guidelines perfectly, but aims to allow understandable and efficient interfacing.')
+        self.api = Api(
+            app,
+            doc='/doc/',
+            title='FACT Rest API',
+            version='1.0',
+            description='The FACT Rest API intends to offer close to 100 % functionality of FACT in a '
+            'script-able and integrate-able interface. \n The API does not comply with all REST '
+            'guidelines perfectly, but aims to allow understandable and efficient interfacing.',
+        )
 
         for api in [
-            firmware_api, file_object_api, compare_api, binary_api, binary_search_api,
-            statistics_api, status_api, missing_analyses_api
+            firmware_api,
+            file_object_api,
+            compare_api,
+            binary_api,
+            binary_search_api,
+            statistics_api,
+            status_api,
+            missing_analyses_api,
         ]:
             for _, _, _, kwargs in api.resources:
                 kwargs['resource_class_kwargs'] = {'config': config, 'db': db, 'intercom': intercom}

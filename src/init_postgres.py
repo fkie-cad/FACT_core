@@ -10,7 +10,7 @@ from helperFunctions.config import load_config
 from storage.db_setup import DbSetup
 
 
-def execute_psql_command(psql_command: str, host='localhost', port=5432, user=os.getenv('PGUSER', default='postgres')) -> bytes:
+def execute_psql_command(psql_command: str, host, port=5432, user=os.getenv('PGUSER', default='postgres')) -> bytes:
     # This is only used to create the fact_admin user.
     # In order to create this user we have to have access to the default admin user (postgres).
     # By default this user does not have a password and "Peer authentication" is used to login to this user.
@@ -30,14 +30,13 @@ def execute_psql_command(psql_command: str, host='localhost', port=5432, user=os
         raise
 
 
-def user_exists(user_name: str) -> bool:
-    return user_name.encode() in execute_psql_command('\\du')
+def user_exists(user_name: str, host: str, port: str) -> bool:
+    return user_name.encode() in execute_psql_command('\\du', host, port)
 
 
 def create_admin_user(user_name: str, password: str, host: str, port: int):
     execute_psql_command(
-        f'CREATE USER {user_name} WITH PASSWORD \'{password}\' '
-        'LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;',
+        f'CREATE USER {user_name} WITH PASSWORD \'{password}\' ' 'LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;',
         host=host,
         port=port,
     )
@@ -61,7 +60,7 @@ def main(command_line_options=None, config: Optional[ConfigParser] = None, skip_
     admin_password = config.get('data-storage', 'postgres-admin-pw')
 
     # skip_user_creation can be helpful if the DB is not directly accessible (e.g. FACT_docker)
-    if not skip_user_creation and not user_exists(admin_user):
+    if not skip_user_creation and not user_exists(admin_user, host, port):
         create_admin_user(admin_user, admin_password, host, port)
 
     db_setup = DbSetup(config, db_name='postgres', isolation_level='AUTOCOMMIT')

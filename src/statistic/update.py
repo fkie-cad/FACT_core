@@ -29,7 +29,6 @@ class StatsUpdater:
         with self.db.get_read_only_session():
             self.db.update_statistic('firmware_meta', self.get_firmware_meta_stats())
             self.db.update_statistic('file_type', self.get_file_type_stats())
-            self.db.update_statistic('malware', self.get_malware_stats())
             self.db.update_statistic('crypto_material', self.get_crypto_material_stats())
             self.db.update_statistic('unpacking', self.get_unpacking_stats())
             self.db.update_statistic('architecture', self.get_architecture_stats())
@@ -42,7 +41,7 @@ class StatsUpdater:
             # should always be the last, because of the benchmark
             self.db.update_statistic('general', self.get_general_stats())
 
-# ---- get statistic functions
+    # ---- get statistic functions
 
     def get_general_stats(self):
         if self.start_time is None:
@@ -55,18 +54,12 @@ class StatsUpdater:
                 'number_of_unique_files': self.db.get_count(q_filter=self.match, firmware=False),
                 'total_file_size': self.db.get_sum(FileObjectEntry.size, q_filter=self.match, firmware=False),
                 'average_file_size': self.db.get_avg(FileObjectEntry.size, q_filter=self.match, firmware=False),
-                'creation_time': time()
+                'creation_time': time(),
             }
         benchmark = stats['creation_time'] - self.start_time
         stats['benchmark'] = benchmark
         logging.info(f'time to create stats: {time_format(benchmark)}')
         return stats
-
-    def get_malware_stats(self) -> Dict[str, Stats]:
-        result = self.db.count_distinct_in_analysis(
-            AnalysisEntry.result['scans']['ClamAV']['result'], plugin='malware_scanner', q_filter=self.match
-        )
-        return {'malware': self._filter_results(result)}
 
     @staticmethod
     def _filter_results(stats: Stats) -> Stats:
@@ -75,13 +68,17 @@ class StatsUpdater:
 
     def get_exploit_mitigations_stats(self) -> Dict[str, RelativeStats]:
         result = self.db.count_values_in_summary(plugin='exploit_mitigations', q_filter=self.match)
-        return {'exploit_mitigations': [
-            *self.get_relative_stats(['NX enabled', 'NX disabled'], result),
-            *self.get_relative_stats(['Canary enabled', 'Canary disabled'], result),
-            *self.get_relative_stats(['RELRO fully enabled', 'RELRO partially enabled', 'RELRO disabled'], result),
-            *self.get_relative_stats(['PIE enabled', 'PIE/DSO present', 'PIE disabled', 'PIE - invalid ELF file'], result),
-            *self.get_relative_stats(['FORTIFY_SOURCE enabled', 'FORTIFY_SOURCE disabled'], result),
-        ]}
+        return {
+            'exploit_mitigations': [
+                *self.get_relative_stats(['NX enabled', 'NX disabled'], result),
+                *self.get_relative_stats(['Canary enabled', 'Canary disabled'], result),
+                *self.get_relative_stats(['RELRO fully enabled', 'RELRO partially enabled', 'RELRO disabled'], result),
+                *self.get_relative_stats(
+                    ['PIE enabled', 'PIE/DSO present', 'PIE disabled', 'PIE - invalid ELF file'], result
+                ),
+                *self.get_relative_stats(['FORTIFY_SOURCE enabled', 'FORTIFY_SOURCE disabled'], result),
+            ]
+        }
 
     @staticmethod
     def get_relative_stats(keywords: List[str], stats: Stats) -> RelativeStats:
@@ -92,7 +89,7 @@ class StatsUpdater:
             if keyword.lower() in summary_item.lower()
         }
         total = sum(count_dict.values())
-        return [(label, count, round(count/total, 5)) for label, count in count_dict.items()]
+        return [(label, count, round(count / total, 5)) for label, count in count_dict.items()]
 
     def get_known_vulnerabilities_stats(self) -> Dict[str, Stats]:
         stats = self.db.count_values_in_summary(plugin='known_vulnerabilities', q_filter=self.match)
@@ -110,19 +107,25 @@ class StatsUpdater:
 
     def get_file_type_stats(self) -> Dict[str, Stats]:
         return {
-            label: self.db.count_distinct_in_analysis(AnalysisEntry.result['mime'], 'file_type', firmware=firmware, q_filter=self.match)
+            label: self.db.count_distinct_in_analysis(
+                AnalysisEntry.result['mime'], 'file_type', firmware=firmware, q_filter=self.match
+            )
             for label, firmware in [('file_types', False), ('firmware_container', True)]
         }
 
     def get_unpacking_stats(self):
         fo_packing_stats = dict(self.db.count_values_in_summary(plugin='unpacker', q_filter=self.match))
-        firmware_packing_stats = dict(self.db.count_values_in_summary(plugin='unpacker', q_filter=self.match, firmware=True))
+        firmware_packing_stats = dict(
+            self.db.count_values_in_summary(plugin='unpacker', q_filter=self.match, firmware=True)
+        )
         return {
             'used_unpackers': self.db.get_used_unpackers(q_filter=self.match),
             'packed_file_types': self.db.get_unpacking_file_types('packed', q_filter=self.match),
             'data_loss_file_types': self.db.get_unpacking_file_types('data lost', q_filter=self.match),
             'overall_unpack_ratio': self._get_ratio(fo_packing_stats, firmware_packing_stats, ['unpacked', 'packed']),
-            'overall_data_loss_ratio': self._get_ratio(fo_packing_stats, firmware_packing_stats, ['data lost', 'no data lost']),
+            'overall_data_loss_ratio': self._get_ratio(
+                fo_packing_stats, firmware_packing_stats, ['data lost', 'no data lost']
+            ),
             'average_packed_entropy': self.db.get_unpacking_entropy('packed', q_filter=self.match),
             'average_unpacked_entropy': self.db.get_unpacking_entropy('unpacked', q_filter=self.match),
         }

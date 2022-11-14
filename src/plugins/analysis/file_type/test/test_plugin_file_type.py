@@ -13,6 +13,10 @@ class TestAnalysisPluginFileType(AnalysisPluginTest):
     def test_detect_type_of_file(self):
         test_file = FileObject(file_path=f'{get_test_data_dir()}/container/test.zip')
         test_file = self.analysis_plugin.process_object(test_file)
-        assert test_file.processed_analysis[self.PLUGIN_NAME]['mime'] == 'application/zip', 'mime-type not detected correctly'
-        assert test_file.processed_analysis[self.PLUGIN_NAME]['full'].startswith('Zip archive data, at least'), 'full type not correct'
+        assert (
+            test_file.processed_analysis[self.PLUGIN_NAME]['mime'] == 'application/zip'
+        ), 'mime-type not detected correctly'
+        assert test_file.processed_analysis[self.PLUGIN_NAME]['full'].startswith(
+            'Zip archive data, at least'
+        ), 'full type not correct'
         assert test_file.processed_analysis[self.PLUGIN_NAME]['summary'] == ['application/zip']

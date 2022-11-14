@@ -6,7 +6,7 @@ setuptools
 # General python dependencies
 appdirs==1.4.4
 flaky==3.7.0
-lief==0.12.1
+lief==0.12.2
 psutil==5.9.0
 psycopg2-binary==2.9.3
 pylint==2.13.8
@@ -22,6 +22,8 @@ ssdeep==3.4
 sqlalchemy==1.4.36
 xmltodict==0.12.0
 yara-python==4.2.0
+# Config validation
+pydantic==1.8.2
 
 git+https://github.com/fkie-cad/fact_helper_file.git
 
@@ -29,4 +31,3 @@ git+https://github.com/fkie-cad/fact_helper_file.git
 git+https://github.com/fkie-cad/common_helper_files.git
 git+https://github.com/fkie-cad/common_helper_filter.git
 git+https://github.com/mass-project/common_helper_encoder.git
-

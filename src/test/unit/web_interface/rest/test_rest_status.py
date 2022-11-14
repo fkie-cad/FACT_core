@@ -2,10 +2,7 @@ from test.common_helper import CommonDatabaseMock
 
 from ..base import WebInterfaceTest
 
-BACKEND_STATS = {
-    'system': {'cpu_percentage': 13.37},
-    'analysis': {'current_analyses': [None, None]}
-}
+BACKEND_STATS = {'system': {'cpu_percentage': 13.37}, 'analysis': {'current_analyses': [None, None]}}
 
 
 class StatisticDbViewerMock(CommonDatabaseMock):
@@ -16,7 +13,6 @@ class StatisticDbViewerMock(CommonDatabaseMock):
 
 
 class TestRestFirmware(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=StatisticDbViewerMock)
@@ -26,11 +22,7 @@ class TestRestFirmware(WebInterfaceTest):
         result = self.test_client.get('/rest/status').json
 
         assert result['status'] == 0
-        assert result['system_status'] == {
-            'backend': BACKEND_STATS,
-            'database': None,
-            'frontend': None
-        }
+        assert result['system_status'] == {'backend': BACKEND_STATS, 'database': None, 'frontend': None}
 
     def test_empty_result(self):
         StatisticDbViewerMock.down = True

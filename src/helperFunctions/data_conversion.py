@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from typing import Any, AnyStr, Dict, Iterable, List, Optional, TypeVar, Union
 
 _KT = TypeVar('_KT')  # Key type
@@ -84,13 +84,13 @@ def none_to_none(input_data: Optional[str]) -> Optional[str]:
 
 def convert_time_to_str(time_obj: Any) -> str:
     '''
-    Convert a time object to a string. The time object may be a datetime object or a string. If it is anything else,
+    Convert a time object to a string. The time object may be a datetime.date object or a string. If it is anything else,
     the output defaults to `"1970-01-01"`.
 
     :param time_obj: The time object, that is converted to string.
     :return: The converted time object as string or a default date (if the conversion fails).
     '''
-    if isinstance(time_obj, datetime):
+    if isinstance(time_obj, datetime.date):
         return time_obj.strftime('%Y-%m-%d')
     if isinstance(time_obj, str):
         return time_obj

@@ -43,9 +43,13 @@ class IORoutes(ComponentBase):
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template(
             'upload/upload.html',
-            device_classes=device_class_list, vendors=vendor_list, error=error,
+            device_classes=device_class_list,
+            vendors=vendor_list,
+            error=error,
             analysis_presets=list(self._config['default-plugins']),
-            device_names=json.dumps(device_name_dict, sort_keys=True), analysis_plugin_dict=analysis_plugins
+            device_names=json.dumps(device_name_dict, sort_keys=True),
+            analysis_plugin_dict=analysis_plugins,
+            plugin_set='default',
         )
 
     # ---- file download

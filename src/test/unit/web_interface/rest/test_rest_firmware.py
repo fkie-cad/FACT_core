@@ -17,13 +17,15 @@ TEST_FW_PAYLOAD = {
     'release_date': '1970-01-01',
     'vendor': 'no real vendor',
     'tags': 'tag1,tag2',
-    'requested_analysis_systems': ['file_type']
+    'requested_analysis_systems': ['file_type'],
 }
 
 
 class DbMock(CommonDatabaseMock):
     @staticmethod
-    def rest_get_firmware_uids(limit: int = 10, offset: int = 0, query=None, recursive=False, inverted=False):  # pylint: disable=unused-argument
+    def rest_get_firmware_uids(
+        limit: int = 10, offset: int = 0, query=None, recursive=False, inverted=False
+    ):  # pylint: disable=unused-argument
         return [f'uid{i}' for i in range(offset, limit or 10)]
 
     @staticmethod
@@ -34,7 +36,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestRestFirmware(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)

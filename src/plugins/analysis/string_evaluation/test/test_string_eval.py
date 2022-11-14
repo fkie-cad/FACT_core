@@ -1,10 +1,22 @@
 import unittest
 
 from ..internal.string_eval import (
-    _add_case_ratio_score, _add_dictionary_score, _add_format_string_score, _add_html_score, _add_length_score,
-    _add_mail_adress_score, _add_parameter_score, _add_path_score, _add_possible_version_number_score,
-    _add_possible_year_score, _add_quad_characters_score, _add_rare_special_character_score,
-    _add_special_character_ratio_score, _add_underscore_or_period_at_beginning_score, _score, eval_strings
+    _add_case_ratio_score,
+    _add_dictionary_score,
+    _add_format_string_score,
+    _add_html_score,
+    _add_length_score,
+    _add_mail_adress_score,
+    _add_parameter_score,
+    _add_path_score,
+    _add_possible_version_number_score,
+    _add_possible_year_score,
+    _add_quad_characters_score,
+    _add_rare_special_character_score,
+    _add_special_character_ratio_score,
+    _add_underscore_or_period_at_beginning_score,
+    _score,
+    eval_strings,
 )
 
 
@@ -12,7 +24,9 @@ class TestStringEval(unittest.TestCase):
     def test_eval_strings(self):
         input_data = ['this string is useful', 'garbage n$%Schtz', '/an/interesting/directory']
         result = eval_strings(input_data)
-        self.assertEqual(result, ['/an/interesting/directory', 'this string is useful', 'garbage n$%Schtz'], 'Fehler beim bewerten')
+        self.assertEqual(
+            result, ['/an/interesting/directory', 'this string is useful', 'garbage n$%Schtz'], 'Fehler beim bewerten'
+        )
 
     def test_add_mail_adress_score(self):
         input_data_true = 'here is my@mail.com'

@@ -5,7 +5,12 @@ from objects.firmware import Firmware
 from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 
 from .helper import (
-    TEST_FO, TEST_FO_2, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, insert_test_fo
+    TEST_FO,
+    TEST_FO_2,
+    TEST_FW,
+    create_fw_with_child_fo,
+    create_fw_with_parent_and_child,
+    insert_test_fo,
 )
 
 
@@ -19,10 +24,7 @@ def test_get_file(db):
     db_fo = db.common.get_file_object(TEST_FO.uid)
     assert isinstance(db_fo, FileObject) and not isinstance(db_fo, Firmware)
     fo_attributes = ['uid', 'file_name', 'size', 'depth']
-    assert all(
-        getattr(TEST_FO, attr) == getattr(db_fo, attr)
-        for attr in fo_attributes
-    )
+    assert all(getattr(TEST_FO, attr) == getattr(db_fo, attr) for attr in fo_attributes)
     assert set(db_fo.processed_analysis) == set(TEST_FO.processed_analysis)
 
 
@@ -42,10 +44,7 @@ def test_get_fw(db):
     db_fw = db.common.get_firmware(TEST_FW.uid)
     assert isinstance(db_fw, Firmware)
     fw_attributes = ['uid', 'vendor', 'device_name', 'release_date']
-    assert all(
-        getattr(TEST_FW, attr) == getattr(db_fw, attr)
-        for attr in fw_attributes
-    )
+    assert all(getattr(TEST_FW, attr) == getattr(db_fw, attr) for attr in fw_attributes)
     assert set(db_fw.processed_analysis) == set(TEST_FW.processed_analysis)
 
 
@@ -152,17 +151,13 @@ def test_get_complete_object(db):
         'entry0': [fw.uid],
         'entry1': [parent_fo.uid],
         'entry2': [parent_fo.uid, child_fo.uid],
-        'entry3': [child_fo.uid]
+        'entry3': [child_fo.uid],
     }
     _summary_is_equal(expected_summary, result.processed_analysis['test_plugin']['summary'])
 
     result = db.common.get_complete_object_including_all_summaries(parent_fo.uid)
     assert isinstance(result, FileObject)
-    expected_summary = {
-        'entry1': [parent_fo.uid],
-        'entry2': [parent_fo.uid, child_fo.uid],
-        'entry3': [child_fo.uid]
-    }
+    expected_summary = {'entry1': [parent_fo.uid], 'entry2': [parent_fo.uid, child_fo.uid], 'entry3': [child_fo.uid]}
     _summary_is_equal(expected_summary, result.processed_analysis['test_plugin']['summary'])
 
 
@@ -306,10 +301,14 @@ def test_collect_analysis_tags(db):
         'tag_b': {'color': 'warning', 'value': 'tag b', 'propagate': False},
     }
     tags2 = {'tag_c': {'color': 'success', 'value': 'tag c', 'propagate': True}}
-    insert_test_fo(db, 'fo1', analysis={
-        'foo': generate_analysis_entry(tags=tags1),
-        'bar': generate_analysis_entry(tags=tags2),
-    })
+    insert_test_fo(
+        db,
+        'fo1',
+        analysis={
+            'foo': generate_analysis_entry(tags=tags1),
+            'bar': generate_analysis_entry(tags=tags2),
+        },
+    )
 
     fo = db.frontend.get_object('fo1')
     assert 'foo' in fo.analysis_tags and 'bar' in fo.analysis_tags

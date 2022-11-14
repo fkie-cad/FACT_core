@@ -87,11 +87,14 @@ def test_get_total_number_of_results(db, comp_db):
     assert number == 1, 'no compare result found in database'
 
 
-@pytest.mark.parametrize('root_uid, expected_result', [
-    ('the_root_uid', ['uid1', 'uid2']),
-    ('some_other_uid', []),
-    (None, []),
-])
+@pytest.mark.parametrize(
+    'root_uid, expected_result',
+    [
+        ('the_root_uid', ['uid1', 'uid2']),
+        ('some_other_uid', []),
+        (None, []),
+    ],
+)
 def test_get_exclusive_files(db, comp_db, root_uid, expected_result):
     fw_one, fw_two, compare_dict, comp_id = _create_comparison()
     compare_dict['plugins'] = {'File_Coverage': {'exclusive_files': {'the_root_uid': ['uid1', 'uid2']}}}
@@ -112,7 +115,7 @@ def _create_comparison(uid1='uid1', uid2='uid2'):
     compare_dict = {
         'general': {
             'hid': {fw_one.uid: 'foo', fw_two.uid: 'bar'},
-            'virtual_file_path': {fw_one.uid: 'dev_one_name', fw_two.uid: 'dev_two_name'}
+            'virtual_file_path': {fw_one.uid: 'dev_one_name', fw_two.uid: 'dev_two_name'},
         },
         'plugins': {},
     }

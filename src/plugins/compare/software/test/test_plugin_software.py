@@ -12,7 +12,9 @@ class TestComparePluginSoftware(ComparePluginTest):
 
     def test_get_intersection_of_software(self):
         self.fw_one.processed_analysis['software_components'] = {'summary': {'software a': self.fw_one.uid}}
-        self.fw_two.processed_analysis['software_components'] = {'summary': {'software a': self.fw_two.uid, 'software b': self.fw_two.uid}}
+        self.fw_two.processed_analysis['software_components'] = {
+            'summary': {'software a': self.fw_two.uid, 'software b': self.fw_two.uid}
+        }
         result = self.c_plugin._get_intersection_of_software([self.fw_one, self.fw_two])
         assert isinstance(result, dict), 'result is not a dict'
         assert 'all' in result, 'all field not present'

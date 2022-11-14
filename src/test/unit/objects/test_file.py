@@ -5,13 +5,14 @@ from test.common_helper import get_test_data_dir
 
 
 class TestObjectsFile:  # pylint: disable=no-self-use
-
     def test_get_file_from_binary(self):
         file_path = f'{get_test_data_dir()}/test_data_file.bin'
         test_object = FileObject(file_path=file_path)
         assert test_object.size == 19, 'correct size'
         assert test_object.binary == b'test string in file', 'correct binary data'
-        assert test_object.sha256 == '268d870ffa2b21784e4dc955d8e8b8eb5f3bcddd6720a1e6d31d2cf84bd1bff8', 'correct sha256'
+        assert (
+            test_object.sha256 == '268d870ffa2b21784e4dc955d8e8b8eb5f3bcddd6720a1e6d31d2cf84bd1bff8'
+        ), 'correct sha256'
         assert test_object.file_name == 'test_data_file.bin', 'correct file name'
         assert test_object.file_path == file_path, 'correct file path'
 
@@ -22,7 +23,9 @@ class TestObjectsFile:  # pylint: disable=no-self-use
     def test_file_object_init_with_binary(self):
         bin_data = get_binary_from_file(f'{get_test_data_dir()}/test_data_file.bin')
         test_object = FileObject(bin_data)
-        assert test_object.sha256 == '268d870ffa2b21784e4dc955d8e8b8eb5f3bcddd6720a1e6d31d2cf84bd1bff8', 'correct sha256'
+        assert (
+            test_object.sha256 == '268d870ffa2b21784e4dc955d8e8b8eb5f3bcddd6720a1e6d31d2cf84bd1bff8'
+        ), 'correct sha256'
         assert test_object.file_name is None, 'correct file name'
 
     def test_add_included_file(self):
@@ -62,7 +65,11 @@ class TestObjectsFile:  # pylint: disable=no-self-use
     def test_get_one_virtual_path(self):
         fo = FileObject(binary=b'foo')
         assert fo.get_virtual_paths_for_one_uid() == [fo.uid], 'No Path set should be uid'
-        fo.virtual_file_path = {'uid_a': ['test_file_path_a'], 'uid_b': ['test_file_path_b'], 'uid_c': ['test_file_path_c']}
+        fo.virtual_file_path = {
+            'uid_a': ['test_file_path_a'],
+            'uid_b': ['test_file_path_b'],
+            'uid_c': ['test_file_path_c'],
+        }
         assert fo.get_virtual_paths_for_one_uid() == ['test_file_path_a']
         assert fo.get_virtual_paths_for_one_uid(root_uid='uid_b') == ['test_file_path_b']
         fo.root_uid = 'uid_c'

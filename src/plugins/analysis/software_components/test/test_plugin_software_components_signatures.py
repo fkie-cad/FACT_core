@@ -8,7 +8,6 @@ TEST_SIGNATURE_PATH = Path(__file__).parent.parent / 'test/data/signatures/'
 
 
 class TestSoftwareSignatureMeta:
-
     @classmethod
     def setup_class(cls):
         cls.sigTest = SignatureTestingMeta()
@@ -27,7 +26,6 @@ class TestSoftwareSignatureMeta:
 
 
 class TestAllSoftwareSignaturesMatched:
-
     def setup_method(self):
         self.sig_tester = SignatureTestingMatching()  # pylint: disable=attribute-defined-outside-init
 

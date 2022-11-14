@@ -16,7 +16,6 @@ def no_compare_views(monkeypatch):
 
 
 class MockDbInterface:
-
     def __init__(self):
         self.fw = create_test_firmware()
         self.fo = create_test_file_object()
@@ -39,12 +38,13 @@ class MockDbInterface:
 
 
 class TestCompare(unittest.TestCase):
-
     def setUp(self):
         self.config = get_config_for_testing()
         self.fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
         self.fw_one.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_one.binary)}
-        self.fw_two = create_test_firmware(device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True)
+        self.fw_two = create_test_firmware(
+            device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True
+        )
         self.fw_two.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_two.binary)}
         self.compare_system = Compare(db_interface=MockDbInterface(), config=self.config)
 

@@ -72,8 +72,11 @@ def test_scheduler(test_config, finished_event, intermediate_event):
         config=test_config, post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager
     )
     intercom = InterComBackEndBinding(
-        config=test_config, analysis_service=analyzer, unpacking_service=unpacker, compare_service=MockScheduler(),
-        unpacking_locks=unpacking_lock_manager
+        config=test_config,
+        analysis_service=analyzer,
+        unpacking_service=unpacker,
+        compare_service=MockScheduler(),
+        unpacking_locks=unpacking_lock_manager,
     )
     try:
         yield unpacker
@@ -90,7 +93,9 @@ def add_test_file(scheduler, path_in_test_dir):
     scheduler.add_task(firmware)
 
 
-def test_check_collision(db, test_app, test_scheduler, finished_event, intermediate_event):  # pylint: disable=unused-argument
+def test_check_collision(
+    db, test_app, test_scheduler, finished_event, intermediate_event
+):  # pylint: disable=unused-argument
     add_test_file(test_scheduler, 'regression_one')
 
     intermediate_event.wait(timeout=30)

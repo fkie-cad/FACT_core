@@ -9,7 +9,6 @@ from unpacker.tar_repack import TarRepack
 
 
 class TestTarRepack(unittest.TestCase):
-
     def setUp(self):
         self.config = get_config_for_testing()
         self.repack_service = TarRepack(config=self.config)

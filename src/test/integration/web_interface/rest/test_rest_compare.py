@@ -7,11 +7,13 @@ TEST_UID = 'deadbeef' * 8 + '_1'
 
 
 class TestRestStartCompare(RestTestBase):
-
     def test_rest_start_compare_valid(self, db):
-        test_firmware_1 = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
-        test_firmware_2 = create_test_firmware(device_class='test class', device_name='test device',
-                                               vendor='test vendor', bin_path='container/test.7z')
+        test_firmware_1 = create_test_firmware(
+            device_class='test class', device_name='test device', vendor='test vendor'
+        )
+        test_firmware_2 = create_test_firmware(
+            device_class='test class', device_name='test device', vendor='test vendor', bin_path='container/test.7z'
+        )
         db.backend.add_object(test_firmware_1)
         db.backend.add_object(test_firmware_2)
 
@@ -33,9 +35,12 @@ class TestRestStartCompare(RestTestBase):
         assert '\'uid_list\' is a required property' in rv.json['errors']['uid_list']
 
     def test_rest_get_compare_valid_not_in_db(self, db):
-        test_firmware_1 = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
-        test_firmware_2 = create_test_firmware(device_class='test class', device_name='test device',
-                                               vendor='test vendor', bin_path='container/test.7z')
+        test_firmware_1 = create_test_firmware(
+            device_class='test class', device_name='test device', vendor='test vendor'
+        )
+        test_firmware_2 = create_test_firmware(
+            device_class='test class', device_name='test device', vendor='test vendor', bin_path='container/test.7z'
+        )
         db.backend.add_object(test_firmware_1)
         db.backend.add_object(test_firmware_2)
 

@@ -1,7 +1,13 @@
 import pytest
 
 from web_interface.rest.helper import (
-    error_message, get_boolean_from_request, get_current_gmt, get_paging, get_query, get_update, success_message
+    error_message,
+    get_boolean_from_request,
+    get_current_gmt,
+    get_paging,
+    get_query,
+    get_update,
+    success_message,
 )
 
 

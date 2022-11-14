@@ -12,7 +12,6 @@ MATCH_FILE_UID = 'd558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b7
 
 
 class TestRestBinarySearch(TestAcceptanceBase):
-
     def setUp(self):
         super().setUp()
         self._start_backend()

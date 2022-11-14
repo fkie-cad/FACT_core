@@ -12,15 +12,15 @@ from storage.db_interface_view_sync import ViewReader
 
 class FrontendDatabase:  # pylint: disable=too-many-instance-attributes
     def __init__(  # pylint: disable=too-many-arguments
-            self,
-            config: ConfigParser,
-            frontend: Optional[Type[FrontEndDbInterface]] = None,
-            editing: Optional[Type[FrontendEditingDbInterface]] = None,
-            admin: Optional[Type[AdminDbInterface]] = None,
-            comparison: Optional[Type[ComparisonDbInterface]] = None,
-            template: Optional[Type[ViewReader]] = None,
-            stats_viewer: Optional[Type[StatsDbViewer]] = None,
-            stats_updater: Optional[Type[StatsUpdateDbInterface]] = None
+        self,
+        config: ConfigParser,
+        frontend: Optional[Type[FrontEndDbInterface]] = None,
+        editing: Optional[Type[FrontendEditingDbInterface]] = None,
+        admin: Optional[Type[AdminDbInterface]] = None,
+        comparison: Optional[Type[ComparisonDbInterface]] = None,
+        template: Optional[Type[ViewReader]] = None,
+        stats_viewer: Optional[Type[StatsDbViewer]] = None,
+        stats_updater: Optional[Type[StatsUpdateDbInterface]] = None,
     ):
         self.config = config
         self._ro_connection = ReadOnlyConnection(config)

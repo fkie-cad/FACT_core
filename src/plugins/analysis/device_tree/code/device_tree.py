@@ -17,6 +17,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     Device Tree Plug-in
     '''
+
     NAME = 'device_tree'
     DESCRIPTION = 'get the device tree in text from the device tree blob'
     DEPENDENCIES = ['file_type']
@@ -39,7 +40,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tag_name=self.NAME,
                 value=self.NAME.replace('_', ' '),
                 color=TagColor.ORANGE,
-                propagate=False
+                propagate=False,
             )
 
         return file_object

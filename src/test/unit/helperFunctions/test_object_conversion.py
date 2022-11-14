@@ -1,5 +1,5 @@
 from helperFunctions.object_conversion import create_meta_dict
-from test.common_helper import create_test_file_object, create_test_firmware
+from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
 
 
 def test_create_meta_dict_fw():
@@ -31,7 +31,7 @@ def test_create_meta_dict_fo():
 
     # FileObject only fields
     assert meta['firmwares_including_this_file'] == ['parent_uid']
-    assert meta['virtual_file_path'] == ['d558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62']
+    assert meta['virtual_file_path'] == {fo.uid: [fo.uid]}
 
     # General Information
     assert meta['number_of_included_files'] == 0

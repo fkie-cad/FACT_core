@@ -18,13 +18,16 @@ def test_load_config(monkeypatch):
     assert test_config['test']['test'] == 'test_config', 'config not correct'
 
 
-@pytest.mark.parametrize('input_data, expected', [
-    ('', []),
-    ('item1', ['item1']),
-    ('item1, item2, item3', ['item1', 'item2', 'item3']),
-    ('item1,item2,item3', ['item1', 'item2', 'item3']),
-    (' item1 , item2 , item3 ', ['item1', 'item2', 'item3']),
-])
+@pytest.mark.parametrize(
+    'input_data, expected',
+    [
+        ('', []),
+        ('item1', ['item1']),
+        ('item1, item2, item3', ['item1', 'item2', 'item3']),
+        ('item1,item2,item3', ['item1', 'item2', 'item3']),
+        (' item1 , item2 , item3 ', ['item1', 'item2', 'item3']),
+    ],
+)
 def test_read_list_from_config(monkeypatch, input_data, expected):
     monkeypatch.setattr('helperFunctions.config.get_config_dir', lambda: f'{get_test_data_dir()}/helperFunctions')
     test_config = load_config('test.cfg')
