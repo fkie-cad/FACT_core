@@ -234,22 +234,6 @@ in the analysis selection.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.register_plugin">
-<span class="sig-name descname"><span class="pre">register_plugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plugin_instance</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.register_plugin" title="Permalink to this definition"></a></dt>
-<dd><p>This function is used by analysis plugins to register themselves with this scheduler. During initialization the
-plugins will call this functions giving their name and a reference to their object to allow the scheduler to
-address them for running analyses.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – The plugin name for addressing in runner and collector</p></li>
-<li><p><strong>plugin_instance</strong> (<em>analysis.PluginBase.AnalysisBasePlugin</em>) – A reference to the plugin object</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.shutdown">
 <span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.shutdown" title="Permalink to this definition"></a></dt>
 <dd><p>Shutdown the runner process, the result collector and all plugin processes. A multiprocessing.Value is set to
