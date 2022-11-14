@@ -982,7 +982,7 @@ def test_import_cve(monkeypatch):
     ],
 )
 def test_set_repository(monkeypatch, path, choice, years, expected):
-    output = list()
+    output = []
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'import_cpe', lambda *_, **__: output.append('cpe'))
         monkey.setattr(sr, 'import_cve', lambda *_, **__: output.append('cve'))
@@ -999,7 +999,7 @@ def test_set_repository(monkeypatch, path, choice, years, expected):
     ],
 )
 def test_update_repository(monkeypatch, path, choice, expected):
-    output = list()
+    output = []
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'update_cpe', lambda *_, **__: output.append('cpe'))
         monkey.setattr(sr, 'update_cve_repository', lambda *_, **__: output.append('cve'))
