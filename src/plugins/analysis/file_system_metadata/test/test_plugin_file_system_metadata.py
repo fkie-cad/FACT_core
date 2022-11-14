@@ -64,7 +64,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.test_file_fs = TEST_DATA_DIR / 'squashfs.img'
 
     def setup_plugin(self):
-        return AnalysisPlugin(self, config=self.config, view_updater=CommonDatabaseMock(), db_interface=DbMock())
+        return AnalysisPlugin(config=self.config, view_updater=CommonDatabaseMock(), db_interface=DbMock())
 
     def _extract_metadata_from_archive_mock(self, _):
         self.result = 'archive'

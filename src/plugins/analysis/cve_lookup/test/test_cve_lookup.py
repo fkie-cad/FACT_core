@@ -212,11 +212,6 @@ def test_search_cve_summary(monkeypatch):
         assert MATCHED_SUMMARY == actual_match
 
 
-class MockAdmin:
-    def register_plugin(self, name, administrator):
-        pass
-
-
 @pytest.fixture(scope='function')
 def test_config():
     return get_config_for_testing()
@@ -225,7 +220,7 @@ def test_config():
 @pytest.fixture(scope='function')
 def stub_plugin(test_config, monkeypatch):
     monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
-    return lookup.AnalysisPlugin(MockAdmin(), test_config, offline_testing=True)
+    return lookup.AnalysisPlugin(test_config, offline_testing=True)
 
 
 def test_process_object(stub_plugin):

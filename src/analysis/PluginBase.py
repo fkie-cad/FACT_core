@@ -39,10 +39,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     MIME_BLACKLIST = []
     MIME_WHITELIST = []
 
-    def __init__(
-        self, plugin_administrator, config=None, no_multithread=False, offline_testing=False, view_updater=None
-    ):
-        super().__init__(plugin_administrator, config=config, plugin_path=self.FILE, view_updater=view_updater)
+    def __init__(self, config=None, no_multithread=False, offline_testing=False, view_updater=None):
+        super().__init__(config=config, plugin_path=self.FILE, view_updater=view_updater)
         self._check_plugin_attributes()
         self.check_config(no_multithread)
         self.additional_setup()
@@ -52,7 +50,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.workers = []
         self.thread_count = int(self.config[self.NAME]['threads'])
         self.active = [Value('i', 0) for _ in range(self.thread_count)]
-        self.register_plugin()
         if not offline_testing:
             self.start_worker()
 
@@ -60,7 +57,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         '''
         This function can be implemented by the plugin to do initialization
         '''
-        pass
 
     def _check_plugin_attributes(self):
         for attribute in ['FILE', 'NAME', 'VERSION']:
