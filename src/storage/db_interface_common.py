@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Dict, List
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import JSONB
@@ -23,7 +24,7 @@ PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible 
     'software_components',
     'users_and_passwords',
 ]
-Summary = dict[str, list[str]]
+Summary = Dict[str, List[str]]
 
 
 class DbInterfaceCommon(ReadOnlyDbInterface):
