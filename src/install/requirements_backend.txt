@@ -1,4 +1,4 @@
-cryptography==37.0.2
+cryptography==38.0.3
 docker==5.0.3
 MarkupSafe==2.0.1
 matplotlib==3.5.2
