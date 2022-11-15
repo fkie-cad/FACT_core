@@ -8,6 +8,7 @@ on:
 jobs:
   build-ci:
     strategy:
+      fail-fast: false
       matrix:
         os: [ focal, jammy, buster, bullseye ]
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
