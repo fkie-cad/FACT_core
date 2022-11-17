@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, NamedTuple
 
 import pytest
 from pydantic import BaseModel, Extra
@@ -11,24 +11,19 @@ from storage.db_interface_common import DbInterfaceCommon
 from storage.db_interface_comparison import ComparisonDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
+from storage.db_interface_stats import StatsUpdateDbInterface
 from storage.db_setup import DbSetup
 from test.common_helper import clear_test_tables, setup_test_tables
 
 
-class DB:
-    def __init__(
-        self,
-        common: DbInterfaceCommon,
-        backend: BackendDbInterface,
-        frontend: FrontEndDbInterface,
-        frontend_editing: FrontendEditingDbInterface,
-        admin: AdminDbInterface,
-    ):
-        self.common = common
-        self.backend = backend
-        self.frontend = frontend
-        self.frontend_ed = frontend_editing
-        self.admin = admin
+class DatabaseInterfaces(NamedTuple):
+    common: DbInterfaceCommon
+    backend: BackendDbInterface
+    frontend: FrontEndDbInterface
+    frontend_editing: FrontendEditingDbInterface
+    admin: AdminDbInterface
+    comparison: ComparisonDbInterface
+    stats_update: StatsUpdateDbInterface
 
 
 class MockConfig(BaseModel, extra=Extra.forbid):
@@ -63,9 +58,17 @@ class MockConfig(BaseModel, extra=Extra.forbid):
     data_storage: MockDataStorage
 
 
+class MockIntercom:
+    def __init__(self):
+        self.deleted_files = []
+
+    def delete_file(self, uid_list: List[str]):
+        self.deleted_files.extend(uid_list)
+
+
 # Integration tests test the system as a whole so one can reasonably expect the database to be populated.
 @pytest.fixture(autouse=True, scope='session')
-def _db_interface():
+def _setup_tables():
     """Creates the tables that backend needs.
     This is equivalent to executing ``init_postgres.py``.
     """
@@ -103,46 +106,83 @@ def _db_interface():
 
         db_setup = DbSetup()
 
-        admin = AdminDbInterface(intercom=MockIntercom())
+        # TODO is the comment correct?
+        # Only the postgres database is used. Redis is mocked.
         ro_connection = ReadOnlyConnection()
         rw_connection = ReadWriteConnection()
+
         common = DbInterfaceCommon(connection=ro_connection)
         backend = BackendDbInterface(connection=rw_connection)
         frontend = FrontEndDbInterface(connection=ro_connection)
-        frontend_ed = FrontendEditingDbInterface(connection=rw_connection)
+        frontend_editing = FrontendEditingDbInterface(connection=rw_connection)
+        # TODO rw or ro ?!
+        comparison = ComparisonDbInterface(connection=rw_connection)
+        admin = AdminDbInterface(intercom=MockIntercom())
+        stats_update = StatsUpdateDbInterface(connection=rw_connection)
 
     setup_test_tables(db_setup)
 
-    yield DB(common, backend, frontend, frontend_ed, admin)
+    yield DatabaseInterfaces(common, backend, frontend, frontend_editing, admin, comparison, stats_update)
 
     clear_test_tables(db_setup)
 
 
+# TODO Only things with a rw connectino have to be reset
 @pytest.fixture(scope='function')
-def db(_db_interface) -> DB:  # pylint: disable=invalid-name,redefined-outer-name
-    """Returns an object containing all database interfaces.
+def database_interfaces(_setup_tables) -> DatabaseInterfaces:  # pylint: disable=invalid-name,redefined-outer-name
+    """Returns an object containing all database intefaces.
     The database is emptied after this fixture goes out of scope.
     """
+    _database_interfaces = _setup_tables
     try:
-        yield _db_interface
+        yield _database_interfaces
     finally:
-        with _db_interface.admin.get_read_write_session() as session:
+        with _database_interfaces.admin.get_read_write_session() as session:
             # clear rows from test db between tests
-            for table in reversed(_db_interface.admin.connection.base.metadata.sorted_tables):
+            for table in reversed(_database_interfaces.admin.connection.base.metadata.sorted_tables):
                 session.execute(table.delete())
         # clean intercom mock
-        if hasattr(_db_interface.admin.intercom, 'deleted_files'):
-            _db_interface.admin.intercom.deleted_files.clear()
+        if hasattr(_database_interfaces.admin.intercom, 'deleted_files'):
+            _database_interfaces.admin.intercom.deleted_files.clear()
 
 
-class MockIntercom:
-    def __init__(self):
-        self.deleted_files = []
-
-    def delete_file(self, uid_list: List[str]):
-        self.deleted_files.extend(uid_list)
+@pytest.fixture
+def common_db(database_interfaces):
+    """Convinience fixture. Equivalent to ``database_interfaces.common``."""
+    yield database_interfaces.common
 
 
-@pytest.fixture()
-def comp_db():
-    yield ComparisonDbInterface()
+@pytest.fixture
+def backend_db(database_interfaces):
+    """Convinience fixture. Equivalent to ``database_interfaces.backend``."""
+    yield database_interfaces.backend
+
+
+@pytest.fixture
+def frontend_db(database_interfaces):
+    """Convinience fixture. Equivalent to ``database_interfaces.frontend``."""
+    yield database_interfaces.frontend
+
+
+@pytest.fixture
+def frontend_editing_db(database_interfaces):
+    """Convinience fixture. Equivalent to ``database_interfaces.frontend_editing``."""
+    yield database_interfaces.frontend_editing
+
+
+@pytest.fixture
+def admin_db(database_interfaces):
+    """Convinience fixture. Equivalent to ``database_interfaces.admin``."""
+    yield database_interfaces.admin
+
+
+@pytest.fixture
+def comparison_db(database_interfaces):
+    """Convinience fixture. Equivalent to ``database_interfaces.comparison``."""
+    yield database_interfaces.comparison
+
+
+@pytest.fixture
+def stats_update_db(database_interfaces):
+    """Convinience fixture. Equivalent to ``database_interfaces.stats_update``."""
+    yield database_interfaces.stats_update
