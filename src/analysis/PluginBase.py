@@ -61,7 +61,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.analysis_stats = Array(ctypes.c_float, self.ANALYSIS_STATS_LIMIT)
         self.analysis_stats_count = Value('i', 0)
         self.analysis_stats_index = Value('i', 0)
-        self.start_worker()
 
     def _get_thread_count(self):
         """
@@ -73,6 +72,23 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         '''
         This function can be implemented by the plugin to do initialization
         '''
+
+    def start(self):
+        '''Starts the plugin workers.'''
+        for process_index in range(self.thread_count):
+            self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
+        logging.debug(f'{self.NAME}: {len(self.workers)} worker threads started')
+
+    def shutdown(self):
+        '''
+        This function can be called to shut down all working threads
+        '''
+        logging.debug('Shutting down...')
+        self.stop_condition.value = 1
+        self.in_queue.close()
+        stop_processes(self.workers, timeout=10.0)  # give running analyses some time to finish
+        self.out_queue.close()
+        self.manager.shutdown()
 
     def _check_plugin_attributes(self):
         for attribute in ['FILE', 'NAME', 'VERSION']:
@@ -119,17 +135,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         fo.processed_analysis[self.NAME].update(self.init_dict())
         return fo
 
-    def shutdown(self):
-        '''
-        This function can be called to shut down all working threads
-        '''
-        logging.debug('Shutting down...')
-        self.stop_condition.value = 1
-        self.in_queue.close()
-        stop_processes(self.workers, timeout=10.0)  # give running analyses some time to finish
-        self.out_queue.close()
-        self.manager.shutdown()
-
     # ---- internal functions ----
 
     def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
@@ -151,11 +156,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         if self.SYSTEM_VERSION:
             result_update.update({'system_version': self.SYSTEM_VERSION})
         return result_update
-
-    def start_worker(self):
-        for process_index in range(self.thread_count):
-            self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
-        logging.debug(f'{self.NAME}: {len(self.workers)} worker threads started')
 
     def process_next_object(self, task, result):
         task.processed_analysis.update({self.NAME: {}})
