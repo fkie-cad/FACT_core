@@ -56,17 +56,6 @@ def merge_markers(request, name: str, dtype: Type[T]) -> T:
     return dtype(**marker_dict)
 
 
-@pytest.fixture
-def create_tables():
-    """Creates the tables that backend needs.
-    This is equivalent to executing ``init_postgres.py``.
-    """
-    db_setup = DbSetup()
-    setup_test_tables(db_setup)
-    yield
-    clear_test_tables(db_setup)
-
-
 class DatabaseInterfaces(NamedTuple):
     common: DbInterfaceCommon
     backend: BackendDbInterface

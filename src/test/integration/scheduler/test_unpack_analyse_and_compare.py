@@ -54,7 +54,7 @@ class TestFileAddition:
         self._tmp_dir.cleanup()
         gc.collect()
 
-    def test_unpack_analyse_and_compare(self, db, comp_db):
+    def test_unpack_analyse_and_compare(self, comparison_db):
         test_fw_1 = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
         test_fw_2 = Firmware(file_path=f'{get_test_data_dir()}/regression_one')
 
@@ -72,7 +72,7 @@ class TestFileAddition:
 
         assert self.compare_finished_event.wait(timeout=10)
 
-        result = comp_db.get_comparison_result(compare_id)
+        result = comparison_db.get_comparison_result(compare_id)
 
         assert result is not None, 'comparison result not found in DB'
         assert result['plugins']['Software'] == self._expected_result()['Software']
