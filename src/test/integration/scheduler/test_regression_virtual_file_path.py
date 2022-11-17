@@ -87,7 +87,7 @@ def add_test_file(scheduler, path_in_test_dir):
 
 
 def test_check_collision(
-    db, test_app, test_scheduler, finished_event, intermediate_event
+    test_app, test_scheduler, finished_event, intermediate_event
 ):  # pylint: disable=unused-argument
     add_test_file(test_scheduler, 'regression_one')
 
