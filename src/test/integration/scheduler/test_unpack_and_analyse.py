@@ -2,6 +2,8 @@
 import gc
 from multiprocessing import Queue
 
+import pytest
+
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
@@ -10,6 +12,7 @@ from test.common_helper import get_test_data_dir
 from test.integration.common import MockDbInterface, MockFSOrganizer
 
 
+@pytest.mark.usefixtures('database_interfaces')
 class TestFileAddition:
     def setup(self):
         self._tmp_queue = Queue()
@@ -34,7 +37,7 @@ class TestFileAddition:
         self._tmp_queue.close()
         gc.collect()
 
-    def test_unpack_and_analyse(self, db):
+    def test_unpack_and_analyse(self):
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
 
         self._unpack_scheduler.add_task(test_fw)

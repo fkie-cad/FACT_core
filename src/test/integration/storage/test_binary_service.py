@@ -10,15 +10,15 @@ TEST_FW = create_test_firmware()
 
 
 @pytest.fixture
-def binary_service(db, cfg_tuple):
+def binary_service(backend_db, cfg_tuple):
     cfg, _ = cfg_tuple
-    _init_test_data(cfg.data_storage.firmware_file_storage_directory, db)
+    _init_test_data(cfg.data_storage.firmware_file_storage_directory, backend_db)
     yield BinaryService()
 
 
-def _init_test_data(tmp_dir: str, db):
-    db.backend.add_object(TEST_FW)
-    store_binary_on_file_system(tmp_dir, TEST_FW)
+def _init_test_data(dest_dir, backend_db):
+    backend_db.add_object(TEST_FW)
+    store_binary_on_file_system(dest_dir, TEST_FW)
 
 
 def test_get_binary_and_file_name(binary_service):
