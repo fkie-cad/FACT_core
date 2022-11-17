@@ -31,6 +31,7 @@ try:
 except ImportError:
     sys.exit(1)
 
+from config import cfg
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.program_setup import program_setup
 
@@ -57,7 +58,7 @@ def _start_component(component, args):
     logging.info(f'starting {component}')
     optional_args = _evaluate_optional_args(args)
     command = '{} -l {} -L {} -C {} {}'.format(
-        script_path, config['logging']['logfile'], config['logging']['loglevel'], args.config_file, optional_args
+        script_path, cfg.logging.logfile, cfg.logging.loglevel, args.config_file, optional_args
     )
     p = Popen(split(command))
     return p
@@ -97,7 +98,7 @@ signal.signal(signal.SIGTERM, shutdown)
 if __name__ == '__main__':
     process_list = []
     run = True
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+    args, _ = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
     db_process = _start_component('db', args)
     sleep(2)
