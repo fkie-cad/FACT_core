@@ -9,14 +9,14 @@ def db_setup():
     yield DbSetup()
 
 
-def test_user_exists(db, db_setup, cfg_tuple):
+def test_user_exists(db_setup, cfg_tuple):
     cfg, _ = cfg_tuple
     admin_user = cfg.data_storage.postgres_admin_user
     assert db_setup.user_exists(admin_user)
     assert not db_setup.user_exists('foobar')
 
 
-def test_db_exists(db, db_setup, cfg_tuple):
+def test_db_exists(db_setup, cfg_tuple):
     cfg, _ = cfg_tuple
     db_name = cfg.data_storage.postgres_database
     assert db_setup.database_exists(db_name)
