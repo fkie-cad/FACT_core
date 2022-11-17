@@ -138,7 +138,7 @@ class TestPluginNotRunning(TestPluginBase):
         }
     )
     def test_no_multithread(self):
-        self.multithread_config_test(True, '4')
+        self.multithread_config_test(True, '1')
 
     @pytest.mark.cfg_defaults(
         {
