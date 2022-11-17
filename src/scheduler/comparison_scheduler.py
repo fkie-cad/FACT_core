@@ -24,17 +24,12 @@ class ComparisonScheduler:
         self.callback = callback
         self.comparison_module = Compare(db_interface=self.db_interface)
         self.worker = None
-        if not testing:
-            self.start()
 
     def start(self):
         self.stop_condition.value = 0
         self.worker = start_single_worker(0, 'Comparison', self._comparison_scheduler_worker)
 
     def shutdown(self):
-        '''
-        shutdown the scheduler
-        '''
         logging.debug('Shutting down...')
         if self.stop_condition.value == 0:
             self.stop_condition.value = 1

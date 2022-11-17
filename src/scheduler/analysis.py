@@ -110,8 +110,11 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.db_backend_service = db_interface if db_interface else BackendDbInterface()
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
+
+    def start(self):
         self._start_runner_process()
         self._start_result_collector()
+        self._start_plugins()
         logging.info('Analysis System online...')
         logging.info(f'Plugins available: {self._get_list_of_available_plugins()}')
 
@@ -244,6 +247,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             )
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
+
+    def _start_plugins(self):
+        for plugin in self.analysis_plugins.values():
+            plugin.start()
 
     # ---- task runner functions ----
 
