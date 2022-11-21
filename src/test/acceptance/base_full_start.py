@@ -46,7 +46,7 @@ class TestAcceptanceBaseFullStart(TestAcceptanceBase):
                 'vendor': 'test_vendor',
                 'release_date': '1970-01-01',
                 'tags': '',
-                'analysis_systems': []
+                'analysis_systems': [],
             }
             rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
         self.assertIn(b'Upload Successful', rv.data, 'upload not successful')

@@ -28,14 +28,14 @@ _COMPRESSIONS = [
     {'magic': b'\037\213', 'cls': GZDecompressor},
     {'magic': b'\3757zXZ', 'cls': lzma.LZMADecompressor},
     {'magic': b'\135\0\0\0', 'cls': lzma.LZMADecompressor},
-    {'magic': b'BZh', 'cls': bz2.BZ2Decompressor}
+    {'magic': b'BZh', 'cls': bz2.BZ2Decompressor},
 ]
 
 DECOMPRESS_CHUNK_SIZE = 8388608  # 8 MiB
 
 
 def _collect_compression_indices(raw, magic_word: bytes) -> List[int]:
-    indices = list()
+    indices = []
 
     raw_offset = 0
     while True:
@@ -49,20 +49,20 @@ def _collect_compression_indices(raw, magic_word: bytes) -> List[int]:
 
 
 def _decompress_indices(raw: bytes, indices: List[int], decompressor: object) -> List[bytes]:
-    result = list()
+    result = []
     for index in indices:
         try:
             decompressed = decompressor.decompress(raw[index:])
             if len(decompressed) > 0:
                 result.append(decompressed)
-        except (lzma.LZMAError, zlib.error, ValueError, OSError):
+        except (lzma.LZMAError, zlib.error, ValueError, OSError, EOFError):
             pass
 
     return result
 
 
 def decompress(raw: bytes) -> List[bytes]:
-    result = list()
+    result = []
 
     for compression in _COMPRESSIONS:
         indices = _collect_compression_indices(raw, compression['magic'])

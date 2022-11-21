@@ -26,6 +26,7 @@ class OperateInDirectory:
     :param target_directory: Directory path to use as working directory.
     :param remove: Optional boolean to indicate if `target_directory` should be removed on exit.
     '''
+
     def __init__(self, target_directory: Union[str, Path], remove: bool = False):
         self._current_working_dir = None
         self._target_directory = str(target_directory)
@@ -68,8 +69,10 @@ def log_current_packages(packages: Tuple[str], install: bool = True):
     logging.info(f"{action} {' '.join(packages)}")
 
 
-def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
-    cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+def _run_shell_command_raise_on_return_code(
+    command: str, error: str, add_output_on_error=False
+) -> str:  # pylint: disable=invalid-name
+    cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
     if cmd_process.returncode != 0:
         if add_output_on_error:
             error = f'{error}\n{cmd_process.stdout}'
@@ -91,7 +94,9 @@ def dnf_install_packages(*packages: str):
     :param packages: Iterable containing packages to install.
     '''
     log_current_packages(packages)
-    return _run_shell_command_raise_on_return_code(f"sudo dnf install -y {' '.join(packages)}", f"Error in installation of package(s) {' '.join(packages)}", True)
+    return _run_shell_command_raise_on_return_code(
+        f"sudo dnf install -y {' '.join(packages)}", f"Error in installation of package(s) {' '.join(packages)}", True
+    )
 
 
 def dnf_remove_packages(*packages: str):
@@ -101,14 +106,18 @@ def dnf_remove_packages(*packages: str):
     :param packages: Iterable containing packages to remove.
     '''
     log_current_packages(packages, install=False)
-    return _run_shell_command_raise_on_return_code(f"sudo dnf remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True)
+    return _run_shell_command_raise_on_return_code(
+        f"sudo dnf remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True
+    )
 
 
 def apt_update_sources():
     '''
     Update package lists on Ubuntu / Debian / Mint / Kali systems.
     '''
-    return _run_shell_command_raise_on_return_code('sudo apt-get update', 'Unable to update repository sources. Check network.')
+    return _run_shell_command_raise_on_return_code(
+        'sudo apt-get update', 'Unable to update repository sources. Check network.'
+    )
 
 
 def apt_install_packages(*packages: str):
@@ -118,7 +127,11 @@ def apt_install_packages(*packages: str):
     :param packages: Iterable containing packages to install.
     '''
     log_current_packages(packages)
-    return _run_shell_command_raise_on_return_code(f"sudo apt-get install -y {' '.join(packages)}", f"Error in installation of package(s) {' '.join(packages)}", True)
+    return _run_shell_command_raise_on_return_code(
+        f"sudo apt-get install -y {' '.join(packages)}",
+        f"Error in installation of package(s) {' '.join(packages)}",
+        True,
+    )
 
 
 def apt_remove_packages(*packages: str):
@@ -128,7 +141,9 @@ def apt_remove_packages(*packages: str):
     :param packages: Iterable containing packages to remove.
     '''
     log_current_packages(packages, install=False)
-    return _run_shell_command_raise_on_return_code(f"sudo apt-get remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True)
+    return _run_shell_command_raise_on_return_code(
+        f"sudo apt-get remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True
+    )
 
 
 def check_if_command_in_path(command: str) -> bool:
@@ -138,7 +153,7 @@ def check_if_command_in_path(command: str) -> bool:
 
     :param command: Command to check.
     '''
-    command_process = subprocess.run(f'command -v {command}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    command_process = subprocess.run(f'command -v {command}', shell=True, stdout=DEVNULL, stderr=DEVNULL, text=True)
     return command_process.returncode == 0
 
 
@@ -158,14 +173,14 @@ def install_github_project(project_path: str, commands: List[str]):
                 ['./configure', 'make', 'sudo make install']
             )
     '''
-    log_current_packages((project_path, ))
+    log_current_packages((project_path,))
     folder_name = Path(project_path).name
     _checkout_github_project(project_path, folder_name)
 
     with OperateInDirectory(folder_name, remove=True):
         error = None
         for command in commands:
-            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
             if cmd_process.returncode != 0:
                 error = f'Error while processing github project {project_path}!\n{cmd_process.stdout}'
                 break
@@ -176,7 +191,7 @@ def install_github_project(project_path: str, commands: List[str]):
 
 def _checkout_github_project(github_path: str, folder_name: str):
     clone_url = f'https://www.github.com/{github_path}'
-    git_process = subprocess.run(f'git clone {clone_url}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    git_process = subprocess.run(f'git clone {clone_url}', shell=True, stdout=DEVNULL, stderr=DEVNULL, text=True)
     if git_process.returncode != 0:
         raise InstallationError(f'Cloning from github failed for project {github_path}\n {clone_url}')
     if not Path('.', folder_name).exists():
@@ -271,7 +286,9 @@ def install_pip_packages(package_file: Path):
         except CalledProcessError as error:
             # don't fail if a package is already installed using apt and can't be upgraded
             if error.stdout is not None and 'distutils installed' in error.stdout:
-                logging.warning(f'Pip package {package} is already installed with distutils. This may Cause problems:\n{error.stderr}')
+                logging.warning(
+                    f'Pip package {package} is already installed with distutils. This may Cause problems:\n{error.stderr}'
+                )
                 continue
             logging.error(f'Pip package {package} could not be installed:\n{error.stderr or error.stdout}')
             raise

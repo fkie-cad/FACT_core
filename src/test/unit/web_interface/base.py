@@ -42,7 +42,9 @@ class WebInterfaceTest:
     patches = []
 
     @classmethod
-    def setup_class(cls, db_mock=CommonDatabaseMock, intercom_mock=CommonIntercomMock):  # pylint: disable=arguments-differ
+    def setup_class(
+        cls, db_mock=CommonDatabaseMock, intercom_mock=CommonIntercomMock
+    ):  # pylint: disable=arguments-differ
         cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')  # pylint: disable=consider-using-with
         cls.config = get_config_for_testing(cls.tmp_dir)
         cls.db_mock = db_mock
@@ -58,8 +60,7 @@ class WebInterfaceTest:
     @classmethod
     def _init_patches(cls):
         cls.security_patch = patch(
-            target='web_interface.frontend_main.add_flask_security_to_app',
-            new=cls.add_security_get_mocked
+            target='web_interface.frontend_main.add_flask_security_to_app', new=cls.add_security_get_mocked
         )
         cls.security_patch.start()
 

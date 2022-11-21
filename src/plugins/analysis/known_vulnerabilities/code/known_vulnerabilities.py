@@ -44,7 +44,9 @@ class AnalysisPlugin(YaraBasePlugin):
         for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
             file_object.processed_analysis[self.NAME][name] = vulnerability
 
-        file_object.processed_analysis[self.NAME]['summary'] = [name for name, _ in binary_vulnerabilities + matched_vulnerabilities]
+        file_object.processed_analysis[self.NAME]['summary'] = [
+            name for name, _ in binary_vulnerabilities + matched_vulnerabilities
+        ]
 
         self.add_tags(file_object, binary_vulnerabilities + matched_vulnerabilities)
 
@@ -66,7 +68,7 @@ class AnalysisPlugin(YaraBasePlugin):
                 tag_name=name,
                 value=name.replace('_', ' '),
                 color=tag_color,
-                propagate=propagate
+                propagate=propagate,
             )
 
     @staticmethod
@@ -90,7 +92,9 @@ class AnalysisPlugin(YaraBasePlugin):
         return matched_vulnerabilities
 
     def _check_netusb_vulnerability(self, input_file_data: bytes):
-        with TemporaryDirectory(prefix='known_vulns_', dir=self.config['data-storage']['docker-mount-base-dir']) as tmp_dir:
+        with TemporaryDirectory(
+            prefix='known_vulns_', dir=self.config['data-storage']['docker-mount-base-dir']
+        ) as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
             ghidra_input_file = tmp_dir_path / 'ghidra_input'
             ghidra_input_file.write_bytes(input_file_data)
@@ -106,16 +110,18 @@ class AnalysisPlugin(YaraBasePlugin):
 
             try:
                 ghidra_results = json.loads((tmp_dir_path / 'result.json').read_text())
-                return [(
-                    'CVE-2021-45608',
-                    dict(
-                        description='CVE-2021-45608: vulnerability in KCodes NetUSB kernel module',
-                        score='high' if ghidra_results['is_vulnerable'] is True else 'none',
-                        reliability=90,
-                        link='https://nvd.nist.gov/vuln/detail/CVE-2021-45608',
-                        short_name='CVE-2021-45608',
-                        additional_data=ghidra_results,
+                return [
+                    (
+                        'CVE-2021-45608',
+                        dict(
+                            description='CVE-2021-45608: vulnerability in KCodes NetUSB kernel module',
+                            score='high' if ghidra_results['is_vulnerable'] is True else 'none',
+                            reliability=90,
+                            link='https://nvd.nist.gov/vuln/detail/CVE-2021-45608',
+                            short_name='CVE-2021-45608',
+                            additional_data=ghidra_results,
+                        ),
                     )
-                )]
+                ]
             except (json.JSONDecodeError, FileNotFoundError):
                 return []

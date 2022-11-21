@@ -55,7 +55,6 @@ class DataStorage(BaseModel):
     user_database: str
     password_salt: str
 
-    variety_path: str
     structural_threshold: int
 
     temp_dir_path: str

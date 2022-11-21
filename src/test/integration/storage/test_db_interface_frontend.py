@@ -2,13 +2,20 @@ import pytest
 
 from storage.db_interface_frontend import CachedQuery
 from storage.query_conversion import QueryConversionException
-from test.common_helper import generate_analysis_entry  # pylint: disable=wrong-import-order
-from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import (
+    generate_analysis_entry,  # pylint: disable=wrong-import-order; pylint: disable=wrong-import-order
+)
+from test.common_helper import create_test_file_object, create_test_firmware
 from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 from .helper import (
-    TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
+    TEST_FO,
+    TEST_FW,
+    create_fw_with_child_fo,
+    create_fw_with_parent_and_child,
+    insert_test_fo,
+    insert_test_fw,
 )
 
 DUMMY_RESULT = generate_analysis_entry(analysis_result={'key': 'result'})
@@ -91,7 +98,7 @@ def test_get_device_name_dict(db):
     insert_test_fw(db, 'fw4', vendor='vendor2', device_class='class1', device_name='name1')
     assert db.frontend.get_device_name_dict() == {
         'class1': {'vendor1': ['name1', 'name2'], 'vendor2': ['name1']},
-        'class2': {'vendor1': ['name1']}
+        'class2': {'vendor1': ['name1']},
     }
 
 
@@ -137,9 +144,14 @@ def test_generic_search_or(db):
     assert set(db.frontend.generic_search({'file_name': 'some_file.zip'})) == {'uid_1'}
     assert set(db.frontend.generic_search({'$or': {'file_name': 'some_file.zip'}})) == {'uid_1'}
     assert set(db.frontend.generic_search({'$or': {'file_name': 'some_file.zip', 'size': 20}})) == {'uid_1', 'uid_2'}
-    assert set(db.frontend.generic_search({'$or': {'file_name': 'other_file.zip', 'size': {'$lt': 20}}})) == {'uid_1', 'uid_2'}
+    assert set(db.frontend.generic_search({'$or': {'file_name': 'other_file.zip', 'size': {'$lt': 20}}})) == {
+        'uid_1',
+        'uid_2',
+    }
     # "$or" query should still match if there is a firmware attribute in the query
-    assert set(db.frontend.generic_search({'$or': {'file_name': 'some_file.zip', 'vendor': 'some_vendor'}})) == {'uid_1'}
+    assert set(db.frontend.generic_search({'$or': {'file_name': 'some_file.zip', 'vendor': 'some_vendor'}})) == {
+        'uid_1'
+    }
 
 
 def test_generic_search_unknown_op(db):
@@ -147,11 +159,14 @@ def test_generic_search_unknown_op(db):
         db.frontend.generic_search({'file_name': {'$unknown': 'foo'}})
 
 
-@pytest.mark.parametrize('query, expected', [
-    ({}, ['uid_1']),
-    ({'vendor': 'test_vendor'}, ['uid_1']),
-    ({'vendor': 'different_vendor'}, []),
-])
+@pytest.mark.parametrize(
+    'query, expected',
+    [
+        ({}, ['uid_1']),
+        ({'vendor': 'test_vendor'}, ['uid_1']),
+        ({'vendor': 'different_vendor'}, []),
+    ],
+)
 def test_generic_search_fw(db, query, expected):
     insert_test_fw(db, 'uid_1', vendor='test_vendor')
     assert db.frontend.generic_search(query) == expected
@@ -173,7 +188,9 @@ def test_generic_search_parent(db):
 
     assert db.frontend.generic_search({'file_name': 'foo.bar'}) == [fo.uid]
     assert db.frontend.generic_search({'file_name': 'foo.bar'}, only_fo_parent_firmware=True) == [fw.uid]
-    assert db.frontend.generic_search({'processed_analysis.plugin.foo': 'bar'}, only_fo_parent_firmware=True) == [fw.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.foo': 'bar'}, only_fo_parent_firmware=True) == [
+        fw.uid
+    ]
     # root file objects of FW should also match:
     assert db.frontend.generic_search({'file_name': 'fw.image'}, only_fo_parent_firmware=True) == [fw.uid]
     assert db.frontend.generic_search({'vendor': 'foo123'}, only_fo_parent_firmware=True) == ['some_other_fw']
@@ -181,16 +198,18 @@ def test_generic_search_parent(db):
 
 def test_generic_search_nested(db):
     fo, fw = create_fw_with_child_fo()
-    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={
-        'nested': {'key': 'value'},
-        'nested_2': {'inner_nested': {'foo': 'bar', 'test': 3}}
-    })}
+    fo.processed_analysis = {
+        'plugin': generate_analysis_entry(
+            analysis_result={'nested': {'key': 'value'}, 'nested_2': {'inner_nested': {'foo': 'bar', 'test': 3}}}
+        )
+    }
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
 
     assert db.frontend.generic_search({'processed_analysis.plugin.nested.key': 'value'}) == [fo.uid]
-    assert db.frontend.generic_search(
-        {'processed_analysis.plugin.nested.key': {'$in': ['value', 'other_value']}}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.nested.key': {'$in': ['value', 'other_value']}}) == [
+        fo.uid
+    ]
     assert db.frontend.generic_search({'processed_analysis.plugin.nested_2.inner_nested.foo': 'bar'}) == [fo.uid]
     assert db.frontend.generic_search({'processed_analysis.plugin.nested_2.inner_nested.test': 3}) == [fo.uid]
 
@@ -210,7 +229,9 @@ def test_generic_search_json_array(db):
 
 def test_generic_search_json_types(db):
     fo, fw = create_fw_with_child_fo()
-    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'str': 'a', 'int': 1, 'float': 1.23, 'bool': True})}
+    fo.processed_analysis = {
+        'plugin': generate_analysis_entry(analysis_result={'str': 'a', 'int': 1, 'float': 1.23, 'bool': True})
+    }
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
 
@@ -276,7 +297,9 @@ def test_inverted_search(db):
     insert_test_fw(db, 'some_other_fw')
 
     assert db.frontend.generic_search({'file_name': 'foo.bar'}, only_fo_parent_firmware=True) == [fw.uid]
-    assert db.frontend.generic_search({'file_name': 'foo.bar'}, only_fo_parent_firmware=True, inverted=True) == ['some_other_fw']
+    assert db.frontend.generic_search({'file_name': 'foo.bar'}, only_fo_parent_firmware=True, inverted=True) == [
+        'some_other_fw'
+    ]
 
 
 def test_search_limit_skip_and_order(db):
@@ -323,7 +346,7 @@ def test_get_latest_comments(db):
     fo1 = create_test_file_object()
     fo1.comments = [
         {'author': 'anonymous', 'comment': 'comment1', 'time': '1'},
-        {'author': 'anonymous', 'comment': 'comment3', 'time': '3'}
+        {'author': 'anonymous', 'comment': 'comment3', 'time': '3'},
     ]
     db.backend.insert_object(fo1)
     fo2 = create_test_file_object()
@@ -381,12 +404,15 @@ def test_get_file_tree_data(db):
     assert result_by_uid[parent_fo.uid].included_files == [child_fo.uid]
 
 
-@pytest.mark.parametrize('query, expected, expected_fw, expected_inv', [
-    ({}, 1, 1, 1),
-    ({'size': 123}, 2, 1, 0),
-    ({'file_name': 'foo.bar'}, 1, 1, 0),
-    ({'vendor': 'test_vendor'}, 1, 1, 0),
-])
+@pytest.mark.parametrize(
+    'query, expected, expected_fw, expected_inv',
+    [
+        ({}, 1, 1, 1),
+        ({'size': 123}, 2, 1, 0),
+        ({'file_name': 'foo.bar'}, 1, 1, 0),
+        ({'vendor': 'test_vendor'}, 1, 1, 0),
+    ],
+)
 def test_get_number_of_total_matches(db, query, expected, expected_fw, expected_inv):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
     fw.vendor = 'test_vendor'
@@ -421,19 +447,37 @@ def test_rest_get_firmware_uids(db):
     test_fw1 = insert_test_fw(db, 'fw1', vendor='foo_vendor', file_name='fw1', device_name='some_device')
     test_fw2 = insert_test_fw(db, 'fw2', vendor='foo_vendor', file_name='fw2')
 
-    assert sorted(db.frontend.rest_get_firmware_uids(offset=None, limit=None)) == [parent_fw.uid, test_fw1.uid, test_fw2.uid]
-    assert sorted(db.frontend.rest_get_firmware_uids(query={}, offset=0, limit=0)) == [parent_fw.uid, test_fw1.uid, test_fw2.uid]
+    assert sorted(db.frontend.rest_get_firmware_uids(offset=None, limit=None)) == [
+        parent_fw.uid,
+        test_fw1.uid,
+        test_fw2.uid,
+    ]
+    assert sorted(db.frontend.rest_get_firmware_uids(query={}, offset=0, limit=0)) == [
+        parent_fw.uid,
+        test_fw1.uid,
+        test_fw2.uid,
+    ]
     assert db.frontend.rest_get_firmware_uids(offset=1, limit=1) == [test_fw1.uid]
-    assert sorted(db.frontend.rest_get_firmware_uids(
-        offset=None, limit=None, query={'vendor': 'foo_vendor'})) == [test_fw1.uid, test_fw2.uid]
-    assert sorted(db.frontend.rest_get_firmware_uids(
-        offset=None, limit=None, query={'device_name': 'some_device'})) == [test_fw1.uid]
-    assert sorted(db.frontend.rest_get_firmware_uids(
-        offset=None, limit=None, query={'file_name': parent_fw.file_name})) == [parent_fw.uid]
-    assert sorted(db.frontend.rest_get_firmware_uids(
-        offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True)) == [parent_fw.uid]
-    assert sorted(db.frontend.rest_get_firmware_uids(
-        offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True, inverted=True)) == [test_fw1.uid, test_fw2.uid]
+    assert sorted(db.frontend.rest_get_firmware_uids(offset=None, limit=None, query={'vendor': 'foo_vendor'})) == [
+        test_fw1.uid,
+        test_fw2.uid,
+    ]
+    assert sorted(
+        db.frontend.rest_get_firmware_uids(offset=None, limit=None, query={'device_name': 'some_device'})
+    ) == [test_fw1.uid]
+    assert sorted(
+        db.frontend.rest_get_firmware_uids(offset=None, limit=None, query={'file_name': parent_fw.file_name})
+    ) == [parent_fw.uid]
+    assert sorted(
+        db.frontend.rest_get_firmware_uids(
+            offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True
+        )
+    ) == [parent_fw.uid]
+    assert sorted(
+        db.frontend.rest_get_firmware_uids(
+            offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True, inverted=True
+        )
+    ) == [test_fw1.uid, test_fw2.uid]
 
 
 def test_find_missing_analyses(db):
@@ -466,6 +510,7 @@ def test_get_tag_list(db):
 
 
 # --- search cache ---
+
 
 def test_get_query_from_cache(db):
     assert db.frontend.get_query_from_cache('non-existent') is None

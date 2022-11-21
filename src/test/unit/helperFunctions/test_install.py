@@ -5,7 +5,10 @@ from tempfile import TemporaryDirectory
 import pytest
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, _run_shell_command_raise_on_return_code, read_package_list_from_file
+    InstallationError,
+    OperateInDirectory,
+    _run_shell_command_raise_on_return_code,
+    read_package_list_from_file,
 )
 
 

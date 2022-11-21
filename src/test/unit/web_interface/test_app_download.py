@@ -3,7 +3,6 @@ from test.unit.web_interface.base import WebInterfaceTest
 
 
 class TestAppDownload(WebInterfaceTest):
-
     def test_app_download_raw_invalid(self):
         rv = self.test_client.get('/download/invalid_uid')
         assert b'File not found in database: invalid_uid' in rv.data

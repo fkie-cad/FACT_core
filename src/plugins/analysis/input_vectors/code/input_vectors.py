@@ -24,6 +24,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     - stdin
     - kernel via syscalls
     '''
+
     NAME = 'input_vectors'
     DESCRIPTION = 'Determines possible input vectors of an ELF executable like stdin, network, or syscalls.'
     DEPENDENCIES = ['file_type']
@@ -50,7 +51,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME] = loads(result.stdout)
             except ReadTimeout:
                 file_object.processed_analysis[self.NAME]['failed'] = 'Analysis timed out. It might not be complete.'
-            except (DockerException, IOError):
+            except (DockerException, OSError):
                 file_object.processed_analysis[self.NAME]['failed'] = 'Analysis issues. It might not be complete.'
             except JSONDecodeError:
                 logging.error('[input_vectors]: Could not decode JSON output:', exc_info=True)

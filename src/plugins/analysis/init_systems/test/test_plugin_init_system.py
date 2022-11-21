@@ -28,7 +28,7 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
             'only_comments': 'etc/inittab.invalid',
             'initd': 'etc/init.d/skeleton',
             'README': 'etc/init.d/README',
-            'initscript': 'etc/initscript'
+            'initscript': 'etc/initscript',
         }
 
         for test_file, path in test_files.items():
@@ -56,7 +56,11 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         processed_file = self.analysis_plugin.process_object(self.test_file_rclocal)
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual('/usr/bin/foo              # ein Programm\n/usr/local/bin/bar.sh     # ein Shellskript\n/etc/init.d/foobar start  # ein Dienst\nexit 0', result['script'], 'record not found')
+        self.assertEqual(
+            '/usr/bin/foo              # ein Programm\n/usr/local/bin/bar.sh     # ein Shellskript\n/etc/init.d/foobar start  # ein Dienst\nexit 0',
+            result['script'],
+            'record not found',
+        )
         self.assertNotIn('#!/bin/sh -e', result['script'], 'Comments should not be listed')
         self.assertEqual(['rc'], result['init_type'], 'init type missing')
         self.assertEqual(['rc'], result['summary'], 'init type missing')
@@ -81,7 +85,9 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         processed_file = self.analysis_plugin.process_object(self.test_file_upstart)
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual('    echo "[`date`] baz starting..." >> /var/log/baz.log', result['pre-start'], 'record not found')
+        self.assertEqual(
+            '    echo "[`date`] baz starting..." >> /var/log/baz.log', result['pre-start'], 'record not found'
+        )
         self.assertIn('/bin/baz.sh -runonce \\\n-silent', result['exec'], 'record not found')
         self.assertNotIn('script', result['script'], 'script should not be listed')
         self.assertEqual(['"Simple Baz application"'], result['description'], 'description missing')
@@ -92,7 +98,9 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         processed_file = self.analysis_plugin.process_object(self.test_file_runit)
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual('sv -w7 check postgresql\nexec 2>&1 myprocess \\\nlast line', result['script'], 'record not found')
+        self.assertEqual(
+            'sv -w7 check postgresql\nexec 2>&1 myprocess \\\nlast line', result['script'], 'record not found'
+        )
         self.assertIn('exec 2>&1 myprocess \\\nlast line', result['script'], 'record not found')
         self.assertNotIn('#!/bin/sh -e', result['script'], 'should not be listed')
         self.assertEqual(['RunIt'], result['init_type'], 'init type missing')
@@ -115,7 +123,11 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
 
         self.assertEqual(['"Example initscript"'], result['description'], 'description missing')
-        self.assertIn('if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then\n    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script\nfi', result['script'], 'record not found')
+        self.assertIn(
+            'if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then\n    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script\nfi',
+            result['script'],
+            'record not found',
+        )
         self.assertEqual(['SysVInit'], result['init_type'], 'init type missing')
         self.assertEqual(['SysVInit'], result['summary'], 'description missing')
 
@@ -148,4 +160,6 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
     def test_add_quotes(self):
         unquoted = ['test', '2']
 
-        self.assertEqual(['"test"', '"2"'], self.analysis_plugin._add_quotes(unquoted), 'strings should be in double quotes')
+        self.assertEqual(
+            ['"test"', '"2"'], self.analysis_plugin._add_quotes(unquoted), 'strings should be in double quotes'
+        )

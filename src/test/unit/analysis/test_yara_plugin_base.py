@@ -29,7 +29,9 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
     def test_get_signature_paths(self):
         intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', self.PLUGIN_NAME)
         self.assertTrue(isinstance(self.analysis_plugin.signature_path, str), 'incorrect type')
-        self.assertEqual(f"{intended_signature_path.rstrip('/')}.yc", self.analysis_plugin.signature_path, 'signature path is wrong')
+        self.assertEqual(
+            f"{intended_signature_path.rstrip('/')}.yc", self.analysis_plugin.signature_path, 'signature path is wrong'
+        )
 
     def test_process_object(self):
         test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'yara_test_file'))
@@ -60,7 +62,9 @@ def test_parse_yara_output():
 
 
 def test_get_signature_file_name():
-    assert YaraBasePlugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'  # pylint: disable=protected-access
+    assert (
+        YaraBasePlugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'
+    )  # pylint: disable=protected-access
 
 
 def test_parse_meta_data_error(caplog):

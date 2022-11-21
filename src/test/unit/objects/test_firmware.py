@@ -5,10 +5,7 @@ from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
 
 
-@pytest.mark.parametrize('input_data, expected_count', [
-    (['a'], 1),
-    (['a', 'b', 'a'], 2)
-])
+@pytest.mark.parametrize('input_data, expected_count', [(['a'], 1), (['a', 'b', 'a'], 2)])
 def test_add_tag(input_data, expected_count):
     test_object = Firmware()
     for item in input_data:
@@ -18,10 +15,7 @@ def test_add_tag(input_data, expected_count):
     assert len(test_object.tags.keys()) == expected_count
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ('complete', ''),
-    ('some_part', 'some_part')
-])
+@pytest.mark.parametrize('input_data, expected_output', [('complete', ''), ('some_part', 'some_part')])
 def test_set_part_name(input_data, expected_output):
     test_object = Firmware()
     test_object.set_part_name(input_data)
@@ -51,10 +45,10 @@ def test_set_binary():
     assert firmware.md5 == md5
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ('complete', 'foo test_device v. 1.0'),
-    ('some_part', 'foo test_device - some_part v. 1.0')
-])
+@pytest.mark.parametrize(
+    'input_data, expected_output',
+    [('complete', 'foo test_device v. 1.0'), ('some_part', 'foo test_device - some_part v. 1.0')],
+)
 def test_get_hid(input_data, expected_output):
     test_fw = Firmware(binary=b'foo')
     test_fw.device_name = 'test_device'

@@ -4,7 +4,6 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 
 class TestRestFileObject(RestTestBase):
-
     def test_rest_download_valid(self, db):
         test_file_object = create_test_file_object()
         db.backend.add_object(test_file_object)

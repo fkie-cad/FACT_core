@@ -19,7 +19,7 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
     def setUp(self):
         super().setUp()
-        with open(os.path.join(TEST_DATA_DIR, 'sc.json'), 'r') as json_file:
+        with open(os.path.join(TEST_DATA_DIR, 'sc.json')) as json_file:
             self._software_components_result = json.load(json_file)
 
     def test_process_object_yara(self):
@@ -59,7 +59,9 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
     def test_process_object_hash(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
-        test_file.processed_analysis['file_hashes'] = {'sha256': '7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'}
+        test_file.processed_analysis['file_hashes'] = {
+            'sha256': '7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'
+        }
         test_file.processed_analysis['software_components'] = {}
 
         results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]

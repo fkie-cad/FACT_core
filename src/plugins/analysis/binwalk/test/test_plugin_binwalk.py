@@ -39,7 +39,9 @@ class TestAnalysisPluginBinwalk(AnalysisPluginTest):
 
     def test_summary(self):
         summary = self.analysis_plugin._extract_summary(TEST_OUTPUT)
-        self.assertCountEqual(summary, ['Microsoft executable', 'XML document', 'Zip archive data', 'End of Zip archive'])
+        self.assertCountEqual(
+            summary, ['Microsoft executable', 'XML document', 'Zip archive data', 'End of Zip archive']
+        )
 
     def test_iterate_valid_signature_lines(self):
         result = list(self.analysis_plugin._iterate_valid_signature_lines(TEST_OUTPUT.splitlines()))

@@ -23,10 +23,8 @@ class Unpacker(UnpackBase):
 
     def unpack(self, current_fo: FileObject, container_url: str, tmp_dir: TemporaryDirectory) -> List[FileObject]:
         if current_fo.depth >= self.config.getint('unpack', 'max-depth'):
-            logging.warning(
-                f'{current_fo.uid} is not extracted since depth limit'
-                f' ({self.config.get("unpack", "max-depth")}) is reached'
-            )
+            max_depth = self.config.get('unpack', 'max-depth')
+            logging.warning(f'{current_fo.uid} is not extracted since depth limit ({max_depth}) is reached')
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 

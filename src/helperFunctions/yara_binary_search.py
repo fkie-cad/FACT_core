@@ -38,7 +38,7 @@ class YaraBinarySearchScanner:
         '''
         compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b'YARA') else ''
         command = f'yara -r {compiled_flag} {rule_file_path} {target_path or self.db_path}'
-        yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
         return yara_process.stdout
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path: str, firmware_uid: str) -> str:
@@ -47,10 +47,7 @@ class YaraBinarySearchScanner:
         return '\n'.join(result)
 
     def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> List[str]:
-        return [
-            self.fs_organizer.generate_path_from_uid(uid)
-            for uid in self.db.get_all_files_in_fw(fw_uid)
-        ]
+        return [self.fs_organizer.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
 
     @staticmethod
     def _parse_raw_result(raw_result: str) -> Dict[str, List[str]]:

@@ -15,8 +15,18 @@ class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arg
     :param has_children: Is ``True`` if there are nodes in the file tree below this one and ``False`` otherwise.
     :param not_analyzed: Is ``True`` if the analysis of the file is not complete and ``False`` otherwise.
     '''
-    def __init__(self, uid, root_uid=None, virtual=False, name=None, size=None, mime_type=None, has_children=False,
-                 not_analyzed=False):
+
+    def __init__(
+        self,
+        uid,
+        root_uid=None,
+        virtual=False,
+        name=None,
+        size=None,
+        mime_type=None,
+        has_children=False,
+        not_analyzed=False,
+    ):
         self.uid = uid
         self.root_uid = root_uid
         self.virtual = virtual
@@ -28,7 +38,7 @@ class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arg
         self.children = {}
 
     def __str__(self):
-        return 'Node \'{}\' with children {}'.format(self.name, self.get_names_of_children())
+        return f'Node \'{self.name}\' with children {self.get_names_of_children()}'
 
     def __repr__(self):
         return self.__str__()

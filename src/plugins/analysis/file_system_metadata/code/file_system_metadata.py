@@ -19,8 +19,7 @@ from storage.db_interface_common import DbInterfaceCommon
 
 DOCKER_IMAGE = 'fact/fs_metadata:latest'
 StatResult = NamedTuple(
-    'StatEntry',
-    [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
+    'StatEntry', [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
 )
 
 
@@ -52,7 +51,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'filesystem/romfs',
         'filesystem/udf',
         'filesystem/xfs',
-        'filesystem/squashfs'
+        'filesystem/squashfs',
     ]
 
     def __init__(self, *args, config=None, db_interface=None, **kwargs):
@@ -69,7 +68,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _set_result_propagation_flag(self, file_object: FileObject):
         if 'file_system_metadata' not in file_object.processed_analysis:
             file_object.processed_analysis['file_system_metadata'] = {}
-        file_object.processed_analysis['file_system_metadata']['contained_in_file_system'] = self._parent_has_file_system_metadata(file_object)
+        file_object.processed_analysis['file_system_metadata'][
+            'contained_in_file_system'
+        ] = self._parent_has_file_system_metadata(file_object)
 
     def _parent_has_file_system_metadata(self, file_object: FileObject) -> bool:
         if hasattr(file_object, 'temporary_data') and 'parent_fo_type' in file_object.temporary_data:
@@ -118,7 +119,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             mounts=[
                 Mount('/work', input_dir, type='bind'),
             ],
-            timeout=int(self.TIMEOUT * .8),  # docker call gets 80% of the analysis time before it times out
+            timeout=int(self.TIMEOUT * 0.8),  # docker call gets 80% of the analysis time before it times out
             privileged=True,
         )
 
@@ -141,7 +142,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         result[FsKeys.M_TIME] = stats.m_time
         result[FsKeys.A_TIME] = stats.a_time
         result[FsKeys.C_TIME] = stats.c_time
-        result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(result[FsKeys.MODE])
+        result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(
+            result[FsKeys.MODE]
+        )
 
     def _extract_metadata_from_tar(self, file_object: FileObject):
         try:
@@ -165,7 +168,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         result[FsKeys.UID] = file_info.uid
         result[FsKeys.GID] = file_info.gid
         result[FsKeys.M_TIME] = file_info.mtime
-        result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(result[FsKeys.MODE])
+        result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(
+            result[FsKeys.MODE]
+        )
 
     @staticmethod
     def _get_extended_file_permissions(file_mode: str) -> List[bool]:
@@ -187,7 +192,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tag_name='SUID/GUID + root',
                 value='SUID/GUID + root',
                 color=TagColor.BLUE,
-                propagate=False
+                propagate=False,
             )
 
     @staticmethod

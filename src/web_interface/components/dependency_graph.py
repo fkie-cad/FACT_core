@@ -16,10 +16,7 @@ class DepGraphData(NamedTuple):
 
 
 def create_data_graph_nodes_and_groups(dependency_data: List[DepGraphData], parent_uid, root_uid, whitelist):
-    data_graph = {
-        'nodes': [],
-        'edges': []
-    }
+    data_graph = {'nodes': [], 'edges': []}
     groups = set()
 
     for entry in dependency_data:
@@ -50,7 +47,7 @@ def create_data_graph_nodes_and_groups(dependency_data: List[DepGraphData], pare
                 'group': entry.mime,
                 'full_file_type': entry.full_type,
                 'linked_libraries': entry.libraries or [],
-                'elf_analysis_missing': entry.libraries is None
+                'elf_analysis_missing': entry.libraries is None,
             }
 
             data_graph['nodes'].append(node)

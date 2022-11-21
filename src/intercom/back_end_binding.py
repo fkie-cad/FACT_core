@@ -20,8 +20,15 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
     Internal Communication Backend Binding
     '''
 
-    def __init__(self, config=None, analysis_service=None, compare_service=None, unpacking_service=None,
-                 unpacking_locks=None, testing=False):
+    def __init__(
+        self,
+        config=None,
+        analysis_service=None,
+        compare_service=None,
+        unpacking_service=None,
+        unpacking_locks=None,
+        testing=False,
+    ):
         self.config = config
         self.analysis_service = analysis_service
         self.compare_service = compare_service
@@ -44,8 +51,11 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         self._start_listener(InterComBackEndTarRepackTask)
         self._start_listener(InterComBackEndBinarySearchTask)
         self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
-        self._start_listener(InterComBackEndDeleteFile, unpacking_locks=self.unpacking_locks,
-                             db_interface=DbInterfaceCommon(config=self.config))
+        self._start_listener(
+            InterComBackEndDeleteFile,
+            unpacking_locks=self.unpacking_locks,
+            db_interface=DbInterfaceCommon(config=self.config),
+        )
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
         self._start_listener(InterComBackEndPeekBinaryTask)
         self._start_listener(InterComBackEndLogsTask)
@@ -73,7 +83,6 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 
 
 class InterComBackEndAnalysisPlugInsPublisher(InterComRedisInterface):
-
     def __init__(self, config=None, analysis_service=None):
         super().__init__(config=config)
         self.publish_available_analysis_plugins(analysis_service)

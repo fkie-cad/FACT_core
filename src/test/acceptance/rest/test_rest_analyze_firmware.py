@@ -11,7 +11,6 @@ from test.common_helper import get_firmware_for_rest_upload_test
 
 
 class TestRestFirmware(TestAcceptanceBase):
-
     def setUp(self):
         super().setUp()
         self.analysis_finished_event = Event()
@@ -56,7 +55,9 @@ class TestRestFirmware(TestAcceptanceBase):
     def _rest_update_analysis_bad_analysis(self):
         query = urllib.parse.quote('["unknown_system"]')
         rv = self.test_client.put(f'/rest/firmware/{self.test_container_uid}?update={query}', follow_redirects=True)
-        assert 'Unknown analysis system'.encode() in rv.data, 'rest analysis update should break on request of non existing system'
+        assert (
+            b'Unknown analysis system' in rv.data
+        ), 'rest analysis update should break on request of non existing system'
 
     def _rest_update_analysis_success(self):
         update = urllib.parse.quote(json.dumps(['crypto_material']))
@@ -67,7 +68,10 @@ class TestRestFirmware(TestAcceptanceBase):
         rv = self.test_client.get(f'/rest/firmware/{self.test_container_uid}', follow_redirects=True)
         response_data = json.loads(rv.data.decode())
         assert response_data['firmware']['analysis']['crypto_material']
-        assert response_data['firmware']['analysis']['crypto_material']['analysis_date'] > response_data['firmware']['analysis']['software_components']['analysis_date']
+        assert (
+            response_data['firmware']['analysis']['crypto_material']['analysis_date']
+            > response_data['firmware']['analysis']['software_components']['analysis_date']
+        )
 
     def test_run_from_upload_to_show_analysis_and_search(self):
         self._rest_upload_firmware()

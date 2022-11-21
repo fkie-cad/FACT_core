@@ -28,7 +28,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 shell=True,
                 stdout=PIPE,
                 stderr=STDOUT,
-                universal_newlines=True,
+                text=True,
             )
             signature_analysis_result = cmd_process.stdout
             try:

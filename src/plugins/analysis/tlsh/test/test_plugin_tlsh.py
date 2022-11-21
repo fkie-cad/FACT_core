@@ -9,11 +9,6 @@ HASH_0 = '9A355C07B5A614FDC5A2847046EF92B7693174A642327DBF3C88D6303F42E746B1ABE1
 HASH_1 = '0CC34B06B1B258BCC16689308A67D671AB747E5053223B3E3684F7342F56E6F1F0DAB1'
 
 
-class MockAdmin:
-    def register_plugin(self, name, administrator):
-        pass
-
-
 class MockDb:
     def get_all_tlsh_hashes(self):  # pylint: disable=no-self-use
         return [('test_uid', HASH_1)]
@@ -34,11 +29,7 @@ def test_object():
 @pytest.fixture(scope='function')
 def stub_plugin(test_config):
     return AnalysisPlugin(
-        MockAdmin(),
-        config=test_config,
-        offline_testing=True,
-        view_updater=CommonDatabaseMock(),
-        db_interface=MockDb()
+        config=test_config, offline_testing=True, view_updater=CommonDatabaseMock(), db_interface=MockDb()
     )
 
 

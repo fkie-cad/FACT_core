@@ -5,7 +5,7 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
 
     query = {
         'file': None,
-        'textarea': 'rule test_file_string {strings: $a = "This is the second test file" condition: $a }'
+        'textarea': 'rule test_file_string {strings: $a = "This is the second test file" condition: $a }',
     }
 
     def _query_page_get(self):
@@ -14,10 +14,7 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
 
     def _query_page_post_file_query(self):
         rv = self.test_client.post(
-            '/database/binary_search',
-            content_type='multipart/form-data',
-            data=self.query,
-            follow_redirects=True
+            '/database/binary_search', content_type='multipart/form-data', data=self.query, follow_redirects=True
         )
         assert b'testfile2' in rv.data
 
@@ -26,7 +23,7 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
             '/database/binary_search',
             content_type='multipart/form-data',
             data={**self.query, 'only_firmware': 'True'},
-            follow_redirects=True
+            follow_redirects=True,
         )
         assert self.test_fw_a.name.encode() in rv.data
         assert b'testfile2' not in rv.data

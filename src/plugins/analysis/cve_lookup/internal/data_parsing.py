@@ -68,10 +68,15 @@ def extract_cpe_data_from_cve(nodes: List[dict]) -> List[Tuple[str, str, str, st
         if 'cpe_match' in dicts.keys():
             for cpe in dicts['cpe_match']:
                 if 'cpe23Uri' in cpe and cpe['vulnerable']:
-                    cpe_entries.append((
-                        cpe['cpe23Uri'], cpe.get('versionStartIncluding', ''), cpe.get('versionStartExcluding', ''),
-                        cpe.get('versionEndIncluding', ''), cpe.get('versionEndExcluding', '')
-                    ))
+                    cpe_entries.append(
+                        (
+                            cpe['cpe23Uri'],
+                            cpe.get('versionStartIncluding', ''),
+                            cpe.get('versionStartExcluding', ''),
+                            cpe.get('versionEndIncluding', ''),
+                            cpe.get('versionEndExcluding', ''),
+                        )
+                    )
         elif 'children' in dicts.keys():
             cpe_entries.extend(extract_cpe_data_from_cve(dicts['children']))
     return cpe_entries
@@ -112,9 +117,4 @@ def extract_cpe(file: str) -> list:
         tree = parse(file)
     except ParseError as error:
         raise CveLookupException(f'could not extract CPE file: {file}') from error
-    return [
-        item.attrib['name']
-        for entry in tree.getroot()
-        for item in entry
-        if 'cpe23-item' in item.tag
-    ]
+    return [item.attrib['name'] for entry in tree.getroot() for item in entry if 'cpe23-item' in item.tag]

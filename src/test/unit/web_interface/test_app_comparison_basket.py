@@ -7,7 +7,6 @@ from web_interface.components.compare_routes import CompareRoutes, get_compariso
 
 
 class TestAppComparisonBasket(WebInterfaceTest):
-
     def test_get_comparison_uid_list_dict_session(self):
         with self.frontend.app.test_request_context():
             assert 'uids_for_comparison' not in session

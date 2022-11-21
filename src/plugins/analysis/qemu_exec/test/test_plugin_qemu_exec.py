@@ -11,7 +11,11 @@ from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
 from test.common_helper import (
-    TEST_FW, CommonDatabaseMock, create_test_firmware, get_config_for_testing, get_test_data_dir
+    TEST_FW,
+    CommonDatabaseMock,
+    create_test_firmware,
+    get_config_for_testing,
+    get_test_data_dir,
 )
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -92,7 +96,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
     PLUGIN_CLASS = AnalysisPlugin
 
     def setup_plugin(self):
-        return AnalysisPlugin(self, config=self.config, unpacker=MockUnpacker(), view_updater=CommonDatabaseMock())
+        return AnalysisPlugin(config=self.config, unpacker=MockUnpacker(), view_updater=CommonDatabaseMock())
 
     def test_has_relevant_type(self):
         assert self.analysis_plugin._has_relevant_type(None) is False
@@ -164,7 +168,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert len(result['files']) == 4
         assert any(result['files'][uid]['executable'] for uid in result['files'])
 
-    @pytest.mark.timeout(10)
+    @pytest.mark.timeout(15)
     def test_process_object__with_extracted_folder(self):
         self.analysis_plugin.OPTIONS = ['-h']
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR_2)
@@ -206,10 +210,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
             for uid in result['files']
             for arch_results in result['files'][uid]['results'].values()
         )
-        assert all(
-            result['files'][uid]['executable'] is False
-            for uid in result['files']
-        )
+        assert all(result['files'][uid]['executable'] is False for uid in result['files'])
 
     @pytest.mark.timeout(10)
     def test_process_object__no_files(self):
@@ -267,10 +268,7 @@ def _check_result(result):
 
 def test_get_docker_output__wrong_arch():
     result = qemu_exec.get_docker_output('i386', '/test_mips_static', TEST_DATA_DIR)
-    assert all(
-        b'Invalid ELF image' in b64decode(result_dict['stderr'])
-        for result_dict in result.values()
-    )
+    assert all(b'Invalid ELF image' in b64decode(result_dict['stderr']) for result_dict in result.values())
 
 
 def test_get_docker_output__timeout(execute_docker_error):
@@ -301,40 +299,51 @@ def test_process_qemu_job():
         assert results == {uid: {'path': 'test_path', 'results': {'test_arch': test_results}}}
 
         qemu_exec.process_qemu_job('test_path', 'test_arch_2', Path('test_root'), results, uid)
-        assert results == {uid: {'path': 'test_path', 'results': {'test_arch': test_results, 'test_arch_2': test_results}}}
+        assert results == {
+            uid: {'path': 'test_path', 'results': {'test_arch': test_results, 'test_arch_2': test_results}}
+        }
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ({}, []),
-    ({'foo': {EXECUTABLE: False}}, []),
-    ({'foo': {EXECUTABLE: False}, 'bar': {EXECUTABLE: True}}, [EXECUTABLE]),
-])
+@pytest.mark.parametrize(
+    'input_data, expected_output',
+    [
+        ({}, []),
+        ({'foo': {EXECUTABLE: False}}, []),
+        ({'foo': {EXECUTABLE: False}, 'bar': {EXECUTABLE: True}}, [EXECUTABLE]),
+    ],
+)
 def test_get_summary(input_data, expected_output):
     result = qemu_exec.AnalysisPlugin._get_summary(input_data)
     assert result == expected_output
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ({}, False),
-    ({'arch': {}}, False),
-    ({'arch': {'option': {}}}, False),
-    ({'arch': {'error': 'foo'}}, False),
-    ({'arch': {'option': {'error': 'foo'}}}, False),
-    ({'arch': {'option': {'stdout': 'foo', 'stderr': '', 'return_code': '0'}}}, True),
-])
+@pytest.mark.parametrize(
+    'input_data, expected_output',
+    [
+        ({}, False),
+        ({'arch': {}}, False),
+        ({'arch': {'option': {}}}, False),
+        ({'arch': {'error': 'foo'}}, False),
+        ({'arch': {'option': {'error': 'foo'}}}, False),
+        ({'arch': {'option': {'stdout': 'foo', 'stderr': '', 'return_code': '0'}}}, True),
+    ],
+)
 def test_valid_execution_in_results(input_data, expected_output):
     assert qemu_exec._valid_execution_in_results(input_data) == expected_output
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ({}, False),
-    (dict(return_code='0', stdout='', stderr=''), False),
-    (dict(return_code='1', stdout='', stderr=''), False),
-    (dict(return_code='0', stdout='something', stderr=''), True),
-    (dict(return_code='1', stdout='something', stderr=''), True),
-    (dict(return_code='0', stdout='something', stderr='error'), True),
-    (dict(return_code='1', stdout='something', stderr='error'), False),
-])
+@pytest.mark.parametrize(
+    'input_data, expected_output',
+    [
+        ({}, False),
+        (dict(return_code='0', stdout='', stderr=''), False),
+        (dict(return_code='1', stdout='', stderr=''), False),
+        (dict(return_code='0', stdout='something', stderr=''), True),
+        (dict(return_code='1', stdout='something', stderr=''), True),
+        (dict(return_code='0', stdout='something', stderr='error'), True),
+        (dict(return_code='1', stdout='something', stderr='error'), False),
+    ],
+)
 def test_output_without_error_exists(input_data, expected_output):
     assert qemu_exec._output_without_error_exists(input_data) == expected_output
 
@@ -352,54 +361,64 @@ def test_merge_similar_entries():
     assert any(all(option in k for option in ['option_1', 'option_2', 'option_5']) for k in test_dict)
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ({'parameter': {'std_out': 'foo Invalid ELF bar'}}, True),
-    ({'parameter': {'std_out': 'no errors'}}, False),
-])
+@pytest.mark.parametrize(
+    'input_data, expected_output',
+    [
+        ({'parameter': {'std_out': 'foo Invalid ELF bar'}}, True),
+        ({'parameter': {'std_out': 'no errors'}}, False),
+    ],
+)
 def test_result_contains_qemu_errors(input_data, expected_output):
     assert qemu_exec.result_contains_qemu_errors(input_data) == expected_output
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ('Unknown syscall 4001 qemu: Unsupported syscall: 4001\n', True),
-    ('foobar', False),
-    ('', False),
-])
+@pytest.mark.parametrize(
+    'input_data, expected_output',
+    [
+        ('Unknown syscall 4001 qemu: Unsupported syscall: 4001\n', True),
+        ('foobar', False),
+        ('', False),
+    ],
+)
 def test_contains_docker_error(input_data, expected_output):
     assert qemu_exec.contains_docker_error(input_data) == expected_output
 
 
 def test_replace_empty_strings():
-    test_input = {'-h': {'std_out': '', 'std_err': '', 'return_code': '0'},
-                  ' ': {'std_out': '', 'std_err': '', 'return_code': '0'}}
+    test_input = {
+        '-h': {'std_out': '', 'std_err': '', 'return_code': '0'},
+        ' ': {'std_out': '', 'std_err': '', 'return_code': '0'},
+    }
     qemu_exec.replace_empty_strings(test_input)
     assert ' ' not in test_input
     assert qemu_exec.EMPTY in test_input
     assert '-h' in test_input
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ({'parameter': {'output': 0}}, '0'),
-    ({'parameter': {'output': b64encode(b'').decode()}}, ''),
-    ({'parameter': {'output': b64encode(b'foobar').decode()}}, 'foobar'),
-    ({'parameter': {'output': 'no_b64'}}, 'decoding error: no_b64'),
-])
+@pytest.mark.parametrize(
+    'input_data, expected_output',
+    [
+        ({'parameter': {'output': 0}}, '0'),
+        ({'parameter': {'output': b64encode(b'').decode()}}, ''),
+        ({'parameter': {'output': b64encode(b'foobar').decode()}}, 'foobar'),
+        ({'parameter': {'output': 'no_b64'}}, 'decoding error: no_b64'),
+    ],
+)
 def test_decode_output_values(input_data, expected_output):
     results = qemu_exec.decode_output_values(input_data)
-    assert all(
-        isinstance(value, str)
-        for parameter_result in results.values()
-        for value in parameter_result.values()
-    )
+    assert all(isinstance(value, str) for parameter_result in results.values() for value in parameter_result.values())
     assert results['parameter']['output'] == expected_output
 
 
-@pytest.mark.parametrize('input_data', [
-    {},
-    {'strace': {}},
-    {'strace': {'error': 'foo'}},
-    {'strace': {'stdout': ''}},
-])
+@pytest.mark.parametrize(
+    'input_data',
+    [
+        {},
+        {'strace': {}},
+        {'strace': {'error': 'foo'}},
+        {'strace': {'stdout': ''}},
+    ],
+)
 def test_process_strace_output__no_strace(input_data):
     qemu_exec.process_strace_output(input_data)
     assert input_data['strace'] == {}
@@ -414,7 +433,6 @@ def test_process_strace_output():
 
 
 class TestQemuExecUnpacker(TestCase):
-
     def setUp(self):
         self.name_prefix = 'FACT_plugin_qemu'
         self.config = get_config_for_testing()

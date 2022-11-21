@@ -8,12 +8,14 @@ try:
 except ImportError:
     import sys
     from pathlib import Path
+
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
 
     import dt
     import elf
     import kconfig
     import metadata
+
     sys.path.pop()
 
 
@@ -21,6 +23,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     Generically detected target architecture for firmware images.
     '''
+
     FILE = __file__
     NAME = 'cpu_architecture'
     DESCRIPTION = 'identify CPU architecture'
@@ -39,10 +42,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'video',
     ]
 
-    def __init__(self, plugin_administrator, config=None):
+    def __init__(self, config=None):
         self.config = config
         self._fs_organizer = FSOrganizer(config)
-        super().__init__(plugin_administrator, config=config)
+        super().__init__(config=config)
 
     def process_object(self, file_object):
         arch_dict = construct_result(file_object, self._fs_organizer)
@@ -52,7 +55,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
 
-def construct_result(file_object, fs_organizer) -> Dict[str,  str]:
+def construct_result(file_object, fs_organizer) -> Dict[str, str]:
     '''
     Returns a dict where keys are the architecture and values are the means of
     detection

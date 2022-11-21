@@ -100,7 +100,7 @@ class ReferencedStringFinder:
         for data_reference in data_reference_list:
             data_address = data_reference.getToAddress()
             string = self.read_string_from_address(data_address)
-            if string and key_string[:self.MAX_LEN] not in string and string_is_printable(string):
+            if string and key_string[: self.MAX_LEN] not in string and string_is_printable(string):
                 result.append(string)
                 logging.info('\t{} -> {}'.format(data_reference, repr(string)))
         return result

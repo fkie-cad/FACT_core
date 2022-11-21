@@ -9,7 +9,6 @@ from storage.schema import FileObjectEntry
 
 
 class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
-
     def __init__(self, config, connection: Optional[DbConnection] = None, intercom=None):
         self.intercom = InterComFrontEndBinding(config=config) if intercom is None else intercom
         super().__init__(config, connection=connection or ReadWriteDeleteConnection(config))
@@ -62,9 +61,7 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         if any(root != root_uid for root in fo_entry.virtual_file_paths):
             # file is included in other firmwares -> only remove root_uid from virtual_file_paths
             fo_entry.virtual_file_paths = {
-                uid: path_list
-                for uid, path_list in fo_entry.virtual_file_paths.items()
-                if uid != root_uid
+                uid: path_list for uid, path_list in fo_entry.virtual_file_paths.items() if uid != root_uid
             }
             removed_fp += 1
         else:  # file is only included in this firmware -> delete file

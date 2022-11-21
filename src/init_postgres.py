@@ -36,8 +36,7 @@ def user_exists(user_name: str, host: str, port: str) -> bool:
 
 def create_admin_user(user_name: str, password: str, host: str, port: int):
     execute_psql_command(
-        f'CREATE USER {user_name} WITH PASSWORD \'{password}\' '
-        'LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;',
+        f'CREATE USER {user_name} WITH PASSWORD \'{password}\' ' 'LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;',
         host=host,
         port=port,
     )
