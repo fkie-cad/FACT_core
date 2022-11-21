@@ -90,7 +90,7 @@
                         <div class="list-group list-group-flush">
                             <div class="list-group-item list-group-item-action border-top p-0">
                                 <table class="internal-table table-sm" style="width: 100%;">
-                                    {% for path, uid_tuple_list in result['plugins'][plugin][feature].items() %}
+                                    {% for path, uid_tuple_list in result['plugins'][plugin][feature].items() | sort %}
                                         {% for (uid_1, uid_2) in uid_tuple_list %}
                                             <tr>
                                                 <td style="width: 50%;">
