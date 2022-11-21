@@ -60,9 +60,13 @@
                                 return node.id === '#' ?
                                     "/ajax_root/{{ firmware_uid|safe }}/{{ firmware_uid|safe }}" : "/compare/ajax_tree/{{ result["_id"] }}/{{ firmware_uid }}/" + node["data"]["uid"];
                               }
-                            }
+                            },
+                            "themes": {
+                              "name": "proton",
+                              "responsive": true,
+                            },
                           },
-                          "plugins" : [ "sort" ]
+                          "plugins" : [ "sort", "themes" ],
                         });
                 </script>
             </td>
