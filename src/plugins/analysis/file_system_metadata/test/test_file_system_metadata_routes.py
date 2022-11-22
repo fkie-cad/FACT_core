@@ -114,7 +114,7 @@ class TestFileSystemMetadataRoutes:
         app.config.from_object(__name__)
         app.config['TESTING'] = True
         app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x  # pylint: disable=no-member
-        self.plugin_routes = routes.PluginRoutes(app, configparser_cfg, db=DbMock, intercom=None)
+        self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None)
         self.test_client = app.test_client()
 
     def test_get_analysis_results_of_parent_fo(self):
