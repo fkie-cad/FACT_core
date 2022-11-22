@@ -120,7 +120,7 @@ def _db_interface():
 
 @pytest.fixture(scope='function')
 def db(_db_interface) -> DB:  # pylint: disable=invalid-name,redefined-outer-name
-    """Returns an object containing all database intefaces.
+    """Returns an object containing all database interfaces.
     The database is emptied after this fixture goes out of scope.
     """
     try:
