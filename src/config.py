@@ -71,7 +71,7 @@ class Unpack(BaseModel):
     threads: int
     whitelist: list
     max_depth: int
-    memory_limit: int = 1024
+    memory_limit: int = 2048
 
 
 class DefaultPlugins(BaseModel):
@@ -117,6 +117,12 @@ class Config(BaseModel):
 
 
 def _parse_dict(sections):
+    """
+    Parses the section of the config file given as a dictionary.
+    The following things are parsed:
+        * Entrys whose value is an empty string just are removed.
+        * Comma separeted lists are changed to actual lists.
+    """
     sections['unpack']['whitelist'] = parse_comma_separated_list(sections['unpack']['whitelist'])
     for plugin_set in sections['default-plugins']:
         sections['default-plugins'][plugin_set] = parse_comma_separated_list(sections['default-plugins'][plugin_set])
@@ -124,6 +130,13 @@ def _parse_dict(sections):
     # hyphens may not be contained in identifiers
     # plugin names may also not contain hyphens, so this is fine
     _replace_hyphens_with_underscores(sections)
+
+    # This must be done last since empty values e.g. in the default-plugins section might be interpreted otherwise if
+    # left empty.
+    for section_name, section in sections.items():
+        for entry, value in section.copy().items():
+            if value == '':
+                sections[section_name].pop(entry)
 
 
 def load(path=None):
