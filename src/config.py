@@ -5,6 +5,7 @@ from pathlib import Path
 from pydantic import BaseModel, Extra
 from werkzeug.local import LocalProxy
 
+# pylint: disable=invalid-name
 _cfg = None
 cfg: 'Config' = LocalProxy(lambda: _cfg)
 
@@ -127,6 +128,7 @@ def _parse_dict(sections):
 
 
 def load_config(path=None):
+    # pylint: disable=global-statement
     """Load the config file located at `path`.
     The file must be an ini file and is read into an `config.Config` instance.
     This instance can be accessed with `config.cfg` after calling this function.
@@ -136,7 +138,7 @@ def load_config(path=None):
         path = Path(__file__).parent / 'config/main.cfg'
 
     parser = ConfigParser()
-    with open(path) as f:
+    with open(path, encoding='utf8') as f:
         parser.read_file(f)
 
     parsed_sections = {key: dict(section) for key, section in parser.items() if key != configparser.DEFAULTSECT}
