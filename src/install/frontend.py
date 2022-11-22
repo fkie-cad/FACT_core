@@ -5,7 +5,6 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-import config
 from config import cfg
 from helperFunctions.install import (
     InstallationError,
@@ -16,8 +15,6 @@ from helperFunctions.install import (
     read_package_list_from_file,
     run_cmd_with_logging,
 )
-
-config.load()
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
