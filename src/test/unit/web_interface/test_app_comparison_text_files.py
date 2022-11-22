@@ -63,4 +63,4 @@ class TestAppComparisonTextFiles(WebInterfaceTest):
                     TEST_TEXT_FILE2.uid: 'file_2_root_uid',
                 }
                 test_session.modified = True
-            return self.test_client.get('/comparison/text_files').data
+            return self.test_client.get('/comparison/text_files', follow_redirects=True).data

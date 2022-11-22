@@ -60,9 +60,3 @@ def test_render_analysis_tags_fix(frontend):
         output = render_analysis_tags(tags).replace('\n', '').replace('    ', ' ')
     assert 'badge-primary' in output
     assert '> wow<' in output
-
-
-def test_render_analysis_tags_bad_type():
-    tags = {'such plugin': {42: {'color': 'very color', 'value': 'wow'}}}
-    with pytest.raises(AttributeError):
-        render_analysis_tags(tags)

@@ -1,3 +1,4 @@
+import json
 import sys
 from collections import namedtuple
 from contextlib import suppress
@@ -29,405 +30,7 @@ EXTRACT_CPE_XML = 'test_resources/test_cpe_extract.xml'
 UPDATE_CPE_XML = 'test_resources/test_cpe_update.xml'
 EXTRACT_CVE_JSON = 'test_resources/test_cve_extract.json'
 UPDATE_CVE_JSON = 'test_resources/nvdcve_test_cve_update.json'
-
-EXPECTED_CVE_OUTPUT = [
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_7:-:*:*:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_7',
-        'N/A',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_7:-:sp1:x64:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_7',
-        'N/A',
-        'sp1',
-        'x64',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_7:-:sp1:x86:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_7',
-        'N/A',
-        'sp1',
-        'x86',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_server_2003:*:sp2:*:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_server_2003',
-        'ANY',
-        'sp2',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_server_2008:*:sp2:x32:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_server_2008',
-        'ANY',
-        'sp2',
-        'x32',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_server_2008:*:sp2:x64:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_server_2008',
-        'ANY',
-        'sp2',
-        'x64',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_server_2008:-:sp2:itanium:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_server_2008',
-        'N/A',
-        'sp2',
-        'itanium',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_server_2008:r2:*:itanium:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_server_2008',
-        'r2',
-        'ANY',
-        'itanium',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_server_2008:r2:*:x64:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_server_2008',
-        'r2',
-        'ANY',
-        'x64',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_server_2008:r2:sp1:itanium:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_server_2008',
-        'r2',
-        'sp1',
-        'itanium',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_server_2008:r2:sp1:x64:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_server_2008',
-        'r2',
-        'sp1',
-        'x64',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_vista',
-        'ANY',
-        'sp2',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_vista',
-        'ANY',
-        'sp2',
-        'x64',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2012-0001',
-        2012,
-        'cpe:2.3:o:microsoft:windows_xp:*:sp2:professional_x64:*:*:*:*:*',
-        '9.3',
-        'N/A',
-        'o',
-        'microsoft',
-        'windows_xp',
-        'ANY',
-        'sp2',
-        'professional_x64',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2018-0010',
-        2018,
-        'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*',
-        '4.3',
-        'N/A',
-        'a',
-        'microsoft',
-        'ie',
-        '6',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2018-0010',
-        2018,
-        'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*',
-        '4.3',
-        'N/A',
-        'a',
-        'microsoft',
-        'ie',
-        '7',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2018-0010',
-        2018,
-        'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*',
-        '4.3',
-        'N/A',
-        'a',
-        'microsoft',
-        'ie',
-        '8',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-    (
-        'CVE-2018-0010',
-        2018,
-        'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*',
-        '4.3',
-        'N/A',
-        'a',
-        'microsoft',
-        'ie',
-        '9',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        'ANY',
-        '',
-        '',
-        '',
-        '',
-    ),
-]
+EXPECTED_CVE_OUTPUT = json.loads((Path(PATH_TO_TEST) / 'test_resources/expected_cve_output.json').read_text())
 
 
 EXTRACT_CPE_OUTPUT = [
@@ -1047,7 +650,7 @@ CPE_TABLE = [
 ]
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(autouse=True)
 def setup():
     with suppress(OSError):
         remove('cve_cpe.db')
@@ -1107,30 +710,28 @@ def test_exists(monkeypatch):
 
 def test_extract_relevant_feeds():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
-    assert [('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)] == sorted(
-        sr.extract_relevant_feeds(from_table='new', where_table='outdated')
-    )
+    assert sorted(sr.extract_relevant_feeds(from_table='new', where_table='outdated')) == [
+        ('CVE-2018-0002', 2018),
+        ('CVE-2018-0003', 2018),
+    ]
 
 
 def test_delete_outdated_feeds():
+    sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
     sr.delete_outdated_feeds(delete_outdated_from='outdated', use_for_selection='new')
     assert sr.DATABASE.fetch_one(query=QUERIES['select_all'].format('outdated'))[0] == 'CVE-2018-0001'
 
 
-def test_create():
+def test_create_insert_delete():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
     sr.create(query='test_create', table_name='test')
     assert sr.DATABASE.fetch_one(query=QUERIES['exist'].format('test'))[0] == 'test'
 
-
-def test_insert_into():
     sr.insert_into(query='test_insert', table_name='test', input_data=[(1,), (2,)])
-    assert [(1,), (2,)] == sorted(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('test')))
+    assert sorted(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('test'))) == [(1,), (2,)]
 
-
-def test_drop_table():
     sr.drop_table('test')
-    assert [] == list(sr.DATABASE.fetch_multiple(query=QUERIES['exist'].format('test')))
+    assert list(sr.DATABASE.fetch_multiple(query=QUERIES['exist'].format('test'))) == []
 
 
 def test_update_cpe(monkeypatch):
@@ -1358,7 +959,7 @@ def test_update_cve_summaries():
 
 def test_get_years_from_database():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
-    assert sr.get_years_from_database() == [2018]
+    assert sorted(sr.get_years_from_database()) == [2012, 2018]
 
 
 def test_import_cve(monkeypatch):
@@ -1368,7 +969,7 @@ def test_import_cve(monkeypatch):
         sr.import_cve(cve_extract_path='', years=YEARS)
         actual_cve_output = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('cve_table')))
         actual_summary_output = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('summary_table')))
-        assert sorted(actual_cve_output) == sorted(EXPECTED_CVE_OUTPUT)
+        assert sorted(actual_cve_output) == [tuple(item) for item in EXPECTED_CVE_OUTPUT]
         assert sorted(actual_summary_output) == sorted(EXPECTED_SUM_OUTPUT)
 
 
@@ -1381,7 +982,7 @@ def test_import_cve(monkeypatch):
     ],
 )
 def test_set_repository(monkeypatch, path, choice, years, expected):
-    output = list()
+    output = []
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'import_cpe', lambda *_, **__: output.append('cpe'))
         monkey.setattr(sr, 'import_cve', lambda *_, **__: output.append('cve'))
@@ -1398,7 +999,7 @@ def test_set_repository(monkeypatch, path, choice, years, expected):
     ],
 )
 def test_update_repository(monkeypatch, path, choice, expected):
-    output = list()
+    output = []
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'update_cpe', lambda *_, **__: output.append('cpe'))
         monkey.setattr(sr, 'update_cve_repository', lambda *_, **__: output.append('cve'))
