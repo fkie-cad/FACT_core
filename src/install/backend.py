@@ -9,7 +9,6 @@ from subprocess import PIPE, STDOUT
 
 import requests
 
-import config
 from compile_yara_signatures import main as compile_signatures
 from config import cfg
 from helperFunctions.fileSystem import get_src_dir
@@ -21,8 +20,6 @@ from helperFunctions.install import (
     install_pip_packages,
     read_package_list_from_file,
 )
-
-config.load()
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent
