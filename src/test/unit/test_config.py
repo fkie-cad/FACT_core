@@ -2,7 +2,9 @@ import pydantic
 import pytest
 
 # We explicitly don't want the patch_cfg fixture to be able to patch this function
-from config import cfg, configparser_cfg, load, parse_comma_separated_list
+# This is why we import it here
+from config import load
+from config import cfg, configparser_cfg, parse_comma_separated_list
 from test.common_helper import get_test_data_dir
 
 
