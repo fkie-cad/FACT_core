@@ -133,7 +133,7 @@ def patch_cfg(cfg_tuple):
     # Disallow code to load the actual, non-testing config
     # This only works if `load` was not imported by `from config import load`.
     # See doc comment of `load`.
-    mpatch.setattr('config.load', lambda _=None: logging.warn('Code tried to call `config.load`. Ignoring.'))
+    mpatch.setattr('config.load', lambda _=None: logging.warning('Code tried to call `config.load`. Ignoring.'))
     yield
 
     mpatch.undo()
