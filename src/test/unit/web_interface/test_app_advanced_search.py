@@ -42,7 +42,7 @@ class TestAppAdvancedSearch(WebInterfaceTest):
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)
 
-    def test_advanced_search(self, cfg_tuple):
+    def test_advanced_search(self):
         response = self._do_advanced_search({'advanced_search': '{}'})
         assert TEST_FW_2.uid in response
         assert TEST_TEXT_FILE.uid not in response
