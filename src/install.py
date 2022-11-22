@@ -26,6 +26,7 @@ from pathlib import Path
 from subprocess import PIPE, STDOUT
 
 try:
+    import config
     from helperFunctions.install import OperateInDirectory, check_distribution
     from install.backend import _install_docker_images as backend_install_docker_images
     from install.backend import install_plugin_docker_images as backend_install_plugin_docker_images
@@ -160,6 +161,7 @@ def install_statistic_cronjob():
 
 
 def install():
+    config.load()
     check_python_version()
     args = _setup_argparser()
     _setup_logging(args.log_level, args.log_file, debug_flag=args.debug)
