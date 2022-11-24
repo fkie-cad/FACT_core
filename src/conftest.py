@@ -70,7 +70,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'nginx': 'false',
             'radare2-host': 'localhost',
             'ssdeep-ignore': '1',
-            'throw-exceptions': 'false',
+            'throw-exceptions': 'true',  # Always throw exceptions to avoid miraculous timeouts in test cases
             'unpack-threshold': '0.8',
             'unpack_throttle_limit': '50',
         },
