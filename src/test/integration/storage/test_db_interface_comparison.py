@@ -15,16 +15,16 @@ def test_comparison_exists(comparison_db, backend_db):
     assert comparison_db.comparison_exists(comp_id) is True
 
 
-def test_add_and_get_comparison_result(comparison_db):
+def test_add_and_get_comparison_result(comparison_db, backend_db):
     fw_one, _, _, compare_id = _add_comparison(comparison_db, backend_db)
     retrieved = comparison_db.get_comparison_result(compare_id)
     assert retrieved['general']['virtual_file_path'][fw_one.uid] == 'dev_one_name', 'content of retrieval not correct'
 
 
-def test_get_not_existing_result(db, comparison_db):
+def test_get_not_existing_result(comparison_db, backend_db):
     fw_one, fw_two, _, compare_id = _create_comparison()
-    db.backend.add_object(fw_one)
-    db.backend.add_object(fw_two)
+    backend_db.add_object(fw_one)
+    backend_db.add_object(fw_two)
     result = comparison_db.get_comparison_result(compare_id)
     assert result is None
 
@@ -65,7 +65,7 @@ def test_delete_fw_cascades_to_comp(backend_db, comparison_db, admin_db):
         assert session.get(ComparisonEntry, comp_id) is None, 'deletion should be cascaded if one FW is deleted'
 
 
-def test_get_latest_removed_firmware(comparison_db):
+def test_get_latest_removed_firmware(comparison_db, backend_db, admin_db):
     fw_one, fw_two, compare_dict, _ = _create_comparison()
     backend_db.add_object(fw_one)
     backend_db.add_object(fw_two)
@@ -74,7 +74,7 @@ def test_get_latest_removed_firmware(comparison_db):
     result = comparison_db.page_comparison_results(limit=10)
     assert result != [], 'A compare result should be available'
 
-    db.admin.delete_firmware(fw_two.uid)
+    admin_db.delete_firmware(fw_two.uid)
 
     result = comparison_db.page_comparison_results(limit=10)
 
@@ -96,12 +96,12 @@ def test_get_total_number_of_results(comparison_db, backend_db):
         (None, []),
     ],
 )
-def test_get_exclusive_files(comparison_db, root_uid, expected_result):
+def test_get_exclusive_files(comparison_db, backend_db, root_uid, expected_result):
     fw_one, fw_two, compare_dict, comp_id = _create_comparison()
     compare_dict['plugins'] = {'File_Coverage': {'exclusive_files': {'the_root_uid': ['uid1', 'uid2']}}}
 
-    db.backend.add_object(fw_one)
-    db.backend.add_object(fw_two)
+    backend_db.add_object(fw_one)
+    backend_db.add_object(fw_two)
     comparison_db.add_comparison_result(compare_dict)
     exclusive_files = comparison_db.get_exclusive_files(comp_id, root_uid)
     assert exclusive_files == expected_result
