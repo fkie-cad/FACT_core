@@ -14,6 +14,9 @@ def test_load():
 
     assert cfg is not None, 'cfg global was not set'
     assert configparser_cfg is not None, 'configparser_cfg global was not set'
+    assert cfg.data_storage.temp_dir_path == '/tmp', 'default value did not get set'
+    assert getattr(cfg, 'users_and_passwords')['mime_whitelist'] == ['foo', 'bar']
+    assert getattr(cfg, 'users_and_passwords')['mime_blacklist'] == ['foobar']
 
 
 def test_load_missing_entrys():
