@@ -36,7 +36,7 @@ class FactDb(FactBase):
     COMPONENT = 'database'
 
     def __init__(self):
-        _, _ = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
+        _ = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
         self._check_postgres_connection()
         super().__init__()
 
