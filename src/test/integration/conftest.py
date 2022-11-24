@@ -3,6 +3,12 @@ from typing import List, NamedTuple
 import pytest
 from pydantic import BaseModel, Extra
 
+from scheduler.analysis import AnalysisScheduler
+from scheduler.unpacking_scheduler import UnpackingScheduler
+from scheduler.comparison_scheduler import ComparisonScheduler
+from multiprocessing import Queue, Event
+
+from objects.firmware import Firmware
 import config
 from storage.db_connection import ReadOnlyConnection, ReadWriteConnection
 from storage.db_interface_admin import AdminDbInterface
@@ -186,3 +192,77 @@ def comparison_db(database_interfaces):
 def stats_update_db(database_interfaces):
     """Convinience fixture. Equivalent to ``database_interfaces.stats_update``."""
     yield database_interfaces.stats_update
+
+
+# TODO have a look at create_test_firmware of test.common_helper
+# Note that there is a difference between Firwmare and Fileobject
+# What about using the underlying FileObject of a Firmware
+@pytest.fixture
+def insert_test_firmware(backend_db):
+    """Returns a factory of firmwares.
+    Firmwares creates by this factory are automatically inserted in the backend_db
+    """
+    # Same kwargs as Fimrware constructor
+    # Does it even make sense to set these things here?
+    # Not if we have to put extra logic here.
+    # If we just give all kwargs to the firmware constructor this is fine.
+    # Before this we do some sanitation
+    #
+    # As an alternative to accepting this much kwargs we could also just let the defaults be and let the user modify
+    def _insert_test_firmware(**kwargs):
+        # TODO
+        # assert that the binary exists
+        fw = Firmware()
+        backend_db.insert_object(fw)
+        return fw
+
+    yield _insert_test_firmware
+
+
+def make_analysis_pipeline(unpacking_scheduler: UnpackingScheduler, analysis_scheduler: AnalysisScheduler):
+    """Interconnects analysis_scheduler, unpacking_scheduler and comparison_scheduler"""
+    # TODO warn when overwriting defaults here
+    unpacking_scheduler.post_unpack = analysis_scheduler.start_analysis_of_object
+
+# TODO Documentation
+# The idea is that every callback that is in the pipeline just puts its arguments in a queue
+# This way the tests can ensure that everything went right
+# Problem: You can't do len() on a queue.
+# Tests need to figure out if all of their inputs were processed
+#     Do they really?! Why not put a firmware in and only have a single one
+
+# TODO what about the pre_* callbacks
+# TODO what about the default post_* callbacks
+@pytest.fixture
+def analysis_scheduler() -> AnalysisScheduler:
+    _analysis_scheduler = AnalysisScheduler()
+
+    # test_regression_virtual_file_path.py
+    pre_analysis_queue = Queue()
+    _analysis_scheduler.pre_analysis = lambda fw: pre_analysis_queue.put(fw)
+
+    # test_unpack_and_analyse.py
+    post_analysis_queue = Queue()
+    _analysis_scheduler.post_analysis = lambda *args: post_analysis_queue.put(args)
+
+    yield _analysis_scheduler
+
+
+@pytest.fixture
+def unpacking_scheduler() -> UnpackingScheduler:
+    _unpacking_scheduler = UnpackingScheduler()
+
+    # test_unpack_only.py
+    post_unpack_queue = Queue()
+    _unpacking_scheduler.post_unpack = lambda fw: post_unpack_queue.put(fw)
+
+    yield _unpacking_scheduler
+
+
+def comparison_scheduler() -> ComparisonScheduler:
+    _comparison_scheduler = ComparisonScheduler()
+
+    # test_unpack_analyse_and_compare.py
+    comparison_callback_event = Event()
+    _comparison_scheduler.callback = lambda: comparison_callback_event.set()
+    yield _comparison_scheduler
