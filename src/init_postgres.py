@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import logging
 import os
 from shlex import split
@@ -42,7 +44,7 @@ def create_admin_user(user_name: str, password: str, host: str, port: int):
     )
 
 
-def main(command_line_options=None, config_path: str = None, skip_user_creation: bool = False):
+def main(command_line_options=None, config_path: str | None = None, skip_user_creation: bool = False):
     if command_line_options and command_line_options[-1] == '-t':
         return 0  # testing mode
 
