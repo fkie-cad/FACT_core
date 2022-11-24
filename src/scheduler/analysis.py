@@ -8,7 +8,7 @@ from typing import Callable, List, Optional, Tuple
 from packaging.version import parse as parse_version
 
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg, parse_comma_separated_list
+from config import cfg
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import import_plugins
@@ -385,9 +385,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_config(self, analysis_plugin: str) -> Tuple[List, List]:
-
-        blacklist = parse_comma_separated_list(getattr(cfg, analysis_plugin, {}).get('mime_blacklist', ''))
-        whitelist = parse_comma_separated_list(getattr(cfg, analysis_plugin, {}).get('mime_whitelist', ''))
+        blacklist = getattr(cfg, analysis_plugin, {}).get('mime_blacklist')
+        whitelist = getattr(cfg, analysis_plugin, {}).get('mime_whitelist')
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> Tuple[List, List]:

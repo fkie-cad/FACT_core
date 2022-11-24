@@ -123,13 +123,21 @@ def _parse_dict(sections):
         * Entrys whose value is an empty string just are removed.
         * Comma separeted lists are changed to actual lists.
     """
-    sections['unpack']['whitelist'] = parse_comma_separated_list(sections['unpack']['whitelist'])
-    for plugin_set in sections['default-plugins']:
-        sections['default-plugins'][plugin_set] = parse_comma_separated_list(sections['default-plugins'][plugin_set])
-
     # hyphens may not be contained in identifiers
     # plugin names may also not contain hyphens, so this is fine
     _replace_hyphens_with_underscores(sections)
+
+    sections['unpack']['whitelist'] = parse_comma_separated_list(sections['unpack']['whitelist'])
+    for plugin_set in sections['default_plugins']:
+        sections['default_plugins'][plugin_set] = parse_comma_separated_list(sections['default_plugins'][plugin_set])
+
+    for section_name, section in sections.items():
+        # The section name is not plugin configuration.
+        # We can't use the pydantic model here since plugin sections are all extra sections.
+        if section_name in Config.__fields__:
+            continue
+        section['mime_whitelist'] = parse_comma_separated_list(section.get('mime_whitelist', ''))
+        section['mime_blacklist'] = parse_comma_separated_list(section.get('mime_blacklist', ''))
 
     # This must be done last since empty values e.g. in the default-plugins section might be interpreted otherwise if
     # left empty.
