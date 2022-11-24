@@ -45,8 +45,6 @@ def test_start_script_help_and_version(script, expected_str):
     gc.collect()
 
 
-# For some reason the update_statistic script needs the database tables to be existant
-# FIXME is this maybe an integration test rather than an acceptance test?
 @pytest.mark.parametrize('script', [update_statistic, init_postgres])
 def test_start_scripts_with_main(script, create_tables):
     assert script.main([script.__name__, '-t']) == 0, 'script did not run successfully'
