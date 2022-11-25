@@ -33,8 +33,9 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/line_numbering.css') }}" />
 
     <script>
-        const uid = "{{ uid|safe }}";
+        const uid = "{{ uid | safe }}";
     </script>
+    <script src="{{ url_for('static', filename='js/file_tree.js') }}"></script>
 {% endblock %}
 
 
@@ -220,9 +221,7 @@
                     <tr>
                         <td colspan="2">
                             <div id="fileTreeAjax"></div>
-                            <script> 
-                            const root_uid = "{{ root_uid | safe }}";
-                            </script>
+                            <script>const root_uid = "{{ root_uid | safe }}";</script>
                             <script src="{{ url_for('static', filename='js/show_analysis_fileTreeAjax.js') }}"></script>
                         </td>
                     </tr>
