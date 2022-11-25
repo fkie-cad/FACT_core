@@ -1,0 +1,40 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+<table class="table table-bordered">
+    <colgroup>
+        <col width="50">
+        <col width="150">
+        <col width="600">
+    </colgroup>
+    <tbody class="table-analysis">
+        {% for target in firmware.processed_analysis[selected_analysis]['full']['ipcCalls'].keys()|sort %}
+            <tr>
+                {% set row_count = 1 + firmware.processed_analysis[selected_analysis]['full']['ipcCalls'][target]|length %}
+                <td class="table-head-light"><b>Target</b></td>
+                <td class="table-head-light"><b>Type</b></td>
+                <td class="table-head-light"><b>Arguments</b></td>
+            </tr>
+            <tr>
+                <td rowspan={{ row_count }}>{{ target }}</td>
+            </tr>
+            {% for ipcCall in firmware.processed_analysis[selected_analysis]['full']['ipcCalls'][target] %}
+                <tr>
+                    <td>{{ ipcCall['type'] }}</td>
+                    <td>
+                        <ul>
+                            {% for arg in ipcCall['arguments'] %}
+                                {% if arg|string|length > 0 %}
+                                    <li>{{ arg }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
