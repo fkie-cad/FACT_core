@@ -4,7 +4,6 @@ import sys
 import argparse
 from pathlib import Path
 import tempfile
-import json
 
 def parseArguments() -> argparse.Namespace():
     parser = argparse.ArgumentParser()

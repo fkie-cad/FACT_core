@@ -5,7 +5,7 @@ import os
 import sys
 from ghidra.util.task import ConsoleTaskMonitor
 from ipcAnalysis.helperFunctions import getFunctionCallSitePCodeOps, getReferents, flatten, stringIsPrintable
-from ipcAnalysis.analyze import analyzeFunctionCallSite 
+from ipcAnalysis.analyze import analyzeFunctionCallSite
 from resolveFormatStrings.formatStrings import getKeyStrings, getFormatStringVersion, getFormatSpecifierIndices, getFormatTypes
 
 class GhidraAnalysis:
@@ -16,7 +16,7 @@ class GhidraAnalysis:
         self.hfunctions = {}
         self.currentProgram = currentProgram
         self.monitor = ConsoleTaskMonitor()
-        self.getFunctionAt = getFunctionAt 
+        self.getFunctionAt = getFunctionAt
         self.getFunctionContaining = getFunctionContaining
         self.getInstructionAt = getInstructionAt
         self.getReferencesTo = getReferencesTo
@@ -43,7 +43,7 @@ class GhidraAnalysis:
 
             # named pipes
             "mkfifo",   # int mkfifo(const char *pathname, mode_t mode);
-            "mknod",    # int mknod(const char *pathname, mode_t mode, dev_t dev); 
+            "mknod",    # int mknod(const char *pathname, mode_t mode, dev_t dev);
 
             # message queues
             "ftok",     # key_t ftok(const char *pathname, int proj_id);
@@ -57,7 +57,7 @@ class GhidraAnalysis:
             "memcpy",   # void *memcpy(void *dest, const void *src, size_t n);
             "strcpy",   # char *strcpy(char *dest, const char *src);
             "strncpy",  # char *strncpy(char *dest, const char *src, size_t n);
-            "strlcpy",  # size_t strlcpy(char *dst, const char *src, size_t size); 
+            "strlcpy",  # size_t strlcpy(char *dst, const char *src, size_t size);
             "asprintf", # int  asprintf(char **strp, const char *fmt, ...);
             "vasprintf", # int vasprintf(char **strp, const char *fmt, va_list ap);
         ]
@@ -78,7 +78,8 @@ def openflags2symbols(openflags):
     :param openflags: int
     :return: str
     """
-    symbols = ["O_RDONLY", "O_WRONLY", "O_RDWR", "O_CREAT", "O_EXCL", "O_NOCTTY", "O_TRUNC", "O_APPEND", "O_NONBLOCK", "O_DSYNC", "O_ASYNC", "O_DIRECT", "O_DIRECTORY", "O_NOFOLLOW", "O_NOATIME", "O_CLOEXEC", "O_SYNC", "O_PATH", "O_TMPFILE"]
+    symbols = ["O_RDONLY", "O_WRONLY", "O_RDWR", "O_CREAT", "O_EXCL", "O_NOCTTY", "O_TRUNC", "O_APPEND", "O_NONBLOCK",
+    "O_DSYNC", "O_ASYNC", "O_DIRECT", "O_DIRECTORY", "O_NOFOLLOW", "O_NOATIME", "O_CLOEXEC", "O_SYNC", "O_PATH", "O_TMPFILE"]
     flags = [0, 1, 2, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536, 131072, 262144, 524288, 1052672, 2097152, 4259840]
     bits = openflags
     openSymbols = ""
@@ -110,7 +111,7 @@ def forEachData(data, func):
     for val in data:
         if isinstance(val, list) and len(val) == 0:
             continue
-        if val != None and val not in new_data:
+        if val is not None and val not in new_data:
             new_data.append(val)
     multiData = map(func, new_data)
     if len(multiData) == 1:
@@ -169,7 +170,7 @@ def parseOpenMode(data):
     """
     if isinstance(data, list):
         return forEachData(data, parseOpenMode)
-    if type(data) in [int, long]:
+    if isinstance(data, (int, long)):
         return oct(data)
     return data
 
@@ -204,7 +205,7 @@ def writeToFile(outputFile, result, resultPath='.'):
 
     :param outputFile: dict
     :param result: str
-    :param resultPath: unicode 
+    :param resultPath: unicode
     :return: None
     """
     print("\nWriting {}".format(resultPath + '/' + outputFile))
@@ -225,7 +226,7 @@ def isCorrect(argValue):
             result = result and isCorrect(arg)
         return result
     else:
-        if argValue == None or type(argValue) in [int, long]:
+        if argValue is None or isinstance(argValue, (int, long)):
             return False
         else:
             return True
@@ -234,13 +235,13 @@ def resolveVersionFormatString(ghidraAnalysis, keyStringList):
     """
     :param ghidraAnalysis: instance of GhidraAnalysis
     :param keyStringList: list
-    :return: list 
+    :return: list
     """
     # Find relevant format string CALL operations
     callArgs = {}
     resultList = []
     for keyString in keyStringList:
-        result = [] 
+        result = []
         calledFormatStrings = getFormatStringVersion(ghidraAnalysis, keyString)
         for function, calls in calledFormatStrings.items():
             sources = getFunctionCallSitePCodeOps(ghidraAnalysis, function, ghidraAnalysis.sourceFunctionNames)
@@ -250,7 +251,6 @@ def resolveVersionFormatString(ghidraAnalysis, keyStringList):
                     argValues = callArgs[call]
                 else:
                     callSiteAddress = call.getSeqnum().getTarget()
-                    targetFunctionName = getFunctionContaining(call.getInput(0).getAddress()).getName()
                     args = call.getInputs()[1:]
                     referents = getReferents(ghidraAnalysis, function, callSiteAddress)
                     relevantSources = [s for s in sources if s.getSeqnum().getTarget() in referents]
@@ -279,7 +279,7 @@ def resolveVersionFormatString(ghidraAnalysis, keyStringList):
                         argument = [argument]
                     argument = flatten(argument)
                     for arg in argument:
-                        if type(arg) == formatTypes[i] and stringIsPrintable(arg):
+                        if isinstance(arg, formatTypes[i]) and stringIsPrintable(arg):
                             result.append(arg)
         resultList.extend(result)
     resultList = sorted(set(resultList))
@@ -308,7 +308,7 @@ def main():
         resultList = resolveVersionFormatString(ghidraAnalysis, keyStringList)
         writeToFile("ghidra_output.json", resultList, resultPath)
         return 0
-    
+ 
     # IPC Analysis
     print("\n###########################################################")
     print("Analyzing: {}".format(currentProgram.getExecutablePath()))
@@ -339,7 +339,7 @@ def main():
                 # Get the function where the current reference occurs
                 callingFunction = getFunctionContaining(sinkRef.getFromAddress())
                 # Only save unique functions which are not thunks
-                if callingFunction and not callingFunction in uniqueFunctions and not callingFunction.isThunk():
+                if callingFunction and callingFunction not in uniqueFunctions and not callingFunction.isThunk():
                     uniqueFunctions.append(callingFunction)
     # Step 3. Analyze every sink CALL in uniqueFunctions
     # Create dict for JSON object

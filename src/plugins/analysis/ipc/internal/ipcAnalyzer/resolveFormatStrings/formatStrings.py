@@ -2,13 +2,11 @@ import json
 import re
 import logging
 from ghidra.program.model.pcode import PcodeOp
-from ipcAnalysis.helperFunctions import getFunctionCallSitePCodeOps, getReferents
-from ipcAnalysis.analyze import analyzeFunctionCallSite
 from ipcAnalysis.decompile import decompileFunction
 
 def getKeyStrings(path):
     """
-    Tries to open the key_file for the software_component plugin 
+    Tries to open the key_file for the software_component plugin
 
     :path: str
     :return: list
@@ -27,7 +25,7 @@ def getFormatStringVersion(ghidraAnalysis, keyString):
     Gets all relevant format string CALL operations
 
     :param ghidraAnalysis: instance of GhidraAnalysis
-    :param keyString: str 
+    :param keyString: str
     :return: dict
     """
     calledFormatStrings = findOtherStringsRelatingTo(ghidraAnalysis, keyString)
@@ -45,7 +43,7 @@ def findOtherStringsRelatingTo(ghidraAnalysis, keyString):
     address = ghidraAnalysis.find(keyString)
     if address is None:
         logging.error("key string address not found")
-        return result 
+        return result
     logging.info("found address of key string: {}".format(address))
     referenceList = ghidraAnalysis.getReferencesTo(address)
     if referenceList is None:
@@ -58,7 +56,7 @@ def findOtherStringsRelatingTo(ghidraAnalysis, keyString):
         sourceAddr = reference.getFromAddress()
         function = ghidraAnalysis.getFunctionBefore(sourceAddr)
         logging.info("\tin function: {}".format(function))
-        if not function in result.keys():
+        if function not in result.keys():
             result[function] = []
         basicBlock = findBasicBlockContaining(ghidraAnalysis, function, sourceAddr)
         if not basicBlock:
@@ -68,7 +66,7 @@ def findOtherStringsRelatingTo(ghidraAnalysis, keyString):
             logging.info("skipping duplicate basic block")
             continue
         else:
-            basicBlockList.append(basicBlock) 
+            basicBlockList.append(basicBlock)
             formatStringFunctionCalls = getFormatStringFunctionCalls(ghidraAnalysis, basicBlock)
             result[function].extend(formatStringFunctionCalls )
     return result
@@ -76,7 +74,7 @@ def findOtherStringsRelatingTo(ghidraAnalysis, keyString):
 def findBasicBlockContaining(ghidraAnalysis, function, sourceAddr):
     """
     :param ghidraAnalysis: instance of GhidraAnalysis
-    :param function: ghidra.program.database.function.FunctionDB 
+    :param function: ghidra.program.database.function.FunctionDB
     :param sourceAddr: ghidra.program.model.address.GenericAddress
 
     :return: ghidra.program.model.pcode.PcodeBlockBasic / None
@@ -115,12 +113,12 @@ def getFormatSpecifierIndices(keyString, fullString):
     :param fullString: str
     :return: list
     """
-    keyIndicesObj = re.finditer(pattern='%\w', string=keyString)
+    keyIndicesObj = re.finditer(pattern='%\\w', string=keyString)
     keyIndices = [index.start() for index in keyIndicesObj]
     if keyIndices:
         offset = fullString.index(keyString)
         keyIndices = [index + offset for index in keyIndices]
-        fullIndicesObj = re.finditer(pattern='%\w', string=fullString)
+        fullIndicesObj = re.finditer(pattern='%\\w', string=fullString)
         fullIndices = [index.start() for index in fullIndicesObj]
         relevantIndices = [fullIndices.index(x) for x in keyIndices]
         return relevantIndices
@@ -134,7 +132,7 @@ def getFormatTypes(keyString):
     """
     result = []
     for formatSpecifier in re.findall(r'%[a-z]', keyString):
-        # Ghidra only has long 
+        # Ghidra only has long
         if formatSpecifier in ['%d', '%hi', '%hu', '%i', '%l', '%ld', '%li', '%lu', '%lli', '%lld', '%llu', '%u']:
             result.append(long)
         elif formatSpecifier in ['%s']:

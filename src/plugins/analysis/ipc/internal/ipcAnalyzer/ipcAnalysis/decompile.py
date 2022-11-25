@@ -1,5 +1,4 @@
 from ghidra.app.decompiler import DecompInterface, DecompileOptions
-import sys
 
 def setUpDecompiler(currentProgram):
     """

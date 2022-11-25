@@ -1,5 +1,4 @@
 import json
-import logging
 import tempfile
 from pathlib import Path
 
@@ -21,7 +20,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'Inter-Process Communication Analysis'# a short description of the plugin
     VERSION = '0.1'  # the version of this plugin (should be updated each time the plugin is changed)
     FILE = __file__  # used internally
-    
+
     # optional plugin attributes:
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     DEPENDENCIES = ['file_type']  # list of plugin names that this plugin relies on (default: `[]`)
@@ -36,7 +35,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         output = folder / (file_object.file_name + '.json')
         with output.open(mode='w') as f:
             json.dump({}, f)
-        result = run_docker_container(
+        run_docker_container(
             DOCKER_IMAGE,
             combine_stderr_stdout=True,
             timeout=self.TIMEOUT,
@@ -52,7 +51,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         except FileNotFoundError:
             data = {'ipcCalls': []}
         tmpDir.cleanup()
-        return data 
+        return data
 
     def _do_full_analysis(self, file_object: FileObject) -> FileObject:
         output = self._run_ipc_analyzer_in_docker(file_object)

@@ -17,9 +17,8 @@ def analyzeFunctionCallSite(ghidraAnalysis, func, callPCOp, paramIndex, sources,
     :return value: long
     :return: None
     """
-    calledFunc = callPCOp.getInput(0)
     varnode = callPCOp.getInput(paramIndex)
-    if varnode == None:
+    if varnode is None:
         print("Skipping NULL parameter")
         return
     if varnode.isConstant():
@@ -40,14 +39,14 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
     :return: long
     :return: None
     """
-    if varnode == None:
+    if varnode is None:
         return
     if isinstance(varnode, list):
         multi = []
         for v in varnode:
             multi.append(processOneVarnode(ghidraAnalysis, func, v, paramIndex, sources, prev))
         return multi
-    if prev == None:
+    if prev is None:
         prev = []
     # Skip duplicate
     if varnode.getUniqueId() in prev:
@@ -63,10 +62,10 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
         try:
             value = ghidraAnalysis.getDataAt(ghidraAnalysis.toAddr(addr)).getValue().getOffset()
             return value
-        except:
+        except AttributeError:
             return addr
     # If the varnode is associated with a parameter to the function, we then find each
-    # site where the function is called, and analyze how the parameter varnode at the 
+    # site where the function is called, and analyze how the parameter varnode at the
     # corresponding index is derivded for each call of the function
     hvar = varnode.getHigh()
     if isinstance(hvar, HighParam):
@@ -76,12 +75,12 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
         # Find source function call values
         sourceValue = findSourceValue(ghidraAnalysis, func, var, sources)
         if sourceValue is not None:
-            return processOneVarnode(ghidraAnalysis, func, sourceValue, paramIndex, sources, prev) 
+            return processOneVarnode(ghidraAnalysis, func, sourceValue, paramIndex, sources, prev)
         # Find local variables
         localVar = findLocalVariables(ghidraAnalysis, func, varnode)
         if localVar is not None:
             return processOneVarnode(ghidraAnalysis, func, localVar, paramIndex, sources, prev)
-    defOp = varnode.getDef()                
+    defOp = varnode.getDef()
     # NULL DEF
     if defOp == None:
         return
@@ -142,11 +141,11 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
         return multi
     # p-code op we don't support
     else:
-        print("Support for Pcode {} not implemented".format(defOp.toString())) 
+        print("Support for Pcode {} not implemented".format(defOp.toString()))
 
 def analyzeCallSites(ghidraAnalysis, func, paramIndex, prev):
     """
-    Given a function, analyze all sites where it is called, looking at how the parameter at the call 
+    Given a function, analyze all sites where it is called, looking at how the parameter at the call
     site specified by paramIndex is derived. This is for situations where we determine that a varnode
     we are looking at is a parameter to the current function - we then have to analyze all sites where
     that function is called to determine possible values for that parameter
@@ -163,7 +162,7 @@ def analyzeCallSites(ghidraAnalysis, func, paramIndex, prev):
     for currentReference in referencesTo:
         fromAddr = currentReference.getFromAddress()
         callingFunction = ghidraAnalysis.getFunctionContaining(fromAddr)
-        if callingFunction == None:
+        if callingFunction is None:
             # Could not get calling function
             continue
         # if the reference is a CALL
@@ -190,7 +189,7 @@ def analyzeCallSites(ghidraAnalysis, func, paramIndex, prev):
 
 def analyzeCalledFunction(ghidraAnalysis, func, paramIndex, prev):
     """
-    This function analyzes a function called on the way to determining an input to our sink  
+    This function analyzes a function called on the way to determining an input to our sink
     We find the function, then find all of it's RETURN pcode ops, and analyze backwards from
     the varnode associated with the RETURN value.
 
@@ -215,7 +214,7 @@ def analyzeCalledFunction(ghidraAnalysis, func, paramIndex, prev):
             continue
         # from here on, we are dealing with a PcodeOp.RETURN
         returnedValue = pcodeOpAST.getInput(1)
-        if returnedValue == None:
+        if returnedValue is None:
             print("--> Could not resolve return value from {}".format(func.getName()))
             return
         # if we had a phi earlier, it's been logged, so going forward we set isPhi back to false

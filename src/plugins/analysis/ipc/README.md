@@ -8,7 +8,7 @@ FACT plugin using a Ghidra script with two functionalities:
 ## Installation
 ### Using docker image
 Build the docker image yourself, with 
-```
+```shell
 docker build -t ipc .
 ```
 
@@ -20,7 +20,7 @@ folder `ipcAnalysis`) in Ghidra's python scripts directory
 ## Usage
 ### Using Docker
 If you use the docker image, just run
-```
+```shell
 docker run --rm -v /PATH/TO/BINARY:/input ipc /input
 ```
 
@@ -31,6 +31,6 @@ The green arrow "Run Script" button at the top of the Script Manager window will
 ### Automate with Ghidra Headless
 A python script named `internal/ghidraHeadless.py` is provided to automatically run the Ghidra script on multiple binaries in the terminal using Ghidra's Headless mode.
 Run the script with 
-```
+```shell
 python3 ghidraHeadless.py [-h] [-g [GHIDRAPATH]] filePath [resultPath]
 ```

@@ -22,7 +22,7 @@ def getFunctionCallSitePCodeOps(ghidraAnalysis, func, functionNames):
         if pcodeOpAST.getOpcode() == PcodeOp.CALL:
             calledVarnode = pcodeOpAST.getInput(0)
 
-            if calledVarnode == None or not calledVarnode.isAddress():
+            if calledVarnode is None or not calledVarnode.isAddress():
                 print("ERROR: CALL, but not to address: {}".format(pcodeOpAST))
                 continue
 
@@ -66,7 +66,7 @@ def getReferents(ghidraAnalysis, func, pcAddress):
                 referents.append(referent)
             else:
                 break
-    return referents 
+    return referents
 
 def getVarFromVarnode(ghidraAnalysis, func, varnode):
     """
@@ -78,11 +78,11 @@ def getVarFromVarnode(ghidraAnalysis, func, varnode):
     :param varnode: ghidra.program.model.pcode.VarnodeAST
     :return lv: ghidra.program.database.function.LocalVariableDB
     :return symbol: ghidra.program.model.pcode.HighSymbol
-    :return: None 
+    :return: None
     """
-    if type(varnode) not in [Varnode, VarnodeAST]:
+    if isinstance(varnode, (Varnode, VarnodeAST)):
         raise Exception("Invalid value. Expected `Varnode` or `VarnodeAST`, got {}.".format(type(varnode)))
-    
+ 
     bitness_masks = {
         '16': 0xffff,
         '32': 0xffffffff,
@@ -112,7 +112,7 @@ def getVarFromVarnode(ghidraAnalysis, func, varnode):
         for vndef_input in vndef_inputs:
             defop_input_offset = vndef_input.getAddress().getOffset() & bitmask
             for symbol in lsm.getSymbols():
-                if symbol.isParameter(): 
+                if symbol.isParameter():
                     continue
                 if defop_input_offset == symbol.getStorage().getFirstVarnode().getOffset() & bitmask:
                     return symbol
@@ -130,11 +130,11 @@ def getVarFromVarnode(ghidraAnalysis, func, varnode):
 
 def findLocalVariables(ghidraAnalysis, func, varnode):
     """
-    Find data assigned to local variables 
+    Find data assigned to local variables
 
     :param ghidraAnalysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
-    :return: ghidra.program.model.pcode.VarnodeAST 
+    :return: ghidra.program.model.pcode.VarnodeAST
     :return: None
     """
     hfunction = decompileFunction(ghidraAnalysis, func)
@@ -150,7 +150,7 @@ def findLocalVariables(ghidraAnalysis, func, varnode):
     elif len(multi) == 1:
         return multi[0]
     else:
-        return multi 
+        return multi
 
 def findSourceValue(ghidraAnalysis, func, var, sources):
     """
@@ -167,7 +167,7 @@ def findSourceValue(ghidraAnalysis, func, var, sources):
         sourceVarnode = s.getInput(1)
         source_var = getVarFromVarnode(ghidraAnalysis, func, sourceVarnode)
         # Handle p-code CAST of sourceVarnode
-        if source_var == None:
+        if source_var is None:
             defOp = sourceVarnode.getDef()                
             if defOp is not None:
                 source_var = getVarFromVarnode(ghidraAnalysis, func, defOp.getInput(0))
@@ -175,7 +175,6 @@ def findSourceValue(ghidraAnalysis, func, var, sources):
                 return
         if (source_var == var):
             sourceName = ghidraAnalysis.getFunctionContaining(s.getInput(0).getAddress()).getName()
-            args = s.getInputs()[1:]
             # Source value is arg 3
             if sourceName == "snprintf":
                 sourceValue = s.getInput(3)
