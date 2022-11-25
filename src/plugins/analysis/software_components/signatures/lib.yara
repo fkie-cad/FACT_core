@@ -60,7 +60,7 @@ rule FileX
 	strings:
 		$a = /FileX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
-		$a
+		$a and no_text_file
 }
 
 rule liblua
@@ -73,5 +73,5 @@ rule liblua
 	strings:
 		$a = /Lua: Lua \d\.\d+(\.\d+)? Copyright \(C\) 1994-\d+/ nocase ascii wide
 	condition:
-		$a
+		$a and no_text_file
 }

@@ -34,7 +34,7 @@ class AnalysisPlugin(YaraBasePlugin):
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
-    VERSION = '0.4.1'
+    VERSION = '0.4.2'
     FILE = __file__
 
     def process_object(self, file_object):
