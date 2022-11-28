@@ -55,6 +55,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.register_plugin()
         self.manager = Manager()
         self.analysis_stats = self.manager.list()
+        self.stats_lock = self.manager.Lock()
         if not offline_testing:
             self.start_worker()
 
@@ -161,7 +162,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         duration = time() - start
         if duration > 120:
             logging.info(f'Analysis {self.NAME} on {next_task.uid} is slow: took {duration:.1f} seconds')
-        self.analysis_stats += [duration]
+        with self.stats_lock:
+            self.analysis_stats.append(duration)
         if self.timeout_happened(process):
             self._handle_failed_analysis(next_task, process, worker_id, 'Timeout')
         elif process.exception:
