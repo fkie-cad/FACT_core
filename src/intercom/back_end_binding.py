@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import difflib
 import logging
 from multiprocessing import Process, Value
 from pathlib import Path
@@ -48,6 +51,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
         self._start_listener(InterComBackEndCompareTask, self.compare_service.add_task)
         self._start_listener(InterComBackEndRawDownloadTask)
+        self._start_listener(InterComBackEndFileDiffTask)
         self._start_listener(InterComBackEndTarRepackTask)
         self._start_listener(InterComBackEndBinarySearchTask)
         self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
@@ -145,6 +149,30 @@ class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
 
     def get_response(self, task):
         return self.binary_service.get_binary_and_file_name(task)
+
+
+class InterComBackEndFileDiffTask(InterComListenerAndResponder):
+
+    CONNECTION_TYPE = 'file_diff_task'
+    OUTGOING_CONNECTION_TYPE = 'file_diff_task_resp'
+
+    def __init__(self, config=None):
+        super().__init__(config)
+        self.binary_service = BinaryService(config=self.config)
+
+    def get_response(self, task: tuple[str, str]) -> str | None:
+        uid1, uid2 = task
+        content_1, name_1 = self.binary_service.get_binary_and_file_name(uid1)
+        content_2, name_2 = self.binary_service.get_binary_and_file_name(uid2)
+        if any(e is None for e in [content_1, content_2, name_1, name_2]):
+            return None
+        diff_lines = difflib.unified_diff(
+            content_1.decode(errors='replace').splitlines(keepends=True),
+            content_2.decode(errors='replace').splitlines(keepends=True),
+            fromfile=name_1,
+            tofile=name_2,
+        )
+        return ''.join(diff_lines)
 
 
 class InterComBackEndPeekBinaryTask(InterComListenerAndResponder):

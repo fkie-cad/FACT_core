@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import difflib
 import logging
 from contextlib import suppress
 from typing import NamedTuple, Optional
@@ -24,8 +23,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 class FileDiffData(NamedTuple):
     uid: str
-    content: str
-    file_name: str
     mime: str
     fw_hid: str
 
@@ -167,6 +164,7 @@ class CompareRoutes(ComponentBase):
             )
         (uid_1, root_uid_1), (uid_2, root_uid_2) = list(uids_dict.items())
         uids_dict.clear()
+        session.modified = True  # pylint: disable=assigning-non-slot
         return redirect(
             url_for('compare_text_files', uid_1=uid_1, uid_2=uid_2, root_uid_1=root_uid_1, root_uid_2=root_uid_2)
         )
@@ -192,34 +190,23 @@ class CompareRoutes(ComponentBase):
                 error=f'Can\'t compare non-text mimetypes. ({diff_files[0].mime} vs {diff_files[1].mime})',
             )
 
-        diffstr = self._get_file_diff(*diff_files)
+        with ConnectTo(self.intercom, self._config) as intercom:
+            diff_str = intercom.get_file_diff((uid_1, uid_2))
+        if diff_str is None:
+            return render_template('compare/error.html', error='File(s) not found.')
 
-        session.modified = True  # pylint: disable=assigning-non-slot
         return render_template(
-            'compare/text_files.html', diffstr=diffstr, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid
+            'compare/text_files.html', diffstr=diff_str, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid
         )
-
-    @staticmethod
-    def _get_file_diff(file1: FileDiffData, file2: FileDiffData) -> str:
-        diff_list = difflib.unified_diff(
-            file1.content.splitlines(keepends=True),
-            file2.content.splitlines(keepends=True),
-            fromfile=f'{file1.file_name}',
-            tofile=f'{file2.file_name}',
-        )
-        return ''.join(diff_list)
 
     def _get_data_for_file_diff(self, uid: str, root_uid: Optional[str]) -> FileDiffData:
-        with ConnectTo(self.intercom, self._config) as intercom:
-            content, _ = intercom.get_binary_and_filename(uid)
-
         with get_shared_session(self.db.frontend) as frontend_db:
             fo = frontend_db.get_object(uid)
             if root_uid in [None, 'None']:
                 root_uid = fo.get_root_uid()
             fw_hid = frontend_db.get_object(root_uid).get_hid()
         mime = fo.processed_analysis.get('file_type', {}).get('mime')
-        return FileDiffData(uid, content.decode(errors='replace'), fo.file_name, mime, fw_hid)
+        return FileDiffData(uid, mime, fw_hid)
 
 
 def _get_compare_view(plugin_views):

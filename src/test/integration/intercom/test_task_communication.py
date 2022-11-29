@@ -1,4 +1,5 @@
 # pylint: disable=wrong-import-order
+from __future__ import annotations
 
 import gc
 import os
@@ -10,6 +11,7 @@ from intercom.back_end_binding import (
     InterComBackEndAnalysisPlugInsPublisher,
     InterComBackEndAnalysisTask,
     InterComBackEndCompareTask,
+    InterComBackEndFileDiffTask,
     InterComBackEndPeekBinaryTask,
     InterComBackEndRawDownloadTask,
     InterComBackEndReAnalyzeTask,
@@ -26,6 +28,19 @@ class AnalysisServiceMock:
 
     def get_plugin_dict(self):  # pylint: disable=no-self-use
         return {'dummy': 'dummy description'}
+
+
+class BinaryServiceMock:
+    def __init__(self, *_, **__):
+        pass
+
+    @staticmethod
+    def get_binary_and_file_name(uid: str) -> tuple[bytes, str]:
+        if uid == 'uid1':
+            return b'binary content 1', 'file_name_1'
+        if uid == 'uid2':
+            return b'binary content 2', 'file_name_2'
+        assert False, 'if this line reached something went wrong'
 
 
 class TestInterComTaskCommunication(unittest.TestCase):
@@ -109,6 +124,20 @@ class TestInterComTaskCommunication(unittest.TestCase):
         self.assertEqual(task, 'valid_uid', 'task not correct')
         result = self.frontend.get_binary_and_filename('valid_uid_0.0')
         self.assertEqual(result, (b'test', 'test.txt'), 'retrieved binary not correct')
+
+    @mock.patch('intercom.front_end_binding.generate_task_id', new=lambda _: 'valid_uid_0.0')
+    @mock.patch('intercom.back_end_binding.BinaryService', new=BinaryServiceMock)
+    def test_file_diff_task(self):
+
+        result = self.frontend.get_file_diff(('uid1', 'uid2'))
+        assert result is None, 'should be None because of timeout'
+
+        self.backend = InterComBackEndFileDiffTask(config=self.config)
+        task = self.backend.get_next_task()
+        assert task == ('uid1', 'uid2'), 'task not correct'
+        result = self.frontend.get_file_diff(('uid1', 'uid2'))
+        expected_diff = '--- file_name_1\n+++ file_name_2\n@@ -1 +1 @@\n-binary content 1+binary content 2'
+        assert result == expected_diff, 'file diff not correct'
 
     @mock.patch('intercom.front_end_binding.generate_task_id')
     @mock.patch('intercom.back_end_binding.BinaryService')

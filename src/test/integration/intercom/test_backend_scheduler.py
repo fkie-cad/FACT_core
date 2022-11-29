@@ -9,7 +9,7 @@ from intercom.back_end_binding import InterComBackEndBinding
 from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
 
 # This number must be changed, whenever a listener is added or removed
-NUMBER_OF_LISTENERS = 11
+NUMBER_OF_LISTENERS = 12
 
 
 class ServiceMock:
