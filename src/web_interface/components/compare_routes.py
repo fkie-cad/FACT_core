@@ -194,7 +194,6 @@ class CompareRoutes(ComponentBase):
             diff_str = intercom.get_file_diff((uid_1, uid_2))
         if diff_str is None:
             return render_template('compare/error.html', error='File(s) not found.')
-        diff_str = diff_str.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\$\\{')
 
         return render_template(
             'compare/text_files.html', diffstr=diff_str, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid
