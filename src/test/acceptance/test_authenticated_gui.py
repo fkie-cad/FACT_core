@@ -44,17 +44,21 @@ def start_backend(create_tables):
         post_analysis=None,
         unpacking_locks=unpacking_locks,
     )
+    analysis_service.start()
     unpacking_service = UnpackingScheduler(
         post_unpack=analysis_service.start_analysis_of_object,
         unpacking_locks=unpacking_locks,
     )
+    unpacking_service.start()
     compare_service = ComparisonScheduler(callback=None)
+    compare_service.start()
     intercom = InterComBackEndBinding(
         analysis_service=analysis_service,
         compare_service=compare_service,
         unpacking_service=unpacking_service,
         unpacking_locks=unpacking_locks,
     )
+    intercom.start()
     _ = FSOrganizer()
 
     yield

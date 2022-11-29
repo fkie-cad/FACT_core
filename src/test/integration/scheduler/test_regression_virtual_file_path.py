@@ -60,13 +60,16 @@ def test_scheduler(finished_event, intermediate_event):
     analyzer = AnalysisScheduler(
         pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
     )
+    analyzer.start()
     unpacker = UnpackingScheduler(post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager)
+    unpacker.start()
     intercom = InterComBackEndBinding(
         analysis_service=analyzer,
         unpacking_service=unpacker,
         compare_service=MockScheduler(),
         unpacking_locks=unpacking_lock_manager,
     )
+    intercom.start()
     try:
         yield unpacker
     finally:

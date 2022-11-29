@@ -73,17 +73,21 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
             post_analysis=post_analysis,
             unpacking_locks=self.unpacking_locks,
         )
+        self.analysis_service.start()
         self.unpacking_service = UnpackingScheduler(
             post_unpack=self.analysis_service.start_analysis_of_object,
             unpacking_locks=self.unpacking_locks,
         )
+        self.unpacking_service.start()
         self.compare_service = ComparisonScheduler(callback=compare_callback)
+        self.compare_service.start()
         self.intercom = InterComBackEndBinding(
             analysis_service=self.analysis_service,
             compare_service=self.compare_service,
             unpacking_service=self.unpacking_service,
             unpacking_locks=self.unpacking_locks,
         )
+        self.intercom.start()
         self.fs_organizer = FSOrganizer()
 
 

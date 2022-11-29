@@ -70,6 +70,6 @@ def test_backend_worker(intercom):
 
 
 def test_all_listeners_started(intercom):
-    intercom.start_listeners()
+    intercom.start()
     sleep(2)
     assert len(intercom.process_list) == NUMBER_OF_LISTENERS, 'Not all listeners started'

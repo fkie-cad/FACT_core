@@ -28,12 +28,15 @@ class TestFileAddition:
             post_analysis=self.count_analysis_finished_event,
             unpacking_locks=unpacking_lock_manager,
         )
+        self._analysis_scheduler.start()
         self._unpack_scheduler = UnpackingScheduler(
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
             fs_organizer=MockFSOrganizer(),
             unpacking_locks=unpacking_lock_manager,
         )
+        self._unpack_scheduler.start()
         self._compare_scheduler = ComparisonScheduler(callback=self.trigger_compare_finished_event)
+        self._compare_scheduler.start()
 
     def count_analysis_finished_event(self, uid, plugin, analysis_result):
         self.backend_interface.add_analysis(uid, plugin, analysis_result)

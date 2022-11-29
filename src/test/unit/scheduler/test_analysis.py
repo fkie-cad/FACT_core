@@ -48,6 +48,7 @@ class AnalysisSchedulerTest(TestCase):
             db_interface=self.mocked_interface,
             unpacking_locks=self.lock_manager,
         )
+        self.sched.start()
 
     def tearDown(self):
         self.sched.shutdown()
