@@ -82,7 +82,7 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
             return processOneVarnode(ghidraAnalysis, func, localVar, paramIndex, sources, prev)
     defOp = varnode.getDef()
     # NULL DEF
-    if defOp == None:
+    if defOp is None:
         return
     # get the enum value of the p-code operation that defines our varnode
     opcode = defOp.getOpcode()
@@ -115,7 +115,7 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
         if parentFunction.getName() in ["open", "ftok", "msgget"]:
             return processOneVarnode(ghidraAnalysis, parentFunction, defOp.getInput(1), 1, sources, prev)
         return analyzeCalledFunction(ghidraAnalysis, parentFunction, paramIndex, prev)
-    # p-code representation of a PHI operation. 
+    # p-code representation of a PHI operation.
     # So here we choose one varnode from a number of incoming varnodes.
     # In this case, we want to explore each varnode that the phi handles
     # We need to propogate phi status to each of them as well

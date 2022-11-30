@@ -2,7 +2,7 @@ FROM fkiecad/ghidra_headless_base:10.1.2 as runtime
 
 WORKDIR /ipc
 
-RUN apt-get update && apt-get install -y --no-install-recommends python=3.10  \
+RUN apt-get update && apt-get install -y --no-install-recommends python \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

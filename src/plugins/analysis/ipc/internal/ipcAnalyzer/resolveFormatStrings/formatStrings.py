@@ -48,7 +48,7 @@ def findOtherStringsRelatingTo(ghidraAnalysis, keyString):
     referenceList = ghidraAnalysis.getReferencesTo(address)
     if referenceList is None:
         logging.warning("found no references to address")
-        return result 
+        return result
     logging.info("found references to address:")
     basicBlockList = []
     for reference in set(referenceList):
@@ -98,7 +98,7 @@ def getFormatStringFunctionCalls(ghidraAnalysis, basicBlock):
         pcodeOpAST = opiter.next()
         if pcodeOpAST.getOpcode() == PcodeOp.CALL:
             calledVarnode = pcodeOpAST.getInput(0)
-            if calledVarnode == None or not calledVarnode.isAddress():
+            if calledVarnode is None or not calledVarnode.isAddress():
                 logging.error("ERROR: CALL, but not to address: {}".format(pcodeOpAST))
                 continue
             # If the CALL is a format string function, save this callsite

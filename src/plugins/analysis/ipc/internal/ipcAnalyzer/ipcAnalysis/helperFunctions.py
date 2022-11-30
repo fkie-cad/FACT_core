@@ -82,7 +82,7 @@ def getVarFromVarnode(ghidraAnalysis, func, varnode):
     """
     if isinstance(varnode, (Varnode, VarnodeAST)):
         raise Exception("Invalid value. Expected `Varnode` or `VarnodeAST`, got {}.".format(type(varnode)))
- 
+
     bitness_masks = {
         '16': 0xffff,
         '32': 0xffffffff,
@@ -160,7 +160,7 @@ def findSourceValue(ghidraAnalysis, func, var, sources):
     :param func: ghidra.program.database.function.FunctionDB
     :param var: ghidra.program.database.function.LocalVariableDB
     :param sources: list
-    :return: ghidra.program.model.pcode.VarnodeAST 
+    :return: ghidra.program.model.pcode.VarnodeAST
     :return: None
     """
     for s in sources[::-1]:
@@ -168,7 +168,7 @@ def findSourceValue(ghidraAnalysis, func, var, sources):
         source_var = getVarFromVarnode(ghidraAnalysis, func, sourceVarnode)
         # Handle p-code CAST of sourceVarnode
         if source_var is None:
-            defOp = sourceVarnode.getDef()                
+            defOp = sourceVarnode.getDef()
             if defOp is not None:
                 source_var = getVarFromVarnode(ghidraAnalysis, func, defOp.getInput(0))
             else:
