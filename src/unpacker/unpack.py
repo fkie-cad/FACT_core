@@ -1,7 +1,6 @@
 import json
 import logging
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from time import time
 from typing import Dict, List
 
@@ -12,48 +11,48 @@ from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
 from objects.file import FileObject
 from storage.fsorganizer import FSOrganizer
-from unpacker.unpack_base import UnpackBase
+from unpacker.unpack_base import ExtractionError, UnpackBase
 
 
 class Unpacker(UnpackBase):
     def __init__(self, config, unpacking_locks):
-        self.config = config
+        super().__init__(config)
         self.file_storage_system = FSOrganizer(config=self.config)
         self.unpacking_locks = unpacking_locks
 
-    def unpack(self, current_fo: FileObject, container_url: str, tmp_dir: TemporaryDirectory) -> List[FileObject]:
-        if current_fo.depth >= self.config.getint('unpack', 'max-depth'):
-            max_depth = self.config.get('unpack', 'max-depth')
+    def unpack(self, current_fo: FileObject, container_url: str, tmp_dir: str) -> List[FileObject]:
+        max_depth = self.config.getint('unpack', 'max-depth')
+        if current_fo.depth >= max_depth:
             logging.warning(f'{current_fo.uid} is not extracted since depth limit ({max_depth}) is reached')
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
         file_path = self._generate_local_file_path(current_fo)
-        extracted_files = self.extract_files_from_file(file_path, tmp_dir.name, container_url)
-        if extracted_files is None:
-            self._store_unpacking_error_skip_info(current_fo)
-            return []
+        try:
+            extracted_files = self.extract_files_from_file(file_path, tmp_dir, container_url)
+        except ExtractionError as error:
+            self._store_unpacking_error_skip_info(current_fo, error=error)
+            raise
 
         extracted_file_objects = self.generate_and_store_file_objects(
-            extracted_files, Path(tmp_dir.name) / 'files', current_fo
+            extracted_files, Path(tmp_dir) / 'files', current_fo
         )
         extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
         self.add_included_files_to_object(extracted_file_objects, current_fo)
 
-        current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir.name, 'reports', 'meta.json').read_text())
+        current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
         return extracted_file_objects
 
     @staticmethod
-    def _store_unpacking_error_skip_info(file_object: FileObject):
+    def _store_unpacking_error_skip_info(file_object: FileObject, error: Exception = None):
+        message = str(error) if error else 'possible extractor timeout'
         file_object.processed_analysis['unpacker'] = {
             'plugin_used': 'None',
             'number_of_unpacked_files': 0,
             'plugin_version': '0.0',
             'analysis_date': time(),
             'info': 'Unpacking stopped because extractor raised a exception (possible timeout)',
-            'tags': {
-                'extractor error': {'value': 'possible extractor timeout', 'color': TagColor.ORANGE, 'propagate': False}
-            },
+            'tags': {'extractor error': {'value': message, 'color': TagColor.ORANGE, 'propagate': False}},
         }
 
     @staticmethod

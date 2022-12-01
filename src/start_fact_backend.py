@@ -46,6 +46,7 @@ class FactBackend(FactBase):
     def __init__(self):
         super().__init__()
         unpacking_lock_manager = UnpackingLockManager()
+        self._create_docker_base_dir()
 
         try:
             self.analysis_service = AnalysisScheduler(config=self.config, unpacking_locks=unpacking_lock_manager)
@@ -68,16 +69,6 @@ class FactBackend(FactBase):
         )
 
     def main(self):
-        docker_mount_base_dir = Path(self.config['data-storage']['docker-mount-base-dir'])
-        docker_mount_base_dir.mkdir(0o770, exist_ok=True)
-        docker_gid = grp.getgrnam('docker').gr_gid
-        try:
-            os.chown(docker_mount_base_dir, -1, docker_gid)
-        except PermissionError:
-            # If we don't have enough rights to change the permissions we assume they are right
-            # E.g. in FACT_docker the correct group is not the group named 'docker'
-            logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
-
         while self.run:
             self.work_load_stat.update(
                 unpacking_workload=self.unpacking_service.get_scheduled_workload(),
@@ -90,6 +81,17 @@ class FactBackend(FactBase):
                 break
 
         self.shutdown()
+
+    def _create_docker_base_dir(self):
+        docker_mount_base_dir = Path(self.config['data-storage']['docker-mount-base-dir'])
+        docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+        docker_gid = grp.getgrnam('docker').gr_gid
+        try:
+            os.chown(docker_mount_base_dir, -1, docker_gid)
+        except PermissionError:
+            # If we don't have enough rights to change the permissions we assume they are right
+            # E.g. in FACT_docker the correct group is not the group named 'docker'
+            logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
 
     def shutdown(self):
         super().shutdown()

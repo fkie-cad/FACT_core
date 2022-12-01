@@ -1,14 +1,13 @@
+from __future__ import annotations
+
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue, Value
-from os import getgid, getuid
 from pathlib import Path
 from queue import Empty
 from tempfile import TemporaryDirectory
 from threading import Thread
 from time import sleep
-
-import docker
-from docker.types import Mount
 
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import (
@@ -17,7 +16,10 @@ from helperFunctions.process import (
     new_worker_was_started,
     stop_processes,
 )
+from objects.file import FileObject
+from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack import Unpacker
+from unpacker.unpack_base import ExtractionError
 
 
 class NoFreeWorker(RuntimeError):
@@ -35,15 +37,15 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.get_analysis_workload = analysis_workload
         self.in_queue = Queue()
         self.work_load_counter = 25
-        self.workers = []
-        self.pending_tasks = []
+        self.workers: list[ExtractionContainer] = []
+        self.pending_tasks: dict[int, Thread] = {}
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
-        self.start_container()
+        self.create_containers()
         self.unpacker = Unpacker(config=self.config, unpacking_locks=self.unpacking_locks)
         self.work_load_process = self.start_work_load_monitor()
         self.extraction_process = self._start_extraction_loop()
-        logging.info('Unpacker Module online')
+        logging.info('Unpacking scheduler online')
 
     def _start_extraction_loop(self):
         logging.debug('Starting extraction loop')
@@ -67,60 +69,36 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
         stop_processes([self.work_load_process, self.extraction_process])
-        self.stop_container()
+        self.stop_containers()
         self.in_queue.close()
-        logging.info('Unpacker Module offline')
+        logging.info('Unpacking scheduler offline')
 
     # ---- internal functions ----
 
-    def start_container(self):
-        for _ in range(self.config.getint('unpack', 'threads')):
-            self._start_single_container()
+    def create_containers(self):
+        for id_ in range(self.config.getint('unpack', 'threads')):
+            container = ExtractionContainer(self.config, id_=id_)
+            container.start()
+            self.workers.append(container)
 
-    def stop_container(self):
-        for _, tmp_dir, container in self.workers:
-            logging.info('Stopping unpack worker')
-            container.stop(timeout=1)
-            try:
-                tmp_dir.cleanup()
-            except PermissionError:
-                logging.error(f'Unable to delete worker folder {tmp_dir.name}', exc_info=True)
-
-    def _start_single_container(self):
-        tmp_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
-        port = (
-            max(worker_port for worker_port, _, _ in self.workers) + 1
-            if self.workers
-            else self.config.getint('unpack', 'base-port')
-        )
-        volume = Mount('/tmp/extractor', str(tmp_dir.name), read_only=False, type='bind')
-        client = docker.from_env()
-
-        container = client.containers.run(
-            image='fact_extractor_local',
-            ports={'5000/tcp': port},
-            mem_limit=self.config['unpack']['memory-limit'],
-            mounts=[volume],
-            volumes={'/dev': {'bind': '/dev', 'mode': 'rw'}},
-            privileged=True,
-            detach=True,
-            command=f'--chown {getuid()}:{getgid()}',
-            remove=True,
-        )
-        self.workers.append((port, tmp_dir, container))
+    def stop_containers(self):
+        pool = ThreadPoolExecutor(max_workers=len(self.workers))
+        pool.map(lambda container: container.stop(), self.workers)
+        pool.shutdown(wait=True, cancel_futures=False)
 
     def extraction_loop(self):
         while self.stop_condition.value == 0:
             self.check_pending()
             try:
-                worker_port, base_tmp_dir = self.get_free_worker()
+                container = self.get_free_worker()
                 task = self.in_queue.get(timeout=1)
                 task_thread = Thread(
-                    target=self.work_thread, kwargs=dict(task=task, extraction_dir=base_tmp_dir, port=worker_port)
+                    target=self.work_thread,
+                    kwargs=dict(task=task, container=container),
                 )
                 task_thread.start()
-                logging.debug(f'Started Worker on {task.uid} ({base_tmp_dir})')
-                self.pending_tasks.append((worker_port, task, task_thread))  # Check if this is sensible
+                logging.debug(f'Started Worker on {task.uid} ({container.tmp_dir})')
+                self.pending_tasks[container.id_] = task_thread
             except NoFreeWorker:
                 logging.debug('No free worker. Sleeping ..')
                 sleep(0.2)
@@ -128,35 +106,38 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 pass
 
     def check_pending(self):
-        still_pending = []
-        while self.pending_tasks:
-            port, task, thread = self.pending_tasks.pop()
+        for container_id, thread in list(self.pending_tasks.items()):
             if not thread.is_alive():
                 thread.join()
-            else:
-                still_pending.append((port, task, thread))
-        self.pending_tasks = still_pending
+                container = self.workers[container_id]
+                if container.exception_happened():
+                    container.restart()
+                self.pending_tasks.pop(container_id)
 
-    def get_free_worker(self):
-        for worker, tmp_dir, _ in self.workers:
-            if worker not in [worker_id for worker_id, _, _ in self.pending_tasks]:
-                return worker, tmp_dir.name
+    def get_free_worker(self) -> ExtractionContainer:
+        for container in self.workers:
+            if container.id_ not in self.pending_tasks:
+                return container
         raise NoFreeWorker()
 
-    def work_thread(self, task, extraction_dir, port):
-        tmp_dir = TemporaryDirectory(dir=extraction_dir)  # pylint: disable=consider-using-with
-        container_url = f'http://localhost:{port}/start/{Path(tmp_dir.name).name}'
+    def work_thread(self, task: FileObject, container: ExtractionContainer):
+        with TemporaryDirectory(dir=container.tmp_dir.name) as tmp_dir:
+            container_url = f'http://localhost:{container.port}/start/{Path(tmp_dir).name}'
 
-        extracted_objects = self.unpacker.unpack(task, container_url, tmp_dir)
+            extracted_objects = None
+            try:
+                extracted_objects = self.unpacker.unpack(task, container_url, tmp_dir)
+            except ExtractionError:
+                logging.warning(f'Exception happened during extraction of {task.uid}')
+                container.exception = True
 
-        sleep(0.1)  # This stuff is too fast for the FS to keep up ...
+            # FixMe? sleep(0.1)  # This stuff is too fast for the FS to keep up ...
 
-        self.post_unpack(task)
-        self.schedule_extracted_files(extracted_objects)
+            self.post_unpack(task)
+            if extracted_objects:
+                self.schedule_extracted_files(extracted_objects)
 
-        tmp_dir.cleanup()
-
-    def schedule_extracted_files(self, object_list):
+    def schedule_extracted_files(self, object_list: list[FileObject]):
         for item in object_list:
             self.in_queue.put(item)
 
@@ -177,11 +158,8 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             else:
                 self.work_load_counter += 1
                 log_function = logging.debug
-            log_function(
-                color_string(
-                    f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}', TerminalColors.WARNING
-                )
-            )
+            message = f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}'
+            log_function(color_string(message, TerminalColors.WARNING))
 
             sleep(2)
 
@@ -191,9 +169,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         return 0
 
     def check_exceptions(self):
-        list_with_load_process = [
-            self.work_load_process,
-        ]
+        list_with_load_process = [self.work_load_process]
         shutdown = check_worker_exceptions(list_with_load_process, 'unpack-load', self.config, self._work_load_monitor)
         if new_worker_was_started(new_process=list_with_load_process[0], old_process=self.work_load_process):
             self.work_load_process = list_with_load_process.pop()
