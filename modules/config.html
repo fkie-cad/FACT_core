@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>config &mdash; FACT  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="conftest" href="conftest.html" />
+    <link rel="prev" title="Upgrading FACT from 3 to 4" href="../migration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> FACT
+            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-install-easy-to-use">Easy to Install! Easy to Use!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-extend-easy-to-integrate">Easy to Extend! Easy to Integrate!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#screenshots">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration.html">Upgrading FACT from 3 to 4</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler.html">scheduler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web_interface.html">web_interface</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FACT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>config</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-config">
+<span id="config"></span><h1>config<a class="headerlink" href="#module-config" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="config.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.Config" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><em>Any</em></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Config.Config">
+<span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#config.Config.Config" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">config._PydanticConfigExtraAllow</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Config.data_storage">
+<span class="sig-name descname"><span class="pre">data_storage</span></span><a class="headerlink" href="#config.Config.data_storage" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Config.database">
+<span class="sig-name descname"><span class="pre">database</span></span><a class="headerlink" href="#config.Config.database" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Config.default_plugins">
+<span class="sig-name descname"><span class="pre">default_plugins</span></span><a class="headerlink" href="#config.Config.default_plugins" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Config.expert_settings">
+<span class="sig-name descname"><span class="pre">expert_settings</span></span><a class="headerlink" href="#config.Config.expert_settings" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Config.logging">
+<span class="sig-name descname"><span class="pre">logging</span></span><a class="headerlink" href="#config.Config.logging" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Config.statistics">
+<span class="sig-name descname"><span class="pre">statistics</span></span><a class="headerlink" href="#config.Config.statistics" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Config.unpack">
+<span class="sig-name descname"><span class="pre">unpack</span></span><a class="headerlink" href="#config.Config.unpack" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.DataStorage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">DataStorage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.DataStorage" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><em>Any</em></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.Config">
+<span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#config.DataStorage.Config" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">config._PydanticConfigExtraForbid</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.docker_mount_base_dir">
+<span class="sig-name descname"><span class="pre">docker_mount_base_dir</span></span><a class="headerlink" href="#config.DataStorage.docker_mount_base_dir" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.firmware_file_storage_directory">
+<span class="sig-name descname"><span class="pre">firmware_file_storage_directory</span></span><a class="headerlink" href="#config.DataStorage.firmware_file_storage_directory" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.password_salt">
+<span class="sig-name descname"><span class="pre">password_salt</span></span><a class="headerlink" href="#config.DataStorage.password_salt" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_admin_pw">
+<span class="sig-name descname"><span class="pre">postgres_admin_pw</span></span><a class="headerlink" href="#config.DataStorage.postgres_admin_pw" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_admin_user">
+<span class="sig-name descname"><span class="pre">postgres_admin_user</span></span><a class="headerlink" href="#config.DataStorage.postgres_admin_user" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_database">
+<span class="sig-name descname"><span class="pre">postgres_database</span></span><a class="headerlink" href="#config.DataStorage.postgres_database" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_del_pw">
+<span class="sig-name descname"><span class="pre">postgres_del_pw</span></span><a class="headerlink" href="#config.DataStorage.postgres_del_pw" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_del_user">
+<span class="sig-name descname"><span class="pre">postgres_del_user</span></span><a class="headerlink" href="#config.DataStorage.postgres_del_user" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_port">
+<span class="sig-name descname"><span class="pre">postgres_port</span></span><a class="headerlink" href="#config.DataStorage.postgres_port" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_ro_pw">
+<span class="sig-name descname"><span class="pre">postgres_ro_pw</span></span><a class="headerlink" href="#config.DataStorage.postgres_ro_pw" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_ro_user">
+<span class="sig-name descname"><span class="pre">postgres_ro_user</span></span><a class="headerlink" href="#config.DataStorage.postgres_ro_user" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_rw_pw">
+<span class="sig-name descname"><span class="pre">postgres_rw_pw</span></span><a class="headerlink" href="#config.DataStorage.postgres_rw_pw" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_rw_user">
+<span class="sig-name descname"><span class="pre">postgres_rw_user</span></span><a class="headerlink" href="#config.DataStorage.postgres_rw_user" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_server">
+<span class="sig-name descname"><span class="pre">postgres_server</span></span><a class="headerlink" href="#config.DataStorage.postgres_server" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.postgres_test_database">
+<span class="sig-name descname"><span class="pre">postgres_test_database</span></span><a class="headerlink" href="#config.DataStorage.postgres_test_database" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.redis_fact_db">
+<span class="sig-name descname"><span class="pre">redis_fact_db</span></span><a class="headerlink" href="#config.DataStorage.redis_fact_db" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.redis_host">
+<span class="sig-name descname"><span class="pre">redis_host</span></span><a class="headerlink" href="#config.DataStorage.redis_host" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.redis_port">
+<span class="sig-name descname"><span class="pre">redis_port</span></span><a class="headerlink" href="#config.DataStorage.redis_port" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.redis_test_db">
+<span class="sig-name descname"><span class="pre">redis_test_db</span></span><a class="headerlink" href="#config.DataStorage.redis_test_db" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.structural_threshold">
+<span class="sig-name descname"><span class="pre">structural_threshold</span></span><a class="headerlink" href="#config.DataStorage.structural_threshold" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.temp_dir_path">
+<span class="sig-name descname"><span class="pre">temp_dir_path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/tmp'</span></em><a class="headerlink" href="#config.DataStorage.temp_dir_path" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DataStorage.user_database">
+<span class="sig-name descname"><span class="pre">user_database</span></span><a class="headerlink" href="#config.DataStorage.user_database" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.Database">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">Database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.Database" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><em>Any</em></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Database.Config">
+<span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#config.Database.Config" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">config._PydanticConfigExtraForbid</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Database.ajax_stats_reload_time">
+<span class="sig-name descname"><span class="pre">ajax_stats_reload_time</span></span><a class="headerlink" href="#config.Database.ajax_stats_reload_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Database.number_of_latest_firmwares_to_display">
+<span class="sig-name descname"><span class="pre">number_of_latest_firmwares_to_display</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#config.Database.number_of_latest_firmwares_to_display" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Database.results_per_page">
+<span class="sig-name descname"><span class="pre">results_per_page</span></span><a class="headerlink" href="#config.Database.results_per_page" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.DefaultPlugins">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">DefaultPlugins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.DefaultPlugins" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><em>Any</em></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.DefaultPlugins.Config">
+<span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#config.DefaultPlugins.Config" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">config._PydanticConfigExtraAllow</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.ExpertSettings">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">ExpertSettings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.ExpertSettings" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><em>Any</em></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.Config">
+<span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#config.ExpertSettings.Config" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">config._PydanticConfigExtraForbid</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.authentication">
+<span class="sig-name descname"><span class="pre">authentication</span></span><a class="headerlink" href="#config.ExpertSettings.authentication" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.block_delay">
+<span class="sig-name descname"><span class="pre">block_delay</span></span><a class="headerlink" href="#config.ExpertSettings.block_delay" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.communication_timeout">
+<span class="sig-name descname"><span class="pre">communication_timeout</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">60</span></em><a class="headerlink" href="#config.ExpertSettings.communication_timeout" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.intercom_poll_delay">
+<span class="sig-name descname"><span class="pre">intercom_poll_delay</span></span><a class="headerlink" href="#config.ExpertSettings.intercom_poll_delay" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.nginx">
+<span class="sig-name descname"><span class="pre">nginx</span></span><a class="headerlink" href="#config.ExpertSettings.nginx" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.radare2_host">
+<span class="sig-name descname"><span class="pre">radare2_host</span></span><a class="headerlink" href="#config.ExpertSettings.radare2_host" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.ssdeep_ignore">
+<span class="sig-name descname"><span class="pre">ssdeep_ignore</span></span><a class="headerlink" href="#config.ExpertSettings.ssdeep_ignore" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.throw_exceptions">
+<span class="sig-name descname"><span class="pre">throw_exceptions</span></span><a class="headerlink" href="#config.ExpertSettings.throw_exceptions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.unpack_threshold">
+<span class="sig-name descname"><span class="pre">unpack_threshold</span></span><a class="headerlink" href="#config.ExpertSettings.unpack_threshold" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.ExpertSettings.unpack_throttle_limit">
+<span class="sig-name descname"><span class="pre">unpack_throttle_limit</span></span><a class="headerlink" href="#config.ExpertSettings.unpack_throttle_limit" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.Logging">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">Logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.Logging" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><em>Any</em></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Logging.Config">
+<span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#config.Logging.Config" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">config._PydanticConfigExtraForbid</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Logging.logfile">
+<span class="sig-name descname"><span class="pre">logfile</span></span><a class="headerlink" href="#config.Logging.logfile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Logging.loglevel">
+<span class="sig-name descname"><span class="pre">loglevel</span></span><a class="headerlink" href="#config.Logging.loglevel" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.Statistics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">Statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.Statistics" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><em>Any</em></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Statistics.Config">
+<span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#config.Statistics.Config" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">config._PydanticConfigExtraForbid</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Statistics.max_elements_per_chart">
+<span class="sig-name descname"><span class="pre">max_elements_per_chart</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#config.Statistics.max_elements_per_chart" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.Unpack">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">Unpack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.Unpack" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydantic.BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><em>Any</em></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Unpack.Config">
+<span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#config.Unpack.Config" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">config._PydanticConfigExtraForbid</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Unpack.max_depth">
+<span class="sig-name descname"><span class="pre">max_depth</span></span><a class="headerlink" href="#config.Unpack.max_depth" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Unpack.memory_limit">
+<span class="sig-name descname"><span class="pre">memory_limit</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2048</span></em><a class="headerlink" href="#config.Unpack.memory_limit" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Unpack.threads">
+<span class="sig-name descname"><span class="pre">threads</span></span><a class="headerlink" href="#config.Unpack.threads" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Unpack.whitelist">
+<span class="sig-name descname"><span class="pre">whitelist</span></span><a class="headerlink" href="#config.Unpack.whitelist" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.cfg">
+<span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">cfg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.cfg" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.configparser_cfg">
+<span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">configparser_cfg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.configparser_cfg" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.load">
+<span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load the config file located at <code class="docutils literal notranslate"><span class="pre">path</span></code>.
+The file must be an ini file and is read into an <cite>config.Config</cite> instance.
+This instance can be accessed with <code class="docutils literal notranslate"><span class="pre">config.cfg</span></code> after calling this function.
+For legacy code that needs a <code class="docutils literal notranslate"><span class="pre">ConfigParser</span></code> instance <code class="docutils literal notranslate"><span class="pre">config.configparser_cfg</span></code> is provided.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>This function may not be imported by <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">config</span> <span class="pre">import</span> <span class="pre">load</span></code>.
+It may only be imported by <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">config</span></code> and then used by <code class="docutils literal notranslate"><span class="pre">config.load()</span></code>.
+The reason is that testing code can’t patch this function if it was already imported.
+When you only import the <code class="docutils literal notranslate"><span class="pre">config</span></code> module the <code class="docutils literal notranslate"><span class="pre">load</span></code> function will be looked up at runtime.
+See <a class="reference external" href="https://alexmarandon.com/articles/python_mock_gotchas/">this blog entry</a> for some more information.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.parse_comma_separated_list">
+<span class="sig-prename descclassname"><span class="pre">config.</span></span><span class="sig-name descname"><span class="pre">parse_comma_separated_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.parse_comma_separated_list" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../migration.html" class="btn btn-neutral float-left" title="Upgrading FACT from 3 to 4" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="conftest.html" class="btn btn-neutral float-right" title="conftest" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2022  Fraunhofer FKIE.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

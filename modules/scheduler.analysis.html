@@ -52,6 +52,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="scheduler.html">scheduler</a><ul class="current">
@@ -90,7 +92,7 @@
 <span id="scheduler-analysis"></span><h1>scheduler.analysis<a class="headerlink" href="#module-scheduler.analysis" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scheduler.analysis.</span></span><span class="sig-name descname"><span class="pre">AnalysisScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_interface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unpacking_locks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scheduler.analysis.</span></span><span class="sig-name descname"><span class="pre">AnalysisScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_interface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unpacking_locks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The analysis scheduler is responsible for</p>
 <ul class="simple">
@@ -147,7 +149,7 @@ actual analysis process is out of scope. Database interaction happens before (pr
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<em>Optional</em><em>[</em><em>configparser.ConfigParser</em><em>]</em>) – The ConfigParser object shared by all backend entities.</p></li>
+<li><p><strong>config</strong> – The ConfigParser object shared by all backend entities.</p></li>
 <li><p><strong>pre_analysis</strong> (<em>Callable</em><em>[</em><em>[</em><a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a><em>]</em><em>, </em><em>None</em><em>]</em>) – A database callback to execute before running an analysis task.</p></li>
 <li><p><strong>post_analysis</strong> (<em>Callable</em><em>[</em><em>[</em><em>str</em><em>, </em><em>str</em><em>, </em><em>dict</em><em>]</em><em>, </em><em>None</em><em>]</em>) – A database callback to execute after running an analysis task.</p></li>
 <li><p><strong>db_interface</strong> – An object reference to an instance of BackEndDbInterface.</p></li>

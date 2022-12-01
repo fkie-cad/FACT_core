@@ -52,9 +52,10 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.config.html">helperFunctions.config module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
@@ -110,14 +111,14 @@
 <span id="helperfunctions-yara-binary-search-module"></span><h1>helperFunctions.yara_binary_search module<a class="headerlink" href="#module-helperFunctions.yara_binary_search" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="helperFunctions.yara_binary_search.YaraBinarySearchScanner">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></span><span class="sig-name descname"><span class="pre">YaraBinarySearchScanner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></span><span class="sig-name descname"><span class="pre">YaraBinarySearchScanner</span></span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class provides functionality to scan files in the database for yara patterns. The public method allows to
 either match a given set of patterns on all files in the database or focus only on files included in a single
 firmware.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>configparser.ConfigParser</em>) – The FACT configuration.</p>
+<dd class="field-odd"><p><strong>config</strong> – The FACT configuration.</p>
 </dd>
 </dl>
 <dl class="py method">

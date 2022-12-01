@@ -52,9 +52,10 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.config.html">helperFunctions.config module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
@@ -148,14 +149,11 @@ in the webinterface).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.task_conversion.create_analysis_task">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">create_analysis_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.create_analysis_task" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">create_analysis_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.create_analysis_task" title="Permalink to this definition"></a></dt>
 <dd><p>Create an analysis task from the data stored in the flask request object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>request</strong> (<em>flask.Request</em>) – The flask request object.</p></li>
-<li><p><strong>config</strong> (<em>configparser.ConfigParser</em>) – The FACT configuration.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>request</strong> (<em>flask.Request</em>) – The flask request object.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A dict containing the analysis task data.</p>
@@ -188,13 +186,13 @@ in the webinterface).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.task_conversion.get_file_name_and_binary_from_request">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">get_file_name_and_binary_from_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.get_file_name_and_binary_from_request" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">get_file_name_and_binary_from_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.get_file_name_and_binary_from_request" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieves the file name and content from the flask request object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>request</strong> (<em>flask.Request</em>) – The flask request object.</p></li>
-<li><p><strong>config</strong> (<em>configparser.ConfigParser</em>) – The FACT configuration.</p></li>
+<li><p><strong>config</strong> – The FACT configuration.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
