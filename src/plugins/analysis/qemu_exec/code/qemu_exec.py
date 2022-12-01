@@ -35,7 +35,7 @@ CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 class Unpacker(UnpackBase):
     def __init__(self, config):
-        self.config = config
+        super().__init__(config)
         self.fs_organizer = FSOrganizer(self.config)
 
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
@@ -44,10 +44,10 @@ class Unpacker(UnpackBase):
             logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
-        extraction_dir = TemporaryDirectory(
+        extraction_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
             prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir']
         )
-        self.extract_files_from_file(file_path, extraction_dir.name, '')
+        self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
     def _get_path_from_fo(self, file_object: FileObject) -> str:

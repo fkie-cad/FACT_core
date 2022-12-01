@@ -1,37 +1,87 @@
+from __future__ import annotations
+
 import logging
 import shutil
-from os import makedirs
+from os import getgid, getuid, makedirs
 from pathlib import Path
-from time import sleep
-from typing import List
+from subprocess import CalledProcessError
 
 import requests
 from common_helper_files import safe_rglob
+from docker.types import Mount
+from requests import ReadTimeout, exceptions
 
-WORKER_TIMEOUT = 600
+from helperFunctions.docker import run_docker_container
+from unpacker.extraction_container import EXTRACTOR_DOCKER_IMAGE
+
+WORKER_TIMEOUT = 600  # in seconds
+
+
+class ExtractionError(Exception):
+    pass
 
 
 class UnpackBase:
+    def __init__(self, config=None):
+        self.config = config
+
     @staticmethod
     def get_extracted_files_dir(base_dir):
         return Path(base_dir, 'files')
 
-    def extract_files_from_file(self, file_path: str, tmp_dir: str, worker_url: str) -> List[Path]:
+    def extract_files_from_file(self, file_path: str, tmp_dir: str, worker_url: str | None = None) -> list[Path]:
         self._initialize_shared_folder(tmp_dir)
         try:
             shutil.copy2(file_path, str(Path(tmp_dir, 'input', Path(file_path).name)))
         except FileNotFoundError:
-            # Waiting if file becomes available
-            sleep(1)
-            shutil.copy2(file_path, str(Path(tmp_dir, 'input', Path(file_path).name)))
+            logging.exception(f'Error during extraction of {file_path}')
+            raise
 
-        response = requests.get(worker_url, timeout=WORKER_TIMEOUT)
-        if response.status_code == 200:
-            return [item for item in safe_rglob(Path(tmp_dir, 'files')) if not item.is_dir()]
-        logging.error(response.text, response.status_code)
-        raise RuntimeError(f'Failed extraction of {file_path}')
+        if worker_url:
+            self._extract_with_worker(file_path, worker_url)
+        else:  # start new container
+            self._extract_with_new_container(tmp_dir)
+
+        return [item for item in safe_rglob(Path(tmp_dir, 'files')) if not item.is_dir()]
 
     @staticmethod
     def _initialize_shared_folder(tmp_dir):
         for subpath in ['files', 'reports', 'input']:
             makedirs(str(Path(tmp_dir, subpath)), exist_ok=True)
+
+    @staticmethod
+    def _extract_with_worker(file_path: str, worker_url: str):
+        try:
+            response = requests.get(worker_url, timeout=WORKER_TIMEOUT)
+        except ReadTimeout as error:
+            raise ExtractionError('Timout during extraction.') from error
+        except ConnectionError as error:
+            raise ExtractionError('Extraction container could not be reached.') from error
+        if response.status_code != 200:
+            logging.error(response.text, response.status_code)
+            raise ExtractionError(f'Extraction of {file_path} failed')
+
+    def _extract_with_new_container(self, tmp_dir: str):
+        try:
+            memory_limit = self.config.get('unpack', 'memory-limit', fallback='1024m')
+            result = run_docker_container(
+                EXTRACTOR_DOCKER_IMAGE,
+                combine_stderr_stdout=True,
+                privileged=True,
+                mem_limit=memory_limit,
+                mounts=[
+                    Mount('/dev/', '/dev/', type='bind'),
+                    Mount('/tmp/extractor', tmp_dir, type='bind'),
+                ],
+                command=f'--chown {getuid()}:{getgid()}',
+            )
+        except exceptions.RequestException as err:
+            logging.warning(f'Request exception executing docker extractor:\n{err}')
+            return
+
+        try:
+            result.check_returncode()
+        except CalledProcessError as err:
+            error = f'Failed to execute docker extractor with code {err.returncode}:\n{err.stdout}'
+            logging.error(error)
+            raise RuntimeError(error) from err
