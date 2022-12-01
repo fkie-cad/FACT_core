@@ -42,7 +42,7 @@ class TestTaskConversion(unittest.TestCase):
         assert result['b'] == 'Please specify the b'
 
     def test_get_uploaded_file_binary_error(self):
-        assert _get_uploaded_file_binary(None) == None, 'missing upload file should lead to None'
+        assert _get_uploaded_file_binary(None) is None, 'missing upload file should lead to None'
 
     def test_get_uid_of_analysis_task(self):
         analysis_task = {'binary': b'this is a test'}
