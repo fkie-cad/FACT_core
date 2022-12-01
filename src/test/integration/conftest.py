@@ -1,15 +1,16 @@
-from typing import List, NamedTuple
+from dataclasses import dataclass
+from multiprocessing import Event, Queue, Value
+from typing import List, NamedTuple, TypeVar
 
 import pytest
 from pydantic import BaseModel, Extra
+from pytest import MonkeyPatch
 
-from scheduler.analysis import AnalysisScheduler
-from scheduler.unpacking_scheduler import UnpackingScheduler
-from scheduler.comparison_scheduler import ComparisonScheduler
-from multiprocessing import Queue, Event
-
-from objects.firmware import Firmware
 import config
+from objects.firmware import Firmware
+from scheduler.analysis import AnalysisScheduler
+from scheduler.comparison_scheduler import ComparisonScheduler
+from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_connection import ReadOnlyConnection, ReadWriteConnection
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackendDbInterface
@@ -19,7 +20,10 @@ from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from storage.db_interface_stats import StatsUpdateDbInterface
 from storage.db_setup import DbSetup
+from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import clear_test_tables, setup_test_tables
+from test.integration.common import MockDbInterface as BackEndDbInterfaceMock
+from test.integration.common import MockFSOrganizer as FSOrganizerMock
 
 
 class DatabaseInterfaces(NamedTuple):
@@ -224,6 +228,22 @@ def make_analysis_pipeline(unpacking_scheduler: UnpackingScheduler, analysis_sch
     # TODO warn when overwriting defaults here
     unpacking_scheduler.post_unpack = analysis_scheduler.start_analysis_of_object
 
+
+@pytest.fixture
+def post_analysis_queue():
+    yield Queue()
+
+
+@pytest.fixture
+def pre_analysis_queue():
+    yield Queue()
+
+
+@pytest.fixture
+def analysis_finished_event():
+    yield Event()
+
+
 # TODO Documentation
 # The idea is that every callback that is in the pipeline just puts its arguments in a queue
 # This way the tests can ensure that everything went right
@@ -233,36 +253,186 @@ def make_analysis_pipeline(unpacking_scheduler: UnpackingScheduler, analysis_sch
 
 # TODO what about the pre_* callbacks
 # TODO what about the default post_* callbacks
+# TODO if test_config.pipeline is true: Do we really want this?! How do we change the behavior?
+# TODO what about funtions like _make_pipeline(analysis_scheduler, ...)??
+# TODO what about functions like _get_test_config_for(some_scheduler)
 @pytest.fixture
-def analysis_scheduler() -> AnalysisScheduler:
-    _analysis_scheduler = AnalysisScheduler()
+def analysis_scheduler(
+    request,
+    pre_analysis_queue,
+    post_analysis_queue,
+    analysis_finished_event,
+) -> AnalysisScheduler:
+    # TODO merge scopes like the config mock does
+    scheduler_test_config_marker = request.node.get_closest_marker('SchedulerTestConfig')
+    test_config: SchedulerTestConfig = (
+        scheduler_test_config_marker.args[0] if scheduler_test_config_marker else SchedulerTestConfig()
+    )
+
+    # TODO den finished spaß könnte man mit markern machen. Also marker der sagt wie viele fertig sein sollen und dann eben dann setzen.
+    # Instanciate an AnalysisScheduler and set everything to None
+    # TODO comment why we need monkeypatch here.
+    # Theoretically we could also do the instanciation last but I dont like this.
+    with MonkeyPatch.context() as mkp:
+        mkp.setattr(AnalysisScheduler, '_start_runner_process', lambda _: None)
+        mkp.setattr(AnalysisScheduler, '_start_result_collector', lambda _: None)
+        _analysis_scheduler = AnalysisScheduler(
+            pre_analysis=lambda _: None,
+            post_analysis=lambda *_: None,
+            unpacking_locks=UnpackingLockManager(),
+        )
+
+    _analysis_scheduler.db_backend_service = test_config.backend_db_class()
 
     # test_regression_virtual_file_path.py
-    pre_analysis_queue = Queue()
-    _analysis_scheduler.pre_analysis = lambda fw: pre_analysis_queue.put(fw)
+    def _pre_analysis_hook(fw):
+        pre_analysis_queue.put(fw)
+        if test_config.pipeline:
+            _analysis_scheduler.db_backend_service.add_object(fw)
+
+    _analysis_scheduler.pre_analysis = _pre_analysis_hook
+
+    # TODO better name
+    analysis_finished_counter = Value('i', 0)
+
+    def _post_analysis_hook(*args):
+        post_analysis_queue.put(args)
+        # TODO this is not atomic but matches the previous behavior
+        analysis_finished_counter.value += 1
+        # We use == here insead of >= to not set the thing when items_to_analyze is 0
+        if analysis_finished_counter.value == test_config.items_to_analyze:
+            analysis_finished_event.set()
+
+        if test_config.pipeline:
+            _analysis_scheduler.db_backend_service.add_analysis(*args)
 
     # test_unpack_and_analyse.py
-    post_analysis_queue = Queue()
-    _analysis_scheduler.post_analysis = lambda *args: post_analysis_queue.put(args)
+    _analysis_scheduler.post_analysis = _post_analysis_hook
+
+    # TODO I really hate that python does not have a defer statement
+    if test_config.start_processes:
+        _analysis_scheduler._start_runner_process()
+        _analysis_scheduler._start_result_collector()
 
     yield _analysis_scheduler
+    # TODO scope: Maybe get inspired by the database_interface fixture.
+    # Have a module scoped thing, then have a function scoped thing that makes sure that all queues are reset.
+
+    if test_config.start_processes:
+        _analysis_scheduler.shutdown()
 
 
 @pytest.fixture
-def unpacking_scheduler() -> UnpackingScheduler:
-    _unpacking_scheduler = UnpackingScheduler()
+def post_unpack_queue() -> Queue:
+    yield Queue()
+
+
+@pytest.fixture
+def unpacking_scheduler(request, post_unpack_queue) -> UnpackingScheduler:
+    scheduler_test_config_marker = request.node.get_closest_marker('SchedulerTestConfig')
+    test_config: SchedulerTestConfig = (
+        scheduler_test_config_marker.args[0] if scheduler_test_config_marker else SchedulerTestConfig()
+    )
+    # TODO don't do this everytime
+    # TODO only allow this if it is in request.fixturenames
+    _analysis_scheduler = request.getfixturevalue('analysis_scheduler')
+
+    with MonkeyPatch.context() as mkp:
+        # self.start_unpack_workers()
+        # self.work_load_process = self.start_work_load_monitor()
+        mkp.setattr(UnpackingScheduler, 'start_unpack_workers', lambda _: None)
+        mkp.setattr(UnpackingScheduler, 'start_work_load_monitor', lambda _: None)
+        _unpacking_scheduler = UnpackingScheduler(
+            post_unpack=lambda _: None,
+            fs_organizer=None,
+            # TODO must this be the same as in analysis_scheduler?
+            unpacking_locks=UnpackingLockManager(),
+        )
+
+    _unpacking_scheduler.fs_organizer = test_config.fs_organizer_class()
 
     # test_unpack_only.py
-    post_unpack_queue = Queue()
-    _unpacking_scheduler.post_unpack = lambda fw: post_unpack_queue.put(fw)
+    def _post_unpack_hook(fw):
+        post_unpack_queue.put(fw)
+        if test_config.pipeline:
+            _analysis_scheduler.start_analysis_of_object(fw)
+
+    # TODO document that the this thing is not the default one as it does not have a default
+    _unpacking_scheduler.post_unpack = _post_unpack_hook
+
+    if test_config.start_processes:
+        _unpacking_scheduler.start_unpack_workers()
+        _unpacking_scheduler.work_load_process = _unpacking_scheduler.start_work_load_monitor()
 
     yield _unpacking_scheduler
 
+    if test_config.start_processes:
+        _unpacking_scheduler.shutdown()
 
-def comparison_scheduler() -> ComparisonScheduler:
-    _comparison_scheduler = ComparisonScheduler()
+
+@pytest.fixture
+def comparsion_finished_event():
+    # This does not need a marker because we only compare two fimrwares in the tests
+    # If we were to compare many pairs of firmwares this would not hold
+    yield Event()
+
+
+@pytest.fixture
+def comparison_scheduler(request, comparsion_finished_event) -> ComparisonScheduler:
+    scheduler_test_config_marker = request.node.get_closest_marker('SchedulerTestConfig')
+    test_config: SchedulerTestConfig = (
+        scheduler_test_config_marker.args[0] if scheduler_test_config_marker else SchedulerTestConfig()
+    )
+    with MonkeyPatch.context() as mkp:
+        mkp.setattr(ComparisonScheduler, 'start', lambda _: None)
+        _comparison_scheduler = ComparisonScheduler()
 
     # test_unpack_analyse_and_compare.py
-    comparison_callback_event = Event()
-    _comparison_scheduler.callback = lambda: comparison_callback_event.set()
+    def _callback_hook():
+        comparsion_finished_event.set()
+
+    _comparison_scheduler.callback = _callback_hook
+
+    if test_config.start_processes:
+        _comparison_scheduler.start()
+
     yield _comparison_scheduler
+
+    if test_config.start_processes:
+        _comparison_scheduler.shutdown()
+
+
+# TODO remove mock from name as they can also be the real thing
+BackendDbInterfaceMockClass = TypeVar('T')
+FSOrganizerClass = TypeVar('T')
+
+
+# TODO make sure that fixtures only use the fields intendet for them
+# TODO reconsider the name
+@dataclass
+class SchedulerTestConfig:
+    """A declarative class that describes the desired behavior for the fixtures TODO.
+    All fields have a default.
+    The defaults are chosen in a way that the most "default" integration test should not have to change anything.
+    The notion "most default" is not defined and the defaults should be changed to reflect what the testbase is doing.
+
+    The fixtures don't do any assertions, they MUST be done by the test using the fixtures.
+    """
+
+    # The amount of items (TODO what is an item?) that the ``AnalysisScheduler`` shall analyze in this test.
+    items_to_analyze: int = 0
+    # The class that shall be used as ``BackendDbInterface``.
+    # This can be either a Mock or the real thing.
+    # TODO is this really needed?!
+    # TODO I really prefer uppercase names for Types
+    backend_db_class: BackendDbInterfaceMockClass = BackEndDbInterfaceMock
+    # TODO documentation
+    # TODO same as backend_db_class
+    fs_organizer_class: FSOrganizerClass = FSOrganizerMock
+    # Interconnects the UnpackingScheduler, AnalysisScheduler and ComparisonScheduler
+    # TODO document&implement this: Only interconnect the fixtures actually used by the test
+    # TODO only AnalysisScheduler and UnpackingScheduler are connected
+    # The comparison scheduler is NOT part of the pipeline.
+    pipeline: bool = False
+    # If false the respective
+    start_processes: bool = True
