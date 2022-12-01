@@ -20,21 +20,17 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         default_plugins = [p for p in plugins if p != 'unpacker' and plugins[p][2]['default']]
         optional_plugins = [p for p in plugins if not (plugins[p][1] or plugins[p][2])]
         for mandatory_plugin in mandatory_plugins:
-            self.assertNotIn(
-                f'id="{mandatory_plugin}"'.encode(), rv.data, f'mandatory plugin {mandatory_plugin} found erroneously'
-            )
+            assert (
+                f'id="{mandatory_plugin}"'.encode() not in rv.data
+            ), f'mandatory plugin {mandatory_plugin} found erroneously'
         for default_plugin in default_plugins:
-            self.assertIn(
-                f'value="{default_plugin}" checked'.encode(),
-                rv.data,
-                f'default plugin {default_plugin} erroneously unchecked or not found',
-            )
+            assert (
+                f'value="{default_plugin}" checked'.encode() in rv.data
+            ), f'default plugin {default_plugin} erroneously unchecked or not found'
         for optional_plugin in optional_plugins:
-            self.assertIn(
-                f'value="{optional_plugin}" unchecked'.encode(),
-                rv.data,
-                f'optional plugin {optional_plugin} erroneously checked or not found',
-            )
+            assert (
+                f'value="{optional_plugin}" unchecked'.encode() in rv.data
+            ), f'optional plugin {optional_plugin} erroneously checked or not found'
 
     def _show_analysis_page(self):
         db = FrontEndDbInterface()
@@ -65,23 +61,18 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}/file_type')
         assert b'application/zip' in rv.data
         assert b'Zip archive data' in rv.data
-        self.assertNotIn(
-            b'<pre><code>', rv.data, 'generic template used instead of specific template -> sync view error!'
-        )
+        assert b'<pre><code>' not in rv.data, 'generic template used instead of specific template -> sync view error!'
 
     def _show_home_page(self):
         rv = self.test_client.get('/')
-        self.assertIn(
-            self.test_fw_a.uid.encode(), rv.data, 'test firmware not found under recent analysis on home page'
-        )
+        assert self.test_fw_a.uid.encode() in rv.data, 'test firmware not found under recent analysis on home page'
 
     def _re_do_analysis_get(self):
         rv = self.test_client.get(f'/admin/re-do_analysis/{self.test_fw_a.uid}')
-        self.assertIn(
-            b'<input type="hidden" name="file_name" id="file_name" value="' + self.test_fw_a.file_name.encode() + b'">',
-            rv.data,
-            'file name not set in re-do page',
-        )
+        assert (
+            b'<input type="hidden" name="file_name" id="file_name" value="' + self.test_fw_a.file_name.encode() + b'">'
+            in rv.data
+        ), 'file name not set in re-do page'
 
     def _delete_firmware(self):
         fs_backend = FSOrganizer()

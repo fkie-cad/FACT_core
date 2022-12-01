@@ -24,9 +24,11 @@ class TestStringEval(unittest.TestCase):
     def test_eval_strings(self):
         input_data = ['this string is useful', 'garbage n$%Schtz', '/an/interesting/directory']
         result = eval_strings(input_data)
-        self.assertEqual(
-            result, ['/an/interesting/directory', 'this string is useful', 'garbage n$%Schtz'], 'Fehler beim bewerten'
-        )
+        assert result == [
+            '/an/interesting/directory',
+            'this string is useful',
+            'garbage n$%Schtz',
+        ], 'Fehler beim bewerten'
 
     def test_add_mail_adress_score(self):
         input_data_true = 'here is my@mail.com'

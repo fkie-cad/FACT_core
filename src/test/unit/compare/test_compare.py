@@ -78,5 +78,5 @@ class TestCompare(unittest.TestCase):
         assert result['virtual_file_path'][self.fw_one.uid] == [self.fw_one.uid]
 
     def test_plugin_system(self):
-        self.assertGreater(len(self.compare_system.compare_plugins), 0, 'no compare plugin found')
+        assert len(self.compare_system.compare_plugins) > 0, 'no compare plugin found'
         assert 'File_Coverage' in self.compare_system.compare_plugins, 'File Coverage module not found'
