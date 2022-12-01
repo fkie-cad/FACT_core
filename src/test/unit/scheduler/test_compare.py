@@ -73,21 +73,16 @@ class TestSchedulerCompare(unittest.TestCase):
         self.compare_scheduler.in_queue.put((self.compare_scheduler.db_interface.test_object.uid, False))
         self.compare_scheduler._compare_single_run(compares_done)
         assert len(compares_done) == 1, 'compares done not set correct'
-        self.assertIn(
-            self.compare_scheduler.db_interface.test_object.uid, compares_done, 'correct uid not in compares done'
-        )
+        assert self.compare_scheduler.db_interface.test_object.uid in compares_done, 'correct uid not in compares done'
 
     def test_decide_whether_to_process(self):
         compares_done = set('a')
-        self.assertTrue(
-            self.compare_scheduler._comparison_should_start('b', False, compares_done),
-            'none existing should always be done',
-        )
-        self.assertTrue(
-            self.compare_scheduler._comparison_should_start('a', True, compares_done),
-            'redo is true so result should be true',
-        )
-        self.assertFalse(
-            self.compare_scheduler._comparison_should_start('a', False, compares_done),
-            'already done and redo no -> should be false',
-        )
+        assert self.compare_scheduler._comparison_should_start(
+            'b', False, compares_done
+        ), 'none existing should always be done'
+        assert self.compare_scheduler._comparison_should_start(
+            'a', True, compares_done
+        ), 'redo is true so result should be true'
+        assert not self.compare_scheduler._comparison_should_start(
+            'a', False, compares_done
+        ), 'already done and redo no -> should be false'

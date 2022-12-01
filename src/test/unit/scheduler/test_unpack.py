@@ -47,21 +47,17 @@ class TestUnpackScheduler(TestCase):
         self.scheduler.add_task(test_fw)
         outer_container = self.tmp_queue.get(timeout=5)
         assert len(outer_container.files_included) == 2, 'not all children of root found'
-        self.assertIn(
-            'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227',
-            outer_container.files_included,
-            'included container not extracted. Unpacker tar.gz modul broken?',
-        )
+        assert (
+            'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227' in outer_container.files_included
+        ), 'included container not extracted. Unpacker tar.gz modul broken?'
         included_files = [self.tmp_queue.get(timeout=5), self.tmp_queue.get(timeout=5)]
         for item in included_files:
             if item.uid == 'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227':
                 assert len(item.files_included) == 1, 'number of files in included container not correct'
             else:
-                self.assertEqual(
-                    item.uid,
-                    'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28',
-                    'none container file not rescheduled',
-                )
+                assert (
+                    item.uid == 'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28'
+                ), 'none container file not rescheduled'
 
     def test_get_combined_analysis_workload(self):
         self._start_scheduler()

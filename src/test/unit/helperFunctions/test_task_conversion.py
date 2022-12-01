@@ -46,22 +46,19 @@ class TestTaskConversion(unittest.TestCase):
 
     def test_get_uid_of_analysis_task(self):
         analysis_task = {'binary': b'this is a test'}
-        self.assertEqual(
-            _get_uid_of_analysis_task(analysis_task),
-            '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14',
-            'result is not a uid',
-        )
+        assert (
+            _get_uid_of_analysis_task(analysis_task)
+            == '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14'
+        ), 'result is not a uid'
 
     def test_convert_analysis_task_to_firmware_object(self):
         fw_obj = Firmware()
         fw_obj.tags = {'tag', tag.TagColor.GRAY}
         fw_obj = convert_analysis_task_to_fw_obj(TEST_TASK)
         assert isinstance(fw_obj, Firmware), 'return type not correct'
-        self.assertEqual(
-            fw_obj.uid,
-            '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14',
-            'uid not correct -> binary not correct',
-        )
+        assert (
+            fw_obj.uid == '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14'
+        ), 'uid not correct -> binary not correct'
         assert fw_obj.file_name == 'test_file_name'
         assert fw_obj.device_name == 'test device'
         assert fw_obj.part == 'kernel'

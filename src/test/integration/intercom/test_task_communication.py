@@ -100,7 +100,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         assert plugins == {'dummy': 'dummy description'}, 'content not correct'
 
     def test_analysis_plugin_publication_not_available(self):
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             self.frontend.get_available_analysis_plugins()
 
     @mock.patch('intercom.front_end_binding.generate_task_id')
