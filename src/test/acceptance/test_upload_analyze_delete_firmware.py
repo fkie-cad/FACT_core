@@ -11,7 +11,7 @@ from test.acceptance.base_full_start import TestAcceptanceBaseFullStart  # pylin
 class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
-        self.assertIn(b'<h3 class="mb-3">Upload Firmware</h3>', rv.data, 'upload page not displayed correctly')
+        assert b'<h3 class="mb-3">Upload Firmware</h3>' in rv.data, 'upload page not displayed correctly'
 
         with ConnectTo(InterComFrontEndBinding) as connection:
             plugins = connection.get_available_analysis_plugins()
@@ -40,31 +40,31 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         db = FrontEndDbInterface()
         assert db.exists(self.test_fw_a.uid), 'Error: Test firmware not found in DB!'
         rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
-        self.assertIn(self.test_fw_a.uid.encode(), rv.data)
-        self.assertIn(self.test_fw_a.name.encode(), rv.data)
-        self.assertIn(b'test_class', rv.data)
-        self.assertIn(b'test_vendor', rv.data)
-        self.assertIn(b'test_part', rv.data)
-        self.assertIn(b'unknown', rv.data)
-        self.assertIn(self.test_fw_a.file_name.encode(), rv.data, 'file name not found')
-        self.assertIn(b'Admin</button>', rv.data, 'admin options not shown with disabled auth')
+        assert self.test_fw_a.uid.encode() in rv.data
+        assert self.test_fw_a.name.encode() in rv.data
+        assert b'test_class' in rv.data
+        assert b'test_vendor' in rv.data
+        assert b'test_part' in rv.data
+        assert b'unknown' in rv.data
+        assert self.test_fw_a.file_name.encode() in rv.data, 'file name not found'
+        assert b'Admin</button>' in rv.data, 'admin options not shown with disabled auth'
 
     def _check_ajax_file_tree_routes(self):
         rv = self.test_client.get(f'/ajax_tree/{self.test_fw_a.uid}/{self.test_fw_a.uid}')
-        self.assertIn(b'"children":', rv.data)
+        assert b'"children":' in rv.data
         rv = self.test_client.get(f'/ajax_root/{self.test_fw_a.uid}/{self.test_fw_a.uid}')
-        self.assertIn(b'"children":', rv.data)
+        assert b'"children":' in rv.data
 
     def _check_ajax_on_demand_binary_load(self):
         rv = self.test_client.get(
             '/ajax_get_binary/text_plain/d558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62'
         )
-        self.assertIn(b'test file', rv.data)
+        assert b'test file' in rv.data
 
     def _show_analysis_details_file_type(self):
         rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}/file_type')
-        self.assertIn(b'application/zip', rv.data)
-        self.assertIn(b'Zip archive data', rv.data)
+        assert b'application/zip' in rv.data
+        assert b'Zip archive data' in rv.data
         self.assertNotIn(
             b'<pre><code>', rv.data, 'generic template used instead of specific template -> sync view error!'
         )
@@ -86,13 +86,13 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
     def _delete_firmware(self):
         fs_backend = FSOrganizer()
         local_firmware_path = Path(fs_backend.generate_path_from_uid(self.test_fw_a.uid))
-        self.assertTrue(local_firmware_path.exists(), 'file not found before delete')
+        assert local_firmware_path.exists(), 'file not found before delete'
         rv = self.test_client.get(f'/admin/delete/{self.test_fw_a.uid}')
-        self.assertIn(b'Deleted 4 file(s) from database', rv.data, 'deletion success page not shown')
+        assert b'Deleted 4 file(s) from database' in rv.data, 'deletion success page not shown'
         rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
-        self.assertIn(b'File not found in database', rv.data, 'file is still available after delete')
+        assert b'File not found in database' in rv.data, 'file is still available after delete'
         time.sleep(3)
-        self.assertFalse(local_firmware_path.exists(), 'file not deleted')
+        assert not local_firmware_path.exists(), 'file not deleted'
 
     def test_run_from_upload_via_show_analysis_to_delete(self):
         self._upload_firmware_get()

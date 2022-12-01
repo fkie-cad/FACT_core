@@ -45,7 +45,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
 
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
-        self.assertIn(b'<h3 class="mb-3">Upload Firmware</h3>', rv.data, 'upload page not displayed correctly')
+        assert b'<h3 class="mb-3">Upload Firmware</h3>' in rv.data, 'upload page not displayed correctly'
 
     def _upload_firmware_put(self, path, device_name, uid):
         testfile_path = os.path.join(get_test_data_dir(), path)
@@ -62,41 +62,41 @@ class TestAcceptanceMisc(TestAcceptanceBase):
                 'analysis_systems': [],
             }
             rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
-        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
-        self.assertIn(uid.encode(), rv.data, 'uid not found on upload success page')
+        assert b'Upload Successful' in rv.data, 'upload not successful'
+        assert uid.encode() in rv.data, 'uid not found on upload success page'
 
     def _show_stats(self):
         rv = self.test_client.get('/statistic')
-        self.assertIn(b'Firmware Container', rv.data)
-        self.assertIn(b'test_vendor', rv.data)
-        self.assertIn(b'Release Date Stats', rv.data)
+        assert b'Firmware Container' in rv.data
+        assert b'test_vendor' in rv.data
+        assert b'Release Date Stats' in rv.data
 
     def _show_stats_filtered(self):
         rv = self.test_client.get('/statistic?vendor=test_vendor')
-        self.assertIn(b'Firmware Container', rv.data)
-        self.assertIn(b'test_vendor', rv.data)
-        self.assertIn(b'Release Date Stats', rv.data)
+        assert b'Firmware Container' in rv.data
+        assert b'test_vendor' in rv.data
+        assert b'Release Date Stats' in rv.data
 
     def _show_about(self):
         rv = self.test_client.get('/about')
-        self.assertIn(b'License Information', rv.data)
+        assert b'License Information' in rv.data
 
     def _show_home(self):
         rv = self.test_client.get('/')
-        self.assertIn(b'backend cpu load', rv.data)
+        assert b'backend cpu load' in rv.data
 
     def _show_system_monitor(self):
         rv = self.test_client.get('/system_health')
-        self.assertIn(b'backend status', rv.data)
+        assert b'backend status' in rv.data
 
     def _click_chart(self):
         query = json.dumps({'vendor': 'test_vendor'})
         rv = self.test_client.get(f'/database/browse?query={quote(query)}')
-        self.assertIn(self.test_fw_a.uid.encode(), rv.data)
+        assert self.test_fw_a.uid.encode() in rv.data
 
     def _click_release_date_histogram(self):
         rv = self.test_client.get('/database/browse?date="January 2009"')
-        self.assertIn(self.test_fw_a.uid.encode(), rv.data)
+        assert self.test_fw_a.uid.encode() in rv.data
 
     def test_misc(self):
         self._upload_firmware_get()
