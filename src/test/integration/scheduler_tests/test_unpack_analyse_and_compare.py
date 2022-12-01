@@ -3,7 +3,7 @@ from helperFunctions.data_conversion import normalize_compare_id
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
 from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
-from test.integration.conftest import SchedulerTestConfig
+from test.integration.conftest import SchedulerIntegrationTestConfig
 
 _expected_result = {
             'File_Coverage': {'files_in_common': {'all': [], 'collapse': False}},
@@ -13,7 +13,7 @@ _expected_result = {
 
 # TODO this test passes but some background process is not stopped.
 @pytest.mark.SchedulerTestConfig(
-    SchedulerTestConfig(
+    SchedulerIntegrationTestConfig(
         # 2 container with 3 files each and 2 plugins
         items_to_analyze=4*2*2,
         start_processes=True,

@@ -1,12 +1,12 @@
 # pylint: disable=attribute-defined-outside-init,wrong-import-order,unused-argument
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
-from test.integration.conftest import SchedulerTestConfig
+from test.integration.conftest import SchedulerIntegrationTestConfig
 import pytest
 
 
 @pytest.mark.SchedulerTestConfig(
-     SchedulerTestConfig(
+     SchedulerIntegrationTestConfig(
          start_processes=True,
          pipeline=True,
      ),

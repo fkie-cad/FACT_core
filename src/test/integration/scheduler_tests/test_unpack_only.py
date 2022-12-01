@@ -1,11 +1,11 @@
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
 import pytest
-from test.integration.conftest import SchedulerTestConfig
+from test.integration.conftest import SchedulerIntegrationTestConfig
 
 
 @pytest.mark.SchedulerTestConfig(
-    SchedulerTestConfig(
+    SchedulerIntegrationTestConfig(
         start_processes=True,
     ),
 )
