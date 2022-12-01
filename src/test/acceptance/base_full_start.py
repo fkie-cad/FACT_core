@@ -49,5 +49,5 @@ class TestAcceptanceBaseFullStart(TestAcceptanceBase):
                 'analysis_systems': [],
             }
             rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
-        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
-        self.assertIn(test_fw.uid.encode(), rv.data, 'uid not found on upload success page')
+        assert b'Upload Successful' in rv.data, 'upload not successful'
+        assert test_fw.uid.encode() in rv.data, 'uid not found on upload success page'

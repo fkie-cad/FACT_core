@@ -63,9 +63,9 @@ class TestInterComTaskCommunication(unittest.TestCase):
         test_fw.file_path = None
         self.frontend.add_analysis_task(test_fw)
         task = self.backend.get_next_task()
-        self.assertEqual(task.uid, test_fw.uid, 'uid not correct')
-        self.assertIsNotNone(task.file_path, 'file_path not set')
-        self.assertTrue(os.path.exists(task.file_path), 'file does not exist')
+        assert task.uid == test_fw.uid, 'uid not correct'
+        assert task.file_path is not None, 'file_path not set'
+        assert os.path.exists(task.file_path), 'file does not exist'
 
     def test_single_file_task(self):
         self.backend = InterComBackEndSingleFileTask()
@@ -84,20 +84,20 @@ class TestInterComTaskCommunication(unittest.TestCase):
         test_fw.file_path = None
         self.frontend.add_re_analyze_task(test_fw)
         task = self.backend.get_next_task()
-        self.assertEqual(task.uid, test_fw.uid, 'uid not correct')
+        assert task.uid == test_fw.uid, 'uid not correct'
 
     def test_compare_task(self):
         self.backend = InterComBackEndCompareTask()
         self.frontend.add_compare_task('valid_id', force=False)
         result = self.backend.get_next_task()
-        self.assertEqual(result, ('valid_id', False))
+        assert result == ('valid_id', False)
 
     def test_analysis_plugin_publication(self):
 
         self.backend = InterComBackEndAnalysisPlugInsPublisher(analysis_service=AnalysisServiceMock())
         plugins = self.frontend.get_available_analysis_plugins()
-        self.assertEqual(len(plugins), 1, 'Not all plug-ins found')
-        self.assertEqual(plugins, {'dummy': 'dummy description'}, 'content not correct')
+        assert len(plugins) == 1, 'Not all plug-ins found'
+        assert plugins == {'dummy': 'dummy description'}, 'content not correct'
 
     def test_analysis_plugin_publication_not_available(self):
         with self.assertRaises(Exception):
@@ -110,13 +110,13 @@ class TestInterComTaskCommunication(unittest.TestCase):
         generate_task_id_mock.return_value = 'valid_uid_0.0'
 
         result = self.frontend.get_binary_and_filename('valid_uid')
-        self.assertIsNone(result, 'should be none because of timeout')
+        assert result is None, 'should be none because of timeout'
 
         self.backend = InterComBackEndRawDownloadTask()
         task = self.backend.get_next_task()
-        self.assertEqual(task, 'valid_uid', 'task not correct')
+        assert task == 'valid_uid', 'task not correct'
         result = self.frontend.get_binary_and_filename('valid_uid_0.0')
-        self.assertEqual(result, (b'test', 'test.txt'), 'retrieved binary not correct')
+        assert result == (b'test', 'test.txt'), 'retrieved binary not correct'
 
     @mock.patch('intercom.front_end_binding.generate_task_id', new=lambda _: 'valid_uid_0.0')
     @mock.patch('intercom.back_end_binding.BinaryService', new=BinaryServiceMock)
@@ -154,10 +154,10 @@ class TestInterComTaskCommunication(unittest.TestCase):
         generate_task_id_mock.return_value = 'valid_uid_0.0'
 
         result = self.frontend.get_repacked_binary_and_file_name('valid_uid')
-        self.assertIsNone(result, 'should be none because of timeout')
+        assert result is None, 'should be none because of timeout'
 
         self.backend = InterComBackEndTarRepackTask()
         task = self.backend.get_next_task()
-        self.assertEqual(task, 'valid_uid', 'task not correct')
+        assert task == 'valid_uid', 'task not correct'
         result = self.frontend.get_repacked_binary_and_file_name('valid_uid_0.0')
-        self.assertEqual(result, (b'test', 'test.tar'), 'retrieved binary not correct')
+        assert result == (b'test', 'test.tar'), 'retrieved binary not correct'

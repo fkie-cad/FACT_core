@@ -61,8 +61,8 @@ class TestSchedulerCompare(unittest.TestCase):
     def test_start_compare(self):
         self.compare_scheduler.add_task(('existing_id', True))
         uid, redo = self.compare_scheduler.in_queue.get(timeout=2)
-        self.assertEqual(uid, 'existing_id', 'retrieved id not correct')
-        self.assertTrue(redo, 'redo argument not correct')
+        assert uid == 'existing_id', 'retrieved id not correct'
+        assert redo, 'redo argument not correct'
 
     def test_start(self):
         self.compare_scheduler.start()
@@ -72,7 +72,7 @@ class TestSchedulerCompare(unittest.TestCase):
         compares_done = set()
         self.compare_scheduler.in_queue.put((self.compare_scheduler.db_interface.test_object.uid, False))
         self.compare_scheduler._compare_single_run(compares_done)
-        self.assertEqual(len(compares_done), 1, 'compares done not set correct')
+        assert len(compares_done) == 1, 'compares done not set correct'
         self.assertIn(
             self.compare_scheduler.db_interface.test_object.uid, compares_done, 'correct uid not in compares done'
         )
