@@ -11,7 +11,7 @@ from docker.models.containers import Container
 from docker.types import Mount
 
 DOCKER_CLIENT = docker.from_env()
-EXTRACTOR_DOCKER_IMAGE = 'extractor_uaas_test:latest'
+EXTRACTOR_DOCKER_IMAGE = 'fkiecad/fact_extractor'
 
 
 class ExtractionContainer:
