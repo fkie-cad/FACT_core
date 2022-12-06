@@ -98,7 +98,7 @@ signal.signal(signal.SIGTERM, shutdown)
 if __name__ == '__main__':
     process_list = []
     run = True
-    args, _ = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+    args = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
     db_process = _start_component('db', args)
     sleep(2)
