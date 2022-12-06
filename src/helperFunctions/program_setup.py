@@ -19,12 +19,13 @@
 import argparse
 import logging
 import sys
+from argparse import ArgumentParser
 from pathlib import Path
 
 from common_helper_files import create_dir_for_file
 
 import config
-from config import cfg, configparser_cfg
+from config import cfg
 from helperFunctions.fileSystem import get_config_dir
 from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
@@ -35,20 +36,21 @@ def program_setup(name, description, component=None, version=__VERSION__, comman
     Creates an ArgumentParser with some default options and parse command_line_options.
 
     :param command_line_options: The arguments to parse
-    :return: A tuple (args, config) containing the parsed args from argparser and the config read
+    :return: The parsed args from argparser
     '''
     args = _setup_argparser(name, description, command_line_options=command_line_options or sys.argv, version=version)
     config.load(args.config_file)
+    set_logging_cfg_from_args(args)
+    setup_logging(args, component)
+    return args
 
+
+def set_logging_cfg_from_args(args: ArgumentParser):
+    """Command line parameters will overwrite values from the config file"""
     if args.log_file is not None:
-        configparser_cfg['logging']['logfile'] = args.log_file
         cfg.logging.logfile = args.log_file
     if args.log_level is not None:
-        configparser_cfg['logging']['loglevel'] = args.log_level
         cfg.logging.loglevel = args.log_level
-
-    setup_logging(configparser_cfg, args, component)
-    return args, configparser_cfg
 
 
 def _setup_argparser(name, description, command_line_options, version=__VERSION__):
@@ -74,14 +76,8 @@ def _setup_argparser(name, description, command_line_options, version=__VERSION_
     return parser.parse_args(command_line_options[1:])
 
 
-def _get_console_output_level(debug_flag):
-    if debug_flag:
-        return logging.DEBUG
-    return logging.INFO
-
-
-def setup_logging(config, args, component=None):
-    log_level = getattr(logging, config['logging']['loglevel'], None)
+def setup_logging(args, component=None):
+    log_level = getattr(logging, cfg.logging.loglevel, None)
     log_format = dict(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
@@ -95,7 +91,7 @@ def setup_logging(config, args, component=None):
 
     if not args.silent:
         console_log = logging.StreamHandler()
-        console_log.setLevel(_get_console_output_level(args.debug))
+        console_log.setLevel(logging.DEBUG if args.debug else logging.INFO)
         console_log.setFormatter(ColoringFormatter(**log_format))
         logger.addHandler(console_log)
 

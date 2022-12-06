@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import configparser
 from configparser import ConfigParser
 from pathlib import Path
@@ -120,8 +122,8 @@ def _parse_dict(sections):
     """
     Parses the section of the config file given as a dictionary.
     The following things are parsed:
-        * Entrys whose value is an empty string just are removed.
-        * Comma separeted lists are changed to actual lists.
+        * Entries whose value is an empty string just are removed.
+        * Comma separated lists are changed to actual lists.
     """
     # hyphens may not be contained in identifiers
     # plugin names may also not contain hyphens, so this is fine
@@ -147,7 +149,7 @@ def _parse_dict(sections):
                 sections[section_name].pop(entry)
 
 
-def load(path=None):
+def load(path: str | None = None):
     # pylint: disable=global-statement
     """Load the config file located at ``path``.
     The file must be an ini file and is read into an `config.Config` instance.
