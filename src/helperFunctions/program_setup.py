@@ -19,7 +19,6 @@
 import argparse
 import logging
 import sys
-from argparse import ArgumentParser
 from pathlib import Path
 
 from common_helper_files import create_dir_for_file
@@ -45,7 +44,7 @@ def program_setup(name, description, component=None, version=__VERSION__, comman
     return args
 
 
-def set_logging_cfg_from_args(args: ArgumentParser):
+def set_logging_cfg_from_args(args: argparse.Namespace):
     """Command line parameters will overwrite values from the config file"""
     if args.log_file is not None:
         cfg.logging.logfile = args.log_file
