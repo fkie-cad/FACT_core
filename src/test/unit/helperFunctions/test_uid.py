@@ -21,4 +21,4 @@ class TestHelperFunctionsUID(unittest.TestCase):
         assert not is_list_of_uids('blah')
         assert not is_list_of_uids(['foobar'])
         assert not is_list_of_uids([])
-        assert [self.test_uid], 'uid list not recognized'
+        assert is_list_of_uids([self.test_uid]), 'uid list not recognized'

@@ -28,7 +28,7 @@ class TestStringEval(unittest.TestCase):
             '/an/interesting/directory',
             'this string is useful',
             'garbage n$%Schtz',
-        ], 'Fehler beim bewerten'
+        ]
 
     def test_add_mail_adress_score(self):
         input_data_true = 'here is my@mail.com'
