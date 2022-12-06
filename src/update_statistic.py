@@ -29,7 +29,7 @@ PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
 def main(command_line_options=None):
     if command_line_options is None:
         command_line_options = sys.argv
-    _ = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
+    program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     updater = StatsUpdater()
     updater.update_all_stats()
