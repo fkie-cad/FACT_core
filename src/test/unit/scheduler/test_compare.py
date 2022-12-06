@@ -79,7 +79,7 @@ class TestSchedulerCompare(unittest.TestCase):
         compares_done = set('a')
         assert self.compare_scheduler._comparison_should_start(
             'b', False, compares_done
-        ), 'none existing should always be done'
+        ), 'non-existing compare should always be done'
         assert self.compare_scheduler._comparison_should_start(
             'a', True, compares_done
         ), 'redo is true so result should be true'
