@@ -14,7 +14,7 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend()
-        self.db_backend_interface = BackendDbInterface(self.config)
+        self.db_backend_interface = BackendDbInterface()
 
         self.parent_fw = create_test_firmware()
         self.child_fo = create_test_file_object()

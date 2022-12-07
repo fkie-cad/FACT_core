@@ -6,7 +6,7 @@ from itertools import chain
 from flask import redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
-from helperFunctions.config import read_list_from_config
+from config import cfg, parse_comma_separated_list
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.task_conversion import get_file_name_and_binary_from_request
@@ -37,7 +37,7 @@ class DatabaseRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/browse', GET)
     def browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
-        page, per_page = extract_pagination_from_request(request, self._config)[0:2]
+        page, per_page = extract_pagination_from_request(request)[0:2]
         search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
 
         with get_shared_session(self.db.frontend) as frontend_db:
@@ -84,7 +84,7 @@ class DatabaseRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/browse_binary_search_history', GET)
     def browse_searches(self):
-        page, per_page, offset = extract_pagination_from_request(request, self._config)
+        page, per_page, offset = extract_pagination_from_request(request)
         try:
             with get_shared_session(self.db.frontend) as frontend_db:
                 searches = frontend_db.search_query_cache(offset=offset, limit=per_page)
@@ -160,7 +160,7 @@ class DatabaseRoutes(ComponentBase):
         return json.dumps(query)
 
     def _add_hash_query_to_query(self, query, value):
-        hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
+        hash_types = parse_comma_separated_list(getattr(cfg, 'file_hashes')['hashes'])
         hash_query = {f'processed_analysis.file_hashes.{hash_type}': value for hash_type in hash_types}
         query.update({'$or': hash_query})
 
@@ -211,7 +211,7 @@ class DatabaseRoutes(ComponentBase):
                 error = f'Error: Firmware with UID {repr(firmware_uid)} not found in database'
             elif yara_rule_file is not None:
                 if is_valid_yara_rule_file(yara_rule_file):
-                    with ConnectTo(self.intercom, self._config) as connection:
+                    with ConnectTo(self.intercom) as connection:
                         request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(
                         url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware)
@@ -224,7 +224,7 @@ class DatabaseRoutes(ComponentBase):
     def _get_items_from_binary_search_request(self, req):
         yara_rule_file = None
         if 'file' in req.files and req.files['file']:
-            _, yara_rule_file = get_file_name_and_binary_from_request(req, self._config)
+            _, yara_rule_file = get_file_name_and_binary_from_request(req)
         elif req.form['textarea']:
             yara_rule_file = req.form['textarea'].encode()
         firmware_uid = req.form.get('firmware_uid') if req.form.get('firmware_uid') else None
@@ -240,7 +240,7 @@ class DatabaseRoutes(ComponentBase):
         firmware_dict, error, yara_rules = None, None, None
         if request.args.get('request_id'):
             request_id = request.args.get('request_id')
-            with ConnectTo(self.intercom, self._config) as connection:
+            with ConnectTo(self.intercom) as connection:
                 result, yara_rules = connection.get_binary_search_result(request_id)
             if isinstance(result, str):
                 error = result

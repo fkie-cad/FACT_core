@@ -30,6 +30,7 @@ except (ImportError, ModuleNotFoundError):
     sys.exit(1)
 
 from analysis.PluginBase import PluginInitException
+from config import cfg
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
@@ -48,19 +49,17 @@ class FactBackend(FactBase):
         unpacking_lock_manager = UnpackingLockManager()
 
         try:
-            self.analysis_service = AnalysisScheduler(config=self.config, unpacking_locks=unpacking_lock_manager)
+            self.analysis_service = AnalysisScheduler(unpacking_locks=unpacking_lock_manager)
         except PluginInitException as error:
             logging.critical(f'Error during initialization of plugin {error.plugin.NAME}. Shutting down FACT backend')
             complete_shutdown()
         self.unpacking_service = UnpackingScheduler(
-            config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
             analysis_workload=self.analysis_service.get_combined_analysis_workload,
             unpacking_locks=unpacking_lock_manager,
         )
-        self.compare_service = ComparisonScheduler(config=self.config)
+        self.compare_service = ComparisonScheduler()
         self.intercom = InterComBackEndBinding(
-            config=self.config,
             analysis_service=self.analysis_service,
             compare_service=self.compare_service,
             unpacking_service=self.unpacking_service,
@@ -68,7 +67,7 @@ class FactBackend(FactBase):
         )
 
     def main(self):
-        docker_mount_base_dir = Path(self.config['data-storage']['docker-mount-base-dir'])
+        docker_mount_base_dir = Path(cfg.data_storage.docker_mount_base_dir)
         docker_mount_base_dir.mkdir(0o770, exist_ok=True)
         docker_gid = grp.getgrnam('docker').gr_gid
         try:

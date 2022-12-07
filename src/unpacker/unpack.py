@@ -7,6 +7,7 @@ from typing import List
 
 from fact_helper_file import get_file_type_from_path
 
+from config import cfg
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
@@ -16,9 +17,9 @@ from unpacker.unpack_base import UnpackBase
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, config=None, worker_id=None, fs_organizer=None, unpacking_locks=None):
-        super().__init__(config=config, worker_id=worker_id)
-        self.file_storage_system = FSOrganizer(config=self.config) if fs_organizer is None else fs_organizer
+    def __init__(self, worker_id=None, fs_organizer=None, unpacking_locks=None):
+        super().__init__(worker_id=worker_id)
+        self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
         self.unpacking_locks = unpacking_locks
 
     def unpack(self, current_fo: FileObject):
@@ -28,16 +29,12 @@ class Unpacker(UnpackBase):
 
         logging.debug(f'[worker {self.worker_id}] Extracting {current_fo.uid}: Depth: {current_fo.depth}')
 
-        if current_fo.depth >= self.config.getint('unpack', 'max-depth'):
-            logging.warning(
-                f"{current_fo.uid} is not extracted since depth limit ({self.config.get('unpack', 'max-depth')}) is reached"
-            )
+        if current_fo.depth >= cfg.unpack.max_depth:
+            logging.warning(f'{current_fo.uid} is not extracted since depth limit ({cfg.unpack.max_depth}) is reached')
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
-        with TemporaryDirectory(
-            prefix='fact_unpack_', dir=self.config['data-storage']['docker-mount-base-dir']
-        ) as tmp_dir:
+        with TemporaryDirectory(prefix='fact_unpack_', dir=cfg.data_storage.docker_mount_base_dir) as tmp_dir:
             file_path = self._generate_local_file_path(current_fo)
             extracted_files = self.extract_files_from_file(file_path, tmp_dir)
             if extracted_files is None:

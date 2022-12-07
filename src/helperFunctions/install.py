@@ -1,4 +1,3 @@
-import configparser
 import logging
 import os
 import shlex
@@ -196,20 +195,6 @@ def _checkout_github_project(github_path: str, folder_name: str):
         raise InstallationError(f'Cloning from github failed for project {github_path}\n {clone_url}')
     if not Path('.', folder_name).exists():
         raise InstallationError(f'Repository creation failed on folder {folder_name}\n {clone_url}')
-
-
-def load_main_config() -> configparser.ConfigParser:
-    '''
-    Create config object from main.cfg in src/config folder.
-
-    :return: config object.
-    '''
-    config = configparser.ConfigParser()
-    config_path = Path(Path(__file__).parent.parent, 'config', 'main.cfg')
-    if not config_path.is_file():
-        raise InstallationError(f'Could not load config at path {config_path}')
-    config.read(str(config_path))
-    return config
 
 
 def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool = False, **kwargs):

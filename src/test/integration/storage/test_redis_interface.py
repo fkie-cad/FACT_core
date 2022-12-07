@@ -5,14 +5,13 @@ from os import urandom
 import pytest
 
 from storage.redis_interface import CHUNK_MAGIC, RedisInterface
-from test.common_helper import get_config_for_testing
 
 CHUNK_SIZE = 1_000
 
 
 @pytest.fixture(scope='function')
 def redis():
-    interface = RedisInterface(config=get_config_for_testing(), chunk_size=CHUNK_SIZE)
+    interface = RedisInterface(chunk_size=CHUNK_SIZE)
     try:
         yield interface
     finally:

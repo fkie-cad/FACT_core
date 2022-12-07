@@ -21,6 +21,7 @@
 
     });
 </script>
+<script src="{{ url_for('static', filename='js/file_tree.js') }}"></script>
 
 <style>
     .internal-table td {
@@ -58,21 +59,15 @@
                 <div id="fileTreeAjax_{{ loop.index }}"></div>
                 {# --- file tree ---#}
                 <script>
-                    $('#fileTreeAjax_{{ loop.index }}')
-                        // generate links to the analysis page
-                        .on("activate_node.jstree", function(e,data){window.location.href = data.node.a_attr.href;})
-                        // generate file tree
-                        .jstree({
-                          "core" : {
-                            'data' : {
-                              'url' : function (node) {
-                                return node.id === '#' ?
-                                    "/ajax_root/{{ firmware_uid|safe }}/{{ firmware_uid|safe }}" : "/compare/ajax_tree/{{ result["_id"] }}/{{ firmware_uid }}/" + node["data"]["uid"];
-                              }
-                            }
-                          },
-                          "plugins" : [ "sort" ]
-                        });
+                    create_file_tree(
+                        $('#fileTreeAjax_{{ loop.index }}'),
+                        false,
+                        (node) => node.id === '#' ?
+                            // root node url
+                            "/ajax_root/{{ firmware_uid|safe }}/{{ firmware_uid|safe }}" :
+                            // inner node url
+                            "/compare/ajax_tree/{{ result["_id"] }}/{{ firmware_uid }}/" + node["data"]["uid"]
+                    );
                 </script>
             </td>
             {% endif %}

@@ -42,8 +42,8 @@ class FactBase:
             signal.signal(signal.SIGINT, self.shutdown_listener)
             signal.signal(signal.SIGTERM, self.shutdown_listener)
 
-        self.args, self.config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
-        self.work_load_stat = WorkLoadStatistic(config=self.config, component=self.COMPONENT)
+        self.args = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
+        self.work_load_stat = WorkLoadStatistic(component=self.COMPONENT)
 
     def shutdown_listener(self, signum, _):
         logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')

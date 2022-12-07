@@ -1,5 +1,4 @@
 # pylint: disable=wrong-import-order
-
 import gc
 import grp
 import os
@@ -36,7 +35,7 @@ class TestUnpackerBase(unittest.TestCase):
         config.set('unpack', 'max-depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')
         config.add_section('expert-settings')
-        self.unpacker = Unpacker(config=config, unpacking_locks=UnpackingLockManager())
+        self.unpacker = Unpacker(unpacking_locks=UnpackingLockManager())
         self.tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         self.test_fo = create_test_file_object()
 
