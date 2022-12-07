@@ -3,6 +3,10 @@ from ghidra.program.model.block import BasicBlockModel
 from ghidra.program.model.pcode import PcodeOp, Varnode, VarnodeAST
 from decompile import decompileFunction
 
+def iter_array(array):
+    while array.hasNext():
+        yield array.next()
+
 def getFunctionCallSitePCodeOps(ghidraAnalysis, func, functionNames):
     """
     Withing a function func, look for all p-code operations associated with a CALL to a function from functionNames
@@ -16,9 +20,7 @@ def getFunctionCallSitePCodeOps(ghidraAnalysis, func, functionNames):
     hfunction = decompileFunction(ghidraAnalysis, func)
 
     opiter = hfunction.getPcodeOps()
-    while opiter.hasNext() and not ghidraAnalysis.monitor.isCancelled():
-        pcodeOpAST = opiter.next()
-
+    for pcodeOpAST in iter_array(opiter):
         if pcodeOpAST.getOpcode() == PcodeOp.CALL:
             calledVarnode = pcodeOpAST.getInput(0)
 
@@ -56,11 +58,9 @@ def getReferents(ghidraAnalysis, func, pcAddress):
     blockModel = BasicBlockModel(ghidraAnalysis.currentProgram)
     blocks = blockModel.getCodeBlocksContaining(func.getBody(), ghidraAnalysis.monitor)
     referents = []
-    while (blocks.hasNext()):
-        block = blocks.next()
+    for block in iter_array(blocks):
         dest = block.getDestinations(ghidraAnalysis.monitor)
-        while (dest.hasNext()):
-            dbb = dest.next()
+        for dbb in iter_array(dest):
             referent = dbb.getReferent()
             if referent <= pcAddress:
                 referents.append(referent)
@@ -80,50 +80,41 @@ def getVarFromVarnode(ghidraAnalysis, func, varnode):
     :return symbol: ghidra.program.model.pcode.HighSymbol
     :return: None
     """
-    if isinstance(varnode, (Varnode, VarnodeAST)):
-        raise Exception("Invalid value. Expected `Varnode` or `VarnodeAST`, got {}.".format(type(varnode)))
-
-    bitness_masks = {
-        '16': 0xffff,
-        '32': 0xffffffff,
-        '64': 0xffffffffffffffff,
-    }
-
-    try:
-        addr_size = ghidraAnalysis.currentProgram.getMetadata()['Address Size']
-        bitmask = bitness_masks[addr_size]
-    except KeyError:
-        raise Exception("Unsupported bitness: {}. Add a bit mask for this target.".format(addr_size))
+    addr_size = ghidraAnalysis.currentProgram.getMetadata()['Address Size']
+    bitmask = int(int(addr_size) // 4 * "f", 16)
 
     local_variables = func.getAllVariables()
     vndef = varnode.getDef()
-    if vndef is not None:
-        vndef_inputs = vndef.getInputs()
-        for defop_input in vndef_inputs:
-            defop_input_offset = defop_input.getAddress().getOffset() & bitmask
-            for lv in local_variables:
-                unsigned_lv_offset = lv.getMinAddress().getUnsignedOffset() & bitmask
-                if unsigned_lv_offset == defop_input_offset:
-                    return lv
-        
-        # If we get here, varnode is likely a "acStack##" variable.
-        hf = decompileFunction(ghidraAnalysis, func)
-        lsm = hf.getLocalSymbolMap()
-        for vndef_input in vndef_inputs:
-            defop_input_offset = vndef_input.getAddress().getOffset() & bitmask
-            for symbol in lsm.getSymbols():
-                if symbol.isParameter():
-                    continue
-                if defop_input_offset == symbol.getStorage().getFirstVarnode().getOffset() & bitmask:
-                    return symbol
 
-        # If we get here, varnode is likely a "DAT_*" variable.
-        gsm = hf.getGlobalSymbolMap()
-        for vndef_input in vndef_inputs:
-            defop_input_offset = vndef_input.getAddress().getOffset() & bitmask
-            for symbol in gsm.getSymbols():
-                if symbol.getStorage().getFirstVarnode() and defop_input_offset == symbol.getStorage().getFirstVarnode().getOffset() & bitmask:
-                    return symbol
+    if vndef is None:
+        return None
+
+    vndef_inputs = vndef.getInputs()
+    for defop_input in vndef_inputs:
+        defop_input_offset = defop_input.getAddress().getOffset() & bitmask
+        for lv in local_variables:
+            unsigned_lv_offset = lv.getMinAddress().getUnsignedOffset() & bitmask
+            if unsigned_lv_offset == defop_input_offset:
+                return lv
+    
+    # If we get here, varnode is likely a "acStack##" variable.
+    hf = decompileFunction(ghidraAnalysis, func)
+    lsm = hf.getLocalSymbolMap()
+    for vndef_input in vndef_inputs:
+        defop_input_offset = vndef_input.getAddress().getOffset() & bitmask
+        for symbol in lsm.getSymbols():
+            if symbol.isParameter():
+                continue
+            if defop_input_offset == symbol.getStorage().getFirstVarnode().getOffset() & bitmask:
+                return symbol
+
+    # If we get here, varnode is likely a "DAT_*" variable.
+    gsm = hf.getGlobalSymbolMap()
+    for vndef_input in vndef_inputs:
+        defop_input_offset = vndef_input.getAddress().getOffset() & bitmask
+        for symbol in gsm.getSymbols():
+            if symbol.getStorage().getFirstVarnode() and defop_input_offset == symbol.getStorage().getFirstVarnode().getOffset() & bitmask:
+                return symbol
 
     # unable to resolve stack variable for given varnode
     return None
@@ -140,8 +131,7 @@ def findLocalVariables(ghidraAnalysis, func, varnode):
     hfunction = decompileFunction(ghidraAnalysis, func)
     opiter = hfunction.getPcodeOps()
     multi = []
-    while opiter.hasNext() and not ghidraAnalysis.monitor.isCancelled():
-        pcodeOpAST = opiter.next()
+    for pcodeOpAST in iter_array(opiter):
         seqTarget = pcodeOpAST.getSeqnum().getTarget()
         if pcodeOpAST.getOpcode() == PcodeOp.COPY and pcodeOpAST.getOutput().getHigh() == varnode.getHigh() and seqTarget <= varnode.getPCAddress():
             multi.append(pcodeOpAST.getInput(0))
@@ -163,8 +153,8 @@ def findSourceValue(ghidraAnalysis, func, var, sources):
     :return: ghidra.program.model.pcode.VarnodeAST
     :return: None
     """
-    for s in sources[::-1]:
-        sourceVarnode = s.getInput(1)
+    for source in sources[::-1]:
+        sourceVarnode = source.getInput(1)
         source_var = getVarFromVarnode(ghidraAnalysis, func, sourceVarnode)
         # Handle p-code CAST of sourceVarnode
         if source_var is None:
@@ -174,13 +164,13 @@ def findSourceValue(ghidraAnalysis, func, var, sources):
             else:
                 return
         if (source_var == var):
-            sourceName = ghidraAnalysis.getFunctionContaining(s.getInput(0).getAddress()).getName()
+            sourceName = ghidraAnalysis.getFunctionContaining(source.getInput(0).getAddress()).getName()
             # Source value is arg 3
             if sourceName == "snprintf":
-                sourceValue = s.getInput(3)
+                sourceValue = source.getInput(3)
             # Source value is arg 2
             else:
-                sourceValue = s.getInput(2)
+                sourceValue = source.getInput(2)
             return sourceValue
 
 def flatten(lst):

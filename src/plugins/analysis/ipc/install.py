@@ -18,7 +18,7 @@ class IpcAnalyzerInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        run_cmd_with_logging('docker build -t ipc ./internal')
+        run_cmd_with_logging('docker build -t ipc ./docker')
 
 # Alias for generic use
 Installer = IpcAnalyzerInstaller

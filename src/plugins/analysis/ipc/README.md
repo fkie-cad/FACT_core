@@ -13,7 +13,7 @@ docker build -t ipc .
 ```
 
 ### Local installation
-Put the content of `internal/ipcAnalyzer` (the script `ipcAnalyzer.py` and the
+Put the content of `docker/ipcAnalyzer` (the script `ipcAnalyzer.py` and the
 folder `ipcAnalysis`) in Ghidra's python scripts directory 
 (default `$GHIDRA_HOME/Ghidra/Features/Python/ghidra_scripts`).
 
@@ -29,7 +29,7 @@ Open Ghidra's Script Manager window and look for the script in a folder labeled 
 The green arrow "Run Script" button at the top of the Script Manager window will run the script, with output printed to the console.
 
 ### Automate with Ghidra Headless
-A python script named `internal/ghidraHeadless.py` is provided to automatically run the Ghidra script on multiple binaries in the terminal using Ghidra's Headless mode.
+A python script named `docker/ghidraHeadless.py` is provided to automatically run the Ghidra script on multiple binaries in the terminal using Ghidra's Headless mode.
 Run the script with 
 ```shell
 python3 ghidraHeadless.py [-h] [-g [GHIDRAPATH]] filePath [resultPath]

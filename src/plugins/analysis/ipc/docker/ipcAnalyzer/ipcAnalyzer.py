@@ -6,6 +6,7 @@ import sys
 from ghidra.util.task import ConsoleTaskMonitor
 from ipcAnalysis.helperFunctions import getFunctionCallSitePCodeOps, getReferents, flatten, stringIsPrintable
 from ipcAnalysis.analyze import analyzeFunctionCallSite
+from ipcAnalysis.decompile import setUpDecompiler
 from resolveFormatStrings.formatStrings import getKeyStrings, getFormatStringVersion, getFormatSpecifierIndices, getFormatTypes
 
 class GhidraAnalysis:
@@ -24,6 +25,7 @@ class GhidraAnalysis:
         self.getFunctionBefore = getFunctionBefore
         self.toAddr = toAddr
         self.getDataAt = getDataAt
+        self.decompInterface = setUpDecompiler(currentProgram)
         self.sinkFunctionNames = [
             # os.system and exec() family
             "system",   # int system(const char *command);
@@ -78,30 +80,24 @@ def openflags2symbols(openflags):
     :param openflags: int
     :return: str
     """
-    symbols = ["O_RDONLY", "O_WRONLY", "O_RDWR", "O_CREAT", "O_EXCL", "O_NOCTTY", "O_TRUNC", "O_APPEND", "O_NONBLOCK",
+    symbols = ["O_WRONLY", "O_RDWR", "O_CREAT", "O_EXCL", "O_NOCTTY", "O_TRUNC", "O_APPEND", "O_NONBLOCK",
     "O_DSYNC", "O_ASYNC", "O_DIRECT", "O_DIRECTORY", "O_NOFOLLOW", "O_NOATIME", "O_CLOEXEC", "O_SYNC", "O_PATH", "O_TMPFILE"]
-    flags = [0, 1, 2, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536, 131072, 262144, 524288, 1052672, 2097152, 4259840]
-    bits = openflags
-    openSymbols = ""
-    havesome = 0
+    flags = [1, 2, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536, 131072, 262144, 524288, 1052672, 2097152, 4259840]
+    openSymbols = []
 
     # Deal with special case of O_RDONLY.
-    # If O_WRONLY nor O_RDWR bits are not set, assume O_RDONLY.
-    if ((bits & (flags[1] | flags[2])) == 0):
-        openSymbols += "O_RDONLY"
-        havesome = 1
+    # If O_WRONLY nor O_RDWR openflags are not set, assume O_RDONLY.
+    if ((openflags & (flags[0] | flags[1])) == 0):
+        openSymbols.append("O_RDONLY")
 
-    for i in range(1, len(flags)):
-        if ((bits & flags[i]) == flags[i]):
-            if (havesome):
-                openSymbols += " | "
-            openSymbols += symbols[i]
-            havesome += 1
-    return openSymbols
+    for i in range(len(flags)):
+        if ((openflags & flags[i]) == flags[i]):
+            openSymbols.append(symbols[i])
+    return " | ".join(openSymbols)
 
 def forEachData(data, func):
     """
-    Recursively apply func to data and remove None and duplicates
+    Apply func to data and remove None and duplicates
 
     :param data: list
     :param func: function
@@ -132,7 +128,7 @@ def parseStaticData(data):
         addr = toAddr(data)
         staticData = getDataAt(addr)
         if staticData is not None:
-            return str(staticData.getDefaultValueRepresentation().strip('\"')).encode('utf-8').strip()
+            return str(staticData.getDefaultValueRepresentation().strip('"')).encode('utf-8').strip()
         else:
             # Case if the string is less than 5 charactes long
             try:
@@ -142,8 +138,7 @@ def parseStaticData(data):
                     if byte == 0:
                         break
                     cString += chr(byte)
-                    i += 1
-                    byte = getByte(addr.add(i))
+                    byte = getByte(addr.add(i+1))
                 return cString.encode('utf-8').strip()
             except:
                 return data
@@ -184,20 +179,18 @@ def addJsonCall(ipc, functionName, argValues):
     :return: None
     """
     firstArg = argValues[0]
-    if len(argValues) > 1:
-        restArgs = argValues[1:]
-    else:
-        restArgs = []
+    restArgs = argValues[1:]
     if isinstance(firstArg, list):
         for arg in firstArg:
             addJsonCall(ipc, functionName, [arg]+restArgs)
-    elif firstArg is not None and isinstance(firstArg, str) and len(firstArg) >= 1 and firstArg[0] not in ['%', '?', '0']:
+    elif isinstance(firstArg, str) and len(firstArg) >= 1 and firstArg[0] not in ['%', '?', '0']:
         target = firstArg.split()[0]
-        if target not in ipc["ipcCalls"]:
-            ipc["ipcCalls"][target] = []
-        ipcCall = {"type": functionName}
-        ipcCall["arguments"] = [" ".join(firstArg.split()[1:])] + restArgs
-        ipc["ipcCalls"][target].append(ipcCall)
+        ipc["ipcCalls"].setdefault(target, []).append(
+            {
+                "type": functionName,
+                "arguments": [" ".join(firstArg.split()[1:])] + restArgs,
+            }
+        )
 
 def writeToFile(outputFile, result, resultPath='.'):
     """
@@ -228,8 +221,7 @@ def isCorrect(argValue):
     else:
         if argValue is None or isinstance(argValue, (int, long)):
             return False
-        else:
-            return True
+        return True
 
 def resolveVersionFormatString(ghidraAnalysis, keyStringList):
     """
@@ -261,18 +253,16 @@ def resolveVersionFormatString(ghidraAnalysis, keyStringList):
                         argValues.append(parseStaticData(argument))
                     callArgs[call] = argValues
 
-                containsKeyValue = False
                 start = 0
                 for arg in argValues:
                     start += 1
                     if isinstance(arg, str) and keyString in arg:
-                        containsKeyValue = True
                         indices = getFormatSpecifierIndices(keyString, arg)
                         formatTypes = getFormatTypes(arg)
                         break
-                if not containsKeyValue:
+                else:
                     continue
-                # filter wich arg indices are relevant
+                # filter which arg indices are relevant
                 for i in indices:
                     argument = argValues[start+i]
                     if not isinstance(argument, list):
@@ -314,14 +304,13 @@ def main():
     print("Analyzing: {}".format(currentProgram.getExecutablePath()))
     sinkFunctionNames = ghidraAnalysis.sinkFunctionNames
     sourceFunctionNames = ghidraAnalysis.sourceFunctionNames
-    ipc = {}
-    ipc["ipcCalls"] = {}
+    ipc = {"ipcCalls": {}}
     # Iterator over all functions in the program
     functionManager = currentProgram.getFunctionManager()
     functions = [func for func in functionManager.getFunctions(True)]
     # Step 1. Check if the binary has at least one sink function
     functionNames = [func.name for func in functions]
-    if (set(sinkFunctionNames) & set(functionNames)):
+    if (set(sinkFunctionNames) and set(functionNames)):
         print("This program contains interesting function(s). Continuing analysis...")
     else:
         print("This program does not contain interesting functions. Done.")
@@ -351,27 +340,27 @@ def main():
         # For each CALL, figure out the inputs into the sink function
         for calledSink in calledSinks:
             callSiteAddress = calledSink.getSeqnum().getTarget()
-            targetFunction = getFunctionContaining(calledSink.getInput(0).getAddress())
+            targetFunction = getFunctionContaining(calledSink.getInput(0).getAddress()).getName()
             args = calledSink.getInputs()[1:]
             referents = getReferents(ghidraAnalysis, func, callSiteAddress)
             relevantSources = [s for s in sources if s.getSeqnum().getTarget() in referents]
             argValues = []
             for index in range(1, len(args)+1):
                 argument = analyzeFunctionCallSite(ghidraAnalysis, func, calledSink, index, relevantSources)
-                if targetFunction.getName() == "open" and index == 2:
+                if targetFunction == "open" and index == 2:
                     staticData = parseOpenFlags(argument)
-                elif targetFunction.getName() == "open" and index == 3:
+                elif targetFunction == "open" and index == 3:
                     staticData = parseOpenMode(argument)
                 else:
                     staticData = parseStaticData(argument)
                 argValues.append(staticData)
             if not isCorrect(argValues[0]):
-                print("!!!{}({}) @ 0x{}".format(targetFunction.getName(), argValues, callSiteAddress))
+                print("!!!{}({}) @ 0x{}".format(targetFunction, argValues, callSiteAddress))
             else:
-                print("{}({}) @ 0x{}".format(targetFunction.getName(), argValues, callSiteAddress))
+                print("{}({}) @ 0x{}".format(targetFunction, argValues, callSiteAddress))
             # Add ipc call to JSON object
             if argValues[0] is not None:
-                addJsonCall(ipc, targetFunction.getName(), argValues)
+                addJsonCall(ipc, targetFunction, argValues)
     writeToFile(currentProgram.getName()+".json", ipc, resultPath)
     print("###########################################################\n")
     return 0

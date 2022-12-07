@@ -27,8 +27,8 @@ def decompileFunction(ghidraAnalysis, func):
     if func.getName() in ghidraAnalysis.hfunctions:
         hfunction = ghidraAnalysis.hfunctions[func.getName()]
     else:
-        # SLOW!!!
-        decompInterface = setUpDecompiler(ghidraAnalysis.currentProgram)
+        decompInterface = ghidraAnalysis.decompInterface
+        # Decompiling a function is VERY SLOW so it should only be done once!
         res = decompInterface.decompileFunction(func, decompInterface.getOptions().getDefaultTimeout(), ghidraAnalysis.monitor)
         hfunction = res.getHighFunction()
         ghidraAnalysis.hfunctions[func.getName()] = hfunction

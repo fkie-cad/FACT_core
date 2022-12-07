@@ -3,6 +3,28 @@ from ghidra.program.model.symbol import RefType
 from decompile import decompileFunction
 from helperFunctions import getFunctionCallSitePCodeOps, getReferents, getVarFromVarnode, findLocalVariables, findSourceValue
 
+PCODEOPONEINPUT = [
+    PcodeOp.INT_NEGATE,
+    PcodeOp.INT_ZEXT,
+    PcodeOp.INT_SEXT,
+    PcodeOp.INT_2COMP,
+    PcodeOp.CAST,
+    PcodeOp.COPY,
+    PcodeOp.CALLIND,
+    PcodeOp.PIECE,
+]
+
+PCODEOPTWOINPUTS = [
+    PcodeOp.INT_ADD,
+    PcodeOp.INT_SUB,
+    PcodeOp.INT_MULT,
+    PcodeOp.INT_DIV,
+    PcodeOp.INT_AND,
+    PcodeOp.INT_OR,
+    PcodeOp.INT_XOR,
+    PcodeOp.INT_EQUAL,
+] 
+
 def analyzeFunctionCallSite(ghidraAnalysis, func, callPCOp, paramIndex, sources, prev=None):
     """
     Handles analysis of a particular callsite for a function -
@@ -14,15 +36,15 @@ def analyzeFunctionCallSite(ghidraAnalysis, func, callPCOp, paramIndex, sources,
     :param callPCOp: ghidra.program.model.pcode.PcodeOpAST
     :param paramIndex: int
     :param sources: list
-    :return value: long
-    :return: None
+    :param prev: None/list
+    :return: list
     """
     varnode = callPCOp.getInput(paramIndex)
     if varnode is None:
         print("Skipping NULL parameter")
-        return
+        return []
     if varnode.isConstant():
-        value = varnode.getOffset()
+        value = [varnode.getOffset()]
     else:
         value = processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev)
     return value
@@ -35,12 +57,11 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
     :param func: ghidra.program.database.function.FunctionDB
     :param varnode: ghidra.program.model.pcode.VarnodeAST
     :param sources: list
-    :param prev: list
-    :return: long
-    :return: None
+    :param prev: None/list
+    :return: list
     """
     if varnode is None:
-        return
+        return []
     if isinstance(varnode, list):
         multi = []
         for v in varnode:
@@ -50,20 +71,20 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
         prev = []
     # Skip duplicate
     if varnode.getUniqueId() in prev:
-        return
+        return []
     else:
         prev.append(varnode.getUniqueId())
     # If the varnode is a constant, we are done
     if varnode.isConstant():
         value = varnode.getOffset()
-        return value
+        return [value]
     if varnode.isAddress():
         addr = varnode.getAddress().getOffset()
         try:
             value = ghidraAnalysis.getDataAt(ghidraAnalysis.toAddr(addr)).getValue().getOffset()
-            return value
+            return [value]
         except AttributeError:
-            return addr
+            return [addr]
     # If the varnode is associated with a parameter to the function, we then find each
     # site where the function is called, and analyze how the parameter varnode at the
     # corresponding index is derivded for each call of the function
@@ -83,28 +104,14 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
     defOp = varnode.getDef()
     # NULL DEF
     if defOp is None:
-        return
+        return []
     # get the enum value of the p-code operation that defines our varnode
     opcode = defOp.getOpcode()
     # Handle p-code ops that take one input
-    if opcode == PcodeOp.INT_NEGATE or \
-       opcode == PcodeOp.INT_ZEXT or \
-       opcode == PcodeOp.INT_SEXT or \
-       opcode == PcodeOp.INT_2COMP or \
-       opcode == PcodeOp.CAST or \
-       opcode == PcodeOp.COPY or \
-       opcode == PcodeOp.CALLIND or \
-       opcode == PcodeOp.PIECE:
+    if opcode in PCODEOPONEINPUT:
         return processOneVarnode(ghidraAnalysis, func, defOp.getInput(0), paramIndex, sources, prev)
     # Handle p-code ops that take two inputs.
-    elif opcode == PcodeOp.INT_ADD or \
-         opcode == PcodeOp.INT_SUB or \
-         opcode == PcodeOp.INT_MULT or \
-         opcode == PcodeOp.INT_DIV or \
-         opcode == PcodeOp.INT_AND or \
-         opcode == PcodeOp.INT_OR or \
-         opcode == PcodeOp.INT_XOR or \
-         opcode == PcodeOp.INT_EQUAL:
+    elif opcode in PCODEOPTWOINPUTS:
         if not defOp.getInput(0).isConstant():
             return processOneVarnode(ghidraAnalysis, func, defOp.getInput(0), paramIndex, sources, prev)
         if not defOp.getInput(1).isConstant():
@@ -122,8 +129,8 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
     elif opcode == PcodeOp.MULTIEQUAL:
         multi = []
         # Visit each input to the MULTIEQUAL
-        for i in range(len(defOp.getInputs())):
-            result = processOneVarnode(ghidraAnalysis, func, defOp.getInput(i), paramIndex,  sources, prev)
+        for node in defOp.getInputs():
+            result = processOneVarnode(ghidraAnalysis, func, node, paramIndex,  sources, prev)
             if result is not None:
                 multi.append(result)
         return multi
@@ -135,10 +142,7 @@ def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
     elif opcode == PcodeOp.LOAD:
         return processOneVarnode(ghidraAnalysis, func, defOp.getInput(1), paramIndex,  sources, prev)
     elif opcode == PcodeOp.PTRSUB:
-        multi = []
-        multi.append(processOneVarnode(ghidraAnalysis, func, defOp.getInput(0), paramIndex,  sources, prev))
-        multi.append(processOneVarnode(ghidraAnalysis, func, defOp.getInput(1), paramIndex,  sources, prev))
-        return multi
+        return [processOneVarnode(ghidraAnalysis, func, defOp.getInput(i), paramIndex, sources, prev) for i in [0, 1]]
     # p-code op we don't support
     else:
         print("Support for Pcode {} not implemented".format(defOp.toString()))
@@ -154,8 +158,7 @@ def analyzeCallSites(ghidraAnalysis, func, paramIndex, prev):
     :param func: ghidra.program.database.function.FunctionDB
     :param paramIndex: int
     :param prev: list
-    :return: long
-    :return: None
+    :return: list
     """
     referencesTo = ghidraAnalysis.currentProgram.getReferenceManager().getReferencesTo(func.getEntryPoint())
     multi = []
@@ -202,7 +205,6 @@ def analyzeCalledFunction(ghidraAnalysis, func, paramIndex, prev):
     :param func: ghidra.program.database.function.FunctionDB
     :param prev: list
     :return: list
-    :return: None
     """
     hfunction = decompileFunction(ghidraAnalysis, func)
     ops = hfunction.getPcodeOps()
@@ -216,7 +218,7 @@ def analyzeCalledFunction(ghidraAnalysis, func, paramIndex, prev):
         returnedValue = pcodeOpAST.getInput(1)
         if returnedValue is None:
             print("--> Could not resolve return value from {}".format(func.getName()))
-            return
+            return []
         # if we had a phi earlier, it's been logged, so going forward we set isPhi back to false
         pcAddress = pcodeOpAST.getSeqnum().getTarget()
         sources = getFunctionCallSitePCodeOps(ghidraAnalysis, func, ghidraAnalysis.sourceFunctionNames)
