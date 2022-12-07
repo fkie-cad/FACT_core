@@ -1,8 +1,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from test.common_helper import get_config_for_testing
-
 
 class MockFSOrganizer:
     def __init__(self, *_, **__):
@@ -35,29 +33,3 @@ class MockDbInterface:
 
     def get_specific_fields_of_db_entry(self, uid, field_dict):
         pass
-
-
-def initialize_config(tmp_dir):
-    config = get_config_for_testing(temp_dir=tmp_dir)
-
-    # Database
-    config.set('data-storage', 'main-database', 'tmp_integration_tests')
-    config.set('data-storage', 'intercom-database-prefix', 'tmp_integration_tests')
-    config.set('data-storage', 'statistic-database', 'tmp_integration_tests')
-    config.set('data-storage', 'view-storage', 'tmp_view_storage')
-
-    # Analysis
-    config.add_section('ip_and_uri_finder')
-    config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-    config.set('default-plugins', 'plugins', 'file_hashes')
-
-    # Unpacker
-    config.set('unpack', 'threads', '1')
-    config.set('expert-settings', 'unpack-throttle-limit', '20')
-
-    # Compare
-    config.set('expert-settings', 'ssdeep-ignore', '80')
-    config.set('expert-settings', 'block-delay', '1')
-    config.set('expert-settings', 'throw-exceptions', 'true')
-
-    return config

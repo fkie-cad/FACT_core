@@ -5,6 +5,8 @@ from subprocess import CalledProcessError
 from unittest import mock
 from unittest.mock import patch
 
+import pytest
+
 from helperFunctions import yara_binary_search
 from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
 
@@ -14,10 +16,6 @@ TEST_FILE_3 = 'binary_search_test_3'
 
 
 class MockCommonDbInterface:
-    def __init__(self, config):
-        self.config = config
-        self.config['data-storage']['firmware-file-storage-directory'] = path.join(get_test_data_dir(), TEST_FILE_1)
-
     @staticmethod
     def get_all_files_in_fw(uid):
         if uid == 'single_firmware':
@@ -29,13 +27,16 @@ def mock_check_output(call, *_, shell=True, stderr=None, **__):
     raise CalledProcessError(1, call, b'', stderr)
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'data-storage': {'firmware-file-storage-directory': path.join(get_test_data_dir(), TEST_FILE_1)},
+    }
+)
 class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
     @mock.patch('helperFunctions.yara_binary_search.DbInterfaceCommon', MockCommonDbInterface)
     def setUp(self):
         self.yara_rule = b'rule test_rule {strings: $a = "test1234" condition: $a}'
-        test_path = path.join(get_test_data_dir(), TEST_FILE_1)
-        test_config = {'data-storage': {'firmware-file-storage-directory': test_path}}
-        self.yara_binary_scanner = yara_binary_search.YaraBinarySearchScanner(test_config)
+        self.yara_binary_scanner = yara_binary_search.YaraBinarySearchScanner()
 
     def test_get_binary_search_result(self):
         result = self.yara_binary_scanner.get_binary_search_result((self.yara_rule, None))

@@ -17,7 +17,7 @@ class TestAcceptanceBaseFullStart(TestAcceptanceBase):
         self.analysis_finished_event = Event()
         self.compare_finished_event = Event()
         self.elements_finished_analyzing = Value('i', 0)
-        self.db_backend_service = BackendDbInterface(config=self.config)
+        self.db_backend_service = BackendDbInterface()
         self._start_backend(post_analysis=self._analysis_callback, compare_callback=self._compare_callback)
         time.sleep(2)  # wait for systems to start
 

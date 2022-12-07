@@ -45,7 +45,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def additional_setup(self):
-        self._fs_organizer = FSOrganizer(self.config)
+        self._fs_organizer = FSOrganizer()
 
     def process_object(self, file_object):
         '''

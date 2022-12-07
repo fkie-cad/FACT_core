@@ -3,24 +3,20 @@ from pathlib import Path
 import pytest
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.password_file_analyzer import AnalysisPlugin, crack_hash, parse_john_output
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
-class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
-
-    PLUGIN_NAME = 'users_and_passwords'
-    PLUGIN_CLASS = AnalysisPlugin
-
-    def test_process_object_shadow_file(self):
+@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+class TestAnalysisPluginPasswordFileAnalyzer:
+    def test_process_object_shadow_file(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_test'))
-        processed_object = self.analysis_plugin.process_object(test_file)
-        results = processed_object.processed_analysis[self.PLUGIN_NAME]
+        processed_object = analysis_plugin.process_object(test_file)
+        results = processed_object.processed_analysis[analysis_plugin.NAME]
 
-        assert len(results) == 14
+        assert len(results) == 15
         for item in [
             'vboxadd:unix',
             'mongodb:unix',
@@ -33,6 +29,7 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
             'root:unix',
             'user:unix',
             'user2:unix',
+            'nosalt:unix',
         ]:
             assert item in results
             assert item in results['summary']
@@ -43,18 +40,19 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         self._assert_pw_match(results, 'root:unix', 'root')  # DES
         self._assert_pw_match(results, 'user:unix', '1234')  # Blowfish / bcrypt
         self._assert_pw_match(results, 'user2:unix', 'secret')  # MD5
+        self._assert_pw_match(results, 'nosalt:unix', 'root')  # MD5 without salt
 
-    def test_process_object_fp_file(self):
+    def test_process_object_fp_file(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_FP_test'))
-        processed_object = self.analysis_plugin.process_object(test_file)
-        results = processed_object.processed_analysis[self.PLUGIN_NAME]
+        processed_object = analysis_plugin.process_object(test_file)
+        results = processed_object.processed_analysis[analysis_plugin.NAME]
         assert len(results) == 1
         assert 'summary' in results and results['summary'] == []
 
-    def test_process_object_password_in_binary_file(self):
+    def test_process_object_password_in_binary_file(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
-        processed_object = self.analysis_plugin.process_object(test_file)
-        results = processed_object.processed_analysis[self.PLUGIN_NAME]
+        processed_object = analysis_plugin.process_object(test_file)
+        results = processed_object.processed_analysis[analysis_plugin.NAME]
 
         assert len(results) == 4
         for item in ['johndoe:unix', 'max:htpasswd']:
@@ -85,18 +83,21 @@ def test_crack_hash_failure():
 
 
 def test_crack_hash_success():
-    passwd_entry = 'test:$dynamic_82$2c93b2efec757302a527be320b005a935567f370f268a13936fa42ef331cc7036ec75a65f8112ce511ff6088c92a6fe1384fbd0f70a9bc7ac41aa6103384aa8c$HEX$010203040506'
+    passwd_entry = (
+        'test:$dynamic_82$2c93b2efec757302a527be320b005a935567f370f268a13936fa42ef331cc703'
+        '6ec75a65f8112ce511ff6088c92a6fe1384fbd0f70a9bc7ac41aa6103384aa8c$HEX$010203040506'
+    )
     result_entry = {}
     assert crack_hash(passwd_entry.encode(), result_entry, '--format=dynamic_82') is True
     assert 'password' in result_entry
     assert result_entry['password'] == '123456'
 
 
-JOHN_FAIL_OUTPUT = 'No password hashes loaded (see FAQ)\n\n' '=== Results: ===\n' '0 password hashes cracked, 0 left'
+JOHN_FAIL_OUTPUT = 'No password hashes loaded (see FAQ)\n\n=== Results: ===\n0 password hashes cracked, 0 left'
 
 JOHN_SUCCESS_OUTPUT = (
     'Loaded 1 password hash (md5crypt, crypt(3) $1$ (and variants) [MD5 128/128 AVX 4x3])\n'
-    'Press \'q\' or Ctrl-C to abort, almost any other key for status\n'
+    "Press 'q' or Ctrl-C to abort, almost any other key for status\n"
     'dragon           (max)\n'
     '1g 0:00:00:00 DONE (2022-06-13 12:33) 16.66g/s 9600p/s 9600c/s 9600C/s password..darkness\n'
     'Use the "--show" option to display all of the cracked passwords reliably\n'

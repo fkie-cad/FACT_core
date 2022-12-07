@@ -1,4 +1,4 @@
-rule sqlite3
+ rule sqlite3
 {
 	meta:
 		software_name = "SQLite"
@@ -12,5 +12,5 @@ rule sqlite3
 		$b = /SQLite version \d\.\d+\.\d+(\.\d)?/ ascii
 		$c = /libsqlite3\-\d\.\d+\.\d+(\.\d)?\.so/ ascii
 	condition:
-		$a or $b or $c and no_text_file
+		($a or $b or $c) and no_text_file
 }

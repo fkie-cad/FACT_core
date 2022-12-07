@@ -42,10 +42,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'video',
     ]
 
-    def __init__(self, config=None):
-        self.config = config
-        self._fs_organizer = FSOrganizer(config)
-        super().__init__(config=config)
+    def __init__(self):
+        self._fs_organizer = FSOrganizer()
+        super().__init__()
 
     def process_object(self, file_object):
         arch_dict = construct_result(file_object, self._fs_organizer)

@@ -16,15 +16,14 @@ class TestAcceptanceMisc(TestAcceptanceBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.db_backend_service = BackendDbInterface(config=cls.config)
         cls.analysis_finished_event = Event()
         cls.elements_finished_analyzing = Value('i', 0)
 
     def setUp(self):
         super().setUp()
         self._start_backend(post_analysis=self._analysis_callback)
-        self.updater = StatsUpdater(config=self.config)
-        self.workload = WorkLoadStatistic(config=self.config, component='backend')
+        self.updater = StatsUpdater()
+        self.workload = WorkLoadStatistic(component='backend')
         time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
@@ -36,7 +35,8 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         super().tearDownClass()
 
     def _analysis_callback(self, uid: str, plugin: str, analysis_dict: dict):
-        self.db_backend_service.add_analysis(uid, plugin, analysis_dict)
+        db_backend_service = BackendDbInterface()
+        db_backend_service.add_analysis(uid, plugin, analysis_dict)
         self.elements_finished_analyzing.value += 1
         if (
             self.elements_finished_analyzing.value == 4 * 2 * 2

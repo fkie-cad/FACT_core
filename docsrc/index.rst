@@ -24,6 +24,8 @@ Contents
    :maxdepth: 2
    :caption: Modules:
 
+   modules/config
+   modules/conftest
    modules/helperFunctions
    modules/objects
    modules/scheduler

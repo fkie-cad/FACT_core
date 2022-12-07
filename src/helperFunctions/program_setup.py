@@ -17,17 +17,15 @@
 '''
 
 import argparse
-import configparser
 import logging
 import sys
-from configparser import ConfigParser
 from pathlib import Path
 
 from common_helper_files import create_dir_for_file
 
-from config import cfg, configparser_cfg
-from config import load_config as load_config_global
-from helperFunctions.config import get_config_dir
+import config
+from config import cfg
+from helperFunctions.fileSystem import get_config_dir
 from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
 
@@ -37,12 +35,21 @@ def program_setup(name, description, component=None, version=__VERSION__, comman
     Creates an ArgumentParser with some default options and parse command_line_options.
 
     :param command_line_options: The arguments to parse
-    :return: A tuple (args, config) containing the parsed args from argparser and the config read
+    :return: The parsed args from argparser
     '''
     args = _setup_argparser(name, description, command_line_options=command_line_options or sys.argv, version=version)
-    config = _load_config(args)
-    setup_logging(config, args, component)
-    return args, config
+    config.load(args.config_file)
+    set_logging_cfg_from_args(args)
+    setup_logging(args, component)
+    return args
+
+
+def set_logging_cfg_from_args(args: argparse.Namespace):
+    """Command line parameters will overwrite values from the config file"""
+    if args.log_file is not None:
+        cfg.logging.logfile = args.log_file
+    if args.log_level is not None:
+        cfg.logging.loglevel = args.log_level
 
 
 def _setup_argparser(name, description, command_line_options, version=__VERSION__):
@@ -68,19 +75,13 @@ def _setup_argparser(name, description, command_line_options, version=__VERSION_
     return parser.parse_args(command_line_options[1:])
 
 
-def _get_console_output_level(debug_flag):
-    if debug_flag:
-        return logging.DEBUG
-    return logging.INFO
-
-
-def setup_logging(config, args, component=None):
-    log_level = getattr(logging, config['logging']['loglevel'], None)
+def setup_logging(args, component=None):
+    log_level = getattr(logging, cfg.logging.loglevel, None)
     log_format = dict(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
 
-    log_file = get_log_file_for_component(component, config)
+    log_file = get_log_file_for_component(component)
     create_dir_for_file(log_file)
     file_log = logging.FileHandler(log_file)
     file_log.setLevel(log_level)
@@ -89,37 +90,13 @@ def setup_logging(config, args, component=None):
 
     if not args.silent:
         console_log = logging.StreamHandler()
-        console_log.setLevel(_get_console_output_level(args.debug))
+        console_log.setLevel(logging.DEBUG if args.debug else logging.INFO)
         console_log.setFormatter(ColoringFormatter(**log_format))
         logger.addHandler(console_log)
 
 
-def get_log_file_for_component(component: str, config: ConfigParser) -> str:
-    log_file = Path(config['logging']['logfile'])
+def get_log_file_for_component(component: str) -> str:
+    log_file = Path(cfg.logging.logfile)
     if component is None:
-        return config['logging']['logfile']
+        return cfg.logging.logfile
     return f'{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}'
-
-
-def _load_config(args):
-    '''
-    Loads the config from args.config_file
-
-    :param args: The parsed args returned from Argparser
-    :return: A dictionary containing the parsed config
-    '''
-
-    load_config_global(args.config_file)
-
-    config = configparser.ConfigParser()
-    config.read(args.config_file)
-    if args.log_file is not None:
-        config['logging']['logfile'] = args.log_file
-        configparser_cfg['logging']['logfile'] = args.log_file
-        cfg.logging.logfile = args.log_file
-    if args.log_level is not None:
-        config['logging']['loglevel'] = args.log_level
-        configparser_cfg['logging']['loglevel'] = args.log_level
-        cfg.logging.loglevel = args.log_level
-
-    return config

@@ -2,20 +2,16 @@
 import grp
 import os
 from base64 import standard_b64encode
-from configparser import ConfigParser
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import List, Optional, Union
 
-from helperFunctions.config import load_config
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_setup import DbSetup
 
 
 def get_test_data_dir():
@@ -313,71 +309,18 @@ def get_firmware_for_rest_upload_test():
     return data
 
 
-def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = None):
-    if isinstance(temp_dir, TemporaryDirectory):
-        temp_dir = temp_dir.name
-    config = ConfigParser()
-    config.add_section('data-storage')
-    config.set('data-storage', 'report-threshold', '2048')
-    config.set('data-storage', 'password-salt', '1234')
-    config.set('data-storage', 'firmware-file-storage-directory', '/tmp/fact_test_fs_directory')
-    docker_mount_base_dir = create_docker_mount_base_dir()
-    config.set('data-storage', 'docker-mount-base-dir', str(docker_mount_base_dir))
-    config.add_section('unpack')
-    config.set('unpack', 'whitelist', '')
-    config.set('unpack', 'max-depth', '10')
-    config.add_section('default-plugins')
-    config.add_section('expert-settings')
-    config.set('expert-settings', 'block-delay', '0.1')
-    config.set('expert-settings', 'ssdeep-ignore', '1')
-    config.set('expert-settings', 'authentication', 'false')
-    config.set('expert-settings', 'intercom-poll-delay', '0.5')
-    config.set('expert-settings', 'nginx', 'false')
-    config.add_section('database')
-    config.set('database', 'results-per-page', '10')
-    load_users_from_main_config(config)
-    config.add_section('logging')
-    if temp_dir is not None:
-        config.set('data-storage', 'firmware-file-storage-directory', temp_dir)
-    config.set('expert-settings', 'radare2-host', 'localhost')
-    # -- postgres --
-    config.set('data-storage', 'postgres-server', 'localhost')
-    config.set('data-storage', 'postgres-port', '5432')
-    config.set('data-storage', 'postgres-database', 'fact_test')
-    return config
-
-
-def load_users_from_main_config(config: ConfigParser):
-    fact_config = load_config('main.cfg')
-    # -- postgres --
-    config.set('data-storage', 'postgres-ro-user', fact_config.get('data-storage', 'postgres-ro-user'))
-    config.set('data-storage', 'postgres-ro-pw', fact_config.get('data-storage', 'postgres-ro-pw'))
-    config.set('data-storage', 'postgres-rw-user', fact_config.get('data-storage', 'postgres-rw-user'))
-    config.set('data-storage', 'postgres-rw-pw', fact_config.get('data-storage', 'postgres-rw-pw'))
-    config.set('data-storage', 'postgres-del-user', fact_config.get('data-storage', 'postgres-del-user'))
-    config.set('data-storage', 'postgres-del-pw', fact_config.get('data-storage', 'postgres-del-pw'))
-    config.set('data-storage', 'postgres-admin-user', fact_config.get('data-storage', 'postgres-del-user'))
-    config.set('data-storage', 'postgres-admin-pw', fact_config.get('data-storage', 'postgres-del-pw'))
-    # -- redis --
-    config.set('data-storage', 'redis-fact-db', fact_config.get('data-storage', 'redis-test-db'))
-    config.set('data-storage', 'redis-host', fact_config.get('data-storage', 'redis-host'))
-    config.set('data-storage', 'redis-port', fact_config.get('data-storage', 'redis-port'))
-
-
 def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Firmware]):
     binary_dir = Path(tmp_dir) / test_object.uid[:2]
     binary_dir.mkdir(parents=True)
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
 
 
-def setup_test_tables(config):
-    db_setup = DbSetup(config)
+def setup_test_tables(db_setup):
     db_setup.connection.create_tables()
     db_setup.set_table_privileges()
 
 
-def clear_test_tables(config):
-    db_setup = DbSetup(config)
+def clear_test_tables(db_setup):
     db_setup.connection.base.metadata.drop_all(db_setup.connection.engine)
 
 

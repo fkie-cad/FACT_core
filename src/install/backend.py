@@ -10,6 +10,7 @@ from subprocess import PIPE, STDOUT
 import requests
 
 from compile_yara_signatures import main as compile_signatures
+from config import cfg
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import (
     InstallationError,
@@ -17,7 +18,6 @@ from helperFunctions.install import (
     apt_install_packages,
     dnf_install_packages,
     install_pip_packages,
-    load_main_config,
     read_package_list_from_file,
 )
 
@@ -89,8 +89,7 @@ def install_plugin_docker_images():
 def _create_firmware_directory():
     logging.info('Creating firmware directory')
 
-    config = load_main_config()
-    data_dir_name = config.get('data-storage', 'firmware-file-storage-directory')
+    data_dir_name = cfg.data_storage.firmware_file_storage_directory
     mkdir_process = subprocess.run(
         f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, text=True
     )

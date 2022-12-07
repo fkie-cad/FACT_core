@@ -5,7 +5,6 @@ helperFunctions
    :maxdepth: 4
 
    helperFunctions.compare_sets
-   helperFunctions.config
    helperFunctions.data_conversion
    helperFunctions.database
    helperFunctions.docker

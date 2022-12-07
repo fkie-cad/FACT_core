@@ -9,7 +9,9 @@ from flask_security import hash_password
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 
-from helperFunctions.config import get_config_dir, load_config
+import config
+from config import configparser_cfg
+from helperFunctions.fileSystem import get_config_dir
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.app import create_app
@@ -232,8 +234,8 @@ def start_user_management(app, store, db, session):
 
 def main():
     args = setup_argparse()
-    config = load_config(Path(args.config_file).name)
-    app = create_app(config)
+    config.load(Path(args.config_file).name)
+    app = create_app(configparser_cfg)
     user_db, user_datastore = add_flask_security_to_app(app)
 
     start_user_management(app, user_datastore, user_db, PromptSession())

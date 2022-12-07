@@ -52,3 +52,10 @@ def file_is_empty(file_path: Path) -> bool:
         return False
     except Exception as exception:
         logging.error(f'Unexpected Exception: {type(exception)} {str(exception)}')
+
+
+def get_config_dir():
+    '''
+    Returns the absolute path of the config directory
+    '''
+    return f'{get_src_dir()}/config'

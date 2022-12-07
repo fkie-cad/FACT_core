@@ -19,7 +19,7 @@ def no_compare_views(monkeypatch):
 
 
 class MockDbInterface(CommonDatabaseMock):
-    def __init__(self, config=None):
+    def __init__(self):
         self.test_object = create_test_file_object()
         self.test_object.list_of_all_included_files = [self.test_object.uid]
 
@@ -49,10 +49,7 @@ class TestSchedulerCompare(unittest.TestCase):
         self.bs_patch_new.start()
         self.bs_patch_init.start()
 
-        db_mock = MockDbInterface(config=self.config)
-        self.compare_scheduler = ComparisonScheduler(
-            config=self.config, db_interface=db_mock, admin_db_interface=db_mock, testing=True
-        )
+        self.compare_scheduler = ComparisonScheduler(db_interface=MockDbInterface(), testing=True)
 
     def tearDown(self):
         self.compare_scheduler.shutdown()
