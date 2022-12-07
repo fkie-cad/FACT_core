@@ -173,7 +173,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             )
             summary = {}
             for uid, summary_list in session.execute(query):  # type: str, list[str]
-                for item in set(summary_list) or []:
+                for item in set(summary_list or []):
                     summary.setdefault(item, []).append(uid)
         return summary
 
