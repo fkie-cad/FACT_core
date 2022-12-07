@@ -2,7 +2,7 @@
 import pytest
 
 from plugins.analysis.tlsh.code.tlsh import AnalysisPlugin
-from test.common_helper import CommonDatabaseMock, create_test_file_object, get_config_for_testing
+from test.common_helper import create_test_file_object
 from test.mock import mock_patch
 
 HASH_0 = '9A355C07B5A614FDC5A2847046EF92B7693174A642327DBF3C88D6303F42E746B1ABE1'
@@ -15,11 +15,6 @@ class MockDb:
 
 
 @pytest.fixture(scope='function')
-def test_config():
-    return get_config_for_testing()
-
-
-@pytest.fixture(scope='function')
 def test_object():
     fo = create_test_file_object()
     fo.processed_analysis['file_hashes'] = {'tlsh': HASH_1}
@@ -27,48 +22,44 @@ def test_object():
 
 
 @pytest.fixture(scope='function')
-def stub_plugin(test_config):
-    return AnalysisPlugin(
-        config=test_config, offline_testing=True, view_updater=CommonDatabaseMock(), db_interface=MockDb()
-    )
+def tlsh_plugin(analysis_plugin, monkeypatch):
+    monkeypatch.setattr(analysis_plugin, 'db', MockDb())
+    yield analysis_plugin
 
 
-def test_one_matching_file(stub_plugin, test_object):
+@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+class TestTlsh:
+    def test_one_matching_file(self, tlsh_plugin, test_object):
 
-    result = stub_plugin.process_object(test_object)
-    assert result.processed_analysis[stub_plugin.NAME] == {'test_uid': 0}
+        result = tlsh_plugin.process_object(test_object)
+        assert result.processed_analysis[tlsh_plugin.NAME] == {'test_uid': 0}
 
+    def test_no_matching_file(self, test_object, tlsh_plugin):
+        not_matching_hash = '0CC34689821658B06B1B258BCC16689308A671AB3223B3E3684F8d695A658742F0DAB1'
+        test_object.processed_analysis['file_hashes'] = {'tlsh': not_matching_hash}
+        result = tlsh_plugin.process_object(test_object)
 
-def test_no_matching_file(test_object, stub_plugin):
-    not_matching_hash = '0CC34689821658B06B1B258BCC16689308A671AB3223B3E3684F8d695A658742F0DAB1'
-    test_object.processed_analysis['file_hashes'] = {'tlsh': not_matching_hash}
-    result = stub_plugin.process_object(test_object)
+        assert result.processed_analysis[tlsh_plugin.NAME] == {}
 
-    assert result.processed_analysis[stub_plugin.NAME] == {}
+    def test_match_to_same_file(self, test_object, tlsh_plugin):
+        test_object.uid = 'test_uid'
+        result = tlsh_plugin.process_object(test_object)
 
+        assert result.processed_analysis[tlsh_plugin.NAME] == {}
 
-def test_match_to_same_file(test_object, stub_plugin):
-    test_object.uid = 'test_uid'
-    result = stub_plugin.process_object(test_object)
+    def test_file_has_no_tlsh_hash(self, test_object, tlsh_plugin):
+        test_object.processed_analysis['file_hashes'].pop('tlsh')
+        result = tlsh_plugin.process_object(test_object)
 
-    assert result.processed_analysis[stub_plugin.NAME] == {}
+        assert result.processed_analysis[tlsh_plugin.NAME] == {}
 
+    def test_no_files_in_database(self, test_object, tlsh_plugin):
+        with mock_patch(tlsh_plugin.db, 'get_all_tlsh_hashes', lambda: []):
+            result = tlsh_plugin.process_object(test_object)
 
-def test_file_has_no_tlsh_hash(test_object, stub_plugin):
-    test_object.processed_analysis['file_hashes'].pop('tlsh')
-    result = stub_plugin.process_object(test_object)
+        assert result.processed_analysis[tlsh_plugin.NAME] == {}
 
-    assert result.processed_analysis[stub_plugin.NAME] == {}
-
-
-def test_no_files_in_database(test_object, stub_plugin):
-    with mock_patch(stub_plugin.db, 'get_all_tlsh_hashes', lambda: []):
-        result = stub_plugin.process_object(test_object)
-
-    assert result.processed_analysis[stub_plugin.NAME] == {}
-
-
-def test_file_hashes_not_run(test_object, stub_plugin):
-    with pytest.raises(KeyError):
-        test_object.processed_analysis.pop('file_hashes')
-        stub_plugin.process_object(test_object)
+    def test_file_hashes_not_run(self, test_object, tlsh_plugin):
+        with pytest.raises(KeyError):
+            test_object.processed_analysis.pop('file_hashes')
+            tlsh_plugin.process_object(test_object)

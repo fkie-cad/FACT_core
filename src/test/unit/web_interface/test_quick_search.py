@@ -1,4 +1,6 @@
 # pylint: disable=wrong-import-order
+import pytest
+
 from storage.db_interface_frontend import MetaEntry
 from test.common_helper import TEST_FW_2, CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
@@ -36,12 +38,17 @@ class DbMock(CommonDatabaseMock):
         return None
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'database': {
+            'results-per-page': 10,
+        },
+    }
+)
 class TestAppQuickSearch(WebInterfaceTest):
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)
-        cls.config['database'] = {}
-        cls.config['database']['results-per-page'] = '10'
 
     def test_quick_search_file_name(self):
         assert TEST_FW_2.uid in self._start_quick_search(TEST_FW_2.file_name)

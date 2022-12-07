@@ -15,13 +15,13 @@ class TestRestCompareFirmware(TestAcceptanceBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.db_backend_service = BackendDbInterface(config=cls.config)
         cls.analysis_finished_event = Event()
         cls.compare_finished_event = Event()
         cls.elements_finished_analyzing = Value('i', 0)
 
     def setUp(self):
         super().setUp()
+        self.db_backend_service = BackendDbInterface()
         self._start_backend(post_analysis=self._analysis_callback, compare_callback=self._compare_callback)
         time.sleep(2)  # wait for systems to start
 

@@ -19,7 +19,7 @@ class TestAcceptanceIoRoutes(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend()
-        self.db_backend_interface = BackendDbInterface(self.config)
+        self.db_backend_interface = BackendDbInterface()
         self.test_fw = create_test_firmware(device_name='test_fw')
 
     def tearDown(self):
@@ -39,7 +39,7 @@ class TestAcceptanceIoRoutes(TestAcceptanceBase):
         self.assertIn(b'Failed to establish a new connection', response.data, 'connection shall fail')
 
     def test_ida_download(self):
-        compare_interface = ComparisonDbInterface(config=self.config)
+        compare_interface = ComparisonDbInterface()
 
         self.db_backend_interface.add_object(self.test_fw)
 
@@ -52,7 +52,7 @@ class TestAcceptanceIoRoutes(TestAcceptanceBase):
         self.assertIn(b'IDA database', response.data, 'mocked ida database not in result')
 
     def test_ida_download_bad_uid(self):
-        compare_interface = ComparisonDbInterface(config=self.config)
+        compare_interface = ComparisonDbInterface()
 
         compare_interface.add_comparison_result(COMPARE_RESULT)
         cid = compare_interface._calculate_comp_id(COMPARE_RESULT)  # pylint: disable=protected-access

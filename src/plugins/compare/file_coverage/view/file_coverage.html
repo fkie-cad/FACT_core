@@ -21,6 +21,16 @@
 
     });
 </script>
+<script src="{{ url_for('static', filename='js/file_tree.js') }}"></script>
+
+<style>
+    .internal-table td {
+        border: 0;
+        border-top: 1px solid #dee2e6 !important;
+        vertical-align: middle;
+        padding-left: 20px;
+    }
+</style>
 
 {% for feature in result['plugins'][plugin] | sort %}
 
@@ -49,25 +59,56 @@
                 <div id="fileTreeAjax_{{ loop.index }}"></div>
                 {# --- file tree ---#}
                 <script>
-                    $('#fileTreeAjax_{{ loop.index }}')
-                        // generate links to the analysis page
-                        .on("activate_node.jstree", function(e,data){window.location.href = data.node.a_attr.href;})
-                        // generate file tree
-                        .jstree({
-                          "core" : {
-                            'data' : {
-                              'url' : function (node) {
-                                return node.id === '#' ?
-                                    "/ajax_root/{{ firmware_uid|safe }}/{{ firmware_uid|safe }}" : "/compare/ajax_tree/{{ result["_id"] }}/{{ firmware_uid }}/" + node["data"]["uid"];
-                              }
-                            }
-                          },
-                          "plugins" : [ "sort" ]
-                        });
+                    create_file_tree(
+                        $('#fileTreeAjax_{{ loop.index }}'),
+                        false,
+                        (node) => node.id === '#' ?
+                            // root node url
+                            "/ajax_root/{{ firmware_uid|safe }}/{{ firmware_uid|safe }}" :
+                            // inner node url
+                            "/compare/ajax_tree/{{ result["_id"] }}/{{ firmware_uid }}/" + node["data"]["uid"]
+                    );
                 </script>
             </td>
             {% endif %}
         {% endfor %}
+
+    {% elif feature == 'changed_text_files' %}
+        <tr>
+            <td data-toggle="tooltip" data-placement="right" title="text files with identical paths but different content">diverging text files</td>
+            <td colspan="{{ uid_list | length }}">
+                <div class="list-group">
+                    <div role="button" data-toggle="collapse" data-target="#changed_text_files" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" aria-expanded="false">
+                        show files<span class="badge badge-pill badge-primary">{{ result['plugins'][plugin][feature] | length }}</span>
+                    </div>
+                    <div id="changed_text_files" class="collapse">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item list-group-item-action border-top p-0">
+                                <table class="internal-table table-sm" style="width: 100%;">
+                                    {% for path, uid_tuple_list in result['plugins'][plugin][feature].items() | sort %}
+                                        {% for (uid_1, uid_2) in uid_tuple_list %}
+                                            <tr>
+                                                <td style="width: 50%;">
+                                                    <a href="/analysis/{{ uid_1 }}" target="_blank" rel="noopener noreferrer">{{ path }}</a>
+                                                </td>
+                                                <td>
+                                                    <a href="/analysis/{{ uid_2 }}" target="_blank" rel="noopener noreferrer">{{ path }}</a>
+                                                </td>
+                                                <td style="width: 140px; text-align: right;">
+                                                    <button class="btn btn-primary" onclick=" window.open('/comparison/text_files/{{ uid_1 }}/{{ uid_2 }}','_blank')">
+                                                        show file diff
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        <tr>
 
     {% else %}
         <tr>

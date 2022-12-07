@@ -1,6 +1,5 @@
 import logging
 import pickle
-from configparser import ConfigParser
 from time import time
 from typing import Any
 
@@ -17,9 +16,8 @@ def generate_task_id(input_data: Any) -> str:
 
 
 class InterComRedisInterface:
-    def __init__(self, config: ConfigParser):
-        self.config = config
-        self.redis = RedisInterface(config)
+    def __init__(self):
+        self.redis = RedisInterface()
 
 
 class InterComListener(InterComRedisInterface):

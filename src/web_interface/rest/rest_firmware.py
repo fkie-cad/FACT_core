@@ -128,7 +128,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         except binascii.Error:
             return dict(error_message='Could not parse binary (must be valid base64!)')
         firmware_object = convert_analysis_task_to_fw_obj(data)
-        with ConnectTo(self.intercom, self.config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             intercom.add_analysis_task(firmware_object)
         data.pop('binary')
 
@@ -197,7 +197,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
 
         firmware.scheduled_analysis = update
 
-        with ConnectTo(self.intercom, self.config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             supported_plugins = intercom.get_available_analysis_plugins().keys()
             for item in update:
                 if item not in supported_plugins:

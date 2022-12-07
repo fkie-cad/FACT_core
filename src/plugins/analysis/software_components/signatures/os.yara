@@ -60,7 +60,7 @@ rule FireOS
 	strings:
 		$a = /ro.build.version.name=Fire OS \d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
-		$a
+		$a and no_text_file
 }
 
 rule LinuxKernel
@@ -72,17 +72,17 @@ rule LinuxKernel
 		description = "The Linux Kernel"
     strings:
 		$safe_condition = /Linux version \d\.\d{1,2}\.\d{1,3}(-[\d\w.-]+)?/ nocase ascii wide
-		
+
 	condition:
 		$safe_condition and no_text_file
-		
+
 /* tmporarly removed due to too many false positives */
 /*
         $a = /[2-4]\.\d\d?\.\d\d?-[a-z_][a-z\-_]+/ nocase ascii wide
         $b = /gcc-[2-4]\.\d\d?\.\d\d?-[a-z_][a-z\-_]+/ nocase ascii wide
 
     condition:
-        $a and not $b 
+        $a and not $b
 */
 }
 
@@ -95,8 +95,9 @@ rule CiscoIOS
 		description = "Cisco Internetwork Operating System"
 	strings:
 		$a = "CW_SYSDESCR$Cisco IOS Software"
+		$b = /Cisco IOS Software,[A-Za-z0-9 .()-]+, Version [^,]+,/ ascii
 	condition:
-		$a
+		($a or $b) and no_text_file
 }
 
 rule ThreadX
@@ -109,7 +110,7 @@ rule ThreadX
 	strings:
 		$a = /ThreadX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
-		$a
+		$a and no_text_file
 }
 
 rule MicroC_OS {
@@ -124,7 +125,7 @@ rule MicroC_OS {
         $b = /(\xc2\xb5|u|micro)c\/os-?[i]{0,3}/ nocase
 
     condition:
-        $a or $b
+        ($a or $b) and no_text_file
 }
 
 rule Contiki
@@ -151,5 +152,5 @@ rule eCos
 	strings:
 		$a = "eCos Release: %d.%d.%d" nocase ascii wide
 	condition:
-		$a
+		$a and no_text_file
 }
