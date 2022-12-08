@@ -184,9 +184,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             else:
                 self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
 
-    def _get_plugin_sets_from_config(self):
-        return {plugin_set: plugins for plugin_set, plugins in cfg.default_plugins}
-
     def get_plugin_dict(self) -> dict:
         '''
         Get information regarding all loaded plugins in form of a dictionary with the following form:
@@ -213,7 +210,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         plugin_list = self._get_list_of_available_plugins()
         plugin_list = self._remove_unwanted_plugins(plugin_list)
-        plugin_sets = self._get_plugin_sets_from_config()
+        plugin_sets = dict(cfg.default_plugins)
         result = {}
         for plugin in plugin_list:
             current_plugin_plugin_sets = {}
@@ -388,7 +385,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(next_analysis)
         return blacklist, whitelist
 
-    def _get_blacklist_and_whitelist_from_config(self, analysis_plugin: str) -> Tuple[List, List]:
+    @staticmethod
+    def _get_blacklist_and_whitelist_from_config(analysis_plugin: str) -> Tuple[List, List]:
         blacklist = getattr(cfg, analysis_plugin, {}).get('mime_blacklist')
         whitelist = getattr(cfg, analysis_plugin, {}).get('mime_whitelist')
         return blacklist, whitelist
@@ -405,7 +403,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.result_collector_process = ExceptionSafeProcess(target=self._result_collector)
         self.result_collector_process.start()
 
-    def _result_collector(self):  # pylint: disable=too-complex
+    def _result_collector(self):
         while self.stop_condition.value == 0:
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
