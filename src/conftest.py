@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import dataclasses
 import grp
 import logging
 import os
 from configparser import ConfigParser
 from tempfile import TemporaryDirectory
+from typing import Type
 
 import pytest
+from pydantic.dataclasses import dataclass
 
 import config
 from analysis.PluginBase import AnalysisBasePlugin
@@ -160,17 +163,27 @@ def patch_cfg(cfg_tuple):
     mpatch.undo()
 
 
+@dataclass(config=dict(arbitrary_types_allowed=True))
+class AnalysisPluginTestConfig:
+    """A class configuring the :py:func:`analysis_plugin` fixture."""
+
+    #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
+    plugin_class: Type[AnalysisBasePlugin] = AnalysisBasePlugin
+    #: Whether or not to start the workers (see ``AnalysisPlugin.start_worker``)
+    start_processes: bool = False
+    #: Keyword arguments to be given to the ``plugin_class`` constructor.
+    init_kwargs: dict = dataclasses.field(default_factory=dict)
+
+
 @pytest.fixture
 def analysis_plugin(request, monkeypatch, patch_cfg):
     """Returns an instance of an AnalysisPlugin.
-    The following pytest markers affect this fixture:
+    This fixture can be configured by the supplying an instance of ``AnalysisPluginTestConfig`` as marker of the same
+    name.
 
-    * AnalysisPluginClass: The plugin class type. Must be a class derived from ``AnalysisBasePlugin``.
-      The marker has to be set with ``@pytest.mark.with_args`` to work around pytest
-      `link weirdness <https://docs.pytest.org/en/7.1.x/example/markers.html#passing-a-callable-to-custom-markers>`.
-    * plugin_start_worker: If set the AnalysisPluginClass.start_worker method will NOT be overwritten.
-      If not set the method is overwritten by a stub that does nothing.
-    * plugin_init_kwargs: Additional keyword arguments that shall be passed to the ``AnalysisPluginClass`` constructor
+    .. seealso::
+
+        The documentation of :py:class:`AnalysisPluginTestConfig`
 
     If this fixture does not fit your needs (which normally should not be necessary) you can define a fixture like this:
 
@@ -187,13 +200,18 @@ def analysis_plugin(request, monkeypatch, patch_cfg):
 
     .. Note::
 
-        If you use the ``plugin_start_worker`` marker and want to modify plugin configuration like for example TIMEOUT
-        you have to put the following in your test:
+        If you want to set ``AnalysisPluginTestConfig.start_processes = True`` and want to modify plugin configuration
+        like for example TIMEOUT you have to put the following in your test:
 
         .. code-block::
 
-            @pytest.mark.AnalysisPluginClass.with_args(MyFancyPlugin)
-            # Don't use `plugin_start_worker`
+            @pytest.mark.AnalysisPluginTestConfig(
+                AnalysisPluginTestConfig(
+                    plugin_class=MyFancyPlugin,
+                    # Actually don't start the processes in the fixture
+                    start_processes = False,
+                ),
+            )
             def my_fancy_test(analysis_plugin, monkeypatch):
                 # Undo the patching of MyFancyPlugin.start_worker
                 monkeypatch.undo()
@@ -208,25 +226,16 @@ def analysis_plugin(request, monkeypatch, patch_cfg):
     # create a new instance.
     #
     # See also: The note in the doc comment.
+    test_config = merge_markers(request, 'AnalysisPluginTestConfig', AnalysisPluginTestConfig)
 
-    plugin_class_marker = request.node.get_closest_marker('AnalysisPluginClass')
-    assert plugin_class_marker, '@pytest.mark.AnalysisPluginClass has to be defined'
-    PluginClass = plugin_class_marker.args[0]
-    assert issubclass(
-        PluginClass, AnalysisBasePlugin
-    ), f'{PluginClass.__name__} is not a subclass of {AnalysisBasePlugin.__name__}'
+    PluginClass = test_config.plugin_class
 
-    # We don't want to actually start workers when testing, except for some special cases
-    plugin_start_worker_marker = request.node.get_closest_marker('plugin_start_worker')
-    if not plugin_start_worker_marker:
+    if not test_config.start_processes:
         monkeypatch.setattr(PluginClass, 'start_worker', lambda _: None)
-
-    plugin_init_kwargs_marker = request.node.get_closest_marker('plugin_init_kwargs')
-    kwargs = plugin_init_kwargs_marker.kwargs if plugin_init_kwargs_marker else {}
 
     plugin_instance = PluginClass(
         view_updater=CommonDatabaseMock(),
-        **kwargs,
+        **test_config.init_kwargs,
     )
     yield plugin_instance
 

@@ -9,7 +9,7 @@ from ..code.information_leaks import AnalysisPlugin, _check_file_path, _check_fo
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
 class TestAnalysisPluginInformationLeaks:
     def test_find_path(self, analysis_plugin):
         fo = MockFileObject()

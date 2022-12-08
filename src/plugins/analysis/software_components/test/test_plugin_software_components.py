@@ -10,7 +10,7 @@ from ..code.software_components import AnalysisPlugin
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
 class TestAnalysisPluginsSoftwareComponents:
     def test_process_object(self, analysis_plugin):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
