@@ -88,7 +88,7 @@ class MockIntercom:
 
 # Integration tests test the system as a whole so one can reasonably expect the database to be populated.
 @pytest.fixture(autouse=True, scope='session')
-def _setup_tables():
+def _database_interfaces():
     """Creates the tables that backend needs.
     This is equivalent to executing ``init_postgres.py``.
     """
@@ -149,11 +149,12 @@ def _setup_tables():
 
 # TODO Only things with a rw connectino have to be reset
 @pytest.fixture(scope='function')
-def database_interfaces(_setup_tables) -> DatabaseInterfaces:  # pylint: disable=invalid-name,redefined-outer-name
+def database_interfaces(
+    _database_interfaces,
+) -> DatabaseInterfaces:  # pylint: disable=invalid-name,redefined-outer-name
     """Returns an object containing all database intefaces.
     The database is emptied after this fixture goes out of scope.
     """
-    _database_interfaces = _setup_tables
     try:
         yield _database_interfaces
     finally:
@@ -220,6 +221,7 @@ def pre_analysis_queue():
 
 @pytest.fixture
 def analysis_finished_event():
+    """See also documentation of SchedulerTestConfig."""
     yield Event()
 
 
@@ -242,13 +244,15 @@ def analysis_scheduler(
     post_analysis_queue,
     analysis_finished_event,
 ) -> AnalysisScheduler:
+    """Returns an analysis_scheduler.
+    The scheduler has some extra testing features. See SchedulerTestConfig for the features.
+    """
     # TODO merge scopes like the config mock does
     scheduler_test_config_marker = request.node.get_closest_marker('SchedulerTestConfig')
     test_config: SchedulerTestConfig = (
         scheduler_test_config_marker.args[0] if scheduler_test_config_marker else SchedulerTestConfig()
     )
 
-    # TODO den finished spaß könnte man mit markern machen. Also marker der sagt wie viele fertig sein sollen und dann eben dann setzen.
     # Instanciate an AnalysisScheduler and set everything to None
     # TODO comment why we need monkeypatch here.
     # Theoretically we could also do the instanciation last but I dont like this.
@@ -303,6 +307,7 @@ def analysis_scheduler(
 
 @pytest.fixture
 def post_unpack_queue() -> Queue:
+    """A queue that is filled with the arguments of post_unpack of the unpacker"""
     yield Queue()
 
 
@@ -350,15 +355,18 @@ def unpacking_scheduler(request, post_unpack_queue) -> UnpackingScheduler:
 
 
 @pytest.fixture
-def comparsion_finished_event():
-    # This does not need a marker because we only compare two fimrwares in the tests
-    # If we were to compare many pairs of firmwares this would not hold
+def comparsion_finished_event() -> Event:
+    """The retunred event is set once the comparsion_scheduler is finished comparing.
+    Note that the event must be reset if you want to compare multiple firmwares in one test.
+    """
     yield Event()
 
 
 @pytest.fixture
 def comparison_scheduler(request, comparsion_finished_event) -> ComparisonScheduler:
     scheduler_test_config_marker = request.node.get_closest_marker('SchedulerTestConfig')
+    # TODO how to decide if the test is an acceptance test or an integration test
+    # We could probably look at request.module to find this out
     test_config: SchedulerTestConfig = (
         scheduler_test_config_marker.args[0] if scheduler_test_config_marker else SchedulerTestConfig()
     )
@@ -413,5 +421,9 @@ class SchedulerTestConfig:
     # TODO only AnalysisScheduler and UnpackingScheduler are connected
     # The comparison scheduler is NOT part of the pipeline.
     pipeline: bool = False
-    # If false the respective
+    # If false the respective processes will be started
     start_processes: bool = True
+
+    @staticmethod
+    def _get_from_request(request: pytest.FixtureRequest):
+        pass
