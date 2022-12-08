@@ -48,9 +48,7 @@ testpaths = [
     "src/plugins/**/test",
 ]
 markers = [
-    "AnalysisPluginClass: Set the Class of the analysis_plugin fixture",
-    "plugin_init_kwargs: Keyword arguments to pass to AnalysisPluginClass",
-    "plugin_start_worker: Whether or not to start actual workers",
+    "AnalysisPluginTestConfig: Configure the analysis_plugin fixture",
     "cfg_defaults: Overwrite defaults for the testing config",
     "WebInterfaceUnitTestConfig: Configure the web_interface fixture",
 ]

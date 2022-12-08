@@ -18,7 +18,7 @@ TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
         }
     },
 )
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
 class TestAnalysisPlugInPrintableStrings:
     strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\\string']
     offsets = [(3, strings[0]), (21, strings[1]), (61, strings[2])]

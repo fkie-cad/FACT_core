@@ -50,7 +50,7 @@ def ip_and_uri_finder_plugin(analysis_plugin):
     yield analysis_plugin
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
 class TestAnalysisPluginIpAndUriFinder:
     def test_process_object_ips(self, ip_and_uri_finder_plugin):
         with tempfile.NamedTemporaryFile() as tmp:
