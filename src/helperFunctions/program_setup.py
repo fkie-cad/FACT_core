@@ -72,6 +72,7 @@ def _setup_argparser(name, description, command_line_options, version=__VERSION_
     parser.add_argument(
         '-t', '--testing', default=False, action='store_true', help='shutdown system after one iteration'
     )
+    parser.add_argument('--no-radare', default=False, action='store_true', help='don\'t start radare server')
     return parser.parse_args(command_line_options[1:])
 
 

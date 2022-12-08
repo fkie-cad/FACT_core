@@ -64,7 +64,8 @@ class FactFrontend(FactBase):
     def __init__(self):
         super().__init__()
         self.server = None
-        run_cmd_with_logging(f'docker-compose -f {COMPOSE_YAML} up -d')
+        if not self.args.no_radare:
+            run_cmd_with_logging(f'docker-compose -f {COMPOSE_YAML} up -d')
 
     def main(self):
         with tempfile.NamedTemporaryFile() as fp:
@@ -79,7 +80,8 @@ class FactFrontend(FactBase):
         super().shutdown()
         if self.server:
             self.server.shutdown()
-        run_cmd_with_logging(f'docker-compose -f {COMPOSE_YAML} down')
+        if not self.args.no_radare:
+            run_cmd_with_logging(f'docker-compose -f {COMPOSE_YAML} down')
 
 
 if __name__ == '__main__':

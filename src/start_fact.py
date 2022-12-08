@@ -49,6 +49,8 @@ def _evaluate_optional_args(args: argparse.Namespace):
         optional_args += ' -s'
     if args.testing:
         optional_args += ' -t'
+    if args.no_radare:
+        optional_args += ' --no-radare'
     return optional_args
 
 
