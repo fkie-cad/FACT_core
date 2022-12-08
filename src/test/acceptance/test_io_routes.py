@@ -1,8 +1,7 @@
 from fact_helper_file import get_file_type_from_binary
+import pytest
 
-from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
-from test.acceptance.base import TestAcceptanceBase  # pylint: disable=wrong-import-order
 from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
 
 COMPARE_RESULT = {
@@ -15,59 +14,56 @@ def throwing_function(binary):
     raise Exception('I take exception to everything')
 
 
-class TestAcceptanceIoRoutes(TestAcceptanceBase):
-    def setUp(self):
-        super().setUp()
-        self._start_backend()
-        self.db_backend_interface = BackendDbInterface()
-        self.test_fw = create_test_firmware(device_name='test_fw')
+@pytest.fixture(autouse=True)
+def _autouse_intercom_backend_binding(intercom_backend_binding):
+    pass
 
-    def tearDown(self):
-        self._stop_backend()
-        super().tearDown()
 
-    def test_radare_button(self):
-        response = self.test_client.get(f'/radare-view/{self.test_fw.uid}')
+class TestAcceptanceIoRoutes:
+    test_fw = create_test_firmware(device_name='test_fw')
+
+    def test_radare_button(self, test_client, backend_db):
+        response = test_client.get(f'/radare-view/{self.test_fw.uid}')
         assert '200' in response.status, 'radare view link failed'
         assert b'File not found in database' in response.data, 'radare view should fail on missing uid'
 
-        self.db_backend_interface.add_object(self.test_fw)
+        backend_db.add_object(self.test_fw)
 
-        response = self.test_client.get(f'/radare-view/{self.test_fw.uid}')
+        response = test_client.get(f'/radare-view/{self.test_fw.uid}')
         assert '200' in response.status, 'radare view link failed'
         assert b'with url: /v1/retrieve' in response.data, 'error coming from wrong request'
         assert b'Failed to establish a new connection' in response.data, 'connection shall fail'
 
-    def test_ida_download(self):
+    def test_ida_download(self, backend_db, test_client):
         compare_interface = ComparisonDbInterface()
 
-        self.db_backend_interface.add_object(self.test_fw)
+        backend_db.add_object(self.test_fw)
 
         COMPARE_RESULT['general'] = {'a': {self.test_fw.uid: 'x'}, 'b': {self.test_fw.uid: 'y'}}
 
         compare_interface.add_comparison_result(COMPARE_RESULT)
         cid = compare_interface._calculate_comp_id(COMPARE_RESULT)  # pylint: disable=protected-access
 
-        response = self.test_client.get(f'/ida-download/{cid}')
+        response = test_client.get(f'/ida-download/{cid}')
         assert b'IDA database' in response.data, 'mocked ida database not in result'
 
-    def test_ida_download_bad_uid(self):
+    def test_ida_download_bad_uid(self, test_client):
         compare_interface = ComparisonDbInterface()
 
         compare_interface.add_comparison_result(COMPARE_RESULT)
         cid = compare_interface._calculate_comp_id(COMPARE_RESULT)  # pylint: disable=protected-access
 
-        response = self.test_client.get(f'/ida-download/{cid}')
+        response = test_client.get(f'/ida-download/{cid}')
         assert b'not found' in response.data, 'endpoint should dismiss result'
 
-    def test_pdf_download(self):
-        response = self.test_client.get(f'/pdf-download/{self.test_fw.uid}')
+    def test_pdf_download(self, test_client, backend_db):
+        response = test_client.get(f'/pdf-download/{self.test_fw.uid}')
         assert response.status_code == 200, 'pdf download link failed'
         assert b'File not found in database' in response.data, 'radare view should fail on missing uid'
 
-        self.db_backend_interface.add_object(self.test_fw)
+        backend_db.add_object(self.test_fw)
 
-        response = self.test_client.get(f'/pdf-download/{self.test_fw.uid}')
+        response = test_client.get(f'/pdf-download/{self.test_fw.uid}')
 
         assert response.status_code == 200, 'pdf download failed'
         device = self.test_fw.device_name.replace(' ', '_')
