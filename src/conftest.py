@@ -4,7 +4,9 @@ import logging
 import shutil
 import tempfile
 from configparser import ConfigParser
+from dataclasses import dataclass
 from pathlib import Path
+from typing import TypeVar
 
 import pytest
 
@@ -138,6 +140,13 @@ def patch_cfg(cfg_tuple):
     yield
 
     mpatch.undo()
+
+
+@dataclass
+class AnalysisPluginTestConfig:
+    plugin_class: TypeVar('T', bound=AnalysisBasePlugin)
+    start_processes: bool = False
+    init_kwargs: dict = {}
 
 
 @pytest.fixture
