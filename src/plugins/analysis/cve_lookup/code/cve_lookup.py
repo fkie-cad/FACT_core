@@ -230,8 +230,8 @@ def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
 def compare_version(version1: str, version2: str, comp_operator: Callable) -> bool:
     try:
         return comp_operator(parse_version(version1), parse_version(version2))
-    except InvalidVersion:
-        logging.exception(f'Either "{version1}" or "{version2}" is not a valid version.')
+    except InvalidVersion as error:
+        logging.exception(f'Error while parsing software version: {error}')
         return False
 
 

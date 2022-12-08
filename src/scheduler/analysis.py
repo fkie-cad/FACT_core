@@ -5,6 +5,7 @@ from queue import Empty
 from time import sleep, time
 from typing import Callable, List, Optional, Tuple
 
+from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
 from analysis.PluginBase import AnalysisBasePlugin
@@ -328,6 +329,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 return False
         except TypeError:
             logging.error(f'plug-in or system version of "{analysis_plugin.NAME}" plug-in is or was invalid!')
+            return False
+        except InvalidVersion as error:
+            logging.exception(f'Error while parsing plugin version: {error}')
             return False
 
         return self._dependencies_are_up_to_date(db_entry, analysis_plugin, uid)

@@ -373,6 +373,7 @@ class TestAnalysisShouldReanalyse:
             (20, 10, '1.0', '1.1', '1.0', '1.0', False),  # system version > db system version => not up to date
             (20, 10, '1.0', '1.0', '1.0', '1.1', True),  # system version < db system version => up to date
             (20, 10, '1.0', '1.0', '1.0', None, False),  # system version did not exist in db => not up to date
+            (20, 10, 'foo', '1.0', '1.0', None, False),  # invalid version => not up to date
         ],
     )
     def test_analysis_is_up_to_date(
