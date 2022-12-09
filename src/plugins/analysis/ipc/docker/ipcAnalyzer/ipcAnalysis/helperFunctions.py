@@ -1,40 +1,77 @@
 from string import printable
-from ghidra.program.model.block import BasicBlockModel
-from ghidra.program.model.pcode import PcodeOp, Varnode, VarnodeAST
-from decompile import decompileFunction
 
-def iter_array(array):
-    while array.hasNext():
+from ghidra.program.model.pcode import PcodeOp
+from ghidra.program.model.block import BasicBlockModel
+
+from decompile import decompile_function
+
+
+def iter_array(array, monitor):
+    """
+    :param array: ghidra.program.model.pcode.ListLinked$LinkedIterator
+    :param monitor: ghidra.util.task.ConsoleTaskMonitor
+    :return: ghidra.program.model.pcode.ListLinked$LinkedIterator
+    """
+    while array.hasNext() and not monitor.isCancelled():
         yield array.next()
 
-def getFunctionCallSitePCodeOps(ghidraAnalysis, func, functionNames):
-    """
-    Withing a function func, look for all p-code operations associated with a CALL to a function from functionNames
 
-    :param ghidraAnalysis: instance of GhidraAnalysis
+def string_is_printable(string):
+    """
+    :param string: str
+    :return: bool
+    """
+    return all(c in printable for c in string)
+
+
+def get_call_site_pcode_ops(ghidra_analysis, func):
+    """
+    Within a function, look for all pcode operations
+    associated with a CALL to a sink or source func.
+
+    :param ghidra_analysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
-    :param functionNames: list
-    :return: list, list of these p-code CALL sites
+    :return: (list[ghidra.program.model.pcode.PcodeOpAST], list[ghidra.program.model.pcode.PcodeOpAST])
     """
-    pcodeOpCallSites = []
-    hfunction = decompileFunction(ghidraAnalysis, func)
+    call_site_pcode_ops = []
+    sources_pcode_ops = []
+    high_func = decompile_function(ghidra_analysis, func)
 
-    opiter = hfunction.getPcodeOps()
-    for pcodeOpAST in iter_array(opiter):
-        if pcodeOpAST.getOpcode() == PcodeOp.CALL:
-            calledVarnode = pcodeOpAST.getInput(0)
+    op_iter = high_func.getPcodeOps()
+    for pcode_op in iter_array(op_iter, ghidra_analysis.monitor):
+        if pcode_op.getOpcode() == PcodeOp.CALL:
+            called_varnode = pcode_op.getInput(0)
 
-            if calledVarnode is None or not calledVarnode.isAddress():
-                print("ERROR: CALL, but not to address: {}".format(pcodeOpAST))
+            if called_varnode is None or not called_varnode.isAddress():
+                print("ERROR: CALL, but not to address: {}".format(pcode_op))
                 continue
 
-            # If the CALL is a sink function, save this callsite
-            functionName = ghidraAnalysis.getFunctionAt(calledVarnode.getAddress()).getName()
-            if functionName in functionNames:
-                pcodeOpCallSites.append(pcodeOpAST)
-    return pcodeOpCallSites
+            # If the CALL is a sink or source function, save this callsite
+            func_name = ghidra_analysis.flat_api.getFunctionAt(
+                called_varnode.getAddress()
+            ).name
+            if func_name in ghidra_analysis.sink_function_names:
+                call_site_pcode_ops.append(pcode_op)
+            elif func_name in ghidra_analysis.source_function_names:
+                sources_pcode_ops.append(pcode_op)
+    return call_site_pcode_ops, sources_pcode_ops
 
-def getReferents(ghidraAnalysis, func, pcAddress):
+
+def get_relevant_sources(ghidra_analysis, func, pc_address, sources_pcode_ops):
+    """
+    Filter the sources_pcode_ops for only relevant sources
+
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param func: ghidra.program.database.function.FunctionDB
+    :param pc_address: ghidra.program.model.address.GenericAddress
+    :param sources_pcode_ops: list[ghidra.program.model.pcode.PcodeOpAST]
+    :return: list[ghidra.program.model.pcode.PcodeOpAST]
+    """
+    referents = get_referents(ghidra_analysis, func, pc_address)
+    return [s for s in sources_pcode_ops if s.getSeqnum().getTarget() in referents]
+
+
+def get_referents(ghidra_analysis, func, pc_address):
     """
     Find all relevant source addresses that come before the sink call address pcAddress
     using BasicBlocks
@@ -50,148 +87,130 @@ def getReferents(ghidraAnalysis, func, pcAddress):
     WARNING:
     Functions is hacky and might not work for special cases!
 
-    :param ghidraAnalysis: instance of GhidraAnalysis
+    :param ghidra_analysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
-    :param pcAddress: ghidra.program.model.address.GenericAddress
-    :return: list
+    :param pc_address: ghidra.program.model.address.GenericAddress
+    :return: list[ghidra.program.model.address.GenericAddress]
     """
-    blockModel = BasicBlockModel(ghidraAnalysis.currentProgram)
-    blocks = blockModel.getCodeBlocksContaining(func.getBody(), ghidraAnalysis.monitor)
+    block_model = BasicBlockModel(ghidra_analysis.current_program)
+    blocks = block_model.getCodeBlocksContaining(
+        func.getBody(), ghidra_analysis.monitor
+    )
     referents = []
-    for block in iter_array(blocks):
-        dest = block.getDestinations(ghidraAnalysis.monitor)
-        for dbb in iter_array(dest):
-            referent = dbb.getReferent()
-            if referent <= pcAddress:
+    for block in iter_array(blocks, ghidra_analysis.monitor):
+        destinations = block.getDestinations(ghidra_analysis.monitor)
+        for destination in iter_array(destinations, ghidra_analysis.monitor):
+            referent = destination.getReferent()
+            if referent <= pc_address:
                 referents.append(referent)
             else:
                 break
     return referents
 
-def getVarFromVarnode(ghidraAnalysis, func, varnode):
+
+def get_vars_from_varnode(ghidra_analysis, func, varnode):
     """
     Get variable symbol from a Varnode
     Take a varnode and compare it to the decompiler's stack and global variabe symbols
 
-    :param ghidraAnalysis: instance of GhidraAnalysis
+    :param ghidra_analysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
     :param varnode: ghidra.program.model.pcode.VarnodeAST
-    :return lv: ghidra.program.database.function.LocalVariableDB
-    :return symbol: ghidra.program.model.pcode.HighSymbol
-    :return: None
+    :return: list
     """
-    addr_size = ghidraAnalysis.currentProgram.getMetadata()['Address Size']
-    bitmask = int(int(addr_size) // 4 * "f", 16)
-
+    result = []
+    addr_size = int(ghidra_analysis.current_program.getMetadata()["Address Size"])
+    bitmask = int(addr_size // 4 * "f", 16)
     local_variables = func.getAllVariables()
     vndef = varnode.getDef()
-
     if vndef is None:
-        return None
-
+        return result
     vndef_inputs = vndef.getInputs()
-    for defop_input in vndef_inputs:
-        defop_input_offset = defop_input.getAddress().getOffset() & bitmask
+    high_func = decompile_function(ghidra_analysis, func)
+    local_symbol_map = high_func.getLocalSymbolMap()
+    global_symbol_map = high_func.getGlobalSymbolMap()
+    for vndef_input in vndef_inputs:
+        vndef_input_offset = vndef_input.getAddress().getOffset() & bitmask
         for lv in local_variables:
-            unsigned_lv_offset = lv.getMinAddress().getUnsignedOffset() & bitmask
-            if unsigned_lv_offset == defop_input_offset:
-                return lv
-    
-    # If we get here, varnode is likely a "acStack##" variable.
-    hf = decompileFunction(ghidraAnalysis, func)
-    lsm = hf.getLocalSymbolMap()
-    for vndef_input in vndef_inputs:
-        defop_input_offset = vndef_input.getAddress().getOffset() & bitmask
-        for symbol in lsm.getSymbols():
-            if symbol.isParameter():
+            unsiged_lv_offset = lv.getMinAddress().getUnsignedOffset() & bitmask
+            if unsiged_lv_offset == vndef_input_offset:
+                result.append(lv)
+        for local_symbol in local_symbol_map.getSymbols():
+            if local_symbol.isParameter():
                 continue
-            if defop_input_offset == symbol.getStorage().getFirstVarnode().getOffset() & bitmask:
-                return symbol
+            if (
+                vndef_input_offset
+                == local_symbol.getStorage().getFirstVarnode().getOffset() & bitmask
+            ):
+                result.append(local_symbol)
+        for global_symbol in global_symbol_map.getSymbols():
+            first_varnode = global_symbol.getStorage().getFirstVarnode()
+            if (
+                first_varnode
+                and vndef_input_offset == first_varnode.getOffset() & bitmask
+            ):
+                result.append(global_symbol)
+    return result
 
-    # If we get here, varnode is likely a "DAT_*" variable.
-    gsm = hf.getGlobalSymbolMap()
-    for vndef_input in vndef_inputs:
-        defop_input_offset = vndef_input.getAddress().getOffset() & bitmask
-        for symbol in gsm.getSymbols():
-            if symbol.getStorage().getFirstVarnode() and defop_input_offset == symbol.getStorage().getFirstVarnode().getOffset() & bitmask:
-                return symbol
 
-    # unable to resolve stack variable for given varnode
-    return None
-
-def findLocalVariables(ghidraAnalysis, func, varnode):
-    """
-    Find data assigned to local variables
-
-    :param ghidraAnalysis: instance of GhidraAnalysis
-    :param func: ghidra.program.database.function.FunctionDB
-    :return: ghidra.program.model.pcode.VarnodeAST
-    :return: None
-    """
-    hfunction = decompileFunction(ghidraAnalysis, func)
-    opiter = hfunction.getPcodeOps()
-    multi = []
-    for pcodeOpAST in iter_array(opiter):
-        seqTarget = pcodeOpAST.getSeqnum().getTarget()
-        if pcodeOpAST.getOpcode() == PcodeOp.COPY and pcodeOpAST.getOutput().getHigh() == varnode.getHigh() and seqTarget <= varnode.getPCAddress():
-            multi.append(pcodeOpAST.getInput(0))
-    if len(multi) < 1:
-        return None
-    elif len(multi) == 1:
-        return multi[0]
-    else:
-        return multi
-
-def findSourceValue(ghidraAnalysis, func, var, sources):
+def find_source_value(ghidra_analysis, func, var, sources):
     """
     Find data comming from a source function
 
-    :param ghidraAnalysis: instance of GhidraAnalysis
+    :param ghidra_analysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
     :param var: ghidra.program.database.function.LocalVariableDB
-    :param sources: list
+    :param sources: list[ghidra.program.model.pcode.PcodeOpAST]
     :return: ghidra.program.model.pcode.VarnodeAST
     :return: None
     """
     for source in sources[::-1]:
-        sourceVarnode = source.getInput(1)
-        source_var = getVarFromVarnode(ghidraAnalysis, func, sourceVarnode)
-        # Handle p-code CAST of sourceVarnode
-        if source_var is None:
-            defOp = sourceVarnode.getDef()
-            if defOp is not None:
-                source_var = getVarFromVarnode(ghidraAnalysis, func, defOp.getInput(0))
+        source_varnode = source.getInput(1)
+        source_vars = get_vars_from_varnode(ghidra_analysis, func, source_varnode)
+        # Handle p-code CAST of source_varnode
+        if len(source_vars) == 0:
+            varnode = source_varnode
+            def_op = source_varnode.getDef()
+            while def_op.getOpcode() == PcodeOp.CAST:
+                varnode = def_op.getInput(0)
+                def_op = varnode.getDef()
+            if def_op is not None:
+                source_vars = get_vars_from_varnode(ghidra_analysis, func, varnode)
             else:
-                return
-        if (source_var == var):
-            sourceName = ghidraAnalysis.getFunctionContaining(source.getInput(0).getAddress()).getName()
-            # Source value is arg 3
-            if sourceName == "snprintf":
-                sourceValue = source.getInput(3)
-            # Source value is arg 2
+                return None
+        if var in source_vars:
+            source_name = ghidra_analysis.flat_api.getFunctionContaining(
+                source.getInput(0).getAddress()
+            ).getName()
+            if source_name == "snprintf":
+                source_value = source.getInput(3)
             else:
-                sourceValue = source.getInput(2)
-            return sourceValue
+                source_value = source.getInput(2)
+            return source_value
+        return None
 
-def flatten(lst):
+
+def find_local_vars(ghidra_analysis, func, varnode):
     """
-    Flattens nested lists
+    Find data assigned to local variables
 
-    :param lst: list
+    WARNING:
+    Functions is hacky and might not work!
+
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param func: ghidra.program.database.function.FunctionDB
+    :param varnode: ghidra.program.model.pcode.VarnodeAST
     :return: list
     """
     result = []
-    for el in lst:
-        if hasattr(el, "__iter__") and not isinstance(el, str):
-            result.extend(flatten(el))
-        else:
-            result.append(el)
+    high_func = decompile_function(ghidra_analysis, func)
+    op_iter = high_func.getPcodeOps()
+    for pcode_op in iter_array(op_iter, ghidra_analysis.monitor):
+        seq_target = pcode_op.getSeqnum().getTarget()
+        if (
+            pcode_op.getOpcode() == PcodeOp.COPY
+            and pcode_op.getOutput().getHigh() == varnode.getHigh()
+            and seq_target <= varnode.getPCAddress()
+        ):
+            result.append(pcode_op.getInput(0))
     return result
-
-
-def stringIsPrintable(string):
-    """
-    :param string: str
-    :return: bool
-    """
-    return all(c in printable for c in string)

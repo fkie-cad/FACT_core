@@ -1,35 +1,19 @@
-from ghidra.app.decompiler import DecompInterface, DecompileOptions
-
-def setUpDecompiler(currentProgram):
+def decompile_function(ghidra_analysis, func):
     """
-    Set up decompiler interface
+    Decompiles a function and returns a ligh-level abstraction function
 
-    :param currentProgram: ghidra.program.database.ProgramDB
-    :return: ghidra.app.decompiler.DecompInterface
-    """
-    decompInterface = DecompInterface()
-    options = DecompileOptions()
-    decompInterface.setOptions(options)
-    decompInterface.toggleCCode(True)
-    decompInterface.toggleSyntaxTree(True)
-    decompInterface.setSimplificationStyle("decompile")
-    decompInterface.openProgram(currentProgram)
-    return decompInterface
-
-def decompileFunction(ghidraAnalysis, func):
-    """
-    Decompiles function func
-
-    :param ghidraAnalysis: instance of GhidraAnalysis
+    :param ghidra_analysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
-    :return: ghidra.program.model.pcode.HighFunction, HighFunction, which is used to iterate over refined PCode of a function
+    :return: ghidra.program.model.pcode.HighFunction
     """
-    if func.getName() in ghidraAnalysis.hfunctions:
-        hfunction = ghidraAnalysis.hfunctions[func.getName()]
-    else:
-        decompInterface = ghidraAnalysis.decompInterface
-        # Decompiling a function is VERY SLOW so it should only be done once!
-        res = decompInterface.decompileFunction(func, decompInterface.getOptions().getDefaultTimeout(), ghidraAnalysis.monitor)
-        hfunction = res.getHighFunction()
-        ghidraAnalysis.hfunctions[func.getName()] = hfunction
-    return hfunction
+    if func.name in ghidra_analysis.high_funcs:
+        return ghidra_analysis.high_funcs[func.name]
+    # Decompiling a function is VERY SLOW so it should only be done once!
+    decompile_result = ghidra_analysis.decompiler.decompileFunction(
+        func,
+        ghidra_analysis.decompiler.getOptions().getDefaultTimeout(),
+        ghidra_analysis.monitor,
+    )
+    high_func = decompile_result.getHighFunction()
+    ghidra_analysis.high_funcs[func.name] = high_func
+    return high_func

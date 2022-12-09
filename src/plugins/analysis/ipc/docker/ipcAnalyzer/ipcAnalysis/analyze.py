@@ -1,9 +1,17 @@
-from ghidra.program.model.pcode import PcodeOp, HighParam
 from ghidra.program.model.symbol import RefType
-from decompile import decompileFunction
-from helperFunctions import getFunctionCallSitePCodeOps, getReferents, getVarFromVarnode, findLocalVariables, findSourceValue
+from ghidra.program.model.pcode import PcodeOp, HighParam
 
-PCODEOPONEINPUT = [
+from decompile import decompile_function
+from helperFunctions import (
+    iter_array,
+    get_call_site_pcode_ops,
+    get_relevant_sources,
+    get_vars_from_varnode,
+    find_source_value,
+    find_local_vars,
+)
+
+ONEINPUT = [
     PcodeOp.INT_NEGATE,
     PcodeOp.INT_ZEXT,
     PcodeOp.INT_SEXT,
@@ -14,7 +22,7 @@ PCODEOPONEINPUT = [
     PcodeOp.PIECE,
 ]
 
-PCODEOPTWOINPUTS = [
+TWOINPUTS = [
     PcodeOp.INT_ADD,
     PcodeOp.INT_SUB,
     PcodeOp.INT_MULT,
@@ -23,206 +31,259 @@ PCODEOPTWOINPUTS = [
     PcodeOp.INT_OR,
     PcodeOp.INT_XOR,
     PcodeOp.INT_EQUAL,
-] 
+    PcodeOp.PTRSUB,
+]
 
-def analyzeFunctionCallSite(ghidraAnalysis, func, callPCOp, paramIndex, sources, prev=None):
+
+def analyze_function_call_site(
+    ghidra_analysis, func, index, call_site, sources, prev=None
+):
     """
     Handles analysis of a particular callsite for a function -
     Finds the varnode associated with a particular index, and either saves it (if it is a constant value),
-    or passes it off to processOneVarnode to be analyzed
+    or passes it off to process_one_varnode to be analyzed
 
-    :param ghidraAnalysis: instance of GhidraAnalysis
+    :param ghidra_analysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
-    :param callPCOp: ghidra.program.model.pcode.PcodeOpAST
-    :param paramIndex: int
-    :param sources: list
-    :param prev: None/list
-    :return: list
+    :param index: int
+    :param call_site: ghidra.program.model.pcode.PcodeOpAST
+    :param sources: ghidra.program.model.pcode.PcodeOpAST
+    :param prev: list
+    :return: list[long]
     """
-    varnode = callPCOp.getInput(paramIndex)
+    varnode = call_site.getInput(index)
     if varnode is None:
         print("Skipping NULL parameter")
         return []
     if varnode.isConstant():
-        value = [varnode.getOffset()]
+        return [varnode.getOffset()]
     else:
-        value = processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev)
-    return value
+        return process_one_varnode(ghidra_analysis, func, index, varnode, sources, prev)
 
-def processOneVarnode(ghidraAnalysis, func, varnode, paramIndex, sources, prev):
+
+def process_one_varnode(ghidra_analysis, func, index, varnode, sources, prev):
     """
     Handles one varnode
 
-    :param ghidraAnalysis: instance of GhidraAnalysis
+    :param ghidra_analysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
+    :param index: int
     :param varnode: ghidra.program.model.pcode.VarnodeAST
-    :param sources: list
-    :param prev: None/list
-    :return: list
+    :param sources: ghidra.program.model.pcode.PcodeOpAST
+    :param prev: list
+    :return: list[long]
     """
+    result = []
     if varnode is None:
-        return []
+        return result
     if isinstance(varnode, list):
-        multi = []
         for v in varnode:
-            multi.append(processOneVarnode(ghidraAnalysis, func, v, paramIndex, sources, prev))
-        return multi
+            result.extend(
+                process_one_varnode(ghidra_analysis, func, index, v, sources, prev)
+            )
+        return result
+    # Skip duplicate
     if prev is None:
         prev = []
-    # Skip duplicate
     if varnode.getUniqueId() in prev:
-        return []
+        return result
     else:
         prev.append(varnode.getUniqueId())
     # If the varnode is a constant, we are done
     if varnode.isConstant():
-        value = varnode.getOffset()
-        return [value]
+        result.append(varnode.getOffset())
+        return result
     if varnode.isAddress():
         addr = varnode.getAddress().getOffset()
         try:
-            value = ghidraAnalysis.getDataAt(ghidraAnalysis.toAddr(addr)).getValue().getOffset()
-            return [value]
+            result.append(
+                ghidra_analysis.flat_api.getDataAt(
+                    ghidra_analysis.flat_api.toAddr(addr)
+                )
+                .getValue()
+                .getOffset()
+            )
         except AttributeError:
-            return [addr]
+            result.append(addr)
+        return result
     # If the varnode is associated with a parameter to the function, we then find each
     # site where the function is called, and analyze how the parameter varnode at the
     # corresponding index is derivded for each call of the function
     hvar = varnode.getHigh()
     if isinstance(hvar, HighParam):
-        return analyzeCallSites(ghidraAnalysis, func, hvar.getSlot()+1, prev)
-    var = getVarFromVarnode(ghidraAnalysis, func, varnode)
-    if var is not None:
-        # Find source function call values
-        sourceValue = findSourceValue(ghidraAnalysis, func, var, sources)
-        if sourceValue is not None:
-            return processOneVarnode(ghidraAnalysis, func, sourceValue, paramIndex, sources, prev)
-        # Find local variables
-        localVar = findLocalVariables(ghidraAnalysis, func, varnode)
-        if localVar is not None:
-            return processOneVarnode(ghidraAnalysis, func, localVar, paramIndex, sources, prev)
-    defOp = varnode.getDef()
-    # NULL DEF
-    if defOp is None:
-        return []
-    # get the enum value of the p-code operation that defines our varnode
-    opcode = defOp.getOpcode()
-    # Handle p-code ops that take one input
-    if opcode in PCODEOPONEINPUT:
-        return processOneVarnode(ghidraAnalysis, func, defOp.getInput(0), paramIndex, sources, prev)
-    # Handle p-code ops that take two inputs.
-    elif opcode in PCODEOPTWOINPUTS:
-        if not defOp.getInput(0).isConstant():
-            return processOneVarnode(ghidraAnalysis, func, defOp.getInput(0), paramIndex, sources, prev)
-        if not defOp.getInput(1).isConstant():
-            return processOneVarnode(ghidraAnalysis, func, defOp.getInput(1), paramIndex,  sources, prev)
-    # Handle CALL p-code ops by analyzing the functions that they call
+        result.extend(
+            analyze_call_sites(ghidra_analysis, func, hvar.getSlot() + 1, prev)
+        )
+        return result
+    variables = get_vars_from_varnode(ghidra_analysis, func, varnode)
+    if len(variables) >= 1:
+        for var in variables:
+            source_value = find_source_value(ghidra_analysis, func, var, sources)
+            if source_value is not None:
+                result.extend(
+                    process_one_varnode(
+                        ghidra_analysis, func, index, source_value, sources, prev
+                    )
+                )
+                return result
+        local_vars = find_local_vars(ghidra_analysis, func, varnode)
+        if len(local_vars) >= 1:
+            result.extend(
+                process_one_varnode(
+                    ghidra_analysis, func, index, local_vars, sources, prev
+                )
+            )
+            return result
+    def_op = varnode.getDef()
+    if def_op is None:
+        return result
+    opcode = def_op.getOpcode()
+    if opcode in ONEINPUT:
+        result.extend(
+            process_one_varnode(
+                ghidra_analysis, func, index, def_op.getInput(0), sources, prev
+            )
+        )
+    elif opcode in TWOINPUTS:
+        for i in range(2):
+            result.extend(
+                process_one_varnode(
+                    ghidra_analysis, func, index, def_op.getInput(i), sources, prev
+                )
+            )
     elif opcode == PcodeOp.CALL:
-        parentFunction = ghidraAnalysis.getFunctionAt(defOp.getInput(0).getAddress())
-        if parentFunction.getName() in ["open", "ftok", "msgget"]:
-            return processOneVarnode(ghidraAnalysis, parentFunction, defOp.getInput(1), 1, sources, prev)
-        return analyzeCalledFunction(ghidraAnalysis, parentFunction, paramIndex, prev)
+        called_func = ghidra_analysis.flat_api.getFunctionAt(
+            def_op.getInput(0).getAddress()
+        )
+        if called_func.name in ["open", "ftok", "msgget"]:
+            result.extend(
+                process_one_varnode(
+                    ghidra_analysis, called_func, 1, def_op.getInput(1), sources, prev
+                )
+            )
+        else:
+            result.extend(
+                analyze_called_function(ghidra_analysis, called_func, index, prev)
+            )
     # p-code representation of a PHI operation.
     # So here we choose one varnode from a number of incoming varnodes.
     # In this case, we want to explore each varnode that the phi handles
-    # We need to propogate phi status to each of them as well
     elif opcode == PcodeOp.MULTIEQUAL:
-        multi = []
-        # Visit each input to the MULTIEQUAL
-        for node in defOp.getInputs():
-            result = processOneVarnode(ghidraAnalysis, func, node, paramIndex,  sources, prev)
-            if result is not None:
-                multi.append(result)
-        return multi
-    # This is a p-code op that may be inserted during the decompiler's construction of SSA form.
+        for node in def_op.getInputs():
+            result.extend(
+                process_one_varnode(ghidra_analysis, func, index, node, sources, prev)
+            )
     elif opcode == PcodeOp.INDIRECT:
-        output = defOp.getOutput()
-        if (output.getAddress() == defOp.getInput(0).getAddress()):
-            return processOneVarnode(ghidraAnalysis, func, defOp.getInput(0), paramIndex, sources, prev)
+        output = def_op.getOutput()
+        if output.getAddress() == def_op.getInput(0).getAddress():
+            result.extend(
+                process_one_varnode(
+                    ghidra_analysis, func, index, def_op.getInput(0), sources, prev
+                )
+            )
     elif opcode == PcodeOp.LOAD:
-        return processOneVarnode(ghidraAnalysis, func, defOp.getInput(1), paramIndex,  sources, prev)
-    elif opcode == PcodeOp.PTRSUB:
-        return [processOneVarnode(ghidraAnalysis, func, defOp.getInput(i), paramIndex, sources, prev) for i in [0, 1]]
-    # p-code op we don't support
+        result.extend(
+            process_one_varnode(
+                ghidra_analysis, func, index, def_op.getInput(1), sources, prev
+            )
+        )
+    # p-code op we don't support yet
     else:
-        print("Support for Pcode {} not implemented".format(defOp.toString()))
+        print("Support for Pcode {} not implemented".format(def_op.toString()))
+    return result
 
-def analyzeCallSites(ghidraAnalysis, func, paramIndex, prev):
+
+def analyze_call_sites(ghidra_analysis, func, index, prev):
     """
     Given a function, analyze all sites where it is called, looking at how the parameter at the call
-    site specified by paramIndex is derived. This is for situations where we determine that a varnode
+    site specified by index is derived. This is for situations where we determine that a varnode
     we are looking at is a parameter to the current function - we then have to analyze all sites where
     that function is called to determine possible values for that parameter
 
-    :param ghidraAnalysis: instance of GhidraAnalysis
+    :param ghidra_analysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
-    :param paramIndex: int
+    :param index: int
     :param prev: list
-    :return: list
+    :return: list[long]
     """
-    referencesTo = ghidraAnalysis.currentProgram.getReferenceManager().getReferencesTo(func.getEntryPoint())
-    multi = []
-    for currentReference in referencesTo:
-        fromAddr = currentReference.getFromAddress()
-        callingFunction = ghidraAnalysis.getFunctionContaining(fromAddr)
-        if callingFunction is None:
-            # Could not get calling function
+    result = []
+    references_to = (
+        ghidra_analysis.current_program.getReferenceManager().getReferencesTo(
+            func.getEntryPoint()
+        )
+    )
+    for reference in references_to:
+        from_address = reference.getFromAddress()
+        calling_func = ghidra_analysis.flat_api.getFunctionContaining(from_address)
+        if calling_func is None:
             continue
-        # if the reference is a CALL
-        if currentReference.getReferenceType() == RefType.UNCONDITIONAL_CALL:
-            # skip recursive functions
-            if ghidraAnalysis.getFunctionContaining(currentReference.getFromAddress()) == func:
+        if reference.getReferenceType() == RefType.UNCONDITIONAL_CALL:
+            # Skip recursive functions
+            if calling_func == func:
                 continue
-            hfunction = decompileFunction(ghidraAnalysis, callingFunction)
-            # get the p-code ops at the address of the reference
-            ops = hfunction.getPcodeOps(fromAddr.getPhysicalAddress())
-            # now loop over p-code looking for the CALL operation
-            while ops.hasNext() and not ghidraAnalysis.monitor.isCancelled():
-                currentOp = ops.next()
-                if currentOp.getOpcode() == PcodeOp.CALL:
-                    # get the function which is called by the CALL operation
-                    targetFunction = ghidraAnalysis.getFunctionAt(currentOp.getInput(0).getAddress())
-                    if targetFunction == func:
-                        parentAddress = currentOp.getSeqnum().getTarget()
-                        sources = getFunctionCallSitePCodeOps(ghidraAnalysis, callingFunction, ghidraAnalysis.sourceFunctionNames)
-                        referents = getReferents(ghidraAnalysis, func, parentAddress)
-                        relevantSources = [s for s in sources if s.getSeqnum().getTarget() in referents]
-                        multi.append(analyzeFunctionCallSite(ghidraAnalysis, callingFunction, currentOp, paramIndex, relevantSources, prev))
-    return multi
+            high_func = decompile_function(ghidra_analysis, calling_func)
+            pcode_ops = high_func.getPcodeOps(from_address.getPhysicalAddress())
+            for pcode_op in iter_array(pcode_ops, ghidra_analysis.monitor):
+                if pcode_op.getOpcode() == PcodeOp.CALL:
+                    target_func = ghidra_analysis.flat_api.getFunctionAt(
+                        pcode_op.getInput(0).getAddress()
+                    )
+                    if target_func == func:
+                        call_site_address = pcode_op.getSeqnum().getTarget()
+                        _, sources_pcode_ops = get_call_site_pcode_ops(
+                            ghidra_analysis, func
+                        )
+                        relevant_sources = get_relevant_sources(
+                            ghidra_analysis, func, call_site_address, sources_pcode_ops
+                        )
+                        result.extend(
+                            analyze_function_call_site(
+                                ghidra_analysis,
+                                calling_func,
+                                index,
+                                pcode_op,
+                                relevant_sources,
+                                prev,
+                            )
+                        )
+    return result
 
-def analyzeCalledFunction(ghidraAnalysis, func, paramIndex, prev):
+
+def analyze_called_function(ghidra_analysis, func, index, prev):
     """
     This function analyzes a function called on the way to determining an input to our sink
     We find the function, then find all of it's RETURN pcode ops, and analyze backwards from
     the varnode associated with the RETURN value.
 
     Weird edge case, we can't handle funcs that are just wrappers around other functions, e.g.:
-        func(){
-            return rand()
-        };
+    func(){
+        return rand()
+    };
 
-    :param ghidraAnalysis: instance of GhidraAnalysis
+    :param ghidra_analysis: instance of GhidraAnalysis
     :param func: ghidra.program.database.function.FunctionDB
+    :param index: int
     :param prev: list
-    :return: list
+    :return: list[long]
     """
-    hfunction = decompileFunction(ghidraAnalysis, func)
-    ops = hfunction.getPcodeOps()
-    multi = []
-    # Loop through the functions p-code ops, looking for RETURN
-    while ops.hasNext() and not ghidraAnalysis.monitor.isCancelled():
-        pcodeOpAST = ops.next()
-        if pcodeOpAST.getOpcode() != PcodeOp.RETURN:
+    result = []
+    high_func = decompile_function(ghidra_analysis, func)
+    pcode_ops = high_func.getPcodeOps()
+    for pcode_op in iter_array(pcode_ops, ghidra_analysis.monitor):
+        if pcode_op.getOpcode() != PcodeOp.RETURN:
             continue
-        # from here on, we are dealing with a PcodeOp.RETURN
-        returnedValue = pcodeOpAST.getInput(1)
-        if returnedValue is None:
+        return_value = pcode_op.getInput(1)
+        if return_value is None:
             print("--> Could not resolve return value from {}".format(func.getName()))
-            return []
-        # if we had a phi earlier, it's been logged, so going forward we set isPhi back to false
-        pcAddress = pcodeOpAST.getSeqnum().getTarget()
-        sources = getFunctionCallSitePCodeOps(ghidraAnalysis, func, ghidraAnalysis.sourceFunctionNames)
-        referents = getReferents(ghidraAnalysis, func, pcAddress)
-        relevantSources = [s for s in sources if s.getSeqnum().getTarget() in referents]
-        multi.append(processOneVarnode(ghidraAnalysis, func, returnedValue, paramIndex, relevantSources, prev))
-    return multi
+            continue
+        pc_address = pcode_op.getSeqnum().getTarget()
+        _, sources_pcode_ops = get_call_site_pcode_ops(ghidra_analysis, func)
+        relevant_sources = get_relevant_sources(
+            ghidra_analysis, func, pc_address, sources_pcode_ops
+        )
+        result.extend(
+            process_one_varnode(
+                ghidra_analysis, func, index, return_value, relevant_sources, prev
+            )
+        )
+    return result

@@ -1,369 +1,442 @@
-#@category IPC
+# @category IPC
 
-import json
-import os
 import sys
+import os
+import json
+
 from ghidra.util.task import ConsoleTaskMonitor
-from ipcAnalysis.helperFunctions import getFunctionCallSitePCodeOps, getReferents, flatten, stringIsPrintable
-from ipcAnalysis.analyze import analyzeFunctionCallSite
-from ipcAnalysis.decompile import setUpDecompiler
-from resolveFormatStrings.formatStrings import getKeyStrings, getFormatStringVersion, getFormatSpecifierIndices, getFormatTypes
+from ghidra.app.decompiler import DecompInterface, DecompileOptions
+
+from ipcAnalysis.helperFunctions import get_call_site_pcode_ops, get_relevant_sources
+from ipcAnalysis.analyze import analyze_function_call_site
+from resolveFormatStrings.formatStrings import (
+    get_key_strings,
+    get_format_string_version,
+    get_format_specifier_indices,
+    get_format_types,
+    filter_relevant_indices,
+)
+
 
 class GhidraAnalysis:
     """
     Saves local Ghidra Flat Api
     """
+
     def __init__(self):
-        self.hfunctions = {}
-        self.currentProgram = currentProgram
+        self.high_funcs = {}
+        self.current_program = getCurrentProgram()
         self.monitor = ConsoleTaskMonitor()
-        self.getFunctionAt = getFunctionAt
-        self.getFunctionContaining = getFunctionContaining
-        self.getInstructionAt = getInstructionAt
-        self.getReferencesTo = getReferencesTo
-        self.find = find
-        self.getFunctionBefore = getFunctionBefore
-        self.toAddr = toAddr
-        self.getDataAt = getDataAt
-        self.decompInterface = setUpDecompiler(currentProgram)
-        self.sinkFunctionNames = [
+        self.flat_api = ghidra.program.flatapi.FlatProgramAPI(
+            self.current_program, self.monitor
+        )
+        self.decompiler = self.set_up_decompiler(self.current_program)
+        self.sink_function_names = [
             # os.system and exec() family
-            "system",   # int system(const char *command);
-            "execl",    # int execl(const char *pathname, const char *arg, .../*, (char *) NULL */);
-            "execlp",   # int execlp(const char *file, const char *arg, .../*, (char *) NULL */);
-            "execle",   # int execle(const char *pathname, const char *arg, .../*, (char *) NULL, char *const envp[] */);
-            "execv",    # int execv(const char *pathname, char *const argv[]);
-            "execvp",   # int execvp(const char *file, char *const argv[]);
-            "execvpe",   # int execvpe(const char *file, char *const argv[], char *const envp[]);
-
+            "system",  # int system(const char *command);
+            "execl",  # int execl(const char *pathname, const char *arg, .../*, (char *) NULL */);
+            "execlp",  # int execlp(const char *file, const char *arg, .../*, (char *) NULL */);
+            "execle",  # int execle(const char *pathname, const char *arg, .../*, (char *) NULL, char *const envp[] */);
+            "execv",  # int execv(const char *pathname, char *const argv[]);
+            "execvp",  # int execvp(const char *file, char *const argv[]);
+            "execvpe",  # int execvpe(const char *file, char *const argv[], char *const envp[]);
             # shared files
-            "open",     # int open(const char *pathname, int flags, mode_t mode);
-            "write",    # ssize_t write(int fd, const void *buf, size_t count);
-
+            "open",  # int open(const char *pathname, int flags, mode_t mode);
+            "write",  # ssize_t write(int fd, const void *buf, size_t count);
             # shared memory
-            "shm_open", # int shm_open(const char *name, int oflag, mode_t mode);
-
+            "shm_open",  # int shm_open(const char *name, int oflag, mode_t mode);
             # named pipes
-            "mkfifo",   # int mkfifo(const char *pathname, mode_t mode);
-            "mknod",    # int mknod(const char *pathname, mode_t mode, dev_t dev);
-
+            "mkfifo",  # int mkfifo(const char *pathname, mode_t mode);
+            "mknod",  # int mknod(const char *pathname, mode_t mode, dev_t dev);
             # message queues
-            "ftok",     # key_t ftok(const char *pathname, int proj_id);
-            "msgget",   # int msgget(key_t key, int msgflg);
-            "msgsnd",   # int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg);
-            "msgrcv",   # ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg);
+            "ftok",  # key_t ftok(const char *pathname, int proj_id);
+            "msgget",  # int msgget(key_t key, int msgflg);
+            "msgsnd",  # int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg);
+            "msgrcv",  # ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg);
         ]
-        self.sourceFunctionNames = [
-            "snprintf", # int snprintf ( char * s, size_t n, const char * format, ... );
+        self.source_function_names = [
+            "snprintf",  # int snprintf ( char * s, size_t n, const char * format, ... );
             "sprintf",  # int sprintf  ( char * s, const char * format, ... );
-            "memcpy",   # void *memcpy(void *dest, const void *src, size_t n);
-            "strcpy",   # char *strcpy(char *dest, const char *src);
+            "memcpy",  # void *memcpy(void *dest, const void *src, size_t n);
+            "strcpy",  # char *strcpy(char *dest, const char *src);
             "strncpy",  # char *strncpy(char *dest, const char *src, size_t n);
             "strlcpy",  # size_t strlcpy(char *dst, const char *src, size_t size);
-            "asprintf", # int  asprintf(char **strp, const char *fmt, ...);
-            "vasprintf", # int vasprintf(char **strp, const char *fmt, va_list ap);
+            "asprintf",  # int  asprintf(char **strp, const char *fmt, ...);
+            "vasprintf",  # int vasprintf(char **strp, const char *fmt, va_list ap);
         ]
-        self.formatStringFunctionNames = [
-            "printf",   # int printf(const char *format, ...);
+        self.format_string_function_names = [
+            "printf",  # int printf(const char *format, ...);
             "fprintf",  # int fprintf(FILE *stream, const char *format, ...);
             "dprintf",  # int dprintf(int fd, const char *format, ...);
             "sprintf",  # int sprintf(char *str, const char *format, ...);
-            "snprintf", # int snprintf(char *str, size_t size, const char *format, ...);
-            "syslog",   # void syslog(int priority, const char *format, ...);
+            "snprintf",  # int snprintf(char *str, size_t size, const char *format, ...);
+            "syslog",  # void syslog(int priority, const char *format, ...);
             "flog",
         ]
 
-def openflags2symbols(openflags):
+    def set_up_decompiler(self, current_program):
+        decompiler = DecompInterface()
+        options = DecompileOptions()
+        decompiler.setOptions(options)
+        decompiler.toggleCCode(True)
+        decompiler.toggleSyntaxTree(True)
+        decompiler.setSimplificationStyle("decompile")
+        decompiler.openProgram(current_program)
+        return decompiler
+
+
+def get_result_path():
+    """
+    :return: str
+    """
+    script_args = getScriptArgs()
+    if len(script_args) == 1:
+        return script_args[0]
+    return os.getcwd()
+
+
+def get_sink_callers(ghidra_analysis, sink_functions):
+    """
+    Find functions that call at least one sink
+
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param sink_functions: list[ghidra.program.database.function.FunctionDB]
+    :return: list[ghidra.program.database.function.FunctionDB]
+    """
+    sink_callers = []
+    for func in sink_functions:
+        # Find all references to this function
+        sink_references = ghidra_analysis.flat_api.getReferencesTo(func.getEntryPoint())
+        for sink_ref in sink_references:
+            # Get the function where the current reference occurs
+            calling_function = ghidra_analysis.flat_api.getFunctionContaining(
+                sink_ref.getFromAddress()
+            )
+            # Only save unique functions which are not thunks
+            if (
+                calling_function is not None
+                and not calling_function.isThunk()
+                and calling_function not in sink_callers
+            ):
+                sink_callers.append(calling_function)
+    return sink_callers
+
+
+def get_call_site_args(ghidra_analysis, func, call_site, sources_pcode_ops):
+    """
+    For each CALL, figure out the inputs into the sink function
+
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param func: ghidra.program.database.function.FunctionDB
+    :param call_site: ghidra.program.model.pcode.PcodeOpAST
+    :param sources_pcode_ops: list[ghidra.program.model.pcode.PcodeOpAST]
+    :return: (str, list[str])
+    """
+    call_site_address = call_site.getSeqnum().getTarget()
+    target_func_name = ghidra_analysis.flat_api.getFunctionContaining(
+        call_site.getInput(0).getAddress()
+    ).name
+    args = call_site.getInputs()[1:]
+    relevant_sources = get_relevant_sources(
+        ghidra_analysis, func, call_site_address, sources_pcode_ops
+    )
+    arg_values = []
+    for index in range(1, len(args) + 1):
+        argument = analyze_function_call_site(
+            ghidra_analysis, func, index, call_site, relevant_sources
+        )
+        if target_func_name == "open" and index == 2:
+            static_data = parse_open_flags(argument)
+        elif target_func_name == "open" and index == 3:
+            static_data = parse_open_mode(argument)
+        else:
+            static_data = parse_static_data(ghidra_analysis, argument)
+        arg_values.append(static_data)
+    print("{}({}) @ 0x{}".format(target_func_name, arg_values, call_site_address))
+    return target_func_name, arg_values
+
+
+def parse_static_data(ghidra_analysis, argument):
+    """
+    Tries to parse long addresses to static strings
+
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param argument: list[long]
+    :return: list
+    """
+    result = []
+    for arg in argument:
+        addr = ghidra_analysis.flat_api.toAddr(arg)
+        static_data = ghidra_analysis.flat_api.getDataAt(addr)
+        if static_data is not None:
+            result.append(str(static_data.getDefaultValueRepresentation().strip('"')))
+        else:
+            # Case if the string is less than 5 characters long
+            try:
+                byte = ghidra_analysis.flat_api.getByte(addr)
+                c_string = ""
+                for i in range(6):
+                    if byte == 0:
+                        break
+                    c_string += chr(byte)
+                    byte = ghidra_analysis.flat_api.getByte(addr.add(i + 1))
+                result.append(c_string.encode("utf-8").strip())
+            except:
+                result.append(arg)
+    return result
+
+
+def parse_open_flags(argument):
+    """
+    Tries to parse open flags
+
+    :param data: list
+    :return: list
+    """
+    result = []
+    for arg in argument:
+        symbols = openflags_to_symbols(arg)
+        result.append(symbols)
+    return result
+
+
+def parse_open_mode(argument):
+    """
+    Tries to parse open mode
+
+    :param data: list
+    :return: list
+    """
+    result = []
+    for arg in argument:
+        if isinstance(arg, (int, long)):
+            result.append(oct(arg))
+        else:
+            result.append(arg)
+    return result
+
+
+def openflags_to_symbols(openflags):
     """
     Converts open flags to symbol
 
     :param openflags: int
     :return: str
     """
-    symbols = ["O_WRONLY", "O_RDWR", "O_CREAT", "O_EXCL", "O_NOCTTY", "O_TRUNC", "O_APPEND", "O_NONBLOCK",
-    "O_DSYNC", "O_ASYNC", "O_DIRECT", "O_DIRECTORY", "O_NOFOLLOW", "O_NOATIME", "O_CLOEXEC", "O_SYNC", "O_PATH", "O_TMPFILE"]
-    flags = [1, 2, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536, 131072, 262144, 524288, 1052672, 2097152, 4259840]
-    openSymbols = []
+    open_symbols = []
+    symbols = [
+        "O_WRONLY",
+        "O_RDWR",
+        "O_CREAT",
+        "O_EXCL",
+        "O_NOCTTY",
+        "O_TRUNC",
+        "O_APPEND",
+        "O_NONBLOCK",
+        "O_DSYNC",
+        "O_ASYNC",
+        "O_DIRECT",
+        "O_DIRECTORY",
+        "O_NOFOLLOW",
+        "O_NOATIME",
+        "O_CLOEXEC",
+        "O_SYNC",
+        "O_PATH",
+        "O_TMPFILE",
+    ]
+    flags = [
+        1,
+        2,
+        64,
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        65536,
+        131072,
+        262144,
+        524288,
+        1052672,
+        2097152,
+        4259840,
+    ]
 
     # Deal with special case of O_RDONLY.
     # If O_WRONLY nor O_RDWR openflags are not set, assume O_RDONLY.
-    if ((openflags & (flags[0] | flags[1])) == 0):
-        openSymbols.append("O_RDONLY")
+    if (openflags & (flags[0] | flags[1])) == 0:
+        open_symbols.append("O_RDONLY")
 
     for i in range(len(flags)):
-        if ((openflags & flags[i]) == flags[i]):
-            openSymbols.append(symbols[i])
-    return " | ".join(openSymbols)
+        if (openflags & flags[i]) == flags[i]:
+            open_symbols.append(symbols[i])
+    return " | ".join(open_symbols)
 
-def forEachData(data, func):
-    """
-    Apply func to data and remove None and duplicates
 
-    :param data: list
-    :param func: function
-    :return: list
-    """
-    new_data = []
-    for val in data:
-        if isinstance(val, list) and len(val) == 0:
-            continue
-        if val is not None and val not in new_data:
-            new_data.append(val)
-    multiData = map(func, new_data)
-    if len(multiData) == 1:
-        return multiData[0]
-    else:
-        return multiData
-
-def parseStaticData(data):
-    """
-    Tries to parse long addresses to static strings
-
-    :param data: long/list
-    :return: str/list/long
-    """
-    if isinstance(data, list):
-        return forEachData(data, parseStaticData)
-    if data is not None:
-        addr = toAddr(data)
-        staticData = getDataAt(addr)
-        if staticData is not None:
-            return str(staticData.getDefaultValueRepresentation().strip('"')).encode('utf-8').strip()
-        else:
-            # Case if the string is less than 5 charactes long
-            try:
-                byte = getByte(addr)
-                cString = ""
-                for i in range(6):
-                    if byte == 0:
-                        break
-                    cString += chr(byte)
-                    byte = getByte(addr.add(i+1))
-                return cString.encode('utf-8').strip()
-            except:
-                return data
-    return data
-
-def parseOpenFlags(data):
-    """
-    Tries to parse open flags
-
-    :param data: long/list
-    :return: str
-    """
-    if isinstance(data, list):
-        return forEachData(data, parseOpenFlags)
-    symbols = openflags2symbols(data)
-    return symbols
-
-def parseOpenMode(data):
-    """
-    Tries to parse open mode
-
-    :param data: long/list
-    :return: str
-    """
-    if isinstance(data, list):
-        return forEachData(data, parseOpenMode)
-    if isinstance(data, (int, long)):
-        return oct(data)
-    return data
-
-def addJsonCall(ipc, functionName, argValues):
+def add_json_call(ipc, func_name, arg_values):
     """
     Adds an ipc call to the JSON file
 
     :param ipc: dict
-    :param functionName: unicode
-    :param argValues: list
+    :param func_name: str
+    :param arg_values: list
     :return: None
     """
-    firstArg = argValues[0]
-    restArgs = argValues[1:]
-    if isinstance(firstArg, list):
-        for arg in firstArg:
-            addJsonCall(ipc, functionName, [arg]+restArgs)
-    elif isinstance(firstArg, str) and len(firstArg) >= 1 and firstArg[0] not in ['%', '?', '0']:
-        target = firstArg.split()[0]
-        ipc["ipcCalls"].setdefault(target, []).append(
-            {
-                "type": functionName,
-                "arguments": [" ".join(firstArg.split()[1:])] + restArgs,
-            }
-        )
+    first_arg = arg_values[0]
+    rest_args = arg_values[1:]
+    for arg in first_arg:
+        if isinstance(arg, str) and len(arg) >= 1 and arg[0] not in ["%", "?", "0"]:
+            target = arg.split()[0]
+            ipc["ipcCalls"].setdefault(target, []).append(
+                {
+                    "type": func_name,
+                    "arguments": [" ".join(arg.split()[1:])] + rest_args,
+                }
+            )
 
-def writeToFile(outputFile, result, resultPath='.'):
+
+def write_to_file(output_file, result, result_path):
     """
     Writes the json to file
 
-    :param outputFile: dict
+    :param output_file: dict
     :param result: str
-    :param resultPath: unicode
+    :param result_path: str
     :return: None
     """
-    print("\nWriting {}".format(resultPath + '/' + outputFile))
-    with open(resultPath + '/' + outputFile, 'wb') as f:
+    print("\nWriting {}".format(result_path + "/" + output_file))
+    with open(result_path + "/" + output_file, "wb") as f:
         json.dump(result, f, indent=2)
-    os.chmod(resultPath + '/' + outputFile, 0o666)  # assure access rights to file created in docker container
+    # assure access rights to file created in docker container
+    os.chmod(result_path + "/" + output_file, 0o666)
 
-def isCorrect(argValue):
-    """
-    Checks if the argument only contains strings
 
-    :param argValue: list, str, int, long
-    :return: bool
+def resolve_version_format_string(ghidra_analysis, key_string_list):
     """
-    result = True
-    if isinstance(argValue, list):
-        for arg in argValue:
-            result = result and isCorrect(arg)
-        return result
-    else:
-        if argValue is None or isinstance(argValue, (int, long)):
-            return False
-        return True
-
-def resolveVersionFormatString(ghidraAnalysis, keyStringList):
-    """
-    :param ghidraAnalysis: instance of GhidraAnalysis
-    :param keyStringList: list
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param key_string_list: list[str]
     :return: list
     """
-    # Find relevant format string CALL operations
-    callArgs = {}
-    resultList = []
-    for keyString in keyStringList:
-        result = []
-        calledFormatStrings = getFormatStringVersion(ghidraAnalysis, keyString)
-        for function, calls in calledFormatStrings.items():
-            sources = getFunctionCallSitePCodeOps(ghidraAnalysis, function, ghidraAnalysis.sourceFunctionNames)
-            # For each CALL figure out the inputs to the format string function
-            for call in calls:
-                if call in callArgs:
-                    argValues = callArgs[call]
-                else:
-                    callSiteAddress = call.getSeqnum().getTarget()
-                    args = call.getInputs()[1:]
-                    referents = getReferents(ghidraAnalysis, function, callSiteAddress)
-                    relevantSources = [s for s in sources if s.getSeqnum().getTarget() in referents]
+    result = []
+    call_args = {}
+    for key_string in key_string_list:
+        called_fstrings = get_format_string_version(ghidra_analysis, key_string)
+        result.extend(
+            get_fstring_from_functions(
+                ghidra_analysis, key_string, call_args, called_fstrings
+            )
+        )
+    result = sorted(set(result))
+    return result
 
-                    argValues = []
-                    for index in range(1, len(args)+1):
-                        argument = analyzeFunctionCallSite(ghidraAnalysis, function, call, index, relevantSources)
-                        argValues.append(parseStaticData(argument))
-                    callArgs[call] = argValues
 
-                start = 0
-                for arg in argValues:
-                    start += 1
-                    if isinstance(arg, str) and keyString in arg:
-                        indices = getFormatSpecifierIndices(keyString, arg)
-                        formatTypes = getFormatTypes(arg)
-                        break
-                else:
-                    continue
-                # filter which arg indices are relevant
-                for i in indices:
-                    argument = argValues[start+i]
-                    if not isinstance(argument, list):
-                        argument = [argument]
-                    argument = flatten(argument)
-                    for arg in argument:
-                        if isinstance(arg, formatTypes[i]) and stringIsPrintable(arg):
-                            result.append(arg)
-        resultList.extend(result)
-    resultList = sorted(set(resultList))
-    return resultList
+def get_fstring_from_functions(ghidra_analysis, key_string, call_args, called_fstrings):
+    """
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param key_string: str
+    :param call_args: dict
+    :param called_fstrings: dict
+    :return: list[str]
+    """
+    result = []
+    for func, calls in called_fstrings.items():
+        _, sources_pcode_ops = get_call_site_pcode_ops(ghidra_analysis, func)
+        for call in calls:
+            result.extend(
+                get_fstring_from_call(
+                    ghidra_analysis,
+                    key_string,
+                    call_args,
+                    func,
+                    call,
+                    sources_pcode_ops,
+                )
+            )
+    return result
+
+
+def get_fstring_from_call(ghidra_analysis, key_string, call_args, func, call, sources):
+    """
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param key_string: str
+    :param call_args: dict
+    :param func: ghidra.program.database.function.FunctionDB
+    :param call: ghidra.program.model.pcode.PcodeOpAST
+    :param sources: ghidra.program.model.pcode.PcodeOpAST
+    """
+    if call in call_args:
+        arg_values = call_args[call]
+    else:
+        _, arg_values = get_call_site_args(
+            ghidra_analysis, func, call, sources
+        )
+        call_args[call] = arg_values
+    start = 1
+    for arg_value in arg_values:
+        strings = [arg for arg in arg_value if isinstance(arg, str)]
+        if key_string in "\t".join(strings):
+            for arg in arg_value:
+                indices = get_format_specifier_indices(key_string, arg)
+                format_types = get_format_types(arg)
+            break
+        start += 1
+    else:
+        return []
+    return filter_relevant_indices(start, arg_values, indices, format_types)
+
 
 def main():
     """
-    Two use cases:
-    1. Resolves version format strings if a key_string file exists
-    2. Runs an IPC analysis on the provided binary
-    The result is saved in a json file
-
     :return: int
     """
-    args = getScriptArgs()
-    if len(args) != 1:
-        resultPath = os.getcwd()
-    else:
-        resultPath = args[0]
-    ghidraAnalysis = GhidraAnalysis()
+    result_path = get_result_path()
+    ghidra_analysis = GhidraAnalysis()
 
     # Resolve version format string
-    keyStringList = getKeyStrings(resultPath)
-    if keyStringList:
-        keyStringList = set(keyStringList)
-        resultList = resolveVersionFormatString(ghidraAnalysis, keyStringList)
-        writeToFile("ghidra_output.json", resultList, resultPath)
+    key_string_list = get_key_strings(result_path)
+    if key_string_list:
+        key_string_list = set(key_string_list)
+        result_list = resolve_version_format_string(ghidra_analysis, key_string_list)
+        write_to_file("ghidra_output.json", result_list, result_path)
         return 0
- 
+
     # IPC Analysis
-    print("\n###########################################################")
-    print("Analyzing: {}".format(currentProgram.getExecutablePath()))
-    sinkFunctionNames = ghidraAnalysis.sinkFunctionNames
-    sourceFunctionNames = ghidraAnalysis.sourceFunctionNames
     ipc = {"ipcCalls": {}}
+
     # Iterator over all functions in the program
-    functionManager = currentProgram.getFunctionManager()
-    functions = [func for func in functionManager.getFunctions(True)]
-    # Step 1. Check if the binary has at least one sink function
-    functionNames = [func.name for func in functions]
-    if (set(sinkFunctionNames) and set(functionNames)):
+    function_manager = ghidra_analysis.current_program.getFunctionManager()
+    functions = [func for func in function_manager.getFunctions(True)]
+
+    # Check if the binary has at least one sink function
+    sink_functions = [
+        func for func in functions if func.name in ghidra_analysis.sink_function_names
+    ]
+    if sink_functions:
         print("This program contains interesting function(s). Continuing analysis...")
     else:
         print("This program does not contain interesting functions. Done.")
-        writeToFile(currentProgram.getName()+".json", ipc, resultPath)
-        print("###########################################################\n")
         return 0
-    # Step 2. Find functions that call at least one sink
-    uniqueFunctions = []
-    for func in functions:
-        # Look for sink functions
-        if func.getName() in sinkFunctionNames:
-            # Find all references to this function
-            sinkFunctionReferences = getReferencesTo(func.getEntryPoint())
-            for sinkRef in sinkFunctionReferences:
-                # Get the function where the current reference occurs
-                callingFunction = getFunctionContaining(sinkRef.getFromAddress())
-                # Only save unique functions which are not thunks
-                if callingFunction and callingFunction not in uniqueFunctions and not callingFunction.isThunk():
-                    uniqueFunctions.append(callingFunction)
-    # Step 3. Analyze every sink CALL in uniqueFunctions
-    # Create dict for JSON object
-    for func in uniqueFunctions:
-        print("\nAnalyzing function: {}".format(func.getName()))
-        # Get all sites in the function where we CALL the sinks
-        calledSinks = getFunctionCallSitePCodeOps(ghidraAnalysis, func, sinkFunctionNames)
-        sources = getFunctionCallSitePCodeOps(ghidraAnalysis, func, sourceFunctionNames)
-        # For each CALL, figure out the inputs into the sink function
-        for calledSink in calledSinks:
-            callSiteAddress = calledSink.getSeqnum().getTarget()
-            targetFunction = getFunctionContaining(calledSink.getInput(0).getAddress()).getName()
-            args = calledSink.getInputs()[1:]
-            referents = getReferents(ghidraAnalysis, func, callSiteAddress)
-            relevantSources = [s for s in sources if s.getSeqnum().getTarget() in referents]
-            argValues = []
-            for index in range(1, len(args)+1):
-                argument = analyzeFunctionCallSite(ghidraAnalysis, func, calledSink, index, relevantSources)
-                if targetFunction == "open" and index == 2:
-                    staticData = parseOpenFlags(argument)
-                elif targetFunction == "open" and index == 3:
-                    staticData = parseOpenMode(argument)
-                else:
-                    staticData = parseStaticData(argument)
-                argValues.append(staticData)
-            if not isCorrect(argValues[0]):
-                print("!!!{}({}) @ 0x{}".format(targetFunction, argValues, callSiteAddress))
-            else:
-                print("{}({}) @ 0x{}".format(targetFunction, argValues, callSiteAddress))
-            # Add ipc call to JSON object
-            if argValues[0] is not None:
-                addJsonCall(ipc, targetFunction, argValues)
-    writeToFile(currentProgram.getName()+".json", ipc, resultPath)
-    print("###########################################################\n")
+
+    # Get functions that call at least one sink
+    sink_callers = get_sink_callers(ghidra_analysis, sink_functions)
+
+    for func in sink_callers:
+        print("\nAnalyzing function: {}".format(func.name))
+        call_site_pcode_ops, sources_pcode_ops = get_call_site_pcode_ops(
+            ghidra_analysis, func
+        )
+        for call_site in call_site_pcode_ops:
+            target_func_name, arg_values = get_call_site_args(
+                ghidra_analysis, func, call_site, sources_pcode_ops
+            )
+            if len(arg_values[0]) >= 1:
+                add_json_call(ipc, target_func_name, arg_values)
+    write_to_file(ghidra_analysis.current_program.getName() + ".json", ipc, result_path)
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

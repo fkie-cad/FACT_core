@@ -8,9 +8,11 @@ import tempfile
 
 def parse_arguments() -> argparse.Namespace():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-g", "--ghidra_path", nargs='?', default="/opt/ghidra", help="path to Ghidra")
+    parser.add_argument(
+        "-g", "--ghidra_path", nargs="?", default="/opt/ghidra", help="path to Ghidra"
+    )
     parser.add_argument("file_path", help="path to binary/firmware")
-    parser.add_argument("result_path", nargs='?', default="", help="result path")
+    parser.add_argument("result_path", nargs="?", default="", help="result path")
     args = parser.parse_args()
     return args
 
@@ -32,7 +34,9 @@ def check_ghidra(ghidra_path: Path) -> bool:
         sys.exit(-1)
 
 
-def get_ghidra_command(ghidra_path: Path, project_path: Path, file_path: Path, result_path: Path) -> str:
+def get_ghidra_command(
+    ghidra_path: Path, project_path: Path, file_path: Path, result_path: Path
+) -> str:
     """
     Builds the Ghidra command
     """
@@ -76,9 +80,9 @@ def run_ghidra(ghidra_path: Path, file_path: Path, result_path: Path) -> None:
 
 def main() -> int:
     args = parse_arguments()
-    ghidra_path = Path(args.ghidraPath)
-    file_path = Path(args.filePath)
-    result_path = Path(args.resultPath)
+    ghidra_path = Path(args.ghidra_path)
+    file_path = Path(args.file_path)
+    result_path = Path(args.result_path)
     run_ghidra(ghidra_path, file_path, result_path)
     return 0
 
