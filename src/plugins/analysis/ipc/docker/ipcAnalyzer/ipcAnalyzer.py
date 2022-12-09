@@ -414,7 +414,7 @@ def main():
     sink_functions = [
         func for func in functions if func.name in ghidra_analysis.sink_function_names
     ]
-    if sink_functions:
+    if len(sink_functions) >= 1:
         print("This program contains interesting function(s). Continuing analysis...")
     else:
         print("This program does not contain interesting functions. Done.")
