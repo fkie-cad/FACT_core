@@ -63,6 +63,9 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'default': '',
             'minimal': '',
         },
+        'plugin-defaults': {
+            'threads': 2,
+        },
         'expert-settings': {
             'authentication': 'false',
             'block-delay': '0.1',

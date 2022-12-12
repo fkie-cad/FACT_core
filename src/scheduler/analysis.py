@@ -221,7 +221,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             try:
                 thread_count = getattr(cfg, plugin)['threads']
             except (AttributeError, KeyError):
-                thread_count = 0
+                thread_count = cfg.plugin_defaults.threads
             # TODO this should not be a tuple but rather a dictionary/class
             result[plugin] = (
                 self.analysis_plugins[plugin].DESCRIPTION,

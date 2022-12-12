@@ -80,6 +80,10 @@ class DefaultPlugins(BaseModel):
     Config = _PydanticConfigExtraAllow
 
 
+class PluginDefaults(BaseModel):
+    threads: int = 2
+
+
 class Database(BaseModel):
     Config = _PydanticConfigExtraForbid
     results_per_page: int
@@ -113,6 +117,7 @@ class Config(BaseModel):
     logging: Logging
     unpack: Unpack
     default_plugins: DefaultPlugins
+    plugin_defaults: PluginDefaults
     database: Database
     statistics: Statistics
     expert_settings: ExpertSettings
