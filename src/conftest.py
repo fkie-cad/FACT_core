@@ -12,6 +12,7 @@ import config
 from analysis.PluginBase import AnalysisBasePlugin
 from config import Config
 from test.common_helper import CommonDatabaseMock, create_docker_mount_base_dir
+from test.conftest import merge_markers
 
 
 def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, ConfigParser]:
@@ -106,11 +107,7 @@ def cfg_tuple(request):
     Defaults can be overwritten with the ``cfg_defaults`` pytest mark.
     """
 
-    cfg_defaults = {}
-    # Not well documented but iter_markers iterates from closest to farthest
-    # https://docs.pytest.org/en/7.1.x/reference/reference.html?highlight=iter_markers#custom-marks
-    for cfg_defaults_marker in reversed(list(request.node.iter_markers('cfg_defaults'))):
-        cfg_defaults.update(cfg_defaults_marker.args[0])
+    cfg_defaults = merge_markers(request, 'cfg_defaults', dict)
 
     cfg, configparser_cfg = _get_test_config_tuple(cfg_defaults)
     yield cfg, configparser_cfg
