@@ -112,64 +112,6 @@ class MockFileObject:
         self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
-class CommonIntercomMock:
-    tasks = []
-
-    def __init__(self, *_, **__):
-        pass
-
-    @staticmethod
-    def get_available_analysis_plugins():
-        common_fields = ('0.0.', [], [], [], 1)
-        return {
-            'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
-            'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
-            'file_type': ('file_type plugin', False, {'default': False}, *common_fields),
-            'unpacker': ('Additional information provided by the unpacker', True, False),
-        }
-
-    def shutdown(self):
-        pass
-
-    @staticmethod
-    def peek_in_binary(*_):
-        return b'foobar'
-
-    @staticmethod
-    def get_binary_and_filename(uid):
-        if uid == TEST_FW.uid:
-            return TEST_FW.binary, TEST_FW.file_name
-        if uid == TEST_TEXT_FILE.uid:
-            return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
-        return None
-
-    @staticmethod
-    def get_repacked_binary_and_file_name(uid):
-        if uid == TEST_FW.uid:
-            return TEST_FW.binary, f'{TEST_FW.file_name}.tar.gz'
-        return None, None
-
-    @staticmethod
-    def add_binary_search_request(*_):
-        return 'binary_search_id'
-
-    @staticmethod
-    def get_binary_search_result(uid):
-        if uid == 'binary_search_id':
-            return {'test_rule': ['test_uid']}, b'some yara rule'
-        return None, None
-
-    def add_compare_task(self, compare_id, force=False):
-        self.tasks.append((compare_id, force))
-
-    def add_analysis_task(self, task):
-        self.tasks.append(task)
-
-    def add_re_analyze_task(self, task, unpack=True):  # pylint: disable=unused-argument
-        self.tasks.append(task)
-
-
 class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     fw_uid = TEST_FW.uid
     fo_uid = TEST_TEXT_FILE.uid
