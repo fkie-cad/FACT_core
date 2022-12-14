@@ -9,23 +9,24 @@
         <col width="600">
     </colgroup>
     <tbody class="table-analysis">
-        {% for target in firmware.processed_analysis[selected_analysis]['full']['ipcCalls'].keys()|sort %}
-            <tr>
-                {% set row_count = 1 + firmware.processed_analysis[selected_analysis]['full']['ipcCalls'][target]|length %}
-                <td class="table-head-light"><b>Target</b></td>
-                <td class="table-head-light"><b>Type</b></td>
-                <td class="table-head-light"><b>Arguments</b></td>
-            </tr>
+        <tr>
+            <td class="table-head-light"><b>Target</b></td>
+            <td class="table-head-light"><b>Type</b></td>
+            <td class="table-head-light"><b>Arguments</b></td>
+        </tr>
+        {% set ipc_calls = firmware.processed_analysis[selected_analysis]['full']['ipcCalls'] %}
+        {% for target in ipc_calls.keys()|sort %}
+            {% set row_count = 1 + ipc_calls[target]|length %}
             <tr>
                 <td rowspan={{ row_count }}>{{ target }}</td>
             </tr>
-            {% for ipcCall in firmware.processed_analysis[selected_analysis]['full']['ipcCalls'][target] %}
+            {% for ipc_call in ipc_calls[target] %}
                 <tr>
-                    <td>{{ ipcCall['type'] }}</td>
+                    <td>{{ ipc_call['type'] }}</td>
                     <td>
-                        <ul>
-                            {% for arg in ipcCall['arguments'] %}
-                                {% if arg|string|length > 0 %}
+                        <ul class="m-0">
+                            {% for arg in ipc_call['arguments'] %}
+                                {% if arg %}
                                     <li>{{ arg }}</li>
                                 {% endif %}
                             {% endfor %}

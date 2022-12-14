@@ -1,9 +1,10 @@
+# pylint: disable=import-error,consider-using-f-string,too-complex,too-many-locals
+
 from string import printable
 
-from ghidra.program.model.pcode import PcodeOp
-from ghidra.program.model.block import BasicBlockModel
-
 from decompile import decompile_function
+from ghidra.program.model.block import BasicBlockModel
+from ghidra.program.model.pcode import PcodeOp
 
 
 def iter_array(array, monitor):
@@ -43,13 +44,11 @@ def get_call_site_pcode_ops(ghidra_analysis, func):
             called_varnode = pcode_op.getInput(0)
 
             if called_varnode is None or not called_varnode.isAddress():
-                print("ERROR: CALL, but not to address: {}".format(pcode_op))
+                print('ERROR: CALL, but not to address: {}'.format(pcode_op))
                 continue
 
             # If the CALL is a sink or source function, save this callsite
-            func_name = ghidra_analysis.flat_api.getFunctionAt(
-                called_varnode.getAddress()
-            ).name
+            func_name = ghidra_analysis.flat_api.getFunctionAt(called_varnode.getAddress()).name
             if func_name in ghidra_analysis.sink_function_names:
                 call_site_pcode_ops.append(pcode_op)
             elif func_name in ghidra_analysis.source_function_names:
@@ -93,9 +92,7 @@ def get_referents(ghidra_analysis, func, pc_address):
     :return: list[ghidra.program.model.address.GenericAddress]
     """
     block_model = BasicBlockModel(ghidra_analysis.current_program)
-    blocks = block_model.getCodeBlocksContaining(
-        func.getBody(), ghidra_analysis.monitor
-    )
+    blocks = block_model.getCodeBlocksContaining(func.getBody(), ghidra_analysis.monitor)
     referents = []
     for block in iter_array(blocks, ghidra_analysis.monitor):
         destinations = block.getDestinations(ghidra_analysis.monitor)
@@ -119,8 +116,8 @@ def get_vars_from_varnode(ghidra_analysis, func, varnode):
     :return: list
     """
     result = []
-    addr_size = int(ghidra_analysis.current_program.getMetadata()["Address Size"])
-    bitmask = int(addr_size // 4 * "f", 16)
+    addr_size = int(ghidra_analysis.current_program.getMetadata()['Address Size'])
+    bitmask = 2**addr_size - 1
     local_variables = func.getAllVariables()
     vndef = varnode.getDef()
     if vndef is None:
@@ -131,24 +128,18 @@ def get_vars_from_varnode(ghidra_analysis, func, varnode):
     global_symbol_map = high_func.getGlobalSymbolMap()
     for vndef_input in vndef_inputs:
         vndef_input_offset = vndef_input.getAddress().getOffset() & bitmask
-        for lv in local_variables:
-            unsiged_lv_offset = lv.getMinAddress().getUnsignedOffset() & bitmask
+        for local_var in local_variables:
+            unsiged_lv_offset = local_var.getMinAddress().getUnsignedOffset() & bitmask
             if unsiged_lv_offset == vndef_input_offset:
-                result.append(lv)
+                result.append(local_var)
         for local_symbol in local_symbol_map.getSymbols():
             if local_symbol.isParameter():
                 continue
-            if (
-                vndef_input_offset
-                == local_symbol.getStorage().getFirstVarnode().getOffset() & bitmask
-            ):
+            if vndef_input_offset == local_symbol.getStorage().getFirstVarnode().getOffset() & bitmask:
                 result.append(local_symbol)
         for global_symbol in global_symbol_map.getSymbols():
             first_varnode = global_symbol.getStorage().getFirstVarnode()
-            if (
-                first_varnode
-                and vndef_input_offset == first_varnode.getOffset() & bitmask
-            ):
+            if first_varnode and vndef_input_offset == first_varnode.getOffset() & bitmask:
                 result.append(global_symbol)
     return result
 
@@ -179,10 +170,8 @@ def find_source_value(ghidra_analysis, func, var, sources):
             else:
                 return None
         if var in source_vars:
-            source_name = ghidra_analysis.flat_api.getFunctionContaining(
-                source.getInput(0).getAddress()
-            ).getName()
-            if source_name == "snprintf":
+            source_name = ghidra_analysis.flat_api.getFunctionContaining(source.getInput(0).getAddress()).getName()
+            if source_name == 'snprintf':
                 source_value = source.getInput(3)
             else:
                 source_value = source.getInput(2)

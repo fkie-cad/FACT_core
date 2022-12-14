@@ -1,14 +1,15 @@
-from ghidra.program.model.symbol import RefType
-from ghidra.program.model.pcode import PcodeOp, HighParam
+# pylint: disable=import-error,no-name-in-module,consider-using-f-string,too-complex,too-many-locals,too-many-return-statements,too-many-branches,too-many-statements
 
 from decompile import decompile_function
-from helperFunctions import (
-    iter_array,
+from ghidra.program.model.pcode import HighParam, PcodeOp
+from ghidra.program.model.symbol import RefType
+from helper_functions import (
+    find_local_vars,
+    find_source_value,
     get_call_site_pcode_ops,
     get_relevant_sources,
     get_vars_from_varnode,
-    find_source_value,
-    find_local_vars,
+    iter_array,
 )
 
 ONEINPUT = [
@@ -35,9 +36,7 @@ TWOINPUTS = [
 ]
 
 
-def analyze_function_call_site(
-    ghidra_analysis, func, index, call_site, sources, prev=None
-):
+def analyze_function_call_site(ghidra_analysis, func, index, call_site, sources, prev=None):
     """
     Handles analysis of a particular callsite for a function -
     Finds the varnode associated with a particular index, and either saves it (if it is a constant value),
@@ -53,12 +52,11 @@ def analyze_function_call_site(
     """
     varnode = call_site.getInput(index)
     if varnode is None:
-        print("Skipping NULL parameter")
+        print('Skipping NULL parameter')
         return []
     if varnode.isConstant():
         return [varnode.getOffset()]
-    else:
-        return process_one_varnode(ghidra_analysis, func, index, varnode, sources, prev)
+    return process_one_varnode(ghidra_analysis, func, index, varnode, sources, prev)
 
 
 def process_one_varnode(ghidra_analysis, func, index, varnode, sources, prev):
@@ -77,18 +75,15 @@ def process_one_varnode(ghidra_analysis, func, index, varnode, sources, prev):
     if varnode is None:
         return result
     if isinstance(varnode, list):
-        for v in varnode:
-            result.extend(
-                process_one_varnode(ghidra_analysis, func, index, v, sources, prev)
-            )
+        for var in varnode:
+            result.extend(process_one_varnode(ghidra_analysis, func, index, var, sources, prev))
         return result
     # Skip duplicate
     if prev is None:
         prev = []
     if varnode.getUniqueId() in prev:
         return result
-    else:
-        prev.append(varnode.getUniqueId())
+    prev.append(varnode.getUniqueId())
     # If the varnode is a constant, we are done
     if varnode.isConstant():
         result.append(varnode.getOffset())
@@ -97,11 +92,7 @@ def process_one_varnode(ghidra_analysis, func, index, varnode, sources, prev):
         addr = varnode.getAddress().getOffset()
         try:
             result.append(
-                ghidra_analysis.flat_api.getDataAt(
-                    ghidra_analysis.flat_api.toAddr(addr)
-                )
-                .getValue()
-                .getOffset()
+                ghidra_analysis.flat_api.getDataAt(ghidra_analysis.flat_api.toAddr(addr)).getValue().getOffset()
             )
         except AttributeError:
             result.append(addr)
@@ -111,85 +102,49 @@ def process_one_varnode(ghidra_analysis, func, index, varnode, sources, prev):
     # corresponding index is derivded for each call of the function
     hvar = varnode.getHigh()
     if isinstance(hvar, HighParam):
-        result.extend(
-            analyze_call_sites(ghidra_analysis, func, hvar.getSlot() + 1, prev)
-        )
+        result.extend(analyze_call_sites(ghidra_analysis, func, hvar.getSlot() + 1, prev))
         return result
     variables = get_vars_from_varnode(ghidra_analysis, func, varnode)
     if len(variables) >= 1:
         for var in variables:
             source_value = find_source_value(ghidra_analysis, func, var, sources)
             if source_value is not None:
-                result.extend(
-                    process_one_varnode(
-                        ghidra_analysis, func, index, source_value, sources, prev
-                    )
-                )
+                result.extend(process_one_varnode(ghidra_analysis, func, index, source_value, sources, prev))
                 return result
         local_vars = find_local_vars(ghidra_analysis, func, varnode)
         if len(local_vars) >= 1:
-            result.extend(
-                process_one_varnode(
-                    ghidra_analysis, func, index, local_vars, sources, prev
-                )
-            )
+            result.extend(process_one_varnode(ghidra_analysis, func, index, local_vars, sources, prev))
             return result
     def_op = varnode.getDef()
     if def_op is None:
         return result
     opcode = def_op.getOpcode()
     if opcode in ONEINPUT:
-        result.extend(
-            process_one_varnode(
-                ghidra_analysis, func, index, def_op.getInput(0), sources, prev
-            )
-        )
+        result.extend(process_one_varnode(ghidra_analysis, func, index, def_op.getInput(0), sources, prev))
     elif opcode in TWOINPUTS:
         for i in range(2):
-            result.extend(
-                process_one_varnode(
-                    ghidra_analysis, func, index, def_op.getInput(i), sources, prev
-                )
-            )
+            result.extend(process_one_varnode(ghidra_analysis, func, index, def_op.getInput(i), sources, prev))
     elif opcode == PcodeOp.CALL:
-        called_func = ghidra_analysis.flat_api.getFunctionAt(
-            def_op.getInput(0).getAddress()
-        )
-        if called_func.name in ["open", "ftok", "msgget"]:
-            result.extend(
-                process_one_varnode(
-                    ghidra_analysis, called_func, 1, def_op.getInput(1), sources, prev
-                )
-            )
+        called_func = ghidra_analysis.flat_api.getFunctionAt(def_op.getInput(0).getAddress())
+        if called_func.name in ['open', 'ftok', 'msgget']:
+            result.extend(process_one_varnode(ghidra_analysis, called_func, 1, def_op.getInput(1), sources, prev))
         else:
-            result.extend(
-                analyze_called_function(ghidra_analysis, called_func, index, prev)
-            )
+            result.extend(analyze_called_function(ghidra_analysis, called_func, index, prev))
     # p-code representation of a PHI operation.
     # So here we choose one varnode from a number of incoming varnodes.
     # In this case, we want to explore each varnode that the phi handles
     elif opcode == PcodeOp.MULTIEQUAL:
         for node in def_op.getInputs():
-            result.extend(
-                process_one_varnode(ghidra_analysis, func, index, node, sources, prev)
-            )
+            result.extend(process_one_varnode(ghidra_analysis, func, index, node, sources, prev))
     elif opcode == PcodeOp.INDIRECT:
         output = def_op.getOutput()
         if output.getAddress() == def_op.getInput(0).getAddress():
-            result.extend(
-                process_one_varnode(
-                    ghidra_analysis, func, index, def_op.getInput(0), sources, prev
-                )
-            )
+            result.extend(process_one_varnode(ghidra_analysis, func, index, def_op.getInput(0), sources, prev))
     elif opcode == PcodeOp.LOAD:
-        result.extend(
-            process_one_varnode(
-                ghidra_analysis, func, index, def_op.getInput(1), sources, prev
-            )
-        )
+        result.extend(process_one_varnode(ghidra_analysis, func, index, def_op.getInput(1), sources, prev))
     # p-code op we don't support yet
     else:
-        print("Support for Pcode {} not implemented".format(def_op.toString()))
+        print('Support for Pcode {} not implemented'.format(def_op.toString()))
     return result
 
 
@@ -207,11 +162,7 @@ def analyze_call_sites(ghidra_analysis, func, index, prev):
     :return: list[long]
     """
     result = []
-    references_to = (
-        ghidra_analysis.current_program.getReferenceManager().getReferencesTo(
-            func.getEntryPoint()
-        )
-    )
+    references_to = ghidra_analysis.current_program.getReferenceManager().getReferencesTo(func.getEntryPoint())
     for reference in references_to:
         from_address = reference.getFromAddress()
         calling_func = ghidra_analysis.flat_api.getFunctionContaining(from_address)
@@ -225,14 +176,10 @@ def analyze_call_sites(ghidra_analysis, func, index, prev):
             pcode_ops = high_func.getPcodeOps(from_address.getPhysicalAddress())
             for pcode_op in iter_array(pcode_ops, ghidra_analysis.monitor):
                 if pcode_op.getOpcode() == PcodeOp.CALL:
-                    target_func = ghidra_analysis.flat_api.getFunctionAt(
-                        pcode_op.getInput(0).getAddress()
-                    )
+                    target_func = ghidra_analysis.flat_api.getFunctionAt(pcode_op.getInput(0).getAddress())
                     if target_func == func:
                         call_site_address = pcode_op.getSeqnum().getTarget()
-                        _, sources_pcode_ops = get_call_site_pcode_ops(
-                            ghidra_analysis, func
-                        )
+                        _, sources_pcode_ops = get_call_site_pcode_ops(ghidra_analysis, func)
                         relevant_sources = get_relevant_sources(
                             ghidra_analysis, func, call_site_address, sources_pcode_ops
                         )
@@ -274,16 +221,10 @@ def analyze_called_function(ghidra_analysis, func, index, prev):
             continue
         return_value = pcode_op.getInput(1)
         if return_value is None:
-            print("--> Could not resolve return value from {}".format(func.getName()))
+            print('--> Could not resolve return value from {}'.format(func.getName()))
             continue
         pc_address = pcode_op.getSeqnum().getTarget()
         _, sources_pcode_ops = get_call_site_pcode_ops(ghidra_analysis, func)
-        relevant_sources = get_relevant_sources(
-            ghidra_analysis, func, pc_address, sources_pcode_ops
-        )
-        result.extend(
-            process_one_varnode(
-                ghidra_analysis, func, index, return_value, relevant_sources, prev
-            )
-        )
+        relevant_sources = get_relevant_sources(ghidra_analysis, func, pc_address, sources_pcode_ops)
+        result.extend(process_one_varnode(ghidra_analysis, func, index, return_value, relevant_sources, prev))
     return result

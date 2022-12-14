@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=duplicate-code,ungrouped-imports
 
 import logging
 from pathlib import Path
@@ -20,12 +21,12 @@ class IpcAnalyzerInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        run_cmd_with_logging("docker build -t ipc ./docker")
+        run_cmd_with_logging('docker build -t ipc ./docker')
 
 
 # Alias for generic use
 Installer = IpcAnalyzerInstaller
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     Installer().install()
