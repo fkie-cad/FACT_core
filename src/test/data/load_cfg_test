@@ -69,6 +69,8 @@ minimal =
 # custom = init_systems, printable_strings
 
 # -- plugin settings --
+[plugin-defaults]
+threads = 2
 
 [binwalk]
 threads = 2

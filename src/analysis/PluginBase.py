@@ -24,7 +24,7 @@ class PluginInitException(Exception):
 
 class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attributes
     '''
-    This is the base plugin. All plugins should be subclass of this.
+    This is the base plugin. All analysis plugins should be a subclass of this class.
     '''
 
     # must be set by the plugin:
@@ -48,9 +48,15 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.out_queue = Queue()
         self.stop_condition = Value('i', 0)
         self.workers = []
-        self.thread_count = 1 if no_multithread else int(getattr(cfg, self.NAME, {}).get('threads', 1))
+        self.thread_count = 1 if no_multithread else self._get_thread_count()
         self.active = [Value('i', 0) for _ in range(self.thread_count)]
         self.start_worker()
+
+    def _get_thread_count(self):
+        """
+        Get the thread count from the config. If there is no configuration for this plugin use the default value.
+        """
+        return int(getattr(cfg, self.NAME, {}).get('threads', cfg.plugin_defaults.threads))
 
     def additional_setup(self):
         '''
