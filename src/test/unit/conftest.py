@@ -1,4 +1,5 @@
 # pylint: disable=no-self-use
+
 from typing import Type
 
 import pytest
@@ -113,7 +114,7 @@ class WebInterfaceUnitTestConfig:
 def intercom_task_list() -> list:
     """A fixture used to add tasks in the :py:class:`CommonIntercomMock`.
     It can be used to inspect what tasks where added"""
-    yield []
+    return []
 
 
 @pytest.fixture
@@ -143,10 +144,10 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
 
     frontend.app.config['TESTING'] = True
 
-    yield frontend
+    return frontend
 
 
 @pytest.fixture
 def test_client(web_frontend):
     """Shorthand for ``web_frontend.app.test_client``"""
-    yield web_frontend.app.test_client()
+    return web_frontend.app.test_client()
