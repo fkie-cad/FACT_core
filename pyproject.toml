@@ -41,6 +41,7 @@ testpaths = [
 ]
 markers = [
     "AnalysisPluginTestConfig: Configure the analysis_plugin fixture",
+    "SchedulerTestConfig: Configure the analysis_scheduler, comparison_scheduler and unpacking_scheduler",
     "WebInterfaceUnitTestConfig: Configure the web_interface fixture",
     "backend_config_overwrite: Overwrite defaults for the testing backend config",
     "common_config_overwrite: Overwrite defaults for the testing common config",
