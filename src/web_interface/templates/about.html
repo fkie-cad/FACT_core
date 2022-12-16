@@ -54,6 +54,27 @@
 
 <div class="row justify-content-center">
     <div class="col-xl-8 col-lg-12" style="width:100%;column-count:2;column-rule:grey 1px dotted;column-gap:50px">
+        <h4>FACT 4.1-dev</h4>
+        <ul>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>Added new plugin for IPC (inter-process communication) analysis.</li>
+                    <li>Improved password cracking of the "users_and_passwords" plugin.</li>
+                    <li>Removed the "malware_scanner" plugin.</li>
+                    <li>Improved "architecture_detection" plugin with new and more precise detection methods.</li>
+                </ul>
+            </li>
+            <li>
+                <i class="fas fa-exclamation-triangle" style="color: red;"></i>
+                Changed how the configuration is propagated through FACT and added validation.
+                Config handling in external plugins may need to be adjusted accordingly.
+            </li>
+            <li>Added new config option to adjust the default number of workers for each analysis plugin.</li>
+            <li>Added new functionality to the "File Coverage" comparison plugin to find changed configuration files.</li>
+            <li>Significantly sped up the file diff feature and changed it so that the page can be reloaded.</li>
+            <li>Added a search option to the file tree.</li>
+            <li>Bug fixes.</li>
+        </ul>
         <h4>FACT 4.0 (2022-07-21)</h4>
         <ul>
             <li>
