@@ -7,6 +7,7 @@ try:
     import psutil
     import psycopg2  # pylint: disable=unused-import  # noqa: F401  # new dependency of FACT>=4.0
 
+    from helperFunctions.process import is_main_process
     from helperFunctions.program_setup import program_setup
     from statistic.work_load import WorkLoadStatistic
 except (ImportError, ModuleNotFoundError):
@@ -46,8 +47,9 @@ class FactBase:
         self.work_load_stat = WorkLoadStatistic(component=self.COMPONENT)
 
     def shutdown_listener(self, signum, _):
-        logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
-        self.run = False
+        if is_main_process():
+            logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
+            self.run = False
 
     def shutdown(self):
         logging.info(f'Shutting down components of {self.PROGRAM_NAME}')

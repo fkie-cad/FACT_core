@@ -1,9 +1,15 @@
 import logging
+from concurrent.futures import ProcessPoolExecutor
 from time import sleep
 
 import pytest
 
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
+from helperFunctions.process import (
+    ExceptionSafeProcess,
+    check_worker_exceptions,
+    is_main_process,
+    new_worker_was_started,
+)
 
 
 def breaking_process(wait: bool = False):
@@ -74,3 +80,13 @@ def test_new_worker_was_started():
 
     assert new_worker_was_started(old, new)
     assert not new_worker_was_started(old, old)
+
+
+def test_is_main_process():
+    assert is_main_process() is True
+
+    pool = ProcessPoolExecutor()
+    future = pool.submit(is_main_process)
+    result = future.result()
+    pool.shutdown()
+    assert result is False

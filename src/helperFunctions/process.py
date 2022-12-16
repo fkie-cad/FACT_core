@@ -2,7 +2,7 @@ import logging
 import os
 import traceback
 from contextlib import suppress
-from multiprocessing import Pipe, Process
+from multiprocessing import Pipe, Process, current_process
 from signal import SIGKILL, SIGTERM
 from typing import Callable, List, Optional, Tuple
 
@@ -164,3 +164,7 @@ def stop_processes(processes: List[Process], timeout: float = 10.0):
         process.join(timeout=timeout)
         if process.is_alive():
             process.terminate()
+
+
+def is_main_process() -> bool:
+    return current_process().name == 'MainProcess'
