@@ -34,6 +34,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, post_unpack=None, analysis_workload=None, fs_organizer=None, unpacking_locks=None):
         self.stop_condition = Value('i', 0)
+        self.throttle_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload
         self.in_queue = Queue()
         self.work_load_counter = 25
@@ -126,7 +127,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
             extracted_objects = None
             try:
-                extracted_objects = self.unpacker.unpack(task, container_url, tmp_dir)
+                extracted_objects = self.unpacker.unpack(task, tmp_dir, container_url)
             except ExtractionError:
                 logging.warning(f'Exception happened during extraction of {task.uid}')
                 container.exception = True
@@ -139,7 +140,15 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     def schedule_extracted_files(self, object_list: list[FileObject]):
         for item in object_list:
-            self.in_queue.put(item)
+            self._add_object_to_unpack_queue(item)
+
+    def _add_object_to_unpack_queue(self, item):
+        while self.stop_condition.value == 0:
+            if self.throttle_condition.value == 0:
+                self.in_queue.put(item)
+                break
+            logging.debug('throttle down unpacking to reduce memory consumption...')
+            sleep(5)
 
     def start_work_load_monitor(self):
         logging.debug('Start work load monitor...')
@@ -161,11 +170,11 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             message = f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}'
             log_function(color_string(message, TerminalColors.WARNING))
 
-            # ToDo FixMe?
-            # if workload < cfg.expert_settings.unpack_throttle_limit:
-            #     self.throttle_condition.value = 0
-            # else:
-            #     self.throttle_condition.value = 1
+            # unpack throttling: FixMe?
+            if workload < cfg.expert_settings.unpack_throttle_limit:
+                self.throttle_condition.value = 0
+            else:
+                self.throttle_condition.value = 1
             sleep(2)
 
     def _get_combined_analysis_workload(self):

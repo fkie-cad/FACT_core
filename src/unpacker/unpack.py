@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import json
 import logging
 from pathlib import Path
 from time import time
-from typing import Dict, List
 
 from fact_helper_file import get_file_type_from_path
 
@@ -20,7 +21,7 @@ class Unpacker(UnpackBase):
         self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
         self.unpacking_locks = unpacking_locks
 
-    def unpack(self, current_fo: FileObject, container_url: str, tmp_dir: str):
+    def unpack(self, current_fo: FileObject, tmp_dir: str, container_url: str | None = None):
         '''
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
@@ -40,7 +41,8 @@ class Unpacker(UnpackBase):
             extracted_files, Path(tmp_dir) / 'files', current_fo
         )
         extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
-        self.add_included_files_to_object(extracted_file_objects, current_fo)
+        for item in extracted_file_objects:
+            current_fo.add_included_file(item)
 
         current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
         return extracted_file_objects
@@ -70,14 +72,9 @@ class Unpacker(UnpackBase):
             },
         }
 
-    @staticmethod
-    def add_included_files_to_object(included_file_objects, root_file_object):
-        for item in included_file_objects:
-            root_file_object.add_included_file(item)
-
     def generate_and_store_file_objects(
-        self, file_paths: List[Path], extraction_dir: Path, parent: FileObject
-    ) -> Dict[str, FileObject]:
+        self, file_paths: list[Path], extraction_dir: Path, parent: FileObject
+    ) -> dict[str, FileObject]:
         extracted_files = {}
         for item in file_paths:
             if not file_is_empty(item):
@@ -87,20 +84,19 @@ class Unpacker(UnpackBase):
                     base, parent.uid, get_relative_object_path(item, extraction_dir)
                 )
                 current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
-                if current_file.uid in extracted_files:  # the same file is extracted multiple times from one archive
-                    extracted_files[current_file.uid].virtual_file_path[parent.get_root_uid()].append(
-                        current_virtual_path
-                    )
-                else:
+                if current_file.uid not in extracted_files:
+                    # the same file can be contained multiple times in one archive -> only the VFP needs an update
                     self.unpacking_locks.set_unpacking_lock(current_file.uid)
                     self.file_storage_system.store_file(current_file)
-                    current_file.virtual_file_path = {parent.get_root_uid(): [current_virtual_path]}
                     current_file.parent_firmware_uids.add(parent.get_root_uid())
                     extracted_files[current_file.uid] = current_file
+                extracted_files[current_file.uid].virtual_file_path.setdefault(parent.get_root_uid(), []).append(
+                    current_virtual_path
+                )
         return extracted_files
 
     @staticmethod
-    def remove_duplicates(extracted_fo_dict, parent_fo) -> List[FileObject]:
+    def remove_duplicates(extracted_fo_dict, parent_fo) -> list[FileObject]:
         if parent_fo.uid in extracted_fo_dict:
             del extracted_fo_dict[parent_fo.uid]
         return list(extracted_fo_dict.values())
