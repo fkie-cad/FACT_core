@@ -18,6 +18,7 @@ from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
+from config import cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
@@ -34,9 +35,8 @@ CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, config):
-        super().__init__(config)
-        self.fs_organizer = FSOrganizer(self.config)
+    def __init__(self):
+        self.fs_organizer = FSOrganizer()
 
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
         file_path = file_object.file_path if file_object.file_path else self._get_path_from_fo(file_object)
@@ -45,7 +45,7 @@ class Unpacker(UnpackBase):
             return None
 
         extraction_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-            prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir']
+            prefix='FACT_plugin_qemu_exec', dir=cfg.data_storage.docker_mount_base_dir
         )
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
@@ -83,9 +83,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     root_path = None
 
-    def __init__(self, *args, config=None, unpacker=None, **kwargs):
-        self.unpacker = Unpacker(config) if unpacker is None else unpacker
-        super().__init__(*args, config=config, **kwargs)
+    def __init__(self, *args, unpacker=None, **kwargs):
+        self.unpacker = Unpacker() if unpacker is None else unpacker
+        super().__init__(*args, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if self.NAME not in file_object.processed_analysis:

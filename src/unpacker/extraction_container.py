@@ -10,20 +10,20 @@ from docker.errors import APIError, DockerException
 from docker.models.containers import Container
 from docker.types import Mount
 
+from config import cfg
+
 DOCKER_CLIENT = docker.from_env()
 EXTRACTOR_DOCKER_IMAGE = 'fkiecad/fact_extractor'
 
 
 class ExtractionContainer:
-    def __init__(self, config, id_: int):
-        self.config = config
+    def __init__(self, id_: int):
         self.id_ = id_
 
         self.tmp_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-            dir=config['data-storage']['docker-mount-base-dir']
+            dir=cfg.data_storage.docker_mount_base_dir
         )
-        self.port = self.config.getint('unpack', 'base-port') + id_
-        self.memory_limit = config['unpack']['memory-limit']
+        self.port = cfg.unpack.base_port + id_
 
         self.container = None
         self.exception = False
@@ -53,7 +53,7 @@ class ExtractionContainer:
         self.container = DOCKER_CLIENT.containers.run(
             image=EXTRACTOR_DOCKER_IMAGE,
             ports={'5000/tcp': self.port},
-            mem_limit=self.memory_limit,
+            mem_limit=f'{cfg.unpack.memory_limit}m',
             mounts=[volume],
             volumes={'/dev': {'bind': '/dev', 'mode': 'rw'}},
             privileged=True,
@@ -94,7 +94,7 @@ class ExtractionContainer:
     def restart(self):
         self.stop()
         self.tmp_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-            dir=self.config['data-storage']['docker-mount-base-dir']
+            dir=cfg.data_storage.docker_mount_base_dir
         )
         self.exception = False
         self.container = None

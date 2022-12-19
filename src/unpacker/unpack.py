@@ -6,6 +6,7 @@ from typing import Dict, List
 
 from fact_helper_file import get_file_type_from_path
 
+from config import cfg
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
@@ -15,15 +16,16 @@ from unpacker.unpack_base import ExtractionError, UnpackBase
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, config, unpacking_locks):
-        super().__init__(config)
-        self.file_storage_system = FSOrganizer(config=self.config)
+    def __init__(self, fs_organizer=None, unpacking_locks=None):
+        self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
         self.unpacking_locks = unpacking_locks
 
-    def unpack(self, current_fo: FileObject, container_url: str, tmp_dir: str) -> List[FileObject]:
-        max_depth = self.config.getint('unpack', 'max-depth')
-        if current_fo.depth >= max_depth:
-            logging.warning(f'{current_fo.uid} is not extracted since depth limit ({max_depth}) is reached')
+    def unpack(self, current_fo: FileObject, container_url: str, tmp_dir: str):
+        '''
+        Recursively extract all objects included in current_fo and add them to current_fo.files_included
+        '''
+        if current_fo.depth >= cfg.unpack.max_depth:
+            logging.warning(f'{current_fo.uid} is not extracted since depth limit ({cfg.unpack.max_depth}) is reached')
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 

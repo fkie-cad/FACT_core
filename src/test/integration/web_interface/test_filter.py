@@ -4,14 +4,13 @@ from unittest import mock
 
 import pytest
 
-from test.common_helper import get_config_for_testing
 from web_interface.filter import list_group_collapse, render_analysis_tags, render_fw_tags
 from web_interface.frontend_main import WebFrontEnd
 
 
 @pytest.fixture()
 def frontend():
-    return WebFrontEnd(get_config_for_testing())
+    return WebFrontEnd()
 
 
 @mock.patch('intercom.front_end_binding.InterComFrontEndBinding', lambda **_: None)

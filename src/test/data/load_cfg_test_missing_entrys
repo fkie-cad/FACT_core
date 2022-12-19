@@ -49,6 +49,7 @@ loglevel=WARNING
 
 [unpack]
 threads = 4
+base-port = 9900
 
 # file types in whitelist are not extracted
 whitelist = audio/mpeg, image/png, image/jpeg, image/gif, application/x-shockwave-flash, video/mp4, video/mpeg, video/quicktime, video/x-msvideo, video/ogg, text/plain, application/x-object
@@ -68,6 +69,8 @@ minimal =
 # custom = init_systems, printable_strings
 
 # -- plugin settings --
+[plugin-defaults]
+threads = 2
 
 [binwalk]
 threads = 2

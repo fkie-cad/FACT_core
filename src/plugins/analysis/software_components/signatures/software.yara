@@ -65,7 +65,7 @@ rule Perl
 		$a = "This is perl"
 		$b = /perl\d?\/\d\.\d+\.\d+/ ascii
 	condition:
-		$a and $b
+		$a and $b and no_text_file
 }
 
 rule PHP
@@ -79,7 +79,7 @@ rule PHP
 		$a = "PHP %s (%s) (built: %s %s)"
 		$b = /X-Powered-By: PHP\/\d+\.\d+\.\d+/ ascii
 	condition:
-		$a or $b
+		($a or $b) and no_text_file
 }
 
 rule Realtek_SDK
@@ -90,9 +90,9 @@ rule Realtek_SDK
 		website = "http://www.realtek.com.tw"
 		description = "Realtek IoT Software Development Kit"
 	strings:
-		$a =  /MiniIGD %s (%s)./ ascii
+		$a = "MiniIGD %s (%s)."
 	condition:
-		$a
+		$a and no_text_file
 }
 
 rule redis

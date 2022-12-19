@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import logging
 from time import sleep, time
 from typing import Any, Optional
 
+from config import cfg
 from intercom.common_redis_binding import InterComRedisInterface, generate_task_id
 
 
@@ -37,6 +40,9 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def get_binary_and_filename(self, uid):
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
 
+    def get_file_diff(self, uid_pair: tuple[str, str]) -> str | None:
+        return self._request_response_listener(uid_pair, 'file_diff_task', 'file_diff_task_resp')
+
     def peek_in_binary(self, uid: str, offset: int, length: int) -> bytes:
         return self._request_response_listener((uid, offset, length), 'binary_peek_task', 'binary_peek_task_resp')
 
@@ -59,20 +65,19 @@ class InterComFrontEndBinding(InterComRedisInterface):
         request_id = generate_task_id(input_data)
         self._add_to_redis_queue(request_connection, input_data, request_id)
         logging.debug(f'Request sent: {request_connection} -> {request_id}')
-        sleep(1)
         return self._response_listener(response_connection, request_id)
 
     def _response_listener(self, response_connection, request_id, timeout=None):
         output_data = None
         if timeout is None:
-            timeout = time() + int(self.config['expert-settings'].get('communication-timeout', '60'))
+            timeout = time() + int(cfg.expert_settings.communication_timeout)
         while timeout > time():
             output_data = self.redis.get(request_id)
             if output_data:
                 logging.debug(f'Response received: {response_connection} -> {request_id}')
                 break
             logging.debug(f'No response yet: {response_connection} -> {request_id}')
-            sleep(1)
+            sleep(0.1)
         return output_data
 
     def _add_to_redis_queue(self, key: str, data: Any, task_id: Optional[str] = None):

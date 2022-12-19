@@ -9,6 +9,7 @@ from tempfile import TemporaryDirectory
 from threading import Thread
 from time import sleep
 
+from config import cfg
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import (
     ExceptionSafeProcess,
@@ -31,8 +32,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     This scheduler performs unpacking on firmware objects
     '''
 
-    def __init__(self, config=None, post_unpack=None, analysis_workload=None, unpacking_locks=None):
-        self.config = config
+    def __init__(self, post_unpack=None, analysis_workload=None, fs_organizer=None, unpacking_locks=None):
         self.stop_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload
         self.in_queue = Queue()
@@ -42,7 +42,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
         self.create_containers()
-        self.unpacker = Unpacker(config=self.config, unpacking_locks=self.unpacking_locks)
+        self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
         self.work_load_process = self.start_work_load_monitor()
         self.extraction_process = self._start_extraction_loop()
         logging.info('Unpacking scheduler online')
@@ -76,8 +76,8 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     # ---- internal functions ----
 
     def create_containers(self):
-        for id_ in range(self.config.getint('unpack', 'threads')):
-            container = ExtractionContainer(self.config, id_=id_)
+        for id_ in range(cfg.unpack.threads):
+            container = ExtractionContainer(id_=id_)
             container.start()
             self.workers.append(container)
 
@@ -161,6 +161,11 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             message = f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}'
             log_function(color_string(message, TerminalColors.WARNING))
 
+            # ToDo FixMe?
+            # if workload < cfg.expert_settings.unpack_throttle_limit:
+            #     self.throttle_condition.value = 0
+            # else:
+            #     self.throttle_condition.value = 1
             sleep(2)
 
     def _get_combined_analysis_workload(self):
@@ -170,7 +175,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     def check_exceptions(self):
         list_with_load_process = [self.work_load_process]
-        shutdown = check_worker_exceptions(list_with_load_process, 'unpack-load', self.config, self._work_load_monitor)
+        shutdown = check_worker_exceptions(list_with_load_process, 'unpack-load', self._work_load_monitor)
         if new_worker_was_started(new_process=list_with_load_process[0], old_process=self.work_load_process):
             self.work_load_process = list_with_load_process.pop()
 

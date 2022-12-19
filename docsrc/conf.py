@@ -71,6 +71,7 @@ autodoc_mock_imports = [
     'psutil',
     'pydantic',
     'pymongo',
+    'pytest',
     'requests',
     'si_prefix',
     'sqlalchemy',

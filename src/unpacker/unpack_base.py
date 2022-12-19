@@ -11,6 +11,7 @@ from common_helper_files import safe_rglob
 from docker.types import Mount
 from requests import ReadTimeout, exceptions
 
+from config import cfg
 from helperFunctions.docker import run_docker_container
 from unpacker.extraction_container import EXTRACTOR_DOCKER_IMAGE
 
@@ -22,9 +23,6 @@ class ExtractionError(Exception):
 
 
 class UnpackBase:
-    def __init__(self, config=None):
-        self.config = config
-
     @staticmethod
     def get_extracted_files_dir(base_dir):
         return Path(base_dir, 'files')
@@ -61,14 +59,14 @@ class UnpackBase:
             logging.error(response.text, response.status_code)
             raise ExtractionError(f'Extraction of {file_path} failed')
 
-    def _extract_with_new_container(self, tmp_dir: str):
+    @staticmethod
+    def _extract_with_new_container(tmp_dir: str):
         try:
-            memory_limit = self.config.get('unpack', 'memory-limit', fallback='1024m')
             result = run_docker_container(
                 EXTRACTOR_DOCKER_IMAGE,
                 combine_stderr_stdout=True,
                 privileged=True,
-                mem_limit=memory_limit,
+                mem_limit=f'{cfg.unpack.memory_limit}m',
                 mounts=[
                     Mount('/dev/', '/dev/', type='bind'),
                     Mount('/tmp/extractor', tmp_dir, type='bind'),

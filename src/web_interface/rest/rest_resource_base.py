@@ -10,7 +10,6 @@ from web_interface.frontend_database import FrontendDatabase
 class RestResourceBase(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = kwargs.get('config', None)
         self.db: FrontendDatabase = kwargs.get('db', None)
         self.intercom: Type[InterComFrontEndBinding] = kwargs.get('intercom', None)
 
@@ -19,5 +18,5 @@ class RestResourceBase(Resource):
         model.validate(request.json or {})
         return marshal(request.json, model)
 
-    def _setup_db(self, config):
+    def _setup_db(self):
         pass

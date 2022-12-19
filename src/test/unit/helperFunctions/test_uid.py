@@ -9,16 +9,16 @@ class TestHelperFunctionsUID(unittest.TestCase):
 
     def test_create_uid(self):
         result = create_uid('test')
-        self.assertEqual(result, self.test_uid, 'uid not correct')
+        assert result == self.test_uid, 'uid not correct'
 
     def test_is_uid(self):
-        self.assertFalse(is_uid(None))
-        self.assertFalse(is_uid('blah'))
-        self.assertTrue(is_uid(self.test_uid))
-        self.assertFalse(is_uid(self.test_uid + 'foobar'))
+        assert not is_uid(None)
+        assert not is_uid('blah')
+        assert is_uid(self.test_uid)
+        assert not is_uid(self.test_uid + 'foobar')
 
     def test_is_uid_list(self):
-        self.assertFalse(is_list_of_uids('blah'))
-        self.assertFalse(is_list_of_uids(['foobar']))
-        self.assertFalse(is_list_of_uids([]))
-        self.assertTrue([self.test_uid], 'uid list not recognized')
+        assert not is_list_of_uids('blah')
+        assert not is_list_of_uids(['foobar'])
+        assert not is_list_of_uids([])
+        assert is_list_of_uids([self.test_uid]), 'uid list not recognized'

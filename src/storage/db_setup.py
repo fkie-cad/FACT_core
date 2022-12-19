@@ -1,5 +1,6 @@
 from typing import Optional
 
+from config import cfg
 from storage.db_connection import AdminConnection, DbConnection
 from storage.db_interface_base import ReadWriteDbInterface
 
@@ -13,8 +14,8 @@ class Privileges:
 
 
 class DbSetup(ReadWriteDbInterface):
-    def __init__(self, config, connection: Optional[DbConnection] = None, **kwargs):
-        super().__init__(config, connection=connection or AdminConnection(config, **kwargs))
+    def __init__(self, connection: Optional[DbConnection] = None, **kwargs):
+        super().__init__(connection=connection or AdminConnection(**kwargs))
 
     def create_user(self, user_name: str, password: str):
         if not self.user_exists(user_name):
@@ -50,7 +51,7 @@ class DbSetup(ReadWriteDbInterface):
             ('rw', [Privileges.SELECT, Privileges.INSERT, Privileges.UPDATE]),
             ('del', [Privileges.ALL]),
         ]:
-            user = self.connection.config['data-storage'][f'postgres-{key}-user']
+            user = getattr(cfg.data_storage, f'postgres_{key}_user')
             for privilege in privileges:
                 self.grant_privilege(user, privilege)
 
