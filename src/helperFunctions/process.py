@@ -113,16 +113,16 @@ def check_worker_exceptions(
 ) -> bool:
     '''
     Iterate over the `process_list` and check if exceptions occurred. In case of an exception, the process and its
-    children will be terminated. If ``restart_workers`` is set to `False`, the worker will restarted with the ``worker_function``
-    as entrypoint.
-    Otherwise the worker will not be restarted. In this case, the function will always return ``False``. If ``restart_workers``
-    is set to `True` and an exception occurs, the worker will not be restarted and the return value is ``True``.
+    children will be terminated. If ``throw_exceptions`` in the FACT configuration is set to `false`, the worker
+    may be restarted by passing a function (if the value is not set, the worker will not be restarted). In this case,
+    the function will always return ``False``. If ``throw_exceptions`` is set to `true` and an exception occurs,
+    the worker will not be restarted and the return value is ``True``.
 
     :param process_list: A list of worker processes.
     :param worker_label: A label used for logging (e.g. `Analysis` or `Unpacking`).
-    :param restart_workers: Whether to do nothing or restart the worker.
     :param worker_function: A function used for restarting the worker (optional).
-    :return: ``True`` if an exception occurred in any process and ``restart_workers`` set to `True`. Returns ``False`` otherwise.
+    :return: ``True`` if an exception occurred in any process and ``throw_exceptions`` in the FACT configuration is
+             set to `true` and ``False`` otherwise.
     '''
     return_value = False
     for worker_process in process_list:
