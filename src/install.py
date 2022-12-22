@@ -89,31 +89,27 @@ def _setup_argparser():
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
         default='WARNING',
     )
-    logging_options.add_argument('-d', '--debug', action='store_true', help='print debug messages', default=False)
     return parser.parse_args()
 
 
-def _get_console_output_level(debug_flag):
-    if debug_flag:
-        return logging.DEBUG
-    return logging.INFO
-
-
-def _setup_logging(log_level, log_file, debug_flag=False):
+def _setup_logging(args):
     try:
-        log_level = getattr(logging, log_level, None)
         log_format = logging.Formatter(
             fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
         )
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
-        create_dir_for_file(log_file, dir_description='logging directory')
-        file_log = logging.FileHandler(log_file)
-        file_log.setLevel(log_level)
+
+        create_dir_for_file(args.log_file, dir_description='logging directory')
+
+        file_log = logging.FileHandler(args.log_file)
+        file_log.setLevel(args.log_level)
         file_log.setFormatter(log_format)
+
         console_log = logging.StreamHandler()
-        console_log.setLevel(_get_console_output_level(debug_flag))
+        console_log.setLevel(args.log_level)
         console_log.setFormatter(log_format)
+
         logger.addHandler(file_log)
         logger.addHandler(console_log)
     except (KeyError, TypeError, ValueError) as exception:
@@ -164,7 +160,7 @@ def install():
     config.load()
     check_python_version()
     args = _setup_argparser()
-    _setup_logging(args.log_level, args.log_file, debug_flag=args.debug)
+    _setup_logging(args)
     welcome()
     none_chosen = not (args.frontend or args.db or args.backend or args.common)
     # TODO maybe replace this with an cli argument

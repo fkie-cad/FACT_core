@@ -3,11 +3,13 @@ import os
 import signal
 from time import sleep
 
+import config
+
 try:
     import psutil
     import psycopg2  # pylint: disable=unused-import  # noqa: F401  # new dependency of FACT>=4.0
 
-    from helperFunctions.program_setup import program_setup
+    from helperFunctions.program_setup import setup_argparser, setup_logging
     from statistic.work_load import WorkLoadStatistic
 except (ImportError, ModuleNotFoundError):
     logging.exception(
@@ -29,7 +31,11 @@ class FactBase:
 
     def __init__(self):
         self.run = True
-        self.args = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
+
+        self.args = setup_argparser(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+        config.load(self.args.config_file)
+        setup_logging(self.args, self.COMPONENT)
+
         self._register_signal_handlers()
         self.work_load_stat = WorkLoadStatistic(component=self.COMPONENT)
 

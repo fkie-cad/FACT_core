@@ -9,7 +9,6 @@ from flask_security import login_required
 
 from config import cfg
 from helperFunctions.database import ConnectTo, get_shared_session
-from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.web_interface import format_time
 from statistic.update import StatsUpdater
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
@@ -117,7 +116,7 @@ class MiscellaneousRoutes(ComponentBase):
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
 
     def _get_frontend_logs(self):
-        frontend_logs = Path(get_log_file_for_component('frontend'))
+        frontend_logs = Path(cfg.logging.logfile_frontend)
         if frontend_logs.is_file():
             return frontend_logs.read_text().splitlines()[-100:]
         return []
