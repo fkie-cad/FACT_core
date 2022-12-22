@@ -44,7 +44,7 @@ class TestAppAjaxRoutes(WebInterfaceTest):
 
     def test_ajax_get_summary(self):
         result = self.test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/foobar').data
-        assert b'Summary including results of included files' in result
+        assert b'Summary for Included Files' in result
         assert b'foobar' in result
         assert b'some_uid' in result
 

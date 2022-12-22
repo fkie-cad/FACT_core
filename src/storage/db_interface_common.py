@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import JSONB
@@ -36,7 +38,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             query = select(FirmwareEntry.uid).filter(FirmwareEntry.uid == uid)
             return bool(session.execute(query).scalar())
 
-    def all_uids_found_in_database(self, uid_list: List[str]) -> bool:
+    def all_uids_found_in_database(self, uid_list: list[str]) -> bool:
         if not uid_list:
             return True
         with self.get_read_only_session() as session:
@@ -45,26 +47,24 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== Read / SELECT =====
 
-    def get_object(
-        self, uid: str, analysis_filter: Optional[List[str]] = None
-    ) -> Optional[Union[FileObject, Firmware]]:
+    def get_object(self, uid: str, analysis_filter: list[str] | None = None) -> FileObject | Firmware | None:
         if self.is_firmware(uid):
             return self.get_firmware(uid, analysis_filter=analysis_filter)
         return self.get_file_object(uid, analysis_filter=analysis_filter)
 
-    def get_firmware(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[Firmware]:
+    def get_firmware(self, uid: str, analysis_filter: list[str] | None = None) -> Firmware | None:
         with self.get_read_only_session() as session:
             fw_entry = session.get(FirmwareEntry, uid)
             if fw_entry is None:
                 return None
             return self._firmware_from_entry(fw_entry, analysis_filter=analysis_filter)
 
-    def _firmware_from_entry(self, fw_entry: FirmwareEntry, analysis_filter: Optional[List[str]] = None) -> Firmware:
+    def _firmware_from_entry(self, fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
         firmware = firmware_from_entry(fw_entry, analysis_filter)
         firmware.analysis_tags = self._collect_analysis_tags_from_children(firmware.uid)
         return firmware
 
-    def get_file_object(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[FileObject]:
+    def get_file_object(self, uid: str, analysis_filter: list[str] | None = None) -> FileObject | None:
         with self.get_read_only_session() as session:
             fo_entry = session.get(FileObjectEntry, uid)
             if fo_entry is None:
@@ -72,8 +72,8 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return file_object_from_entry(fo_entry, analysis_filter=analysis_filter)
 
     def get_objects_by_uid_list(
-        self, uid_list: List[str], analysis_filter: Optional[List[str]] = None
-    ) -> List[FileObject]:
+        self, uid_list: list[str], analysis_filter: list[str] | None = None
+    ) -> list[FileObject]:
         with self.get_read_only_session() as session:
             parents_table = aliased(included_files_table, name='parents')
             children_table = aliased(included_files_table, name='children')
@@ -97,7 +97,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             firmware = [self._firmware_from_entry(fw_entry) for fw_entry in session.execute(fw_query).scalars()]
             return file_objects + firmware
 
-    def _get_analysis_entry(self, uid: str, plugin: str) -> Optional[AnalysisEntry]:
+    def _get_analysis_entry(self, uid: str, plugin: str) -> AnalysisEntry | None:
         with self.get_read_only_session() as session:
             try:
                 query = select(AnalysisEntry).filter_by(uid=uid, plugin=plugin)
@@ -105,7 +105,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             except NoResultFound:
                 return None
 
-    def get_analysis(self, uid: str, plugin: str) -> Optional[dict]:
+    def get_analysis(self, uid: str, plugin: str) -> dict | None:
         entry = self._get_analysis_entry(uid, plugin)
         if entry is None:
             return None
@@ -113,23 +113,23 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== included files. =====
 
-    def get_list_of_all_included_files(self, fo: FileObject) -> Set[str]:
+    def get_list_of_all_included_files(self, fo: FileObject) -> set[str]:
         if isinstance(fo, Firmware):
             return self.get_all_files_in_fw(fo.uid)
         return self.get_all_files_in_fo(fo)
 
-    def get_all_files_in_fw(self, fw_uid: str) -> Set[str]:
+    def get_all_files_in_fw(self, fw_uid: str) -> set[str]:
         '''Get a set of UIDs of all files (recursively) contained in a firmware'''
         with self.get_read_only_session() as session:
             query = select(fw_files_table.c.file_uid).where(fw_files_table.c.root_uid == fw_uid)
             return set(session.execute(query).scalars())
 
-    def get_all_files_in_fo(self, fo: FileObject) -> Set[str]:
+    def get_all_files_in_fo(self, fo: FileObject) -> set[str]:
         '''Get a set of UIDs of all files (recursively) contained in a file'''
         with self.get_read_only_session() as session:
             return self._get_files_in_files(session, fo.files_included).union({fo.uid, *fo.files_included})
 
-    def _get_files_in_files(self, session, uid_set: Set[str], recursive: bool = True) -> Set[str]:
+    def _get_files_in_files(self, session, uid_set: set[str], recursive: bool = True) -> set[str]:
         if not uid_set:
             return set()
         query = select(FileObjectEntry).filter(FileObjectEntry.uid.in_(uid_set))
@@ -154,33 +154,27 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             analysis_result['summary'] = self.get_summary(fo, plugin)
         return fo
 
-    def get_summary(self, fo: FileObject, selected_analysis: str) -> Optional[Summary]:
+    def get_summary(self, fo: FileObject, selected_analysis: str) -> Summary | None:
         if selected_analysis not in fo.processed_analysis:
             logging.warning(f'Analysis {selected_analysis} not available on {fo.uid}')
             return None
         if 'summary' not in fo.processed_analysis[selected_analysis]:
             return None
         if not isinstance(fo, Firmware):
-            return self._collect_summary(fo.list_of_all_included_files, selected_analysis)
-        return self._collect_summary_from_included_objects(fo, selected_analysis)
+            included_files = fo.list_of_all_included_files or self.get_list_of_all_included_files(fo)
+        else:
+            included_files = self.get_all_files_in_fw(fo.uid).union({fo.uid})
+        return self._collect_summary_for_uid_list(included_files, selected_analysis)
 
-    def _collect_summary_from_included_objects(self, fw: Firmware, plugin: str) -> Summary:
-        included_files = self.get_all_files_in_fw(fw.uid).union({fw.uid})
+    def _collect_summary_for_uid_list(self, uid_list: set[str] | list[str], plugin: str) -> Summary:
         with self.get_read_only_session() as session:
             query = select(AnalysisEntry.uid, AnalysisEntry.summary).filter(
-                AnalysisEntry.plugin == plugin, AnalysisEntry.uid.in_(included_files)
+                AnalysisEntry.plugin == plugin, AnalysisEntry.uid.in_(uid_list)
             )
             summary = {}
-            for uid, summary_list in session.execute(query):  # type: str, List[str]
-                for item in summary_list or []:
+            for uid, summary_list in session.execute(query):  # type: str, list[str]
+                for item in set(summary_list or []):
                     summary.setdefault(item, []).append(uid)
-        return summary
-
-    def _collect_summary(self, uid_list: List[str], selected_analysis: str) -> Summary:
-        summary = {}
-        file_objects = self.get_objects_by_uid_list(uid_list, analysis_filter=[selected_analysis])
-        for fo in file_objects:
-            self._update_summary(summary, self._get_summary_of_one(fo, selected_analysis))
         return summary
 
     @staticmethod
@@ -189,7 +183,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             original_dict.setdefault(item, []).extend(update_dict[item])
 
     @staticmethod
-    def _get_summary_of_one(file_object: Optional[FileObject], selected_analysis: str) -> Summary:
+    def _get_summary_of_one(file_object: FileObject | None, selected_analysis: str) -> Summary:
         summary = {}
         if file_object is None:
             return summary
@@ -225,7 +219,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== misc. =====
 
-    def get_firmware_number(self, query: Optional[dict] = None) -> int:
+    def get_firmware_number(self, query: dict | None = None) -> int:
         with self.get_read_only_session() as session:
             db_query = select(func.count(FirmwareEntry.uid))
             if query:
@@ -240,7 +234,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return session.execute(query).scalar()
 
     @staticmethod
-    def _apply_offset_and_limit(query: Select, skip: Optional[int], limit: Optional[int]) -> Select:
+    def _apply_offset_and_limit(query: Select, skip: int | None, limit: int | None) -> Select:
         if skip:
             query = query.offset(skip)
         if limit:
