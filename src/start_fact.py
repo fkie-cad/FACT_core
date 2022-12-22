@@ -96,7 +96,6 @@ if __name__ == '__main__':
     config.load(args.config_file)
 
     db_process = _start_component('database', args)
-    sleep(2)
     frontend_process = _start_component('frontend', args)
     backend_process = _start_component('backend', args)
 
