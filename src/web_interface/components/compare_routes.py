@@ -1,4 +1,7 @@
-import difflib
+# pylint: disable=no-self-use
+
+from __future__ import annotations
+
 import logging
 from contextlib import suppress
 from typing import NamedTuple, Optional
@@ -20,8 +23,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 class FileDiffData(NamedTuple):
     uid: str
-    content: str
-    file_name: str
     mime: str
     fw_hid: str
 
@@ -92,7 +93,7 @@ class CompareRoutes(ComponentBase):
             if not redo and comparison_db.comparison_exists(comparison_id):
                 return redirect(url_for('show_compare_result', compare_id=comparison_id))
 
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             sc.add_compare_task(comparison_id, force=redo)
         return render_template('compare/wait.html', compare_id=comparison_id)
 
@@ -106,10 +107,10 @@ class CompareRoutes(ComponentBase):
     @AppRoute('/database/browse_compare', GET)
     def browse_comparisons(self):
         with get_shared_session(self.db.comparison) as comparison_db:
-            page, per_page = extract_pagination_from_request(request, self._config)[0:2]
+            page, per_page = extract_pagination_from_request(request)[0:2]
             try:
                 compare_list = comparison_db.page_comparison_results(skip=per_page * (page - 1), limit=per_page)
-            except Exception as exception:
+            except Exception as exception:  # pylint: disable=broad-except
                 error_message = f'Could not query database: {type(exception)}'
                 logging.error(error_message, exc_info=True)
                 return render_template('error.html', message=error_message)
@@ -128,7 +129,7 @@ class CompareRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/add/<uid>', GET)
     @AppRoute('/comparison/add/<uid>/<root_uid>', GET)
-    def add_to_compare_basket(self, uid, root_uid=None):  # pylint: disable=no-self-use
+    def add_to_compare_basket(self, uid, root_uid=None):
         compare_uid_list = get_comparison_uid_dict_from_session()
         compare_uid_list[uid] = root_uid
         session.modified = True  # pylint: disable=assigning-non-slot
@@ -137,7 +138,7 @@ class CompareRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>', GET)
     @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>/<root_uid>', GET)
-    def remove_from_compare_basket(self, analysis_uid, compare_uid, root_uid=None):  # pylint: disable=no-self-use
+    def remove_from_compare_basket(self, analysis_uid, compare_uid, root_uid=None):
         compare_uid_list = get_comparison_uid_dict_from_session()
         if compare_uid in compare_uid_list:
             session['uids_for_comparison'].pop(compare_uid)
@@ -147,7 +148,7 @@ class CompareRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove_all/<analysis_uid>', GET)
     @AppRoute('/comparison/remove_all/<analysis_uid>/<root_uid>', GET)
-    def remove_all_from_compare_basket(self, analysis_uid, root_uid=None):  # pylint: disable=no-self-use
+    def remove_all_from_compare_basket(self, analysis_uid, root_uid=None):
         compare_uid_list = get_comparison_uid_dict_from_session()
         compare_uid_list.clear()
         session.modified = True  # pylint: disable=assigning-non-slot
@@ -155,14 +156,27 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/comparison/text_files', GET)
-    def compare_text_files(self):
+    def start_text_file_comparison(self):
         uids_dict = get_comparison_uid_dict_from_session()
         if len(uids_dict) != 2:
             return render_template(
                 'compare/error.html', error=f'Can\'t compare {len(uids_dict)} files. You must select exactly 2 files.'
             )
+        (uid_1, root_uid_1), (uid_2, root_uid_2) = list(uids_dict.items())
+        uids_dict.clear()
+        session.modified = True  # pylint: disable=assigning-non-slot
+        return redirect(
+            url_for('compare_text_files', uid_1=uid_1, uid_2=uid_2, root_uid_1=root_uid_1, root_uid_2=root_uid_2)
+        )
 
-        diff_files = [self._get_data_for_file_diff(uid, root_uid) for uid, root_uid in uids_dict.items()]
+    @roles_accepted(*PRIVILEGES['compare'])
+    @AppRoute('/comparison/text_files/<uid_1>/<uid_2>', GET)
+    @AppRoute('/comparison/text_files/<uid_1>/<uid_2>/<root_uid_1>/<root_uid_2>', GET)
+    def compare_text_files(self, uid_1: str, uid_2: str, root_uid_1: str | None = None, root_uid_2: str | None = None):
+        diff_files = [
+            self._get_data_for_file_diff(uid_1, root_uid_1),
+            self._get_data_for_file_diff(uid_2, root_uid_2),
+        ]
 
         uids_with_missing_file_type = ', '.join(f.uid for f in diff_files if f.mime is None)
         if uids_with_missing_file_type:
@@ -176,35 +190,23 @@ class CompareRoutes(ComponentBase):
                 error=f'Can\'t compare non-text mimetypes. ({diff_files[0].mime} vs {diff_files[1].mime})',
             )
 
-        diffstr = self._get_file_diff(*diff_files)
+        with ConnectTo(self.intercom) as intercom:
+            diff_str = intercom.get_file_diff((uid_1, uid_2))
+        if diff_str is None:
+            return render_template('compare/error.html', error='File(s) not found.')
 
-        uids_dict.clear()
-        session.modified = True  # pylint: disable=assigning-non-slot
         return render_template(
-            'compare/text_files.html', diffstr=diffstr, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid
+            'compare/text_files.html', diffstr=diff_str, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid
         )
-
-    @staticmethod
-    def _get_file_diff(file1: FileDiffData, file2: FileDiffData) -> str:
-        diff_list = difflib.unified_diff(
-            file1.content.splitlines(keepends=True),
-            file2.content.splitlines(keepends=True),
-            fromfile=f'{file1.file_name}',
-            tofile=f'{file2.file_name}',
-        )
-        return ''.join(diff_list)
 
     def _get_data_for_file_diff(self, uid: str, root_uid: Optional[str]) -> FileDiffData:
-        with ConnectTo(self.intercom, self._config) as intercom:
-            content, _ = intercom.get_binary_and_filename(uid)
-
         with get_shared_session(self.db.frontend) as frontend_db:
             fo = frontend_db.get_object(uid)
             if root_uid in [None, 'None']:
                 root_uid = fo.get_root_uid()
             fw_hid = frontend_db.get_object(root_uid).get_hid()
         mime = fo.processed_analysis.get('file_type', {}).get('mime')
-        return FileDiffData(uid, content.decode(errors='replace'), fo.file_name, mime, fw_hid)
+        return FileDiffData(uid, mime, fw_hid)
 
 
 def _get_compare_view(plugin_views):

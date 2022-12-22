@@ -1,5 +1,4 @@
 import subprocess
-from configparser import ConfigParser
 from os.path import basename
 from pathlib import Path
 from subprocess import PIPE, STDOUT, CalledProcessError
@@ -8,6 +7,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import yara
 
+from config import cfg
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
 
@@ -21,12 +21,11 @@ class YaraBinarySearchScanner:
     :param config: The FACT configuration.
     '''
 
-    def __init__(self, config: ConfigParser):
+    def __init__(self):
         self.matches = []
-        self.config = config
-        self.db_path = self.config['data-storage']['firmware-file-storage-directory']
-        self.db = DbInterfaceCommon(config)
-        self.fs_organizer = FSOrganizer(self.config)
+        self.db_path = cfg.data_storage.firmware_file_storage_directory
+        self.db = DbInterfaceCommon()
+        self.fs_organizer = FSOrganizer()
 
     def _execute_yara_search(self, rule_file_path: str, target_path: Optional[str] = None) -> str:
         '''

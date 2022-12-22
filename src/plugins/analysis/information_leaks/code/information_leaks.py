@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import re
 from itertools import chain
+from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from objects.file import FileObject
 
 PATH_REGEX = {
-    'user_paths': re.compile(rb'/home/[^%\n \x00]+'),
-    'root_path': re.compile(rb'/root/[^%\n \x00]+'),
-    'www_path': re.compile(rb'/var/www/[^\n \x00]+'),
+    'user_paths': re.compile(rb'/home/[^%\n:) \x00]+'),
+    'root_path': re.compile(rb'/root/[^%\n:) \x00]+'),
+    'www_path': re.compile(rb'/var/www/[^\n:) \x00]+'),
 }
 
 FILES_REGEX = {
@@ -58,6 +59,14 @@ DIRECTORY_DICT = {
 }
 
 
+def _filter_files_from_summary(path: str) -> str:
+    """if files are in the path list only return the parent directory for the summary"""
+    path_object = Path(path)
+    if path_object.suffix:
+        return str(path_object.parent)
+    return path
+
+
 class AnalysisPlugin(AnalysisBasePlugin):
     """
     This Plugin searches for leaked information in a firmware,
@@ -68,7 +77,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     DESCRIPTION = 'Find leaked information like compilation artifacts'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib', 'text/plain']
-    VERSION = '0.1.2'
+    VERSION = '0.1.3'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
@@ -79,7 +88,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         else:
             result = _find_regex(file_object.binary, PATH_REGEX)
             file_object.processed_analysis[self.NAME].update(result)
-            file_object.processed_analysis[self.NAME]['summary'] = sorted(chain(*result.values()))
+            file_object.processed_analysis[self.NAME]['summary'] = sorted(
+                {_filter_files_from_summary(p) for p in chain(*result.values())}
+            )
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):

@@ -21,7 +21,7 @@ class SoftwareComponentsInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        self._build_docker_image('fact/format_string_resolver')
+        self._build_docker_image('fact/format_string_resolver', '../ipc/docker')
 
     def install_files(self):
         extract_names()

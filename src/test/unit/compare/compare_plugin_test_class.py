@@ -26,23 +26,13 @@ class ComparePluginTest:
         '''
         This function can be overwritten by the test instance.
         '''
-        return self.PLUGIN_CLASS(self, config=self.config, view_updater=CommonDatabaseMock())
+        return self.PLUGIN_CLASS(config=self.config, view_updater=CommonDatabaseMock())
 
     def generate_config(self):  # pylint: disable=no-self-use
         '''
         This function can be overwritten by the test instance if a special config is needed
         '''
         return ConfigParser()
-
-    def test_init(self):
-        assert len(self.compare_plugins) == 1, 'number of registered plugins not correct'
-        assert self.compare_plugins[self.PLUGIN_NAME].NAME == self.PLUGIN_NAME, 'plugin instance not correct'
-
-    def register_plugin(self, plugin_name, plugin_instance):
-        '''
-        Callback Function Mock
-        '''
-        self.compare_plugins[plugin_name] = plugin_instance
 
     def setup_test_fw(self):
         self.fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)

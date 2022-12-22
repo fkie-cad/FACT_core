@@ -18,7 +18,7 @@ class TestComparePluginBase(ComparePluginTest):
         This function must be overwritten by the test instance.
         In most cases it is sufficient to copy this function.
         """
-        return ComparePlugin(self, config=self.config)
+        return ComparePlugin()
 
     def test_compare_missing_dep(self):
         self.c_plugin.DEPENDENCIES = ['test_ana']

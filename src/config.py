@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import configparser
 from configparser import ConfigParser
 from pathlib import Path
@@ -5,6 +7,7 @@ from pathlib import Path
 from pydantic import BaseModel, Extra
 from werkzeug.local import LocalProxy
 
+# pylint: disable=invalid-name
 _cfg = None
 cfg: 'Config' = LocalProxy(lambda: _cfg)
 
@@ -55,7 +58,7 @@ class DataStorage(BaseModel):
 
     structural_threshold: int
 
-    temp_dir_path: str
+    temp_dir_path: str = '/tmp'
     docker_mount_base_dir: str
 
 
@@ -67,34 +70,37 @@ class Logging(BaseModel):
 
 class Unpack(BaseModel):
     Config = _PydanticConfigExtraForbid
-    threads: str
+    threads: int
     whitelist: list
     max_depth: int
-    memory_limit: int = 1024
+    memory_limit: int = 2048
 
 
 class DefaultPlugins(BaseModel):
     Config = _PydanticConfigExtraAllow
-    pass
+
+
+class PluginDefaults(BaseModel):
+    threads: int = 2
 
 
 class Database(BaseModel):
     Config = _PydanticConfigExtraForbid
     results_per_page: int
-    number_of_latest_firmwares_to_display: int
+    number_of_latest_firmwares_to_display: int = 10
     ajax_stats_reload_time: int
 
 
 class Statistics(BaseModel):
     Config = _PydanticConfigExtraForbid
-    max_elements_per_chart: int
+    max_elements_per_chart: int = 10
 
 
 class ExpertSettings(BaseModel):
     Config = _PydanticConfigExtraForbid
     block_delay: float
     ssdeep_ignore: int
-    communication_timeout: int
+    communication_timeout: int = 60
     unpack_threshold: float
     unpack_throttle_limit: int
     throw_exceptions: bool
@@ -111,32 +117,62 @@ class Config(BaseModel):
     logging: Logging
     unpack: Unpack
     default_plugins: DefaultPlugins
+    plugin_defaults: PluginDefaults
     database: Database
     statistics: Statistics
     expert_settings: ExpertSettings
 
 
 def _parse_dict(sections):
-    sections['unpack']['whitelist'] = _parse_comma_separated_list(sections['unpack']['whitelist'])
-    for plugin_set in sections['default-plugins']:
-        sections['default-plugins'][plugin_set] = _parse_comma_separated_list(sections['default-plugins'][plugin_set])
-
+    """
+    Parses the section of the config file given as a dictionary.
+    The following things are parsed:
+        * Entries whose value is an empty string just are removed.
+        * Comma separated lists are changed to actual lists.
+    """
     # hyphens may not be contained in identifiers
     # plugin names may also not contain hyphens, so this is fine
     _replace_hyphens_with_underscores(sections)
 
+    sections['unpack']['whitelist'] = parse_comma_separated_list(sections['unpack']['whitelist'])
+    for plugin_set in sections['default_plugins']:
+        sections['default_plugins'][plugin_set] = parse_comma_separated_list(sections['default_plugins'][plugin_set])
 
-def load_config(path=None):
-    """Load the config file located at `path`.
+    for section_name, section in sections.items():
+        # The section name is not plugin configuration.
+        # We can't use the pydantic model here since plugin sections are all extra sections.
+        if section_name in Config.__fields__:
+            continue
+        section['mime_whitelist'] = parse_comma_separated_list(section.get('mime_whitelist', ''))
+        section['mime_blacklist'] = parse_comma_separated_list(section.get('mime_blacklist', ''))
+
+    # This must be done last since empty values e.g. in the default-plugins section might be interpreted otherwise if
+    # left empty.
+    for section_name, section in sections.items():
+        for entry, value in section.copy().items():
+            if value == '':
+                sections[section_name].pop(entry)
+
+
+def load(path: str | None = None):
+    # pylint: disable=global-statement
+    """Load the config file located at ``path``.
     The file must be an ini file and is read into an `config.Config` instance.
-    This instance can be accessed with `config.cfg` after calling this function.
-    For legacy code that needs a `ConfigParser` instance `config.configparser_cfg` is provided.
+    This instance can be accessed with ``config.cfg`` after calling this function.
+    For legacy code that needs a ``ConfigParser`` instance ``config.configparser_cfg`` is provided.
+
+    .. important::
+        This function may not be imported by ``from config import load``.
+        It may only be imported by ``import config`` and then used by ``config.load()``.
+        The reason is that testing code can't patch this function if it was already imported.
+        When you only import the ``config`` module the ``load`` function will be looked up at runtime.
+        See `this blog entry <https://alexmarandon.com/articles/python_mock_gotchas/>`_ for some more information.
     """
     if path is None:
         path = Path(__file__).parent / 'config/main.cfg'
 
     parser = ConfigParser()
-    with open(path) as f:
+    with open(path, encoding='utf8') as f:
         parser.read_file(f)
 
     parsed_sections = {key: dict(section) for key, section in parser.items() if key != configparser.DEFAULTSECT}
@@ -146,6 +182,14 @@ def load_config(path=None):
     _configparser_cfg = parser
     _cfg = Config(**parsed_sections)
 
+    _verify_config(_cfg)
+
+
+def _verify_config(config: Config):
+    """Analyze the config for simple errors that a sysadmin might make."""
+    if not Path(config.data_storage.temp_dir_path).exists():
+        raise ValueError('The "temp-dir-path" as specified in section "data-storage" does not exist.')
+
 
 def _replace_hyphens_with_underscores(sections):
     for section in list(sections.keys()):
@@ -154,5 +198,5 @@ def _replace_hyphens_with_underscores(sections):
         sections[section.replace('-', '_')] = sections.pop(section)
 
 
-def _parse_comma_separated_list(list_string):
-    return [item.strip() for item in list_string.split(',')]
+def parse_comma_separated_list(list_string):
+    return [item.strip() for item in list_string.split(',') if item != '']

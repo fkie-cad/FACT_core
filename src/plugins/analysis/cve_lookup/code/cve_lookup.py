@@ -7,6 +7,7 @@ from pathlib import Path
 from re import match
 from typing import Callable, Dict, List, NamedTuple, Optional, Tuple
 
+from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 from pyxdameraulevenshtein import damerau_levenshtein_distance as distance  # pylint: disable=no-name-in-module
 
@@ -227,7 +228,11 @@ def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
 
 
 def compare_version(version1: str, version2: str, comp_operator: Callable) -> bool:
-    return comp_operator(parse_version(version1), parse_version(version2))
+    try:
+        return comp_operator(parse_version(version1), parse_version(version2))
+    except InvalidVersion as error:
+        logging.exception(f'Error while parsing software version: {error}')
+        return False
 
 
 def search_cve_summary(db: DatabaseInterface, product: namedtuple) -> dict:

@@ -1,10 +1,11 @@
-# pylint: disable=attribute-defined-outside-init,protected-access
+# pylint: disable=attribute-defined-outside-init,protected-access,wrong-import-order
 from time import time
 
 import pytest
 
 from storage.schema import ComparisonEntry
-from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import create_test_firmware, generate_analysis_entry
+from test.integration.storage.helper import create_fw_with_child_fo
 
 
 def test_comparison_exists(db, comp_db):
@@ -104,6 +105,15 @@ def test_get_exclusive_files(db, comp_db, root_uid, expected_result):
     comp_db.add_comparison_result(compare_dict)
     exclusive_files = comp_db.get_exclusive_files(comp_id, root_uid)
     assert exclusive_files == expected_result
+
+
+def test_get_vfp_of_included_text_files(db, comp_db):
+    fo, fw = create_fw_with_child_fo()
+    db.backend.insert_object(fw)
+    fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'text/plain'})
+    db.backend.insert_object(fo)
+    result = comp_db.get_vfp_of_included_text_files(fw.uid, [])
+    assert result == {'/folder/testfile1': {fo.uid}}
 
 
 def _create_comparison(uid1='uid1', uid2='uid2'):

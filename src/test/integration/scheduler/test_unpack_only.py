@@ -6,16 +6,14 @@ from objects.firmware import Firmware
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
-from test.integration.common import MockFSOrganizer, initialize_config
+from test.integration.common import MockFSOrganizer
 
 
 class TestFileAddition:
     def setup(self):
-        self._config = initialize_config(tmp_dir=None)
         self._tmp_queue = Queue()
         unpacking_lock_manager = UnpackingLockManager()
         self._unpack_scheduler = UnpackingScheduler(
-            config=self._config,
             post_unpack=self._dummy_callback,
             fs_organizer=MockFSOrganizer(),
             unpacking_locks=unpacking_lock_manager,

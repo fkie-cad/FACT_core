@@ -35,7 +35,7 @@ password-salt = 5up3r5tr0n6_p455w0rd_5417
 structural-threshold = 40
 
 # Temporary Directory Path
-temp-dir-path = /tmp
+temp-dir-path =
 # Directory that will be used to share data from the host to docker containers
 # Permissions have to be 0o770 and the group has to be 'docker'.
 # Will be created if it does not exist
@@ -69,6 +69,8 @@ minimal =
 # custom = init_systems, printable_strings
 
 # -- plugin settings --
+[plugin-defaults]
+threads = 2
 
 [binwalk]
 threads = 2
@@ -122,6 +124,8 @@ threads = 2
 
 [users_and_passwords]
 threads = 4
+mime-whitelist = foo, bar
+mime-blacklist = foobar
 
 # ------ Web Interface ------
 

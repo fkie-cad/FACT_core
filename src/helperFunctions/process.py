@@ -1,7 +1,6 @@
 import logging
 import os
 import traceback
-from configparser import ConfigParser
 from contextlib import suppress
 from multiprocessing import Pipe, Process
 from signal import SIGKILL, SIGTERM
@@ -9,6 +8,7 @@ from typing import Callable, List, Optional, Tuple
 
 import psutil
 
+from config import cfg
 from helperFunctions.logging import TerminalColors, color_string
 
 
@@ -109,7 +109,6 @@ def start_single_worker(process_index: int, label: str, function: Callable) -> E
 def check_worker_exceptions(
     process_list: List[ExceptionSafeProcess],
     worker_label: str,
-    config: Optional[ConfigParser] = None,
     worker_function: Optional[Callable] = None,
 ) -> bool:
     '''
@@ -121,7 +120,6 @@ def check_worker_exceptions(
 
     :param process_list: A list of worker processes.
     :param worker_label: A label used for logging (e.g. `Analysis` or `Unpacking`).
-    :param config: An instance of the FACT configuration.
     :param worker_function: A function used for restarting the worker (optional).
     :return: ``True`` if an exception occurred in any process and ``throw_exceptions`` in the FACT configuration is
              set to `true` and ``False`` otherwise.
@@ -133,7 +131,7 @@ def check_worker_exceptions(
             logging.error(color_string(f'Exception in {worker_label} process:\n{stack_trace}', TerminalColors.FAIL))
             terminate_process_and_children(worker_process)
             process_list.remove(worker_process)
-            if config is None or config.getboolean('expert-settings', 'throw-exceptions'):
+            if cfg.expert_settings.throw_exceptions:
                 return_value = True
             elif worker_function is not None:
                 process_index = int(worker_process.name.split('-')[-1])

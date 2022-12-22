@@ -4,13 +4,8 @@ import logging
 import pytest
 
 from intercom.back_end_binding import InterComBackEndDeleteFile
-from test.common_helper import CommonDatabaseMock, get_config_for_testing
+from test.common_helper import CommonDatabaseMock
 from test.integration.common import MockFSOrganizer
-
-
-@pytest.fixture(scope='function')
-def config():
-    return get_config_for_testing()
 
 
 class UnpackingLockMock:
@@ -22,10 +17,9 @@ class UnpackingLockMock:
 
 
 @pytest.fixture(scope='function')
-def mock_listener(config):
-    listener = InterComBackEndDeleteFile(config, unpacking_locks=UnpackingLockMock(), db_interface=CommonDatabaseMock())
-    listener.fs_organizer = MockFSOrganizer(None)
-    listener.config = config
+def mock_listener():
+    listener = InterComBackEndDeleteFile(unpacking_locks=UnpackingLockMock(), db_interface=CommonDatabaseMock())
+    listener.fs_organizer = MockFSOrganizer()
     return listener
 
 

@@ -4,14 +4,13 @@ from unittest import mock
 
 import pytest
 
-from test.common_helper import get_config_for_testing
 from web_interface.filter import list_group_collapse, render_analysis_tags, render_fw_tags
 from web_interface.frontend_main import WebFrontEnd
 
 
 @pytest.fixture()
 def frontend():
-    return WebFrontEnd(get_config_for_testing())
+    return WebFrontEnd()
 
 
 @mock.patch('intercom.front_end_binding.InterComFrontEndBinding', lambda **_: None)
@@ -60,9 +59,3 @@ def test_render_analysis_tags_fix(frontend):
         output = render_analysis_tags(tags).replace('\n', '').replace('    ', ' ')
     assert 'badge-primary' in output
     assert '> wow<' in output
-
-
-def test_render_analysis_tags_bad_type():
-    tags = {'such plugin': {42: {'color': 'very color', 'value': 'wow'}}}
-    with pytest.raises(AttributeError):
-        render_analysis_tags(tags)
