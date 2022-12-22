@@ -114,7 +114,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def start(self):
         self._start_runner_process()
         self._start_result_collector()
-        self._start_plugins()
+        # FIXME use this (see FIXME in src/analysis/PluginBase.py)
+        # self._start_plugins()
         logging.info('Analysis System online...')
         logging.info(f'Plugins available: {self._get_list_of_available_plugins()}')
 

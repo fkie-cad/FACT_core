@@ -62,6 +62,11 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.analysis_stats_count = Value('i', 0)
         self.analysis_stats_index = Value('i', 0)
 
+        # FIXME this should not be called here but rather by whoever instanciates the class (i.e. The AnalysisScheduler)
+        # For some reason all top level declarations (and thus imports) are None when not called here.
+        # This bug occurs in production and in the tests.
+        self.start()
+
     def _get_thread_count(self):
         """
         Get the thread count from the config. If there is no configuration for this plugin use the default value.
