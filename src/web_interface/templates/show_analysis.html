@@ -306,13 +306,13 @@
                 {# summary of included files #}
                 {%- if selected_analysis -%}
                     <button id="summary-button" class="btn list-group-item list-group-item-primary" onclick="load_summary(uid, selected_analysis);" style="width: 100%; margin-bottom: 20px;">
-                        Show Analysis Summary for Included Files
+                        Load Summary for Included Files
                     </button>
 
                     <div id="summary-div">
-                        <div id="loading-summary-gif" style="display: none; border: 1px solid #dddddd; padding: 5px; text-align: center">
+                        <div class="mb-3" id="loading-summary-gif" style="display: none; border: 1px solid #dddddd; padding: 5px; text-align: center">
                             <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading gif">
-                            <p>Generating summary for included files...</p>
+                            <p>Loading summary for included files ..</p>
                         </div>
                     </div>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_summary.js') }}"></script>
