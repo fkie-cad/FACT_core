@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from subprocess import PIPE, run
+from subprocess import run
 from tempfile import NamedTemporaryFile
 from typing import Dict, List, NamedTuple, Optional, Union
 
@@ -36,7 +36,7 @@ class Property:
         self.length = _bytes_to_int(list(raw[4:8]))
         self.name_offset = _bytes_to_int(list(raw[8:12]))
         self.name = strings_by_offset.get(self.name_offset, None)
-        self.value = raw[12:12 + self.length].strip(b'\0')
+        self.value = raw[12 : 12 + self.length].strip(b'\0')
 
     def get_size(self):
         return self.length + 12  # len(FDT_PROP + uint32_t len + uint32_t nameoff) == 12
@@ -56,7 +56,7 @@ class StructureBlock:
                 break
             prop = Property(self.raw[next_property_offset:], self.strings_by_offset)
             yield prop
-            self.raw = self.raw[next_property_offset + prop.get_size():]
+            self.raw = self.raw[next_property_offset + prop.get_size() :]
 
 
 def parse_dtb_header(raw: bytes) -> DeviceTreeHeader:
@@ -68,17 +68,15 @@ def header_has_illegal_values(header: DeviceTreeHeader, max_size: int) -> bool:
         header.struct_block_offset,
         header.strings_block_offset,
         header.struct_block_size,
-        header.strings_block_size
+        header.strings_block_size,
     ]
-    return (
-        header.version > 20
-        or any(n > max_size or n > header.size for n in values)
-        or header.size > max_size
-    )
+    return header.version > 20 or any(n > max_size or n > header.size for n in values) or header.size > max_size
 
 
 def convert_device_tree_to_str(file_path: Union[str, Path]) -> Optional[str]:
-    process = run(f'dtc -I dtb -O dts {file_path}', shell=True, stdout=PIPE, stderr=PIPE)  # pylint: disable=subprocess-run-check
+    process = run(
+        f'dtc -I dtb -O dts {file_path}', shell=True, capture_output=True
+    )  # pylint: disable=subprocess-run-check
     if process.returncode != 0:
         logging.warning(
             f'The Device Tree Compiler exited with non-zero return code {process.returncode}: {process.stderr}'
@@ -113,9 +111,9 @@ def analyze_device_tree(raw: bytes) -> Optional[dict]:
     if header_has_illegal_values(header, len(raw)):
         return None  # probably false positive
 
-    device_tree = raw[:header.size]
-    strings_block = device_tree[header.strings_block_offset:header.strings_block_offset + header.strings_block_size]
-    structure_block = device_tree[header.struct_block_offset:header.struct_block_offset + header.struct_block_size]
+    device_tree = raw[: header.size]
+    strings_block = device_tree[header.strings_block_offset : header.strings_block_offset + header.strings_block_size]
+    structure_block = device_tree[header.struct_block_offset : header.struct_block_offset + header.struct_block_size]
     strings_by_offset = {strings_block.find(s): s for s in strings_block.split(b'\0') if s}
     description, model = _get_model_or_description(StructureBlock(structure_block, strings_by_offset))
 
@@ -137,7 +135,9 @@ def _get_model_or_description(structure_block: StructureBlock):
     return description, model
 
 
-def _result_to_json(header: DeviceTreeHeader, string_representation: str, model: Optional[str], description: Optional[str]) -> dict:
+def _result_to_json(
+    header: DeviceTreeHeader, string_representation: str, model: Optional[str], description: Optional[str]
+) -> dict:
     return {
         'header': header._asdict(),
         'device_tree': string_representation,

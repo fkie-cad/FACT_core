@@ -1,4 +1,3 @@
-from configparser import ConfigParser
 from math import ceil
 from pickle import dumps, loads
 from random import randint
@@ -6,18 +5,20 @@ from typing import Any, Optional, Union
 
 from redis.client import Redis
 
+from config import cfg
+
 REDIS_MAX_VALUE_SIZE = 512_000_000  # 512 MB (not to be confused with 512 MiB)
 CHUNK_MAGIC = b'$CHUNKED$'
 SEPARATOR = '#'
 
 
 class RedisInterface:
-    def __init__(self, config: ConfigParser, chunk_size=REDIS_MAX_VALUE_SIZE):
-        self.config = config
+    def __init__(self, chunk_size=REDIS_MAX_VALUE_SIZE):
         self.chunk_size = chunk_size
-        redis_db = config.getint('data-storage', 'redis-fact-db')
-        redis_host = config.get('data-storage', 'redis-host')
-        redis_port = config.getint('data-storage', 'redis-port')
+        redis_db = cfg.data_storage.redis_fact_db
+        redis_host = cfg.data_storage.redis_host
+        redis_port = cfg.data_storage.redis_port
+
         self.redis = Redis(host=redis_host, port=redis_port, db=redis_db)
 
     def set(self, key: str, value: Any):
@@ -40,7 +41,7 @@ class RedisInterface:
         meta_key = CHUNK_MAGIC.decode()
         for index in range(ceil(len(value) / self.chunk_size)):
             key = self._get_new_chunk_key()
-            chunk = value[self.chunk_size * index:self.chunk_size * (index + 1)]
+            chunk = value[self.chunk_size * index : self.chunk_size * (index + 1)]
             self.redis.set(key, chunk)
             meta_key += SEPARATOR + key
         return meta_key
@@ -59,10 +60,12 @@ class RedisInterface:
         return loads(value)
 
     def _combine_chunks(self, meta_key: str, delete: bool) -> bytes:
-        return b''.join([
-            self._redis_pop(chunk_key) if delete else self.redis.get(chunk_key)
-            for chunk_key in meta_key.split(SEPARATOR)[1:]
-        ])
+        return b''.join(
+            [
+                self._redis_pop(chunk_key) if delete else self.redis.get(chunk_key)
+                for chunk_key in meta_key.split(SEPARATOR)[1:]
+            ]
+        )
 
     def _redis_pop(self, key: str) -> Optional[bytes]:
         pipeline = self.redis.pipeline()

@@ -31,14 +31,10 @@ class CachedQuery(NamedTuple):
 
 
 class FrontEndDbInterface(DbInterfaceCommon):
-
     def get_last_added_firmwares(self, limit: int = 10) -> List[MetaEntry]:
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry).order_by(FirmwareEntry.submission_date.desc()).limit(limit)
-            return [
-                self._get_meta_for_entry(fw_entry)
-                for fw_entry in session.execute(query).scalars()
-            ]
+            return [self._get_meta_for_entry(fw_entry) for fw_entry in session.execute(query).scalars()]
 
     # --- HID ---
 
@@ -70,22 +66,16 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def get_data_for_nice_list(self, uid_list: List[str], root_uid: Optional[str]) -> List[dict]:
         with self.get_read_only_session() as session:
             mime_dict = self._get_mime_types_for_uid_list(session, uid_list)
-            query = (
-                select(
-                    FileObjectEntry.uid,
-                    FileObjectEntry.size,
-                    FileObjectEntry.file_name,
-                    FileObjectEntry.virtual_file_paths
-                )
-                .filter(FileObjectEntry.uid.in_(uid_list))
-            )
+            query = select(
+                FileObjectEntry.uid, FileObjectEntry.size, FileObjectEntry.file_name, FileObjectEntry.virtual_file_paths
+            ).filter(FileObjectEntry.uid.in_(uid_list))
             nice_list_data = [
                 {
                     'uid': uid,
                     'size': size,
                     'file_name': file_name,
                     'mime-type': mime_dict.get(uid, 'file-type-plugin/not-run-yet'),
-                    'current_virtual_path': self._get_current_vfp(virtual_file_path, root_uid)
+                    'current_virtual_path': self._get_current_vfp(virtual_file_path, root_uid),
                 }
                 for uid, size, file_name, virtual_file_path in session.execute(query)
             ]
@@ -164,7 +154,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                     FirmwareEntry.vendor == firmware.vendor,
                     FirmwareEntry.device_name == firmware.device_name,
                     FirmwareEntry.device_part == firmware.part,
-                    FirmwareEntry.uid != firmware.uid
+                    FirmwareEntry.uid != firmware.uid,
                 )
                 .order_by(FirmwareEntry.version.asc())
             )
@@ -176,14 +166,17 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = select(subquery).order_by(subquery.c.jsonb_array_elements.cast(JSONB)['time'].desc())
             return list(session.execute(query.limit(limit)).scalars())
 
-    @staticmethod
-    def create_analysis_structure():
-        return {}  # ToDo FixMe ???
-
     # --- generic search ---
 
-    def generic_search(self, search_dict: dict, skip: int = 0, limit: int = 0,
-                       only_fo_parent_firmware: bool = False, inverted: bool = False, as_meta: bool = False):
+    def generic_search(
+        self,
+        search_dict: dict,
+        skip: int = 0,
+        limit: int = 0,
+        only_fo_parent_firmware: bool = False,
+        inverted: bool = False,
+        as_meta: bool = False,
+    ):
         with self.get_read_only_session() as session:
             query = build_generic_search_query(search_dict, only_fo_parent_firmware, inverted)
             query = self._apply_offset_and_limit(query, skip, limit)
@@ -219,7 +212,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         hid = self._get_hid_for_fw_entry(entry)
         tags = {
             **{tag: TagColor.GRAY for tag in entry.firmware_tags},
-            self._get_unpacker_name(entry): TagColor.LIGHT_BLUE
+            self._get_unpacker_name(entry): TagColor.LIGHT_BLUE,
         }
         submission_date = entry.submission_date
         return MetaEntry(entry.uid, hid, tags, submission_date)
@@ -249,23 +242,24 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- file tree
 
     def generate_file_tree_nodes_for_uid_list(
-        self, uid_list: List[str], root_uid: str,
-        parent_uid: Optional[str], whitelist: Optional[List[str]] = None
+        self, uid_list: List[str], root_uid: str, parent_uid: Optional[str], whitelist: Optional[List[str]] = None
     ):
         file_tree_data = self.get_file_tree_data(uid_list)
         for entry in file_tree_data:
-            for node in self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry):
-                yield node
+            yield from self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry)
 
     def generate_file_tree_level(
-        self, uid: str, root_uid: str,
-        parent_uid: Optional[str] = None, whitelist: Optional[List[str]] = None, data: Optional[FileTreeData] = None
+        self,
+        uid: str,
+        root_uid: str,
+        parent_uid: Optional[str] = None,
+        whitelist: Optional[List[str]] = None,
+        data: Optional[FileTreeData] = None,
     ):
         if data is None:
             data = self.get_file_tree_data([uid])[0]
         try:
-            for node in VirtualPathFileTree(root_uid, parent_uid, data, whitelist).get_file_tree_nodes():
-                yield node
+            yield from VirtualPathFileTree(root_uid, parent_uid, data, whitelist).get_file_tree_nodes()
         except (KeyError, TypeError):  # the file has not been analyzed yet
             yield FileTreeNode(uid, root_uid, not_analyzed=True, name=f'{uid} (not analyzed yet)')
 
@@ -275,15 +269,12 @@ class FrontEndDbInterface(DbInterfaceCommon):
             included_files = self._get_included_files_for_uid_list(session, uid_list)
             # get analysis data in a separate query because the analysis may be missing (=> no row in joined result)
             type_analyses = self._get_mime_types_for_uid_list(session, uid_list)
-            query = (
-                select(
-                    FileObjectEntry.uid,
-                    FileObjectEntry.file_name,
-                    FileObjectEntry.size,
-                    FileObjectEntry.virtual_file_paths,
-                )
-                .filter(FileObjectEntry.uid.in_(uid_list))
-            )
+            query = select(
+                FileObjectEntry.uid,
+                FileObjectEntry.file_name,
+                FileObjectEntry.size,
+                FileObjectEntry.virtual_file_paths,
+            ).filter(FileObjectEntry.uid.in_(uid_list))
             return [
                 FileTreeData(uid, file_name, size, vfp, type_analyses.get(uid), included_files.get(uid, set()))
                 for uid, file_name, size, vfp in session.execute(query)
@@ -333,7 +324,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- missing/failed analyses ---
 
     def find_missing_analyses(self) -> Dict[str, Set[str]]:
-        # FixMe? Query could probably be accomplished more efficiently with left outer join (either that or the RAM could go up in flames)
+        # FixMe? Query could probably be accomplished more efficiently with left outer join
         missing_analyses = {}
         with self.get_read_only_session() as session:
             fw_query = self._query_all_plugins_of_object(FileObjectEntry.is_firmware.is_(True))
@@ -358,9 +349,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def find_failed_analyses(self) -> Dict[str, List[str]]:
         result = {}
         with self.get_read_only_session() as session:
-            query = (
-                select(AnalysisEntry.uid, AnalysisEntry.plugin)
-                .filter(AnalysisEntry.result.has_key('failed'))  # noqa: W601
+            query = select(AnalysisEntry.uid, AnalysisEntry.plugin).filter(
+                AnalysisEntry.result.has_key('failed')  # noqa: W601
             )
             for fo_uid, plugin in session.execute(query):
                 result.setdefault(plugin, set()).add(fo_uid)
@@ -398,8 +388,11 @@ class FrontEndDbInterface(DbInterfaceCommon):
             libraries_by_uid = self._get_elf_analysis_libraries(session, fo.files_included)
             query = (
                 select(
-                    FileObjectEntry.uid, FileObjectEntry.file_name, FileObjectEntry.virtual_file_paths,
-                    AnalysisEntry.result['mime'], AnalysisEntry.result['full']
+                    FileObjectEntry.uid,
+                    FileObjectEntry.file_name,
+                    FileObjectEntry.virtual_file_paths,
+                    AnalysisEntry.result['mime'],
+                    AnalysisEntry.result['full'],
                 )
                 .filter(FileObjectEntry.uid.in_(fo.files_included))
                 .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)

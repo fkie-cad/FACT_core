@@ -20,8 +20,13 @@ def _add_config_to_app(app, config):
     app.config['SECURITY_UNAUTHORIZED_VIEW'] = '/login'
     app.config['LOGIN_DISABLED'] = not config.getboolean('expert-settings', 'authentication')
 
+    # rename session cookie to fix user session problems with other flask apps running on the same system
+    app.config['SESSION_COOKIE_NAME'] = 'FACT_session_cookie'
+
     # As we want to use ONLY usernames and no emails but email is hardcoded in
     # flask-security we change the validation mapper of 'email'.
     # Note that from the perspective of flask-security we still use emails.
     # This means that we do not want to enable SECURITY_USERNAME_ENABLE
-    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [{'email': {'mapper': uia_username_mapper, 'case_insensitive': True}}]
+    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [
+        {'email': {'mapper': uia_username_mapper, 'case_insensitive': True}}
+    ]

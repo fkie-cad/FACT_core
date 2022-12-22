@@ -6,7 +6,7 @@ from itertools import chain
 from flask import redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
-from helperFunctions.config import read_list_from_config
+from config import cfg, parse_comma_separated_list
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.task_conversion import get_file_name_and_binary_from_request
@@ -21,7 +21,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class DatabaseRoutes(ComponentBase):
-
     @staticmethod
     def _add_date_to_query(query, date):
         try:
@@ -38,14 +37,17 @@ class DatabaseRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/browse', GET)
     def browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
-        page, per_page = extract_pagination_from_request(request, self._config)[0:2]
+        page, per_page = extract_pagination_from_request(request)[0:2]
         search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
 
         with get_shared_session(self.db.frontend) as frontend_db:
             try:
                 firmware_list = self._search_database(
-                    search_parameters['query'], skip=per_page * (page - 1), limit=per_page,
-                    only_firmwares=search_parameters['only_firmware'], inverted=search_parameters['inverted']
+                    search_parameters['query'],
+                    skip=per_page * (page - 1),
+                    limit=per_page,
+                    only_firmwares=search_parameters['only_firmware'],
+                    inverted=search_parameters['inverted'],
                 )
                 if self._query_has_only_one_result(firmware_list, search_parameters['query']):
                     return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
@@ -54,10 +56,14 @@ class DatabaseRoutes(ComponentBase):
                 return render_template('error.html', message=error_message)
             except Exception as err:
                 error_message = 'Could not query database'
-                logging.error(error_message + f' due to exception: {err}', exc_info=True)  # pylint: disable=logging-not-lazy
+                logging.error(  # pylint: disable=logging-not-lazy
+                    error_message + f' due to exception: {err}', exc_info=True
+                )
                 return render_template('error.html', message=error_message)
 
-            total = frontend_db.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'])
+            total = frontend_db.get_number_of_total_matches(
+                search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted']
+            )
             device_classes = frontend_db.get_device_class_list()
             vendors = frontend_db.get_vendor_list()
 
@@ -65,26 +71,29 @@ class DatabaseRoutes(ComponentBase):
         return render_template(
             'database/database_browse.html',
             firmware_list=firmware_list,
-            page=page, per_page=per_page,
+            page=page,
+            per_page=per_page,
             pagination=pagination,
             device_classes=device_classes,
             vendors=vendors,
             current_class=str(request.args.get('device_class')),
             current_vendor=str(request.args.get('vendor')),
-            search_parameters=search_parameters
+            search_parameters=search_parameters,
         )
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/browse_binary_search_history', GET)
     def browse_searches(self):
-        page, per_page, offset = extract_pagination_from_request(request, self._config)
+        page, per_page, offset = extract_pagination_from_request(request)
         try:
             with get_shared_session(self.db.frontend) as frontend_db:
                 searches = frontend_db.search_query_cache(offset=offset, limit=per_page)
                 total = frontend_db.get_total_cached_query_count()
         except SQLAlchemyError as exception:
             error_message = 'Could not query database'
-            logging.error(error_message + f'due to exception: {exception}', exc_info=True)  # pylint: disable=logging-not-lazy
+            logging.error(  # pylint: disable=logging-not-lazy
+                error_message + f'due to exception: {exception}', exc_info=True
+            )
             return render_template('error.html', message=error_message)
 
         pagination = get_pagination(page=page, per_page=per_page, total=total)
@@ -93,7 +102,7 @@ class DatabaseRoutes(ComponentBase):
             searches_list=searches,
             page=page,
             per_page=per_page,
-            pagination=pagination
+            pagination=pagination,
         )
 
     def _get_search_parameters(self, query, only_firmware, inverted):
@@ -109,8 +118,12 @@ class DatabaseRoutes(ComponentBase):
                 cached_query = self.db.frontend.get_query_from_cache(query)
                 query = cached_query.query
                 search_parameters['query_title'] = cached_query.yara_rule
-        search_parameters['only_firmware'] = request.args.get('only_firmwares') == 'True' if request.args.get('only_firmwares') else only_firmware
-        search_parameters['inverted'] = request.args.get('inverted') == 'True' if request.args.get('inverted') else inverted
+        search_parameters['only_firmware'] = (
+            request.args.get('only_firmwares') == 'True' if request.args.get('only_firmwares') else only_firmware
+        )
+        search_parameters['inverted'] = (
+            request.args.get('inverted') == 'True' if request.args.get('inverted') else inverted
+        )
         search_parameters['query'] = apply_filters_to_query(request, query)
         if 'query_title' not in search_parameters:
             search_parameters['query_title'] = search_parameters['query']
@@ -147,7 +160,7 @@ class DatabaseRoutes(ComponentBase):
         return json.dumps(query)
 
     def _add_hash_query_to_query(self, query, value):
-        hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
+        hash_types = parse_comma_separated_list(getattr(cfg, 'file_hashes')['hashes'])
         hash_query = {f'processed_analysis.file_hashes.{hash_type}': value for hash_type in hash_types}
         query.update({'$or': hash_query})
 
@@ -164,7 +177,9 @@ class DatabaseRoutes(ComponentBase):
             device_classes = frontend_db.get_device_class_list()
             vendors = frontend_db.get_vendor_list()
             tags = frontend_db.get_tag_list()
-        return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors, tag_list=tags)
+        return render_template(
+            'database/database_search.html', device_classes=device_classes, vendors=vendors, tag_list=tags
+        )
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', POST)
@@ -175,15 +190,16 @@ class DatabaseRoutes(ComponentBase):
             inverted = request.form.get('inverted') is not None
             if not isinstance(query, dict):
                 raise Exception('Error: search query invalid (wrong type)')
-            return redirect(url_for('browse_database', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted))
+            return redirect(
+                url_for('browse_database', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted)
+            )
         except Exception as error:
             return self.show_advanced_search(error=error)
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', GET)
-    def show_advanced_search(self, error=None):
-        database_structure = self.db.frontend.create_analysis_structure()
-        return render_template('database/database_advanced_search.html', error=error, database_structure=database_structure)
+    def show_advanced_search(self, error=None):  # pylint: disable=no-self-use
+        return render_template('database/database_advanced_search.html', error=error)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/binary_search', GET, POST)
@@ -195,10 +211,12 @@ class DatabaseRoutes(ComponentBase):
                 error = f'Error: Firmware with UID {repr(firmware_uid)} not found in database'
             elif yara_rule_file is not None:
                 if is_valid_yara_rule_file(yara_rule_file):
-                    with ConnectTo(self.intercom, self._config) as connection:
+                    with ConnectTo(self.intercom) as connection:
                         request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
-                    return redirect(url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware))
-                error = f'Error in YARA rules: {get_yara_error(yara_rule_file)} (pre-compiled rules are not supported here!)'
+                    return redirect(
+                        url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware)
+                    )
+                error = f'Error in YARA rules: {get_yara_error(yara_rule_file)} (pre-compiled rules are not supported!)'
             else:
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)
@@ -206,7 +224,7 @@ class DatabaseRoutes(ComponentBase):
     def _get_items_from_binary_search_request(self, req):
         yara_rule_file = None
         if 'file' in req.files and req.files['file']:
-            _, yara_rule_file = get_file_name_and_binary_from_request(req, self._config)
+            _, yara_rule_file = get_file_name_and_binary_from_request(req)
         elif req.form['textarea']:
             yara_rule_file = req.form['textarea'].encode()
         firmware_uid = req.form.get('firmware_uid') if req.form.get('firmware_uid') else None
@@ -222,7 +240,7 @@ class DatabaseRoutes(ComponentBase):
         firmware_dict, error, yara_rules = None, None, None
         if request.args.get('request_id'):
             request_id = request.args.get('request_id')
-            with ConnectTo(self.intercom, self._config) as connection:
+            with ConnectTo(self.intercom) as connection:
                 result, yara_rules = connection.get_binary_search_result(request_id)
             if isinstance(result, str):
                 error = result
@@ -230,13 +248,18 @@ class DatabaseRoutes(ComponentBase):
                 yara_rules = make_unicode_string(yara_rules[0])
                 joined_results = self._join_results(result)
                 query_uid = self._store_binary_search_query(joined_results, yara_rules)
-                return redirect(url_for('browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware')))
+                return redirect(
+                    url_for('browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware'))
+                )
         else:
             error = 'No request ID found'
             request_id = None
         return render_template(
             'database/database_binary_search_results.html',
-            result=firmware_dict, error=error, request_id=request_id, yara_rules=yara_rules
+            result=firmware_dict,
+            error=error,
+            request_id=request_id,
+            yara_rules=yara_rules,
         )
 
     def _store_binary_search_query(self, binary_search_results: list, yara_rules: str) -> str:
@@ -254,11 +277,13 @@ class DatabaseRoutes(ComponentBase):
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
             return render_template('error.html', message='Search string not found')
-        query = {'$or': {
-            'device_name': {'$like': search_term},
-            'vendor': {'$like': search_term},
-            'file_name': {'$like': search_term},
-            'sha256': search_term,
-            'firmware_tags': search_term,
-        }}
+        query = {
+            '$or': {
+                'device_name': {'$like': search_term},
+                'vendor': {'$like': search_term},
+                'file_name': {'$like': search_term},
+                'sha256': search_term,
+                'firmware_tags': search_term,
+            }
+        }
         return redirect(url_for('browse_database', query=json.dumps(query)))

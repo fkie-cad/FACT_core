@@ -4,7 +4,8 @@ import argparse
 import sqlite3
 import uuid
 
-from helperFunctions.config import load_config
+import config
+from config import cfg
 
 
 def upgrade(cur):
@@ -17,7 +18,8 @@ def upgrade(cur):
     # Due to limitations in SQLite we have to create a temporary table
     # We can't use ALTER TABLE to change fs_uniquifier from beeing NULLable to
     # NOT NULL
-    cur.execute('''
+    cur.execute(
+        '''
         CREATE TABLE "user_tmp" (
             "id"			INTEGER NOT NULL,
             "api_key"		VARCHAR(255) UNIQUE,
@@ -28,7 +30,8 @@ def upgrade(cur):
             "fs_uniquifier"	VARCHAR(64) NOT NULL UNIQUE,
             CHECK(active IN (0,1)),
             PRIMARY KEY("id")
-        );''')
+        );'''
+    )
     cur.execute('INSERT INTO "user_tmp" SELECT * FROM "user" WHERE true')
     cur.execute('DROP TABLE "user"')
     cur.execute('ALTER TABLE "user_tmp" RENAME TO "user"')
@@ -39,7 +42,8 @@ def upgrade(cur):
 def downgrade(cur):
     # Due to limitations in SQLite we have to create a temporary table
     # We can't DROP COLUMN fs_uniquifier because it is unique
-    cur.execute('''
+    cur.execute(
+        '''
         CREATE TABLE "user_tmp" (
             "id"			INTEGER NOT NULL,
             "api_key"		VARCHAR(255) UNIQUE,
@@ -49,8 +53,11 @@ def downgrade(cur):
             "confirmed_at"	DATETIME,
             CHECK(active IN (0,1)),
             PRIMARY KEY("id")
-        );''')
-    cur.execute('INSERT INTO "user_tmp" SELECT id, api_key, email, password, active, confirmed_at FROM "user" WHERE true')
+        );'''
+    )
+    cur.execute(
+        'INSERT INTO "user_tmp" SELECT id, api_key, email, password, active, confirmed_at FROM "user" WHERE true'
+    )
     cur.execute('DROP TABLE "user"')
     cur.execute('ALTER TABLE "user_tmp" RENAME TO "user"')
 
@@ -62,16 +69,20 @@ def main():
     parser.set_defaults(func=lambda _: parser.print_usage())
     subparsers = parser.add_subparsers()
 
-    upgrade_process = subparsers.add_parser('upgrade', help='Upgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    upgrade_process = subparsers.add_parser(
+        'upgrade', help='Upgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     upgrade_process.set_defaults(func=upgrade)
 
-    downgrade_process = subparsers.add_parser('downgrade', help='Downgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    downgrade_process = subparsers.add_parser(
+        'downgrade', help='Downgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     downgrade_process.set_defaults(func=downgrade)
     args = parser.parse_args()
 
-    config = load_config('main.cfg')
+    config.load()
 
-    db_path = config['data-storage']['user-database'][len('sqlite:///'):]
+    db_path = cfg.data_storage.user_database[len('sqlite:///') :]
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()

@@ -5,6 +5,7 @@ from typing import Dict, Sized
 from flask import redirect, render_template, request, url_for
 from flask_security import login_required
 
+from config import cfg
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.web_interface import format_time
@@ -23,12 +24,12 @@ class MiscellaneousRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/', GET)
     def show_home(self):
-        latest_count = int(self._config['database'].get('number-of-latest-firmwares-to-display', '10'))
+        latest_count = cfg.database.number_of_latest_firmwares_to_display
         with get_shared_session(self.db.frontend) as frontend_db:
             latest_firmware_submissions = frontend_db.get_last_added_firmwares(latest_count)
             latest_comments = frontend_db.get_latest_comments(latest_count)
         latest_comparison_results = self.db.comparison.page_comparison_results(limit=10)
-        ajax_stats_reload_time = int(self._config['database']['ajax-stats-reload-time'])
+        ajax_stats_reload_time = cfg.database.ajax_stats_reload_time
         general_stats = self.stats_updater.get_general_stats()
 
         return render_template(
@@ -37,7 +38,7 @@ class MiscellaneousRoutes(ComponentBase):
             latest_firmware_submissions=latest_firmware_submissions,
             latest_comments=latest_comments,
             latest_comparison_results=latest_comparison_results,
-            ajax_stats_reload_time=ajax_stats_reload_time
+            ajax_stats_reload_time=ajax_stats_reload_time,
         )
 
     @AppRoute('/about', GET)
@@ -71,10 +72,7 @@ class MiscellaneousRoutes(ComponentBase):
             return render_template('error.html', message=f'Firmware not found in database: {uid}')
         deleted_virtual_path_entries, deleted_files = self.db.admin.delete_firmware(uid)
         return render_template(
-            'delete_firmware.html',
-            deleted_vps=deleted_virtual_path_entries,
-            deleted_files=deleted_files,
-            uid=uid
+            'delete_firmware.html', deleted_vps=deleted_virtual_path_entries, deleted_files=deleted_files, uid=uid
         )
 
     @roles_accepted(*PRIVILEGES['delete'])
@@ -111,13 +109,13 @@ class MiscellaneousRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_logs'])
     @AppRoute('/admin/logs', GET)
     def show_logs(self):
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             backend_logs = '\n'.join(sc.get_backend_logs())
         frontend_logs = '\n'.join(self._get_frontend_logs())
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
 
     def _get_frontend_logs(self):
-        frontend_logs = Path(get_log_file_for_component('frontend', self._config))
+        frontend_logs = Path(get_log_file_for_component('frontend'))
         if frontend_logs.is_file():
             return frontend_logs.read_text().splitlines()[-100:]
         return []

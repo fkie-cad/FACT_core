@@ -9,6 +9,7 @@ try:
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
+
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
@@ -20,7 +21,7 @@ class SoftwareComponentsInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        self._build_docker_image('fact/format_string_resolver')
+        self._build_docker_image('fact/format_string_resolver', '../ipc/docker')
 
     def install_files(self):
         extract_names()

@@ -17,7 +17,7 @@ class TestAcceptanceBaseFullStart(TestAcceptanceBase):
         self.analysis_finished_event = Event()
         self.compare_finished_event = Event()
         self.elements_finished_analyzing = Value('i', 0)
-        self.db_backend_service = BackendDbInterface(config=self.config)
+        self.db_backend_service = BackendDbInterface()
         self._start_backend(post_analysis=self._analysis_callback, compare_callback=self._compare_callback)
         time.sleep(2)  # wait for systems to start
 
@@ -46,8 +46,8 @@ class TestAcceptanceBaseFullStart(TestAcceptanceBase):
                 'vendor': 'test_vendor',
                 'release_date': '1970-01-01',
                 'tags': '',
-                'analysis_systems': []
+                'analysis_systems': [],
             }
             rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
-        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
-        self.assertIn(test_fw.uid.encode(), rv.data, 'uid not found on upload success page')
+        assert b'Upload Successful' in rv.data, 'upload not successful'
+        assert test_fw.uid.encode() in rv.data, 'uid not found on upload success page'

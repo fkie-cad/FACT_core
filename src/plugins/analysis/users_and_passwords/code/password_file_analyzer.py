@@ -21,8 +21,8 @@ WORDLIST_PATH = Path(get_src_dir()) / 'bin' / 'passwords.txt'
 USER_NAME_REGEX = br'[a-zA-Z][a-zA-Z0-9_-]{2,15}'
 UNIX_REGEXES = [
     USER_NAME_REGEX + br':[^:]?:\d+:\d*:[^:]*:[^:]*:[^\n ]*',
-    USER_NAME_REGEX + br':\$[1256][ay]?\$[a-zA-Z0-9\./+]+\$[a-zA-Z0-9\./+]{16,128}={0,2}',  # MD5 / Blowfish / SHA
-    USER_NAME_REGEX + br':[a-zA-Z0-9\./=]{13}:\d*:\d*:'  # DES
+    USER_NAME_REGEX + br':\$[1256][ay]?\$[a-zA-Z0-9\./+]*\$[a-zA-Z0-9\./+]{16,128}={0,2}',  # MD5 / Blowfish / SHA
+    USER_NAME_REGEX + br':[a-zA-Z0-9\./=]{13}:\d*:\d*:',  # DES
 ]
 HTPASSWD_REGEXES = [
     USER_NAME_REGEX + br':\$apr1\$[a-zA-Z0-9\./+=]+\$[a-zA-Z0-9\./+]{22}',  # MD5 apr1
@@ -36,11 +36,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This plug-in tries to find and crack passwords
     '''
+
     NAME = 'users_and_passwords'
     DEPENDENCIES = []
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DESCRIPTION = 'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
-    VERSION = '0.5.1'
+    VERSION = '0.5.2'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
@@ -64,11 +65,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 username = password_entry.split(':', 1)[0]
                 password = result[password_entry]['password']
                 self.add_analysis_tag(
-                    file_object,
-                    f'{username}_{password}',
-                    f'Password: {username}:{password}',
-                    TagColor.RED,
-                    True
+                    file_object, f'{username}_{password}', f'Password: {username}:{password}', TagColor.RED, True
                 )
 
     def update_file_object(self, file_object: FileObject, result_entry: dict):
@@ -120,7 +117,7 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
                 Mount('/work/input_file', fp.name, type='bind'),
                 Mount('/root/.john/john.pot', str(JOHN_POT), type='bind'),
             ],
-            logging_label='users_and_passwords'
+            logging_label='users_and_passwords',
         )
         result_entry['log'] = john_process.stdout
         output = parse_john_output(john_process.stdout)

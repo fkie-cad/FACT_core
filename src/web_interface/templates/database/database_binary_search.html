@@ -89,10 +89,10 @@
 
 <div class="row justify-content-center mt-4">
     <div class="col-xl-6 col-lg-8 col-md-10">
-		<h4>Example queries:</h4>
+        <h4>Example queries:</h4>
 
-		HEX-Pattern:
-	    <pre class="border rounded p-2 mb-0 bg-light"><code>rule a_hex_string_rule
+        HEX-Pattern:
+        <pre class="border rounded p-2 mb-0 bg-light"><code>rule a_hex_string_rule
 {
     strings:
         $a = { 0A1B }
@@ -101,8 +101,8 @@
 }</code></pre>
         <div style="color:grey; font-size: 0.9em; margin-bottom: 5px;">Matches firmware files including 0x0A1B.</div>
 
-		ASCII:
-	    <pre class="border rounded p-2 mb-0 bg-light"><code>rule a_ascii_string_rule
+        ASCII:
+        <pre class="border rounded p-2 mb-0 bg-light"><code>rule a_ascii_string_rule
 {
     strings:
         $a = "backdoor" ascii wide nocase
@@ -111,9 +111,9 @@
         $a or $b
 }</code></pre>
         <div style="color:grey; font-size: 0.9em; margin-bottom: 5px;">Matches firmware files including the string "backdoor" or "roodkcab" in 8bit (ascii) or 16bit (wide) representation and not case sensitive.</div>
-		
+        
         RegEx:
-	    <pre class="border rounded p-2 mb-0 bg-light"><code>rule a_regex_rule
+        <pre class="border rounded p-2 mb-0 bg-light"><code>rule a_regex_rule
 {
     strings:
         $a = /vxworks 5\.\d+(\.\d+)?/ nocase
@@ -123,7 +123,7 @@
         <div style="color:grey; font-size: 0.9em; margin-bottom: 5px;">Matches firmware files including "vxworks 5.X.Y" with "X" and "Y" are arbitrary numbers, ".Y" is optional and the whole string is not case sensitive.</div>
 
         <p>Do you need more advanced rules? Have a look at the <a href="https://yara.readthedocs.io/en/latest/writingrules.html">official yara documentation</a>!</p>    
-	</div>
+    </div>
 
     <script>
         function set_uid(){

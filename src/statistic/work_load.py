@@ -9,16 +9,15 @@ from time import time
 import distro
 import psutil
 
+from config import cfg
 from storage.db_interface_stats import StatsUpdateDbInterface
 from version import __VERSION__
 
 
 class WorkLoadStatistic:
-
-    def __init__(self, config, component):
-        self.config = config
+    def __init__(self, component):
         self.component = component
-        self.db = StatsUpdateDbInterface(config=self.config)
+        self.db = StatsUpdateDbInterface()
         self.platform_information = self._get_platform_information()
         logging.debug(f'{self.component}: Online')
 
@@ -45,7 +44,7 @@ class WorkLoadStatistic:
     def _get_system_information(self):
         memory_usage = psutil.virtual_memory()
         try:
-            disk_usage = psutil.disk_usage(self.config['data-storage']['firmware-file-storage-directory'])
+            disk_usage = psutil.disk_usage(cfg.data_storage.firmware_file_storage_directory)
         except Exception:
             disk_usage = psutil.disk_usage('/')
         try:
@@ -63,7 +62,7 @@ class WorkLoadStatistic:
             'memory_percent': memory_usage.percent,
             'disk_total': disk_usage.total,
             'disk_used': disk_usage.used,
-            'disk_percent': disk_usage.percent
+            'disk_percent': disk_usage.percent,
         }
         return result
 
@@ -72,8 +71,4 @@ class WorkLoadStatistic:
         operating_system = f'{distro.id()} {distro.version()}'
         python_version = '.'.join(str(x) for x in sys.version_info[0:3])
         fact_version = __VERSION__
-        return {
-            'os': operating_system,
-            'python': python_version,
-            'fact_version': fact_version
-        }
+        return {'os': operating_system, 'python': python_version, 'fact_version': fact_version}

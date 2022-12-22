@@ -13,6 +13,13 @@ class DbMock:  # pylint: disable=unused-argument,no-self-use
     def get_ssdeep_hash(self, uid):
         return '42'
 
+    def get_vfp_of_included_text_files(self, root_uid, blacklist=None):
+        if root_uid == '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787':
+            return {'/foo': {'uid_1'}, '/bar': {'uid_2', 'uid_3'}}
+        if root_uid == 'd38970f8c5153d1041810d0908292bc8df21e7fd88aab211a8fb96c54afe6b01_319':
+            return {'/foo': {'uid_4'}, '/bar': {'uid_5'}}
+        return {}
+
 
 class TestComparePluginFileCoverage(ComparePluginTest):
 
@@ -25,7 +32,7 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         This function must be overwritten by the test instance.
         In most cases it is sufficient to copy this function.
         '''
-        return ComparePlugin(self, config=self.config, db_interface=DbMock(), view_updater=CommonDatabaseMock())
+        return ComparePlugin(db_interface=DbMock(), view_updater=CommonDatabaseMock())
 
     def test_get_intersection_of_files(self):
         self.fw_one.list_of_all_included_files.append('foo')
@@ -61,35 +68,47 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         self.fw_one.list_of_all_included_files.append('foo')
         self.fw_two.list_of_all_included_files.append('foo')
         result = self.c_plugin.compare_function([self.fw_one, self.fw_two])
-        assert len(result.keys()) == 4
+        assert len(result.keys()) == 5
+
+    def test_find_changed_text_files(self):
+        result = self.c_plugin._find_changed_text_files([self.fw_one, self.fw_two], common_files=[])
+        assert '/foo' in result and '/bar' in result
+        assert result['/foo'] == [('uid_1', 'uid_4')]
+        assert len(result['/bar']) == 2
 
 
-@pytest.mark.parametrize('similar_files, similarity_dict, expected_output', [
-    (['fw1:file1', 'fw2:file2'], {}, ''),
-    (['fw1:file1', 'fw2:file2'], {'fw1:file1;fw2:file2': '99'}, '99'),
-    (['fw1:file1', 'fw2:file2', 'fw2:file3'], {'fw1:file1;fw2:file2': '99'}, '99'),
-    (
-        ['fw1:file1', 'fw2:file2', 'fw3:file3'],
-        {'fw1:file1;fw2:file2': '80', 'fw2:file2;fw3:file3': '90'},
-        '80 ‒ 90'
-    ),
-    (
-        ['fw1:file1', 'fw2:file2', 'fw3:file3'],
-        {'fw1:file1;fw2:file2': '70', 'fw1:file1;fw3:file3': '80', 'fw2:file2;fw3:file3': '90'},
-        '70 ‒ 90'
-    ),
-])
+@pytest.mark.parametrize(
+    'similar_files, similarity_dict, expected_output',
+    [
+        (['fw1:file1', 'fw2:file2'], {}, ''),
+        (['fw1:file1', 'fw2:file2'], {'fw1:file1;fw2:file2': '99'}, '99'),
+        (['fw1:file1', 'fw2:file2', 'fw2:file3'], {'fw1:file1;fw2:file2': '99'}, '99'),
+        (
+            ['fw1:file1', 'fw2:file2', 'fw3:file3'],
+            {'fw1:file1;fw2:file2': '80', 'fw2:file2;fw3:file3': '90'},
+            '80 ‒ 90',
+        ),
+        (
+            ['fw1:file1', 'fw2:file2', 'fw3:file3'],
+            {'fw1:file1;fw2:file2': '70', 'fw1:file1;fw3:file3': '80', 'fw2:file2;fw3:file3': '90'},
+            '70 ‒ 90',
+        ),
+    ],
+)
 def test_get_similarity_value(similar_files, similarity_dict, expected_output):
     assert ComparePlugin._get_similarity_value(similar_files, similarity_dict) == expected_output
 
 
-@pytest.mark.parametrize('test_input, expected_output', [
-    ([], []),
-    ([(1, 2), (2, 3), (1, 3)], [[1, 2, 3]]),
-    ([(1, 2), (2, 3), (1, 3), (1, 4), (2, 4), (3, 4), (1, 5), (2, 5), (3, 5), (4, 5)], [[1, 2, 3, 4, 5]]),
-    ([(1, 2), (2, 3), (1, 3), (1, 4)], [[1, 2, 3], [1, 4]]),
-    ([(1, 2), (2, 3), (1, 3), (1, 4), (3, 4)], [[1, 2, 3], [1, 3, 4]]),
-    ([(1, 4), (4, 5)], [[1, 4], [4, 5]]),
-])
+@pytest.mark.parametrize(
+    'test_input, expected_output',
+    [
+        ([], []),
+        ([(1, 2), (2, 3), (1, 3)], [[1, 2, 3]]),
+        ([(1, 2), (2, 3), (1, 3), (1, 4), (2, 4), (3, 4), (1, 5), (2, 5), (3, 5), (4, 5)], [[1, 2, 3, 4, 5]]),
+        ([(1, 2), (2, 3), (1, 3), (1, 4)], [[1, 2, 3], [1, 4]]),
+        ([(1, 2), (2, 3), (1, 3), (1, 4), (3, 4)], [[1, 2, 3], [1, 3, 4]]),
+        ([(1, 4), (4, 5)], [[1, 4], [4, 5]]),
+    ],
+)
 def test_generate_similarity_sets(test_input, expected_output):
     assert generate_similarity_sets(test_input) == expected_output

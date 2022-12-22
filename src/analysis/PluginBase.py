@@ -3,8 +3,13 @@ from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import time
 
+from config import cfg
 from helperFunctions.process import (
-    ExceptionSafeProcess, check_worker_exceptions, start_single_worker, stop_processes, terminate_process_and_children
+    ExceptionSafeProcess,
+    check_worker_exceptions,
+    start_single_worker,
+    stop_processes,
+    terminate_process_and_children,
 )
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -19,7 +24,7 @@ class PluginInitException(Exception):
 
 class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attributes
     '''
-    This is the base plugin. All plugins should be subclass of this.
+    This is the base plugin. All analysis plugins should be a subclass of this class.
     '''
 
     # must be set by the plugin:
@@ -35,26 +40,28 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     MIME_BLACKLIST = []
     MIME_WHITELIST = []
 
-    def __init__(self, plugin_administrator, config=None, no_multithread=False, offline_testing=False, view_updater=None):
-        super().__init__(plugin_administrator, config=config, plugin_path=self.FILE, view_updater=view_updater)
+    def __init__(self, no_multithread=False, view_updater=None):
+        super().__init__(plugin_path=self.FILE, view_updater=view_updater)
         self._check_plugin_attributes()
-        self.check_config(no_multithread)
         self.additional_setup()
         self.in_queue = Queue()
         self.out_queue = Queue()
         self.stop_condition = Value('i', 0)
         self.workers = []
-        self.thread_count = int(self.config[self.NAME]['threads'])
+        self.thread_count = 1 if no_multithread else self._get_thread_count()
         self.active = [Value('i', 0) for _ in range(self.thread_count)]
-        self.register_plugin()
-        if not offline_testing:
-            self.start_worker()
+        self.start_worker()
+
+    def _get_thread_count(self):
+        """
+        Get the thread count from the config. If there is no configuration for this plugin use the default value.
+        """
+        return int(getattr(cfg, self.NAME, {}).get('threads', cfg.plugin_defaults.threads))
 
     def additional_setup(self):
         '''
         This function can be implemented by the plugin to do initialization
         '''
-        pass
 
     def _check_plugin_attributes(self):
         for attribute in ['FILE', 'NAME', 'VERSION']:
@@ -102,7 +109,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.in_queue.close()
         self.out_queue.close()
 
-# ---- internal functions ----
+    # ---- internal functions ----
 
     def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
         new_tag = {
@@ -111,7 +118,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
                 'color': color,
                 'propagate': propagate,
             },
-            'root_uid': file_object.get_root_uid()
+            'root_uid': file_object.get_root_uid(),
         }
         if 'tags' not in file_object.processed_analysis[self.NAME]:
             file_object.processed_analysis[self.NAME]['tags'] = new_tag
@@ -123,12 +130,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         if self.SYSTEM_VERSION:
             result_update.update({'system_version': self.SYSTEM_VERSION})
         return result_update
-
-    def check_config(self, no_multithread):
-        if self.NAME not in self.config:
-            self.config.add_section(self.NAME)
-        if 'threads' not in self.config[self.NAME] or no_multithread:
-            self.config.set(self.NAME, 'threads', '1')
 
     def start_worker(self):
         for process_index in range(self.thread_count):
@@ -167,7 +168,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def worker(self, worker_id):
         while self.stop_condition.value == 0:
             try:
-                next_task = self.in_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
+                next_task = self.in_queue.get(timeout=float(cfg.expert_settings.block_delay))
                 logging.debug(f'Worker {worker_id}: Begin {self.NAME} analysis on {next_task.uid}')
             except Empty:
                 self.active[worker_id].value = 0
@@ -179,4 +180,4 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         logging.debug(f'worker {worker_id} stopped')
 
     def check_exceptions(self):
-        return check_worker_exceptions(self.workers, 'Analysis', self.config, self.worker)
+        return check_worker_exceptions(self.workers, 'Analysis', self.worker)

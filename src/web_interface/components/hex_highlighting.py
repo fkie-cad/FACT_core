@@ -17,13 +17,15 @@ def preview_data_as_hex(data: bytes, chunk_size: int = 16, offset: int = 0):
     start_offset, relative_offset = 0, offset
     output = [
         f'{"rel. offset".center(12)} | {"abs. offset".center(12)} | {"hex content".center(48)} | string preview',
-        f'{"-" * 12} | {"-" * 12} | {"-" * 48} | {"-" * 16}'
+        f'{"-" * 12} | {"-" * 12} | {"-" * 48} | {"-" * 16}',
     ]
     for line in chunked(data, chunk_size):
         hex_content, str_preview = _get_hex_and_str_preview(line)
         if len(line) < chunk_size:  # fill hex column if it isn't full
             hex_content += ' ' * (chunk_size - len(line)) * 3
-        output.append(f'{_format_offset(start_offset)} | {_format_offset(relative_offset)} | {hex_content} | {str_preview}')
+        output.append(
+            f'{_format_offset(start_offset)} | {_format_offset(relative_offset)} | {hex_content} | {str_preview}'
+        )
         start_offset += chunk_size
         relative_offset += chunk_size
     return '\n'.join(output)

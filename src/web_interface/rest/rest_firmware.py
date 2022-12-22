@@ -12,7 +12,12 @@ from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
 from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError
 from web_interface.rest.helper import (
-    error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
+    error_message,
+    get_boolean_from_request,
+    get_paging,
+    get_query,
+    get_update,
+    success_message,
 )
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -21,18 +26,23 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
 
 
-firmware_model = api.model('Upload Firmware', {
-    'device_name': fields.String(description='Device Name', required=True),
-    'device_part': fields.String(description='Device Part', required=True),
-    'device_class': fields.String(description='Device Class', required=True),
-    'file_name':  fields.String(description='File Name', required=True),
-    'version':  fields.String(description='Version', required=True),
-    'vendor':  fields.String(description='Vendor', required=True),
-    'release_date':  fields.Date(dt_format='iso8601', description='Release Date (ISO 8601)', default='1970-01-01'),
-    'tags':  fields.String(description='Tags'),
-    'requested_analysis_systems': fields.List(description='Selected Analysis Systems', cls_or_instance=fields.String),
-    'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True)
-})
+firmware_model = api.model(
+    'Upload Firmware',
+    {
+        'device_name': fields.String(description='Device Name', required=True),
+        'device_part': fields.String(description='Device Part', required=True),
+        'device_class': fields.String(description='Device Class', required=True),
+        'file_name': fields.String(description='File Name', required=True),
+        'version': fields.String(description='Version', required=True),
+        'vendor': fields.String(description='Vendor', required=True),
+        'release_date': fields.Date(dt_format='iso8601', description='Release Date (ISO 8601)', default='1970-01-01'),
+        'tags': fields.String(description='Tags'),
+        'requested_analysis_systems': fields.List(
+            description='Selected Analysis Systems', cls_or_instance=fields.String
+        ),
+        'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True),
+    },
+)
 
 
 @api.route('', doc={'description': ''})
@@ -48,14 +58,18 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
             'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'},
             'recursive': {
                 'description': 'Query for parent firmware of matching objects (requires query)',
-                'in': 'query', 'type': 'boolean', 'default': 'false'
+                'in': 'query',
+                'type': 'boolean',
+                'default': 'false',
             },
             'inverted': {
                 'description': 'Query for parent firmware that does not include the matching objects (Requires query '
-                               'and recursive)',
-                'in': 'query', 'type': 'boolean', 'default': 'false'
+                'and recursive)',
+                'in': 'query',
+                'type': 'boolean',
+                'default': 'false',
             },
-        }
+        },
     )
     def get(self):
         '''
@@ -114,7 +128,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         except binascii.Error:
             return dict(error_message='Could not parse binary (must be valid base64!)')
         firmware_object = convert_analysis_task_to_fw_obj(data)
-        with ConnectTo(self.intercom, self.config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             intercom.add_analysis_task(firmware_object)
         data.pop('binary')
 
@@ -128,7 +142,14 @@ class RestFirmwareGetWithUid(RestResourceBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(
         responses={200: 'Success', 400: 'Unknown UID'},
-        params={'summary': {'description': 'include summary in result', 'in': 'query', 'type': 'boolean', 'default': 'false'}}
+        params={
+            'summary': {
+                'description': 'include summary in result',
+                'in': 'query',
+                'type': 'boolean',
+                'default': 'false',
+            }
+        },
     )
     def get(self, uid):
         '''
@@ -176,7 +197,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
 
         firmware.scheduled_analysis = update
 
-        with ConnectTo(self.intercom, self.config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             supported_plugins = intercom.get_available_analysis_plugins().keys()
             for item in update:
                 if item not in supported_plugins:

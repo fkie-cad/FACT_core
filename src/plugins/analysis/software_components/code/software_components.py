@@ -7,6 +7,7 @@ from typing import List
 from common_helper_files import get_dir_of_file
 
 from analysis.YaraPluginBase import YaraBasePlugin
+from config import cfg
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -30,10 +31,11 @@ class AnalysisPlugin(YaraBasePlugin):
     OS Tagging functionality created by Roman Konertz during Firmware Bootcamp WT17/18 at University of Bonn
     Maintained by Fraunhofer FKIE
     '''
+
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
-    VERSION = '0.4.1'
+    VERSION = '0.4.2'
     FILE = __file__
 
     def process_object(self, file_object):
@@ -82,7 +84,9 @@ class AnalysisPlugin(YaraBasePlugin):
         if result['meta'].get('format_string'):
             key_strings = [s for _, _, s in result['strings'] if '%s' in s]
             if key_strings:
-                versions.update(extract_data_from_ghidra(file_object.binary, key_strings, self.config['data-storage']['docker-mount-base-dir']))
+                versions.update(
+                    extract_data_from_ghidra(file_object.binary, key_strings, cfg.data_storage.docker_mount_base_dir)
+                )
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')
         result['meta']['version'] = list(versions)

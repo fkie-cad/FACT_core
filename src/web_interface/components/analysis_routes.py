@@ -1,11 +1,13 @@
 import json
 import os
-from typing import Dict, Optional, Union
+from contextlib import suppress
+from typing import Optional, Union
 
 from common_helper_files import get_binary_from_file
 from flask import flash, redirect, render_template, render_template_string, request, url_for
 from flask_login.utils import current_user
 
+from config import cfg
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.fileSystem import get_src_dir
@@ -16,7 +18,9 @@ from objects.firmware import Firmware
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.components.dependency_graph import (
-    create_data_graph_edges, create_data_graph_nodes_and_groups, get_graph_colors
+    create_data_graph_edges,
+    create_data_graph_nodes_and_groups,
+    get_graph_colors,
 )
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
@@ -29,7 +33,6 @@ def get_analysis_view(view_name):
 
 
 class AnalysisRoutes(ComponentBase):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.analysis_generic_view = get_analysis_view('generic')
@@ -49,12 +52,14 @@ class AnalysisRoutes(ComponentBase):
             if not file_obj:
                 return render_template('uid_not_found.html', uid=uid)
             if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
-                return render_template('error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)')
+                return render_template(
+                    'error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)'
+                )
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
                 other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
             included_fo_analysis_complete = not frontend_db.all_uids_found_in_database(list(file_obj.files_included))
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template_string(
             self._get_correct_template(selected_analysis, file_obj),
@@ -69,9 +74,8 @@ class AnalysisRoutes(ComponentBase):
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
             known_comparisons=known_comparisons,
             available_plugins=self._get_used_and_unused_plugins(
-                file_obj.processed_analysis,
-                [x for x in analysis_plugins.keys() if x != 'unpacker']
-            )
+                file_obj.processed_analysis, [x for x in analysis_plugins.keys() if x != 'unpacker']
+            ),
         )
 
     def _get_correct_template(self, selected_analysis: Optional[str], fw_object: Union[Firmware, FileObject]):
@@ -90,15 +94,17 @@ class AnalysisRoutes(ComponentBase):
         file_object = self.db.frontend.get_object(uid)
         file_object.scheduled_analysis = request.form.getlist('analysis_systems')
         file_object.force_update = request.form.get('force_update') == 'true'
-        with ConnectTo(self.intercom, self._config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             intercom.add_single_file_task(file_object)
-        return redirect(url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis))
+        return redirect(
+            url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis)
+        )
 
     @staticmethod
     def _get_used_and_unused_plugins(processed_analysis: dict, all_plugins: list) -> dict:
         return {
             'unused': [x for x in all_plugins if x not in processed_analysis],
-            'used': [x for x in all_plugins if x in processed_analysis]
+            'used': [x for x in all_plugins if x in processed_analysis],
         }
 
     def _get_analysis_view(self, selected_analysis):
@@ -121,13 +127,11 @@ class AnalysisRoutes(ComponentBase):
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
 
-        device_class_list.remove(old_firmware.device_class)
-        vendor_list.remove(old_firmware.vendor)
-        device_name_dict[old_firmware.device_class][old_firmware.vendor].remove(old_firmware.device_name)
+        with ConnectTo(self.intercom) as intercom:
+            plugin_dict = intercom.get_available_analysis_plugins()
 
-        previously_processed_plugins = list(old_firmware.processed_analysis.keys())
-        with ConnectTo(self.intercom, self._config) as intercom:
-            plugin_dict = self._overwrite_default_plugins(intercom.get_available_analysis_plugins(), previously_processed_plugins)
+        current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
+        analysis_presets = [current_analysis_preset] + list(cfg.default_plugins)
 
         title = 're-do analysis' if re_do else 'update analysis'
 
@@ -139,15 +143,10 @@ class AnalysisRoutes(ComponentBase):
             device_names=json.dumps(device_name_dict, sort_keys=True),
             firmware=old_firmware,
             analysis_plugin_dict=plugin_dict,
-            title=title
+            analysis_presets=analysis_presets,
+            title=title,
+            plugin_set=current_analysis_preset,
         )
-
-    @staticmethod
-    def _overwrite_default_plugins(plugin_dict: Dict[str, tuple], checked_plugin_list) -> Dict[str, tuple]:
-        plugin_dict.pop('unpacker')  # FIXME: why is this even in there?
-        for plugin in plugin_dict:
-            plugin_dict[plugin][2]['default'] = plugin in checked_plugin_list
-        return plugin_dict
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', POST)
@@ -168,7 +167,7 @@ class AnalysisRoutes(ComponentBase):
             base_fw = self.db.frontend.get_object(uid)
             base_fw.force_update = force_reanalysis
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             sc.add_re_analyze_task(fw, unpack=re_do)
 
     @roles_accepted(*PRIVILEGES['delete'])
@@ -186,21 +185,31 @@ class AnalysisRoutes(ComponentBase):
                 root_uid = frontend_db.get_object(uid).get_root_uid()
             data = frontend_db.get_data_for_dependency_graph(uid)
 
-        whitelist = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink']
+        whitelist = [
+            'application/x-executable',
+            'application/x-pie-executable',
+            'application/x-sharedlib',
+            'inode/symlink',
+        ]
 
         data_graph_part = create_data_graph_nodes_and_groups(data, uid, root_uid, whitelist)
 
         colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
 
         if not data_graph_part['nodes']:
-            flash('Error: Graph could not be rendered. '
-                  'The file chosen as root must contain a filesystem with binaries.', 'danger')
+            flash(
+                'Error: Graph could not be rendered. '
+                'The file chosen as root must contain a filesystem with binaries.',
+                'danger',
+            )
             return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
 
         data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data_graph_part)
 
         if elf_analysis_missing_from_files > 0:
-            flash(f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning')
+            flash(
+                f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning'
+            )
 
         # TODO: Add a loading icon?
         return render_template(
@@ -208,5 +217,23 @@ class AnalysisRoutes(ComponentBase):
             **{key: json.dumps(data_graph[key]) for key in ['nodes', 'edges', 'groups']},
             uid=uid,
             root_uid=root_uid,
-            colors=colors
+            colors=colors,
         )
+
+
+def _add_preset_from_firmware(plugin_dict, fw: Firmware):
+    '''Adds a preset to plugin_dict with all plugins ticked that are processed
+    on the firmware fw.
+    Retruns the name of the new preset.
+    '''
+    preset_name = fw.uid
+
+    previously_processed_plugins = list(fw.processed_analysis.keys())
+    # FIXME: why is this even in there?
+    with suppress(ValueError):
+        plugin_dict.pop('unpacker')
+        previously_processed_plugins.remove('unpacker')
+    for plugin in previously_processed_plugins:
+        plugin_dict[plugin][2][preset_name] = True
+
+    return preset_name

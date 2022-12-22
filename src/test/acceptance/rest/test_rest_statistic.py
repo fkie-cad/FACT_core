@@ -7,11 +7,10 @@ from test.acceptance.base import TestAcceptanceBase
 
 
 class TestRestStatistic(TestAcceptanceBase):
-
     def setUp(self):
         super().setUp()
         self._start_backend()
-        self.workload = WorkLoadStatistic(config=self.config, component='backend')
+        self.workload = WorkLoadStatistic(component='backend')
         sleep(1)  # wait for systems to start
 
     def tearDown(self):
@@ -20,7 +19,10 @@ class TestRestStatistic(TestAcceptanceBase):
         super().tearDown()
 
     def test_status(self):
-        self.workload.update(unpacking_workload=self.unpacking_service.get_scheduled_workload(), analysis_workload=self.analysis_service.get_scheduled_workload())
+        self.workload.update(
+            unpacking_workload=self.unpacking_service.get_scheduled_workload(),
+            analysis_workload=self.analysis_service.get_scheduled_workload(),
+        )
 
         rv = self.test_client.get('/rest/status', follow_redirects=True)
 

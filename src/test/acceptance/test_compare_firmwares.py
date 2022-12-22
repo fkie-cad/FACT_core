@@ -8,33 +8,33 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBaseFullStart):
 
     def _add_firmwares_to_compare(self):
         rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
-        self.assertIn(self.test_fw_a.uid, rv.data.decode(), '')
+        assert self.test_fw_a.uid in rv.data.decode()
         rv = self.test_client.get(f'/comparison/add/{self.test_fw_a.uid}', follow_redirects=True)
-        self.assertIn('Firmware Selected for Comparison', rv.data.decode())
+        assert 'Firmware Selected for Comparison' in rv.data.decode()
 
         rv = self.test_client.get(f'/analysis/{self.test_fw_c.uid}')
-        self.assertIn(self.test_fw_c.uid, rv.data.decode())
-        self.assertIn(self.test_fw_c.name, rv.data.decode())
+        assert self.test_fw_c.uid in rv.data.decode()
+        assert self.test_fw_c.name in rv.data.decode()
         rv = self.test_client.get(f'/comparison/add/{self.test_fw_c.uid}', follow_redirects=True)
-        self.assertIn('Remove All', rv.data.decode())
+        assert 'Remove All' in rv.data.decode()
 
     def _start_compare(self):
         rv = self.test_client.get('/compare', follow_redirects=True)
-        self.assertIn(b'Your compare task is in progress.', rv.data, 'compare wait page not displayed correctly')
+        assert b'Your compare task is in progress.' in rv.data, 'compare wait page not displayed correctly'
 
     def _show_comparison_results(self):
         rv = self.test_client.get(f'/compare/{self.test_fw_a.uid};{self.test_fw_c.uid}')
-        self.assertIn(self.test_fw_a.name.encode(), rv.data, 'test firmware a comparison not displayed correctly')
-        self.assertIn(self.test_fw_c.name.encode(), rv.data, 'test firmware b comparison not displayed correctly')
-        self.assertIn(b'File Coverage', rv.data, 'comparison page not displayed correctly')
+        assert self.test_fw_a.name.encode() in rv.data, 'test firmware a comparison not displayed correctly'
+        assert self.test_fw_c.name.encode() in rv.data, 'test firmware b comparison not displayed correctly'
+        assert b'File Coverage' in rv.data, 'comparison page not displayed correctly'
 
     def _show_home_page(self):
         rv = self.test_client.get('/')
-        self.assertIn(b'Latest Comparisons', rv.data, 'latest comparisons not displayed on "home"')
+        assert b'Latest Comparisons' in rv.data, 'latest comparisons not displayed on "home"'
 
     def _show_compare_browse(self):
         rv = self.test_client.get('/database/browse_compare')
-        self.assertIn(self.test_fw_a.name.encode(), rv.data, 'no compare result shown in browse')
+        assert self.test_fw_a.name.encode() in rv.data, 'no compare result shown in browse'
 
     def _show_analysis_without_compare_list(self):
         rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')

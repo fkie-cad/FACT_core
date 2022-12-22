@@ -4,12 +4,11 @@ from time import sleep
 import pytest
 
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
-from test.common_helper import get_config_for_testing
 
 
 def breaking_process(wait: bool = False):
     if wait:
-        sleep(.5)
+        sleep(0.5)
     raise RuntimeError('now that\'s annoying')
 
 
@@ -24,33 +23,41 @@ def test_exception_safe_process():
     assert str(process.exception[0]) == 'now that\'s annoying'
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'expert-settings': {
+            'throw-exceptions': 'true',
+        }
+    }
+)
 def test_check_worker_exceptions():
-    config = get_config_for_testing()
-    config.set('expert-settings', 'throw-exceptions', 'true')
-
-    process_list = [ExceptionSafeProcess(target=breaking_process, args=(True, ))]
+    process_list = [ExceptionSafeProcess(target=breaking_process, args=(True,))]
     process_list[0].start()
 
-    result = check_worker_exceptions(process_list, 'foo', config=config)
+    result = check_worker_exceptions(process_list, 'foo')
     assert not result
     assert len(process_list) == 1
     sleep(1)
-    result = check_worker_exceptions(process_list, 'foo', config=config)
+    result = check_worker_exceptions(process_list, 'foo')
     assert result
     assert len(process_list) == 0
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'expert-settings': {
+            'throw-exceptions': 'false',
+        }
+    }
+)
 def test_check_worker_restart(caplog):
-    config = get_config_for_testing()
-    config.set('expert-settings', 'throw-exceptions', 'false')
-
-    worker = ExceptionSafeProcess(target=breaking_process, args=(True, ))
+    worker = ExceptionSafeProcess(target=breaking_process, args=(True,))
     process_list = [worker]
     worker.start()
 
     sleep(1)
     with caplog.at_level(logging.INFO):
-        result = check_worker_exceptions(process_list, 'foo', config, worker_function=lambda _: None)
+        result = check_worker_exceptions(process_list, 'foo', worker_function=lambda _: None)
         assert not result
         assert len(process_list) == 1
         assert process_list[0] != worker

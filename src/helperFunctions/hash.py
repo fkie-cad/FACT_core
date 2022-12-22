@@ -89,7 +89,7 @@ class _StandardOutWriter:
 
 @contextlib.contextmanager
 def _suppress_stdout():
-    ''' A context manager that suppresses any output to stdout and stderr. '''
+    '''A context manager that suppresses any output to stdout and stderr.'''
     writer = _StandardOutWriter()
 
     stdout, stderr = sys.stdout, sys.stderr

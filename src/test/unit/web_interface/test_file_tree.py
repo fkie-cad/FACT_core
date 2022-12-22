@@ -3,35 +3,50 @@ from typing import Dict
 import pytest
 
 from web_interface.file_tree.file_tree import (
-    FileTreeData, VirtualPathFileTree, _get_partial_virtual_paths, _get_vpath_relative_to, _root_is_virtual,
-    get_correct_icon_for_mime, remove_virtual_path_from_root
+    FileTreeData,
+    VirtualPathFileTree,
+    _get_partial_virtual_paths,
+    _get_vpath_relative_to,
+    _root_is_virtual,
+    get_correct_icon_for_mime,
+    remove_virtual_path_from_root,
 )
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 # pylint: disable=protected-access
 
 NON_VIRTUAL_TREE_ROOT = {
-    'a_attr': {'href': '/analysis/someUID/ro/someUID'}, 'children': True, 'data': {'uid': 'someUID'}, 'icon': 'pic.png',
-    'li_attr': {'href': '/analysis/someUID/ro/someUID'}, 'text': 'abc'
+    'a_attr': {'href': '/analysis/someUID/ro/someUID'},
+    'children': True,
+    'data': {'uid': 'someUID'},
+    'icon': 'pic.png',
+    'li_attr': {'href': '/analysis/someUID/ro/someUID'},
+    'text': 'abc',
 }
 VIRTUAL_TREE_ROOT = {
-    'a_attr': {'href': '#'}, 'children': [NON_VIRTUAL_TREE_ROOT], 'icon': 'pic.png', 'li_attr': {'href': '#'},
+    'a_attr': {'href': '#'},
+    'children': [NON_VIRTUAL_TREE_ROOT],
+    'icon': 'pic.png',
+    'li_attr': {'href': '#'},
     'text': 'misc',
 }
 
 
-@pytest.mark.parametrize('mime_type, icon', [
-    ('application/zip', '/static/file_icons/archive.png'),
-    ('filesystem/some_filesystem', '/static/file_icons/filesystem.png'),
-    ('application/x-executable', '/static/file_icons/binary.png'),
-    ('inode/symlink', '/static/file_icons/link.png'),
-    ('text/html', '/static/file_icons/html.png'),
-    ('firmware/generic', '/static/file_icons/firmware.png'),
-    ('text/plain', '/static/file_icons/text.png'),
-    ('image/png', '/static/file_icons/image.png'),
-    ('audio/mpeg', '/static/file_icons/multimedia.png'),
-    ('some unknown mime type', '/static/file_icons/unknown.png')
-])
+@pytest.mark.parametrize(
+    'mime_type, icon',
+    [
+        ('application/zip', '/static/file_icons/archive.png'),
+        ('filesystem/some_filesystem', '/static/file_icons/filesystem.png'),
+        ('application/x-executable', '/static/file_icons/binary.png'),
+        ('inode/symlink', '/static/file_icons/link.png'),
+        ('text/html', '/static/file_icons/html.png'),
+        ('firmware/generic', '/static/file_icons/firmware.png'),
+        ('text/plain', '/static/file_icons/text.png'),
+        ('image/png', '/static/file_icons/image.png'),
+        ('audio/mpeg', '/static/file_icons/multimedia.png'),
+        ('some unknown mime type', '/static/file_icons/unknown.png'),
+    ],
+)
 def test_get_correct_icon_for_mime(mime_type, icon):
     assert get_correct_icon_for_mime(mime_type) == icon
 
@@ -84,44 +99,56 @@ class TestFileTree:  # pylint: disable=no-self-use
 VIRTUAL_PATH_INPUT = {
     'abc': ['|abc|def|ghi|folder_1/folder_2/file'],
     '123': ['|123|456|ghi|folder_1/folder_2/file'],
-    'foo': ['|foo|bar|/dir_a/file_a', '|foo|bar|/dir_a/file_b', '|foo|bar|/dir_a/dir_b/file_c']
+    'foo': ['|foo|bar|/dir_a/file_a', '|foo|bar|/dir_a/file_b', '|foo|bar|/dir_a/dir_b/file_c'],
 }
 
 
-@pytest.mark.parametrize('uid, expected_output', [
-    ('abc', ['|abc|def|ghi|folder_1/folder_2/file']),
-    ('ghi', ['|ghi|folder_1/folder_2/file']),
-    ('xyz', ['|xyz|']),
-    ('456', ['|456|ghi|folder_1/folder_2/file']),
-    ('foo', ['|foo|bar|/dir_a/dir_b/file_c', '|foo|bar|/dir_a/file_a', '|foo|bar|/dir_a/file_b']),
-    ('bar', ['|bar|/dir_a/dir_b/file_c', '|bar|/dir_a/file_a', '|bar|/dir_a/file_b']),
-])
+@pytest.mark.parametrize(
+    'uid, expected_output',
+    [
+        ('abc', ['|abc|def|ghi|folder_1/folder_2/file']),
+        ('ghi', ['|ghi|folder_1/folder_2/file']),
+        ('xyz', ['|xyz|']),
+        ('456', ['|456|ghi|folder_1/folder_2/file']),
+        ('foo', ['|foo|bar|/dir_a/dir_b/file_c', '|foo|bar|/dir_a/file_a', '|foo|bar|/dir_a/file_b']),
+        ('bar', ['|bar|/dir_a/dir_b/file_c', '|bar|/dir_a/file_a', '|bar|/dir_a/file_b']),
+    ],
+)
 def test_get_partial_virtual_paths(uid, expected_output):
     assert _get_partial_virtual_paths(VIRTUAL_PATH_INPUT, uid) == expected_output
 
 
-@pytest.mark.parametrize('virtual_path, uid, expected_output', [
-    ('|abc|def|ghi|folder_1/folder_2/file', 'abc', '|abc|def|ghi|folder_1/folder_2/file'),
-    ('|abc|def|ghi|folder_1/folder_2/file', 'def', '|def|ghi|folder_1/folder_2/file'),
-    ('|abc|def|ghi|folder_1/folder_2/file', 'ghi', '|ghi|folder_1/folder_2/file'),
-])
+@pytest.mark.parametrize(
+    'virtual_path, uid, expected_output',
+    [
+        ('|abc|def|ghi|folder_1/folder_2/file', 'abc', '|abc|def|ghi|folder_1/folder_2/file'),
+        ('|abc|def|ghi|folder_1/folder_2/file', 'def', '|def|ghi|folder_1/folder_2/file'),
+        ('|abc|def|ghi|folder_1/folder_2/file', 'ghi', '|ghi|folder_1/folder_2/file'),
+    ],
+)
 def test_get_vpath_relative_to(virtual_path, uid, expected_output):
     assert _get_vpath_relative_to(virtual_path, uid) == expected_output
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ([], False),
-    ([NON_VIRTUAL_TREE_ROOT], False),
-    ([VIRTUAL_TREE_ROOT], True),
-])
+@pytest.mark.parametrize(
+    'input_data, expected_output',
+    [
+        ([], False),
+        ([NON_VIRTUAL_TREE_ROOT], False),
+        ([VIRTUAL_TREE_ROOT], True),
+    ],
+)
 def test_root_is_virtual(input_data, expected_output):
     assert _root_is_virtual(input_data) == expected_output
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    ([NON_VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),
-    ([VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),  # virtual root includes non-virtual root as child
-])
+@pytest.mark.parametrize(
+    'input_data, expected_output',
+    [
+        ([NON_VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),
+        ([VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),  # virtual root includes non-virtual root as child
+    ],
+)
 def test_remove_virtual_path_from_root(input_data, expected_output):
     assert remove_virtual_path_from_root(input_data) == expected_output
 
@@ -138,10 +165,10 @@ class TestVirtualPathFileTree:
         assert nodes['foo'].get_names_of_children() == ['bar']
 
     def test_multiple_occurrences(self):
-        fo_data = {**self.tree_data, 'virtual_file_path': {'root_uid': [
-            'root_uid|parent_uid|/foo/bar',
-            'root_uid|other_uid|/other/path'
-        ]}}
+        fo_data = {
+            **self.tree_data,
+            'virtual_file_path': {'root_uid': ['root_uid|parent_uid|/foo/bar', 'root_uid|other_uid|/other/path']},
+        }
         nodes = self._nodes_by_name(VirtualPathFileTree('root_uid', 'parent_uid', FileTreeData(**fo_data)))
         assert len(nodes) == 1, 'includes duplicates'
         assert 'foo' in nodes and 'other' not in nodes
@@ -153,7 +180,4 @@ class TestVirtualPathFileTree:
 
     @staticmethod
     def _nodes_by_name(file_tree: VirtualPathFileTree) -> Dict[str, FileTreeNode]:
-        return {
-            node.name: node
-            for node in file_tree.get_file_tree_nodes()
-        }
+        return {node.name: node for node in file_tree.get_file_tree_nodes()}

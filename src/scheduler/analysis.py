@@ -1,16 +1,16 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from configparser import ConfigParser
 from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep, time
 from typing import Callable, List, Optional, Tuple
 
+from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
 from analysis.PluginBase import AnalysisBasePlugin
+from config import cfg
 from helperFunctions.compare_sets import substring_is_in_list
-from helperFunctions.config import read_list_from_config
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
@@ -86,9 +86,13 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     :param db_interface: An object reference to an instance of BackEndDbInterface.
     '''
 
-    def __init__(self, config: Optional[ConfigParser] = None, pre_analysis: Callable[[FileObject], None] = None, post_analysis: Callable[[str, str, dict], None] = None, db_interface=None,
-                 unpacking_locks=None):
-        self.config = config
+    def __init__(
+        self,
+        pre_analysis: Callable[[FileObject], None] = None,
+        post_analysis: Callable[[str, str, dict], None] = None,
+        db_interface=None,
+        unpacking_locks=None,
+    ):
         self.analysis_plugins = {}
         self._load_plugins()
         self.stop_condition = Value('i', 0)
@@ -98,8 +102,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
 
-        self.fs_organizer = FSOrganizer(config=config)
-        self.db_backend_service = db_interface if db_interface else BackendDbInterface(config=config)
+        self.fs_organizer = FSOrganizer()
+        self.db_backend_service = db_interface if db_interface else BackendDbInterface()
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
         self._start_runner_process()
@@ -178,30 +182,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 # be missing dependencies. So if anything goes wrong we want to inform the user about it
                 logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
             else:
-                plugin.AnalysisPlugin(self, config=self.config)
-
-    def register_plugin(self, name: str, plugin_instance: AnalysisBasePlugin):
-        '''
-        This function is used by analysis plugins to register themselves with this scheduler. During initialization the
-        plugins will call this functions giving their name and a reference to their object to allow the scheduler to
-        address them for running analyses.
-
-        :param name: The plugin name for addressing in runner and collector
-        :param plugin_instance: A reference to the plugin object
-        '''
-        self.analysis_plugins[name] = plugin_instance
-
-    def _get_default_plugins_from_config(self):
-        try:
-            return {
-                plugin_set: read_list_from_config(
-                    self.config, 'default-plugins', plugin_set
-                )
-                for plugin_set in self.config['default-plugins']
-            }
-        except (TypeError, KeyError, AttributeError):
-            logging.warning('default plug-ins not set in config')
-            return {}
+                self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
 
     def get_plugin_dict(self) -> dict:
         '''
@@ -213,7 +194,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 NAME: (
                     str: DESCRIPTION,
                     bool: mandatory,
-                    bool: default,
+                    dict: plugin_sets,
                     str: VERSION,
                     list: DEPENDENCIES,
                     list: MIME_BLACKLIST,
@@ -229,23 +210,28 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         plugin_list = self._get_list_of_available_plugins()
         plugin_list = self._remove_unwanted_plugins(plugin_list)
-        default_plugins = self._get_default_plugins_from_config()
-        default_flag_dict = {}
+        plugin_sets = dict(cfg.default_plugins)
         result = {}
         for plugin in plugin_list:
+            current_plugin_plugin_sets = {}
             mandatory_flag = plugin in MANDATORY_PLUGINS
-            for key in default_plugins:
-                default_flag_dict[key] = plugin in default_plugins[key]
+            for plugin_set in plugin_sets:
+                current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set]
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
+            try:
+                thread_count = getattr(cfg, plugin)['threads']
+            except (AttributeError, KeyError):
+                thread_count = cfg.plugin_defaults.threads
+            # TODO this should not be a tuple but rather a dictionary/class
             result[plugin] = (
                 self.analysis_plugins[plugin].DESCRIPTION,
                 mandatory_flag,
-                dict(default_flag_dict),
+                dict(current_plugin_plugin_sets),
                 self.analysis_plugins[plugin].VERSION,
                 self.analysis_plugins[plugin].DEPENDENCIES,
                 blacklist,
                 whitelist,
-                self.config[plugin].get('threads', '0')
+                thread_count,
             )
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
@@ -260,7 +246,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def _task_runner(self):
         while self.stop_condition.value == 0:
             try:
-                task = self.process_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
+                task = self.process_queue.get(timeout=cfg.expert_settings.block_delay)
             except Empty:
                 pass
             else:
@@ -285,12 +271,18 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
     def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject):
-        if not self._is_forced_update(file_object) and self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, file_object.uid):
+        if not self._is_forced_update(file_object) and self._analysis_is_already_in_db_and_up_to_date(
+            analysis_to_do, file_object.uid
+        ):
             logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (analysis already in DB)')
-            if analysis_to_do in self.task_scheduler.get_cumulative_remaining_dependencies(file_object.scheduled_analysis):
+            if analysis_to_do in self.task_scheduler.get_cumulative_remaining_dependencies(
+                file_object.scheduled_analysis
+            ):
                 self._add_completed_analysis_results_to_file_object(analysis_to_do, file_object)
             self._check_further_process_or_complete(file_object)
-        elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(analysis_to_do, file_object):
+        elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(
+            analysis_to_do, file_object
+        ):
             logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (blacklisted file type)')
             analysis_result = self._get_skipped_analysis_result(analysis_to_do)
             file_object.processed_analysis[analysis_to_do] = analysis_result
@@ -335,15 +327,17 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         except TypeError:
             logging.error(f'plug-in or system version of "{analysis_plugin.NAME}" plug-in is or was invalid!')
             return False
+        except InvalidVersion as error:
+            logging.exception(f'Error while parsing plugin version: {error}')
+            return False
 
         return self._dependencies_are_up_to_date(db_entry, analysis_plugin, uid)
 
     @staticmethod
     def _current_version_is_newer(current_plugin_version: str, current_system_version: str, db_entry: dict) -> bool:
-        return (
-            parse_version(current_plugin_version) > parse_version(db_entry['plugin_version'])
-            or parse_version(current_system_version or '0') > parse_version(db_entry['system_version'] or '0')
-        )
+        return parse_version(current_plugin_version) > parse_version(db_entry['plugin_version']) or parse_version(
+            current_system_version or '0'
+        ) > parse_version(db_entry['system_version'] or '0')
 
     def _dependencies_are_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
         for dependency in analysis_plugin.DEPENDENCIES:
@@ -363,7 +357,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             'skipped': 'blacklisted file type',
             'summary': [],
             'analysis_date': time(),
-            'plugin_version': self.analysis_plugins[analysis_to_do].VERSION
+            'plugin_version': self.analysis_plugins[analysis_to_do].VERSION,
         }
 
     def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject):
@@ -391,9 +385,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(next_analysis)
         return blacklist, whitelist
 
-    def _get_blacklist_and_whitelist_from_config(self, analysis_plugin: str) -> Tuple[List, List]:
-        blacklist = read_list_from_config(self.config, analysis_plugin, 'mime_blacklist')
-        whitelist = read_list_from_config(self.config, analysis_plugin, 'mime_whitelist')
+    @staticmethod
+    def _get_blacklist_and_whitelist_from_config(analysis_plugin: str) -> Tuple[List, List]:
+        blacklist = getattr(cfg, analysis_plugin, {}).get('mime_blacklist')
+        whitelist = getattr(cfg, analysis_plugin, {}).get('mime_whitelist')
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> Tuple[List, List]:
@@ -408,7 +403,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.result_collector_process = ExceptionSafeProcess(target=self._result_collector)
         self.result_collector_process.start()
 
-    def _result_collector(self):  # pylint: disable=too-complex
+    def _result_collector(self):
         while self.stop_condition.value == 0:
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
@@ -425,7 +420,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                         self.post_analysis(fw.uid, plugin_name, fw.processed_analysis[plugin_name])
                     self._check_further_process_or_complete(fw)
             if nop:
-                sleep(float(self.config['expert-settings']['block-delay']))
+                sleep(cfg.expert_settings.block_delay)
 
     def _check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:

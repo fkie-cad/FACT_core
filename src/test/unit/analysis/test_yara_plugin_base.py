@@ -3,7 +3,6 @@
 import logging
 import os
 from pathlib import Path
-from unittest import mock
 
 import pytest
 
@@ -11,41 +10,36 @@ from analysis.YaraPluginBase import YaraBasePlugin, _parse_meta_data, _split_out
 from helperFunctions.fileSystem import get_src_dir
 from objects.file import FileObject
 from test.common_helper import get_test_data_dir
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 YARA_TEST_OUTPUT = Path(get_test_data_dir(), 'yara_matches').read_text()
 
 
-class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
+class YaraPlugin(YaraBasePlugin):
+    FILE = '/foo/bar/Yara_Base_Plugin/code/test.py'
 
-    PLUGIN_NAME = 'Yara_Base_Plugin'
-    PLUGIN_CLASS = YaraBasePlugin
 
-    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
-    @mock.patch('analysis.YaraPluginBase.YaraBasePlugin.FILE', '/foo/bar/Yara_Base_Plugin/code/test.py')
-    def setUp(self):
-        super().setUp()
+@pytest.mark.AnalysisPluginClass.with_args(YaraPlugin)
+class TestAnalysisYaraBasePlugin:
+    def test_get_signature_paths(self, analysis_plugin):
+        intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', analysis_plugin.NAME)
+        assert isinstance(analysis_plugin.signature_path, str), 'incorrect type'
+        assert f'{intended_signature_path.rstrip("/")}.yc' == analysis_plugin.signature_path, 'signature path is wrong'
 
-    def test_get_signature_paths(self):
-        intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', self.PLUGIN_NAME)
-        self.assertTrue(isinstance(self.analysis_plugin.signature_path, str), 'incorrect type')
-        self.assertEqual(f"{intended_signature_path.rstrip('/')}.yc", self.analysis_plugin.signature_path, 'signature path is wrong')
-
-    def test_process_object(self):
+    def test_process_object(self, analysis_plugin):
         test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'yara_test_file'))
-        test_file.processed_analysis.update({self.PLUGIN_NAME: []})
-        processed_file = self.analysis_plugin.process_object(test_file)
-        results = processed_file.processed_analysis[self.PLUGIN_NAME]
+        test_file.processed_analysis.update({analysis_plugin.NAME: []})
+        processed_file = analysis_plugin.process_object(test_file)
+        results = processed_file.processed_analysis[analysis_plugin.NAME]
         assert len(results) == 2, 'not all matches found'
         assert 'testRule' in results, 'testRule match not found'
         assert results['summary'] == ['testRule']
 
-    def test_process_object_nothing_found(self):
+    def test_process_object_nothing_found(self, analysis_plugin):
         test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'zero_byte'))
-        test_file.processed_analysis.update({self.PLUGIN_NAME: []})
-        processed_file = self.analysis_plugin.process_object(test_file)
-        self.assertEqual(len(processed_file.processed_analysis[self.PLUGIN_NAME]), 1, 'result present but should not')
-        self.assertEqual(processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], [], 'summary not empty')
+        test_file.processed_analysis.update({analysis_plugin.NAME: []})
+        processed_file = analysis_plugin.process_object(test_file)
+        assert len(processed_file.processed_analysis[analysis_plugin.NAME]) == 1, 'result present but should not'
+        assert processed_file.processed_analysis[analysis_plugin.NAME]['summary'] == [], 'summary not empty'
 
 
 def test_parse_yara_output():
@@ -60,7 +54,9 @@ def test_parse_yara_output():
 
 
 def test_get_signature_file_name():
-    assert YaraBasePlugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'  # pylint: disable=protected-access
+    assert (
+        YaraBasePlugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'
+    )  # pylint: disable=protected-access
 
 
 def test_parse_meta_data_error(caplog):

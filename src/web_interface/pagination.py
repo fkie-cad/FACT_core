@@ -1,5 +1,7 @@
 from flask_paginate import Pagination
 
+from config import cfg
+
 
 def get_pagination(**kwargs):
     kwargs.setdefault('record_name', 'records')
@@ -9,15 +11,15 @@ def get_pagination(**kwargs):
         show_single_page=False,
         format_total=True,
         format_number=True,
-        **kwargs
+        **kwargs,
     )
 
 
-def extract_pagination_from_request(request, config):
+def extract_pagination_from_request(request):
     page = int(request.args.get('page', 1))
     per_page = request.args.get('per_page')
     if not per_page:
-        per_page = int(config['database']['results-per-page'])
+        per_page = cfg.database.results_per_page
     else:
         per_page = int(per_page)
     offset = (page - 1) * per_page

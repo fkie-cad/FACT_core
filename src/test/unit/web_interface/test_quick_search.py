@@ -1,14 +1,21 @@
 # pylint: disable=wrong-import-order
+import pytest
+
 from storage.db_interface_frontend import MetaEntry
 from test.common_helper import TEST_FW_2, CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
 
 
 class DbMock(CommonDatabaseMock):
-
     @staticmethod
-    def generic_search(search_dict: dict, skip: int = 0, limit: int = 0,  # pylint: disable=unused-argument
-                       only_fo_parent_firmware: bool = False, inverted: bool = False, as_meta: bool = False):  # pylint: disable=unused-argument
+    def generic_search(
+        search_dict: dict,
+        skip: int = 0,
+        limit: int = 0,  # pylint: disable=unused-argument
+        only_fo_parent_firmware: bool = False,
+        inverted: bool = False,
+        as_meta: bool = False,
+    ):  # pylint: disable=unused-argument
         result = []
         if search_dict.get('$or', {}).get('file_name', {}).get('$like') == TEST_FW_2.file_name:
             result.append(TEST_FW_2.uid)
@@ -31,13 +38,17 @@ class DbMock(CommonDatabaseMock):
         return None
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'database': {
+            'results-per-page': 10,
+        },
+    }
+)
 class TestAppQuickSearch(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)
-        cls.config['database'] = {}
-        cls.config['database']['results-per-page'] = '10'
 
     def test_quick_search_file_name(self):
         assert TEST_FW_2.uid in self._start_quick_search(TEST_FW_2.file_name)
@@ -56,8 +67,6 @@ class TestAppQuickSearch(WebInterfaceTest):
 
     def _start_quick_search(self, search_term):
         response = self.test_client.get(
-            '/database/quick_search',
-            query_string={'search_term': search_term},
-            follow_redirects=True
+            '/database/quick_search', query_string={'search_term': search_term}, follow_redirects=True
         )
         return response.data.decode()

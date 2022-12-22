@@ -6,17 +6,13 @@ import pytest
 
 from statistic.update import StatsUpdater
 from storage.db_interface_stats import StatsUpdateDbInterface
-from test.common_helper import (
-    create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing
-)
+from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 from test.integration.storage.helper import create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
-
-TEST_CONFIG = get_config_for_testing()
 
 
 @pytest.fixture(scope='function')
 def stats_updater() -> StatsUpdater:
-    updater = StatsUpdater(stats_db=StatsUpdateDbInterface(TEST_CONFIG))
+    updater = StatsUpdater(stats_db=StatsUpdateDbInterface())
     yield updater
 
 
@@ -33,39 +29,26 @@ def test_get_general_stats(db, stats_updater):
     assert stats['number_of_unique_files'] == 2, 'number of files not correct'
 
 
-def test_malware_stats(db, stats_updater):
-    assert stats_updater.get_malware_stats() == {'malware': []}
-
-    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
-    parent_fo.processed_analysis['malware_scanner'] = generate_analysis_entry(
-        analysis_result={'scans': {'ClamAV': {'result': 'clean'}}}
-    )
-    child_fo.processed_analysis['malware_scanner'] = generate_analysis_entry(
-        analysis_result={'scans': {'ClamAV': {'result': 'SomeMalware'}}}
-    )
-    db.backend.add_object(fw)
-    db.backend.add_object(parent_fo)
-    db.backend.add_object(child_fo)
-
-    assert stats_updater.get_malware_stats() == {'malware': [('SomeMalware', 1)]}
-
-    stats_updater.set_match({'vendor': fw.vendor})
-    assert stats_updater.get_malware_stats() == {'malware': [('SomeMalware', 1)]}
-
-
 def test_get_mitigation_stats(db, stats_updater):
     assert stats_updater.get_exploit_mitigations_stats() == {'exploit_mitigations': []}
 
-    mitigation_plugin_summaries = [[
-        ['RELRO disabled', 'NX disabled', 'CANARY disabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
-        ['RELRO disabled', 'NX enabled', 'CANARY enabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
-    ]]
+    mitigation_plugin_summaries = [
+        [
+            ['RELRO disabled', 'NX disabled', 'CANARY disabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
+            ['RELRO disabled', 'NX enabled', 'CANARY enabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
+        ]
+    ]
     _add_objects_with_summary(db, 'exploit_mitigations', mitigation_plugin_summaries)
 
     stats = stats_updater.get_exploit_mitigations_stats().get('exploit_mitigations')
     expected = [
-        ('NX enabled', 1, 0.5), ('NX disabled', 1, 0.5), ('Canary enabled', 1, 0.5), ('Canary disabled', 1, 0.5),
-        ('RELRO disabled', 2, 1.0), ('PIE disabled', 2, 1.0), ('FORTIFY_SOURCE disabled', 2, 1.0)
+        ('NX enabled', 1, 0.5),
+        ('NX disabled', 1, 0.5),
+        ('Canary enabled', 1, 0.5),
+        ('Canary disabled', 1, 0.5),
+        ('RELRO disabled', 2, 1.0),
+        ('PIE disabled', 2, 1.0),
+        ('FORTIFY_SOURCE disabled', 2, 1.0),
     ]
     assert stats == expected
 
@@ -143,27 +126,42 @@ def test_file_type_stats(db, stats_updater):
 
 
 def test_get_unpacking_stats(db, stats_updater):
-    insert_test_fw(db, 'root_fw', vendor='foobar', analysis={
-        'unpacker': generate_analysis_entry(
-            summary=['unpacked', 'no data lost'],
-            analysis_result={'plugin_used': 'unpacker1', 'number_of_unpacked_files': 10, 'entropy': 0.4}
-        ),
-        'file_type': generate_analysis_entry(analysis_result={'mime': 'fw/image'}),
-    })
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'unpacker': generate_analysis_entry(
-            summary=['unpacked', 'data lost'],
-            analysis_result={'plugin_used': 'unpacker2', 'number_of_unpacked_files': 2, 'entropy': 0.6}
-        ),
-        'file_type': generate_analysis_entry(analysis_result={'mime': 'file1'}),
-    })
-    insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
-        'unpacker': generate_analysis_entry(
-            summary=['packed'],
-            analysis_result={'plugin_used': 'unpacker1', 'number_of_unpacked_files': 0, 'entropy': 0.8}
-        ),
-        'file_type': generate_analysis_entry(analysis_result={'mime': 'file2'}),
-    })
+    insert_test_fw(
+        db,
+        'root_fw',
+        vendor='foobar',
+        analysis={
+            'unpacker': generate_analysis_entry(
+                summary=['unpacked', 'no data lost'],
+                analysis_result={'plugin_used': 'unpacker1', 'number_of_unpacked_files': 10, 'entropy': 0.4},
+            ),
+            'file_type': generate_analysis_entry(analysis_result={'mime': 'fw/image'}),
+        },
+    )
+    insert_test_fo(
+        db,
+        'fo1',
+        parent_fw='root_fw',
+        analysis={
+            'unpacker': generate_analysis_entry(
+                summary=['unpacked', 'data lost'],
+                analysis_result={'plugin_used': 'unpacker2', 'number_of_unpacked_files': 2, 'entropy': 0.6},
+            ),
+            'file_type': generate_analysis_entry(analysis_result={'mime': 'file1'}),
+        },
+    )
+    insert_test_fo(
+        db,
+        'fo2',
+        parent_fw='root_fw',
+        analysis={
+            'unpacker': generate_analysis_entry(
+                summary=['packed'],
+                analysis_result={'plugin_used': 'unpacker1', 'number_of_unpacked_files': 0, 'entropy': 0.8},
+            ),
+            'file_type': generate_analysis_entry(analysis_result={'mime': 'file2'}),
+        },
+    )
 
     stats = stats_updater.get_unpacking_stats()
     assert stats['used_unpackers'] == [('unpacker1', 1), ('unpacker2', 1)]
@@ -191,15 +189,30 @@ def test_find_most_frequent(stats_updater):
 
 def test_get_architecture_stats(db, stats_updater):
     insert_test_fw(db, 'root_fw', vendor='foobar')
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'cpu_architecture': generate_analysis_entry(summary=['MIPS, 32-bit, big endian (M)']),
-    })
-    insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
-        'cpu_architecture': generate_analysis_entry(summary=['ARM, 32-bit, big endian (M)']),
-    })
-    insert_test_fo(db, 'fo3', parent_fw='root_fw', analysis={
-        'cpu_architecture': generate_analysis_entry(summary=['MIPS, 32-bit, big endian (M)']),
-    })
+    insert_test_fo(
+        db,
+        'fo1',
+        parent_fw='root_fw',
+        analysis={
+            'cpu_architecture': generate_analysis_entry(summary=['MIPS, 32-bit, big endian (M)']),
+        },
+    )
+    insert_test_fo(
+        db,
+        'fo2',
+        parent_fw='root_fw',
+        analysis={
+            'cpu_architecture': generate_analysis_entry(summary=['ARM, 32-bit, big endian (M)']),
+        },
+    )
+    insert_test_fo(
+        db,
+        'fo3',
+        parent_fw='root_fw',
+        analysis={
+            'cpu_architecture': generate_analysis_entry(summary=['MIPS, 32-bit, big endian (M)']),
+        },
+    )
 
     assert stats_updater.get_architecture_stats() == {'cpu_architecture': [('MIPS, 32-bit', 1)]}
 
@@ -211,20 +224,28 @@ def test_get_architecture_stats(db, stats_updater):
 
 
 def test_get_executable_stats(db, stats_updater):
-    for i, file_str in enumerate([
-        'ELF 64-bit LSB executable, x86-64, dynamically linked, for GNU/Linux 2.6.32, not stripped',
-        'ELF 32-bit MSB executable, MIPS, MIPS32 rel2 version 1 (SYSV), statically linked, not stripped',
-        'ELF 64-bit LSB executable, x86-64, (SYSV), corrupted section header size',
-        'ELF 64-bit LSB executable, aarch64, dynamically linked, stripped',
-        'ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, stripped'
-    ]):
+    for i, file_str in enumerate(
+        [
+            'ELF 64-bit LSB executable, x86-64, dynamically linked, for GNU/Linux 2.6.32, not stripped',
+            'ELF 32-bit MSB executable, MIPS, MIPS32 rel2 version 1 (SYSV), statically linked, not stripped',
+            'ELF 64-bit LSB executable, x86-64, (SYSV), corrupted section header size',
+            'ELF 64-bit LSB executable, aarch64, dynamically linked, stripped',
+            'ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, stripped',
+        ]
+    ):
         insert_test_fo(db, str(i), analysis={'file_type': generate_analysis_entry(analysis_result={'full': file_str})})
 
     stats = stats_updater.get_executable_stats().get('executable_stats')
     expected = [
-        ('big endian', 1, 0.25), ('little endian', 3, 0.75), ('stripped', 1, 0.25), ('not stripped', 2, 0.5),
-        ('32-bit', 1, 0.25), ('64-bit', 3, 0.75), ('dynamically linked', 2, 0.5), ('statically linked', 1, 0.25),
-        ('section info missing', 1, 0.25)
+        ('big endian', 1, 0.25),
+        ('little endian', 3, 0.75),
+        ('stripped', 1, 0.25),
+        ('not stripped', 2, 0.5),
+        ('32-bit', 1, 0.25),
+        ('64-bit', 3, 0.75),
+        ('dynamically linked', 2, 0.5),
+        ('statically linked', 1, 0.25),
+        ('section info missing', 1, 0.25),
     ]
     for (expected_label, expected_count, expected_percentage), (label, count, percentage, _) in zip(expected, stats):
         assert label == expected_label
@@ -234,11 +255,20 @@ def test_get_executable_stats(db, stats_updater):
 
 def test_get_ip_stats(db, stats_updater):
     insert_test_fw(db, 'root_fw', vendor='foobar')
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'ip_and_uri_finder': generate_analysis_entry(analysis_result={
-            'ips_v4': [['1.2.3.4', '123.45, 678.9']], 'ips_v6': [], 'uris': ['https://foo.bar', 'www.example.com']
-        }),
-    })
+    insert_test_fo(
+        db,
+        'fo1',
+        parent_fw='root_fw',
+        analysis={
+            'ip_and_uri_finder': generate_analysis_entry(
+                analysis_result={
+                    'ips_v4': [['1.2.3.4', '123.45, 678.9']],
+                    'ips_v6': [],
+                    'uris': ['https://foo.bar', 'www.example.com'],
+                }
+            ),
+        },
+    )
 
     stats = stats_updater.get_ip_stats()
     assert stats['ips_v4'] == [('1.2.3.4', 1)]
@@ -263,22 +293,41 @@ def test_get_time_stats(db, stats_updater):
 
 def test_get_software_components_stats(db, stats_updater):
     insert_test_fw(db, 'root_fw', vendor='foobar')
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
-    })
-    insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
-        'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
-    })
-    insert_test_fo(db, 'fo3', parent_fw='root_fw', analysis={
-        'software_components': generate_analysis_entry(analysis_result={'SomeSoftware': {'foo': 'bar'}}),
-    })
+    insert_test_fo(
+        db,
+        'fo1',
+        parent_fw='root_fw',
+        analysis={
+            'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
+        },
+    )
+    insert_test_fo(
+        db,
+        'fo2',
+        parent_fw='root_fw',
+        analysis={
+            'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
+        },
+    )
+    insert_test_fo(
+        db,
+        'fo3',
+        parent_fw='root_fw',
+        analysis={
+            'software_components': generate_analysis_entry(analysis_result={'SomeSoftware': {'foo': 'bar'}}),
+        },
+    )
 
-    assert stats_updater.get_software_components_stats()['software_components'] == [('SomeSoftware', 1),
-                                                                                    ('LinuxKernel', 2)]
+    assert stats_updater.get_software_components_stats()['software_components'] == [
+        ('SomeSoftware', 1),
+        ('LinuxKernel', 2),
+    ]
 
     stats_updater.set_match({'vendor': 'foobar'})
-    assert stats_updater.get_software_components_stats()['software_components'] == [('SomeSoftware', 1),
-                                                                                    ('LinuxKernel', 2)]
+    assert stats_updater.get_software_components_stats()['software_components'] == [
+        ('SomeSoftware', 1),
+        ('LinuxKernel', 2),
+    ]
 
     stats_updater.set_match({'vendor': 'unknown'})
     assert stats_updater.get_software_components_stats()['software_components'] == []

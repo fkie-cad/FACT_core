@@ -10,27 +10,28 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 
 class TestRestDownload(RestTestBase):
-
     def setup(self):
         super().setup()
-        self.db_interface = BackendDbInterface(self.config)
+        self.db_interface = BackendDbInterface()
         self.test_queue = Queue()
 
     def teardown(self):
         self.test_queue.close()
 
-    def test_rest_download_valid(self, db):
+    def test_rest_download_valid(self, db, cfg_tuple):
+        cfg, _ = cfg_tuple
         backend_binding = InterComBackEndBinding(
-            config=self.config,
             analysis_service=test_backend_scheduler.AnalysisServiceMock(),
             compare_service=test_backend_scheduler.ServiceMock(self.test_queue),
-            unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue)
+            unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue),
         )
-        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
-        store_binary_on_file_system(self.tmp_dir.name, test_firmware)
-        self.db_interface.add_object(test_firmware)
-
         try:
+            test_firmware = create_test_firmware(
+                device_class='test class', device_name='test device', vendor='test vendor'
+            )
+            store_binary_on_file_system(cfg.data_storage.firmware_file_storage_directory, test_firmware)
+            self.db_interface.add_object(test_firmware)
+
             response = self.test_client.get(f'/rest/binary/{test_firmware.uid}', follow_redirects=True).data.decode()
         finally:
             backend_binding.shutdown()

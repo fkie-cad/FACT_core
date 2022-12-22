@@ -58,11 +58,7 @@ def _populate_fo_data(
 
 
 def _collect_analysis_tags(analysis_dict: dict) -> dict:
-    return {
-        plugin: plugin_data['tags']
-        for plugin, plugin_data in analysis_dict.items()
-        if 'tags' in plugin_data
-    }
+    return {plugin: plugin_data['tags'] for plugin, plugin_data in analysis_dict.items() if 'tags' in plugin_data}
 
 
 def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> FirmwareEntry:
@@ -81,11 +77,7 @@ def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> Firm
 
 
 def get_analysis_without_meta(analysis_data: dict) -> dict:
-    analysis_without_meta = {
-        key: value
-        for key, value in analysis_data.items()
-        if key not in META_KEYS
-    }
+    analysis_without_meta = {key: value for key, value in analysis_data.items() if key not in META_KEYS}
     sanitize(analysis_without_meta)
     return analysis_without_meta
 
@@ -108,23 +100,34 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
     )
 
 
-def sanitize(analysis_data):
+def sanitize(analysis_data: dict):
     '''Null bytes are not legal in PostgreSQL JSON columns -> remove them'''
-    for key, value in analysis_data.items():
-        if isinstance(value, dict):
-            sanitize(value)
-        elif isinstance(value, str) and '\0' in value:
-            analysis_data[key] = value.replace('\0', '')
-        elif isinstance(value, list):
-            _sanitize_list(value)
+    for key, value in list(analysis_data.items()):
+        _sanitize_value(analysis_data, key, value)
+        _sanitize_key(analysis_data, key)
 
 
-def _sanitize_list(value: list):
+def _sanitize_value(analysis_data: dict, key: str, value):
+    if isinstance(value, dict):
+        sanitize(value)
+    elif isinstance(value, str) and '\0' in value:
+        analysis_data[key] = value.replace('\0', '')
+    elif isinstance(value, list):
+        _sanitize_list(value)
+
+
+def _sanitize_key(analysis_data: dict, key: str):
+    if '\0' in key:
+        analysis_data[key.replace('\0', '')] = analysis_data.pop(key)
+
+
+def _sanitize_list(value: list) -> list:
     for index, element in enumerate(value):
         if isinstance(element, dict):
             sanitize(element)
         elif isinstance(element, str) and '\0' in element:
             value[index] = element.replace('\0', '')
+    return value
 
 
 def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry) -> List[AnalysisEntry]:
@@ -132,10 +135,10 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
         AnalysisEntry(
             uid=file_object.uid,
             plugin=plugin_name,
-            plugin_version=analysis_data['plugin_version'],
+            plugin_version=analysis_data.get('plugin_version'),
             system_version=analysis_data.get('system_version'),
-            analysis_date=analysis_data['analysis_date'],
-            summary=analysis_data.get('summary'),
+            analysis_date=analysis_data.get('analysis_date'),
+            summary=_sanitize_list(analysis_data.get('summary', [])),
             tags=analysis_data.get('tags'),
             result=get_analysis_without_meta(analysis_data),
             file_object=fo_backref,
@@ -149,7 +152,7 @@ def analysis_entry_to_dict(entry: AnalysisEntry) -> dict:
         'analysis_date': entry.analysis_date,
         'plugin_version': entry.plugin_version,
         'system_version': entry.system_version,
-        'summary': entry.summary,
+        'summary': entry.summary or [],
         'tags': entry.tags or {},
-        **entry.result,
+        **(entry.result or {}),
     }

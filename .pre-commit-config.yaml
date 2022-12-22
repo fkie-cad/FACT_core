@@ -44,7 +44,7 @@ repos:
     hooks:
     -   id: pylint
         language: system
-        args: [--rcfile=.pylintrc]
+        args: [--rcfile=pyproject.toml]
 
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 2.1.5
@@ -65,3 +65,8 @@ repos:
     rev: v5.9.3
     hooks:
     -   id: isort
+
+-   repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    -   id: black

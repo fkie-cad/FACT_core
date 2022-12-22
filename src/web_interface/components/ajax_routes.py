@@ -16,7 +16,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class AjaxRoutes(ComponentBase):
-
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_tree/<uid>/<root_uid>', GET)
     @AppRoute('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', GET)
@@ -24,10 +23,7 @@ class AjaxRoutes(ComponentBase):
         root_uid, compare_id = none_to_none(root_uid), none_to_none(compare_id)
         exclusive_files = self._get_exclusive_files(compare_id, root_uid)
         tree = self._generate_file_tree(root_uid, uid, exclusive_files)
-        children = [
-            convert_to_jstree_node(child_node)
-            for child_node in tree.get_list_of_child_nodes()
-        ]
+        children = [convert_to_jstree_node(child_node) for child_node in tree.get_list_of_child_nodes()]
         return jsonify(children)
 
     def _get_exclusive_files(self, compare_id, root_uid):
@@ -80,14 +76,14 @@ class AjaxRoutes(ComponentBase):
             fo_list=included_files,
             number_of_unanalyzed_files=number_of_unanalyzed_files,
             omit_collapse=True,
-            root_uid=root_uid
+            root_uid=root_uid,
         )
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_binary/<mime_type>/<uid>', GET)
     def ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
             return f'<pre class="line_numbering" style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
@@ -99,7 +95,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_hex_preview/<string:uid>/<int:offset>/<int:length>', GET)
     def ajax_get_hex_preview(self, uid: str, offset: int, length: int) -> str:
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             partial_binary = sc.peek_in_binary(uid, offset, length)
         hex_dump = preview_data_as_hex(partial_binary, offset=offset)
         return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'
@@ -111,8 +107,10 @@ class AjaxRoutes(ComponentBase):
             firmware = frontend_db.get_object(uid, analysis_filter=selected_analysis)
             summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis)
         return render_template(
-            'summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid,
-            selected_analysis=selected_analysis
+            'summary.html',
+            summary_of_included_files=summary_of_included_files,
+            root_uid=uid,
+            selected_analysis=selected_analysis,
         )
 
     @roles_accepted(*PRIVILEGES['status'])
@@ -122,7 +120,7 @@ class AjaxRoutes(ComponentBase):
         try:
             return {
                 'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",
-                'number_of_running_analyses': len(backend_data['analysis']['current_analyses'])
+                'number_of_running_analyses': len(backend_data['analysis']['current_analyses']),
             }
         except (KeyError, TypeError):
             return {'backend_cpu_percentage': 'n/a', 'number_of_running_analyses': 'n/a'}

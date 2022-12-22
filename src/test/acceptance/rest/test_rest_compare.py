@@ -12,17 +12,16 @@ from test.common_helper import get_test_data_dir
 
 
 class TestRestCompareFirmware(TestAcceptanceBase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.db_backend_service = BackendDbInterface(config=cls.config)
         cls.analysis_finished_event = Event()
         cls.compare_finished_event = Event()
         cls.elements_finished_analyzing = Value('i', 0)
 
     def setUp(self):
         super().setUp()
+        self.db_backend_service = BackendDbInterface()
         self._start_backend(post_analysis=self._analysis_callback, compare_callback=self._compare_callback)
         time.sleep(2)  # wait for systems to start
 
@@ -33,7 +32,9 @@ class TestRestCompareFirmware(TestAcceptanceBase):
     def _analysis_callback(self, uid: str, plugin: str, analysis_dict: dict):
         self.db_backend_service.add_analysis(uid, plugin, analysis_dict)
         self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value == 4 * 2 * 3:  # two firmware container with 3 included files each times three plugins
+        if (
+            self.elements_finished_analyzing.value == 4 * 2 * 3
+        ):  # two firmware container with 3 included files each times three plugins
             self.analysis_finished_event.set()
 
     def _compare_callback(self):
@@ -52,7 +53,7 @@ class TestRestCompareFirmware(TestAcceptanceBase):
             'vendor': 'test_vendor',
             'release_date': '1970-01-01',
             'tags': '',
-            'requested_analysis_systems': ['software_components']
+            'requested_analysis_systems': ['software_components'],
         }
         rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
         assert b'"status": 0' in rv.data, 'rest upload not successful'

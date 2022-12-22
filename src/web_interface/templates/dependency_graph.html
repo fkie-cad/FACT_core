@@ -6,7 +6,7 @@
     <title>Dependency Graph</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dependency_graph.css') }}">
    
-    <script src="{{ url_for('static', filename='web_js/vis-network.min.js') }}"></script> 
+    <script src="{{ url_for('static', filename='node_modules/vis-network/dist/vis-network.min.js') }}"></script>
 
     <script type="text/javascript" src="{{ url_for('static', filename='js/dependency_graph.js') }}"></script>
 
@@ -23,7 +23,7 @@
 {% endblock %}
     
 {% block style %}
-    <link href="{{ url_for('static', filename='web_css/vis-network.min.css') }}" rel="stylesheet" type="text/css" />   
+    <link href="{{ url_for('static', filename='node_modules/vis-network/dist/dist/vis-network.min.css') }}" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 

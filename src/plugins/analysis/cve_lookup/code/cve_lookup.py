@@ -7,6 +7,7 @@ from pathlib import Path
 from re import match
 from typing import Callable, Dict, List, NamedTuple, Optional, Tuple
 
+from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 from pyxdameraulevenshtein import damerau_levenshtein_distance as distance  # pylint: disable=no-name-in-module
 
@@ -23,21 +24,36 @@ except ImportError:
     from database_interface import QUERIES, DatabaseInterface
     from helper_functions import replace_characters_and_wildcards, unescape
 
-MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
-MAX_LEVENSHTEIN_DISTANCE = 0
-Product = NamedTuple('Product', [('vendor_name', str), ('product_name', str), ('version_number', str)])
-CveDbEntry = NamedTuple(
-    'CveDbEntry', [
-        ('cve_id', str), ('vendor', str), ('product_name', str), ('version', str), ('cvss_v2_score', str), ('cvss_v3_score', str),
-        ('version_start_including', str), ('version_start_excluding', str), ('version_end_including', str), ('version_end_excluding', str)
-    ]
+MAX_TERM_SPREAD = (
+    3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 )
+MAX_LEVENSHTEIN_DISTANCE = 0
+
+
+class Product(NamedTuple):
+    vendor_name: str
+    product_name: str
+    version_number: str
+
+
+class CveDbEntry(NamedTuple):
+    cve_id: str
+    vendor: str
+    product_name: str
+    version: str
+    cvss_v2_score: str
+    cvss_v3_score: str
+    version_start_including: str
+    version_start_excluding: str
+    version_end_including: str
+    version_end_excluding: str
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
     lookup vulnerabilities from CVE feeds using ID from CPE dictionary
     '''
+
     NAME = 'cve_lookup'
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
@@ -60,10 +76,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _create_summary(self, cve_results: Dict[str, Dict[str, Dict[str, str]]]) -> List[str]:
-        return list({
-            software if not self._software_has_critical_cve(entry) else f'{software} (CRITICAL)'
-            for software, entry in cve_results.items()
-        })
+        return list(
+            {
+                software if not self._software_has_critical_cve(entry) else f'{software} (CRITICAL)'
+                for software, entry in cve_results.items()
+            }
+        )
 
     def _software_has_critical_cve(self, cve_dict: Dict[str, Dict[str, str]]) -> bool:
         return any(self._entry_has_critical_rating(entry) for entry in cve_dict.values())
@@ -94,7 +112,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 def look_up_vulnerabilities(product_name: str, requested_version: str) -> Optional[dict]:
     with DatabaseInterface() as db:
-        product_terms, version = replace_characters_and_wildcards(generate_search_terms(product_name)), replace_characters_and_wildcards([requested_version])[0]
+        product_terms, version = (
+            replace_characters_and_wildcards(generate_search_terms(product_name)),
+            replace_characters_and_wildcards([requested_version])[0],
+        )
 
         matched_cpe = match_cpe(db, product_terms)
         if len(matched_cpe) == 0:
@@ -127,7 +148,9 @@ def find_matching_cpe_product(cpe_matches: List[Product], requested_version: str
         return find_cpe_product_with_version(cpe_matches, next_closest_version)
     if requested_version == 'ANY':
         return find_cpe_product_with_version(cpe_matches, 'ANY')
-    logging.warning('Version returned from CPE match has invalid type. Returned CPE might not contain relevant version number')
+    logging.warning(
+        'Version returned from CPE match has invalid type. Returned CPE might not contain relevant version number'
+    )
     return cpe_matches[0]
 
 
@@ -147,8 +170,14 @@ def find_next_closest_version(sorted_version_list: List[str], requested_version:
 
 
 def build_version_string(cve_entry: CveDbEntry) -> str:
-    if not any([cve_entry.version_start_including, cve_entry.version_start_excluding,
-                cve_entry.version_end_including, cve_entry.version_end_excluding]):
+    if not any(
+        [
+            cve_entry.version_start_including,
+            cve_entry.version_start_excluding,
+            cve_entry.version_end_including,
+            cve_entry.version_end_excluding,
+        ]
+    ):
         return unescape(cve_entry.version)
     result = 'version'
     if cve_entry.version_start_including:
@@ -170,7 +199,7 @@ def search_cve(db: DatabaseInterface, product: Product) -> dict:
             result[cve_entry.cve_id] = {
                 'score2': cve_entry.cvss_v2_score,
                 'score3': cve_entry.cvss_v3_score,
-                'cpe_version': build_version_string(cve_entry)
+                'cpe_version': build_version_string(cve_entry),
             }
     return result
 
@@ -185,10 +214,10 @@ def _product_matches_cve(product: Product, cve_entry: CveDbEntry) -> bool:
 
 def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
     for version_boundary, operator_ in [
-            (cve_entry.version_start_including, operator.le),
-            (cve_entry.version_start_excluding, operator.lt),
-            (cve_entry.version_end_including, operator.ge),
-            (cve_entry.version_end_excluding, operator.gt)
+        (cve_entry.version_start_including, operator.le),
+        (cve_entry.version_start_excluding, operator.lt),
+        (cve_entry.version_end_including, operator.ge),
+        (cve_entry.version_end_excluding, operator.gt),
     ]:
         if version_boundary and not compare_version(version_boundary, cpe_version, operator_):
             return False
@@ -199,7 +228,11 @@ def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
 
 
 def compare_version(version1: str, version2: str, comp_operator: Callable) -> bool:
-    return comp_operator(parse_version(version1), parse_version(version2))
+    try:
+        return comp_operator(parse_version(version1), parse_version(version2))
+    except InvalidVersion as error:
+        logging.exception(f'Error while parsing software version: {error}')
+        return False
 
 
 def search_cve_summary(db: DatabaseInterface, product: namedtuple) -> dict:
@@ -216,7 +249,7 @@ def product_is_mentioned_in_summary(product: Product, summary: str) -> bool:
     name_components = product.product_name.split('_')
 
     for index, word in enumerate(word_list):
-        if terms_match(vendor, word.lower()) and word_sequence_is_in_word_list(word_list[index + 1:], name_components):
+        if terms_match(vendor, word.lower()) and word_sequence_is_in_word_list(word_list[index + 1 :], name_components):
             return True
 
     return False
@@ -227,24 +260,26 @@ def word_sequence_is_in_word_list(word_list: List[str], word_sequence: List[str]
         return False
     for index in range(min(MAX_TERM_SPREAD, len(word_list) + 1 - len(word_sequence))):
         if terms_match(word_list[index], word_sequence[0]):
-            return remaining_words_present(word_list[index + 1:], word_sequence[1:])
+            return remaining_words_present(word_list[index + 1 :], word_sequence[1:])
     return False
 
 
 def remaining_words_present(word_list: List[str], words: List[str]) -> bool:
-    for word1, word2 in zip(word_list[:len(words)], words):
+    for word1, word2 in zip(word_list[: len(words)], words):
         if not terms_match(word1, word2):
             return False
     return True
 
 
 def match_cpe(db: DatabaseInterface, product_search_terms: list) -> List[Product]:
-    return list({
-        Product(vendor, product, version)
-        for vendor, product, version in db.fetch_multiple(QUERIES['cpe_lookup'])
-        for product_term in product_search_terms
-        if terms_match(product_term, product)
-    })
+    return list(
+        {
+            Product(vendor, product, version)
+            for vendor, product, version in db.fetch_multiple(QUERIES['cpe_lookup'])
+            for product_term in product_search_terms
+            if terms_match(product_term, product)
+        }
+    )
 
 
 def terms_match(requested_term: str, source_term: str) -> bool:

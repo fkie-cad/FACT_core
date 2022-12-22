@@ -8,7 +8,6 @@ from web_interface.security.authentication import create_user_datastore
 
 
 class TestUserRoleDbInterface(TestCase):
-
     def setUp(self):
         self.test_app = Flask(__name__)
         self.test_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
@@ -18,7 +17,8 @@ class TestUserRoleDbInterface(TestCase):
         db = SQLAlchemy(self.test_app)
         self.db_interface = create_user_datastore(db)
         Security(self.test_app, self.db_interface)
-        db.create_all()
+        with self.test_app.app_context():
+            db.create_all()
 
     def test_add_and_find_user(self):
         with self.test_app.app_context():
@@ -30,10 +30,11 @@ class TestUserRoleDbInterface(TestCase):
 
     def test_list_users(self):
         test_users = ['test_user_1', 'test_user_2', 'test_user_3']
-        for user in test_users:
-            self.db_interface.create_user(email=user, password='foobar')
+        with self.test_app.app_context():
+            for user in test_users:
+                self.db_interface.create_user(email=user, password='foobar')
 
-        user_list = self.db_interface.list_users()
+            user_list = self.db_interface.list_users()
         assert len(user_list) == 3
         assert all(user in [u.email for u in user_list] for user in test_users)
 

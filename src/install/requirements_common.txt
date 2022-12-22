@@ -6,22 +6,25 @@ setuptools
 # General python dependencies
 appdirs==1.4.4
 flaky==3.7.0
-lief==0.12.1
-psutil==5.9.0
-psycopg2-binary==2.9.3
-pylint==2.13.8
-pytest==7.1.2
-pytest-cov==3.0.0
+lief==0.12.3
+psutil==5.9.4
+psycopg2-binary==2.9.5
+pylint==2.15.5
+pytest-cov==4.0.0
 pytest-timeout==2.1.0
-python-magic==0.4.25
+pytest==7.2.0
+python-magic==0.4.27
 python-tlsh==4.5.0
-requests==2.27.1
-redis==4.3.1
-rich==12.4.1
+redis==4.3.4
+requests==2.28.1
+rich==12.6.0
+sqlalchemy==1.4.43
 ssdeep==3.4
-sqlalchemy==1.4.36
-xmltodict==0.12.0
-yara-python==4.2.0
+xmltodict==0.13.0
+yara-python==4.2.3
+
+# Config validation
+pydantic==1.10.2
 
 git+https://github.com/fkie-cad/fact_helper_file.git
 
@@ -29,4 +32,3 @@ git+https://github.com/fkie-cad/fact_helper_file.git
 git+https://github.com/fkie-cad/common_helper_files.git
 git+https://github.com/fkie-cad/common_helper_filter.git
 git+https://github.com/mass-project/common_helper_encoder.git
-

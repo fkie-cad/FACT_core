@@ -30,19 +30,16 @@ def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInte
 
 
 def _get_results_from_parent_fo(analysis_entry: dict, uid: str):
-    if (
-        analysis_entry is not None
-        and 'files' in analysis_entry
-        and uid in analysis_entry['files']
-    ):
+    if analysis_entry is not None and 'files' in analysis_entry and uid in analysis_entry['files']:
         return analysis_entry['files'][uid]
     return None
 
 
 class PluginRoutes(ComponentBase):
-
     def _init_component(self):
-        self._app.add_url_rule('/plugins/qemu_exec/ajax/<uid>', 'plugins/qemu_exec/ajax/<uid>', self._get_analysis_results_of_parent_fo)
+        self._app.add_url_rule(
+            '/plugins/qemu_exec/ajax/<uid>', 'plugins/qemu_exec/ajax/<uid>', self._get_analysis_results_of_parent_fo
+        )
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _get_analysis_results_of_parent_fo(self, uid):

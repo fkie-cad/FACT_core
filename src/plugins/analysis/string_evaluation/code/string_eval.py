@@ -19,6 +19,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     Original version by Paul Schiffer created during Firmware Bootcamp WT16/17 at University of Bonn
     Refactored and improved by Fraunhofer FKIE
     '''
+
     NAME = 'string_evaluator'
     DEPENDENCIES = ['printable_strings']
     MIME_BLACKLIST = MIME_BLACKLIST_COMPRESSED

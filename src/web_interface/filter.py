@@ -87,7 +87,10 @@ def list_group_collapse(input_data, btn_class=None):
         first_item = input_data.pop(0)
         return render_template(
             'generic_view/collapsed_list.html',
-            first_item=first_item, collapse_id=collapse_id, input_data=input_data, btn_class=btn_class
+            first_item=first_item,
+            collapse_id=collapse_id,
+            input_data=input_data,
+            btn_class=btn_class,
         )
     return ''
 
@@ -221,20 +224,22 @@ def sort_comments(comment_list):
 
 def data_to_chart_with_value_percentage_pairs(data, limit=10):  # pylint: disable=invalid-name
     try:
-        label_list, value_list, percentage_list, *links = [list(d) for d in zip(*data)]
+        label_list, value_list, percentage_list, *links = (list(d) for d in zip(*data))
     except ValueError:
         return None
     label_list, value_list = set_limit_for_data_to_chart(label_list, limit, value_list)
     color_list = get_alternating_color_list(len(value_list), limit=limit)
     result = {
         'labels': label_list,
-        'datasets': [{
-            'data': value_list,
-            'percentage': percentage_list,
-            'backgroundColor': color_list,
-            'borderWidth': 0,
-            'links': links[0] if links else 'null'
-        }]
+        'datasets': [
+            {
+                'data': value_list,
+                'percentage': percentage_list,
+                'backgroundColor': color_list,
+                'borderWidth': 0,
+                'links': links[0] if links else 'null',
+            }
+        ],
     }
     return result
 
@@ -282,7 +287,10 @@ def render_analysis_tags(tags, size=14):
                 color = tag['color'] if tag['color'] in TagColor.ALL else TagColor.BLUE
                 output += render_template(
                     'generic_view/tags.html',
-                    color=color, value=tag['value'], tooltip=f'{plugin_name}: {key}', size=size
+                    color=color,
+                    value=tag['value'],
+                    tooltip=f'{plugin_name}: {key}',
+                    size=size,
                 )
     return output
 
@@ -325,10 +333,7 @@ def sort_roles_by_number_of_privileges(roles, privileges=None):
 
 def filter_format_string_list_with_offset(offset_tuples):  # pylint: disable=invalid-name
     max_offset_len = len(str(max(list(zip(*offset_tuples))[0]))) if offset_tuples else 0
-    lines = [
-        f'{offset: >{max_offset_len}}: {repr(string)[1:-1]}'
-        for offset, string in sorted(offset_tuples)
-    ]
+    lines = [f'{offset: >{max_offset_len}}: {repr(string)[1:-1]}' for offset, string in sorted(offset_tuples)]
     return '\n'.join(lines)
 
 
@@ -348,14 +353,13 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
 
 
 def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List[str]] = None) -> bool:
-    return (
-        item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
-        and (additional_entries is None or item not in additional_entries)
+    return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags'] and (
+        additional_entries is None or item not in additional_entries
     )
 
 
 def random_collapse_id():
-    return ''.join((random.choice(ascii_letters) for _ in range(10)))
+    return ''.join(random.choice(ascii_letters) for _ in range(10))
 
 
 def create_firmware_version_links(firmware_list, selected_analysis=None):

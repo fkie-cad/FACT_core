@@ -1,7 +1,6 @@
 import logging
 import os
 import traceback
-from configparser import ConfigParser
 from contextlib import suppress
 from multiprocessing import Pipe, Process
 from signal import SIGKILL, SIGTERM
@@ -9,6 +8,7 @@ from typing import Callable, List, Optional, Tuple
 
 import psutil
 
+from config import cfg
 from helperFunctions.logging import TerminalColors, color_string
 
 
@@ -37,6 +37,7 @@ class ExceptionSafeProcess(Process):
 
     .. _Python docs: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Process
     '''
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._receive_pipe, self._send_pipe = Pipe()
@@ -99,14 +100,17 @@ def start_single_worker(process_index: int, label: str, function: Callable) -> E
     process = ExceptionSafeProcess(
         target=function,
         name=f'{label}-Worker-{process_index}',
-        args=(process_index,) if process_index is not None else tuple()
+        args=(process_index,) if process_index is not None else tuple(),
     )
     process.start()
     return process
 
 
-def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_label: str,
-                            config: Optional[ConfigParser] = None, worker_function: Optional[Callable] = None) -> bool:
+def check_worker_exceptions(
+    process_list: List[ExceptionSafeProcess],
+    worker_label: str,
+    worker_function: Optional[Callable] = None,
+) -> bool:
     '''
     Iterate over the `process_list` and check if exceptions occurred. In case of an exception, the process and its
     children will be terminated. If ``throw_exceptions`` in the FACT configuration is set to `false`, the worker
@@ -116,7 +120,6 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
 
     :param process_list: A list of worker processes.
     :param worker_label: A label used for logging (e.g. `Analysis` or `Unpacking`).
-    :param config: An instance of the FACT configuration.
     :param worker_function: A function used for restarting the worker (optional).
     :return: ``True`` if an exception occurred in any process and ``throw_exceptions`` in the FACT configuration is
              set to `true` and ``False`` otherwise.
@@ -128,11 +131,13 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
             logging.error(color_string(f'Exception in {worker_label} process:\n{stack_trace}', TerminalColors.FAIL))
             terminate_process_and_children(worker_process)
             process_list.remove(worker_process)
-            if config is None or config.getboolean('expert-settings', 'throw-exceptions'):
+            if cfg.expert_settings.throw_exceptions:
                 return_value = True
             elif worker_function is not None:
                 process_index = int(worker_process.name.split('-')[-1])
-                logging.warning(color_string(f'restarting {worker_label} {process_index} process', TerminalColors.WARNING))
+                logging.warning(
+                    color_string(f'restarting {worker_label} {process_index} process', TerminalColors.WARNING)
+                )
                 process_list.append(start_single_worker(process_index, worker_label, worker_function))
     return return_value
 

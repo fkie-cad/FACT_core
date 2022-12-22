@@ -1,6 +1,8 @@
 /home/user/test/urandom
 /home/user/urandom
 /home/%s/%s/some_file
+/home/multiple/file.a
+/home/multiple/file.b
 /proc/athversion
 /proc/simple_config/simple_config_led
 /sys/class/net/%s/brport/bridge

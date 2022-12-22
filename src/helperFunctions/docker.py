@@ -7,7 +7,9 @@ from docker.errors import APIError, DockerException, ImageNotFound
 from requests.exceptions import ReadTimeout
 
 
-def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int = 300,  combine_stderr_stdout: bool = False, **kwargs) -> CompletedProcess:
+def run_docker_container(
+    image: str, logging_label: str = 'Docker', timeout: int = 300, combine_stderr_stdout: bool = False, **kwargs
+) -> CompletedProcess:
     '''
     This is a convinience function that runs a docker container and returns a
     subprocess.CompletedProcess instance for the command ran in the container.
@@ -40,7 +42,11 @@ def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int
     try:
         response = container.wait(timeout=timeout)
         exit_code = response['StatusCode']
-        stdout = container.logs(stdout=True, stderr=False).decode() if not combine_stderr_stdout else container.logs(stdout=True, stderr=True).decode()
+        stdout = (
+            container.logs(stdout=True, stderr=False).decode()
+            if not combine_stderr_stdout
+            else container.logs(stdout=True, stderr=True).decode()
+        )
         stderr = container.logs(stdout=False, stderr=True).decode() if not combine_stderr_stdout else None
     except ReadTimeout:
         logging.warning(f'[{logging_label}]: timeout while processing')

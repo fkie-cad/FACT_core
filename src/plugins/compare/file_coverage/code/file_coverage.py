@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from itertools import combinations
 from typing import Dict, List, Set, Tuple
 
@@ -5,9 +7,11 @@ import networkx
 import ssdeep
 
 from compare.PluginBase import CompareBasePlugin
+from config import cfg
 from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_list
 from helperFunctions.data_conversion import convert_uid_list_to_compare_id
 from objects.file import FileObject
+from objects.firmware import Firmware
 
 
 class ComparePlugin(CompareBasePlugin):
@@ -21,12 +25,12 @@ class ComparePlugin(CompareBasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.ssdeep_ignore_threshold = self.config.getint('expert-settings', 'ssdeep-ignore')
+        self.ssdeep_ignore_threshold = cfg.expert_settings.ssdeep_ignore
 
     def compare_function(self, fo_list):
         compare_result = {
             'files_in_common': self._get_intersection_of_files(fo_list),
-            'exclusive_files': self._get_exclusive_files(fo_list)
+            'exclusive_files': self._get_exclusive_files(fo_list),
         }
 
         self._handle_partially_common_files(compare_result, fo_list)
@@ -38,14 +42,18 @@ class ComparePlugin(CompareBasePlugin):
         similar_files, similarity = self._get_similar_files(fo_list, compare_result['exclusive_files'])
         compare_result['similar_files'] = self.combine_similarity_results(similar_files, fo_list, similarity)
 
+        if len(fo_list) == 2 and all(isinstance(fo, Firmware) for fo in fo_list):
+            compare_result['changed_text_files'] = self._find_changed_text_files(
+                fo_list, compare_result['files_in_common']['all']
+            )
+
         return compare_result
 
     def _get_exclusive_files(self, fo_list: List[FileObject]) -> Dict[str, List[str]]:
         result = {}
         for current_element, other_elements in iter_element_and_rest(fo_list):
             exclusive_files = set.difference(
-                set(current_element.list_of_all_included_files),
-                *self._get_included_file_sets(other_elements)
+                set(current_element.list_of_all_included_files), *self._get_included_file_sets(other_elements)
             )
             result[current_element.uid] = list(exclusive_files)
         return result
@@ -60,26 +68,34 @@ class ComparePlugin(CompareBasePlugin):
 
     def _handle_partially_common_files(self, compare_result, fo_list):
         if len(fo_list) > 2:
-            compare_result['files_in_more_than_one_but_not_in_all'] = self._get_files_in_more_than_one_but_not_in_all(fo_list, compare_result)
+            compare_result['files_in_more_than_one_but_not_in_all'] = self._get_files_in_more_than_one_but_not_in_all(
+                fo_list, compare_result
+            )
             not_in_all = compare_result['files_in_more_than_one_but_not_in_all']
         else:
             not_in_all = {}
-        compare_result['non_zero_files_in_common'] = self._get_non_zero_common_files(compare_result['files_in_common'], not_in_all)
+        compare_result['non_zero_files_in_common'] = self._get_non_zero_common_files(
+            compare_result['files_in_common'], not_in_all
+        )
 
     @staticmethod
     def _get_files_in_more_than_one_but_not_in_all(fo_list, result_dict):
         result = {}
         for current_element in fo_list:
-            result[current_element.uid] = list(set.difference(
-                set(current_element.list_of_all_included_files),
-                result_dict['files_in_common']['all'],
-                result_dict['exclusive_files'][current_element.uid]
-            ))
+            result[current_element.uid] = list(
+                set.difference(
+                    set(current_element.list_of_all_included_files),
+                    result_dict['files_in_common']['all'],
+                    result_dict['exclusive_files'][current_element.uid],
+                )
+            )
         return result
 
     # ---- SSDEEP similarity ---- #
 
-    def _get_similar_files(self, fo_list: List[FileObject], exclusive_files: Dict[str, List[str]]) -> Tuple[List[list], dict]:
+    def _get_similar_files(
+        self, fo_list: List[FileObject], exclusive_files: Dict[str, List[str]]
+    ) -> Tuple[List[list], dict]:
         similar_files = []
         similarity = {}
         for parent_one, parent_two in combinations(fo_list, 2):
@@ -156,6 +172,28 @@ class ComparePlugin(CompareBasePlugin):
                 non_zero_file_ids.append(uid)
         if non_zero_file_ids:
             new_result[firmware_uid] = non_zero_file_ids
+
+    def _find_changed_text_files(
+        self, fo_list: list[FileObject], common_files: list[str]
+    ) -> dict[str, list[tuple[str, str]]]:
+        """
+        Find text files that have the same path but different content for the file objects that are compared. The idea
+        is to find config files that were changed between different versions of a firmware. Only works if two firmware
+        objects are compared (and returns an empty result otherwise).
+        :param fo_list: the list of compared file objects
+        :param common_files: list of UIDs that are in both file objects
+        :return: a dict with paths as keys and a list of UID pairs (tuples) as values
+        """
+        changed_text_files = {}
+        vfp_a = self.database.get_vfp_of_included_text_files(fo_list[0].uid, blacklist=common_files)
+        vfp_b = self.database.get_vfp_of_included_text_files(fo_list[1].uid, blacklist=common_files)
+        for common_path in set(vfp_a).intersection(set(vfp_b)):
+            # vfp_x[common_path] should usually contain only 1 element (except if there are multiple files with the same
+            # path, e.g. if the FW contains multiple file systems, in which case all combinations are added)
+            for uid_1 in vfp_a[common_path]:
+                for uid_2 in vfp_b[common_path]:
+                    changed_text_files.setdefault(common_path, []).append((uid_1, uid_2))
+        return changed_text_files
 
 
 def generate_similarity_sets(list_of_pairs: List[Tuple[str, str]]) -> List[List[str]]:

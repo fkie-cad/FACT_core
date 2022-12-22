@@ -1,9 +1,13 @@
+from __future__ import annotations
+
+import difflib
 import logging
 from multiprocessing import Process, Value
 from pathlib import Path
 from time import sleep
 from typing import Callable, Optional, Tuple, Type
 
+from config import cfg
 from helperFunctions.process import stop_processes
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
@@ -20,14 +24,19 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
     Internal Communication Backend Binding
     '''
 
-    def __init__(self, config=None, analysis_service=None, compare_service=None, unpacking_service=None,
-                 unpacking_locks=None, testing=False):
-        self.config = config
+    def __init__(
+        self,
+        analysis_service=None,
+        compare_service=None,
+        unpacking_service=None,
+        unpacking_locks=None,
+        testing=False,
+    ):
         self.analysis_service = analysis_service
         self.compare_service = compare_service
         self.unpacking_service = unpacking_service
         self.unpacking_locks = unpacking_locks
-        self.poll_delay = self.config['expert-settings'].getfloat('intercom-poll-delay')
+        self.poll_delay = cfg.expert_settings.intercom_poll_delay
 
         self.stop_condition = Value('i', 0)
         self.process_list = []
@@ -36,16 +45,21 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         logging.info('InterCom started')
 
     def start_listeners(self):
-        InterComBackEndAnalysisPlugInsPublisher(config=self.config, analysis_service=self.analysis_service)
+        InterComBackEndAnalysisPlugInsPublisher(analysis_service=self.analysis_service)
         self._start_listener(InterComBackEndAnalysisTask, self.unpacking_service.add_task)
         self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
         self._start_listener(InterComBackEndCompareTask, self.compare_service.add_task)
         self._start_listener(InterComBackEndRawDownloadTask)
+        self._start_listener(InterComBackEndFileDiffTask)
         self._start_listener(InterComBackEndTarRepackTask)
         self._start_listener(InterComBackEndBinarySearchTask)
         self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
-        self._start_listener(InterComBackEndDeleteFile, unpacking_locks=self.unpacking_locks,
-                             db_interface=DbInterfaceCommon(config=self.config))
+
+        self._start_listener(
+            InterComBackEndDeleteFile,
+            unpacking_locks=self.unpacking_locks,
+            db_interface=DbInterfaceCommon(),
+        )
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
         self._start_listener(InterComBackEndPeekBinaryTask)
         self._start_listener(InterComBackEndLogsTask)
@@ -61,7 +75,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         self.process_list.append(process)
 
     def _backend_worker(self, listener: Type[InterComListener], do_after_function: Optional[Callable], additional_args):
-        interface = listener(config=self.config, **additional_args)
+        interface = listener(**additional_args)
         logging.debug(f'{listener.__name__} listener started')
         while self.stop_condition.value == 0:
             task = interface.get_next_task()
@@ -73,9 +87,8 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 
 
 class InterComBackEndAnalysisPlugInsPublisher(InterComRedisInterface):
-
-    def __init__(self, config=None, analysis_service=None):
-        super().__init__(config=config)
+    def __init__(self, analysis_service=None):
+        super().__init__()
         self.publish_available_analysis_plugins(analysis_service)
 
     def publish_available_analysis_plugins(self, analysis_service):
@@ -87,9 +100,9 @@ class InterComBackEndAnalysisTask(InterComListener):
 
     CONNECTION_TYPE = 'analysis_task'
 
-    def __init__(self, config=None):
-        super().__init__(config)
-        self.fs_organizer = FSOrganizer(config=config)
+    def __init__(self):
+        super().__init__()
+        self.fs_organizer = FSOrganizer()
 
     def post_processing(self, task, task_id):
         self.fs_organizer.store_file(task)
@@ -100,9 +113,9 @@ class InterComBackEndReAnalyzeTask(InterComListener):
 
     CONNECTION_TYPE = 're_analyze_task'
 
-    def __init__(self, config=None):
-        super().__init__(config)
-        self.fs_organizer = FSOrganizer(config=config)
+    def __init__(self):
+        super().__init__()
+        self.fs_organizer = FSOrganizer()
 
     def post_processing(self, task: Firmware, task_id):
         task.file_path = self.fs_organizer.generate_path(task)
@@ -130,12 +143,36 @@ class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'raw_download_task'
     OUTGOING_CONNECTION_TYPE = 'raw_download_task_resp'
 
-    def __init__(self, config=None):
-        super().__init__(config)
-        self.binary_service = BinaryService(config=self.config)
+    def __init__(self):
+        super().__init__()
+        self.binary_service = BinaryService()
 
     def get_response(self, task):
         return self.binary_service.get_binary_and_file_name(task)
+
+
+class InterComBackEndFileDiffTask(InterComListenerAndResponder):
+
+    CONNECTION_TYPE = 'file_diff_task'
+    OUTGOING_CONNECTION_TYPE = 'file_diff_task_resp'
+
+    def __init__(self):
+        super().__init__()
+        self.binary_service = BinaryService()
+
+    def get_response(self, task: tuple[str, str]) -> str | None:
+        uid1, uid2 = task
+        content_1, name_1 = self.binary_service.get_binary_and_file_name(uid1)
+        content_2, name_2 = self.binary_service.get_binary_and_file_name(uid2)
+        if any(e is None for e in [content_1, content_2, name_1, name_2]):
+            return None
+        diff_lines = difflib.unified_diff(
+            content_1.decode(errors='replace').splitlines(keepends=True),
+            content_2.decode(errors='replace').splitlines(keepends=True),
+            fromfile=name_1,
+            tofile=name_2,
+        )
+        return ''.join(diff_lines)
 
 
 class InterComBackEndPeekBinaryTask(InterComListenerAndResponder):
@@ -143,9 +180,9 @@ class InterComBackEndPeekBinaryTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'binary_peek_task'
     OUTGOING_CONNECTION_TYPE = 'binary_peek_task_resp'
 
-    def __init__(self, config=None):
-        super().__init__(config)
-        self.binary_service = BinaryService(config=self.config)
+    def __init__(self):
+        super().__init__()
+        self.binary_service = BinaryService()
 
     def get_response(self, task: Tuple[str, int, int]) -> bytes:
         return self.binary_service.read_partial_binary(*task)
@@ -156,9 +193,9 @@ class InterComBackEndTarRepackTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'tar_repack_task'
     OUTGOING_CONNECTION_TYPE = 'tar_repack_task_resp'
 
-    def __init__(self, config=None):
-        super().__init__(config)
-        self.binary_service = BinaryService(config=self.config)
+    def __init__(self):
+        super().__init__()
+        self.binary_service = BinaryService()
 
     def get_response(self, task):
         return self.binary_service.get_repacked_binary_and_file_name(task)
@@ -170,7 +207,7 @@ class InterComBackEndBinarySearchTask(InterComListenerAndResponder):
     OUTGOING_CONNECTION_TYPE = 'binary_search_task_resp'
 
     def get_response(self, task):
-        yara_binary_searcher = YaraBinarySearchScanner(config=self.config)
+        yara_binary_searcher = YaraBinarySearchScanner()
         uid_list = yara_binary_searcher.get_binary_search_result(task)
         return uid_list, task
 
@@ -179,9 +216,9 @@ class InterComBackEndDeleteFile(InterComListener):
 
     CONNECTION_TYPE = 'file_delete_task'
 
-    def __init__(self, config=None, unpacking_locks=None, db_interface=None):
-        super().__init__(config)
-        self.fs_organizer = FSOrganizer(config=config)
+    def __init__(self, unpacking_locks=None, db_interface=None):
+        super().__init__()
+        self.fs_organizer = FSOrganizer()
         self.db = db_interface
         self.unpacking_locks: UnpackingLockManager = unpacking_locks
 
@@ -209,7 +246,7 @@ class InterComBackEndLogsTask(InterComListenerAndResponder):
     OUTGOING_CONNECTION_TYPE = 'logs_task_resp'
 
     def get_response(self, task):
-        backend_logs = Path(get_log_file_for_component('backend', self.config))
+        backend_logs = Path(get_log_file_for_component('backend'))
         if backend_logs.is_file():
             return backend_logs.read_text().splitlines()[-100:]
         return []

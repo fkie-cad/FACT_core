@@ -6,6 +6,7 @@ class TerminalColors:
     This class contains colors and formatting used for formatting the terminal output. A the terminal output after a
     string from this class will be colored in the respective color. ``ENDC`` must be used to stop formatting the output.
     '''
+
     PURPLE = HEADER = '\033[95m'
     BLUE = OKBLUE = '\033[94m'
     GREEN = OKGREEN = '\033[92m'

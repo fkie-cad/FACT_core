@@ -4,15 +4,13 @@ import unittest
 
 import magic
 
-from test.common_helper import get_config_for_testing, get_test_data_dir
+from test.common_helper import get_test_data_dir
 from unpacker.tar_repack import TarRepack
 
 
 class TestTarRepack(unittest.TestCase):
-
     def setUp(self):
-        self.config = get_config_for_testing()
-        self.repack_service = TarRepack(config=self.config)
+        self.repack_service = TarRepack()
 
     def tearDown(self):
         gc.collect()

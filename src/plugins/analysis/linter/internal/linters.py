@@ -40,7 +40,7 @@ def run_shellcheck(file_path):
         stdout=PIPE,
         stderr=STDOUT,
         check=False,
-        universal_newlines=True,
+        text=True,
     )
 
     if shellcheck_process.returncode == 2:
@@ -59,13 +59,15 @@ def _extract_shellcheck_warnings(shellcheck_json):
     issues = []
     for issue in shellcheck_json:
         if issue['level'] in ['warning', 'error']:
-            issues.append({
-                'type': issue['level'],
-                'line': issue['line'],
-                'column': issue['column'],
-                'symbol': str(issue['code']),
-                'message': issue['message']
-            })
+            issues.append(
+                {
+                    'type': issue['level'],
+                    'line': issue['line'],
+                    'column': issue['column'],
+                    'symbol': str(issue['code']),
+                    'message': issue['message'],
+                }
+            )
     return issues
 
 
@@ -78,7 +80,7 @@ def run_luacheck(file_path):
         stdout=PIPE,
         stderr=STDOUT,
         check=False,
-        universal_newlines=True,
+        text=True,
     )
     return _luacheck_parse_linter_output(luacheck_process.stdout)
 
@@ -94,12 +96,14 @@ def _luacheck_parse_linter_output(output):
             line_number, columns, code_and_message = _luacheck_split_issue_line(line)
             code, message = _separate_message_and_code(code_and_message)
             if not code.startswith('(W6'):
-                issues.append({
-                    'line': int(line_number),
-                    'column': _luacheck_get_first_column(columns),
-                    'symbol': code,
-                    'message': message
-                })
+                issues.append(
+                    {
+                        'line': int(line_number),
+                        'column': _luacheck_get_first_column(columns),
+                        'symbol': code,
+                        'message': message,
+                    }
+                )
             else:
                 pass
         except (IndexError, ValueError) as error:
@@ -123,12 +127,7 @@ def _luacheck_get_first_column(columns):
 
 def run_pylint(file_path):
     pylint_process = subprocess.run(
-        f'pylint --output-format=json {file_path}',
-        shell=True,
-        stdout=PIPE,
-        stderr=STDOUT,
-        check=False,
-        universal_newlines=True
+        f'pylint --output-format=json {file_path}', shell=True, stdout=PIPE, stderr=STDOUT, check=False, text=True
     )
 
     try:

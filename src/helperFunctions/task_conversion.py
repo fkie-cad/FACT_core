@@ -1,5 +1,4 @@
 import logging
-from configparser import ConfigParser
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Dict, List, Optional, Tuple
@@ -8,7 +7,7 @@ from flask import Request
 from markupsafe import escape
 from werkzeug.datastructures import FileStorage
 
-from helperFunctions.config import get_temp_dir_path
+from config import cfg
 from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 
@@ -16,17 +15,16 @@ OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
 
 
-def create_analysis_task(request: Request, config: ConfigParser) -> Dict[str, Any]:
+def create_analysis_task(request: Request) -> Dict[str, Any]:
     '''
     Create an analysis task from the data stored in the flask request object.
 
     :param request: The flask request object.
-    :param config: The FACT configuration.
     :return: A dict containing the analysis task data.
     '''
     task = _get_meta_from_request(request)
     if request.files['file']:
-        task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request, config)
+        task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request)
     task['uid'] = _get_uid_of_analysis_task(task)
     if task['release_date'] == '':
         # set default value if date field is empty
@@ -34,7 +32,7 @@ def create_analysis_task(request: Request, config: ConfigParser) -> Dict[str, An
     return task
 
 
-def get_file_name_and_binary_from_request(request: Request, config: ConfigParser) -> Tuple[str, bytes]:  # pylint: disable=invalid-name
+def get_file_name_and_binary_from_request(request: Request) -> Tuple[str, bytes]:  # pylint: disable=invalid-name
     '''
     Retrieves the file name and content from the flask request object.
 
@@ -46,7 +44,7 @@ def get_file_name_and_binary_from_request(request: Request, config: ConfigParser
         file_name = escape(request.files['file'].filename)
     except AttributeError:
         file_name = 'no name'
-    file_binary = _get_uploaded_file_binary(request.files['file'], config)
+    file_binary = _get_uploaded_file_binary(request.files['file'])
     return file_name, file_binary
 
 
@@ -74,7 +72,7 @@ def _get_meta_from_request(request: Request):
         'version': escape(request.form['version']),
         'release_date': escape(request.form['release_date']),
         'requested_analysis_systems': request.form.getlist('analysis_systems'),
-        'tags': escape(request.form['tags'])
+        'tags': escape(request.form['tags']),
     }
     _get_meta_from_dropdowns(meta, request)
 
@@ -120,6 +118,7 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Optional[Firmw
     fw.device_class = analysis_task['device_class']
     fw.vendor = analysis_task['vendor']
     fw.release_date = analysis_task['release_date']
+    fw.tags = {}
     for tag in _get_tag_list(analysis_task['tags']):
         fw.set_tag(tag)
     return fw
@@ -139,7 +138,7 @@ def _get_uid_of_analysis_task(analysis_task: dict) -> Optional[str]:
     return None
 
 
-def _get_uploaded_file_binary(request_file: FileStorage, config: ConfigParser) -> Optional[bytes]:
+def _get_uploaded_file_binary(request_file: FileStorage) -> Optional[bytes]:
     '''
     Retrieves the binary from the request file storage and returns it as byte string. May return `None` if no
     binary was found or an exception occurred.
@@ -150,12 +149,12 @@ def _get_uploaded_file_binary(request_file: FileStorage, config: ConfigParser) -
     '''
     if not request_file:
         return None
-    with TemporaryDirectory(prefix='fact_upload_', dir=get_temp_dir_path(config)) as tmp_dir:
+    with TemporaryDirectory(prefix='fact_upload_', dir=cfg.data_storage.temp_dir_path) as tmp_dir:
         tmp_file_path = Path(tmp_dir) / 'upload.bin'
         try:
             request_file.save(str(tmp_file_path))
             return tmp_file_path.read_bytes()
-        except IOError:
+        except OSError:
             logging.error('Encountered error when trying to read uploaded file:', exc_info=True)
             return None
 

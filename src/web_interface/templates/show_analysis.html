@@ -19,9 +19,10 @@
 
 
 {% block head %}
-	{# jstree import #}
-    <link rel="stylesheet" href="{{ url_for('static', filename='web_js/jstree/dist/themes/default/style.min.css') }}" />
-    <script type="text/javascript" src="{{ url_for('static', filename='web_js/jstree/dist/jstree.min.js') }}"></script>
+    {# jstree import #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/jstree/dist/themes/default/style.min.css') }}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='node_modules/jstree/dist/jstree.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/jstree-bootstrap-theme/dist/themes/proton/style.min.css') }}" />
 
     {# highlight.js import #}
     <script src="{{ url_for('static', filename='highlight.js/highlight.min.js') }}"></script>
@@ -32,8 +33,9 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/line_numbering.css') }}" />
 
     <script>
-        const uid = "{{ uid|safe }}";
+        const uid = "{{ uid | safe }}";
     </script>
+    <script src="{{ url_for('static', filename='js/file_tree.js') }}"></script>
 {% endblock %}
 
 
@@ -206,15 +208,20 @@
                 <thead>
                     <tr class="thead-light">
                         <th>File Tree</th>
+                        <th width="300px">
+                            <input type="text" name="fileTreeSearch" class="form-control form-control-sm"
+                                   id="fileTreeSearch" placeholder="search file tree ...">
+                            <div class="invalid-feedback" id="fileTreeSearchFeedback" style="padding-left: 8px; font-size: 75%">
+                                Only expanded containers can be searched!
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody style="font-size: 14px;">
                     <tr>
-                        <td>
+                        <td colspan="2">
                             <div id="fileTreeAjax"></div>
-                            <script> 
-                            const root_uid = "{{ root_uid | safe }}";
-                            </script>
+                            <script>const root_uid = "{{ root_uid | safe }}";</script>
                             <script src="{{ url_for('static', filename='js/show_analysis_fileTreeAjax.js') }}"></script>
                         </td>
                     </tr>

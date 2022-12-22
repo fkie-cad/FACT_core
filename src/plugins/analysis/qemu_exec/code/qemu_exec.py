@@ -18,6 +18,7 @@ from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
+from config import cfg, configparser_cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
@@ -34,9 +35,9 @@ CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, config=None, worker_id=None):
-        super().__init__(config=config, worker_id=worker_id)
-        self.fs_organizer = FSOrganizer(config)
+    def __init__(self, worker_id=None):
+        super().__init__(worker_id=worker_id)
+        self.fs_organizer = FSOrganizer()
 
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
         file_path = file_object.file_path if file_object.file_path else self._get_path_from_fo(file_object)
@@ -44,7 +45,7 @@ class Unpacker(UnpackBase):
             logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
-        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir'])
+        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=cfg.data_storage.docker_mount_base_dir)
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
@@ -63,29 +64,27 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 
-    arch_to_bin_dict = OrderedDict([
-        ('aarch64', ['aarch64']),
-        ('ARM', ['aarch64', 'arm', 'armeb']),
-
-        ('MIPS32', ['mipsel', 'mips', 'mipsn32', 'mipsn32el']),
-        ('MIPS64', ['mips64', 'mips64el']),
-        ('MIPS', ['mipsel', 'mips', 'mips64', 'mips64el', 'mipsn32', 'mipsn32el']),
-
-        ('80386', ['i386']),
-        ('80486', ['x86_64', 'i386']),
-        ('x86', ['x86_64', 'i386']),
-
-        ('PowerPC', ['ppc', 'ppc64', 'ppc64le']),
-        ('PPC', ['ppc', 'ppc64', 'ppc64le']),
-
-        ('Renesas SH', ['sh4', 'sh4eb']),
-    ])
+    arch_to_bin_dict = OrderedDict(
+        [
+            ('aarch64', ['aarch64']),
+            ('ARM', ['aarch64', 'arm', 'armeb']),
+            ('MIPS32', ['mipsel', 'mips', 'mipsn32', 'mipsn32el']),
+            ('MIPS64', ['mips64', 'mips64el']),
+            ('MIPS', ['mipsel', 'mips', 'mips64', 'mips64el', 'mipsn32', 'mipsn32el']),
+            ('80386', ['i386']),
+            ('80486', ['x86_64', 'i386']),
+            ('x86', ['x86_64', 'i386']),
+            ('PowerPC', ['ppc', 'ppc64', 'ppc64le']),
+            ('PPC', ['ppc', 'ppc64', 'ppc64le']),
+            ('Renesas SH', ['sh4', 'sh4eb']),
+        ]
+    )
 
     root_path = None
 
-    def __init__(self, *args, config=None, unpacker=None, **kwargs):
-        self.unpacker = Unpacker(config) if unpacker is None else unpacker
-        super().__init__(*args, config=config, **kwargs)
+    def __init__(self, *args, unpacker=None, **kwargs):
+        self.unpacker = Unpacker(configparser_cfg) if unpacker is None else unpacker
+        super().__init__(*args, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if self.NAME not in file_object.processed_analysis:
@@ -153,8 +152,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self._enter_results(dict(results_dict), file_object)
         self._add_tag(file_object)
 
-    def _run_analysis_jobs(self, executor: ThreadPoolExecutor, file_list: List[Tuple[str, str]],
-                           file_object: FileObject, results_dict: dict) -> List[Future]:
+    def _run_analysis_jobs(
+        self,
+        executor: ThreadPoolExecutor,
+        file_list: List[Tuple[str, str]],
+        file_object: FileObject,
+        results_dict: dict,
+    ) -> List[Future]:
         jobs = []
         for file_path, full_type in file_list:
             uid = self._get_uid(file_path, self.root_path)
@@ -193,7 +197,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tag_name=self.NAME,
                 value='QEMU executable',
                 color=TagColor.BLUE,
-                propagate=True
+                propagate=True,
             )
 
     @staticmethod
@@ -211,10 +215,7 @@ def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_
             tmp_dict.update({arch_suffix: result})
         else:
             tmp_dict = {arch_suffix: result}
-        results_dict[uid] = {
-            'path': file_path,
-            'results': tmp_dict
-        }
+        results_dict[uid] = {'path': file_path, 'results': tmp_dict}
 
 
 def _valid_execution_in_results(results: dict):
@@ -229,10 +230,7 @@ def _valid_execution_in_results(results: dict):
 
 def _output_without_error_exists(docker_output: Dict[str, str]) -> bool:
     try:
-        return (
-            docker_output['stdout'] != ''
-            and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
-        )
+        return docker_output['stdout'] != '' and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
     except KeyError:
         return False
 
@@ -268,12 +266,12 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
             mounts=[
                 Mount(CONTAINER_TARGET_PATH, str(root_path), type='bind'),
             ],
-            logging_label='qemu_exec'
+            logging_label='qemu_exec',
         )
         return loads(result.stdout)
     except ReadTimeout:
         return {'error': 'timeout'}
-    except (DockerException, IOError):
+    except (DockerException, OSError):
         return {'error': 'process error'}
     except JSONDecodeError:
         return {'error': 'could not decode result'}
@@ -303,26 +301,21 @@ def decode_output_values(result_dict: Dict[str, Dict[str, Union[str, int]]]) -> 
 
 
 def _strace_output_exists(docker_output):
-    return (
-        'strace' in docker_output
-        and 'stdout' in docker_output['strace']
-        and docker_output['strace']['stdout']
-    )
+    return 'strace' in docker_output and 'stdout' in docker_output['strace'] and docker_output['strace']['stdout']
 
 
 def process_strace_output(docker_output: dict):
     docker_output['strace'] = (
         # b64 + zip is still smaller than raw on average
         b64encode(zlib.compress(docker_output['strace']['stdout'].encode())).decode()
-        if _strace_output_exists(docker_output) else {}
+        if _strace_output_exists(docker_output)
+        else {}
     )
 
 
 def result_contains_qemu_errors(docker_output: Dict[str, Dict[str, str]]) -> bool:
     return any(
-        contains_docker_error(value)
-        for parameter in docker_output
-        for value in docker_output[parameter].values()
+        contains_docker_error(value) for parameter in docker_output for value in docker_output[parameter].values()
     )
 
 

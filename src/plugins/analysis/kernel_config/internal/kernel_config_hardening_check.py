@@ -18,11 +18,27 @@ PROTECTS_AGAINST = {
     'CONFIG_VMAP_STACK': ['Stack Depth Overflow (CWE-674)'],
     'CONFIG_THREAD_INFO_IN_TASK': ['Stack Depth Overflow (CWE-674)'],
     'CONFIG_HARDENED_USERCOPY': ['Stack Depth Overflow (CWE-674)'],
-    'CONFIG_GCC_PLUGIN_STACKLEAK': ['Stack Depth Overflow (CWE-674)', 'Uninitialized Memory Usage (CWE-908)', 'Info Exposure (CWE-200)'],
-    'CONFIG_FORTIFY_SOURCE': ['Heap Out-of-Bounds Access (CWE-122)', 'Stack Out-of-Bounds Access (CWE-121)', 'Global Variable Out-of-Bounds Access'],
-    'CONFIG_UBSAN_BOUNDS': ['Heap Out-of-Bounds Access (CWE-122)', 'Stack Out-of-Bounds Access (CWE-121)', 'Global Variable Out-of-Bounds Access'],
+    'CONFIG_GCC_PLUGIN_STACKLEAK': [
+        'Stack Depth Overflow (CWE-674)',
+        'Uninitialized Memory Usage (CWE-908)',
+        'Info Exposure (CWE-200)',
+    ],
+    'CONFIG_FORTIFY_SOURCE': [
+        'Heap Out-of-Bounds Access (CWE-122)',
+        'Stack Out-of-Bounds Access (CWE-121)',
+        'Global Variable Out-of-Bounds Access',
+    ],
+    'CONFIG_UBSAN_BOUNDS': [
+        'Heap Out-of-Bounds Access (CWE-122)',
+        'Stack Out-of-Bounds Access (CWE-121)',
+        'Global Variable Out-of-Bounds Access',
+    ],
     'CONFIG_SLAB_FREELIST_HARDENED': ['Allocator Data Corruption', 'Double Free (CWE-415)'],
-    'CONFIG_PAGE_POISONING': ['Use-After-Free (CWE-416)', 'Uninitialized Memory Usage (CWE-908)', 'Info Exposure (CWE-200)'],
+    'CONFIG_PAGE_POISONING': [
+        'Use-After-Free (CWE-416)',
+        'Uninitialized Memory Usage (CWE-908)',
+        'Info Exposure (CWE-200)',
+    ],
     'CONFIG_X86_UMIP': ['Info Exposure (CWE-200)'],
     'CONFIG_SECURITY_DMESG_RESTRICT': ['Info Exposure (CWE-200)'],
     'CONFIG_INIT_STACK_ALL_ZERO ': ['Uninitialized Memory Usage (CWE-908)', 'Info Exposure (CWE-200)'],
@@ -41,8 +57,18 @@ PROTECTS_AGAINST = {
     'CONFIG_STACKPROTECTOR_STRONG': ['Return Address Overwrite'],
     'CONFIG_CC_STACKPROTECTOR': ['Return Address Overwrite'],
     'CONFIG_SHADOW_CALL_STACK': ['Return Address Overwrite'],
-    'CONFIG_CPU_SW_DOMAIN_PAN': ['ret2usr', 'ret2usr + ROP', 'Userspace Data Access', 'NULL Pointer Dereference (CWE-476)'],
-    'CONFIG_ARM64_SW_TTBR0_PAN': ['ret2usr', 'ret2usr + ROP', 'Userspace Data Access', 'NULL Pointer Dereference (CWE-476)'],
+    'CONFIG_CPU_SW_DOMAIN_PAN': [
+        'ret2usr',
+        'ret2usr + ROP',
+        'Userspace Data Access',
+        'NULL Pointer Dereference (CWE-476)',
+    ],
+    'CONFIG_ARM64_SW_TTBR0_PAN': [
+        'ret2usr',
+        'ret2usr + ROP',
+        'Userspace Data Access',
+        'NULL Pointer Dereference (CWE-476)',
+    ],
     'CONFIG_DEFAULT_MMAP_MIN_ADDR': ['NULL Pointer Dereference (CWE-476)'],
     'CONFIG_PAGE_TABLE_ISOLATION': ['ret2usr', 'Spectre v3 / RDCL / CVE-2017-5754 / Meltdown'],
     'CONFIG_UNMAP_KERNEL_AT_EL0': ['ret2usr', 'Spectre v3 / RDCL / CVE-2017-5754 / Meltdown'],
@@ -81,16 +107,15 @@ PROTECTS_AGAINST = {
     'CONFIG_SECURITY_LOCKDOWN_LSM': ['Changing Kernel Image'],
 }
 
-HardeningCheckResult = NamedTuple(
-    'HardeningCheckResult', [
-        ('option_name', str),
-        ('desired_value', str),
-        ('decision', str),
-        ('reason', str),
-        ('check_result', str),
-        ('actual_value', str),
-        ('vulnerabilities', List[str]),
-    ])
+
+class HardeningCheckResult(NamedTuple):
+    option_name: str
+    desired_value: str
+    decision: str
+    reason: str
+    check_result: str
+    actual_value: str
+    vulnerabilities: List[str]
 
 
 def check_kernel_hardening(kernel_config: str) -> List[HardeningCheckResult]:
@@ -109,7 +134,7 @@ def _get_kernel_hardening_data(kernel_config: str) -> List[List[str]]:
                 shell=True,
                 stdout=PIPE,
                 stderr=STDOUT,
-                universal_newlines=True,
+                text=True,
             )
             return json.loads(kconfig_process.stdout)
     except (JSONDecodeError, KeyError):

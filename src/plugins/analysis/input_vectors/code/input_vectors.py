@@ -8,6 +8,7 @@ from docker.types import Mount
 from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
+from config import cfg
 from helperFunctions.docker import run_docker_container
 from objects.file import FileObject
 
@@ -24,6 +25,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     - stdin
     - kernel via syscalls
     '''
+
     NAME = 'input_vectors'
     DESCRIPTION = 'Determines possible input vectors of an ELF executable like stdin, network, or syscalls.'
     DEPENDENCIES = ['file_type']
@@ -32,7 +34,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def process_object(self, file_object: FileObject):
-        with TemporaryDirectory(prefix=self.NAME, dir=self.config['data-storage']['docker-mount-base-dir']) as tmp_dir:
+        with TemporaryDirectory(prefix=self.NAME, dir=cfg.data_storage.docker_mount_base_dir) as tmp_dir:
             file_path = Path(tmp_dir) / file_object.file_name
             file_path.write_bytes(file_object.binary)
             try:
@@ -50,7 +52,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME] = loads(result.stdout)
             except ReadTimeout:
                 file_object.processed_analysis[self.NAME]['failed'] = 'Analysis timed out. It might not be complete.'
-            except (DockerException, IOError):
+            except (DockerException, OSError):
                 file_object.processed_analysis[self.NAME]['failed'] = 'Analysis issues. It might not be complete.'
             except JSONDecodeError:
                 logging.error('[input_vectors]: Could not decode JSON output:', exc_info=True)

@@ -1,22 +1,24 @@
+from __future__ import annotations
+
 from test.common_helper import (
-    TEST_TEXT_FILE, TEST_TEXT_FILE2, CommonDatabaseMock, CommonIntercomMock, create_test_firmware
+    TEST_TEXT_FILE,
+    TEST_TEXT_FILE2,
+    CommonDatabaseMock,
+    CommonIntercomMock,
+    create_test_firmware,
 )
 from test.unit.web_interface.base import WebInterfaceTest
 
 
 class MockInterCom(CommonIntercomMock):
-
     @staticmethod
-    def get_binary_and_filename(uid: str):
-        if uid == TEST_TEXT_FILE.uid:
-            return b'file content\nfirst', TEST_TEXT_FILE.file_name
-        if uid == TEST_TEXT_FILE2.uid:
-            return b'file content\nsecond', TEST_TEXT_FILE2.file_name
+    def get_file_diff(uid_pair: tuple[str, str]) -> str | None:
+        if TEST_TEXT_FILE.uid in uid_pair:
+            return f'file diff {TEST_TEXT_FILE.file_name}'
         assert False, 'if this point was reached, something went wrong'
 
 
 class DbMock(CommonDatabaseMock):
-
     def get_object(self, uid: str, analysis_filter=None):
         if uid == TEST_TEXT_FILE.uid:
             return TEST_TEXT_FILE
@@ -30,7 +32,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestAppComparisonTextFiles(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock, intercom_mock=MockInterCom)
@@ -59,7 +60,7 @@ class TestAppComparisonTextFiles(WebInterfaceTest):
             with tc.session_transaction() as test_session:
                 test_session['uids_for_comparison'] = {
                     TEST_TEXT_FILE.uid: 'file_1_root_uid',
-                    TEST_TEXT_FILE2.uid: 'file_2_root_uid'
+                    TEST_TEXT_FILE2.uid: 'file_2_root_uid',
                 }
                 test_session.modified = True
-            return self.test_client.get('/comparison/text_files').data
+            return self.test_client.get('/comparison/text_files', follow_redirects=True).data

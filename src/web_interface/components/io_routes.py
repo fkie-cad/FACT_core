@@ -1,5 +1,4 @@
 import json
-from configparser import ConfigParser
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -7,6 +6,7 @@ from time import sleep
 import requests
 from flask import make_response, redirect, render_template, request
 
+from config import cfg
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.pdf import build_pdf_report
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
@@ -22,12 +22,12 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', POST)
     def post_upload(self):
-        analysis_task = create_analysis_task(request, self._config)
+        analysis_task = create_analysis_task(request)
         error = check_for_errors(analysis_task)
         if error:
             return self.get_upload(error=error)
         fw = convert_analysis_task_to_fw_obj(analysis_task)
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             sc.add_analysis_task(fw)
         return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
 
@@ -39,13 +39,17 @@ class IORoutes(ComponentBase):
             device_class_list = frontend_db.get_device_class_list()
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template(
             'upload/upload.html',
-            device_classes=device_class_list, vendors=vendor_list, error=error,
-            analysis_presets=list(self._config['default-plugins']),
-            device_names=json.dumps(device_name_dict, sort_keys=True), analysis_plugin_dict=analysis_plugins
+            device_classes=device_class_list,
+            vendors=vendor_list,
+            error=error,
+            analysis_presets=list(cfg.default_plugins),
+            device_names=json.dumps(device_name_dict, sort_keys=True),
+            analysis_plugin_dict=analysis_plugins,
+            plugin_set='default',
         )
 
     # ---- file download
@@ -63,7 +67,7 @@ class IORoutes(ComponentBase):
     def _prepare_file_download(self, uid, packed=False):
         if not self.db.frontend.exists(uid):
             return render_template('uid_not_found.html', uid=uid)
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             if packed:
                 result = sc.get_repacked_binary_and_file_name(uid)
             else:
@@ -93,13 +97,13 @@ class IORoutes(ComponentBase):
         object_exists = self.db.frontend.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
-        with ConnectTo(self.intercom, self._config) as sc:
+        with ConnectTo(self.intercom) as sc:
             result = sc.get_binary_and_filename(uid)
         if result is None:
             return render_template('error.html', message='timeout')
         binary, _ = result
         try:
-            host = self._get_radare_endpoint(self._config)
+            host = self._get_radare_endpoint()
             response = requests.post(f'{host}/v1/retrieve', data=binary, verify=False)
             if response.status_code != 200:
                 raise TimeoutError(response.text)
@@ -110,9 +114,9 @@ class IORoutes(ComponentBase):
             return render_template('error.html', message=str(error))
 
     @staticmethod
-    def _get_radare_endpoint(config: ConfigParser) -> str:
-        radare2_host = config['expert-settings']['radare2-host']
-        if config.getboolean('expert-settings', 'nginx'):
+    def _get_radare_endpoint() -> str:
+        radare2_host = cfg.expert_settings.radare2_host
+        if cfg.expert_settings.nginx:
             return f'https://{radare2_host}/radare'
         return f'http://{radare2_host}:8000'
 
@@ -127,7 +131,7 @@ class IORoutes(ComponentBase):
             firmware = frontend_db.get_complete_object_including_all_summaries(uid)
 
         try:
-            with TemporaryDirectory(dir=self._config['data-storage']['docker-mount-base-dir']) as folder:
+            with TemporaryDirectory(dir=cfg.data_storage.docker_mount_base_dir) as folder:
                 pdf_path = build_pdf_report(firmware, Path(folder))
                 binary = pdf_path.read_bytes()
         except RuntimeError as error:

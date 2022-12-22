@@ -1,15 +1,21 @@
+from __future__ import annotations
+
 import logging
 from time import time
 from typing import List, Optional, Tuple
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, type_coerce
+from sqlalchemy.dialects.postgresql import JSONB
 
 from helperFunctions.data_conversion import (
-    convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
+    convert_compare_id_to_list,
+    convert_uid_list_to_compare_id,
+    normalize_compare_id,
 )
+from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
-from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry
+from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
 
 
 class FactComparisonException(Exception):
@@ -63,7 +69,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         return {
             **comparison_entry.data,
             '_id': comparison_id,  # FixMe? for backwards compatibility. change/remove?
-            'submission_date': comparison_entry.submission_date
+            'submission_date': comparison_entry.submission_date,
         }
 
     def update_comparison(self, comparison_id: str, comparison_result: dict):
@@ -78,17 +84,9 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 comparison_id=comparison_id,
                 submission_date=time(),
                 data=comparison_result,
-                file_objects=[session.get(FileObjectEntry, uid) for uid in comparison_id.split(';')]
+                file_objects=[session.get(FileObjectEntry, uid) for uid in comparison_id.split(';')],
             )
             session.add(comparison_entry)
-
-    def delete_comparison(self, comparison_id: str):
-        try:
-            with self.get_read_write_session() as session:
-                session.delete(session.get(ComparisonEntry, comparison_id))
-            logging.debug(f'Old comparison deleted: {comparison_id}')
-        except Exception as exception:
-            logging.warning(f'Could not delete comparison {comparison_id}: {exception}', exc_info=True)
 
     def page_comparison_results(self, skip=0, limit=0) -> List[Tuple[str, str, float]]:
         with self.get_read_only_session() as session:
@@ -125,3 +123,27 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         except (KeyError, FactComparisonException):
             exclusive_files = []
         return exclusive_files
+
+    def get_vfp_of_included_text_files(self, root_uid: str, blacklist: set[str]) -> dict[str, set[str]]:
+        with self.get_read_only_session() as session:
+            query = (
+                select(FileObjectEntry.virtual_file_paths, FileObjectEntry.uid)
+                .join(fw_files_table, FileObjectEntry.uid == fw_files_table.c.file_uid)
+                .filter(fw_files_table.c.root_uid == root_uid)
+                .filter(FileObjectEntry.uid.not_in(blacklist))
+                .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
+                .filter(AnalysisEntry.plugin == 'file_type')
+                .filter(AnalysisEntry.result['mime'] == type_coerce('text/plain', JSONB))
+            )
+            return self._transpose_vfp_dict(
+                {uid: vfp_dict[root_uid] for vfp_dict, uid in session.execute(query) if root_uid in vfp_dict}
+            )
+
+    @staticmethod
+    def _transpose_vfp_dict(list_dict: dict[str, list[str]]) -> dict[str, set[str]]:
+        """transposes results from {uid: [vfps]} to {vfp: {uid}}"""
+        transposed = {}
+        for uid, path_list in list_dict.items():
+            for vfp in path_list:
+                transposed.setdefault(get_top_of_virtual_path(vfp), set()).add(uid)
+        return transposed

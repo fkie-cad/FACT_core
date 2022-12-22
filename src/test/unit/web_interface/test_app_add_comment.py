@@ -3,16 +3,12 @@ from test.unit.web_interface.base import WebInterfaceTest
 
 
 class DbMock(CommonDatabaseMock):
-
     @staticmethod
     def add_comment_to_object(_, comment, author, time):
-        TEST_FW.comments.append(
-            {'time': str(time), 'author': author, 'comment': comment}
-        )
+        TEST_FW.comments.append({'time': str(time), 'author': author, 'comment': comment})
 
 
 class TestAppAddComment(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)
@@ -28,6 +24,8 @@ class TestAppAddComment(WebInterfaceTest):
 
     def test_app_add_comment_put(self):
         data = {'comment': 'this is the test comment', 'author': 'test author'}
-        rv = self.test_client.post(f'/comment/{TEST_FW.uid}', content_type='multipart/form-data', data=data, follow_redirects=True)
+        rv = self.test_client.post(
+            f'/comment/{TEST_FW.uid}', content_type='multipart/form-data', data=data, follow_redirects=True
+        )
         assert b'Analysis' in rv.data
         assert b'this is the test comment' in rv.data

@@ -12,10 +12,13 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/compare', description='Start comparisons and retrieve results')
 
 
-compare_model = api.model('Compare Firmware', {
-    'uid_list': fields.List(description='List of UIDs', cls_or_instance=fields.String, required=True),
-    'redo': fields.Boolean(description='Redo', default=False)
-})
+compare_model = api.model(
+    'Compare Firmware',
+    {
+        'uid_list': fields.List(description='List of UIDs', cls_or_instance=fields.String, required=True),
+        'redo': fields.Boolean(description='Redo', default=False),
+    },
+)
 
 
 @api.route('', doc={'description': 'Initiate a comparison'})
@@ -37,33 +40,34 @@ class RestComparePut(RestResourceBase):
             if comparison_db.comparison_exists(compare_id) and not data['redo']:
                 return error_message(
                     'Compare already exists. Use "redo" to force re-compare.',
-                    self.URL, request_data=request.json, return_code=200
+                    self.URL,
+                    request_data=request.json,
+                    return_code=200,
                 )
 
             if not comparison_db.objects_exist(compare_id):
                 missing_uids = ', '.join(
-                    uid for uid in convert_compare_id_to_list(compare_id)
-                    if not comparison_db.exists(uid)
+                    uid for uid in convert_compare_id_to_list(compare_id) if not comparison_db.exists(uid)
                 )
                 return error_message(
-                    f'Some objects are not found in the database: {missing_uids}', self.URL,
-                    request_data=request.json, return_code=404
+                    f'Some objects are not found in the database: {missing_uids}',
+                    self.URL,
+                    request_data=request.json,
+                    return_code=404,
                 )
 
-        with ConnectTo(self.intercom, self.config) as intercom:
+        with ConnectTo(self.intercom) as intercom:
             intercom.add_compare_task(compare_id, force=data['redo'])
         return success_message(
             {'message': 'Compare started. Please use GET to get the results.'},
-            self.URL, request_data=request.json, return_code=202
+            self.URL,
+            request_data=request.json,
+            return_code=202,
         )
 
 
 @api.route(
-    '/<string:compare_id>',
-    doc={
-        'description': 'Retrieve comparison results',
-        'params': {'compare_id': 'Firmware UID'}
-    }
+    '/<string:compare_id>', doc={'description': 'Retrieve comparison results', 'params': {'compare_id': 'Firmware UID'}}
 )
 class RestCompareGet(RestResourceBase):
     URL = '/rest/compare'
@@ -83,7 +87,8 @@ class RestCompareGet(RestResourceBase):
         except (TypeError, ValueError) as error:
             return error_message(
                 f'Compare ID must be of the form uid1;uid2(;uid3..): {error}',
-                self.URL, request_data={'compare_id': compare_id}
+                self.URL,
+                request_data={'compare_id': compare_id},
             )
 
         result = None
@@ -92,7 +97,12 @@ class RestCompareGet(RestResourceBase):
                 result = comparison_db.get_comparison_result(compare_id)
         if result:
             return success_message(result, self.URL, request_data={'compare_id': compare_id}, return_code=202)
-        return error_message('Compare not found in database. Please use /rest/start_compare to start the compare.', self.URL, request_data={'compare_id': compare_id}, return_code=404)
+        return error_message(
+            'Compare not found in database. Please use /rest/start_compare to start the compare.',
+            self.URL,
+            request_data={'compare_id': compare_id},
+            return_code=404,
+        )
 
     @staticmethod
     def _validate_compare_id(compare_id: str):

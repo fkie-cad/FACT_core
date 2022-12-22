@@ -1,9 +1,8 @@
 # pylint: disable=attribute-defined-outside-init
 import gc
-from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from test.common_helper import CommonDatabaseMock, CommonIntercomMock, get_config_for_testing
+from test.common_helper import CommonDatabaseMock, CommonIntercomMock
 from web_interface.frontend_main import WebFrontEnd
 from web_interface.security.authentication import add_flask_security_to_app
 
@@ -42,24 +41,24 @@ class WebInterfaceTest:
     patches = []
 
     @classmethod
-    def setup_class(cls, db_mock=CommonDatabaseMock, intercom_mock=CommonIntercomMock):  # pylint: disable=arguments-differ
-        cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')  # pylint: disable=consider-using-with
-        cls.config = get_config_for_testing(cls.tmp_dir)
+    def setup_class(
+        cls, db_mock=CommonDatabaseMock, intercom_mock=CommonIntercomMock
+    ):  # pylint: disable=arguments-differ
         cls.db_mock = db_mock
         cls.intercom = intercom_mock
         cls._init_patches()
-        cls.frontend = WebFrontEnd(config=cls.config, db=FrontendDbMock(db_mock()), intercom=intercom_mock)
-        cls.frontend.app.config['TESTING'] = True
-        cls.test_client = cls.frontend.app.test_client()
 
     def setup(self):
         self.intercom.tasks.clear()
+        # This has to be here because otherwise the fixture patch_cfg is not yet active
+        self.frontend = WebFrontEnd(db=FrontendDbMock(self.db_mock()), intercom=self.intercom)
+        self.frontend.app.config['TESTING'] = True
+        self.test_client = self.frontend.app.test_client()
 
     @classmethod
     def _init_patches(cls):
         cls.security_patch = patch(
-            target='web_interface.frontend_main.add_flask_security_to_app',
-            new=cls.add_security_get_mocked
+            target='web_interface.frontend_main.add_flask_security_to_app', new=cls.add_security_get_mocked
         )
         cls.security_patch.start()
 
@@ -71,5 +70,4 @@ class WebInterfaceTest:
     @classmethod
     def teardown_class(cls):
         cls.security_patch.stop()
-        cls.tmp_dir.cleanup()
         gc.collect()

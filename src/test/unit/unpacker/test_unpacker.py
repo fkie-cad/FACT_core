@@ -1,5 +1,4 @@
 # pylint: disable=wrong-import-order
-
 import gc
 import grp
 import os
@@ -36,7 +35,7 @@ class TestUnpackerBase(unittest.TestCase):
         config.set('unpack', 'max-depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')
         config.add_section('expert-settings')
-        self.unpacker = Unpacker(config=config, unpacking_locks=UnpackingLockManager())
+        self.unpacker = Unpacker(unpacking_locks=UnpackingLockManager())
         self.tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         self.test_fo = create_test_file_object()
 
@@ -47,20 +46,19 @@ class TestUnpackerBase(unittest.TestCase):
 
 
 class TestUnpackerCore(TestUnpackerBase):
-
     def test_dont_store_zero_file(self):
         file_paths = [EXTRACTION_DIR / 'zero_byte', EXTRACTION_DIR / 'get_files_test' / 'testfile1']
         file_objects = self.unpacker.generate_and_store_file_objects(file_paths, EXTRACTION_DIR, self.test_fo)
         file_objects = list(file_objects.values())
-        self.assertEqual(len(file_objects), 1, 'number of objects not correct')
-        self.assertEqual(file_objects[0].file_name, 'testfile1', 'wrong object created')
+        assert len(file_objects) == 1, 'number of objects not correct'
+        assert file_objects[0].file_name == 'testfile1', 'wrong object created'
         parent_uid = self.test_fo.uid
-        self.assertIn(f'|{parent_uid}|/get_files_test/testfile1', file_objects[0].virtual_file_path[self.test_fo.uid])
+        assert f'|{parent_uid}|/get_files_test/testfile1' in file_objects[0].virtual_file_path[self.test_fo.uid]
 
     def test_remove_duplicates_child_equals_parent(self):
         parent = FileObject(binary=b'parent_content')
         result = self.unpacker.remove_duplicates({parent.uid: parent}, parent)
-        self.assertEqual(len(result), 0, 'parent not removed from list')
+        assert len(result) == 0, 'parent not removed from list'
 
     def test_file_is_locked(self):
         assert not self.unpacker.unpacking_locks.unpacking_lock_is_set(self.test_fo.uid)
@@ -78,7 +76,9 @@ class TestUnpackerCoreMain(TestUnpackerBase):
         assert len(test_object.files_included) == number_unpacked_files, 'not all files added to parent'
         assert len(extracted_files) == number_unpacked_files, 'not all files found'
         assert test_object.processed_analysis['unpacker']['plugin_used'] == first_unpacker, 'Wrong plugin in Meta'
-        assert test_object.processed_analysis['unpacker']['number_of_unpacked_files'] == number_unpacked_files, 'Number of unpacked files wrong in Meta'
+        assert (
+            test_object.processed_analysis['unpacker']['number_of_unpacked_files'] == number_unpacked_files
+        ), 'Number of unpacked files wrong in Meta'
         self.check_depths_of_children(test_object, extracted_files)
 
     @staticmethod

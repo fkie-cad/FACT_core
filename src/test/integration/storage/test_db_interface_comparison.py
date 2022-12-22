@@ -1,10 +1,11 @@
-# pylint: disable=attribute-defined-outside-init,protected-access
+# pylint: disable=attribute-defined-outside-init,protected-access,wrong-import-order
 from time import time
 
 import pytest
 
 from storage.schema import ComparisonEntry
-from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import create_test_firmware, generate_analysis_entry
+from test.integration.storage.helper import create_fw_with_child_fo
 
 
 def test_comparison_exists(db, comp_db):
@@ -87,11 +88,14 @@ def test_get_total_number_of_results(db, comp_db):
     assert number == 1, 'no compare result found in database'
 
 
-@pytest.mark.parametrize('root_uid, expected_result', [
-    ('the_root_uid', ['uid1', 'uid2']),
-    ('some_other_uid', []),
-    (None, []),
-])
+@pytest.mark.parametrize(
+    'root_uid, expected_result',
+    [
+        ('the_root_uid', ['uid1', 'uid2']),
+        ('some_other_uid', []),
+        (None, []),
+    ],
+)
 def test_get_exclusive_files(db, comp_db, root_uid, expected_result):
     fw_one, fw_two, compare_dict, comp_id = _create_comparison()
     compare_dict['plugins'] = {'File_Coverage': {'exclusive_files': {'the_root_uid': ['uid1', 'uid2']}}}
@@ -103,6 +107,15 @@ def test_get_exclusive_files(db, comp_db, root_uid, expected_result):
     assert exclusive_files == expected_result
 
 
+def test_get_vfp_of_included_text_files(db, comp_db):
+    fo, fw = create_fw_with_child_fo()
+    db.backend.insert_object(fw)
+    fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'text/plain'})
+    db.backend.insert_object(fo)
+    result = comp_db.get_vfp_of_included_text_files(fw.uid, [])
+    assert result == {'/folder/testfile1': {fo.uid}}
+
+
 def _create_comparison(uid1='uid1', uid2='uid2'):
     fw_one = create_test_firmware()
     fw_one.uid = uid1
@@ -112,7 +125,7 @@ def _create_comparison(uid1='uid1', uid2='uid2'):
     compare_dict = {
         'general': {
             'hid': {fw_one.uid: 'foo', fw_two.uid: 'bar'},
-            'virtual_file_path': {fw_one.uid: 'dev_one_name', fw_two.uid: 'dev_two_name'}
+            'virtual_file_path': {fw_one.uid: 'dev_one_name', fw_two.uid: 'dev_two_name'},
         },
         'plugins': {},
     }

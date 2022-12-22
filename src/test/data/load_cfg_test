@@ -1,3 +1,154 @@
+# ------ Database ------
+
+[data-storage]
+# === Postgres ===
+postgres-server = localhost
+postgres-port = 5432
+postgres-database = fact_db
+postgres-test-database = fact_test
+
+postgres-ro-user = fact_user_ro
+postgres-ro-pw = change_me_ro
+
+postgres-rw-user = fact_user_rw
+postgres-rw-pw = change_me_rw
+
+postgres-del-user = fact_user_del
+postgres-del-pw = change_me_del
+
+postgres-admin-user = fact_admin
+postgres-admin-pw = change_me_admin
+
+# === Redis ===
+redis-fact-db = 3
+redis-test-db = 13
+redis-host = localhost
+redis-port = 6379
+
+firmware-file-storage-directory = /media/data/fact_fw_data
+
+# User Management
+user-database  = sqlite:////media/data/fact_auth_data/fact_users.db
+password-salt = 5up3r5tr0n6_p455w0rd_5417
+
+# Database Structure
+structural-threshold = 40
+
+# Temporary Directory Path
+temp-dir-path =
+# Directory that will be used to share data from the host to docker containers
+# Permissions have to be 0o770 and the group has to be 'docker'.
+# Will be created if it does not exist
+docker-mount-base-dir = /tmp/fact-docker-mount-base-dir
+
 [logging]
 logfile=/some/path
 loglevel=WARNING
+
+
+# ------ Unpack Plugins ------
+
+[unpack]
+threads = 4
+
+# file types in whitelist are not extracted
+whitelist = audio/mpeg, image/png, image/jpeg, image/gif, application/x-shockwave-flash, video/mp4, video/mpeg, video/quicktime, video/x-msvideo, video/ogg, text/plain, application/x-object
+
+# extract until this layer
+max-depth = 8
+
+memory-limit = 2048
+
+# ------ Analysis Plugins ------
+
+[default-plugins]
+# choose preselected plugins
+default = cpu_architecture, crypto_material, cve_lookup, exploit_mitigations, known_vulnerabilities, software_components, users_and_passwords
+minimal =
+# If required, choose a custom set of plugins, as in the example below
+# custom = init_systems, printable_strings
+
+# -- plugin settings --
+[plugin-defaults]
+threads = 2
+
+[binwalk]
+threads = 2
+
+[cpu_architecture]
+threads = 2
+
+[crypto_material]
+threads = 2
+
+[cwe_checker]
+threads = 2
+
+[elf_analysis]
+threads = 4
+
+[exploit_mitigations]
+threads = 4
+
+[file_hashes]
+threads = 2
+hashes = md5, sha1, sha256, sha512, ripemd160, whirlpool
+
+[init_systems]
+threads = 2
+
+[input_vectors]
+threads = 4
+
+[ip_and_uri_finder]
+threads = 2
+
+[malware_scanner]
+threads = 4
+
+[printable_strings]
+threads = 2
+min-length = 6
+
+[software_components]
+threads = 2
+
+[source_code_analysis]
+threads = 2
+
+[string_evaluator]
+threads = 2
+
+[qemu_exec]
+threads = 2
+
+[users_and_passwords]
+threads = 4
+mime-whitelist = foo, bar
+mime-blacklist = foobar
+
+# ------ Web Interface ------
+
+[database]
+results-per-page = 10
+number-of-latest-firmwares-to-display = 10
+ajax-stats-reload-time = 10000
+
+[statistics]
+max-elements-per-chart = 10
+
+
+# !!!! Do not edit below this line unless you know exactly what you are doing !!!!
+
+[expert-settings]
+block-delay = 0.1
+ssdeep-ignore = 1
+communication-timeout = 60
+unpack-threshold = 0.8
+unpack-throttle-limit = 50
+throw-exceptions = false
+authentication = false
+nginx = false
+intercom-poll-delay = 1.0
+# this is used in redirecting to the radare web service.  It should generally be the IP or host name when running on a remote host.
+radare2-host = localhost

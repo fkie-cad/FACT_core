@@ -9,7 +9,9 @@ GET = 'GET'
 POST = 'POST'
 
 
-Route = NamedTuple('Route', [('rule', str), ('methods', Tuple[str, ...])])
+class Route(NamedTuple):
+    rule: str
+    methods: Tuple[str, ...]
 
 
 class AppRoute:
@@ -26,6 +28,7 @@ class AppRoute:
     :param rule: The endpoint route (e.g. "/about")
     :param methods: supported HTML Methods (e.g. ``'GET', 'POST'``)
     '''
+
     def __init__(self, rule: str, *methods: str):
         self.route = Route(rule, methods)
 
@@ -37,9 +40,8 @@ class AppRoute:
 
 
 class ComponentBase:
-    def __init__(self, app, config, db: FrontendDatabase, intercom, api=None):
+    def __init__(self, app, db: FrontendDatabase, intercom, api=None):
         self._app = app
-        self._config = config
         self._api = api
         self.db = db
         self.intercom = intercom
