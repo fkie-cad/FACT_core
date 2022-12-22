@@ -65,8 +65,9 @@ class DataStorage(BaseModel):
 
 class Logging(BaseModel):
     Config = _PydanticConfigExtraForbid
-    logfile: str
-    loglevel: str
+    logfile_backend: str = '/tmp/fact_backend.log'
+    logfile_frontend: str = '/tmp/fact_frontend.log'
+    logfile_database: str = '/tmp/fact_database.log'
     loglevel: str = 'WARNING'
 
 

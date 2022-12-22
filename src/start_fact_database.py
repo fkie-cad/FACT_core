@@ -26,7 +26,6 @@ except (ImportError, ModuleNotFoundError):
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from helperFunctions.program_setup import program_setup
 from storage.db_interface_base import ReadOnlyDbInterface
 
 
@@ -36,9 +35,8 @@ class FactDb(FactBase):
     COMPONENT = 'database'
 
     def __init__(self):
-        _ = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
-        self._check_postgres_connection()
         super().__init__()
+        self._check_postgres_connection()
 
     @staticmethod
     def _check_postgres_connection():
