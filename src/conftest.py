@@ -81,7 +81,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
         },
         'logging': {
             'logfile': '/tmp/fact_main.log',
-            'loglevel': 'WARNING',
+            'loglevel': 'INFO',
         },
         'unpack': {'max-depth': '10', 'memory-limit': '2048', 'threads': '4', 'whitelist': ''},
         'statistics': {'max_elements_per_chart': '10'},
