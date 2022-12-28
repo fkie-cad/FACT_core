@@ -2,16 +2,14 @@ from pathlib import Path
 
 import pytest
 
-from test.common_helper import create_docker_mount_base_dir
-
 from ..internal.resolve_version_format_string import extract_data_from_ghidra, filter_implausible_results
 
 
-def test_extract_data_from_ghidra():
+def test_extract_data_from_ghidra(cfg_tuple):
+    cfg, _ = cfg_tuple
     key_string = 'get_version v%s'
     test_file = Path(__file__).parent / 'data' / 'format_string_arm-linux-gnueabihf'
-    docker_mount_base_dir = create_docker_mount_base_dir()
-    result = extract_data_from_ghidra(test_file.read_bytes(), [key_string], str(docker_mount_base_dir))
+    result = extract_data_from_ghidra(test_file.read_bytes(), [key_string], str(cfg.data_storage.docker_mount_base_dir))
     assert len(result) == 1
     assert result == ['1.2.3']
 

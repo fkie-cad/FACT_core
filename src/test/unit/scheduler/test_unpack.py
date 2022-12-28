@@ -11,7 +11,7 @@ import pytest
 from objects.firmware import Firmware
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import create_docker_mount_base_dir, get_test_data_dir
+from test.common_helper import get_test_data_dir
 
 
 class TestUnpackScheduler(TestCase):
@@ -27,8 +27,6 @@ class TestUnpackScheduler(TestCase):
         self.config.set('expert-settings', 'unpack-throttle-limit', '10')
         self.config.add_section('data-storage')
         self.config.set('data-storage', 'firmware-file-storage-directory', self.tmp_dir.name)
-        self.docker_mount_base_dir = create_docker_mount_base_dir()
-        self.config.set('data-storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         self.tmp_queue = Queue()
         self.scheduler = None
 
