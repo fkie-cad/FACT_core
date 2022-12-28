@@ -1,82 +1,15 @@
 # pylint: disable=redefined-outer-name,wrong-import-order
-from multiprocessing import Event, Value
 from pathlib import Path
 
 import pytest
 
-from intercom.back_end_binding import InterComBackEndBinding
 from objects.firmware import Firmware
-from scheduler.analysis import AnalysisScheduler
-from scheduler.unpacking_scheduler import UnpackingScheduler
-from storage.db_interface_backend import BackendDbInterface
-from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
 from web_interface.frontend_main import WebFrontEnd
 
 FIRST_ROOT_ID = '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415'
 SECOND_ROOT_ID = '0383cac1dd8fbeb770559163edbd571c21696c435a4942bec6df151983719731_52143'
 TARGET_UID = '49543bc7128542b062d15419c90459be65ca93c3134554bc6224e307b359c021_9968'
-
-
-class MockScheduler:
-    def __init__(self, *_, **__):
-        pass
-
-    def add_task(self, task):
-        pass
-
-
-@pytest.fixture
-def finished_event():
-    return Event()
-
-
-@pytest.fixture
-def intermediate_event():
-    return Event()
-
-
-@pytest.fixture
-def test_app():
-    frontend = WebFrontEnd()
-    frontend.app.config['TESTING'] = True
-    return frontend.app.test_client()
-
-
-@pytest.fixture
-def test_scheduler(finished_event, intermediate_event):
-    interface = BackendDbInterface()
-    unpacking_lock_manager = UnpackingLockManager()
-    elements_finished = Value('i', 0)
-
-    def count_pre_analysis(file_object):
-        interface.add_object(file_object)
-        elements_finished.value += 1
-        if elements_finished.value == 8:
-            finished_event.set()
-        elif elements_finished.value == 4:
-            intermediate_event.set()
-
-    analyzer = AnalysisScheduler(
-        pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
-    )
-    analyzer.start()
-    unpacker = UnpackingScheduler(post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager)
-    unpacker.start()
-    intercom = InterComBackEndBinding(
-        analysis_service=analyzer,
-        unpacking_service=unpacker,
-        compare_service=MockScheduler(),
-        unpacking_locks=unpacking_lock_manager,
-    )
-    intercom.start()
-    try:
-        yield unpacker
-    finally:
-        intercom.shutdown()
-        unpacker.shutdown()
-        unpacking_lock_manager.shutdown()
-        analyzer.shutdown()
 
 
 def add_test_file(scheduler, path_in_test_dir):
@@ -86,19 +19,37 @@ def add_test_file(scheduler, path_in_test_dir):
     scheduler.add_task(firmware)
 
 
+@pytest.fixture
+def test_client():
+    _web_frontend = WebFrontEnd()
+    _web_frontend.app.config['TESTING'] = True
+    return _web_frontend.app.test_client()
+
+
+# This is a bit hacky, we set items_to_analyze to zero and manually set the counter to a negative value
+# This way we can easily finish multiple analyses
+@pytest.mark.SchedulerTestConfig(items_to_analyze=0, pipeline=True)
 def test_check_collision(
-    test_app, test_scheduler, finished_event, intermediate_event
+    test_client,
+    analysis_scheduler,
+    unpacking_scheduler,
+    analysis_finished_event,
+    analysis_finished_counter,
 ):  # pylint: disable=unused-argument
-    add_test_file(test_scheduler, 'regression_one')
+    analysis_finished_counter.value = -8
 
-    assert intermediate_event.wait(timeout=30)
+    add_test_file(unpacking_scheduler, 'regression_one')
 
-    add_test_file(test_scheduler, 'regression_two')
+    assert analysis_finished_event.wait(timeout=30)
+    analysis_finished_event.clear()
+    analysis_finished_counter.value = -6
 
-    assert finished_event.wait(timeout=30)
+    add_test_file(unpacking_scheduler, 'regression_two')
 
-    first_response = test_app.get(f'/analysis/{TARGET_UID}/ro/{FIRST_ROOT_ID}')
+    assert analysis_finished_event.wait(timeout=30)
+
+    first_response = test_client.get(f'/analysis/{TARGET_UID}/ro/{FIRST_ROOT_ID}')
     assert b'insufficient information' not in first_response.data
 
-    second_response = test_app.get(f'/analysis/{TARGET_UID}/ro/{SECOND_ROOT_ID}')
+    second_response = test_client.get(f'/analysis/{TARGET_UID}/ro/{SECOND_ROOT_ID}')
     assert b'insufficient information' not in second_response.data
