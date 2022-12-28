@@ -254,6 +254,10 @@ def analysis_finished_event() -> Event:
     """An event that is set once the :py:func:`analysis_scheduler` has analyzed
     :py:attribute:`SchedulerTestConfig.items_to_analyze` items.
 
+    .. note::
+
+        :py:func:`Event.wait` does not raise an exception if the timeout was reached.
+
     .. seealso::
 
        The documentation of :py:class:`SchedulerTestConfig`."""
