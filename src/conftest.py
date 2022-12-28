@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import grp
 import logging
+import os
 import shutil
 import tempfile
 from configparser import ConfigParser
@@ -11,8 +13,17 @@ import pytest
 import config
 from analysis.PluginBase import AnalysisBasePlugin
 from config import Config
-from test.common_helper import CommonDatabaseMock, create_docker_mount_base_dir
+from test.common_helper import CommonDatabaseMock
 from test.conftest import merge_markers
+
+
+def _create_docker_mount_base_dir() -> str:
+    dir = tempfile.mkdtemp(prefix='fact-docker-mount-base-dir')
+    docker_gid = grp.getgrnam('docker').gr_gid
+    os.chown(dir, -1, docker_gid)
+    os.chmod(dir, 0o770)
+
+    return dir
 
 
 def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, ConfigParser]:
@@ -25,7 +36,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
     """
     config.load()
 
-    docker_mount_base_dir = create_docker_mount_base_dir()
+    docker_mount_base_dir = _create_docker_mount_base_dir()
     firmware_file_storage_directory = Path(tempfile.mkdtemp())
 
     # This dict must exactly match the one that a ConfigParser instance would
@@ -53,7 +64,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'password-salt': '1234',
             'structural-threshold': '40',  # TODO
             'temp-dir-path': '/tmp',
-            'docker-mount-base-dir': str(docker_mount_base_dir),
+            'docker-mount-base-dir': docker_mount_base_dir,
         },
         'database': {
             'ajax-stats-reload-time': '10000',  # TODO

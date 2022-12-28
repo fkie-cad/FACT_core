@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 # pylint: disable=no-self-use,unused-argument
-import grp
 import os
 from base64 import standard_b64encode
 from contextlib import contextmanager
@@ -281,16 +280,3 @@ def generate_analysis_entry(
         'tags': tags or {},
         **(analysis_result or {}),
     }
-
-
-def create_docker_mount_base_dir() -> Path:
-    docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
-    try:
-        docker_mount_base_dir.mkdir(0o770)
-    except FileExistsError:
-        pass
-    else:
-        docker_gid = grp.getgrnam('docker').gr_gid
-        os.chown(docker_mount_base_dir, -1, docker_gid)
-
-    return docker_mount_base_dir
