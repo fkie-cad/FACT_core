@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import List, Tuple
 
 
 class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arguments
@@ -82,7 +83,7 @@ class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arg
             self.has_children = True
             self.children[node.get_id()] = node
 
-    def get_names_of_children(self) -> List[str]:
+    def get_names_of_children(self) -> list[str]:
         '''
         Get a list with the names of all child nodes of this node.
 
@@ -90,7 +91,7 @@ class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arg
         '''
         return [n.name for n in self.get_list_of_child_nodes()]
 
-    def get_list_of_child_nodes(self) -> List['FileTreeNode']:
+    def get_list_of_child_nodes(self) -> list['FileTreeNode']:
         '''
         Get a list of the child nodes of this file tree node.
 
@@ -98,7 +99,7 @@ class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arg
         '''
         return list(self.children.values())
 
-    def get_id(self) -> Tuple[str, bool]:
+    def get_id(self) -> tuple[str, bool]:
         '''
         Get a unique id of the node. Files and folders may have the same name but folders are 'virtual' -> take both
         as a unique id.

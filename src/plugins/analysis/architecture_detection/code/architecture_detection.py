@@ -1,4 +1,4 @@
-from typing import Dict
+from __future__ import annotations
 
 from analysis.PluginBase import AnalysisBasePlugin
 from storage.fsorganizer import FSOrganizer
@@ -54,7 +54,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
 
-def construct_result(file_object, fs_organizer) -> Dict[str, str]:
+def construct_result(file_object, fs_organizer) -> dict[str, str]:
     '''
     Returns a dict where keys are the architecture and values are the means of
     detection

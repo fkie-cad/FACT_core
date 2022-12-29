@@ -1,5 +1,8 @@
+from __future__ import annotations
+
+from collections.abc import Callable
 from types import MethodType
-from typing import Any, Callable, NamedTuple, Tuple
+from typing import Any, NamedTuple
 
 from web_interface.frontend_database import FrontendDatabase
 
@@ -11,7 +14,7 @@ POST = 'POST'
 
 class Route(NamedTuple):
     rule: str
-    methods: Tuple[str, ...]
+    methods: tuple[str, ...]
 
 
 class AppRoute:

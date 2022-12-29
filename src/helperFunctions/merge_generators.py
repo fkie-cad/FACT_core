@@ -1,5 +1,7 @@
+from __future__ import annotations
+
+from collections.abc import Sequence
 from random import sample, seed
-from typing import Sequence
 
 seed()
 

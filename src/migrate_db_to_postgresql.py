@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import pickle
@@ -5,7 +7,6 @@ import sys
 from base64 import b64encode
 from configparser import ConfigParser
 from pathlib import Path
-from typing import List, Optional, Union
 
 import gridfs
 from pymongo import MongoClient, errors
@@ -116,14 +117,14 @@ class MigrationMongoInterface(MongoInterface):
             fo = self.get_firmware(uid, analysis_filter=analysis_filter)
         return fo
 
-    def get_firmware(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[Firmware]:
+    def get_firmware(self, uid: str, analysis_filter: list[str] | None = None) -> Firmware | None:
         firmware_entry = self.firmwares.find_one(uid)
         if firmware_entry:
             return self._convert_to_firmware(firmware_entry, analysis_filter=analysis_filter)
         logging.debug(f'No firmware with UID {uid} found.')
         return None
 
-    def _convert_to_firmware(self, entry: dict, analysis_filter: List[str] = None) -> Firmware:
+    def _convert_to_firmware(self, entry: dict, analysis_filter: list[str] = None) -> Firmware:
         firmware = Firmware()
         firmware.uid = entry['_id']
         firmware.size = entry['size']
@@ -144,14 +145,14 @@ class MigrationMongoInterface(MongoInterface):
         firmware.comments = entry.get('comments', [])
         return firmware
 
-    def get_file_object(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[FileObject]:
+    def get_file_object(self, uid: str, analysis_filter: list[str] | None = None) -> FileObject | None:
         file_entry = self.file_objects.find_one(uid)
         if file_entry:
             return self._convert_to_file_object(file_entry, analysis_filter=analysis_filter)
         logging.debug(f'No FileObject with UID {uid} found.')
         return None
 
-    def _convert_to_file_object(self, entry: dict, analysis_filter: Optional[List[str]] = None) -> FileObject:
+    def _convert_to_file_object(self, entry: dict, analysis_filter: list[str] | None = None) -> FileObject:
         file_object = FileObject()
         file_object.uid = entry['_id']
         file_object.size = entry['size']
@@ -167,7 +168,7 @@ class MigrationMongoInterface(MongoInterface):
         file_object.comments = entry.get('comments', [])
         return file_object
 
-    def retrieve_analysis(self, sanitized_dict: dict, analysis_filter: Optional[List[str]] = None) -> dict:
+    def retrieve_analysis(self, sanitized_dict: dict, analysis_filter: list[str] | None = None) -> dict:
         """
         retrieves analysis including sanitized entries
         :param sanitized_dict: processed analysis dictionary including references to sanitized entries
@@ -345,7 +346,7 @@ class DbMigrator:
         self.progress.remove_task(task)
         return migrated_fw_count
 
-    def _migrate_single_object(self, firmware_object: Union[Firmware, FileObject], parent_uid: str, root_uid: str):
+    def _migrate_single_object(self, firmware_object: Firmware | FileObject, parent_uid: str, root_uid: str):
         firmware_object.parents = [parent_uid]
         firmware_object.parent_firmware_uids = [root_uid]
         for plugin, plugin_data in firmware_object.processed_analysis.items():

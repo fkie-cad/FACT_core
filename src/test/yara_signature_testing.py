@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List
 
 from common_helper_yara import compile_rules, get_all_matched_strings, scan
 
@@ -43,7 +44,7 @@ class SignatureTestingMeta:
             self.check_meta_fields_of_rule(rule)
 
     @staticmethod
-    def _split_rules(raw_rules: str) -> List[str]:
+    def _split_rules(raw_rules: str) -> list[str]:
         rule_lines = raw_rules.splitlines()
         rule_start_indices = [i for i in range(len(rule_lines)) if rule_lines[i].startswith('rule ')]
         rules = [

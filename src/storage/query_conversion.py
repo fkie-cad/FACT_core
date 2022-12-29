@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from json import dumps
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any
 
 from sqlalchemy import func, or_, select, type_coerce
 from sqlalchemy.dialects.postgresql import JSONB
@@ -52,7 +54,7 @@ def query_parent_firmware(search_dict: dict, inverted: bool, count: bool = False
 
 def build_query_from_dict(
     query_dict: dict,
-    query: Optional[Select] = None,  # pylint: disable=too-complex, too-many-branches
+    query: Select | None = None,  # pylint: disable=too-complex, too-many-branches
     fw_only: bool = False,
     or_query: bool = False,
 ) -> Select:
@@ -107,7 +109,7 @@ def build_query_from_dict(
     return query.distinct()
 
 
-def get_search_keys_from_dict(query_dict: dict, table, blacklist: List[str] = None) -> Dict[str, Any]:
+def get_search_keys_from_dict(query_dict: dict, table, blacklist: list[str] = None) -> dict[str, Any]:
     return {key: value for key, value in query_dict.items() if key not in (blacklist or []) and hasattr(table, key)}
 
 
@@ -131,7 +133,7 @@ def _dict_key_to_filter(column, key: str, value: Any):  # pylint: disable=too-co
     raise QueryConversionException(f'Search options currently unsupported: {value}')
 
 
-def _get_column(key: str, table: Union[Type[FirmwareEntry], Type[FileObjectEntry], Type[AnalysisEntry]]):
+def _get_column(key: str, table: type[FirmwareEntry] | type[FileObjectEntry] | type[AnalysisEntry]):
     column = getattr(table, key)
     if key == 'release_date':  # special case: Date column -> convert to string
         return func.to_char(column, 'YYYY-MM-DD')

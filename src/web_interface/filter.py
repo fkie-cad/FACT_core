@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import binascii
 import json
 import logging
@@ -8,9 +10,9 @@ from base64 import b64decode, standard_b64encode
 from collections import defaultdict
 from datetime import timedelta
 from operator import itemgetter
+from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import Dict, List, Match, Optional, Tuple, Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -344,7 +346,7 @@ def decompress(string: str) -> str:
         return string
 
 
-def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
+def get_unique_keys_from_list_of_dicts(list_of_dicts: list[dict]):
     unique_keys = set()
     for dictionary in list_of_dicts:
         for key in dictionary:
@@ -352,7 +354,7 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
     return unique_keys
 
 
-def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List[str]] = None) -> bool:
+def is_not_mandatory_analysis_entry(item: str, additional_entries: list[str] | None = None) -> bool:
     return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags'] and (
         additional_entries is None or item not in additional_entries
     )
@@ -379,7 +381,7 @@ def format_duration(duration: float) -> str:
     return str(timedelta(seconds=duration))
 
 
-def render_query_title(query_title: Union[None, str, dict]):
+def render_query_title(query_title: None | str | dict):
     if query_title is None:
         return None
     if isinstance(query_title, dict):
@@ -403,11 +405,11 @@ def _link_to_cwe(match: Match) -> str:
     return f'<a href="https://cwe.mitre.org/data/definitions/{match.group(1)}.html">{match.group(0)}</a>'
 
 
-def sort_cve_results(cve_result: Dict[str, Dict[str, str]]) -> List[Tuple[str, Dict[str, str]]]:
+def sort_cve_results(cve_result: dict[str, dict[str, str]]) -> list[tuple[str, dict[str, str]]]:
     return sorted(cve_result.items(), key=lambda item: item[1]['score2'], reverse=True)
 
 
-def linter_reformat_issues(issues) -> Dict[str, List[Dict[str, str]]]:
+def linter_reformat_issues(issues) -> dict[str, list[dict[str, str]]]:
     reformatted = defaultdict(lambda: [], {})
     for issue in issues:
         symbol = issue['symbol']

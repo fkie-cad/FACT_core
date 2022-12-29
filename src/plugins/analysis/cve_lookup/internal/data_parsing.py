@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import json
 import sys
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from typing import List, Optional, Tuple
 from xml.etree.ElementTree import ParseError, parse
 from zipfile import BadZipFile, ZipFile
 
@@ -22,7 +23,7 @@ CPE_URL = f'https://nvd.nist.gov/feeds/xml/cpe/dictionary/{CPE_FILE}.zip'
 CVE_URL = 'https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-{}.json.zip'
 
 
-def get_cve_links(url: str, selected_years: Optional[List[int]] = None) -> List[str]:
+def get_cve_links(url: str, selected_years: list[int] | None = None) -> list[str]:
     if selected_years is None:
         selected_years = range(2002, datetime.today().year + 1)
     return [url.format(year) for year in selected_years]
@@ -45,7 +46,7 @@ def _retrieve_url(download_url):
     return requests.get(download_url, allow_redirects=True)
 
 
-def download_cve(download_path: str, years: Optional[List[int]] = None, update: bool = False):
+def download_cve(download_path: str, years: list[int] | None = None, update: bool = False):
     if update:
         process_url(CVE_URL.format('modified'), download_path)
     else:
@@ -62,7 +63,7 @@ def download_cpe(download_path: str):
     process_url(CPE_URL, download_path)
 
 
-def extract_cpe_data_from_cve(nodes: List[dict]) -> List[Tuple[str, str, str, str, str]]:
+def extract_cpe_data_from_cve(nodes: list[dict]) -> list[tuple[str, str, str, str, str]]:
     cpe_entries = []
     for dicts in nodes:
         if 'cpe_match' in dicts.keys():
@@ -94,7 +95,7 @@ def extract_cve_impact(entry: dict) -> dict:
     return impact
 
 
-def extract_data_from_cve(root: dict) -> Tuple[List[CveEntry], List[CveSummaryEntry]]:
+def extract_data_from_cve(root: dict) -> tuple[list[CveEntry], list[CveSummaryEntry]]:
     cve_list, summary_list = [], []
     for feed in root['CVE_Items']:
         cve_id = feed['cve']['CVE_data_meta']['ID']
@@ -108,7 +109,7 @@ def extract_data_from_cve(root: dict) -> Tuple[List[CveEntry], List[CveSummaryEn
     return cve_list, summary_list
 
 
-def extract_cve(cve_file: str) -> Tuple[List[CveEntry], List[CveSummaryEntry]]:
+def extract_cve(cve_file: str) -> tuple[list[CveEntry], list[CveSummaryEntry]]:
     return extract_data_from_cve(json.loads(Path(cve_file).read_text()))
 
 

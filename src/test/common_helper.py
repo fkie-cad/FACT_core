@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # pylint: disable=no-self-use,unused-argument
 import grp
 import os
@@ -5,7 +7,6 @@ from base64 import standard_b64encode
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
-from typing import List, Optional, Union
 
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
@@ -309,7 +310,7 @@ def get_firmware_for_rest_upload_test():
     return data
 
 
-def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Firmware]):
+def store_binary_on_file_system(tmp_dir: str, test_object: FileObject | Firmware):
     binary_dir = Path(tmp_dir) / test_object.uid[:2]
     binary_dir.mkdir(parents=True)
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
@@ -327,9 +328,9 @@ def clear_test_tables(db_setup):
 def generate_analysis_entry(
     plugin_version: str = '1.0',
     analysis_date: float = 0.0,
-    summary: Optional[List[str]] = None,
-    tags: Optional[dict] = None,
-    analysis_result: Optional[dict] = None,
+    summary: list[str] | None = None,
+    tags: dict | None = None,
+    analysis_result: dict | None = None,
 ):
     return {
         'plugin_version': plugin_version,

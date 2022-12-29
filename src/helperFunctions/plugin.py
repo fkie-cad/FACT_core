@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import List
 
 from common_helper_files import get_dirs_in_dir
 from pluginbase import PluginBase
@@ -21,7 +22,7 @@ def import_plugins(plugin_mount, plugin_base_dir):
     return plugin_base.make_plugin_source(searchpath=plugin_src_dirs)
 
 
-def _get_plugin_src_dirs(base_dir: str) -> List[str]:
+def _get_plugin_src_dirs(base_dir: str) -> list[str]:
     '''
     Returns a list of all plugin code directories.
     E.g. if base_dir contains the qemu_exec plugin it would return

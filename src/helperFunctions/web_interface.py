@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import re
 from datetime import timedelta
-from typing import List, Optional
 
 from common_helper_files import get_binary_from_file
 from matplotlib import cm, colors
@@ -17,7 +18,7 @@ SPECIAL_CHARACTERS = (
 )
 
 
-def get_color_list(number: int, limit: int = 10) -> List[str]:
+def get_color_list(number: int, limit: int = 10) -> list[str]:
     '''
     Get a list of (different) color values as a hexadecimal string compatible to HTML (e.g. ``#00ff00`` for green).
 
@@ -30,7 +31,7 @@ def get_color_list(number: int, limit: int = 10) -> List[str]:
     return color_list[: min(number, limit)]
 
 
-def get_alternating_color_list(number: int, limit: int = 10) -> List[str]:
+def get_alternating_color_list(number: int, limit: int = 10) -> list[str]:
     '''
     Get a list of alternating color values (beginning with blue and alternating with yellow) as a hexadecimal string
     compatible to HTML.
@@ -61,7 +62,7 @@ def apply_filters_to_query(request, query: str) -> dict:
     return query_dict
 
 
-def filter_out_illegal_characters(string: Optional[str]) -> Optional[str]:
+def filter_out_illegal_characters(string: str | None) -> str | None:
     '''
     Filter out any illegal characters from a given string.
 

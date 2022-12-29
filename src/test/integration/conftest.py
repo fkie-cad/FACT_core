@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 import pytest
 from pydantic import BaseModel, Extra
@@ -139,7 +139,7 @@ class MockIntercom:
     def __init__(self):
         self.deleted_files = []
 
-    def delete_file(self, uid_list: List[str]):
+    def delete_file(self, uid_list: list[str]):
         self.deleted_files.extend(uid_list)
 
 

@@ -1,10 +1,13 @@
-from typing import Iterable, Iterator, List, Tuple, TypeVar
+from __future__ import annotations
+
+from collections.abc import Iterable, Iterator
+from typing import TypeVar
 
 # Generics (not intended for export)
 _T = TypeVar('_T')
 
 
-def _remove_duplicates_from_unhashable(unhashable_list: List[_T]) -> List[_T]:
+def _remove_duplicates_from_unhashable(unhashable_list: list[_T]) -> list[_T]:
     '''
     Remove duplicates from a list of unhashable objects (meaning converting to a set and back won't work).
 
@@ -18,7 +21,7 @@ def _remove_duplicates_from_unhashable(unhashable_list: List[_T]) -> List[_T]:
     return result
 
 
-def remove_duplicates_from_list(list_: List[_T]) -> List[_T]:
+def remove_duplicates_from_list(list_: list[_T]) -> list[_T]:
     '''
     Remove duplicates from a list.
 
@@ -31,7 +34,7 @@ def remove_duplicates_from_list(list_: List[_T]) -> List[_T]:
         return _remove_duplicates_from_unhashable(list_)
 
 
-def substring_is_in_list(string: str, substring_list: List[str]) -> bool:
+def substring_is_in_list(string: str, substring_list: list[str]) -> bool:
     '''
     Check if any element in a list of strings is a substring of the provided string.
 
@@ -42,7 +45,7 @@ def substring_is_in_list(string: str, substring_list: List[str]) -> bool:
     return any(substring in string for substring in substring_list)
 
 
-def iter_element_and_rest(iterable: Iterable[_T]) -> Iterator[Tuple[_T, Iterable[_T]]]:
+def iter_element_and_rest(iterable: Iterable[_T]) -> Iterator[tuple[_T, Iterable[_T]]]:
     '''
     Iterate over each element of an iterable object (e.g. a list) and also get all other (remaining) elements
     from the object.
