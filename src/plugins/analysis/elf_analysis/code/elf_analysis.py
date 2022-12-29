@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import re
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import List, Optional
 
 import lief
 
@@ -151,7 +152,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     entry[key] = hex(entry[key])
 
     @staticmethod
-    def filter_modinfo(binary) -> Optional[List[str]]:
+    def filter_modinfo(binary) -> list[str] | None:
         # getting the information from the *.ko files .modinfo section
         modinfo = None
         for section in binary.sections:

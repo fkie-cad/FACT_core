@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -8,7 +8,7 @@ from storage.schema import Base
 
 
 class DbConnection:
-    def __init__(self, user: str = None, password: str = None, db_name: Optional[str] = None, **kwargs):
+    def __init__(self, user: str = None, password: str = None, db_name: str | None = None, **kwargs):
         self.base = Base
 
         address = cfg.data_storage.postgres_server

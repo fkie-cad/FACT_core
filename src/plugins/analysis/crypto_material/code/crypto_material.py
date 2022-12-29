@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import logging
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, List, NamedTuple, Optional
+from typing import NamedTuple
 
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.tag import TagColor
@@ -67,7 +70,7 @@ class AnalysisPlugin(YaraBasePlugin):
                 analysis_result[matching_rule] = {'material': crypto_items, 'count': len(crypto_items)}
         return analysis_result
 
-    def _get_parsing_function(self, match: str) -> Optional[Callable]:
+    def _get_parsing_function(self, match: str) -> Callable | None:
         if match in self.STARTEND:
             return self.extract_labeled_keys
         if match in self.STARTONLY:
@@ -81,7 +84,7 @@ class AnalysisPlugin(YaraBasePlugin):
         logging.warning(f'Unknown crypto rule match: {match}')
         return None
 
-    def extract_labeled_keys(self, matches: List[Match], binary, min_key_len=128) -> List[str]:
+    def extract_labeled_keys(self, matches: list[Match], binary, min_key_len=128) -> list[str]:
         return [
             binary[start:end].decode(encoding='utf_8', errors='replace')
             for start, end in self.get_offset_pairs(matches)
@@ -89,11 +92,11 @@ class AnalysisPlugin(YaraBasePlugin):
         ]
 
     @staticmethod
-    def extract_start_only_key(matches: List[Match], **_) -> List[str]:
+    def extract_start_only_key(matches: list[Match], **_) -> list[str]:
         return [match.matched_string for match in matches if match.label == '$start_string']
 
     @staticmethod
-    def get_pkcs8_key(matches: List[Match], binary=None) -> List[str]:
+    def get_pkcs8_key(matches: list[Match], binary=None) -> list[str]:
         keys = []
         for match in matches:
             key = read_asn1_key(binary=binary, offset=match.offset)
@@ -102,7 +105,7 @@ class AnalysisPlugin(YaraBasePlugin):
         return keys
 
     @staticmethod
-    def get_pkcs12_cert(matches: List[Match], binary=None) -> List[str]:
+    def get_pkcs12_cert(matches: list[Match], binary=None) -> list[str]:
         keys = []
         for match in matches:
             text_cert = read_pkcs_cert(binary=binary, offset=match.offset)
@@ -110,7 +113,7 @@ class AnalysisPlugin(YaraBasePlugin):
                 keys.append(text_cert)
         return keys
 
-    def get_ssl_cert(self, matches: List[Match], binary=None) -> List[str]:
+    def get_ssl_cert(self, matches: list[Match], binary=None) -> list[str]:
         contents = []
         for pair in self.get_offset_pairs(matches):
             start_index, end_index = pair
@@ -120,7 +123,7 @@ class AnalysisPlugin(YaraBasePlugin):
         return contents
 
     @staticmethod
-    def get_offset_pairs(matches: List[Match]):
+    def get_offset_pairs(matches: list[Match]):
         pairs = []
         for index in range(len(matches) - 1):
             if _is_consecutive_key_block(matches, index):
@@ -142,11 +145,11 @@ class AnalysisPlugin(YaraBasePlugin):
             )
 
 
-def _is_consecutive_key_block(matches: List[Match], index: int) -> bool:
+def _is_consecutive_key_block(matches: list[Match], index: int) -> bool:
     return matches[index].label == '$start_string' and matches[index + 1].label == '$end_string'
 
 
-def _is_consecutive_pgp_block(matches: List[Match], index: int) -> bool:
+def _is_consecutive_pgp_block(matches: list[Match], index: int) -> bool:
     return (
         matches[index].label == '$start_string'
         and matches[index + 1].label == '$gnupg_version_string'
@@ -155,7 +158,7 @@ def _is_consecutive_pgp_block(matches: List[Match], index: int) -> bool:
     )
 
 
-def _is_consecutive_encrypted_key(matches: List[Match], index: int) -> bool:
+def _is_consecutive_encrypted_key(matches: list[Match], index: int) -> bool:
     return (
         len(matches) > index + 3
         and matches[index].label == '$start_string'

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from os.path import normpath
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Optional
+from typing import NamedTuple
 
 from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import get_color_list
@@ -9,13 +11,13 @@ from helperFunctions.web_interface import get_color_list
 class DepGraphData(NamedTuple):
     uid: str
     file_name: str
-    virtual_file_paths: Dict[str, List[str]]
+    virtual_file_paths: dict[str, list[str]]
     mime: str
     full_type: str
-    libraries: Optional[List[str]] = None
+    libraries: list[str] | None = None
 
 
-def create_data_graph_nodes_and_groups(dependency_data: List[DepGraphData], parent_uid, root_uid, whitelist):
+def create_data_graph_nodes_and_groups(dependency_data: list[DepGraphData], parent_uid, root_uid, whitelist):
     data_graph = {'nodes': [], 'edges': []}
     groups = set()
 

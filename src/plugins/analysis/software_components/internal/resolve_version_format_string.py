@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import json
 import logging
 import re
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List
 
 from docker.errors import DockerException
 from docker.types import Mount
@@ -18,7 +19,7 @@ TIMEOUT = 300
 KEY_FILE = 'key_file'
 
 
-def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str], path: str) -> List[str]:
+def extract_data_from_ghidra(input_file_data: bytes, key_strings: list[str], path: str) -> list[str]:
     with TemporaryDirectory(prefix='FSR_', dir=path) as tmp_dir:
         tmp_dir_path = Path(tmp_dir)
         ghidra_input_file = tmp_dir_path / 'ghidra_input'
@@ -43,5 +44,5 @@ def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str], pat
             return []
 
 
-def filter_implausible_results(version_list: List[str]):
+def filter_implausible_results(version_list: list[str]):
     return [version for version in version_list if re.search(r'\d\.\d', version)]

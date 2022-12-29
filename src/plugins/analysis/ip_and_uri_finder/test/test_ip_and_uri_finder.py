@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # pylint: disable=protected-access
 import tempfile
 from collections import namedtuple
@@ -61,24 +63,20 @@ class TestAnalysisPluginIpAndUriFinder:
             processed_object = ip_and_uri_finder_plugin.process_object(tmp_fo)
             results = processed_object.processed_analysis[ip_and_uri_finder_plugin.NAME]
         assert results['uris'] == []
-        assert set(
-            [
-                ('1.2.3.4', '47.913, -122.3042'),
-                ('1.1.1.123', '-37.7, 145.1833'),
-            ]
-        ) == set(results['ips_v4'])
+        assert {
+            ('1.2.3.4', '47.913, -122.3042'),
+            ('1.1.1.123', '-37.7, 145.1833'),
+        } == set(results['ips_v4'])
         assert len(
             [
                 ('1.2.3.4', '47.913, -122.3042'),
                 ('1.1.1.123', '-37.7, 145.1833'),
             ]
         ) == len(results['ips_v4'])
-        assert set(
-            [
-                ('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'),
-                ('2001:db8:0:0:8d3::', '3.1, 3.1'),
-            ]
-        ) == set(results['ips_v6'])
+        assert {
+            ('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'),
+            ('2001:db8:0:0:8d3::', '3.1, 3.1'),
+        } == set(results['ips_v6'])
         assert len(
             [
                 ('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'),
@@ -96,14 +94,12 @@ class TestAnalysisPluginIpAndUriFinder:
             tmp_fo = FileObject(file_path=tmp.name)
             processed_object = ip_and_uri_finder_plugin.process_object(tmp_fo)
             results = processed_object.processed_analysis[ip_and_uri_finder_plugin.NAME]
-        assert set(
-            [
-                'http://www.google.de',
-                'https://www.test.de/test/',
-                'ftp://ftp.is.co.za/rfc/rfc1808.txt',
-                'telnet://192.0.2.16:80/',
-            ]
-        ) == set(results['uris'])
+        assert {
+            'http://www.google.de',
+            'https://www.test.de/test/',
+            'ftp://ftp.is.co.za/rfc/rfc1808.txt',
+            'telnet://192.0.2.16:80/',
+        } == set(results['uris'])
         assert len(
             [
                 'http://www.google.de',

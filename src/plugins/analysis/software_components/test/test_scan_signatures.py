@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from tempfile import NamedTemporaryFile
 
@@ -17,7 +19,7 @@ def test_extract_names():
 
     extract_names(TEST_SIGNATURE_FILE, target_file.name)
 
-    with open(target_file.name, 'r') as fd:
+    with open(target_file.name) as fd:
         data = fd.read()
 
     assert data == 'OS_LIST = ["OS1", "OS2"]\n'

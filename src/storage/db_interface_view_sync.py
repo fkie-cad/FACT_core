@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import Optional
 
 from storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
 from storage.schema import WebInterfaceTemplateEntry
@@ -18,7 +19,7 @@ class ViewUpdater(ReadWriteDbInterface):
 
 
 class ViewReader(ReadOnlyDbInterface):
-    def get_view(self, plugin_name: str) -> Optional[bytes]:
+    def get_view(self, plugin_name: str) -> bytes | None:
         with self.get_read_only_session() as session:
             entry = session.get(WebInterfaceTemplateEntry, plugin_name)
             if entry is None:

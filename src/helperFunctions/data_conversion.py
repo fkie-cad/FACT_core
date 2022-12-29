@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import datetime
-from typing import Any, AnyStr, Dict, Iterable, List, Optional, TypeVar, Union
+from collections.abc import Iterable
+from typing import Any, AnyStr, TypeVar
 
 _KT = TypeVar('_KT')  # Key type
 _VT = TypeVar('_VT')  # Value type
 
 
-def make_bytes(data: Union[AnyStr, List[int]]) -> bytes:
+def make_bytes(data: AnyStr | list[int]) -> bytes:
     '''
     Convert `data` into bytes (if necessary).
 
@@ -41,7 +44,7 @@ def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
     return ';'.join(sorted(uid_list))
 
 
-def convert_compare_id_to_list(compare_id: str) -> List[str]:
+def convert_compare_id_to_list(compare_id: str) -> list[str]:
     '''
     Convert a compare ID back to a list of UIDs.
 
@@ -62,7 +65,7 @@ def normalize_compare_id(compare_id: str) -> str:
     return convert_uid_list_to_compare_id(uids)
 
 
-def get_value_of_first_key(input_dict: Dict[_KT, _VT]) -> Optional[_VT]:
+def get_value_of_first_key(input_dict: dict[_KT, _VT]) -> _VT | None:
     '''
     Get the value of the first key in a dictionary. If the dict is empty, return `None`.
 
@@ -72,7 +75,7 @@ def get_value_of_first_key(input_dict: Dict[_KT, _VT]) -> Optional[_VT]:
     return input_dict[sorted(input_dict.keys())[0]] if input_dict else None
 
 
-def none_to_none(input_data: Optional[str]) -> Optional[str]:
+def none_to_none(input_data: str | None) -> str | None:
     '''
     Convert a string to `None` if it consists of the word `"None"` or return the input data otherwise.
     Used to convert a string coming from the web interface to a NoneType object if necessary.

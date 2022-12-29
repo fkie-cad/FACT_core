@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
-from typing import Optional
 
 from helperFunctions.install import (
     check_distribution,
@@ -29,7 +30,7 @@ class AbstractPluginInstaller:
     #: Must be overwritten by a class variable of a child class
     base_path = None
 
-    def __init__(self, distribution: Optional[str] = None, skip_docker: bool = _skip_docker_env):
+    def __init__(self, distribution: str | None = None, skip_docker: bool = _skip_docker_env):
         self.distribution = distribution or check_distribution()
         self.build_path = self.base_path / 'build'
         self.skip_docker = skip_docker
@@ -103,7 +104,7 @@ class AbstractPluginInstaller:
         manager
         '''
 
-    def _build_docker_image(self, tag: str, dockerfile_path: Optional[Path] = None):
+    def _build_docker_image(self, tag: str, dockerfile_path: Path | None = None):
         if not dockerfile_path:
             dockerfile_path = self.base_path / 'docker'
         run_cmd_with_logging(f'docker build -t {tag} {dockerfile_path}')

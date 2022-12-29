@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from __future__ import annotations
 
 from helperFunctions.hash import get_md5
 from helperFunctions.tag import TagColor
@@ -55,24 +55,24 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         #: Can be freely defined during upload.
         #:
         #: This attribute is **mandatory** and shall never be `None`.
-        self.device_name: Optional[str] = None
+        self.device_name: str | None = None
 
         #: Firmware version string identifier.
         #: Can be freely defined during upload.
         #:
         #: This attribute is **mandatory** and shall never be `None`.
-        self.version: Optional[str] = None
+        self.version: str | None = None
 
         #: Device class string identifier.
         #: Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.
         #: FACT requires a user to categorize analyzed firmware images by this attribute.
         #: While this attribute is **mandatory**, it can be freely defined during upload.
-        self.device_class: Optional[str] = None
+        self.device_class: str | None = None
 
         #: Device vendor string identifier.
         #:
         #: This attribute is **mandatory** and shall never be `None`.
-        self.vendor: Optional[str] = None
+        self.vendor: str | None = None
 
         #: Specifies the parts of an embedded system that are contained in this firmware.
         #: While this meta data string can be freely defined during firmware upload,
@@ -84,13 +84,13 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ `YYYY-MM-DD` format.
         #:
         #: This attribute is **optional**. The release date is assumed to be the start of UNIX epoch time (`1970-01-01`) if not specificed.
-        self.release_date: Optional[str] = None
+        self.release_date: str | None = None
 
         #: User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {'tag': :class:`helperFunctions.tag.TagColor`} dictionary.
         #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
         #:
         #: This attribute is **optional**, the dict may be empty.
-        self.tags: Dict[str, TagColor] = {}
+        self.tags: dict[str, TagColor] = {}
 
         self._update_root_id_and_virtual_path()
 
@@ -130,7 +130,7 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         '''
         self.tags[tag] = TagColor.GRAY
 
-    def get_hid(self, root_uid: Optional[str] = None) -> str:
+    def get_hid(self, root_uid: str | None = None) -> str:
         '''
         See :meth:`objects.file.FileObject.get_hid`.
         '''

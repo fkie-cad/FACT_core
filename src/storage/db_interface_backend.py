@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import List
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -42,13 +43,13 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             session.add_all([fo_entry, *analyses])
 
     def _update_parents(
-        self, root_fw_uids: List[str], parent_uids: List[str], fo_entry: FileObjectEntry, session: Session
+        self, root_fw_uids: list[str], parent_uids: list[str], fo_entry: FileObjectEntry, session: Session
     ):
         self._update_entries(session, fo_entry.root_firmware, root_fw_uids, 'root')
         self._update_entries(session, fo_entry.parent_files, parent_uids, 'parent')
 
     @staticmethod
-    def _update_entries(session: Session, db_column, uid_list: List[str], label: str):
+    def _update_entries(session: Session, db_column, uid_list: list[str], label: str):
         entry_list = [session.get(FileObjectEntry, uid) for uid in uid_list]
         if entry_list and not any(entry_list):  # => all None
             raise DbInterfaceError(f'Trying to add object but no {label} object was found in DB: {uid_list}')

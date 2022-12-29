@@ -1,6 +1,8 @@
+from __future__ import annotations
+
+from collections.abc import Sized
 from pathlib import Path
 from time import time
-from typing import Dict, Sized
 
 from flask import redirect, render_template, request, url_for
 from flask_security import login_required
@@ -94,7 +96,7 @@ class MiscellaneousRoutes(ComponentBase):
         }
 
     @staticmethod
-    def _count_values(dictionary: Dict[str, Sized]) -> int:
+    def _count_values(dictionary: dict[str, Sized]) -> int:
         return sum(len(e) for e in dictionary.values())
 
     def _find_failed_analyses(self):
