@@ -10,7 +10,7 @@ TEST_FILE_DIR = Path(__file__).parent / 'data'
 
 
 @pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
-class AnalysisPluginTestInputVectors:
+class TestAnalysisPluginInputVectors:
     def test_process_object_inputs(self, analysis_plugin):
         result = self.assert_process_object(analysis_plugin, 'test_fgets.elf')
         assert 'file' in result['full']['inputs']
