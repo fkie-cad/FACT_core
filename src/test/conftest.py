@@ -185,10 +185,9 @@ def database_interfaces(
     try:
         yield _database_interfaces
     finally:
-        with _database_interfaces.admin.get_read_write_session() as session:
-            # clear rows from test db between tests
-            for table in reversed(_database_interfaces.admin.connection.base.metadata.sorted_tables):
-                session.execute(table.delete())
+        # clear rows from test db between tests
+        _database_interfaces.admin.connection.base.metadata.drop_all(bind=_database_interfaces.admin.connection.engine)
+        _database_interfaces.admin.connection.base.metadata.create_all(bind=_database_interfaces.admin.connection.engine)
         # clean intercom mock
         if hasattr(_database_interfaces.admin.intercom, 'deleted_files'):
             _database_interfaces.admin.intercom.deleted_files.clear()
