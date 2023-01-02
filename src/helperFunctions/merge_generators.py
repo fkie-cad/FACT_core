@@ -1,17 +1,7 @@
 from random import sample, seed
-from typing import Sequence, TypeVar
+from typing import Sequence
 
 seed()
-T = TypeVar('T')  # pylint: disable=invalid-name
-
-
-def _add_nested_list_to_dict(input_list, input_dict):
-    for item in input_list:
-        if item[0][0] in input_dict.keys():
-            input_dict[item[0][0]] += item[1]
-        else:
-            input_dict[item[0][0]] = item[1]
-    return input_dict
 
 
 def avg(seq: Sequence[float]) -> float:

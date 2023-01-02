@@ -232,28 +232,6 @@ def test_get_summary_fo(db):
     assert child_fo.uid in summary['file exclusive sum b'], 'child summary should be included'
 
 
-def test_get_summary_of_one_error_handling(db):
-    fo, fw = create_fw_with_child_fo()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
-
-    result_sum = db.common._get_summary_of_one(None, 'foo')
-    assert result_sum == {}, 'None object should result in empty dict'
-    result_sum = db.common._get_summary_of_one(fw, 'non_existing_analysis')
-    assert result_sum == {}, 'analysis non-existent should lead to empty dict'
-
-
-def test_update_summary(db):
-    orig = {'a': ['a']}
-    update = {'a': ['aa'], 'b': ['aa']}
-    db.common._update_summary(orig, update)
-    assert 'a' in orig
-    assert 'b' in orig
-    assert 'a' in orig['a']
-    assert 'aa' in orig['a']
-    assert 'aa' in orig['b']
-
-
 def test_collect_child_tags_propagate(db):
     fo, fw = create_fw_with_child_fo()
     tag = {'OS Version': {'color': 'success', 'value': 'FactOS', 'propagate': True}}
