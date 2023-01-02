@@ -177,23 +177,6 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                     summary.setdefault(item, []).append(uid)
         return summary
 
-    @staticmethod
-    def _update_summary(original_dict: Summary, update_dict: Summary):
-        for item in update_dict:
-            original_dict.setdefault(item, []).extend(update_dict[item])
-
-    @staticmethod
-    def _get_summary_of_one(file_object: FileObject | None, selected_analysis: str) -> Summary:
-        summary = {}
-        if file_object is None:
-            return summary
-        try:
-            for item in file_object.processed_analysis[selected_analysis].get('summary') or []:
-                summary[item] = [file_object.uid]
-        except KeyError as err:
-            logging.warning(f'Could not get summary: {err}', exc_info=True)
-        return summary
-
     # ===== tags =====
 
     def _collect_analysis_tags_from_children(self, uid: str) -> dict:
