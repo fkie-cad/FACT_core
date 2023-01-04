@@ -8,7 +8,7 @@ from web_interface.file_tree.file_tree import (
     _get_partial_virtual_paths,
     _get_vpath_relative_to,
     _root_is_virtual,
-    get_correct_icon_for_mime,
+    get_icon_for_file,
     remove_virtual_path_from_root,
 )
 from web_interface.file_tree.file_tree_node import FileTreeNode
@@ -33,22 +33,26 @@ VIRTUAL_TREE_ROOT = {
 
 
 @pytest.mark.parametrize(
-    'mime_type, icon',
+    'mime_type, filename, icon',
     [
-        ('application/zip', '/static/file_icons/archive.png'),
-        ('filesystem/some_filesystem', '/static/file_icons/filesystem.png'),
-        ('application/x-executable', '/static/file_icons/binary.png'),
-        ('inode/symlink', '/static/file_icons/link.png'),
-        ('text/html', '/static/file_icons/html.png'),
-        ('firmware/generic', '/static/file_icons/firmware.png'),
-        ('text/plain', '/static/file_icons/text.png'),
-        ('image/png', '/static/file_icons/image.png'),
-        ('audio/mpeg', '/static/file_icons/multimedia.png'),
-        ('some unknown mime type', '/static/file_icons/unknown.png'),
+        ('application/zip', '', '/static/file_icons/mime/application-zip.png'),
+        ('filesystem/some_filesystem', '', '/static/file_icons/mime/file_system.png'),
+        ('application/x-executable', '', '/static/file_icons/mime/application-x-executable.png'),
+        ('inode/symlink', '', '/static/file_icons/mime/inode-symlink.png'),
+        ('text/html', '', '/static/file_icons/mime/text-html.png'),
+        ('text/foobar', '', '/static/file_icons/mime/txt.png'),
+        ('firmware/generic', '', '/static/file_icons/mime/application-x-firmware.png'),
+        ('text/plain', '', '/static/file_icons/mime/text-plain.png'),
+        ('image/png', '', '/static/file_icons/mime/image-png.png'),
+        ('image/foobar', '', '/static/file_icons/mime/image.png'),
+        ('audio/mpeg', '', '/static/file_icons/mime/audio-mpeg.png'),
+        ('audio/foobar', '', '/static/file_icons/mime/audio-x-generic.png'),
+        ('some unknown mime type', '', '/static/file_icons/mime/unknown.png'),
+        ('some unknown mime type', 'foo.sh', '/static/file_icons/mime/sh.png'),
     ],
 )
-def test_get_correct_icon_for_mime(mime_type, icon):
-    assert get_correct_icon_for_mime(mime_type) == icon
+def test_get_icon_for_file(mime_type, filename, icon):
+    assert get_icon_for_file(mime_type, filename) == icon
 
 
 class TestFileTree:  # pylint: disable=no-self-use

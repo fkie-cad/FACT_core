@@ -19,6 +19,8 @@ from helperFunctions.install import (
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
+MIME_ICON_DIR = INSTALL_DIR.parent / 'web_interface' / 'static' / 'file_icons'
+ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/elementary-xfce')
 
 
 def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
@@ -120,6 +122,26 @@ def _install_docker_images(radare):
         raise InstallationError(f'Failed to pull pdf report container:\n{docker_process.stdout}')
 
 
+def _copy_mime_icons():
+    # copy icons to the static folder so that they can be used by the web server
+    run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / "mimes/24"} {MIME_ICON_DIR / "mime"}')
+    run_cmd_with_logging(
+        f'cp -rL {ICON_THEME_INSTALL_PATH / "devices/24/drive-removable-media.png"} {MIME_ICON_DIR}/mime/file_system.png'
+    )
+    run_cmd_with_logging(
+        f'cp -rL {ICON_THEME_INSTALL_PATH / "apps/24/utilities-terminal.png"} {MIME_ICON_DIR}/mime/sh.png'
+    )
+    run_cmd_with_logging(
+        f'cp -rL {ICON_THEME_INSTALL_PATH / "devices/48/gnome-dev-symlink.png"} {MIME_ICON_DIR}/mime/inode-symlink.png'
+    )
+    run_cmd_with_logging(
+        f'cp -rL {ICON_THEME_INSTALL_PATH / "apps/24/application-default-icon.png"} {MIME_ICON_DIR}/mime/application-x-executable.png'
+    )
+    run_cmd_with_logging(
+        f'cp -rL {ICON_THEME_INSTALL_PATH / "status/24/network-wireless-encrypted.png"} {MIME_ICON_DIR}/mime/encrypted.png'
+    )
+
+
 def main(skip_docker, radare, nginx, distribution):
     if distribution != 'fedora':
         pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-frontend.txt')
@@ -134,7 +156,7 @@ def main(skip_docker, radare, nginx, distribution):
     install_pip_packages(PIP_DEPENDENCIES)
 
     # npm does not allow us to install packages to a specific directory
-    with OperateInDirectory("../../src/web_interface/static"):
+    with OperateInDirectory('../../src/web_interface/static'):
         # EBADENGINE can probably be ignored because we probably don't need node.
         run_cmd_with_logging('npm install --no-fund .')
 
@@ -146,6 +168,9 @@ def main(skip_docker, radare, nginx, distribution):
 
     if not skip_docker:
         _install_docker_images(radare)
+
+    if not (MIME_ICON_DIR / 'mime').is_dir():
+        _copy_mime_icons()
 
     with OperateInDirectory(INSTALL_DIR.parent.parent):
         with suppress(FileNotFoundError):
