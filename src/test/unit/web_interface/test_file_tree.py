@@ -36,7 +36,7 @@ VIRTUAL_TREE_ROOT = {
     'mime_type, filename, icon',
     [
         ('application/zip', '', '/static/file_icons/mime/application-zip.png'),
-        ('filesystem/some_filesystem', '', '/static/file_icons/mime/file_system.png'),
+        ('filesystem/some_filesystem', '', '/static/file_icons/filesystem.png'),
         ('application/x-executable', '', '/static/file_icons/mime/application-x-executable.png'),
         ('inode/symlink', '', '/static/file_icons/mime/inode-symlink.png'),
         ('text/html', '', '/static/file_icons/mime/text-html.png'),
@@ -44,11 +44,11 @@ VIRTUAL_TREE_ROOT = {
         ('firmware/generic', '', '/static/file_icons/mime/application-x-firmware.png'),
         ('text/plain', '', '/static/file_icons/mime/text-plain.png'),
         ('image/png', '', '/static/file_icons/mime/image-png.png'),
-        ('image/foobar', '', '/static/file_icons/mime/image.png'),
+        ('image/foobar', '', '/static/file_icons/mime/jpg.png'),
         ('audio/mpeg', '', '/static/file_icons/mime/audio-mpeg.png'),
         ('audio/foobar', '', '/static/file_icons/mime/audio-x-generic.png'),
         ('some unknown mime type', '', '/static/file_icons/mime/unknown.png'),
-        ('some unknown mime type', 'foo.sh', '/static/file_icons/mime/sh.png'),
+        ('some unknown mime type', 'foo.sh', '/static/file_icons/mime/application-x-shellscript.png'),
     ],
 )
 def test_get_icon_for_file(mime_type, filename, icon):
@@ -74,7 +74,7 @@ class TestFileTree:  # pylint: disable=no-self-use
         assert parent_node.get_names_of_children() == [child_node.name]
         assert not child_node.has_children
         assert child_node in parent_node
-        assert 'Node ' in parent_node.__repr__()
+        assert 'Node ' in repr(parent_node)
         assert parent_node != child_node
         assert parent_node.print_tree() is None
 

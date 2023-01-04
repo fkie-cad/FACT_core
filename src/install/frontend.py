@@ -123,23 +123,16 @@ def _install_docker_images(radare):
 
 
 def _copy_mime_icons():
-    # copy icons to the static folder so that they can be used by the web server
-    run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / "mimes/24"} {MIME_ICON_DIR / "mime"}')
-    run_cmd_with_logging(
-        f'cp -rL {ICON_THEME_INSTALL_PATH / "devices/24/drive-removable-media.png"} {MIME_ICON_DIR}/mime/file_system.png'
-    )
-    run_cmd_with_logging(
-        f'cp -rL {ICON_THEME_INSTALL_PATH / "apps/24/utilities-terminal.png"} {MIME_ICON_DIR}/mime/sh.png'
-    )
-    run_cmd_with_logging(
-        f'cp -rL {ICON_THEME_INSTALL_PATH / "devices/48/gnome-dev-symlink.png"} {MIME_ICON_DIR}/mime/inode-symlink.png'
-    )
-    run_cmd_with_logging(
-        f'cp -rL {ICON_THEME_INSTALL_PATH / "apps/24/application-default-icon.png"} {MIME_ICON_DIR}/mime/application-x-executable.png'
-    )
-    run_cmd_with_logging(
-        f'cp -rL {ICON_THEME_INSTALL_PATH / "status/24/network-wireless-encrypted.png"} {MIME_ICON_DIR}/mime/encrypted.png'
-    )
+    # copy mime icons to the static folder so that they can be used by the web server
+    for source, target in [
+        ('mimes/24', 'mime'),
+        ('apps/24/utilities-terminal.png', 'mime/application-x-shellscript.png'),
+        ('devices/48/gnome-dev-symlink.png', 'mime/inode-symlink.png'),
+        ('status/24/dialog-warning.png', 'not_analyzed.png'),
+        ('devices/24/drive-harddisk.png', 'filesystem.png'),
+        ('places/24/inode-directory.png', 'folder.png'),
+    ]:
+        run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
 def main(skip_docker, radare, nginx, distribution):

@@ -11,24 +11,27 @@ TYPE_TO_PATH.update(
     {
         'application-octet-stream': TYPE_TO_PATH['unknown'],
         'application-x-pie-executable': TYPE_TO_PATH['application-x-executable'],
-        'application-x-sharedlib': TYPE_TO_PATH['application-x-executable'],
+        'application-x-sharedlib': TYPE_TO_PATH['application-x-gnome-saved-search'],
+        'application-x-object': TYPE_TO_PATH['playlist-automatic'],
         'c': TYPE_TO_PATH['text-x-c'],
-        'cert': TYPE_TO_PATH['encrypted'],
+        'cert': TYPE_TO_PATH['application-x-pkcs12'],
         'cfg': TYPE_TO_PATH['application-x-desktop'],
         'class': TYPE_TO_PATH['text-x-java'],
         'cnf': TYPE_TO_PATH['application-x-desktop'],
         'conf': TYPE_TO_PATH['application-x-desktop'],
         'cpp': TYPE_TO_PATH['text-x-c'],
-        'crt': TYPE_TO_PATH['encrypted'],
+        'crt': TYPE_TO_PATH['application-x-pkcs12'],
         'h': TYPE_TO_PATH['text-x-chdr'],
         'htm': TYPE_TO_PATH['html'],
+        'image': TYPE_TO_PATH['archive'],
         'ini': TYPE_TO_PATH['application-x-desktop'],
         'js': TYPE_TO_PATH['text-x-javascript'],
-        'key': TYPE_TO_PATH['encrypted'],
+        'key': TYPE_TO_PATH['application-x-pkcs12'],
         'md': TYPE_TO_PATH['text-markdown'],
-        'pem': TYPE_TO_PATH['encrypted'],
+        'pem': TYPE_TO_PATH['application-x-pkcs12'],
         'py': TYPE_TO_PATH['text-x-python'],
         'rb': TYPE_TO_PATH['text-x-ruby'],
+        'sh': TYPE_TO_PATH['application-x-shellscript'],
         'ts': TYPE_TO_PATH['application-typescript'],
     }
 )
@@ -40,7 +43,6 @@ TYPE_TO_PATH.update(
         if k.startswith(GNOME_PREFIX) and k.replace(GNOME_PREFIX, '') not in TYPE_TO_PATH
     }
 )
-
 ARCHIVE_FILE_TYPES = [
     'application/java-archive',
     'application/rar',
@@ -67,10 +69,10 @@ ARCHIVE_FILE_TYPES = [
 ]
 TYPE_CATEGORY_TO_ICON = {
     'audio/': TYPE_TO_PATH['audio-x-generic'],
-    'filesystem/': TYPE_TO_PATH['file_system'],
+    'filesystem/': '/static/file_icons/filesystem.png',
     'firmware/': TYPE_TO_PATH['application-x-firmware'],
     'font/': TYPE_TO_PATH['font'],
-    'image/': TYPE_TO_PATH['image'],
+    'image/': TYPE_TO_PATH['jpg'],
     'text/': TYPE_TO_PATH['txt'],
     'video/': TYPE_TO_PATH['video-x-generic'],
 }
