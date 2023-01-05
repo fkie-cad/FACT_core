@@ -119,8 +119,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
         with ThreadPoolExecutor() as executor:
-            executor.submit(stop_processes, args=([self.schedule_process],))
-            executor.submit(stop_processes, args=([self.result_collector_process],))
+            executor.submit(stop_processes, [self.schedule_process])
+            executor.submit(stop_processes, [self.result_collector_process])
             for plugin in self.analysis_plugins.values():
                 executor.submit(plugin.shutdown)
         self.process_queue.close()
