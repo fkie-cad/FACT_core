@@ -31,35 +31,35 @@ class DB:
         self.admin = admin
 
 
+class MockDataStorage(BaseModel, extra=Extra.forbid):
+    postgres_server: str
+    postgres_port: int
+    postgres_database: str
+    postgres_test_database: str
+
+    postgres_ro_user: str
+    postgres_ro_pw: str
+
+    postgres_rw_user: str
+    postgres_rw_pw: str
+
+    postgres_del_user: str
+    postgres_del_pw: str
+
+    postgres_admin_user: str
+    postgres_admin_pw: str
+
+    redis_fact_db: str
+    redis_test_db: str
+    redis_host: str
+    redis_port: int
+
+
 class MockConfig(BaseModel, extra=Extra.forbid):
     """This class is a mock of ``config.py:Config``.
     It must contain exactly what is needed for everything in the storage module to work.
     This can be found e.g. by using ripgrep: ``rg 'cfg\\.'``.
     """
-
-    class MockDataStorage(BaseModel, extra=Extra.forbid):
-        postgres_server: str
-        postgres_port: int
-        postgres_database: str
-        postgres_test_database: str
-
-        postgres_ro_user: str
-        postgres_ro_pw: str
-
-        postgres_rw_user: str
-        postgres_rw_pw: str
-
-        postgres_del_user: str
-        postgres_del_pw: str
-
-        postgres_admin_user: str
-        postgres_admin_pw: str
-
-        redis_fact_db: str
-        redis_test_db: str
-        redis_host: str
-        redis_port: int
-
     data_storage: MockDataStorage
 
 
