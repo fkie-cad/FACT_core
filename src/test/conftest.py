@@ -153,6 +153,8 @@ def _database_interfaces():
         }
 
         config._replace_hyphens_with_underscores(sections)
+        # FIXME remove this. The ci crashes otherwise
+        MockConfig.update_forward_refs()
         cfg = MockConfig(**sections)
 
         mpk.setattr('config._cfg', cfg)
