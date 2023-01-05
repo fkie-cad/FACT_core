@@ -112,8 +112,8 @@ function updatePluginCard(pluginName, pluginData) {
                         <td>${pluginData.stats.median}s</td>
                     </tr>
                     <tr>
-                        <td style="width: 10px; text-align: right;">variance</td>
-                        <td>${pluginData.stats.variance}s</td>
+                        <td style="width: 10px; text-align: right;">std.dev.</td>
+                        <td>${pluginData.stats.std_dev}s</td>
                     </tr>
                     <tr>
                         <td style="width: 10px; text-align: right;">count</td>

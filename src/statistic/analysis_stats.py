@@ -1,19 +1,25 @@
 from __future__ import annotations
 
-import statistics
+import ctypes
+
+import numpy as np
 
 from analysis.PluginBase import AnalysisBasePlugin
 
 
 def get_plugin_stats(plugin: AnalysisBasePlugin) -> dict[str, str] | None:
     try:
+        stats_count = plugin.analysis_stats_count.value
+        stats_array = np.array(plugin.analysis_stats.get_obj(), ctypes.c_float)
+        if stats_count < plugin.ANALYSIS_STATS_LIMIT:
+            stats_array = stats_array[:stats_count]
         return dict(
-            min=_format_float(min(plugin.analysis_stats)),
-            max=_format_float(max(plugin.analysis_stats)),
-            mean=_format_float(statistics.mean(plugin.analysis_stats)),
-            median=_format_float(statistics.median(plugin.analysis_stats)),
-            variance=_format_float(statistics.variance(plugin.analysis_stats)),
-            count=str(len(plugin.analysis_stats)),
+            min=_format_float(stats_array.min()),
+            max=_format_float(stats_array.max()),
+            mean=_format_float(stats_array.mean()),
+            median=_format_float(np.median(stats_array)),
+            std_dev=_format_float(stats_array.std()),
+            count=str(len(stats_array)),
         )
     except (ValueError, AssertionError):
         return None

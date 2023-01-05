@@ -1,5 +1,6 @@
+import ctypes
 import logging
-from multiprocessing import Manager, Queue, Value
+from multiprocessing import Array, Manager, Queue, Value
 from queue import Empty
 from time import time
 
@@ -40,6 +41,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     MIME_BLACKLIST = []
     MIME_WHITELIST = []
 
+    ANALYSIS_STATS_LIMIT = 1000
+
     def __init__(self, no_multithread=False, view_updater=None):
         super().__init__(plugin_path=self.FILE, view_updater=view_updater)
         self._check_plugin_attributes()
@@ -51,8 +54,9 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.thread_count = 1 if no_multithread else self._get_thread_count()
         self.active = [Value('i', 0) for _ in range(self.thread_count)]
         self.manager = Manager()
-        self.analysis_stats = self.manager.list()
-        self.stats_lock = self.manager.Lock()
+        self.analysis_stats = Array(ctypes.c_float, self.ANALYSIS_STATS_LIMIT)
+        self.analysis_stats_count = Value('i', 0)
+        self.analysis_stats_index = Value('i', 0)
         self.start_worker()
 
     def _get_thread_count(self):
@@ -157,8 +161,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         duration = time() - start
         if duration > 120:
             logging.info(f'Analysis {self.NAME} on {next_task.uid} is slow: took {duration:.1f} seconds')
-        with self.stats_lock:
-            self.analysis_stats.append(duration)
+        self._update_duration_stats(duration)
         if self.timeout_happened(process):
             self._handle_failed_analysis(next_task, process, worker_id, 'Timeout')
         elif process.exception:
@@ -166,6 +169,16 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         else:
             self.out_queue.put(result.pop())
             logging.debug(f'Worker {worker_id}: Finished {self.NAME} analysis on {next_task.uid}')
+
+    def _update_duration_stats(self, duration):
+        with self.analysis_stats.get_lock():
+            self.analysis_stats[self.analysis_stats_index.value] = duration
+        self.analysis_stats_index.value += 1
+        if self.analysis_stats_index.value >= self.ANALYSIS_STATS_LIMIT:
+            # if the stats array is full, overwrite the oldest result
+            self.analysis_stats_index.value = 0
+        if self.analysis_stats_count.value < self.ANALYSIS_STATS_LIMIT:
+            self.analysis_stats_count.value += 1
 
     def _handle_failed_analysis(self, fw_object, process, worker_id, cause: str):
         terminate_process_and_children(process)
