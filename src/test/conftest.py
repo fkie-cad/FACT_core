@@ -117,8 +117,10 @@ class MockIntercom:
         self.deleted_files.extend(uid_list)
 
 
+# FIXME This fixture should have session scope to avoid re-conneting to postgress for every test.
+#       Since re-connecting probably isn't that expensive it's fine to do it for now.
 # Integration tests test the system as a whole so one can reasonably expect the database to be populated.
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def _database_interfaces():
     """Creates the tables that backend needs.
     This is equivalent to executing ``init_postgres.py``.
