@@ -162,7 +162,8 @@ def main(skip_docker, radare, nginx, distribution):
     if not skip_docker:
         _install_docker_images(radare)
 
-    if not (MIME_ICON_DIR / 'mime').is_dir():
+    if not MIME_ICON_DIR.is_dir():
+        MIME_ICON_DIR.mkdir()
         _copy_mime_icons()
 
     with OperateInDirectory(INSTALL_DIR.parent.parent):
