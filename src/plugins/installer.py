@@ -11,21 +11,31 @@ from helperFunctions.install import (
 
 
 class AbstractPluginInstaller:
+    """A class that is used to handle plugin installation.
+    Any class subclassing it may overwrite any public method except :py:func:`install`.
+    You may assume that the cwd is ``self.base_path``.
+    If any other method than :py:func:`install` is called, then the caller has to ensure this.
+
+    :param distribution: The distribution on which the installer is executed. See :py:func:`~helperFunctions.install.check_distribution`
+    :param skip_docker: Whether or not to do anything docker related.
+    """
+
     # Even if some functions don't need self we want to have them nicely
     # grouped in this class
     # pylint:disable=no-self-use
 
-    skip_docker_env = os.getenv('FACT_INSTALLER_SKIP_DOCKER') is not None
-    # The base directory of the plugin
-    # Must be overwritten by a class variable of a child class
+    _skip_docker_env = os.getenv('FACT_INSTALLER_SKIP_DOCKER') is not None
+    #: The base directory of the plugin
+    #: Must be overwritten by a class variable of a child class
     base_path = None
 
-    def __init__(self, distribution: Optional[str] = None, skip_docker: bool = skip_docker_env):
+    def __init__(self, distribution: Optional[str] = None, skip_docker: bool = _skip_docker_env):
         self.distribution = distribution or check_distribution()
         self.build_path = self.base_path / 'build'
         self.skip_docker = skip_docker
 
     def install(self):
+        """Completely install the plugin."""
         cwd = os.getcwd()
         os.chdir(self.base_path)
         self.install_system_packages()
