@@ -45,8 +45,6 @@ class AbstractPluginInstaller:
         if not self.skip_docker:
             self.install_docker_images()
 
-        self.do_last()
-
         os.chdir(cwd)
 
     def install_docker_images(self):
@@ -83,9 +81,6 @@ class AbstractPluginInstaller:
         '''
         Install packages with package managers other than pip/dnf/apt.
         '''
-
-    def do_last(self):
-        pass
 
     def install_files(self):
         '''
