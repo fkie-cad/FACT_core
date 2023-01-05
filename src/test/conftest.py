@@ -118,7 +118,7 @@ class MockIntercom:
 
 
 # Integration tests test the system as a whole so one can reasonably expect the database to be populated.
-@pytest.fixture(autouse=True, scope='session')
+@pytest.fixture(scope='session')
 def _database_interfaces():
     """Creates the tables that backend needs.
     This is equivalent to executing ``init_postgres.py``.
