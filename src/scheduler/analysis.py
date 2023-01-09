@@ -126,6 +126,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for future in futures:
                 future.result()  # call result to make sure all threads are finished and there are no exceptions
         self.process_queue.close()
+        self.status.shutdown()
         logging.info('Analysis System offline')
 
     def update_analysis_of_object_and_children(self, fo: FileObject):

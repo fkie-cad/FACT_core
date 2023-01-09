@@ -46,24 +46,24 @@ class FactBackend(FactBase):
 
     def __init__(self):
         super().__init__()
-        unpacking_lock_manager = UnpackingLockManager()
+        self.unpacking_lock_manager = UnpackingLockManager()
 
         try:
-            self.analysis_service = AnalysisScheduler(unpacking_locks=unpacking_lock_manager)
+            self.analysis_service = AnalysisScheduler(unpacking_locks=self.unpacking_lock_manager)
         except PluginInitException as error:
             logging.critical(f'Error during initialization of plugin {error.plugin.NAME}. Shutting down FACT backend')
             complete_shutdown()
         self.unpacking_service = UnpackingScheduler(
             post_unpack=self.analysis_service.start_analysis_of_object,
             analysis_workload=self.analysis_service.get_combined_analysis_workload,
-            unpacking_locks=unpacking_lock_manager,
+            unpacking_locks=self.unpacking_lock_manager,
         )
         self.compare_service = ComparisonScheduler()
         self.intercom = InterComBackEndBinding(
             analysis_service=self.analysis_service,
             compare_service=self.compare_service,
             unpacking_service=self.unpacking_service,
-            unpacking_locks=unpacking_lock_manager,
+            unpacking_locks=self.unpacking_lock_manager,
         )
 
     def main(self):
@@ -95,6 +95,7 @@ class FactBackend(FactBase):
         self.intercom.shutdown()
         self.compare_service.shutdown()
         self.unpacking_service.shutdown()
+        self.unpacking_lock_manager.shutdown()
         self.analysis_service.shutdown()
         if not self.args.testing:
             complete_shutdown()

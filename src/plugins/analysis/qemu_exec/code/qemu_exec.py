@@ -151,6 +151,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         executor.shutdown(wait=False)
         self._enter_results(dict(results_dict), file_object)
         self._add_tag(file_object)
+        manager.shutdown()
 
     def _run_analysis_jobs(
         self,

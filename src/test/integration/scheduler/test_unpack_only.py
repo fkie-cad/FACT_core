@@ -12,15 +12,16 @@ from test.integration.common import MockFSOrganizer
 class TestFileAddition:
     def setup(self):
         self._tmp_queue = Queue()
-        unpacking_lock_manager = UnpackingLockManager()
+        self.unpacking_lock_manager = UnpackingLockManager()
         self._unpack_scheduler = UnpackingScheduler(
             post_unpack=self._dummy_callback,
             fs_organizer=MockFSOrganizer(),
-            unpacking_locks=unpacking_lock_manager,
+            unpacking_locks=self.unpacking_lock_manager,
         )
 
     def teardown(self):
         self._unpack_scheduler.shutdown()
+        self.unpacking_lock_manager.shutdown()
         self._tmp_queue.close()
         gc.collect()
 
