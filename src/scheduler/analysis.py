@@ -118,11 +118,13 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        with ThreadPoolExecutor() as executor:
-            executor.submit(stop_processes, [self.schedule_process])
-            executor.submit(stop_processes, [self.result_collector_process])
+        futures = []
+        with ThreadPoolExecutor() as pool:
+            futures.append(pool.submit(stop_processes, [self.schedule_process, self.result_collector_process]))
             for plugin in self.analysis_plugins.values():
-                executor.submit(plugin.shutdown)
+                futures.append(pool.submit(plugin.shutdown))
+            for future in futures:
+                future.result()  # call result to make sure all threads are finished and there are no exceptions
         self.process_queue.close()
         logging.info('Analysis System offline')
 
