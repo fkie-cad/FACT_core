@@ -23,12 +23,12 @@ def convert_to_jstree_node(node: FileTreeNode):
 
 
 def _get_directory_jstree_node(node: FileTreeNode):
-    return _get_jstree_node_contents(f'{node.name}', '#', '/static/file_icons/folder.png')
+    return _get_jstree_node_contents(f'{node.name}', '#', '/static/file_icons/folder.svg')
 
 
 def _get_not_analyzed_jstree_node(node: FileTreeNode):
     link = f'/analysis/{node.uid}/ro/{node.root_uid}'
-    return _get_jstree_node_contents(f'{node.name}', link, '/static/file_icons/not_analyzed.png')
+    return _get_jstree_node_contents(f'{node.name}', link, '/static/file_icons/not_analyzed.svg')
 
 
 def _get_file_jstree_node(node: FileTreeNode):

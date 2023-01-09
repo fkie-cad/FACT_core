@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from itertools import chain
 from pathlib import Path
 from typing import Dict, Iterable, List, NamedTuple, Optional, Set
@@ -7,32 +9,39 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 WEB_BASE_PATH = Path(__file__).parent.parent
 ICON_PATH = WEB_BASE_PATH / 'static/file_icons/mime'
 TYPE_TO_PATH = {p.stem: f'/{p.relative_to(WEB_BASE_PATH)}' for p in ICON_PATH.iterdir()}
+CRYPTO = 'application-x-pem-file'
+CONFIG = 'text-x-makefile'
+SOURCE_CODE = 'text-x-source'
 TYPE_TO_PATH.update(
     {
-        'application-octet-stream': TYPE_TO_PATH['unknown'],
         'application-x-pie-executable': TYPE_TO_PATH['application-x-executable'],
-        'application-x-sharedlib': TYPE_TO_PATH['application-x-gnome-saved-search'],
-        'application-x-object': TYPE_TO_PATH['playlist-automatic'],
-        'c': TYPE_TO_PATH['text-x-c'],
-        'cert': TYPE_TO_PATH['application-x-pkcs12'],
-        'cfg': TYPE_TO_PATH['application-x-desktop'],
-        'class': TYPE_TO_PATH['text-x-java'],
-        'cnf': TYPE_TO_PATH['application-x-desktop'],
-        'conf': TYPE_TO_PATH['application-x-desktop'],
-        'cpp': TYPE_TO_PATH['text-x-c'],
-        'crt': TYPE_TO_PATH['application-x-pkcs12'],
+        'application-x-dosexec': TYPE_TO_PATH['application-x-ms-dos-executable'],
+        'application-x-sharedlib': TYPE_TO_PATH['opera-widget'],
+        'application-x-object': TYPE_TO_PATH['extension'],
+        'linux-device-tree': '/static/file_icons/firmware.png',
+        # file suffixes
+        'asp': TYPE_TO_PATH[SOURCE_CODE],
+        'c': TYPE_TO_PATH['text-x-csrc'],
+        'cert': TYPE_TO_PATH[CRYPTO],
+        'cfg': TYPE_TO_PATH[CONFIG],
+        'cnf': TYPE_TO_PATH[CONFIG],
+        'conf': TYPE_TO_PATH[CONFIG],
+        'cpp': TYPE_TO_PATH['text-x-csrc'],
+        'crt': TYPE_TO_PATH[CRYPTO],
+        'go': TYPE_TO_PATH[SOURCE_CODE],
         'h': TYPE_TO_PATH['text-x-chdr'],
-        'htm': TYPE_TO_PATH['html'],
-        'image': TYPE_TO_PATH['archive'],
-        'ini': TYPE_TO_PATH['application-x-desktop'],
-        'js': TYPE_TO_PATH['text-x-javascript'],
-        'key': TYPE_TO_PATH['application-x-pkcs12'],
-        'md': TYPE_TO_PATH['text-markdown'],
-        'pem': TYPE_TO_PATH['application-x-pkcs12'],
+        'htm': TYPE_TO_PATH['text-html'],
+        'image': TYPE_TO_PATH['package-x-generic'],
+        'ini': TYPE_TO_PATH[CONFIG],
+        'js': TYPE_TO_PATH['application-x-javascript'],
+        'key': TYPE_TO_PATH[CRYPTO],
+        'lua': TYPE_TO_PATH[SOURCE_CODE],
+        'pem': TYPE_TO_PATH[CRYPTO],
+        'pl': TYPE_TO_PATH['text-x-perl'],
         'py': TYPE_TO_PATH['text-x-python'],
-        'rb': TYPE_TO_PATH['text-x-ruby'],
-        'sh': TYPE_TO_PATH['application-x-shellscript'],
-        'ts': TYPE_TO_PATH['application-typescript'],
+        'rb': TYPE_TO_PATH['application-x-ruby'],
+        'sh': TYPE_TO_PATH['text-x-script'],
+        'ts': TYPE_TO_PATH['application-x-javascript'],
     }
 )
 GNOME_PREFIX = 'gnome-mime-'
@@ -46,13 +55,12 @@ TYPE_TO_PATH.update(
 ARCHIVE_FILE_TYPES = [
     'application/java-archive',
     'application/rar',
+    'application/vnd.ms-cab-compressed',
     'application/x-adf',
     'application/x-alzip',
-    'application/x-arc',
     'application/x-bzip2',
     'application/x-cab',
     'application/x-chm',
-    'application/x-debian-package',
     'application/x-dms',
     'application/x-iso9660-image',
     'application/x-lrzip',
@@ -60,9 +68,11 @@ ARCHIVE_FILE_TYPES = [
     'application/x-lzip',
     'application/x-redhat-package-manager',
     'application/x-rzip',
+    'application/x-shar',
     'application/x-sit',
     'application/x-sitx',
     'application/x-stuffitx',
+    'application/x-xz',
     'application/x-zip-compressed',
     'application/zpaq',
     'compression/zlib',
@@ -70,10 +80,10 @@ ARCHIVE_FILE_TYPES = [
 TYPE_CATEGORY_TO_ICON = {
     'audio/': TYPE_TO_PATH['audio-x-generic'],
     'filesystem/': '/static/file_icons/filesystem.png',
-    'firmware/': TYPE_TO_PATH['application-x-firmware'],
-    'font/': TYPE_TO_PATH['font'],
-    'image/': TYPE_TO_PATH['jpg'],
-    'text/': TYPE_TO_PATH['txt'],
+    'firmware/': '/static/file_icons/firmware.png',
+    'font/': TYPE_TO_PATH['font-x-generic'],
+    'image/': TYPE_TO_PATH['image-x-generic'],
+    'text/': TYPE_TO_PATH['text-x-generic'],
     'video/': TYPE_TO_PATH['video-x-generic'],
 }
 
@@ -97,22 +107,30 @@ def get_icon_for_file(mime_type: Optional[str], file_name: str) -> str:
     '''
     if mime_type is None:
         return TYPE_TO_PATH['unknown']
-    suffix = Path(file_name).suffix.lstrip('.').lower()
-    if suffix:
-        # suffix may be there but mime is text/plain, so we check the suffix first
-        if suffix in TYPE_TO_PATH:
-            return TYPE_TO_PATH[suffix]
-        for prefix in ['text', 'text-x', 'application', 'application-x']:
-            if f'{prefix}-{suffix}' in TYPE_TO_PATH:
-                return TYPE_TO_PATH[f'{prefix}-{suffix}']
+    # suffix may be there but mime is text/plain, so we check the suffix first
+    suffix_icon = _find_icon_for_suffix(file_name)
+    if suffix_icon:
+        return suffix_icon
     if mime_type.replace('/', '-') in TYPE_TO_PATH:
         return TYPE_TO_PATH[mime_type.replace('/', '-')]
     if mime_type in ARCHIVE_FILE_TYPES:
-        return TYPE_TO_PATH['archive']
+        return TYPE_TO_PATH['package-x-generic']
     for mime_category, icon_path in TYPE_CATEGORY_TO_ICON.items():
         if mime_category in mime_type:
             return icon_path
     return TYPE_TO_PATH['unknown']
+
+
+def _find_icon_for_suffix(file_name: str) -> str | None:
+    suffix = Path(file_name).suffix.lstrip('.').lower()
+    if not suffix:
+        return None
+    if suffix in TYPE_TO_PATH:
+        return TYPE_TO_PATH[suffix]
+    for prefix in ['text', 'text-x', 'application', 'application-x']:
+        if f'{prefix}-{suffix}' in TYPE_TO_PATH:
+            return TYPE_TO_PATH[f'{prefix}-{suffix}']
+    return None
 
 
 def _get_partial_virtual_paths(virtual_path: Dict[str, List[str]], new_root: str) -> List[str]:

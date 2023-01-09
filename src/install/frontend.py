@@ -4,6 +4,7 @@ import subprocess
 from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
+from tempfile import TemporaryDirectory
 
 from config import cfg
 from helperFunctions.install import (
@@ -123,16 +124,21 @@ def _install_docker_images(radare):
 
 
 def _copy_mime_icons():
-    # copy mime icons to the static folder so that they can be used by the web server
-    for source, target in [
-        ('mimes/24', 'mime'),
-        ('apps/24/utilities-terminal.png', 'mime/application-x-shellscript.png'),
-        ('devices/48/gnome-dev-symlink.png', 'mime/inode-symlink.png'),
-        ('status/24/dialog-warning.png', 'not_analyzed.png'),
-        ('devices/24/drive-harddisk.png', 'filesystem.png'),
-        ('places/24/inode-directory.png', 'folder.png'),
-    ]:
-        run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
+    url = 'https://github.com/madmaxms/iconpack-obsidian/releases/download/v4.15/obsidian-iconpack.tar.xz'
+    with TemporaryDirectory() as tmp_dir:
+        with OperateInDirectory(tmp_dir):
+            execute_commands_and_raise_on_return_code(
+                [
+                    f'wget {url}',
+                    'tar xvf obsidian-iconpack.tar.xz',
+                    f'cp -r Obsidian-SemiLight/mimetypes/24 {MIME_ICON_DIR}/mime',
+                    f'cp Obsidian/emblems/24/emblem-symbolic-link.png {MIME_ICON_DIR}/mime/inode-symlink.png',
+                    f'cp Obsidian/actions/24s/flag-red.svg {MIME_ICON_DIR}/not_analyzed.svg',
+                    f'cp Obsidian-Green/places/24/folder.svg {MIME_ICON_DIR}/folder.svg',
+                    f'cp Obsidian/apps/24/jockey.png {MIME_ICON_DIR}/firmware.png',
+                    f'cp Obsidian/devices/24/block-device.png {MIME_ICON_DIR}/filesystem.png',
+                ]
+            )
 
 
 def main(skip_docker, radare, nginx, distribution):
