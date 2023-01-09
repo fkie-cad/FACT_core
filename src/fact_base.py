@@ -29,10 +29,14 @@ class FactBase:
 
     def __init__(self):
         self.run = True
+        self.args = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
+        self._register_signal_handlers()
+        self.work_load_stat = WorkLoadStatistic(component=self.COMPONENT)
+
+    def _register_signal_handlers(self):
         # Check whether the process was started by start_fact.py
         parent = ' '.join(psutil.Process(os.getppid()).cmdline())
         started_by_start_fact_py = 'start_fact.py' in parent or 'start_all_installed_fact_components' in parent
-
         if started_by_start_fact_py:
             signal.signal(signal.SIGUSR1, self.shutdown_listener)
             signal.signal(signal.SIGINT, lambda *_: None)
@@ -42,11 +46,9 @@ class FactBase:
             signal.signal(signal.SIGINT, self.shutdown_listener)
             signal.signal(signal.SIGTERM, self.shutdown_listener)
 
-        self.args = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
-        self.work_load_stat = WorkLoadStatistic(component=self.COMPONENT)
-
     def shutdown_listener(self, signum, _):
-        logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
+        if self._is_main_process():
+            logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
         self.run = False
 
     def shutdown(self):
@@ -61,3 +63,7 @@ class FactBase:
             if self.args.testing:
                 break
         self.shutdown()
+
+    @staticmethod
+    def _is_main_process() -> bool:
+        return os.getpid() == os.getpgrp()
