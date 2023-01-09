@@ -4,6 +4,7 @@ import traceback
 from contextlib import suppress
 from multiprocessing import Pipe, Process
 from signal import SIGKILL, SIGTERM
+from threading import Thread
 from typing import Callable, List, Optional, Tuple
 
 import psutil
@@ -155,12 +156,22 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
 
 def stop_processes(processes: List[Process], timeout: float = 10.0):
     '''
-    Try to stop processes gracefully. If a process does not stop until `timeout` is reached, terminate it.
+    Try to stop processes gracefully in parallel. If a process does not stop until `timeout` is reached, kill it.
 
     :param processes: The list of processes that should be stopped.
     :param timeout: Timeout for joining the process in seconds.
     '''
+    thread_list = []
     for process in processes:
-        process.join(timeout=timeout)
-        if process.is_alive():
-            process.terminate()
+        thread = Thread(target=stop_process, args=(process, timeout))
+        thread.start()
+        thread_list.append(thread)
+    for thread in thread_list:
+        thread.join()
+
+
+def stop_process(process: Process, timeout: float = 10.0):
+    """Try to stop a single process gracefully. If it does not stop until `timeout` is reached, kill it."""
+    process.join(timeout=timeout)
+    if process.is_alive():
+        process.kill()
