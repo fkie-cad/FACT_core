@@ -53,6 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="modules/conftest.html">conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/objects.html">objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/plugins.html">plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/scheduler.html">scheduler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/web_interface.html">web_interface</a></li>
 </ul>
@@ -111,6 +112,8 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller">AbstractPluginInstaller (class in plugins.installer)</a>
+</li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.add_included_file">add_included_file() (objects.file.FileObject method)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.add_virtual_file_path_if_none_exists">add_virtual_file_path_if_none_exists() (objects.file.FileObject method)</a>
@@ -123,10 +126,10 @@
 </li>
       <li><a href="modules/conftest.html#conftest.analysis_plugin">analysis_plugin() (in module conftest)</a>
 </li>
-      <li><a href="modules/objects.file.html#objects.file.FileObject.analysis_tags">analysis_tags (objects.file.FileObject attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/objects.file.html#objects.file.FileObject.analysis_tags">analysis_tags (objects.file.FileObject attribute)</a>
+</li>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler">AnalysisScheduler (class in scheduler.analysis)</a>
 </li>
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.apply_filters_to_query">apply_filters_to_query() (in module helperFunctions.web_interface)</a>
@@ -147,6 +150,8 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.base_path">base_path (plugins.installer.AbstractPluginInstaller attribute)</a>
+</li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.binary">binary (objects.file.FileObject attribute)</a>
 </li>
       <li><a href="modules/config.html#config.ExpertSettings.block_delay">block_delay (config.ExpertSettings attribute)</a>
@@ -160,6 +165,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.logging.html#helperFunctions.logging.TerminalColors.BOLD">BOLD (helperFunctions.logging.TerminalColors attribute)</a>
+</li>
+      <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.build">build() (plugins.installer.AbstractPluginInstaller method)</a>
 </li>
       <li><a href="modules/helperFunctions.pdf.html#helperFunctions.pdf.build_pdf_report">build_pdf_report() (in module helperFunctions.pdf)</a>
 </li>
@@ -593,16 +600,30 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.plugin.html#helperFunctions.plugin.import_plugins">import_plugins() (in module helperFunctions.plugin)</a>
 </li>
+      <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.install">install() (plugins.installer.AbstractPluginInstaller method)</a>
+</li>
+      <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.install_docker_images">install_docker_images() (plugins.installer.AbstractPluginInstaller method)</a>
+</li>
+      <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.install_files">install_files() (plugins.installer.AbstractPluginInstaller method)</a>
+</li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.install_github_project">install_github_project() (in module helperFunctions.install)</a>
 </li>
+      <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.install_other_packages">install_other_packages() (plugins.installer.AbstractPluginInstaller method)</a>
+</li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.install_pip_packages">install_pip_packages() (in module helperFunctions.install)</a>
+
+      <ul>
+        <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.install_pip_packages">(plugins.installer.AbstractPluginInstaller method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.install_system_packages">install_system_packages() (plugins.installer.AbstractPluginInstaller method)</a>
 </li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.InstallationError">InstallationError</a>
 </li>
       <li><a href="modules/config.html#config.ExpertSettings.intercom_poll_delay">intercom_poll_delay (config.ExpertSettings attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.uid.html#helperFunctions.uid.is_list_of_uids">is_list_of_uids() (in module helperFunctions.uid)</a>
 </li>
       <li><a href="modules/helperFunctions.uid.html#helperFunctions.uid.is_uid">is_uid() (in module helperFunctions.uid)</a>
@@ -719,6 +740,8 @@
 </li>
         <li><a href="modules/objects.firmware.html#module-objects.firmware">objects.firmware</a>
 </li>
+        <li><a href="modules/plugins.installer.html#module-plugins.installer">plugins.installer</a>
+</li>
         <li><a href="modules/scheduler.analysis.html#module-scheduler.analysis">scheduler.analysis</a>
 </li>
         <li><a href="modules/web_interface.rest.helper.html#module-web_interface.rest.helper">web_interface.rest.helper</a>
@@ -798,14 +821,21 @@
 </li>
       <li><a href="modules/config.html#config.PluginDefaults">PluginDefaults (class in config)</a>
 </li>
+      <li>
+    plugins.installer
+
+      <ul>
+        <li><a href="modules/plugins.installer.html#module-plugins.installer">module</a>
+</li>
+      </ul></li>
       <li><a href="modules/config.html#config.DataStorage.postgres_admin_pw">postgres_admin_pw (config.DataStorage attribute)</a>
 </li>
       <li><a href="modules/config.html#config.DataStorage.postgres_admin_user">postgres_admin_user (config.DataStorage attribute)</a>
 </li>
-      <li><a href="modules/config.html#config.DataStorage.postgres_database">postgres_database (config.DataStorage attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/config.html#config.DataStorage.postgres_database">postgres_database (config.DataStorage attribute)</a>
+</li>
       <li><a href="modules/config.html#config.DataStorage.postgres_del_pw">postgres_del_pw (config.DataStorage attribute)</a>
 </li>
       <li><a href="modules/config.html#config.DataStorage.postgres_del_user">postgres_del_user (config.DataStorage attribute)</a>
