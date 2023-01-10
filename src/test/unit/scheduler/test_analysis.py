@@ -74,7 +74,6 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         assert 'dummy_plugin_for_testing_only' in self.sched.analysis_plugins, 'Dummy plugin not found'
 
     def test_schedule_firmware_init_no_analysis_selected(self):
-        self.sched.shutdown()
         self.sched.process_queue = Queue()
         test_fw = Firmware(binary=b'test')
         self.sched.start_analysis_of_object(test_fw)
