@@ -3,10 +3,8 @@ from __future__ import annotations
 import grp
 import logging
 import os
-import shutil
-import tempfile
 from configparser import ConfigParser
-from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import pytest
 
@@ -17,16 +15,27 @@ from test.common_helper import CommonDatabaseMock
 from test.conftest import merge_markers
 
 
-def _create_docker_mount_base_dir() -> str:
-    dir = tempfile.mkdtemp(prefix='fact-docker-mount-base-dir')
+@pytest.fixture
+def _docker_mount_base_dir() -> str:
     docker_gid = grp.getgrnam('docker').gr_gid
-    os.chown(dir, -1, docker_gid)
-    os.chmod(dir, 0o770)
 
-    return dir
+    with TemporaryDirectory(prefix='fact-docker-mount-base-dir') as tmp_dir:
+        os.chown(tmp_dir, -1, docker_gid)
+        os.chmod(tmp_dir, 0o770)
+        yield tmp_dir
 
 
-def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, ConfigParser]:
+@pytest.fixture
+def _firmware_file_storage_directory() -> str:
+    with TemporaryDirectory(prefix='fact-firmware-file-storage-directory') as tmp_dir:
+        yield tmp_dir
+
+
+def _get_test_config_tuple(
+    firmware_file_storage_directory,
+    docker_mount_base_dir,
+    defaults: dict | None = None,
+) -> tuple[Config, ConfigParser]:
     """Returns a tuple containing a `config.Config` instance and a `ConfigParser` instance.
     Both instances are equivalent and the latter is legacy only.
     The "docker-mount-base-dir" and "firmware-file-storage-directory" in the section "data-storage"
@@ -36,8 +45,10 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
     """
     config.load()
 
-    docker_mount_base_dir = _create_docker_mount_base_dir()
-    firmware_file_storage_directory = Path(tempfile.mkdtemp())
+    if 'docker-mount-base-dir' in defaults:
+        raise ValueError('docker-mount-base-dir may not be changed with `@pytest.marker.cfg_defaults`')
+    if 'firmware-file-storage-directory' in defaults:
+        raise ValueError('firmware-file-storage-directory may not be changed with `@pytest.marker.cfg_defaults`')
 
     # This dict must exactly match the one that a ConfigParser instance would
     # read from the config file
@@ -59,7 +70,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'redis-test-db': config.cfg.data_storage.redis_test_db,  # Note: This is unused in production
             'redis-host': config.cfg.data_storage.redis_host,
             'redis-port': config.cfg.data_storage.redis_port,
-            'firmware-file-storage-directory': str(firmware_file_storage_directory),
+            'firmware-file-storage-directory': firmware_file_storage_directory,
             'user-database': 'sqlite:////media/data/fact_auth_data/fact_users.db',
             'password-salt': '1234',
             'structural-threshold': '40',  # TODO
@@ -113,21 +124,19 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
 
 # FIXME When configparser is not used anymore this should not be named cfg_tuple but rather cfg
 @pytest.fixture
-def cfg_tuple(request):
+def cfg_tuple(request, _firmware_file_storage_directory, _docker_mount_base_dir):
     """Returns a ``config.Config`` and a ``configparser.ConfigParser`` with testing defaults.
     Defaults can be overwritten with the ``cfg_defaults`` pytest mark.
     """
 
     cfg_defaults = merge_markers(request, 'cfg_defaults', dict)
 
-    cfg, configparser_cfg = _get_test_config_tuple(cfg_defaults)
+    cfg, configparser_cfg = _get_test_config_tuple(
+        _firmware_file_storage_directory,
+        _docker_mount_base_dir,
+        cfg_defaults,
+    )
     yield cfg, configparser_cfg
-
-    # Don't clean up directorys we didn't create ourselves
-    if not cfg_defaults.get('data-storage', {}).get('docker-mount-base-dir', None):
-        shutil.rmtree(cfg.data_storage.docker_mount_base_dir)
-    if not cfg_defaults.get('data-storage', {}).get('firmware-file-storage-directory', None):
-        shutil.rmtree(cfg.data_storage.firmware_file_storage_directory)
 
 
 @pytest.fixture(autouse=True)
