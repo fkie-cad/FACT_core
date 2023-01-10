@@ -206,11 +206,9 @@ def analysis_plugin(request, monkeypatch, patch_cfg):
         .. code-block::
 
             @pytest.mark.AnalysisPluginTestConfig(
-                AnalysisPluginTestConfig(
-                    plugin_class=MyFancyPlugin,
-                    # Actually don't start the processes in the fixture
-                    start_processes = False,
-                ),
+                plugin_class=MyFancyPlugin,
+                # Actually don't start the processes in the fixture
+                start_processes=False,
             )
             def my_fancy_test(analysis_plugin, monkeypatch):
                 # Undo the patching of MyFancyPlugin.start_worker
