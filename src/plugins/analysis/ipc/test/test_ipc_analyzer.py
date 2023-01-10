@@ -32,7 +32,7 @@ EXPECTED_WRITE_RESULT = {
 }
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 @pytest.mark.parametrize(
     'test_file, expected_result, expected_summary',
     [

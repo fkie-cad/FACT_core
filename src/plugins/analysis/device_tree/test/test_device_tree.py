@@ -15,7 +15,7 @@ TEST_FP = TEST_DATA / 'false_positive.rnd'
 TEST_BROKEN = TEST_DATA / 'broken.dtb'
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 def test_process_object(analysis_plugin):
     test_object = FileObject()
     test_object.processed_analysis['file_type'] = {'mime': 'linux/device-tree'}

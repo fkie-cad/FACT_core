@@ -13,7 +13,7 @@ class DbMock(CommonDatabaseMock):
         return {'plugin': ['missing_child_uid']}
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 def test_missing(test_client):
     result = test_client.get('/rest/missing').json
 

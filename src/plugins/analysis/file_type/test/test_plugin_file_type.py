@@ -6,7 +6,7 @@ from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import
 from ..code.file_type import AnalysisPlugin
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 def test_detect_type_of_file(analysis_plugin):
     test_file = FileObject(file_path=f'{get_test_data_dir()}/container/test.zip')
     test_file = analysis_plugin.process_object(test_file)

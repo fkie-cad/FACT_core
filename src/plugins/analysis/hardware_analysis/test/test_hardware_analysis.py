@@ -10,7 +10,7 @@ from ..code.hardware_analysis import AnalysisPlugin
 TEST_DATA = Path(get_test_data_dir())
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestHardwareAnalysis:
     def test_cpu_architecture_found(self, analysis_plugin):
         test_object = FileObject()

@@ -75,7 +75,7 @@ def current_user_fixture(monkeypatch):
     monkeypatch.setattr(user_management_routes, 'current_user', UserMock('foobar', 'test'))
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=UserDbInterfaceMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=UserDbInterfaceMock)
 class TestAppUpload:
     def test_app_manage_users(self, test_client):
         response = test_client.get('/admin/manage_users', follow_redirects=True)

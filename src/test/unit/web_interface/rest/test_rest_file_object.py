@@ -11,7 +11,7 @@ class DbMock(CommonDatabaseMock):
         return []
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestRestFileObject:
     def test_empty_uid(self, test_client):
         result = test_client.get('/rest/file_object/').data

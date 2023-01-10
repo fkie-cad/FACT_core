@@ -35,7 +35,7 @@ class DbMock(CommonDatabaseMock):
         return fw if uid == fw.uid else None
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestRestFirmware:
     def test_successful_request(self, test_client):
         response = test_client.get('/rest/firmware').json

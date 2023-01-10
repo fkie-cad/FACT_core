@@ -24,7 +24,7 @@ except ImportError:
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class ExtractIKConfigTest:
     def test_probably_kernel_config_true(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
