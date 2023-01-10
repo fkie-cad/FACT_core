@@ -10,7 +10,6 @@ from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
-from conftest import AnalysisPluginTestConfig
 from test.common_helper import TEST_FW, create_test_firmware, get_test_data_dir
 from test.mock import mock_patch
 
@@ -85,10 +84,8 @@ def execute_docker_error(monkeypatch):
 
 
 @pytest.mark.AnalysisPluginTestConfig(
-    AnalysisPluginTestConfig(
-        plugin_class=AnalysisPlugin,
-        init_kwargs={'unpacker': MockUnpacker()},
-    ),
+    plugin_class=AnalysisPlugin,
+    init_kwargs={'unpacker': MockUnpacker()},
 )
 class TestPluginQemuExec:
     def test_has_relevant_type(self, analysis_plugin):

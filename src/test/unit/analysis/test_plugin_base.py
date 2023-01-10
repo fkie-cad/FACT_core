@@ -5,7 +5,6 @@ from pathlib import Path
 import pytest
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
-from conftest import AnalysisPluginTestConfig
 from helperFunctions.fileSystem import get_src_dir
 from objects.file import FileObject
 from plugins.analysis.dummy.code.dummy import AnalysisPlugin as DummyPlugin
@@ -24,10 +23,8 @@ PLUGIN_PATH = Path(get_src_dir()) / 'plugins' / 'analysis'
     }
 )
 @pytest.mark.AnalysisPluginTestConfig(
-    AnalysisPluginTestConfig(
-        plugin_class=DummyPlugin,
-        start_processes=True,
-    ),
+    plugin_class=DummyPlugin,
+    start_processes=True,
 )
 class TestPluginBaseCore:
     def test_object_processing_no_children(self, analysis_plugin):
