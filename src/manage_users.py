@@ -234,7 +234,7 @@ def start_user_management(app, store, db, session):
 
 def main():
     args = setup_argparse()
-    config.load(Path(args.config_file).name)
+    config.load(Path(args.config_file))
     app = create_app(configparser_cfg)
     user_db, user_datastore = add_flask_security_to_app(app)
 
