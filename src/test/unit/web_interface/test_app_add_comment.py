@@ -9,7 +9,7 @@ class DbMock(CommonDatabaseMock):
         TEST_FW.comments.append({'time': str(time), 'author': author, 'comment': comment})
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestAppAddComment:
     def test_app_add_comment_get_not_in_db(self, test_client):
         rv = test_client.get('/comment/abc_123')

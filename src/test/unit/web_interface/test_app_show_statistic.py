@@ -12,7 +12,7 @@ class DbMock(CommonDatabaseMock):
         return self.result if identifier == 'general' else None
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestShowStatistic:
     def test_no_stats_available(self, test_client):
         DbMock.result = None

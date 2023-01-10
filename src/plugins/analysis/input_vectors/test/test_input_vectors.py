@@ -9,7 +9,7 @@ from ..code.input_vectors import AnalysisPlugin
 TEST_FILE_DIR = Path(__file__).parent / 'data'
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginInputVectors:
     def test_process_object_inputs(self, analysis_plugin):
         result = self.assert_process_object(analysis_plugin, 'test_fgets.elf')

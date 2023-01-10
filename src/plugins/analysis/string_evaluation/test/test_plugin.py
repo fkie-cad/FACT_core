@@ -5,7 +5,7 @@ from test.common_helper import create_test_file_object
 from ..code.string_eval import AnalysisPlugin
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 def test_find_strings(analysis_plugin):
     fo = create_test_file_object()
     fo.processed_analysis['printable_strings'] = dict(

@@ -27,7 +27,7 @@ class DbMock(CommonDatabaseMock):
         return None
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestAppBinarySearch:
     def test_app_binary_search_get(self, test_client):
         response = test_client.get('/database/binary_search').data.decode()

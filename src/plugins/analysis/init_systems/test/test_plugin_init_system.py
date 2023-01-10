@@ -20,7 +20,7 @@ def _get_fo(path):
     return fo
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginInit:
     test_file_not_text = FileObject(file_path=f'{_test_init_dir}etc/systemd/system/foobar')
     test_file_not_text.processed_analysis['file_type'] = {'mime': 'application/zip'}

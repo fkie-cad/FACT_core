@@ -214,7 +214,7 @@ def test_search_cve_summary(monkeypatch):
         assert MATCHED_SUMMARY == actual_match
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestCveLookup:
     def test_process_object(self, analysis_plugin):
         TEST_FW.processed_analysis['software_components'] = SOFTWARE_COMPONENTS_ANALYSIS_RESULT

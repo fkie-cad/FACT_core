@@ -18,7 +18,7 @@ class YaraPlugin(YaraBasePlugin):
     FILE = '/foo/bar/Yara_Base_Plugin/code/test.py'
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=YaraPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=YaraPlugin)
 class TestAnalysisYaraBasePlugin:
     def test_get_signature_paths(self, analysis_plugin):
         intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', analysis_plugin.NAME)

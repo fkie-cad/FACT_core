@@ -38,7 +38,7 @@ class DbMock(CommonDatabaseMock):
         return None
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestAppAjaxRoutes:
     def test_ajax_get_summary(self, test_client):
         result = test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/foobar').data

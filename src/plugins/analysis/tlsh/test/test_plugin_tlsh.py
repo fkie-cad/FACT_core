@@ -27,7 +27,7 @@ def tlsh_plugin(analysis_plugin, monkeypatch):
     yield analysis_plugin
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestTlsh:
     def test_one_matching_file(self, tlsh_plugin, test_object):
 

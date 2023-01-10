@@ -13,7 +13,7 @@ class DbMock(CommonDatabaseMock):
         return []
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 def test_app_dependency_graph(test_client):
     result = test_client.get(f'/dependency-graph/testgraph/{TEST_FW.uid}')
     assert b'<strong>UID:</strong> testgraph' in result.data

@@ -13,7 +13,7 @@ class MockIntercom(CommonIntercomMock):
         return ['String1', 'String2', 'String3']
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(intercom_mock_class=MockIntercom))
+@pytest.mark.WebInterfaceUnitTestConfig(intercom_mock_class=MockIntercom)
 class TestShowLogs:
     @pytest.mark.cfg_defaults(
         {

@@ -18,7 +18,7 @@ class TemplateDbMock(CommonDatabaseMock):
         return None
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=TemplateDbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=TemplateDbMock)
 def test_get_compare_plugin_views(web_frontend):
     compare_result = {'plugins': {}}
     result = CompareRoutes._get_compare_plugin_views(web_frontend, compare_result)

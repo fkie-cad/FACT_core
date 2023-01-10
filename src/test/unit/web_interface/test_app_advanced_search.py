@@ -36,7 +36,7 @@ class DbMock(CommonDatabaseMock):
         },
     }
 )
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestAppAdvancedSearch:
     def test_advanced_search(self, test_client):
         response = _do_advanced_search(test_client, {'advanced_search': '{}'})
