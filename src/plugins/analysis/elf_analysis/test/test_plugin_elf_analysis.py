@@ -44,7 +44,7 @@ def stub_object():
     return test_object
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestElfAnalysis:
     @pytest.mark.parametrize(
         'tag, tag_color',

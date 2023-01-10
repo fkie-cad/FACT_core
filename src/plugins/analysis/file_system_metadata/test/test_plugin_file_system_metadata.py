@@ -58,7 +58,7 @@ def file_system_metadata_plugin(analysis_plugin):
     yield analysis_plugin
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestFileSystemMetadata:
     test_file_tar = TEST_DATA_DIR / 'test.tar'
     test_file_fs = TEST_DATA_DIR / 'squashfs.img'

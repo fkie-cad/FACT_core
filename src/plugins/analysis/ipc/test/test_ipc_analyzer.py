@@ -9,7 +9,7 @@ from ..code.ipc_analyzer import AnalysisPlugin
 TEST_DIR = Path(__file__).parent / 'data'
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginIpcAnalyzer:
     def test_ipc_system(self, analysis_plugin):
         expected_result = {

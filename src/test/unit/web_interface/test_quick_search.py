@@ -44,7 +44,7 @@ class DbMock(CommonDatabaseMock):
         },
     }
 )
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestAppQuickSearch:
     def test_quick_search_file_name(self, test_client):
         assert TEST_FW_2.uid in _start_quick_search(test_client, TEST_FW_2.file_name)

@@ -13,7 +13,7 @@ class DbMock(CommonDatabaseMock):
         return 1
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 def test_browse_binary_search_history(test_client):
     rv = test_client.get('/database/browse_binary_search_history')
     assert b'search_title' in rv.data

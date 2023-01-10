@@ -16,7 +16,7 @@ def test_object():
     return create_test_file_object()
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestSourceCodeAnalysis:
     def test_process_object_not_supported(self, analysis_plugin, test_object, monkeypatch):
         monkeypatch.setattr(

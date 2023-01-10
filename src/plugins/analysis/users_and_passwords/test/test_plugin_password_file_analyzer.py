@@ -9,7 +9,7 @@ from ..code.password_file_analyzer import AnalysisPlugin, crack_hash, parse_john
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginPasswordFileAnalyzer:
     def test_process_object_shadow_file(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_test'))

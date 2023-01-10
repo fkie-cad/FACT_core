@@ -12,7 +12,7 @@ class StatisticDbViewerMock(CommonDatabaseMock):
         return None if self.down or identifier != 'backend' else BACKEND_STATS
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=StatisticDbViewerMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=StatisticDbViewerMock)
 class TestRestFirmware:
     def test_empty_uid(self, test_client):
         StatisticDbViewerMock.down = False

@@ -13,7 +13,7 @@ class DbMock(CommonDatabaseMock):
         return self.result
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(database_mock_class=DbMock))
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestAppMissingAnalyses:
     def test_app_no_missing_analyses(self, test_client):
         DbMock.result = {}

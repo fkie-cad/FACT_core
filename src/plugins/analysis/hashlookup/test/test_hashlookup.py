@@ -15,7 +15,7 @@ def file_object(monkeypatch):
     return test_file
 
 
-@pytest.mark.AnalysisPluginTestConfig(dict(plugin_class=AnalysisPlugin))
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestHashlookup:
     def test_process_object_unknown_hash(self, analysis_plugin, file_object):
         file_object.processed_analysis['file_hashes'] = {'sha256': file_object.sha256}

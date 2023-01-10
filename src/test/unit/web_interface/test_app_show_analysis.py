@@ -10,7 +10,7 @@ class IntercomMock(CommonIntercomMock):
         self.task_list.append(task)
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(dict(intercom_mock_class=IntercomMock))
+@pytest.mark.WebInterfaceUnitTestConfig(intercom_mock_class=IntercomMock)
 class TestAppShowAnalysis:
     def test_app_show_analysis_get_valid_fw(self, test_client):
         result = test_client.get(f'/analysis/{TEST_FW.uid}').data
