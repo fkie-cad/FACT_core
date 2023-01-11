@@ -9,6 +9,8 @@ from tempfile import TemporaryDirectory
 from threading import Thread
 from time import sleep
 
+from docker.errors import DockerException
+
 from config import cfg
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import (
@@ -129,8 +131,14 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             try:
                 extracted_objects = self.unpacker.unpack(task, tmp_dir, container_url)
             except ExtractionError:
-                logging.warning(f'Exception happened during extraction of {task.uid}')
+                logging.warning(f'Exception happened during extraction of {task.uid}.')
                 container.exception = True
+                try:
+                    logging.warning(
+                        f'===Container Logs Start===\n{container.container.logs().decode()}\n===Container Logs End==='
+                    )
+                except DockerException:
+                    logging.error('Could not fetch unpacking container logs')
 
             # FixMe? sleep(0.1)  # This stuff is too fast for the FS to keep up ...
 

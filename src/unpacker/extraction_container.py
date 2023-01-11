@@ -60,7 +60,7 @@ class ExtractionContainer:
             detach=True,
             remove=True,
             environment={'CHMOD_OWNER': f'{getuid()}:{getgid()}'},
-            entrypoint='gunicorn -w 1 -b 0.0.0.0:5000 server:app',
+            entrypoint='gunicorn --timeout 600 -w 1 -b 0.0.0.0:5000 server:app',
         )
         logging.info(f'Started unpack worker {self.id_}')
 
