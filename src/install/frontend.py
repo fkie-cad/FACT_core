@@ -4,7 +4,6 @@ import subprocess
 from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
-from tempfile import TemporaryDirectory
 
 from config import cfg
 from helperFunctions.install import (
@@ -21,7 +20,7 @@ DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 MIME_ICON_DIR = INSTALL_DIR.parent / 'web_interface' / 'static' / 'file_icons'
-ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/elementary-xfce')
+ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/Papirus/24x24')
 
 
 def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
@@ -124,21 +123,15 @@ def _install_docker_images(radare):
 
 
 def _copy_mime_icons():
-    url = 'https://github.com/madmaxms/iconpack-obsidian/releases/download/v4.15/obsidian-iconpack.tar.xz'
-    with TemporaryDirectory() as tmp_dir:
-        with OperateInDirectory(tmp_dir):
-            execute_commands_and_raise_on_return_code(
-                [
-                    f'wget {url}',
-                    'tar xvf obsidian-iconpack.tar.xz',
-                    f'cp -r Obsidian-SemiLight/mimetypes/24 {MIME_ICON_DIR}/mime',
-                    f'cp Obsidian/emblems/24/emblem-symbolic-link.png {MIME_ICON_DIR}/mime/inode-symlink.png',
-                    f'cp Obsidian/actions/24s/flag-red.svg {MIME_ICON_DIR}/not_analyzed.svg',
-                    f'cp Obsidian-Green/places/24/folder.svg {MIME_ICON_DIR}/folder.svg',
-                    f'cp Obsidian/apps/24/jockey.png {MIME_ICON_DIR}/firmware.png',
-                    f'cp Obsidian/devices/24/block-device.png {MIME_ICON_DIR}/filesystem.png',
-                ]
-            )
+    # copy mime icons to the static folder so that they can be used by the web server
+    for source, target in [
+        ('mimetypes', 'mimetypes'),
+        ('devices/audio-card.svg', 'firmware.svg'),
+        ('devices/media-floppy.svg', 'filesystem.svg'),
+        ('places/folder-brown.svg', 'folder.svg'),
+        ('status/dialog-error.svg', 'not_analyzed.svg'),
+    ]:
+        run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
 def main(skip_docker, radare, nginx, distribution):

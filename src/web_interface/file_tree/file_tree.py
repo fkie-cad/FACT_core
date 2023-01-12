@@ -7,41 +7,45 @@ from typing import Dict, Iterable, List, NamedTuple, Optional, Set
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 WEB_BASE_PATH = Path(__file__).parent.parent
-ICON_PATH = WEB_BASE_PATH / 'static/file_icons/mime'
+ICON_PATH = WEB_BASE_PATH / 'static/file_icons/mimetypes'
 TYPE_TO_PATH = {p.stem: f'/{p.relative_to(WEB_BASE_PATH)}' for p in ICON_PATH.iterdir()}
-CRYPTO = 'application-x-pem-file'
+CRYPTO = 'application-certificate'
 CONFIG = 'text-x-makefile'
-SOURCE_CODE = 'text-x-source'
 TYPE_TO_PATH.update(
     {
+        # MIME types
         'application-x-pie-executable': TYPE_TO_PATH['application-x-executable'],
         'application-x-dosexec': TYPE_TO_PATH['application-x-ms-dos-executable'],
-        'application-x-sharedlib': TYPE_TO_PATH['opera-widget'],
-        'application-x-object': TYPE_TO_PATH['extension'],
-        'linux-device-tree': '/static/file_icons/firmware.png',
+        'linux-device-tree': '/static/file_icons/firmware.svg',
         # file suffixes
-        'asp': TYPE_TO_PATH[SOURCE_CODE],
         'c': TYPE_TO_PATH['text-x-csrc'],
         'cert': TYPE_TO_PATH[CRYPTO],
         'cfg': TYPE_TO_PATH[CONFIG],
         'cnf': TYPE_TO_PATH[CONFIG],
         'conf': TYPE_TO_PATH[CONFIG],
-        'cpp': TYPE_TO_PATH['text-x-csrc'],
+        'control': TYPE_TO_PATH['application-x-deb'],
+        'cpp': TYPE_TO_PATH['text-x-c++src'],
         'crt': TYPE_TO_PATH[CRYPTO],
-        'go': TYPE_TO_PATH[SOURCE_CODE],
+        'eps': TYPE_TO_PATH['application-postscript'],
         'h': TYPE_TO_PATH['text-x-chdr'],
         'htm': TYPE_TO_PATH['text-html'],
         'image': TYPE_TO_PATH['package-x-generic'],
         'ini': TYPE_TO_PATH[CONFIG],
         'js': TYPE_TO_PATH['application-x-javascript'],
-        'key': TYPE_TO_PATH[CRYPTO],
-        'lua': TYPE_TO_PATH[SOURCE_CODE],
+        'key': TYPE_TO_PATH['application-pgp'],
+        'md': TYPE_TO_PATH['text-x-markdown'],
         'pem': TYPE_TO_PATH[CRYPTO],
-        'pl': TYPE_TO_PATH['text-x-perl'],
+        'pl': TYPE_TO_PATH['application-x-perl'],
+        'properties': TYPE_TO_PATH['text-x-java'],
+        'ps': TYPE_TO_PATH['application-postscript'],
+        'pub': TYPE_TO_PATH['application-pgp'],
         'py': TYPE_TO_PATH['text-x-python'],
         'rb': TYPE_TO_PATH['application-x-ruby'],
-        'sh': TYPE_TO_PATH['text-x-script'],
+        'sh': TYPE_TO_PATH['application-x-shellscript'],
+        'svg': TYPE_TO_PATH['image-svg+xml'],
         'ts': TYPE_TO_PATH['application-x-javascript'],
+        'xsd': TYPE_TO_PATH['text-xml'],
+        'yml': TYPE_TO_PATH['application-x-yaml'],
     }
 )
 GNOME_PREFIX = 'gnome-mime-'
@@ -52,15 +56,22 @@ TYPE_TO_PATH.update(
         if k.startswith(GNOME_PREFIX) and k.replace(GNOME_PREFIX, '') not in TYPE_TO_PATH
     }
 )
+SPECIAL_FILES = {
+    'authors': TYPE_TO_PATH['text-x-credits'],
+    'license': TYPE_TO_PATH['text-x-copying'],
+    'readme': TYPE_TO_PATH['text-x-readme'],
+    'version': TYPE_TO_PATH['text-x-readme'],
+}
+SPECIAL_FILES.update({k.upper(): v for k, v in SPECIAL_FILES.items()})
+SPECIAL_FILES.update({k.title(): v for k, v in SPECIAL_FILES.items()})
 ARCHIVE_FILE_TYPES = [
     'application/java-archive',
     'application/rar',
-    'application/vnd.ms-cab-compressed',
     'application/x-adf',
     'application/x-alzip',
     'application/x-bzip2',
     'application/x-cab',
-    'application/x-chm',
+    'application/x-debian-package',
     'application/x-dms',
     'application/x-iso9660-image',
     'application/x-lrzip',
@@ -79,8 +90,8 @@ ARCHIVE_FILE_TYPES = [
 ]
 TYPE_CATEGORY_TO_ICON = {
     'audio/': TYPE_TO_PATH['audio-x-generic'],
-    'filesystem/': '/static/file_icons/filesystem.png',
-    'firmware/': '/static/file_icons/firmware.png',
+    'filesystem/': '/static/file_icons/filesystem.svg',
+    'firmware/': '/static/file_icons/firmware.svg',
     'font/': TYPE_TO_PATH['font-x-generic'],
     'image/': TYPE_TO_PATH['image-x-generic'],
     'text/': TYPE_TO_PATH['text-x-generic'],
@@ -107,6 +118,8 @@ def get_icon_for_file(mime_type: Optional[str], file_name: str) -> str:
     '''
     if mime_type is None:
         return TYPE_TO_PATH['unknown']
+    if file_name in SPECIAL_FILES:
+        return SPECIAL_FILES[file_name]
     # suffix may be there but mime is text/plain, so we check the suffix first
     suffix_icon = _find_icon_for_suffix(file_name)
     if suffix_icon:

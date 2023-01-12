@@ -2,4 +2,4 @@
 nodejs
 
 # for file tree icons
-elementary-xfce-icon-theme
+papirus-icon-theme

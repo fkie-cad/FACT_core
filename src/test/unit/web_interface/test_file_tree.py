@@ -30,25 +30,28 @@ VIRTUAL_TREE_ROOT = {
     'li_attr': {'href': '#'},
     'text': 'misc',
 }
+MIME_PATH = '/static/file_icons/mimetypes/'
 
 
 @pytest.mark.parametrize(
     'mime_type, filename, icon',
     [
-        ('application/zip', '', '/static/file_icons/mime/application-zip.svg'),
-        ('filesystem/some_filesystem', '', '/static/file_icons/filesystem.png'),
-        ('application/x-executable', '', '/static/file_icons/mime/application-x-executable.svg'),
-        ('inode/symlink', '', '/static/file_icons/mime/inode-symlink.png'),
-        ('text/html', '', '/static/file_icons/mime/text-html.svg'),
-        ('text/foobar', '', '/static/file_icons/mime/text-x-generic.svg'),
-        ('firmware/generic', '', '/static/file_icons/firmware.png'),
-        ('text/plain', '', '/static/file_icons/mime/text-plain.svg'),
-        ('image/png', '', '/static/file_icons/mime/image-png.svg'),
-        ('image/foobar', '', '/static/file_icons/mime/image-x-generic.svg'),
-        ('audio/mpeg', '', '/static/file_icons/mime/audio-mpeg.svg'),
-        ('audio/foobar', '', '/static/file_icons/mime/audio-x-generic.svg'),
-        ('some unknown mime type', '', '/static/file_icons/mime/unknown.svg'),
-        ('some unknown mime type', 'foo.sh', '/static/file_icons/mime/text-x-script.svg'),
+        (None, '', f'{MIME_PATH}unknown.svg'),
+        ('application/zip', '', f'{MIME_PATH}application-zip.svg'),
+        ('filesystem/some_filesystem', '', '/static/file_icons/filesystem.svg'),
+        ('application/x-executable', '', f'{MIME_PATH}application-x-executable.svg'),
+        ('inode/symlink', '', f'{MIME_PATH}inode-symlink.svg'),
+        ('text/html', '', f'{MIME_PATH}text-html.svg'),
+        ('text/foobar', '', f'{MIME_PATH}text-x-generic.svg'),
+        ('firmware/generic', '', '/static/file_icons/firmware.svg'),
+        ('text/plain', '', f'{MIME_PATH}text-plain.svg'),
+        ('image/png', '', f'{MIME_PATH}image-png.svg'),
+        ('image/foobar', '', f'{MIME_PATH}image-x-generic.svg'),
+        ('audio/mpeg', '', f'{MIME_PATH}audio-mpeg.svg'),
+        ('audio/foobar', '', f'{MIME_PATH}audio-x-generic.svg'),
+        ('text/plain', 'foo.sh', f'{MIME_PATH}application-x-shellscript.svg'),
+        ('some unknown mime type', '', f'{MIME_PATH}unknown.svg'),
+        ('some unknown mime type', 'Readme', f'{MIME_PATH}text-x-readme.svg'),
     ],
 )
 def test_get_icon_for_file(mime_type, filename, icon):
