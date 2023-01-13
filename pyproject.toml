@@ -40,3 +40,16 @@ known_first_party = ["analysis", "compare", "helperFunctions", "install", "inter
     "statistic", "storage", "test", "unpacker", "version", "web_interface"]
 known_third_party = "docker"
 profile = "black"
+
+[tool.pytest.ini_options]
+addopts = "-v"
+testpaths = [
+    "src/test",
+    "src/plugins/**/test",
+]
+markers = [
+    "AnalysisPluginClass: Set the Class of the analysis_plugin fixture",
+    "plugin_init_kwargs: Keyword arguments to pass to AnalysisPluginClass",
+    "plugin_start_worker: Whether or not to start actual workers",
+    "cfg_defaults: Overwrite defaults for the testing config",
+]
