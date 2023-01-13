@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 import base64
 import json
 import re
 import sys
 from pathlib import Path
+from typing import Dict, List
 
 import r2pipe
 
@@ -111,7 +110,7 @@ def get_class_summary(input_vectors):
     return list(classes)
 
 
-def group_input_vectors(input_vectors: list[dict]) -> dict[str, list[dict]]:
+def group_input_vectors(input_vectors: List[dict]) -> Dict[str, List[dict]]:
     result = {}
     for entry in input_vectors:
         result.setdefault(entry['class'], []).append({'name': entry['name'], 'xrefs': entry['xrefs']})
