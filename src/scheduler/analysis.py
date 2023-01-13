@@ -341,10 +341,14 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return self._dependencies_are_up_to_date(db_entry, analysis_plugin, uid)
 
     @staticmethod
-    def _current_version_is_newer(current_plugin_version: str, current_system_version: str, db_entry: dict) -> bool:
-        return parse_version(current_plugin_version) > parse_version(db_entry['plugin_version']) or parse_version(
-            current_system_version or '0'
-        ) > parse_version(db_entry['system_version'] or '0')
+    def _current_version_is_newer(
+        current_plugin_version: str, current_system_version: str | None, db_entry: dict[str, str | None]
+    ) -> bool:
+        plugin_version_is_newer = parse_version(current_plugin_version) > parse_version(db_entry['plugin_version'])
+        system_version_is_newer = parse_version(_fix_system_version(current_system_version)) > parse_version(
+            _fix_system_version(db_entry.get('system_version'))
+        )
+        return plugin_version_is_newer or system_version_is_newer
 
     def _dependencies_are_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
         for dependency in analysis_plugin.DEPENDENCIES:
@@ -494,3 +498,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             if plugin.check_exceptions():
                 return True
         return check_worker_exceptions([self.schedule_process, self.result_collector_process], 'Scheduler')
+
+
+def _fix_system_version(system_version: str | None) -> str:
+    # the system version is optional -> return '0' if it is '' or None
+    # YARA plugins used an invalid system version x.y_z (may still be in DB) -> replace all underscores with dashes
+    return system_version.replace('_', '-') if system_version else '0'
