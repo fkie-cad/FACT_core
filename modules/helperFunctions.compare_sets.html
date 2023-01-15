@@ -117,13 +117,13 @@
 from the object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>iterable</strong> (<em>Iterable</em><em>[</em><em>helperFunctions.compare_sets._T</em><em>]</em>) – The object that will be iterated over.</p>
+<dd class="field-odd"><p><strong>iterable</strong> (<em>Iterable</em><em>[</em><em>_T</em><em>]</em>) – The object that will be iterated over.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A generator with tuples containing the item and the rest (all other elements).</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Iterator</em>[<em>Tuple</em>[helperFunctions.compare_sets._T, <em>Iterable</em>[helperFunctions.compare_sets._T]]]</p>
+<dd class="field-odd"><p>Iterator[tuple[_T, Iterable[_T]]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -136,14 +136,14 @@ from the object.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>list</strong> – The input list (possibly) containing duplicates.</p></li>
-<li><p><strong>list_</strong> (<em>List</em><em>[</em><em>helperFunctions.compare_sets._T</em><em>]</em>) – </p></li>
+<li><p><strong>list_</strong> (<em>list</em><em>[</em><em>_T</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A new list only containing unique elements.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>List</em>[helperFunctions.compare_sets._T]</p>
+<dd class="field-odd"><p>list[_T]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -156,7 +156,7 @@ from the object.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>string</strong> (<em>str</em>) – The string that is checked if it contains any of the substrings.</p></li>
-<li><p><strong>substring_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – A list of possible substrings.</p></li>
+<li><p><strong>substring_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – A list of possible substrings.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

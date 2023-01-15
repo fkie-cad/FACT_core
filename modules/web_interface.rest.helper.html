@@ -94,8 +94,6 @@
              
   <section id="module-web_interface.rest.helper">
 <span id="web-interface-rest-helper-module"></span><h1>web_interface.rest.helper module<a class="headerlink" href="#module-web_interface.rest.helper" title="Permalink to this headline"></a></h1>
-<p>This module offers neat wrapper functionality for use in rest endpoints.
-Most wrappers target request and response parsing.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="web_interface.rest.helper.error_message">
 <span class="sig-prename descclassname"><span class="pre">web_interface.rest.helper.</span></span><span class="sig-name descname"><span class="pre">error_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targeted_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.error_message" title="Permalink to this definition"></a></dt>
@@ -105,7 +103,7 @@ Most wrappers target request and response parsing.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>error</strong> (<em>str</em>) – String containing a reason why the request failed.</p></li>
 <li><p><strong>targeted_url</strong> (<em>str</em>) – Requested URL.</p></li>
-<li><p><strong>request_data</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em>) – Parameters of the request.</p></li>
+<li><p><strong>request_data</strong> (<em>dict</em><em> | </em><em>None</em>) – Parameters of the request.</p></li>
 <li><p><strong>return_code</strong> (<em>int</em>) – HTTP status code for response. Defaults to 400 Bad Request.</p></li>
 </ul>
 </dd>
@@ -113,7 +111,7 @@ Most wrappers target request and response parsing.</p>
 <dd class="field-even"><p>dict containing a response adhering to the FACT rest api guidelines.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Tuple</em>[dict, int]</p>
+<dd class="field-odd"><p>tuple[dict, int]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -158,13 +156,13 @@ Most wrappers target request and response parsing.</p>
 <dd><p>Parse paging parameter offset and limit from request parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>request_parameters</strong> (<em>werkzeug.datastructures.ImmutableMultiDict</em>) – dict containing the request parameters.</p>
+<dd class="field-odd"><p><strong>request_parameters</strong> (<em>ImmutableMultiDict</em>) – dict containing the request parameters.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The paging parameters offset and limit as integers.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Tuple</em>[int, int]</p>
+<dd class="field-odd"><p>tuple[int, int]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -213,7 +211,7 @@ shall be updated.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>dict</em>) – dict containing the requested data.</p></li>
 <li><p><strong>targeted_url</strong> (<em>str</em>) – Requested URL.</p></li>
-<li><p><strong>request_data</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em>) – Parameters of the request.</p></li>
+<li><p><strong>request_data</strong> (<em>dict</em><em> | </em><em>None</em>) – Parameters of the request.</p></li>
 <li><p><strong>return_code</strong> (<em>int</em>) – HTTP status code for response. Defaults to 200 OK.</p></li>
 </ul>
 </dd>
@@ -221,7 +219,7 @@ shall be updated.</p>
 <dd class="field-even"><p>dict containing a response adhering to the FACT rest api guidelines.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Tuple</em>[dict, int]</p>
+<dd class="field-odd"><p>tuple[dict, int]</p>
 </dd>
 </dl>
 </dd></dl>

@@ -126,7 +126,7 @@ changed back to its previous value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>target_directory</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>pathlib.Path</em><em>]</em>) – Directory path to use as working directory.</p></li>
+<li><p><strong>target_directory</strong> (<em>str</em><em> | </em><em>Path</em>) – Directory path to use as working directory.</p></li>
 <li><p><strong>remove</strong> (<em>bool</em>) – Optional boolean to indicate if <cite>target_directory</cite> should be removed on exit.</p></li>
 </ul>
 </dd>
@@ -223,7 +223,7 @@ Useful to find out if a program is already installed.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>project_path</strong> (<em>str</em>) – Github path to project. For FACT this is ‘fkie-cad/FACT_core’.</p></li>
-<li><p><strong>commands</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of commands to run after cloning to install project.</p></li>
+<li><p><strong>commands</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of commands to run after cloning to install project.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Example</dt>
@@ -268,7 +268,7 @@ have one package per line (empty lines and comments are allowed).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>packages</strong> (<em>Tuple</em><em>[</em><em>str</em><em>]</em>) – List of packages that are affected.</p></li>
+<li><p><strong>packages</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – List of packages that are affected.</p></li>
 <li><p><strong>install</strong> (<em>bool</em>) – Identifier to distinguish installation from removal.</p></li>
 </ul>
 </dd>

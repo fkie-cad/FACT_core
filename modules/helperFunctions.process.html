@@ -122,7 +122,7 @@ happened in the subprocess.</p>
 (see <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Process">Python docs</a>).</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="helperFunctions.process.ExceptionSafeProcess.exception">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exception</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Exception</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess.exception" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exception</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Exception</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess.exception" title="Permalink to this definition"></a></dt>
 <dd><p>The exception that occurred in the process during execution and the respective stack trace.
 Is <code class="docutils literal notranslate"><span class="pre">None</span></code> if no exception occurred or the process was no yet executed.</p>
 <dl class="field-list simple">
@@ -152,9 +152,9 @@ the worker will not be restarted and the return value is <code class="docutils l
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>process_list</strong> (<em>List</em><em>[</em><a class="reference internal" href="#helperFunctions.process.ExceptionSafeProcess" title="helperFunctions.process.ExceptionSafeProcess"><em>helperFunctions.process.ExceptionSafeProcess</em></a><em>]</em>) – A list of worker processes.</p></li>
+<li><p><strong>process_list</strong> (<em>list</em><em>[</em><a class="reference internal" href="#helperFunctions.process.ExceptionSafeProcess" title="helperFunctions.process.ExceptionSafeProcess"><em>ExceptionSafeProcess</em></a><em>]</em>) – A list of worker processes.</p></li>
 <li><p><strong>worker_label</strong> (<em>str</em>) – A label used for logging (e.g. <cite>Analysis</cite> or <cite>Unpacking</cite>).</p></li>
-<li><p><strong>worker_function</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em>) – A function used for restarting the worker (optional).</p></li>
+<li><p><strong>worker_function</strong> (<em>Callable</em><em> | </em><em>None</em>) – A function used for restarting the worker (optional).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -173,7 +173,7 @@ set to <cite>true</cite> and <code class="docutils literal notranslate"><span cl
 <dd><p>Shutdown all FACT processes (of the currently running component) by sending a signal to the process group.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>message</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Optional message to be displayed before the shutdown.</p>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em><em> | </em><em>None</em>) – Optional message to be displayed before the shutdown.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>None</p>
@@ -211,7 +211,7 @@ FACT backend.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>process_index</strong> (<em>int</em>) – The index of the process in the process list of the scheduler.</p></li>
 <li><p><strong>label</strong> (<em>str</em>) – A label used for logging (e.g. <cite>Analysis</cite> or <cite>Unpacking</cite>).</p></li>
-<li><p><strong>function</strong> (<em>Callable</em>) – The function, that gets executed by the worker process.</p></li>
+<li><p><strong>function</strong> (<em>collections.abc.Callable</em>) – The function, that gets executed by the worker process.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -230,7 +230,7 @@ FACT backend.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>processes</strong> (<em>List</em><em>[</em><em>multiprocessing.context.Process</em><em>]</em>) – The list of processes that should be stopped.</p></li>
+<li><p><strong>processes</strong> (<em>list</em><em>[</em><em>Process</em><em>]</em>) – The list of processes that should be stopped.</p></li>
 <li><p><strong>timeout</strong> (<em>float</em>) – Timeout for joining the process in seconds.</p></li>
 </ul>
 </dd>

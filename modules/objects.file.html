@@ -101,10 +101,10 @@ It holds all meta information of a file along with analysis results and some int
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>binary</strong> (<em>Optional</em><em>[</em><em>bytes</em><em>]</em>) – The file in binary representation. Either this or <cite>file_path</cite> has to be present.</p></li>
-<li><p><strong>file_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The file’s name.</p></li>
-<li><p><strong>file_path</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The file’s path. Either this or <cite>binary</cite> has to be present.</p></li>
-<li><p><strong>scheduled_analysis</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – A list of analysis plugins that should be run on this file.</p></li>
+<li><p><strong>binary</strong> (<em>bytes</em><em> | </em><em>None</em>) – The file in binary representation. Either this or <cite>file_path</cite> has to be present.</p></li>
+<li><p><strong>file_name</strong> (<em>str</em><em> | </em><em>None</em>) – The file’s name.</p></li>
+<li><p><strong>file_path</strong> (<em>str</em><em> | </em><em>None</em>) – The file’s path. Either this or <cite>binary</cite> has to be present.</p></li>
+<li><p><strong>scheduled_analysis</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – A list of analysis plugins that should be run on this file.</p></li>
 </ul>
 </dd>
 </dl>
@@ -138,7 +138,7 @@ and the parent’s uid as root.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>parent_paths</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of virtual paths on parent object.</p></li>
+<li><p><strong>parent_paths</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of virtual paths on parent object.</p></li>
 <li><p><strong>parent_uid</strong> (<em>str</em>) – uid of parent.</p></li>
 </ul>
 </dd>
@@ -260,7 +260,7 @@ Else gets uid from root of first virtual file path.</p>
 <dd class="field-odd"><p>Dict mapping uids of root objects to lists of paths in each root.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><em>Dict</em>[str, list]</p>
+<dd class="field-even"><p>dict[str, list]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -274,7 +274,7 @@ Else gets uid from root of first virtual file path.</p>
 <dd class="field-odd"><p>List of virtual paths.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><em>List</em>[str]</p>
+<dd class="field-even"><p>list[str]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -287,13 +287,13 @@ If not, similar to <a class="reference internal" href="#objects.file.FileObject.
 or fall back to first uid of list of all root uids.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>root_uid</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – (Optional) root uid to get vfps for.</p>
+<dd class="field-odd"><p><strong>root_uid</strong> (<em>str</em>) – (Optional) root uid to get vfps for.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>List of virtual paths.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>List</em>[str]</p>
+<dd class="field-odd"><p>list[str]</p>
 </dd>
 </dl>
 </dd></dl>

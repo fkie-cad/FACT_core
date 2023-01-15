@@ -123,7 +123,7 @@ in the webinterface).</p>
 <dd class="field-even"><p>A dictionary containing error messages in the form <cite>{task_key: error_message}</cite>.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Dict</em>[str, str]</p>
+<dd class="field-odd"><p>dict[str, str]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -136,14 +136,14 @@ in the webinterface).</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p></li>
-<li><p><strong>base_fw</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware" title="objects.firmware.Firmware"><em>objects.firmware.Firmware</em></a><em>]</em>) – The existing <cite>Firmware</cite> object in case of analysis update.</p></li>
+<li><p><strong>base_fw</strong> (<a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware" title="objects.firmware.Firmware"><em>Firmware</em></a><em> | </em><em>None</em>) – The existing <cite>Firmware</cite> object in case of analysis update.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A <cite>Firmware</cite> object based on the analysis task data.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware" title="objects.firmware.Firmware">objects.firmware.Firmware</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware" title="objects.firmware.Firmware">Firmware</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -154,13 +154,13 @@ in the webinterface).</p>
 <dd><p>Create an analysis task from the data stored in the flask request object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>request</strong> (<em>flask.Request</em>) – The flask request object.</p>
+<dd class="field-odd"><p><strong>request</strong> (<em>Request</em>) – The flask request object.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A dict containing the analysis task data.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Dict</em>[str, <em>Any</em>]</p>
+<dd class="field-odd"><p>dict[str, Any]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -172,7 +172,7 @@ in the webinterface).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>request</strong> (<em>flask.Request</em>) – The flask request object.</p></li>
+<li><p><strong>request</strong> (<em>Request</em>) – The flask request object.</p></li>
 <li><p><strong>uid</strong> (<em>str</em>) – The unique identifier of the firmware.</p></li>
 </ul>
 </dd>
@@ -180,7 +180,7 @@ in the webinterface).</p>
 <dd class="field-even"><p>A dict containing the analysis task data.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Dict</em>[str, <em>Any</em>]</p>
+<dd class="field-odd"><p>dict[str, Any]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -192,7 +192,7 @@ in the webinterface).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>request</strong> (<em>flask.Request</em>) – The flask request object.</p></li>
+<li><p><strong>request</strong> (<em>Request</em>) – The flask request object.</p></li>
 <li><p><strong>config</strong> – The FACT configuration.</p></li>
 </ul>
 </dd>
@@ -200,7 +200,7 @@ in the webinterface).</p>
 <dd class="field-even"><p>A Tuple containing the file name and the file content.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Tuple</em>[str, bytes]</p>
+<dd class="field-odd"><p>tuple[str, bytes]</p>
 </dd>
 </dl>
 </dd></dl>

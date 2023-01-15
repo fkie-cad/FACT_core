@@ -135,7 +135,7 @@
 <dd class="field-even"><p>A set of parent UIDs</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Set</em>[str]</p>
+<dd class="field-odd"><p>set[str]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -165,7 +165,7 @@
 <dd class="field-even"><p>A list of UIDs</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>List</em>[str]</p>
+<dd class="field-odd"><p>list[str]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -191,12 +191,12 @@ VFPs with different bases correspond to different archives in the firmware and s
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>old_vfp_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – </p></li>
-<li><p><strong>new_vfp_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+<li><p><strong>old_vfp_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+<li><p><strong>new_vfp_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><em>List</em>[str]</p>
+<dd class="field-even"><p>list[str]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -209,7 +209,7 @@ VFPs with different bases correspond to different archives in the firmware and s
 <dd class="field-odd"><p><strong>virtual_path</strong> (<em>str</em>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><em>List</em>[str]</p>
+<dd class="field-even"><p>list[str]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -225,15 +225,15 @@ This function returns the combined dict across newfound virtual paths and existi
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>new_vfp</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>) – current virtual file path dictionary</p></li>
-<li><p><strong>old_vfp</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>) – old virtual file path dictionary (existing DB entry)</p></li>
+<li><p><strong>new_vfp</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – current virtual file path dictionary</p></li>
+<li><p><strong>old_vfp</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – old virtual file path dictionary (existing DB entry)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>updated (merged) virtual file path dictionary</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Dict</em>[str, <em>List</em>[str]]</p>
+<dd class="field-odd"><p>dict[str, list[str]]</p>
 </dd>
 </dl>
 </dd></dl>

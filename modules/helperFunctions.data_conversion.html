@@ -122,7 +122,7 @@
 <dd class="field-even"><p>The according UID list.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>List</em>[str]</p>
+<dd class="field-odd"><p>list[str]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -184,13 +184,13 @@ to identify a FACT <cite>Firmware</cite> or <cite>FileObject</cite> comparison).
 <dd><p>Get the value of the first key in a dictionary. If the dict is empty, return <cite>None</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_dict</strong> (<em>Dict</em><em>[</em><em>helperFunctions.data_conversion._KT</em><em>, </em><em>helperFunctions.data_conversion._VT</em><em>]</em>) – The dictionary to get the value from.</p>
+<dd class="field-odd"><p><strong>input_dict</strong> (<em>dict</em><em>[</em><em>_KT</em><em>, </em><em>_VT</em><em>]</em>) – The dictionary to get the value from.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The value of the first key in the dictionary or <cite>None</cite> if it is empty.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><em>Optional</em>[helperFunctions.data_conversion._VT]</p>
+<dd class="field-odd"><p>_VT | None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -201,7 +201,7 @@ to identify a FACT <cite>Firmware</cite> or <cite>FileObject</cite> comparison).
 <dd><p>Convert <cite>data</cite> into bytes (if necessary).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>Union</em><em>[</em><em>AnyStr</em><em>, </em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em>) – Some sort of data that can be converted to bytes.</p>
+<dd class="field-odd"><p><strong>data</strong> (<em>AnyStr</em><em> | </em><em>list</em><em>[</em><em>int</em><em>]</em>) – Some sort of data that can be converted to bytes.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The data as bytes.</p>
@@ -233,10 +233,10 @@ to identify a FACT <cite>Firmware</cite> or <cite>FileObject</cite> comparison).
 Used to convert a string coming from the web interface to a NoneType object if necessary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_data</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – A string that may</p>
+<dd class="field-odd"><p><strong>input_data</strong> (<em>str</em><em> | </em><em>None</em>) – A string that may</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><em>Optional</em>[str]</p>
+<dd class="field-even"><p>str | None</p>
 </dd>
 </dl>
 </dd></dl>
