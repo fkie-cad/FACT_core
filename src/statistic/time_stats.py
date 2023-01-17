@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Dict, List, Tuple
 
 from storage.db_interface_stats import Stats
 
 
-def build_stats_entry_from_date_query(release_date_stats: List[Tuple[int, int, int]]) -> Stats:
+def build_stats_entry_from_date_query(release_date_stats: list[tuple[int, int, int]]) -> Stats:
     time_dict = _build_time_dict(release_date_stats)
     return [
         (f'{_get_month_name(month)} {year}', count)
@@ -13,7 +14,7 @@ def build_stats_entry_from_date_query(release_date_stats: List[Tuple[int, int, i
     ]
 
 
-def _build_time_dict(release_date_stats: List[Tuple[int, int, int]]) -> Dict[int, Dict[int, int]]:
+def _build_time_dict(release_date_stats: list[tuple[int, int, int]]) -> dict[int, dict[int, int]]:
     result = {}
     for year, month, count in release_date_stats:
         if year > 1970:
@@ -23,7 +24,7 @@ def _build_time_dict(release_date_stats: List[Tuple[int, int, int]]) -> Dict[int
     return result
 
 
-def _fill_in_time_gaps(time_dict: Dict[int, Dict[int, int]]):
+def _fill_in_time_gaps(time_dict: dict[int, dict[int, int]]):
     if time_dict == {}:
         return
     start_year = min(time_dict)

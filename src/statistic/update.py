@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 from time import time
-from typing import Dict, List, Optional, Tuple
 
 from common_helper_filter.time import time_format
 
@@ -14,7 +15,7 @@ class StatsUpdater:
     This class handles statistic generation
     '''
 
-    def __init__(self, stats_db: Optional[StatsUpdateDbInterface] = None):
+    def __init__(self, stats_db: StatsUpdateDbInterface | None = None):
         self.db = stats_db if stats_db else StatsUpdateDbInterface()
         self.start_time = None
         self.match = {}
@@ -65,7 +66,7 @@ class StatsUpdater:
         blacklist = ['not available', 'clean']
         return [item for item in stats if not item[0] in blacklist]
 
-    def get_exploit_mitigations_stats(self) -> Dict[str, RelativeStats]:
+    def get_exploit_mitigations_stats(self) -> dict[str, RelativeStats]:
         result = self.db.count_values_in_summary(plugin='exploit_mitigations', q_filter=self.match)
         return {
             'exploit_mitigations': [
@@ -80,7 +81,7 @@ class StatsUpdater:
         }
 
     @staticmethod
-    def get_relative_stats(keywords: List[str], stats: Stats) -> RelativeStats:
+    def get_relative_stats(keywords: list[str], stats: Stats) -> RelativeStats:
         count_dict = {
             keyword: count
             for keyword in keywords
@@ -90,21 +91,21 @@ class StatsUpdater:
         total = sum(count_dict.values())
         return [(label, count, round(count / total, 5)) for label, count in count_dict.items()]
 
-    def get_known_vulnerabilities_stats(self) -> Dict[str, Stats]:
+    def get_known_vulnerabilities_stats(self) -> dict[str, Stats]:
         stats = self.db.count_values_in_summary(plugin='known_vulnerabilities', q_filter=self.match)
         return {'known_vulnerabilities': self._filter_results(stats)}
 
-    def get_crypto_material_stats(self) -> Dict[str, Stats]:
+    def get_crypto_material_stats(self) -> dict[str, Stats]:
         stats = self.db.count_values_in_summary(plugin='crypto_material', q_filter=self.match)
         return {'crypto_material': stats}
 
-    def get_firmware_meta_stats(self) -> Dict[str, Stats]:
+    def get_firmware_meta_stats(self) -> dict[str, Stats]:
         return {
             'vendor': self.db.count_distinct_values(FirmwareEntry.vendor, q_filter=self.match),
             'device_class': self.db.count_distinct_values(FirmwareEntry.device_class, q_filter=self.match),
         }
 
-    def get_file_type_stats(self) -> Dict[str, Stats]:
+    def get_file_type_stats(self) -> dict[str, Stats]:
         return {
             label: self.db.count_distinct_in_analysis(
                 AnalysisEntry.result['mime'], 'file_type', firmware=firmware, q_filter=self.match
@@ -160,7 +161,7 @@ class StatsUpdater:
         except ZeroDivisionError:
             return 0.0
 
-    def get_executable_stats(self) -> Dict[str, List[Tuple[str, int, float, str]]]:
+    def get_executable_stats(self) -> dict[str, list[tuple[str, int, float, str]]]:
         total = self.db.get_regex_mime_match_count('^ELF.*executable')
         stats = []
         for label, query_match in [
@@ -178,7 +179,7 @@ class StatsUpdater:
             stats.append((label, count, count / (total if total else 1), query_match))
         return {'executable_stats': stats}
 
-    def get_ip_stats(self) -> Dict[str, Stats]:
+    def get_ip_stats(self) -> dict[str, Stats]:
         ip_stats = {
             key: self.db.count_distinct_values_in_array(
                 AnalysisEntry.result[key], plugin='ip_and_uri_finder', q_filter=self.match
@@ -189,7 +190,7 @@ class StatsUpdater:
         return ip_stats
 
     @staticmethod
-    def _remove_location_info(ip_stats: Dict[str, Stats]):
+    def _remove_location_info(ip_stats: dict[str, Stats]):
         # IP data can contain location info -> just use the IP string (which is the first element in a list)
         for key in ['ips_v4', 'ips_v6']:
             for index, (ip, count) in enumerate(ip_stats[key]):

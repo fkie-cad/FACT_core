@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 from contextlib import suppress
-from typing import Optional
 
 from helperFunctions.plugin import import_plugins
 from objects.firmware import Firmware
@@ -15,7 +16,7 @@ class Compare:
 
     compare_plugins = {}
 
-    def __init__(self, db_interface: Optional[ComparisonDbInterface] = None):
+    def __init__(self, db_interface: ComparisonDbInterface | None = None):
         self.db_interface = db_interface
         self._setup_plugins()
         logging.info(f'Plug-ins available: {self.compare_plugins.keys()}')

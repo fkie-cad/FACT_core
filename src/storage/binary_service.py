@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import Optional, Tuple
 
 from common_helper_files.fail_safe_file_operations import get_binary_from_file
 
@@ -20,7 +21,7 @@ class BinaryService:
         self.db_interface = BinaryServiceDbInterface()
         logging.info('binary service online')
 
-    def get_binary_and_file_name(self, uid: str) -> Tuple[Optional[bytes], Optional[str]]:
+    def get_binary_and_file_name(self, uid: str) -> tuple[bytes | None, str | None]:
         file_name = self.db_interface.get_file_name(uid)
         if file_name is None:
             return None, None
@@ -37,7 +38,7 @@ class BinaryService:
             fp.seek(offset)
             return fp.read(length)
 
-    def get_repacked_binary_and_file_name(self, uid: str) -> Tuple[Optional[bytes], Optional[str]]:
+    def get_repacked_binary_and_file_name(self, uid: str) -> tuple[bytes | None, str | None]:
         file_name = self.db_interface.get_file_name(uid)
         if file_name is None:
             return None, None
@@ -48,7 +49,7 @@ class BinaryService:
 
 
 class BinaryServiceDbInterface(ReadOnlyDbInterface):
-    def get_file_name(self, uid: str) -> Optional[str]:
+    def get_file_name(self, uid: str) -> str | None:
         with self.get_read_only_session() as session:
             entry: FileObjectEntry = session.get(FileObjectEntry, uid)
             return entry.file_name if entry is not None else None

@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import bz2
 import gzip
 import io
 import lzma
 import zlib
-from typing import List
 
 
 class GZDecompressor:
@@ -34,7 +35,7 @@ _COMPRESSIONS = [
 DECOMPRESS_CHUNK_SIZE = 8388608  # 8 MiB
 
 
-def _collect_compression_indices(raw, magic_word: bytes) -> List[int]:
+def _collect_compression_indices(raw, magic_word: bytes) -> list[int]:
     indices = []
 
     raw_offset = 0
@@ -48,7 +49,7 @@ def _collect_compression_indices(raw, magic_word: bytes) -> List[int]:
     return indices
 
 
-def _decompress_indices(raw: bytes, indices: List[int], decompressor: object) -> List[bytes]:
+def _decompress_indices(raw: bytes, indices: list[int], decompressor: object) -> list[bytes]:
     result = []
     for index in indices:
         try:
@@ -61,7 +62,7 @@ def _decompress_indices(raw: bytes, indices: List[int], decompressor: object) ->
     return result
 
 
-def decompress(raw: bytes) -> List[bytes]:
+def decompress(raw: bytes) -> list[bytes]:
     result = []
 
     for compression in _COMPRESSIONS:

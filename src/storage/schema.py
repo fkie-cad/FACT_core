@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import Set
 
 from sqlalchemy import (
     BigInteger,
@@ -114,10 +115,10 @@ class FileObjectEntry(Base):
         backref=backref('file_objects'),
     )
 
-    def get_included_uids(self) -> Set[str]:
+    def get_included_uids(self) -> set[str]:
         return {child.uid for child in self.included_files}
 
-    def get_parent_uids(self) -> Set[str]:
+    def get_parent_uids(self) -> set[str]:
         return {parent.uid for parent in self.parent_files}
 
     def __repr__(self) -> str:

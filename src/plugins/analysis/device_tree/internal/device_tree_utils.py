@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 from subprocess import run
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import NamedTuple
 
 from more_itertools import chunked
 
@@ -11,7 +13,7 @@ MAGIC = bytes.fromhex('D00DFEED')
 HEADER_SIZE = 40
 
 
-def _bytes_to_int(byte_str: List[int]) -> int:
+def _bytes_to_int(byte_str: list[int]) -> int:
     return int.from_bytes(bytes(byte_str), byteorder='big')
 
 
@@ -29,7 +31,7 @@ class DeviceTreeHeader(NamedTuple):
 
 
 class Property:
-    def __init__(self, raw: bytes, strings_by_offset: Dict[int, bytes]):
+    def __init__(self, raw: bytes, strings_by_offset: dict[int, bytes]):
         # a property consists of a struct {uint32_t len; uint32_t nameoff;} followed by the value
         # nameoff is an offset of the string in the strings block
         # see also: https://devicetree-specification.readthedocs.io/en/stable/flattened-format.html#lexical-structure
@@ -45,7 +47,7 @@ class Property:
 class StructureBlock:
     FDT_PROP = b'\0\0\0\3'
 
-    def __init__(self, raw: bytes, strings_by_offset: Dict[int, bytes]):
+    def __init__(self, raw: bytes, strings_by_offset: dict[int, bytes]):
         self.raw = raw
         self.strings_by_offset = strings_by_offset
 
@@ -73,7 +75,7 @@ def header_has_illegal_values(header: DeviceTreeHeader, max_size: int) -> bool:
     return header.version > 20 or any(n > max_size or n > header.size for n in values) or header.size > max_size
 
 
-def convert_device_tree_to_str(file_path: Union[str, Path]) -> Optional[str]:
+def convert_device_tree_to_str(file_path: str | Path) -> str | None:
     process = run(
         f'dtc -I dtb -O dts {file_path}', shell=True, capture_output=True
     )  # pylint: disable=subprocess-run-check
@@ -85,7 +87,7 @@ def convert_device_tree_to_str(file_path: Union[str, Path]) -> Optional[str]:
     return process.stdout.decode(errors='replace').strip()
 
 
-def dump_device_trees(raw: bytes) -> List[dict]:
+def dump_device_trees(raw: bytes) -> list[dict]:
     total_offset = 0
     dumped_device_trees = []
 
@@ -106,7 +108,7 @@ def dump_device_trees(raw: bytes) -> List[dict]:
     return dumped_device_trees
 
 
-def analyze_device_tree(raw: bytes) -> Optional[dict]:
+def analyze_device_tree(raw: bytes) -> dict | None:
     header = parse_dtb_header(raw)
     if header_has_illegal_values(header, len(raw)):
         return None  # probably false positive
@@ -136,7 +138,7 @@ def _get_model_or_description(structure_block: StructureBlock):
 
 
 def _result_to_json(
-    header: DeviceTreeHeader, string_representation: str, model: Optional[str], description: Optional[str]
+    header: DeviceTreeHeader, string_representation: str, model: str | None, description: str | None
 ) -> dict:
     return {
         'header': header._asdict(),

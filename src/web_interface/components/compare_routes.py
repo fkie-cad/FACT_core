@@ -1,10 +1,8 @@
-# pylint: disable=no-self-use
-
 from __future__ import annotations
 
 import logging
 from contextlib import suppress
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from flask import redirect, render_template, render_template_string, request, session, url_for
 
@@ -19,6 +17,8 @@ from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+# pylint: disable=no-self-use
 
 
 class FileDiffData(NamedTuple):
@@ -199,7 +199,7 @@ class CompareRoutes(ComponentBase):
             'compare/text_files.html', diffstr=diff_str, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid
         )
 
-    def _get_data_for_file_diff(self, uid: str, root_uid: Optional[str]) -> FileDiffData:
+    def _get_data_for_file_diff(self, uid: str, root_uid: str | None) -> FileDiffData:
         with get_shared_session(self.db.frontend) as frontend_db:
             fo = frontend_db.get_object(uid)
             if root_uid in [None, 'None']:

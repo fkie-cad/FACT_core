@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from analysis.PluginBase import AnalysisBasePlugin
 
@@ -36,7 +36,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     @staticmethod
-    def cpu_architecture_analysis(file_object) -> Optional[str]:
+    def cpu_architecture_analysis(file_object) -> str | None:
         cpu_architecture = file_object.processed_analysis['cpu_architecture']['summary']
         return None if cpu_architecture == [] else cpu_architecture[0]
 

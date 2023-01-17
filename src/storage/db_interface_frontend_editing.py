@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from helperFunctions.uid import create_uid
 from storage.db_interface_base import ReadWriteDbInterface
@@ -17,7 +17,7 @@ class FrontendEditingDbInterface(ReadWriteDbInterface):
             fo_entry: FileObjectEntry = session.get(FileObjectEntry, uid)
             fo_entry.comments = [comment for comment in fo_entry.comments if comment['time'] != timestamp]
 
-    def add_to_search_query_cache(self, search_query: str, query_title: Optional[str] = None) -> str:
+    def add_to_search_query_cache(self, search_query: str, query_title: str | None = None) -> str:
         query_uid = create_uid(query_title.encode())
         with self.get_read_write_session() as session:
             old_entry = session.get(SearchCacheEntry, query_uid)

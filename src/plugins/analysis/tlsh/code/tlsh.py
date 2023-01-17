@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from __future__ import annotations
 
 from sqlalchemy import select
 
@@ -37,7 +37,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 class TLSHInterface(ReadOnlyDbInterface):
-    def get_all_tlsh_hashes(self) -> List[Tuple[str, str]]:
+    def get_all_tlsh_hashes(self) -> list[tuple[str, str]]:
         with self.get_read_only_session() as session:
             query = (
                 select(AnalysisEntry.uid, AnalysisEntry.result['tlsh'])

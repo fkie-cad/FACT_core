@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import time
-from typing import List
 
 from fact_helper_file import get_file_type_from_path
 
@@ -88,7 +89,7 @@ class Unpacker(UnpackBase):
         for item in included_file_objects:
             root_file_object.add_included_file(item)
 
-    def generate_and_store_file_objects(self, file_paths: List[Path], extraction_dir: Path, parent: FileObject):
+    def generate_and_store_file_objects(self, file_paths: list[Path], extraction_dir: Path, parent: FileObject):
         extracted_files = {}
         for item in file_paths:
             if not file_is_empty(item):

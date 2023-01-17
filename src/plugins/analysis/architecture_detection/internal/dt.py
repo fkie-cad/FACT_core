@@ -1,13 +1,14 @@
+from __future__ import annotations
+
 import re
 import shlex
 import subprocess
 from subprocess import DEVNULL, PIPE
-from typing import Union
 
 import yaml
 
 
-def _get_compatible_entry(dts: str) -> Union[str, None]:
+def _get_compatible_entry(dts: str) -> str | None:
     '''
     Returns the node name of /cpus/cpu*/compatible and its value from a device tree.
     May return None because the spec does not guarantee the existence of this node.

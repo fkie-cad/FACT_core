@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep, time
-from typing import Callable, List, Optional, Tuple
 
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
@@ -15,7 +15,7 @@ from config import cfg
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import import_plugins
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_process
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
@@ -120,12 +120,17 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        with ThreadPoolExecutor() as executor:
-            executor.submit(stop_processes, [self.schedule_process])
-            executor.submit(stop_processes, [self.result_collector_process])
+        futures = []
+        # first shut down scheduling, then analysis plugins and lastly the result collector
+        stop_process(self.schedule_process, cfg.expert_settings.block_delay + 1)
+        with ThreadPoolExecutor() as pool:
             for plugin in self.analysis_plugins.values():
-                executor.submit(plugin.shutdown)
+                futures.append(pool.submit(plugin.shutdown))
+            for future in futures:
+                future.result()  # call result to make sure all threads are finished and there are no exceptions
+        stop_process(self.result_collector_process, cfg.expert_settings.block_delay + 1)
         self.process_queue.close()
+        self.status.shutdown()
         logging.info('Analysis System offline')
 
     def update_analysis_of_object_and_children(self, fo: FileObject):
@@ -167,7 +172,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis)
         self._check_further_process_or_complete(fo)
 
-    def _get_list_of_available_plugins(self) -> List[str]:
+    def _get_list_of_available_plugins(self) -> list[str]:
         plugin_list = list(self.analysis_plugins.keys())
         plugin_list.sort(key=str.lower)
         return plugin_list
@@ -380,24 +385,24 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             return not substring_is_in_list(file_type, whitelist)
         return substring_is_in_list(file_type, blacklist)
 
-    def _get_file_type_from_object_or_db(self, fw_object: FileObject) -> Optional[str]:
+    def _get_file_type_from_object_or_db(self, fw_object: FileObject) -> str | None:
         if 'file_type' not in fw_object.processed_analysis:
             self._add_completed_analysis_results_to_file_object('file_type', fw_object)
         return fw_object.processed_analysis['file_type']['mime'].lower()
 
-    def _get_blacklist_and_whitelist(self, next_analysis: str) -> Tuple[List, List]:
+    def _get_blacklist_and_whitelist(self, next_analysis: str) -> tuple[list, list]:
         blacklist, whitelist = self._get_blacklist_and_whitelist_from_config(next_analysis)
         if not (blacklist or whitelist):
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(next_analysis)
         return blacklist, whitelist
 
     @staticmethod
-    def _get_blacklist_and_whitelist_from_config(analysis_plugin: str) -> Tuple[List, List]:
+    def _get_blacklist_and_whitelist_from_config(analysis_plugin: str) -> tuple[list, list]:
         blacklist = getattr(cfg, analysis_plugin, {}).get('mime_blacklist')
         whitelist = getattr(cfg, analysis_plugin, {}).get('mime_whitelist')
         return blacklist, whitelist
 
-    def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> Tuple[List, List]:
+    def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> tuple[list, list]:
         blacklist = getattr(self.analysis_plugins[analysis_plugin], 'MIME_BLACKLIST', [])
         whitelist = getattr(self.analysis_plugins[analysis_plugin], 'MIME_WHITELIST', [])
         return blacklist, whitelist
@@ -415,7 +420,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for plugin_name, plugin in self.analysis_plugins.items():
                 try:
                     fw = plugin.out_queue.get_nowait()
-                except Empty:
+                except (Empty, ValueError):
                     pass
                 else:
                     nop = False

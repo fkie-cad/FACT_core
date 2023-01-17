@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 from re import finditer, match
-from typing import Dict, List, NamedTuple, Tuple
+from typing import NamedTuple
 
 
 class CveEntry(NamedTuple):
     cve_id: str
-    impact: Dict[str, str]
-    cpe_list: List[Tuple[str, str, str, str, str]]
+    impact: dict[str, str]
+    cpe_list: list[tuple[str, str, str, str, str]]
 
 
 class CveSummaryEntry(NamedTuple):
@@ -27,7 +29,7 @@ def escape_special_characters(attribute: str) -> str:
     return attribute
 
 
-def replace_characters_and_wildcards(attributes: List[str]) -> List[str]:
+def replace_characters_and_wildcards(attributes: list[str]) -> list[str]:
     for index, attribute in enumerate(attributes):
         if attribute == '*':
             attributes[index] = 'ANY'
@@ -39,11 +41,11 @@ def replace_characters_and_wildcards(attributes: List[str]) -> List[str]:
     return attributes
 
 
-def get_field_string(fields: List[Tuple[str, str]]) -> str:
+def get_field_string(fields: list[tuple[str, str]]) -> str:
     return ', '.join([f'{name} {type_} NOT NULL' for name, type_ in fields])
 
 
-def get_field_names(fields: List[Tuple[str, str]]) -> str:
+def get_field_names(fields: list[tuple[str, str]]) -> str:
     return ', '.join(list(zip(*fields))[0])
 
 

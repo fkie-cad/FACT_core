@@ -1,4 +1,4 @@
-from typing import Dict
+from __future__ import annotations
 
 import pytest
 
@@ -179,5 +179,5 @@ class TestVirtualPathFileTree:
         assert tree.virtual_file_paths[0].startswith('|fo_root_uid'), 'incorrect partial vfp'
 
     @staticmethod
-    def _nodes_by_name(file_tree: VirtualPathFileTree) -> Dict[str, FileTreeNode]:
+    def _nodes_by_name(file_tree: VirtualPathFileTree) -> dict[str, FileTreeNode]:
         return {node.name: node for node in file_tree.get_file_tree_nodes()}

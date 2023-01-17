@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import re
 import subprocess
 from pathlib import Path
-from typing import Dict
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
@@ -92,7 +93,7 @@ def _split_output_in_rules_and_matches(output):
     return match_blocks, rules
 
 
-def _append_match_to_result(match, resulting_matches: Dict[str, dict], rule):
+def _append_match_to_result(match, resulting_matches: dict[str, dict], rule):
     rule_name, meta_string, _, _ = rule
     _, offset, matched_tag, matched_string = match
     resulting_matches.setdefault(

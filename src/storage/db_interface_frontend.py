@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import re
-from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
+from typing import Any, NamedTuple
 
 from sqlalchemy import Column, func, select
 from sqlalchemy.dialects.postgresql import JSONB
@@ -31,7 +33,7 @@ class CachedQuery(NamedTuple):
 
 
 class FrontEndDbInterface(DbInterfaceCommon):
-    def get_last_added_firmwares(self, limit: int = 10) -> List[MetaEntry]:
+    def get_last_added_firmwares(self, limit: int = 10) -> list[MetaEntry]:
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry).order_by(FirmwareEntry.submission_date.desc()).limit(limit)
             return [self._get_meta_for_entry(fw_entry) for fw_entry in session.execute(query).scalars()]
@@ -57,13 +59,13 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return f'{firmware.vendor} {firmware.device_name} -{part} {firmware.version} ({firmware.device_class})'
 
     @staticmethod
-    def _get_hid_fo(fo_entry: FileObjectEntry, root_uid: Optional[str] = None) -> str:
+    def _get_hid_fo(fo_entry: FileObjectEntry, root_uid: str | None = None) -> str:
         vfp_list = fo_entry.virtual_file_paths.get(root_uid) or get_value_of_first_key(fo_entry.virtual_file_paths)
         return get_top_of_virtual_path(vfp_list[0])
 
     # --- "nice list" ---
 
-    def get_data_for_nice_list(self, uid_list: List[str], root_uid: Optional[str]) -> List[dict]:
+    def get_data_for_nice_list(self, uid_list: list[str], root_uid: str | None) -> list[dict]:
         with self.get_read_only_session() as session:
             mime_dict = self._get_mime_types_for_uid_list(session, uid_list)
             query = select(
@@ -82,7 +84,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             self._replace_uids_in_nice_list(nice_list_data, root_uid)
             return nice_list_data
 
-    def _replace_uids_in_nice_list(self, nice_list_data: List[dict], root_uid: str):
+    def _replace_uids_in_nice_list(self, nice_list_data: list[dict], root_uid: str):
         uids_in_vfp = set()
         for item in nice_list_data:
             uids_in_vfp.update(uid for vfp in item['current_virtual_path'] for uid in get_uids_from_virtual_path(vfp))
@@ -93,7 +95,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                     vfp = vfp.replace(uid, hid_dict.get(uid, uid))
                 item['current_virtual_path'][index] = vfp.lstrip('|').replace('|', ' | ')
 
-    def _get_hid_dict(self, uid_set: Set[str], root_uid: str) -> Dict[str, str]:
+    def _get_hid_dict(self, uid_set: set[str], root_uid: str) -> dict[str, str]:
         with self.get_read_only_session() as session:
             query = (
                 select(FileObjectEntry, FirmwareEntry)
@@ -109,7 +111,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return result
 
     @staticmethod
-    def _get_current_vfp(vfp: Dict[str, List[str]], root_uid: str) -> List[str]:
+    def _get_current_vfp(vfp: dict[str, list[str]], root_uid: str) -> list[str]:
         return vfp[root_uid] if root_uid in vfp else get_value_of_first_key(vfp)
 
     def get_file_name(self, uid: str) -> str:
@@ -119,7 +121,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- misc. ---
 
-    def get_firmware_attribute_list(self, attribute: Column) -> List[Any]:
+    def get_firmware_attribute_list(self, attribute: Column) -> list[Any]:
         '''Get all distinct values of an attribute (e.g. all different vendors)'''
         with self.get_read_only_session() as session:
             query = select(attribute).filter(attribute.isnot(None)).distinct()
@@ -131,7 +133,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def get_vendor_list(self):
         return self.get_firmware_attribute_list(FirmwareEntry.vendor)
 
-    def get_tag_list(self) -> List[str]:
+    def get_tag_list(self) -> list[str]:
         with self.get_read_only_session() as session:
             query = select(func.unnest(FirmwareEntry.firmware_tags)).distinct()
             return sorted(session.execute(query).scalars())
@@ -144,7 +146,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 device_name_dict.setdefault(device_class, {}).setdefault(vendor, []).append(device_name)
         return device_name_dict
 
-    def get_other_versions_of_firmware(self, firmware: Firmware) -> List[Tuple[str, str]]:
+    def get_other_versions_of_firmware(self, firmware: Firmware) -> list[tuple[str, str]]:
         if not isinstance(firmware, Firmware):
             return []
         with self.get_read_only_session() as session:
@@ -186,7 +188,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 return [self._get_meta_for_entry(element) for element in results]
             return [element.uid for element in results]
 
-    def _get_meta_for_entry(self, entry: Union[FirmwareEntry, FileObjectEntry]) -> MetaEntry:
+    def _get_meta_for_entry(self, entry: FirmwareEntry | FileObjectEntry) -> MetaEntry:
         if isinstance(entry, FirmwareEntry):
             return self._get_meta_for_fw(entry)
         if entry.is_firmware:
@@ -242,7 +244,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- file tree
 
     def generate_file_tree_nodes_for_uid_list(
-        self, uid_list: List[str], root_uid: str, parent_uid: Optional[str], whitelist: Optional[List[str]] = None
+        self, uid_list: list[str], root_uid: str, parent_uid: str | None, whitelist: list[str] | None = None
     ):
         file_tree_data = self.get_file_tree_data(uid_list)
         for entry in file_tree_data:
@@ -252,9 +254,9 @@ class FrontEndDbInterface(DbInterfaceCommon):
         self,
         uid: str,
         root_uid: str,
-        parent_uid: Optional[str] = None,
-        whitelist: Optional[List[str]] = None,
-        data: Optional[FileTreeData] = None,
+        parent_uid: str | None = None,
+        whitelist: list[str] | None = None,
+        data: FileTreeData | None = None,
     ):
         if data is None:
             data = self.get_file_tree_data([uid])[0]
@@ -263,7 +265,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         except (KeyError, TypeError):  # the file has not been analyzed yet
             yield FileTreeNode(uid, root_uid, not_analyzed=True, name=f'{uid} (not analyzed yet)')
 
-    def get_file_tree_data(self, uid_list: List[str]) -> List[FileTreeData]:
+    def get_file_tree_data(self, uid_list: list[str]) -> list[FileTreeData]:
         with self.get_read_only_session() as session:
             # get included files in a separate query because it is way faster than FileObjectEntry.get_included_uids()
             included_files = self._get_included_files_for_uid_list(session, uid_list)
@@ -281,7 +283,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             ]
 
     @staticmethod
-    def _get_mime_types_for_uid_list(session, uid_list: List[str]) -> Dict[str, str]:
+    def _get_mime_types_for_uid_list(session, uid_list: list[str]) -> dict[str, str]:
         type_query = (
             select(AnalysisEntry.uid, AnalysisEntry.result['mime'])
             .filter(AnalysisEntry.plugin == 'file_type')
@@ -290,7 +292,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return dict(iter(session.execute(type_query)))
 
     @staticmethod
-    def _get_included_files_for_uid_list(session, uid_list: List[str]) -> Dict[str, List[str]]:
+    def _get_included_files_for_uid_list(session, uid_list: list[str]) -> dict[str, list[str]]:
         included_query = (
             # aggregation `array_agg()` converts multiple rows to an array
             select(FileObjectEntry.uid, func.array_agg(included_files_table.c.child_uid))
@@ -313,7 +315,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             db_query = db_query.order_by(FirmwareEntry.uid.asc())
             return list(session.execute(db_query).scalars())
 
-    def rest_get_file_object_uids(self, offset: Optional[int], limit: Optional[int], query=None) -> List[str]:
+    def rest_get_file_object_uids(self, offset: int | None, limit: int | None, query=None) -> list[str]:
         if query:
             return self.generic_search(query, skip=offset, limit=limit)
         with self.get_read_only_session() as session:
@@ -323,7 +325,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- missing/failed analyses ---
 
-    def find_missing_analyses(self) -> Dict[str, Set[str]]:
+    def find_missing_analyses(self) -> dict[str, set[str]]:
         # FixMe? Query could probably be accomplished more efficiently with left outer join
         missing_analyses = {}
         with self.get_read_only_session() as session:
@@ -346,7 +348,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             .group_by(AnalysisEntry.uid)
         )
 
-    def find_failed_analyses(self) -> Dict[str, List[str]]:
+    def find_failed_analyses(self) -> dict[str, list[str]]:
         result = {}
         with self.get_read_only_session() as session:
             query = select(AnalysisEntry.uid, AnalysisEntry.plugin).filter(
@@ -358,7 +360,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- search cache ---
 
-    def get_query_from_cache(self, query_id: str) -> Optional[CachedQuery]:
+    def get_query_from_cache(self, query_id: str) -> CachedQuery | None:
         with self.get_read_only_session() as session:
             entry: SearchCacheEntry = session.get(SearchCacheEntry, query_id)
             if entry is None:
@@ -380,7 +382,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- dependency graph ---
 
-    def get_data_for_dependency_graph(self, uid: str) -> List[DepGraphData]:
+    def get_data_for_dependency_graph(self, uid: str) -> list[DepGraphData]:
         fo = self.get_object(uid)
         if fo is None or not fo.files_included:
             return []
@@ -404,7 +406,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             ]
 
     @staticmethod
-    def _get_elf_analysis_libraries(session, uid_list: List[str]) -> Dict[str, Optional[List[str]]]:
+    def _get_elf_analysis_libraries(session, uid_list: list[str]) -> dict[str, list[str] | None]:
         elf_analysis_query = (
             select(FileObjectEntry.uid, AnalysisEntry.result)
             .filter(FileObjectEntry.uid.in_(uid_list))

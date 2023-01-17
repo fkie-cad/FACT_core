@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 # pylint: disable=no-self-use,protected-access,wrong-import-order
 from base64 import b64encode
 from pathlib import Path
-from typing import Optional
 
 import pytest
 from flaky import flaky
@@ -15,7 +16,7 @@ TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
 class FoMock:
-    def __init__(self, file_path: Optional[Path], file_type: Optional[str], parent_fo_type=''):
+    def __init__(self, file_path: Path | None, file_type: str | None, parent_fo_type=''):
         self.file_path = file_path
         self.processed_analysis = {'file_type': {'mime': file_type}, PLUGIN_NAME: {}}
         self.virtual_file_path = {}

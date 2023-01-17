@@ -72,6 +72,7 @@ def test_scheduler(finished_event, intermediate_event):
     finally:
         intercom.shutdown()
         unpacker.shutdown()
+        unpacking_lock_manager.shutdown()
         analyzer.shutdown()
 
 
