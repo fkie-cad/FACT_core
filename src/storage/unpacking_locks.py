@@ -6,6 +6,9 @@ class UnpackingLockManager:
         self.manager = Manager()
         self.unpacking_locks = self.manager.dict()
 
+    def shutdown(self):
+        self.manager.shutdown()
+
     def set_unpacking_lock(self, uid: str):
         self.unpacking_locks[uid] = 1
 

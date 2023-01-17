@@ -4,9 +4,11 @@ import logging
 import os
 import traceback
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from multiprocessing import Pipe, Process
-from signal import SIGKILL, SIGTERM
+from signal import SIGTERM
+from threading import Thread
 
 import psutil
 
@@ -23,8 +25,35 @@ def complete_shutdown(message: str | None = None) -> None:
     if message is not None:
         logging.warning(message)
     logging.critical('SHUTTING DOWN SYSTEM')
-    process_group_id = os.getpgid(os.getpid())
-    os.killpg(process_group_id, SIGKILL)
+    _stop_remaining_fact_processes()
+
+
+def _stop_remaining_fact_processes():
+    """Find subprocesses of this process group and stop them."""
+    pgid = os.getpgrp()
+    futures = []
+    with ThreadPoolExecutor() as pool:
+        for proc in psutil.process_iter():
+            try:
+                if os.getpgid(proc.pid) == pgid and proc.pid != pgid:
+                    futures.append(pool.submit(_stop_process_by_pid, proc.pid))
+            except ProcessLookupError:
+                pass
+        for future in futures:
+            future.result()  # call result to make sure all threads are finished and there are no exceptions
+
+
+def _stop_process_by_pid(pid: int):
+    try:
+        proc = psutil.Process(pid)
+        try:
+            proc.wait(5)
+        except psutil.TimeoutExpired as err:
+            logging.warning(f'Timeout while waiting for process to shut down: {err} -> kill')
+            if proc and proc.is_running():
+                proc.kill()
+    except (ChildProcessError, psutil.NoSuchProcess):
+        pass  # process shut down itself in the meantime -> nothing to do
 
 
 class ExceptionSafeProcess(Process):
@@ -157,12 +186,22 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
 
 def stop_processes(processes: list[Process], timeout: float = 10.0):
     '''
-    Try to stop processes gracefully. If a process does not stop until `timeout` is reached, terminate it.
+    Try to stop processes gracefully in parallel. If a process does not stop until `timeout` is reached, kill it.
 
     :param processes: The list of processes that should be stopped.
     :param timeout: Timeout for joining the process in seconds.
     '''
+    thread_list = []
     for process in processes:
-        process.join(timeout=timeout)
-        if process.is_alive():
-            process.terminate()
+        thread = Thread(target=stop_process, args=(process, timeout))
+        thread.start()
+        thread_list.append(thread)
+    for thread in thread_list:
+        thread.join()
+
+
+def stop_process(process: Process, timeout: float = 10.0):
+    """Try to stop a single process gracefully. If it does not stop until `timeout` is reached, kill it."""
+    process.join(timeout=timeout)
+    if process.is_alive():
+        process.kill()

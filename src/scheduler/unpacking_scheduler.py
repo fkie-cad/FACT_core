@@ -9,6 +9,8 @@ from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker, stop_processes
 from unpacker.unpack import Unpacker
 
+THROTTLE_INTERVAL = 2
+
 
 class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     '''
@@ -44,8 +46,10 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        stop_processes(self.workers + [self.work_load_process])
         self.in_queue.close()
+        stop_processes(
+            self.workers + [self.work_load_process], max(cfg.expert_settings.block_delay, THROTTLE_INTERVAL) + 1
+        )
         logging.info('Unpacker Module offline')
 
     # ---- internal functions ----
@@ -109,7 +113,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 self.throttle_condition.value = 0
             else:
                 self.throttle_condition.value = 1
-            sleep(2)
+            sleep(THROTTLE_INTERVAL)
 
     def _get_combined_analysis_workload(self):
         if self.get_analysis_workload is not None:

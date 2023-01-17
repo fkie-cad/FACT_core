@@ -66,7 +66,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 
     def shutdown(self):
         self.stop_condition.value = 1
-        stop_processes(self.process_list)
+        stop_processes(self.process_list, cfg.expert_settings.intercom_poll_delay + 1)
         logging.warning('InterCom down')
 
     def _start_listener(self, listener: type[InterComListener], do_after_function: Callable | None = None, **kwargs):

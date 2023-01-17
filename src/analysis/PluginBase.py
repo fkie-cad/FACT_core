@@ -105,8 +105,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        stop_processes(self.workers)
         self.in_queue.close()
+        stop_processes(self.workers, timeout=10.0)  # give running analyses some time to finish
         self.out_queue.close()
 
     # ---- internal functions ----

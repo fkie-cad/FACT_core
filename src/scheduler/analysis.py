@@ -15,7 +15,7 @@ from config import cfg
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import import_plugins
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_process
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
@@ -120,12 +120,17 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        with ThreadPoolExecutor() as executor:
-            executor.submit(stop_processes, [self.schedule_process])
-            executor.submit(stop_processes, [self.result_collector_process])
+        futures = []
+        # first shut down scheduling, then analysis plugins and lastly the result collector
+        stop_process(self.schedule_process, cfg.expert_settings.block_delay + 1)
+        with ThreadPoolExecutor() as pool:
             for plugin in self.analysis_plugins.values():
-                executor.submit(plugin.shutdown)
+                futures.append(pool.submit(plugin.shutdown))
+            for future in futures:
+                future.result()  # call result to make sure all threads are finished and there are no exceptions
+        stop_process(self.result_collector_process, cfg.expert_settings.block_delay + 1)
         self.process_queue.close()
+        self.status.shutdown()
         logging.info('Analysis System offline')
 
     def update_analysis_of_object_and_children(self, fo: FileObject):
@@ -411,7 +416,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for plugin_name, plugin in self.analysis_plugins.items():
                 try:
                     fw = plugin.out_queue.get_nowait()
-                except Empty:
+                except (Empty, ValueError):
                     pass
                 else:
                     nop = False

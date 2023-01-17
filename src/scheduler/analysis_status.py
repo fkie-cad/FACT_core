@@ -18,6 +18,9 @@ class AnalysisStatus:
         self.recently_finished = self.manager.dict()
         self.currently_running_lock = self.manager.Lock()  # pylint: disable=no-member
 
+    def shutdown(self):
+        self.manager.shutdown()
+
     def add_update_to_current_analyses(self, fw_object: Firmware | FileObject, included_files: list[str]):
         self.add_to_current_analyses(fw_object)
         self.currently_running_lock.acquire()

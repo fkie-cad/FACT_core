@@ -41,15 +41,17 @@ class AnalysisSchedulerTest(TestCase):
         config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
         config.set('default-plugins', 'default', 'file_hashes')
         self.tmp_queue = Queue()
+        self.lock_manager = UnpackingLockManager()
         self.sched = AnalysisScheduler(
             pre_analysis=lambda *_: None,
             post_analysis=self.dummy_callback,
             db_interface=self.mocked_interface,
-            unpacking_locks=UnpackingLockManager(),
+            unpacking_locks=self.lock_manager,
         )
 
     def tearDown(self):
         self.sched.shutdown()
+        self.lock_manager.shutdown()
         self.tmp_queue.close()
         gc.collect()
 
@@ -72,7 +74,6 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         assert 'dummy_plugin_for_testing_only' in self.sched.analysis_plugins, 'Dummy plugin not found'
 
     def test_schedule_firmware_init_no_analysis_selected(self):
-        self.sched.shutdown()
         self.sched.process_queue = Queue()
         test_fw = Firmware(binary=b'test')
         self.sched.start_analysis_of_object(test_fw)

@@ -59,10 +59,11 @@ def start_backend(create_tables):
 
     yield
 
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=5) as pool:
         pool.submit(intercom.shutdown)
         pool.submit(compare_service.shutdown)
         pool.submit(unpacking_service.shutdown)
+        pool.submit(unpacking_locks.shutdown)
         pool.submit(analysis_service.shutdown)
 
 
