@@ -26,8 +26,10 @@ class YaraBasePlugin(AnalysisBasePlugin):
         '''
         self.signature_path = self._get_signature_file(self.FILE) if self.FILE else None
         if self.signature_path and not Path(self.signature_path).exists():
-            logging.error(f'Signature file {self.signature_path} not found. Did you run "compile_yara_signatures.py"?')
-            raise PluginInitException(plugin=self)
+            raise PluginInitException(
+                f'Signature file {self.signature_path} not found. Did you run "compile_yara_signatures.py"?',
+                plugin=self,
+            )
         self.SYSTEM_VERSION = self.get_yara_system_version()  # pylint: disable=invalid-name
         super().__init__(view_updater=view_updater)
 
