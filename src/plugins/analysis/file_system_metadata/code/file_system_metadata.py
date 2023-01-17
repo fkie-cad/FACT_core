@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import stat
@@ -6,7 +8,7 @@ import zlib
 from base64 import b64encode
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, NamedTuple, Tuple
+from typing import NamedTuple
 
 from docker.types import Mount
 
@@ -126,7 +128,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return result.stdout
 
-    def _analyze_metadata_of_mounted_dir(self, docker_results: Tuple[str, str, dict]):
+    def _analyze_metadata_of_mounted_dir(self, docker_results: tuple[str, str, dict]):
         for file_name, file_path, file_stats in docker_results:
             self._enter_results_for_mounted_file(file_name, file_path, StatResult(**file_stats))
 
@@ -174,7 +176,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         )
 
     @staticmethod
-    def _get_extended_file_permissions(file_mode: str) -> List[bool]:
+    def _get_extended_file_permissions(file_mode: str) -> list[bool]:
         extended_file_permission_bits = f'{int(file_mode[-4]):03b}' if len(file_mode) > 3 else '000'
         return [b == '1' for b in extended_file_permission_bits]
 

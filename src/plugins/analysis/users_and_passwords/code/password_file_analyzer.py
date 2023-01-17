@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import logging
 import re
 from base64 import b64decode
+from collections.abc import Callable
 from contextlib import suppress
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Callable, List
 
 from docker.types import Mount
 
@@ -53,7 +55,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self.find_password_entries(file_object, MOSQUITTO_REGEXES, generate_mosquitto_entry)
         return file_object
 
-    def find_password_entries(self, file_object: FileObject, regex_list: List[bytes], entry_gen_function: Callable):
+    def find_password_entries(self, file_object: FileObject, regex_list: list[bytes], entry_gen_function: Callable):
         for passwd_regex in regex_list:
             passwd_entries = re.findall(passwd_regex, file_object.binary)
             for entry in passwd_entries:
@@ -131,7 +133,7 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
     return False
 
 
-def parse_john_output(john_output: str) -> List[str]:
+def parse_john_output(john_output: str) -> list[str]:
     if RESULTS_DELIMITER in john_output:
         start_offset = john_output.find(RESULTS_DELIMITER) + len(RESULTS_DELIMITER) + 1  # +1 is '\n' after delimiter
         return [line for line in john_output[start_offset:].split('\n') if line]

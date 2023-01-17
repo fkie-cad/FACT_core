@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import os
 from contextlib import suppress
-from typing import Optional, Union
 
 from common_helper_files import get_binary_from_file
 from flask import flash, redirect, render_template, render_template_string, request, url_for
@@ -78,7 +79,7 @@ class AnalysisRoutes(ComponentBase):
             ),
         )
 
-    def _get_correct_template(self, selected_analysis: Optional[str], fw_object: Union[Firmware, FileObject]):
+    def _get_correct_template(self, selected_analysis: str | None, fw_object: Firmware | FileObject):
         if selected_analysis and 'failed' in fw_object.processed_analysis[selected_analysis]:
             return get_template_as_string('analysis_plugins/fail.html')
         if selected_analysis:

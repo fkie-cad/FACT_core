@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
-from typing import Optional
 
 from helperFunctions.install import (
     check_distribution,
@@ -11,21 +12,31 @@ from helperFunctions.install import (
 
 
 class AbstractPluginInstaller:
+    """A class that is used to handle plugin installation.
+    Any class subclassing it may overwrite any public method except :py:func:`install`.
+    You may assume that the cwd is ``self.base_path``.
+    If any other method than :py:func:`install` is called, then the caller has to ensure this.
+
+    :param distribution: The distribution on which the installer is executed. See :py:func:`~helperFunctions.install.check_distribution`
+    :param skip_docker: Whether or not to do anything docker related.
+    """
+
     # Even if some functions don't need self we want to have them nicely
     # grouped in this class
     # pylint:disable=no-self-use
 
-    skip_docker_env = os.getenv('FACT_INSTALLER_SKIP_DOCKER') is not None
-    # The base directory of the plugin
-    # Must be overwritten by a class variable of a child class
+    _skip_docker_env = os.getenv('FACT_INSTALLER_SKIP_DOCKER') is not None
+    #: The base directory of the plugin
+    #: Must be overwritten by a class variable of a child class
     base_path = None
 
-    def __init__(self, distribution: Optional[str] = None, skip_docker: bool = skip_docker_env):
+    def __init__(self, distribution: str | None = None, skip_docker: bool = _skip_docker_env):
         self.distribution = distribution or check_distribution()
         self.build_path = self.base_path / 'build'
         self.skip_docker = skip_docker
 
     def install(self):
+        """Completely install the plugin."""
         cwd = os.getcwd()
         os.chdir(self.base_path)
         self.install_system_packages()
@@ -44,8 +55,6 @@ class AbstractPluginInstaller:
 
         if not self.skip_docker:
             self.install_docker_images()
-
-        self.do_last()
 
         os.chdir(cwd)
 
@@ -84,9 +93,6 @@ class AbstractPluginInstaller:
         Install packages with package managers other than pip/dnf/apt.
         '''
 
-    def do_last(self):
-        pass
-
     def install_files(self):
         '''
         Download and install files.
@@ -98,7 +104,7 @@ class AbstractPluginInstaller:
         manager
         '''
 
-    def _build_docker_image(self, tag: str, dockerfile_path: Optional[Path] = None):
+    def _build_docker_image(self, tag: str, dockerfile_path: Path | None = None):
         if not dockerfile_path:
             dockerfile_path = self.base_path / 'docker'
         run_cmd_with_logging(f'docker build -t {tag} {dockerfile_path}')

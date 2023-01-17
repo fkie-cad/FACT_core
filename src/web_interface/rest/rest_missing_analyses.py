@@ -1,4 +1,4 @@
-from typing import Dict, List, Set
+from __future__ import annotations
 
 from flask_restx import Namespace
 
@@ -30,5 +30,5 @@ class RestMissingAnalyses(RestResourceBase):
         return success_message(missing_analyses_data, self.URL)
 
     @staticmethod
-    def _make_json_serializable(set_dict: Dict[str, Set[str]]) -> Dict[str, List[str]]:
+    def _make_json_serializable(set_dict: dict[str, set[str]]) -> dict[str, list[str]]:
         return {k: list(v) for k, v in set_dict.items()}

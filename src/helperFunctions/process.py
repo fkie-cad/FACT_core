@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import logging
 import os
 import traceback
+from collections.abc import Callable
 from contextlib import suppress
 from multiprocessing import Pipe, Process
 from signal import SIGKILL, SIGTERM
-from typing import Callable, List, Optional, Tuple
 
 import psutil
 
@@ -12,7 +14,7 @@ from config import cfg
 from helperFunctions.logging import TerminalColors, color_string
 
 
-def complete_shutdown(message: Optional[str] = None) -> None:
+def complete_shutdown(message: str | None = None) -> None:
     '''
     Shutdown all FACT processes (of the currently running component) by sending a signal to the process group.
 
@@ -57,7 +59,7 @@ class ExceptionSafeProcess(Process):
             raise exception
 
     @property
-    def exception(self) -> Optional[Tuple[Exception, str]]:
+    def exception(self) -> tuple[Exception, str] | None:
         '''
         The exception that occurred in the process during execution and the respective stack trace.
         Is ``None`` if no exception occurred or the process was no yet executed.
@@ -107,9 +109,9 @@ def start_single_worker(process_index: int, label: str, function: Callable) -> E
 
 
 def check_worker_exceptions(
-    process_list: List[ExceptionSafeProcess],
+    process_list: list[ExceptionSafeProcess],
     worker_label: str,
-    worker_function: Optional[Callable] = None,
+    worker_function: Callable | None = None,
 ) -> bool:
     '''
     Iterate over the `process_list` and check if exceptions occurred. In case of an exception, the process and its
@@ -153,7 +155,7 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
     return new_process != old_process
 
 
-def stop_processes(processes: List[Process], timeout: float = 10.0):
+def stop_processes(processes: list[Process], timeout: float = 10.0):
     '''
     Try to stop processes gracefully. If a process does not stop until `timeout` is reached, terminate it.
 

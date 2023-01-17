@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import Optional
 
 from config import configparser_cfg
 from intercom.front_end_binding import InterComFrontEndBinding
@@ -21,7 +22,7 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd:
-    def __init__(self, db: Optional[FrontendDatabase] = None, intercom=None):
+    def __init__(self, db: FrontendDatabase | None = None, intercom=None):
         self.program_version = __VERSION__
 
         self.intercom = InterComFrontEndBinding if intercom is None else intercom

@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from abc import abstractmethod
-from typing import List, Set
 
 from objects.file import FileObject
 from plugins.base import BasePlugin
@@ -37,5 +38,5 @@ class CompareBasePlugin(BasePlugin):
         return self.compare_function(fo_list)
 
 
-def _get_unmatched_dependencies(fo_list: List[FileObject], dependency_list: List[str]) -> Set[str]:
+def _get_unmatched_dependencies(fo_list: list[FileObject], dependency_list: list[str]) -> set[str]:
     return {dependency for dependency in dependency_list for fo in fo_list if dependency not in fo.processed_analysis}

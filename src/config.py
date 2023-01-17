@@ -9,7 +9,7 @@ from werkzeug.local import LocalProxy
 
 # pylint: disable=invalid-name
 _cfg = None
-cfg: 'Config' = LocalProxy(lambda: _cfg)
+cfg: Config = LocalProxy(lambda: _cfg)
 
 _configparser_cfg = None
 # For transitioning between using ConfigParser and this module.
