@@ -3,6 +3,9 @@ from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import time
 
+from packaging.version import InvalidVersion
+from packaging.version import parse as parse_version
+
 from config import cfg
 from helperFunctions.process import (
     ExceptionSafeProcess,
@@ -17,8 +20,8 @@ from plugins.base import BasePlugin
 
 
 class PluginInitException(Exception):
-    def __init__(self, *args, plugin=None):
-        self.plugin = plugin
+    def __init__(self, *args, plugin: 'AnalysisBasePlugin'):
+        self.plugin: AnalysisBasePlugin = plugin
         super().__init__(*args)
 
 
@@ -66,7 +69,16 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def _check_plugin_attributes(self):
         for attribute in ['FILE', 'NAME', 'VERSION']:
             if getattr(self, attribute, None) is None:
-                raise PluginInitException(f'Plugin {self.NAME} is missing {attribute} in configuration')
+                raise PluginInitException(f'Plugin {self.NAME} is missing {attribute} in configuration', plugin=self)
+        self._check_version(self.VERSION)
+        if self.SYSTEM_VERSION:
+            self._check_version(self.SYSTEM_VERSION, label='System version')
+
+    def _check_version(self, version: str, label: str = 'Version'):
+        try:
+            parse_version(version)
+        except InvalidVersion:
+            raise PluginInitException(f'{label} "{version}" of plugin {self.NAME} is invalid', plugin=self)
 
     def add_job(self, fw_object: FileObject):
         if self._dependencies_are_unfulfilled(fw_object):

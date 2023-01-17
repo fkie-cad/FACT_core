@@ -51,7 +51,7 @@ class FactBackend(FactBase):
         try:
             self.analysis_service = AnalysisScheduler(unpacking_locks=self.unpacking_lock_manager)
         except PluginInitException as error:
-            logging.critical(f'Error during initialization of plugin {error.plugin.NAME}. Shutting down FACT backend')
+            logging.critical(f'Error during initialization of plugin {error.plugin.NAME}: {error}.')
             complete_shutdown()
         self.unpacking_service = UnpackingScheduler(
             post_unpack=self.analysis_service.start_analysis_of_object,
