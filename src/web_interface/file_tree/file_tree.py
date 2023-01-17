@@ -8,62 +8,61 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 
 WEB_BASE_PATH = Path(__file__).parent.parent
 ICON_PATH = WEB_BASE_PATH / 'static/file_icons/mimetypes'
-TYPE_TO_PATH = {p.stem: f'/{p.relative_to(WEB_BASE_PATH)}' for p in ICON_PATH.iterdir()}
-CRYPTO = 'application-certificate'
-CONFIG = 'text-x-makefile'
-TYPE_TO_PATH.update(
+MIME_TO_ICON_PATH = {p.stem: f'/{p.relative_to(WEB_BASE_PATH)}' for p in ICON_PATH.iterdir()}
+MIME_TO_ICON_PATH.update(
     {
-        # MIME types
-        'application-x-pie-executable': TYPE_TO_PATH['application-x-executable'],
-        'application-x-dosexec': TYPE_TO_PATH['application-x-ms-dos-executable'],
+        'application-x-pie-executable': MIME_TO_ICON_PATH['application-x-executable'],
+        'application-x-dosexec': MIME_TO_ICON_PATH['application-x-ms-dos-executable'],
         'linux-device-tree': '/static/file_icons/firmware.svg',
-        # file suffixes
-        'c': TYPE_TO_PATH['text-x-csrc'],
-        'cert': TYPE_TO_PATH[CRYPTO],
-        'cfg': TYPE_TO_PATH[CONFIG],
-        'cnf': TYPE_TO_PATH[CONFIG],
-        'conf': TYPE_TO_PATH[CONFIG],
-        'control': TYPE_TO_PATH['application-x-deb'],
-        'cpp': TYPE_TO_PATH['text-x-c++src'],
-        'crt': TYPE_TO_PATH[CRYPTO],
-        'eps': TYPE_TO_PATH['application-postscript'],
-        'h': TYPE_TO_PATH['text-x-chdr'],
-        'htm': TYPE_TO_PATH['text-html'],
-        'image': TYPE_TO_PATH['package-x-generic'],
-        'ini': TYPE_TO_PATH[CONFIG],
-        'js': TYPE_TO_PATH['application-x-javascript'],
-        'key': TYPE_TO_PATH['application-pgp'],
-        'md': TYPE_TO_PATH['text-x-markdown'],
-        'pem': TYPE_TO_PATH[CRYPTO],
-        'pl': TYPE_TO_PATH['application-x-perl'],
-        'properties': TYPE_TO_PATH['text-x-java'],
-        'ps': TYPE_TO_PATH['application-postscript'],
-        'pub': TYPE_TO_PATH['application-pgp'],
-        'py': TYPE_TO_PATH['text-x-python'],
-        'rb': TYPE_TO_PATH['application-x-ruby'],
-        'sh': TYPE_TO_PATH['application-x-shellscript'],
-        'svg': TYPE_TO_PATH['image-svg+xml'],
-        'ts': TYPE_TO_PATH['application-x-javascript'],
-        'xsd': TYPE_TO_PATH['text-xml'],
-        'yml': TYPE_TO_PATH['application-x-yaml'],
     }
 )
+CRYPTO_MIME = 'application-certificate'
+CONFIG_MIME = 'text-x-makefile'
+EXTENSION_TO_MIME = {
+    'c': 'text-x-csrc',
+    'cert': CRYPTO_MIME,
+    'cfg': CONFIG_MIME,
+    'cnf': CONFIG_MIME,
+    'conf': CONFIG_MIME,
+    'control': 'application-x-deb',
+    'cpp': 'text-x-c++src',
+    'crt': CRYPTO_MIME,
+    'eps': 'application-postscript',
+    'h': 'text-x-chdr',
+    'htm': 'text-html',
+    'image': 'package-x-generic',
+    'ini': CONFIG_MIME,
+    'js': 'application-x-javascript',
+    'key': 'application-pgp',
+    'md': 'text-x-markdown',
+    'pem': CRYPTO_MIME,
+    'pl': 'application-x-perl',
+    'properties': 'text-x-java',
+    'ps': 'application-postscript',
+    'pub': 'application-pgp',
+    'py': 'text-x-python',
+    'rb': 'application-x-ruby',
+    'sh': 'application-x-shellscript',
+    'svg': 'image-svg+xml',
+    'ts': 'application-x-javascript',
+    'xsd': 'text-xml',
+    'yml': 'application-x-yaml',
+}
+# there are some MIME icons prefixed with 'gnome-mime-' -> add them as regular MIME if they are missing
 GNOME_PREFIX = 'gnome-mime-'
-TYPE_TO_PATH.update(
+MIME_TO_ICON_PATH.update(
     {
         k.replace(GNOME_PREFIX, ''): v
-        for k, v in TYPE_TO_PATH.items()
-        if k.startswith(GNOME_PREFIX) and k.replace(GNOME_PREFIX, '') not in TYPE_TO_PATH
+        for k, v in MIME_TO_ICON_PATH.items()
+        if k.startswith(GNOME_PREFIX) and k.replace(GNOME_PREFIX, '') not in MIME_TO_ICON_PATH
     }
 )
 SPECIAL_FILES = {
-    'authors': TYPE_TO_PATH['text-x-credits'],
-    'license': TYPE_TO_PATH['text-x-copying'],
-    'readme': TYPE_TO_PATH['text-x-readme'],
-    'version': TYPE_TO_PATH['text-x-readme'],
+    'authors': 'text-x-credits',
+    'license': 'text-x-copying',
+    'readme': 'text-x-readme',
+    'version': 'text-x-readme',
 }
-SPECIAL_FILES.update({k.upper(): v for k, v in SPECIAL_FILES.items()})
-SPECIAL_FILES.update({k.title(): v for k, v in SPECIAL_FILES.items()})
 ARCHIVE_FILE_TYPES = [
     'application/java-archive',
     'application/rar',
@@ -89,13 +88,13 @@ ARCHIVE_FILE_TYPES = [
     'compression/zlib',
 ]
 TYPE_CATEGORY_TO_ICON = {
-    'audio/': TYPE_TO_PATH['audio-x-generic'],
+    'audio/': MIME_TO_ICON_PATH['audio-x-generic'],
     'filesystem/': '/static/file_icons/filesystem.svg',
     'firmware/': '/static/file_icons/firmware.svg',
-    'font/': TYPE_TO_PATH['font-x-generic'],
-    'image/': TYPE_TO_PATH['image-x-generic'],
-    'text/': TYPE_TO_PATH['text-x-generic'],
-    'video/': TYPE_TO_PATH['video-x-generic'],
+    'font/': MIME_TO_ICON_PATH['font-x-generic'],
+    'image/': MIME_TO_ICON_PATH['image-x-generic'],
+    'text/': MIME_TO_ICON_PATH['text-x-generic'],
+    'video/': MIME_TO_ICON_PATH['video-x-generic'],
 }
 
 
@@ -108,41 +107,50 @@ class FileTreeData(NamedTuple):
     included_files: set[str]
 
 
-def get_icon_for_file(mime_type: str | None, file_name: str) -> str:
+def get_mime_for_text_file(filename: str) -> str:
+    if filename.lower() in SPECIAL_FILES:
+        return SPECIAL_FILES[filename.lower()]
+    suffix = Path(filename).suffix.lstrip('.').lower()
+    if not suffix:
+        return 'text/plain'
+    if suffix in EXTENSION_TO_MIME:
+        return EXTENSION_TO_MIME[suffix]
+    for prefix in ['text', 'text-x', 'application', 'application-x']:
+        mime = f'{prefix}-{suffix}'
+        if mime in MIME_TO_ICON_PATH:
+            return mime
+    return 'text/plain'
+
+
+def get_icon_for_mime(mime_type: str | None) -> str:
     '''
-    Retrieve the path to the appropriate icon for a given mime type and file name. The icons are located in the static
+    Retrieve the path to the appropriate icon for a given mime type. The icons are located in the static
     folder of the web interface and the paths therefore start with "/static". Archive types all receive the same icon.
 
     :param mime_type: The MIME type of the file (in the file tree).
-    :param file_name: The file name.
+    :return: The path to the icon for the webserver (usually `/static/file_icons/...`)
     '''
     if mime_type is None:
-        return TYPE_TO_PATH['unknown']
-    if file_name in SPECIAL_FILES:
-        return SPECIAL_FILES[file_name]
-    # suffix may be there but mime is text/plain, so we check the suffix first
-    suffix_icon = _find_icon_for_suffix(file_name)
-    if suffix_icon:
-        return suffix_icon
-    if mime_type.replace('/', '-') in TYPE_TO_PATH:
-        return TYPE_TO_PATH[mime_type.replace('/', '-')]
+        return MIME_TO_ICON_PATH['unknown']
+    if mime_type.replace('/', '-') in MIME_TO_ICON_PATH:
+        return MIME_TO_ICON_PATH[mime_type.replace('/', '-')]
     if mime_type in ARCHIVE_FILE_TYPES:
-        return TYPE_TO_PATH['package-x-generic']
+        return MIME_TO_ICON_PATH['package-x-generic']
     for mime_category, icon_path in TYPE_CATEGORY_TO_ICON.items():
-        if mime_category in mime_type:
+        if mime_type.startswith(mime_category):
             return icon_path
-    return TYPE_TO_PATH['unknown']
+    return MIME_TO_ICON_PATH['unknown']
 
 
 def _find_icon_for_suffix(file_name: str) -> str | None:
     suffix = Path(file_name).suffix.lstrip('.').lower()
     if not suffix:
         return None
-    if suffix in TYPE_TO_PATH:
-        return TYPE_TO_PATH[suffix]
+    if suffix in MIME_TO_ICON_PATH:
+        return MIME_TO_ICON_PATH[suffix]
     for prefix in ['text', 'text-x', 'application', 'application-x']:
-        if f'{prefix}-{suffix}' in TYPE_TO_PATH:
-            return TYPE_TO_PATH[f'{prefix}-{suffix}']
+        if f'{prefix}-{suffix}' in MIME_TO_ICON_PATH:
+            return MIME_TO_ICON_PATH[f'{prefix}-{suffix}']
     return None
 
 

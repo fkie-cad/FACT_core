@@ -8,7 +8,8 @@ from web_interface.file_tree.file_tree import (
     _get_partial_virtual_paths,
     _get_vpath_relative_to,
     _root_is_virtual,
-    get_icon_for_file,
+    get_icon_for_mime,
+    get_mime_for_text_file,
     remove_virtual_path_from_root,
 )
 from web_interface.file_tree.file_tree_node import FileTreeNode
@@ -34,31 +35,42 @@ MIME_PATH = '/static/file_icons/mimetypes/'
 
 
 @pytest.mark.parametrize(
-    'mime_type, filename, icon',
+    'mime_type, icon',
     [
-        (None, '', f'{MIME_PATH}unknown.svg'),
-        ('application/zip', '', f'{MIME_PATH}application-zip.svg'),
-        ('filesystem/some_filesystem', '', '/static/file_icons/filesystem.svg'),
-        ('application/x-executable', '', f'{MIME_PATH}application-x-executable.svg'),
-        ('inode/symlink', '', f'{MIME_PATH}inode-symlink.svg'),
-        ('text/html', '', f'{MIME_PATH}text-html.svg'),
-        ('text/foobar', '', f'{MIME_PATH}text-x-generic.svg'),
-        ('firmware/generic', '', '/static/file_icons/firmware.svg'),
-        ('text/plain', '', f'{MIME_PATH}text-plain.svg'),
-        ('image/png', '', f'{MIME_PATH}image-png.svg'),
-        ('image/foobar', '', f'{MIME_PATH}image-x-generic.svg'),
-        ('audio/mpeg', '', f'{MIME_PATH}audio-mpeg.svg'),
-        ('audio/foobar', '', f'{MIME_PATH}audio-x-generic.svg'),
-        ('text/plain', 'foo.sh', f'{MIME_PATH}application-x-shellscript.svg'),
-        ('some unknown mime type', '', f'{MIME_PATH}unknown.svg'),
-        ('some unknown mime type', 'Readme', f'{MIME_PATH}text-x-readme.svg'),
+        (None, f'{MIME_PATH}unknown.svg'),
+        ('application/zip', f'{MIME_PATH}application-zip.svg'),
+        ('filesystem/some_filesystem', '/static/file_icons/filesystem.svg'),
+        ('application/x-executable', f'{MIME_PATH}application-x-executable.svg'),
+        ('inode/symlink', f'{MIME_PATH}inode-symlink.svg'),
+        ('text/html', f'{MIME_PATH}text-html.svg'),
+        ('text/foobar', f'{MIME_PATH}text-x-generic.svg'),
+        ('firmware/generic', '/static/file_icons/firmware.svg'),
+        ('text/plain', f'{MIME_PATH}text-plain.svg'),
+        ('image/png', f'{MIME_PATH}image-png.svg'),
+        ('image/foobar', f'{MIME_PATH}image-x-generic.svg'),
+        ('audio/mpeg', f'{MIME_PATH}audio-mpeg.svg'),
+        ('audio/foobar', f'{MIME_PATH}audio-x-generic.svg'),
+        ('some unknown mime type', f'{MIME_PATH}unknown.svg'),
     ],
 )
-def test_get_icon_for_file(mime_type, filename, icon):
-    assert get_icon_for_file(mime_type, filename) == icon
+def test_get_icon_for_mime(mime_type, icon):
+    assert get_icon_for_mime(mime_type) == icon
 
 
-class TestFileTree:  # pylint: disable=no-self-use
+@pytest.mark.parametrize(
+    'filename, mime',
+    [
+        ('foo', 'text/plain'),
+        ('foo.py', 'text-x-python'),
+        ('foo.css', 'text-css'),
+        ('README', 'text-x-readme'),
+    ],
+)
+def test_get_mime_for_text_file(filename, mime):
+    assert get_mime_for_text_file(filename) == mime
+
+
+class TestFileTree:
     def test_node_creation(self):
         parent_node = FileTreeNode('123', virtual=False, name='parent', size=1, mime_type='somefile')
         child_node = FileTreeNode('456', root_uid='123', virtual=True, name='child')
