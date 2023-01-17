@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 import logging
-from typing import List, Optional
 
 from common_helper_filter.time import time_format
 from flask import render_template
@@ -86,7 +87,7 @@ class FilterClass:
             filename_only=filename_only,
         )
 
-    def _nice_virtual_path_list(self, virtual_path_list: List[str]) -> List[str]:
+    def _nice_virtual_path_list(self, virtual_path_list: list[str]) -> list[str]:
         path_list = []
         for virtual_path in virtual_path_list:
             uid_list = split_virtual_path(virtual_path)
@@ -142,7 +143,7 @@ class FilterClass:
     def check_auth(self, _):
         return cfg.expert_settings.authentication
 
-    def data_to_chart_limited(self, data, limit: Optional[int] = None, color_list=None):
+    def data_to_chart_limited(self, data, limit: int | None = None, color_list=None):
         limit = self._get_chart_element_count() if limit is None else limit
         try:
             label_list, value_list = (list(d) for d in zip(*data))

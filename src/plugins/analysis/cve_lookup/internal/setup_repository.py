@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import logging
 import re
@@ -8,7 +10,6 @@ from enum import Enum
 from glob import glob
 from pathlib import Path
 from shutil import rmtree
-from typing import List, Tuple
 
 try:
     from ..internal import data_parsing as dp
@@ -87,7 +88,7 @@ def get_cpe_content(path: str) -> list:
     return dp.extract_cpe(glob(path + '*.xml')[0])
 
 
-def init_cve_feeds_table(cve_list: List[CveEntry], table_name: str):
+def init_cve_feeds_table(cve_list: list[CveEntry], table_name: str):
     create(query='create_cve_table', table_name=table_name)
     insert_into(query='insert_cve', table_name=table_name, input_data=setup_cve_feeds_table(cve_list=cve_list))
 
@@ -99,7 +100,7 @@ def init_cve_summaries_table(summary_list: list, table_name: str):
     )
 
 
-def get_cve_import_content(cve_extraction_path: str, year_selection: list) -> Tuple[list, list]:
+def get_cve_import_content(cve_extraction_path: str, year_selection: list) -> tuple[list, list]:
     cve_list, summary_list = [], []
     dp.download_cve(cve_extraction_path, years=year_selection)
     for file in get_cve_json_files(cve_extraction_path):
@@ -110,7 +111,7 @@ def get_cve_import_content(cve_extraction_path: str, year_selection: list) -> Tu
     return cve_list, summary_list
 
 
-def get_cve_update_content(cve_extraction_path: str) -> Tuple[list, list]:
+def get_cve_update_content(cve_extraction_path: str) -> tuple[list, list]:
     dp.download_cve(cve_extraction_path, update=True)
     cve_json_files = get_cve_json_files(cve_extraction_path)
     if not cve_json_files:
@@ -118,7 +119,7 @@ def get_cve_update_content(cve_extraction_path: str) -> Tuple[list, list]:
     return dp.extract_cve(cve_json_files[0])
 
 
-def get_cve_json_files(cve_extraction_path: str) -> List[str]:
+def get_cve_json_files(cve_extraction_path: str) -> list[str]:
     return glob(cve_extraction_path + 'nvdcve*.json')
 
 
@@ -172,7 +173,7 @@ def import_cve(cve_extract_path: str, years: namedtuple):
         init_cve_summaries_table(summary_list=summary_list, table_name='summary_table')
 
 
-def setup_cve_summary_table(summary_list: List[CveSummaryEntry]) -> List[Tuple[str, ...]]:
+def setup_cve_summary_table(summary_list: list[CveSummaryEntry]) -> list[tuple[str, ...]]:
     return [
         (
             entry.cve_id,
@@ -185,7 +186,7 @@ def setup_cve_summary_table(summary_list: List[CveSummaryEntry]) -> List[Tuple[s
     ]
 
 
-def setup_cve_feeds_table(cve_list: List[CveEntry]) -> List[Tuple[str, ...]]:
+def setup_cve_feeds_table(cve_list: list[CveEntry]) -> list[tuple[str, ...]]:
     cve_table = []
     for entry in cve_list:
         for (

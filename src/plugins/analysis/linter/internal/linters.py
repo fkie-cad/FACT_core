@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import subprocess
 from pathlib import Path
 from subprocess import PIPE, STDOUT
-from typing import List, Tuple
 
 from docker.types import Mount
 
@@ -117,7 +118,7 @@ def _luacheck_split_issue_line(line):
     return split_by_colon[1], split_by_colon[2], ':'.join(split_by_colon[3:]).strip()
 
 
-def _separate_message_and_code(message_string: str) -> Tuple[str, str]:
+def _separate_message_and_code(message_string: str) -> tuple[str, str]:
     return message_string[1:5], message_string[6:].strip()
 
 
@@ -149,7 +150,7 @@ def _pylint_extract_relevant_warnings(pylint_json):
     return issues
 
 
-def run_rubocop(file_path: str) -> List[dict]:
+def run_rubocop(file_path: str) -> list[dict]:
     container_path = '/input'
     process = run_docker_container(
         'pipelinecomponents/rubocop:latest',

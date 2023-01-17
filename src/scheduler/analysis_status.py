@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 from multiprocessing import Manager
 from time import time
-from typing import List, Set, Union
 
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -20,7 +21,7 @@ class AnalysisStatus:
     def shutdown(self):
         self.manager.shutdown()
 
-    def add_update_to_current_analyses(self, fw_object: Union[Firmware, FileObject], included_files: List[str]):
+    def add_update_to_current_analyses(self, fw_object: Firmware | FileObject, included_files: list[str]):
         self.add_to_current_analyses(fw_object)
         self.currently_running_lock.acquire()
         update_dict = self.currently_running[fw_object.uid]
@@ -31,7 +32,7 @@ class AnalysisStatus:
         self.currently_running[fw_object.uid] = update_dict
         self.currently_running_lock.release()
 
-    def add_to_current_analyses(self, fw_object: Union[Firmware, FileObject]):
+    def add_to_current_analyses(self, fw_object: Firmware | FileObject):
         self.currently_running_lock.acquire()
         try:
             if isinstance(fw_object, Firmware):
@@ -72,7 +73,7 @@ class AnalysisStatus:
             'hid': fw_object.get_hid(),
         }
 
-    def remove_from_current_analyses(self, fw_object: Union[Firmware, FileObject]):
+    def remove_from_current_analyses(self, fw_object: Firmware | FileObject):
         try:
             self.currently_running_lock.acquire()
             for parent in self._find_currently_analyzed_parents(fw_object):
@@ -101,7 +102,7 @@ class AnalysisStatus:
             'hid': analysis_data['hid'],
         }
 
-    def _find_currently_analyzed_parents(self, fw_object: Union[Firmware, FileObject]) -> Set[str]:
+    def _find_currently_analyzed_parents(self, fw_object: Firmware | FileObject) -> set[str]:
         parent_uids = {fw_object.uid} if isinstance(fw_object, Firmware) else fw_object.parent_firmware_uids
         return set(self.currently_running.keys()).intersection(parent_uids)
 

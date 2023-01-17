@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from time import sleep, time
-from typing import Any, Optional
+from typing import Any
 
 from config import cfg
 from intercom.common_redis_binding import InterComRedisInterface, generate_task_id
@@ -49,7 +49,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def get_repacked_binary_and_file_name(self, uid):
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
 
-    def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: Optional[str] = None):
+    def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: str | None = None):
         request_id = generate_task_id(yara_rule_binary)
         self._add_to_redis_queue('binary_search_task', (yara_rule_binary, firmware_uid), request_id)
         return request_id
@@ -80,5 +80,5 @@ class InterComFrontEndBinding(InterComRedisInterface):
             sleep(0.1)
         return output_data
 
-    def _add_to_redis_queue(self, key: str, data: Any, task_id: Optional[str] = None):
+    def _add_to_redis_queue(self, key: str, data: Any, task_id: str | None = None):
         self.redis.queue_put(key, (data, task_id))

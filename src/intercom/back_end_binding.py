@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import difflib
 import logging
+from collections.abc import Callable
 from multiprocessing import Process, Value
 from pathlib import Path
 from time import sleep
-from typing import Callable, Optional, Tuple, Type
 
 from config import cfg
 from helperFunctions.process import stop_processes
@@ -69,12 +69,12 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         stop_processes(self.process_list)
         logging.warning('InterCom down')
 
-    def _start_listener(self, listener: Type[InterComListener], do_after_function: Optional[Callable] = None, **kwargs):
+    def _start_listener(self, listener: type[InterComListener], do_after_function: Callable | None = None, **kwargs):
         process = Process(target=self._backend_worker, args=(listener, do_after_function, kwargs))
         process.start()
         self.process_list.append(process)
 
-    def _backend_worker(self, listener: Type[InterComListener], do_after_function: Optional[Callable], additional_args):
+    def _backend_worker(self, listener: type[InterComListener], do_after_function: Callable | None, additional_args):
         interface = listener(**additional_args)
         logging.debug(f'{listener.__name__} listener started')
         while self.stop_condition.value == 0:
@@ -184,7 +184,7 @@ class InterComBackEndPeekBinaryTask(InterComListenerAndResponder):
         super().__init__()
         self.binary_service = BinaryService()
 
-    def get_response(self, task: Tuple[str, int, int]) -> bytes:
+    def get_response(self, task: tuple[str, int, int]) -> bytes:
         return self.binary_service.read_partial_binary(*task)
 
 

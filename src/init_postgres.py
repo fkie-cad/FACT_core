@@ -5,7 +5,6 @@ import logging
 import os
 from shlex import split
 from subprocess import CalledProcessError, check_output
-from typing import List
 
 import config
 from config import cfg
@@ -74,7 +73,7 @@ def main(command_line_options=None, config_path: str | None = None, skip_user_cr
     return 0
 
 
-def _init_users(db: DbSetup, db_list: List[str]):
+def _init_users(db: DbSetup, db_list: list[str]):
     for key in ['ro', 'rw', 'del']:
         user = getattr(cfg.data_storage, f'postgres_{key}_user')
         pw = getattr(cfg.data_storage, f'postgres_{key}_pw')

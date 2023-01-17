@@ -1,4 +1,4 @@
-from typing import Type
+from __future__ import annotations
 
 from flask import request
 from flask_restx import Model, Resource, marshal
@@ -11,7 +11,7 @@ class RestResourceBase(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db: FrontendDatabase = kwargs.get('db', None)
-        self.intercom: Type[InterComFrontEndBinding] = kwargs.get('intercom', None)
+        self.intercom: type[InterComFrontEndBinding] = kwargs.get('intercom', None)
 
     @staticmethod
     def validate_payload_data(model: Model) -> dict:

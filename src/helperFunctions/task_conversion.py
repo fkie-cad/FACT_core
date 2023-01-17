@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from flask import Request
 from markupsafe import escape
@@ -15,7 +17,7 @@ OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
 
 
-def create_analysis_task(request: Request) -> Dict[str, Any]:
+def create_analysis_task(request: Request) -> dict[str, Any]:
     '''
     Create an analysis task from the data stored in the flask request object.
 
@@ -32,7 +34,7 @@ def create_analysis_task(request: Request) -> Dict[str, Any]:
     return task
 
 
-def get_file_name_and_binary_from_request(request: Request) -> Tuple[str, bytes]:  # pylint: disable=invalid-name
+def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes]:  # pylint: disable=invalid-name
     '''
     Retrieves the file name and content from the flask request object.
 
@@ -48,7 +50,7 @@ def get_file_name_and_binary_from_request(request: Request) -> Tuple[str, bytes]
     return file_name, file_binary
 
 
-def create_re_analyze_task(request: Request, uid: str) -> Dict[str, Any]:
+def create_re_analyze_task(request: Request, uid: str) -> dict[str, Any]:
     '''
     Create an analysis task for a file that is already in the database.
 
@@ -89,13 +91,13 @@ def _get_meta_from_dropdowns(meta, request: Request):
                 meta[item] = escape(dd)
 
 
-def _get_tag_list(tag_string: Optional[str]) -> List[str]:
+def _get_tag_list(tag_string: str | None) -> list[str]:
     if tag_string is None or tag_string == '':
         return []
     return tag_string.split(',')
 
 
-def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Optional[Firmware] = None) -> Firmware:
+def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Firmware | None = None) -> Firmware:
     '''
     Convert an analysis task to a firmware object.
 
@@ -124,7 +126,7 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Optional[Firmw
     return fw
 
 
-def _get_uid_of_analysis_task(analysis_task: dict) -> Optional[str]:
+def _get_uid_of_analysis_task(analysis_task: dict) -> str | None:
     '''
     Creates a UID (unique identifier) for an analysis task. The UID is generated based on the binary stored in the
     analysis task dict. The return value may be `None` if no binary is contained in the analysis task dict.
@@ -138,7 +140,7 @@ def _get_uid_of_analysis_task(analysis_task: dict) -> Optional[str]:
     return None
 
 
-def _get_uploaded_file_binary(request_file: FileStorage) -> Optional[bytes]:
+def _get_uploaded_file_binary(request_file: FileStorage) -> bytes | None:
     '''
     Retrieves the binary from the request file storage and returns it as byte string. May return `None` if no
     binary was found or an exception occurred.
@@ -159,7 +161,7 @@ def _get_uploaded_file_binary(request_file: FileStorage) -> Optional[bytes]:
             return None
 
 
-def check_for_errors(analysis_task: dict) -> Dict[str, str]:
+def check_for_errors(analysis_task: dict) -> dict[str, str]:
     '''
     Check an analysis task for missing fields and return a dict with error messages (that are intended to be displayed
     in the webinterface).

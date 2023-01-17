@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 from contextlib import suppress
-from typing import TYPE_CHECKING, Dict, List, Set
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # avoid circular import
     from objects.file import FileObject
 
 
-def split_virtual_path(virtual_path: str) -> List[str]:
+def split_virtual_path(virtual_path: str) -> list[str]:
     return [element for element in virtual_path.split('|') if element]
 
 
@@ -21,7 +23,7 @@ def get_top_of_virtual_path(virtual_path: str) -> str:
     return split_virtual_path(virtual_path)[-1] if virtual_path else ''
 
 
-def merge_vfp_lists(old_vfp_list: List[str], new_vfp_list: List[str]) -> List[str]:
+def merge_vfp_lists(old_vfp_list: list[str], new_vfp_list: list[str]) -> list[str]:
     '''
     virtual file paths (VFPs) with the same base are updated and should be replaced
     VFPs with different bases correspond to different archives in the firmware and should be kept
@@ -33,7 +35,7 @@ def merge_vfp_lists(old_vfp_list: List[str], new_vfp_list: List[str]) -> List[st
     return [vfp for vfp_list in old_vfp_by_base.values() for vfp in vfp_list]
 
 
-def _split_vfp_list_by_base(vfp_list: List[str]) -> Dict[str, List[str]]:
+def _split_vfp_list_by_base(vfp_list: list[str]) -> dict[str, list[str]]:
     '''
     for virtual file path (VFP) list ['uid|/dir/file', 'uid|/file2', 'uid|other_uid|/file3']
     the result would be {'uid': ['uid|/dir/file', 'uid|/file2'], 'uid|other_uid': ['uid|other_uid|/file3']}
@@ -44,7 +46,7 @@ def _split_vfp_list_by_base(vfp_list: List[str]) -> Dict[str, List[str]]:
     return vfp_list_by_base
 
 
-def get_parent_uids_from_virtual_path(file_object: 'FileObject') -> Set[str]:
+def get_parent_uids_from_virtual_path(file_object: 'FileObject') -> set[str]:
     '''
     Get the UIDs of parent files (aka files with include this file) from the virtual file paths of a FileObject.
 
@@ -59,7 +61,7 @@ def get_parent_uids_from_virtual_path(file_object: 'FileObject') -> Set[str]:
     return parent_uids
 
 
-def get_uids_from_virtual_path(virtual_path: str) -> List[str]:
+def get_uids_from_virtual_path(virtual_path: str) -> list[str]:
     '''
     Get all UIDs from a virtual file path (one element from the virtual path list for one root UID of a FW).
 
@@ -72,7 +74,7 @@ def get_uids_from_virtual_path(virtual_path: str) -> List[str]:
     return parts[:-1]  # included files have the file path as last element
 
 
-def update_virtual_file_path(new_vfp: Dict[str, List[str]], old_vfp: Dict[str, List[str]]) -> Dict[str, List[str]]:
+def update_virtual_file_path(new_vfp: dict[str, list[str]], old_vfp: dict[str, list[str]]) -> dict[str, list[str]]:
     '''
     Get updated dict of virtual file paths.
     A file object can exist only once, multiple times inside the same firmware (e.g. sym links) or

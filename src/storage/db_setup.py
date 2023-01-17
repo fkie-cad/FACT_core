@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from config import cfg
 from storage.db_connection import AdminConnection, DbConnection
@@ -14,7 +14,7 @@ class Privileges:
 
 
 class DbSetup(ReadWriteDbInterface):
-    def __init__(self, connection: Optional[DbConnection] = None, **kwargs):
+    def __init__(self, connection: DbConnection | None = None, **kwargs):
         super().__init__(connection=connection or AdminConnection(**kwargs))
 
     def create_user(self, user_name: str, password: str):

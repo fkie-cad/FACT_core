@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 from contextlib import contextmanager
-from typing import Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -17,7 +18,7 @@ class DbSerializationError(DbInterfaceError):
 
 
 class ReadOnlyDbInterface:
-    def __init__(self, connection: Optional[DbConnection] = None):
+    def __init__(self, connection: DbConnection | None = None):
         self.connection = connection or ReadOnlyConnection()
         self.ro_session = None
 
@@ -39,7 +40,7 @@ class ReadOnlyDbInterface:
 
 
 class ReadWriteDbInterface(ReadOnlyDbInterface):
-    def __init__(self, connection: Optional[DbConnection] = None):
+    def __init__(self, connection: DbConnection | None = None):
         super().__init__(connection=connection or ReadWriteConnection())
 
     @contextmanager

@@ -28,6 +28,7 @@ Contents
    modules/conftest
    modules/helperFunctions
    modules/objects
+   modules/plugins
    modules/scheduler
    modules/web_interface
 

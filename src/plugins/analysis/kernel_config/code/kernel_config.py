@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import re
 import sys
 from pathlib import Path
-from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
@@ -67,7 +68,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return 'Linux make config' in file_object.processed_analysis.get('file_type', {}).get('full', '')
 
     @staticmethod
-    def _get_summary(results: dict) -> List[str]:
+    def _get_summary(results: dict) -> list[str]:
         if 'is_kernel_config' in results and results['is_kernel_config'] is True:
             return ['Kernel Config']
         return []

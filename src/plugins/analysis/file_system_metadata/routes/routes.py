@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from base64 import b64encode
 from pathlib import Path
-from typing import Optional
 
 from flask import render_template_string
 from flask_restx import Namespace
@@ -32,7 +33,7 @@ def get_analysis_results_for_included_uid(
     return results
 
 
-def _get_results_from_parent_fo(parent_results: Optional[dict], parent_uid: str, this_fo: FileObject) -> dict:
+def _get_results_from_parent_fo(parent_results: dict | None, parent_uid: str, this_fo: FileObject) -> dict:
     if parent_results is None or 'files' not in parent_results:
         return {}
 

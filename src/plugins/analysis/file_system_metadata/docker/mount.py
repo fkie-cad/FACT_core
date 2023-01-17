@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 import json
 import logging
@@ -6,7 +7,6 @@ import os
 from contextlib import contextmanager
 from pathlib import Path
 from subprocess import CalledProcessError, check_call
-from typing import Dict, Union
 
 INPUT_DIR = Path('/work')
 INPUT_FILE = INPUT_DIR / 'input.img'
@@ -46,7 +46,7 @@ def _get_mounted_file_stats():
     return result
 
 
-def _stat_to_dict(stat_result: os.stat_result) -> Dict[str, Union[int, float]]:
+def _stat_to_dict(stat_result: os.stat_result) -> dict[str, int | float]:
     return {
         'uid': stat_result.st_uid,
         'gid': stat_result.st_gid,
