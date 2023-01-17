@@ -95,8 +95,8 @@ class FactBackend(FactBase):
         self.intercom.shutdown()
         self.compare_service.shutdown()
         self.unpacking_service.shutdown()
-        self.unpacking_lock_manager.shutdown()
         self.analysis_service.shutdown()
+        self.unpacking_lock_manager.shutdown()
         if not self.args.testing:
             complete_shutdown()
 
