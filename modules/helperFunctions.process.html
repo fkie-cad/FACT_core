@@ -224,9 +224,23 @@ FACT backend.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.process.stop_process">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></span><span class="sig-name descname"><span class="pre">stop_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">process</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.stop_process" title="Permalink to this definition"></a></dt>
+<dd><p>Try to stop a single process gracefully. If it does not stop until <cite>timeout</cite> is reached, kill it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>process</strong> (<em>multiprocessing.context.Process</em>) – </p></li>
+<li><p><strong>timeout</strong> (<em>float</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.process.stop_processes">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></span><span class="sig-name descname"><span class="pre">stop_processes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.stop_processes" title="Permalink to this definition"></a></dt>
-<dd><p>Try to stop processes gracefully. If a process does not stop until <cite>timeout</cite> is reached, terminate it.</p>
+<dd><p>Try to stop processes gracefully in parallel. If a process does not stop until <cite>timeout</cite> is reached, kill it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
