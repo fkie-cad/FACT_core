@@ -3,7 +3,6 @@ from __future__ import annotations
 from sqlalchemy import select
 
 from analysis.PluginBase import AnalysisBasePlugin
-from config import configparser_cfg
 from helperFunctions.hash import get_tlsh_comparison
 from storage.db_interface_base import ReadOnlyDbInterface
 from storage.schema import AnalysisEntry
@@ -21,7 +20,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def __init__(self, *args, **kwargs):
-        self.db = TLSHInterface(configparser_cfg)
+        self.db = TLSHInterface()
         super().__init__(*args, **kwargs)
 
     def process_object(self, file_object):
