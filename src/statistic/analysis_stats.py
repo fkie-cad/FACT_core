@@ -19,7 +19,7 @@ def get_plugin_stats(plugin: AnalysisBasePlugin) -> dict[str, str] | None:
             mean=_format_float(stats_array.mean()),
             median=_format_float(np.median(stats_array)),
             std_dev=_format_float(stats_array.std()),
-            count=str(len(stats_array)),
+            count=str(stats_count),
         )
     except (ValueError, AssertionError):
         return None
