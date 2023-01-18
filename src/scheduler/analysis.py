@@ -18,7 +18,8 @@ from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_process
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
-from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
+from scheduler.task_scheduler import AnalysisTaskScheduler, MANDATORY_PLUGINS
+from statistic.analysis_stats import get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_base import DbInterfaceError
 from storage.fsorganizer import FSOrganizer
@@ -477,6 +478,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             workload['plugins'][plugin_name] = {
                 'queue': plugin.in_queue.qsize(),
                 'active': (sum(plugin.active[i].value for i in range(plugin.thread_count))),
+                'stats': get_plugin_stats(plugin),
             }
         return workload
 
