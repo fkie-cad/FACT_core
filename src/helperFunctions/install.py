@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import shlex
@@ -6,7 +8,6 @@ import subprocess
 import sys
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, STDOUT, CalledProcessError
-from typing import List, Tuple, Union
 
 import distro
 
@@ -26,7 +27,7 @@ class OperateInDirectory:
     :param remove: Optional boolean to indicate if `target_directory` should be removed on exit.
     '''
 
-    def __init__(self, target_directory: Union[str, Path], remove: bool = False):
+    def __init__(self, target_directory: str | Path, remove: bool = False):
         self._current_working_dir = None
         self._target_directory = str(target_directory)
         self._remove = remove
@@ -57,7 +58,7 @@ def remove_folder(folder_name: str):
         raise InstallationError(exception) from None
 
 
-def log_current_packages(packages: Tuple[str], install: bool = True):
+def log_current_packages(packages: tuple[str], install: bool = True):
     '''
     Log which packages are installed or removed.
 
@@ -156,7 +157,7 @@ def check_if_command_in_path(command: str) -> bool:
     return command_process.returncode == 0
 
 
-def install_github_project(project_path: str, commands: List[str]):
+def install_github_project(project_path: str, commands: list[str]):
     '''
     Install github project by cloning it, running a set of commands and removing the cloned files afterwards.
 

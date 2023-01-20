@@ -17,7 +17,7 @@ sys.path.insert(0, str(FACT_SRC))
 
 # pylint: disable=redefined-builtin,invalid-name
 project = 'FACT'
-copyright = '2020-2022  Fraunhofer FKIE'
+copyright = '2020-2023  Fraunhofer FKIE'
 author = 'jstucke'
 
 
@@ -66,6 +66,7 @@ autodoc_mock_imports = [
     'gridfs',
     'lief',
     'matplotlib',
+    'numpy',
     'passlib',
     'pluginbase',
     'psutil',
@@ -82,7 +83,7 @@ autodoc_mock_imports = [
     'yara',
 ]
 
-# This value controls how to represents typehints. The setting takes the following values:
+# This value controls how to represent typehints. The setting takes the following values:
 #     'signature' – Show typehints as its signature (default)
 #     'description' – Show typehints as content of function or method
 #     'none' – Do not show typehints

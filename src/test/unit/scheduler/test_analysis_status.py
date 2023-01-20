@@ -14,7 +14,13 @@ class TestAnalysisStatus:
     @classmethod
     def setup_class(cls):
         cls.status = AnalysisStatus()
-        cls.status.currently_running_lock = Manager().Lock()  # pylint: disable=no-member
+        cls.manager = Manager()
+        cls.status.currently_running_lock = cls.manager.Lock()  # pylint: disable=no-member
+
+    @classmethod
+    def teardown_class(cls):
+        cls.status.shutdown()
+        cls.manager.shutdown()
 
     def test_add_firmware_to_current_analyses(self):
         self.status.currently_running = {}

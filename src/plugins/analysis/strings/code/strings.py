@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import re
-from typing import List, Pattern, Tuple
+from re import Pattern
 
 from analysis.PluginBase import AnalysisBasePlugin
 from config import cfg
@@ -26,7 +28,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def additional_setup(self):
         self.regexes = self._compile_regexes()
 
-    def _compile_regexes(self) -> List[Tuple[Pattern[bytes], str]]:
+    def _compile_regexes(self) -> list[tuple[Pattern[bytes], str]]:
         min_length = str(getattr(cfg, self.NAME, {}).get('min-length', 8))
         return [
             (re.compile(regex.replace(b'$len', min_length.encode())), encoding)
@@ -38,16 +40,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME] = {'strings': strings, 'offsets': offsets}
         return file_object
 
-    def _find_all_strings_and_offsets(self, source: bytes) -> Tuple[List[str], List[Tuple[int, str]]]:
+    def _find_all_strings_and_offsets(self, source: bytes) -> tuple[list[str], list[tuple[int, str]]]:
         strings_with_offset = []
         for regex, encoding in self.regexes:
             strings_with_offset.extend(self._match_with_offset(regex, source, encoding))
         return self._get_list_of_unique_strings(strings_with_offset), strings_with_offset
 
     @staticmethod
-    def _match_with_offset(regex: Pattern[bytes], source: bytes, encoding: str = 'utf-8') -> List[Tuple[int, str]]:
+    def _match_with_offset(regex: Pattern[bytes], source: bytes, encoding: str = 'utf-8') -> list[tuple[int, str]]:
         return [(match.start(), match.group().decode(encoding)) for match in regex.finditer(source)]
 
     @staticmethod
-    def _get_list_of_unique_strings(strings_with_offset: List[Tuple[int, str]]) -> List[str]:
+    def _get_list_of_unique_strings(strings_with_offset: list[tuple[int, str]]) -> list[str]:
         return sorted(list(set(tuple(zip(*strings_with_offset))[1]))) if strings_with_offset else []

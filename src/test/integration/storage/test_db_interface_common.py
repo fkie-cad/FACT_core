@@ -202,52 +202,34 @@ def test_get_file_object_number(db):
     assert db.common.get_file_object_number(query={'uid': TEST_FO.uid}) == 1
 
 
-def test_get_summary(db):
+def test_get_summary_fw(db):
     fo, fw = create_fw_with_child_fo()
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
 
-    result_sum = db.common.get_summary(fw, 'dummy')
-    assert isinstance(result_sum, dict), 'summary is not a dict'
-    assert 'sum a' in result_sum, 'summary entry of parent missing'
-    assert fw.uid in result_sum['sum a'], 'origin (parent) missing in parent summary entry'
-    assert fo.uid in result_sum['sum a'], 'origin (child) missing in parent summary entry'
-    assert fo.uid not in result_sum['fw exclusive sum a'], 'child as origin but should not be'
-    assert 'file exclusive sum b' in result_sum, 'file exclusive summary missing'
-    assert fo.uid in result_sum['file exclusive sum b'], 'origin of file exclusive missing'
-    assert fw.uid not in result_sum['file exclusive sum b'], 'parent as origin but should not be'
+    summary = db.common.get_summary(fw, 'dummy')
+    assert isinstance(summary, dict), 'summary is not a dict'
+    assert 'sum a' in summary, 'summary entry of parent missing'
+    assert fw.uid in summary['sum a'], 'origin (parent) missing in parent summary entry'
+    assert fo.uid in summary['sum a'], 'origin (child) missing in parent summary entry'
+    assert fo.uid not in summary['fw exclusive sum a'], 'child as origin but should not be'
+    assert 'file exclusive sum b' in summary, 'file exclusive summary missing'
+    assert fo.uid in summary['file exclusive sum b'], 'origin of file exclusive missing'
+    assert fw.uid not in summary['file exclusive sum b'], 'parent as origin but should not be'
 
 
-def test_collect_summary(db):
-    fo, fw = create_fw_with_child_fo()
+def test_get_summary_fo(db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
     db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
-    fo_list = [fo.uid]
-    result_sum = db.common._collect_summary(fo_list, 'dummy')
-    assert all(item in result_sum for item in fo.processed_analysis['dummy']['summary'])
-    assert all(value == [fo.uid] for value in result_sum.values())
+    db.backend.insert_object(parent_fo)
+    db.backend.insert_object(child_fo)
 
-
-def test_get_summary_of_one_error_handling(db):
-    fo, fw = create_fw_with_child_fo()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
-
-    result_sum = db.common._get_summary_of_one(None, 'foo')
-    assert result_sum == {}, 'None object should result in empty dict'
-    result_sum = db.common._get_summary_of_one(fw, 'non_existing_analysis')
-    assert result_sum == {}, 'analysis non-existent should lead to empty dict'
-
-
-def test_update_summary(db):
-    orig = {'a': ['a']}
-    update = {'a': ['aa'], 'b': ['aa']}
-    db.common._update_summary(orig, update)
-    assert 'a' in orig
-    assert 'b' in orig
-    assert 'a' in orig['a']
-    assert 'aa' in orig['a']
-    assert 'aa' in orig['b']
+    summary = db.common.get_summary(parent_fo, 'dummy')
+    assert parent_fo.uid in summary['sum a'], 'summary of the file itself should be included'
+    assert parent_fo.uid in summary['file exclusive sum b'], 'summary of the file itself should be included'
+    assert fw.uid not in summary['sum a'], 'parent summary should not be included'
+    assert child_fo.uid in summary['sum a'], 'child summary should be included'
+    assert child_fo.uid in summary['file exclusive sum b'], 'child summary should be included'
 
 
 def test_collect_child_tags_propagate(db):

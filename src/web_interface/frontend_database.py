@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from __future__ import annotations
 
 from storage.db_connection import AdminConnection, ReadOnlyConnection, ReadWriteConnection, ReadWriteDeleteConnection
 from storage.db_interface_admin import AdminDbInterface
@@ -12,13 +12,13 @@ from storage.db_interface_view_sync import ViewReader
 class FrontendDatabase:  # pylint: disable=too-many-instance-attributes
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        frontend: Optional[Type[FrontEndDbInterface]] = None,
-        editing: Optional[Type[FrontendEditingDbInterface]] = None,
-        admin: Optional[Type[AdminDbInterface]] = None,
-        comparison: Optional[Type[ComparisonDbInterface]] = None,
-        template: Optional[Type[ViewReader]] = None,
-        stats_viewer: Optional[Type[StatsDbViewer]] = None,
-        stats_updater: Optional[Type[StatsUpdateDbInterface]] = None,
+        frontend: type[FrontEndDbInterface] | None = None,
+        editing: type[FrontendEditingDbInterface] | None = None,
+        admin: type[AdminDbInterface] | None = None,
+        comparison: type[ComparisonDbInterface] | None = None,
+        template: type[ViewReader] | None = None,
+        stats_viewer: type[StatsDbViewer] | None = None,
+        stats_updater: type[StatsUpdateDbInterface] | None = None,
     ):
         self._ro_connection = ReadOnlyConnection()
         self._rw_connection = ReadWriteConnection()

@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import subprocess
 from os.path import basename
 from pathlib import Path
 from subprocess import PIPE, STDOUT, CalledProcessError
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Optional, Tuple, Union
 
 import yara
 
@@ -27,7 +28,7 @@ class YaraBinarySearchScanner:
         self.db = DbInterfaceCommon()
         self.fs_organizer = FSOrganizer()
 
-    def _execute_yara_search(self, rule_file_path: str, target_path: Optional[str] = None) -> str:
+    def _execute_yara_search(self, rule_file_path: str, target_path: str | None = None) -> str:
         '''
         Scans the (whole) db directory with the provided rule file and returns the (raw) results.
         Yara-python cannot be used, because it (currently) supports single-file scanning only.
@@ -45,11 +46,11 @@ class YaraBinarySearchScanner:
         result = (self._execute_yara_search(rule_file_path, path) for path in file_paths)
         return '\n'.join(result)
 
-    def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> List[str]:
+    def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> list[str]:
         return [self.fs_organizer.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
 
     @staticmethod
-    def _parse_raw_result(raw_result: str) -> Dict[str, List[str]]:
+    def _parse_raw_result(raw_result: str) -> dict[str, list[str]]:
         '''
         :param raw_result: raw yara scan result
         :return: dict of matching rules with lists of matched UIDs as values
@@ -62,11 +63,11 @@ class YaraBinarySearchScanner:
         return results
 
     @staticmethod
-    def _eliminate_duplicates(result_dict: Dict[str, List[str]]):
+    def _eliminate_duplicates(result_dict: dict[str, list[str]]):
         for key in result_dict:
             result_dict[key] = sorted(set(result_dict[key]))
 
-    def get_binary_search_result(self, task: Tuple[bytes, Optional[str]]) -> Union[Dict[str, List[str]], str]:
+    def get_binary_search_result(self, task: tuple[bytes, str | None]) -> dict[str, list[str]] | str:
         '''
         Perform a yara search on the files in the database.
 
@@ -87,7 +88,7 @@ class YaraBinarySearchScanner:
             except CalledProcessError as process_error:
                 return f'Error when calling YARA:\n{process_error.output.decode()}'
 
-    def _get_raw_result(self, firmware_uid: Optional[str], temp_rule_file: NamedTemporaryFile) -> str:
+    def _get_raw_result(self, firmware_uid: str | None, temp_rule_file: NamedTemporaryFile) -> str:
         if firmware_uid is None:
             raw_result = self._execute_yara_search(temp_rule_file.name)
         else:
@@ -101,7 +102,7 @@ class YaraBinarySearchScanner:
         temp_rule_file.flush()
 
 
-def is_valid_yara_rule_file(yara_rules: Union[str, bytes]) -> bool:
+def is_valid_yara_rule_file(yara_rules: str | bytes) -> bool:
     '''
     Check if ``yara_rules`` is a valid set of yara rules.
 
@@ -111,7 +112,7 @@ def is_valid_yara_rule_file(yara_rules: Union[str, bytes]) -> bool:
     return get_yara_error(yara_rules) is None
 
 
-def get_yara_error(rules_file: Union[str, bytes]) -> Optional[Exception]:
+def get_yara_error(rules_file: str | bytes) -> Exception | None:
     '''
     Get the exception that is caused by trying to compile ``rules_file`` with yara or ``None`` if there is none.
 

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import re
-from typing import AnyStr, List, Set, Union
+from typing import AnyStr
 
 from helperFunctions.data_conversion import make_bytes
 from helperFunctions.hash import get_sha256
@@ -35,7 +37,7 @@ def is_uid(input_string: AnyStr) -> bool:
     return False
 
 
-def is_list_of_uids(input_list: Union[List[AnyStr], Set[AnyStr]]) -> bool:
+def is_list_of_uids(input_list: list[AnyStr] | set[AnyStr]) -> bool:
     '''
     Checks if all elements of a list are valid UIDs
 

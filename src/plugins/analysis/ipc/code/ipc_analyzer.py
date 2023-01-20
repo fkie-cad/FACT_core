@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import tempfile
 from pathlib import Path
@@ -18,7 +20,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'ipc_analyzer'
     DESCRIPTION = 'Inter-Process Communication Analysis'
-    VERSION = '0.1'
+    VERSION = '0.1.1'
     FILE = __file__
 
     MIME_WHITELIST = [
@@ -54,7 +56,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         output = self._run_ipc_analyzer_in_docker(file_object)
         file_object.processed_analysis[self.NAME] = {
             'full': output,
-            'summary': list(output.keys()),
+            'summary': self._create_summary(output['ipcCalls']),
         }
         return file_object
 
@@ -65,3 +67,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         """
         file_object = self._do_full_analysis(file_object)
         return file_object
+
+    @staticmethod
+    def _create_summary(output: dict) -> list[str]:
+        # output structure: { 'target': [{'type': 'type', 'arguments': [...]}, ...], ...}
+        summary = {entry['type'] for result_list in output.values() for entry in result_list}
+        return sorted(summary)

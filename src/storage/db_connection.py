@@ -1,6 +1,7 @@
-from typing import Optional
+from __future__ import annotations
 
 from sqlalchemy import create_engine
+from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 
 from config import cfg
@@ -8,7 +9,7 @@ from storage.schema import Base
 
 
 class DbConnection:
-    def __init__(self, user: str = None, password: str = None, db_name: Optional[str] = None, **kwargs):
+    def __init__(self, user: str = None, password: str = None, db_name: str | None = None, **kwargs):
         self.base = Base
 
         address = cfg.data_storage.postgres_server
@@ -17,7 +18,14 @@ class DbConnection:
         password = getattr(cfg.data_storage, password)
 
         database = db_name if db_name else cfg.data_storage.postgres_database
-        engine_url = f'postgresql://{user}:{password}@{address}:{port}/{database}'
+        engine_url = URL.create(
+            'postgresql',
+            username=user,
+            password=password,
+            host=address,
+            port=port,
+            database=database,
+        )
         self.engine = create_engine(engine_url, pool_size=100, future=True, **kwargs)
         self.session_maker = sessionmaker(bind=self.engine, future=True)  # future=True => sqlalchemy 2.0 support
 

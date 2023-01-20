@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import re
 import subprocess
 from pathlib import Path
-from typing import Dict
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
@@ -26,8 +27,10 @@ class YaraBasePlugin(AnalysisBasePlugin):
         '''
         self.signature_path = self._get_signature_file(self.FILE) if self.FILE else None
         if self.signature_path and not Path(self.signature_path).exists():
-            logging.error(f'Signature file {self.signature_path} not found. Did you run "compile_yara_signatures.py"?')
-            raise PluginInitException(plugin=self)
+            raise PluginInitException(
+                f'Signature file {self.signature_path} not found. Did you run "compile_yara_signatures.py"?',
+                plugin=self,
+            )
         self.SYSTEM_VERSION = self.get_yara_system_version()  # pylint: disable=invalid-name
         super().__init__(view_updater=view_updater)
 
@@ -36,7 +39,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
             yara_version = process.stdout.readline().decode().strip()
 
         access_time = int(Path(self.signature_path).stat().st_mtime)
-        return f'{yara_version}_{access_time}'
+        return f'{yara_version}-{access_time}'
 
     def process_object(self, file_object):
         if self.signature_path is not None:
@@ -90,7 +93,7 @@ def _split_output_in_rules_and_matches(output):
     return match_blocks, rules
 
 
-def _append_match_to_result(match, resulting_matches: Dict[str, dict], rule):
+def _append_match_to_result(match, resulting_matches: dict[str, dict], rule):
     rule_name, meta_string, _, _ = rule
     _, offset, matched_tag, matched_string = match
     resulting_matches.setdefault(

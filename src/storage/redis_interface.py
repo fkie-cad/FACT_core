@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from math import ceil
 from pickle import dumps, loads
 from random import randint
-from typing import Any, Optional, Union
+from typing import Any
 
 from redis.client import Redis
 
@@ -34,7 +36,7 @@ class RedisInterface:
     def queue_get(self, key: str) -> Any:
         return self._combine_if_split(self.redis.lpop(key))
 
-    def _split_if_necessary(self, value: bytes) -> Union[str, bytes]:
+    def _split_if_necessary(self, value: bytes) -> str | bytes:
         return self._store_chunks(value) if len(value) > self.chunk_size else value
 
     def _store_chunks(self, value) -> str:
@@ -52,7 +54,7 @@ class RedisInterface:
             if not self.redis.exists(key):
                 return key
 
-    def _combine_if_split(self, value: Optional[bytes], delete: bool = True) -> Any:
+    def _combine_if_split(self, value: bytes | None, delete: bool = True) -> Any:
         if value is None:
             return None
         if value.startswith(CHUNK_MAGIC):
@@ -67,7 +69,7 @@ class RedisInterface:
             ]
         )
 
-    def _redis_pop(self, key: str) -> Optional[bytes]:
+    def _redis_pop(self, key: str) -> bytes | None:
         pipeline = self.redis.pipeline()
         pipeline.get(key)
         pipeline.delete(key)

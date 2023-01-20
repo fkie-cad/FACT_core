@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from common_helper_files import get_binary_from_file
 
@@ -23,10 +24,10 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
     def __init__(
         self,
-        binary: Optional[bytes] = None,
-        file_name: Optional[str] = None,
-        file_path: Optional[str] = None,
-        scheduled_analysis: List[str] = None,
+        binary: bytes | None = None,
+        file_name: str | None = None,
+        file_path: str | None = None,
+        scheduled_analysis: list[str] = None,
     ):
         self._uid = None
 
@@ -197,7 +198,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         file_object.scheduled_analysis = self.scheduled_analysis
         self.files_included.add(file_object.uid)
 
-    def add_virtual_file_path_if_none_exists(self, parent_paths: List[str], parent_uid: str) -> None:
+    def add_virtual_file_path_if_none_exists(self, parent_paths: list[str], parent_uid: str) -> None:
         '''
         Add virtual file paths (vfps) to this file based on an existing list of vfps on the parent
         and the parent's uid as root.
@@ -213,7 +214,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
                     base_path += '|'
                 self.virtual_file_path[self.root_uid].append(f'{base_path}{parent_uid}|{self.file_path}')
 
-    def get_virtual_paths_for_one_uid(self, root_uid: str = None) -> List[str]:
+    def get_virtual_paths_for_one_uid(self, root_uid: str = None) -> list[str]:
         '''
         Get the virtual file path (vfp) of root_uid if argument set.
         If not, similar to :func:`get_root_uid` either return paths of `self.root_uid`
@@ -228,7 +229,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
             return file_paths[req_root_uid]
         return get_value_of_first_key(file_paths)  # fallback
 
-    def get_virtual_paths_for_all_uids(self) -> List[str]:
+    def get_virtual_paths_for_all_uids(self) -> list[str]:
         '''
         Get all virtual file paths (VFPs) of the file in all firmware containers.
 
@@ -236,7 +237,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         '''
         return [vfp for vfp_list in self.get_virtual_file_paths().values() for vfp in vfp_list]
 
-    def get_virtual_file_paths(self) -> Dict[str, list]:
+    def get_virtual_file_paths(self) -> dict[str, list]:
         '''
         Get virtual file paths of current file.
 

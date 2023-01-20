@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 '''
 This module offers neat wrapper functionality for use in rest endpoints.
 Most wrappers target request and response parsing.
@@ -7,7 +9,6 @@ import calendar
 import json
 import time
 from copy import deepcopy
-from typing import Optional, Tuple
 
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -22,8 +23,8 @@ def get_current_gmt() -> int:
 
 
 def success_message(
-    data: dict, targeted_url: str, request_data: Optional[dict] = None, return_code: int = 200
-) -> Tuple[dict, int]:
+    data: dict, targeted_url: str, request_data: dict | None = None, return_code: int = 200
+) -> tuple[dict, int]:
     '''
     Create success response including requested data and useful meta information, such as the request parameters.
 
@@ -46,8 +47,8 @@ def success_message(
 
 
 def error_message(
-    error: str, targeted_url: str, request_data: Optional[dict] = None, return_code: int = 400
-) -> Tuple[dict, int]:
+    error: str, targeted_url: str, request_data: dict | None = None, return_code: int = 400
+) -> tuple[dict, int]:
     '''
     Create error response including error message and useful meta information, such as the request parameters.
 
@@ -69,7 +70,7 @@ def error_message(
     return message, return_code
 
 
-def get_paging(request_parameters: ImmutableMultiDict) -> Tuple[int, int]:
+def get_paging(request_parameters: ImmutableMultiDict) -> tuple[int, int]:
     '''
     Parse paging parameter offset and limit from request parameters.
 

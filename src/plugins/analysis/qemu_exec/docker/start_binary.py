@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import subprocess
 import sys
 from base64 import b64encode
 from json import dumps
-from typing import Tuple
 
 FIRMWARE_ROOT = '/opt/firmware_root/'
 ARCH = sys.argv[1]
@@ -11,7 +12,7 @@ FILE_PATH = FIRMWARE_ROOT + sys.argv[2]
 TIMEOUT_ERROR_EXIT_CODES = [124, 128 + 9]
 
 
-def get_output_error_and_return_code(command: str) -> Tuple[bytes, bytes, int]:
+def get_output_error_and_return_code(command: str) -> tuple[bytes, bytes, int]:
     process = subprocess.run(command, capture_output=True, shell=True)
     return process.stdout, process.stderr, process.returncode
 

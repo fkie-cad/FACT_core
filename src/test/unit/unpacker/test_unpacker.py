@@ -35,11 +35,13 @@ class TestUnpackerBase(unittest.TestCase):
         config.set('unpack', 'max-depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')
         config.add_section('expert-settings')
-        self.unpacker = Unpacker(unpacking_locks=UnpackingLockManager())
+        self.lock_manager = UnpackingLockManager()
+        self.unpacker = Unpacker(unpacking_locks=self.lock_manager)
         self.tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         self.test_fo = create_test_file_object()
 
     def tearDown(self):
+        self.lock_manager.shutdown()
         self.ds_tmp_dir.cleanup()
         self.tmp_dir.cleanup()
         gc.collect()

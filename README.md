@@ -5,7 +5,6 @@
 # The Firmware Analysis and Comparison Tool (FACT)
 
 [![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
-[![BCH compliance](https://bettercodehub.com/edge/badge/fkie-cad/FACT_core?branch=master)](https://bettercodehub.com/)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d3910401cb58498a8c2d00be80092080)](https://www.codacy.com/gh/fkie-cad/FACT_core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/FACT_core/community)
 
@@ -97,10 +96,15 @@ We've been happy to show FACT in a number of BlackHat Arsenal sessions.
 - [Pass the salt 2019](https://2019.pass-the-salt.org/talks/71.html) / [Slides](https://2019.pass-the-salt.org/files/slides/04-FACT.pdf) / [Video](https://passthesalt.ubicast.tv/videos/improving-your-firmware-security-analysis-process-with-fact/)
 - [Hardwear.io 2019](https://hardwear.io/netherlands-2019/speakers/johannes-vom-dorp-and-peter-weidenbach.php)
 
+## Social
+
+- <a rel="me" href="https://infosec.exchange/@fact">Mastodon</a>
+- [Twitter](https://twitter.com/FAandCTool)
+
 ## License
 ```
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2022  Fraunhofer FKIE
+    Copyright (C) 2015-2023  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

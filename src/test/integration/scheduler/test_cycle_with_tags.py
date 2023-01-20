@@ -21,16 +21,16 @@ class TestTagPropagation:
         self.uid_of_key_file = '530bf2f1203b789bfe054d3118ebd29a04013c587efd22235b3b9677cee21c0e_2048'
 
         self.backend_interface = BackendDbInterface()
-        unpacking_lock_manager = UnpackingLockManager()
+        self.unpacking_lock_manager = UnpackingLockManager()
 
         self._analysis_scheduler = AnalysisScheduler(
             pre_analysis=self.backend_interface.add_object,
             post_analysis=self.count_analysis_finished_event,
-            unpacking_locks=unpacking_lock_manager,
+            unpacking_locks=self.unpacking_lock_manager,
         )
         self._unpack_scheduler = UnpackingScheduler(
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
-            unpacking_locks=unpacking_lock_manager,
+            unpacking_locks=self.unpacking_lock_manager,
         )
 
     def count_analysis_finished_event(self, uid, plugin, analysis_result):
@@ -41,6 +41,7 @@ class TestTagPropagation:
 
     def teardown(self):
         self._unpack_scheduler.shutdown()
+        self.unpacking_lock_manager.shutdown()
         self._analysis_scheduler.shutdown()
 
         self._tmp_dir.cleanup()

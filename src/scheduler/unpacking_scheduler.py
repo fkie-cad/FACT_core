@@ -29,6 +29,9 @@ class NoFreeWorker(RuntimeError):
     pass
 
 
+THROTTLE_INTERVAL = 2
+
+
 class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     '''
     This scheduler performs unpacking on firmware objects
@@ -71,10 +74,13 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        stop_processes([self.work_load_process, self.extraction_process])
-        self.stop_containers()
         self.in_queue.close()
-        logging.info('Unpacking scheduler offline')
+        stop_processes(
+            [self.work_load_process, self.extraction_process],
+            max(cfg.expert_settings.block_delay, THROTTLE_INTERVAL) + 1,
+        )
+        self.stop_containers()
+        logging.info('Unpacker Module offline')
 
     # ---- internal functions ----
 
@@ -183,7 +189,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 self.throttle_condition.value = 0
             else:
                 self.throttle_condition.value = 1
-            sleep(2)
+            sleep(THROTTLE_INTERVAL)
 
     def _get_combined_analysis_workload(self):
         if self.get_analysis_workload is not None:

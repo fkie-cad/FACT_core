@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import json
 import logging
 import subprocess
 from json import JSONDecodeError
 from subprocess import PIPE, STDOUT
 from tempfile import NamedTemporaryFile
-from typing import List, NamedTuple
+from typing import NamedTuple
 
 # Based on https://github.com/a13xp0p0v/kconfig-hardened-check and
 # https://github.com/a13xp0p0v/linux-kernel-defence-map by Alexander Popov
@@ -115,16 +117,16 @@ class HardeningCheckResult(NamedTuple):
     reason: str
     check_result: str
     actual_value: str
-    vulnerabilities: List[str]
+    vulnerabilities: list[str]
 
 
-def check_kernel_hardening(kernel_config: str) -> List[HardeningCheckResult]:
+def check_kernel_hardening(kernel_config: str) -> list[HardeningCheckResult]:
     hardening_data = _get_kernel_hardening_data(kernel_config)
     result = _add_protection_info(hardening_data)
     return [item for item in result if 'CONFIG_' not in item.actual_value]  # filter redundant entries
 
 
-def _get_kernel_hardening_data(kernel_config: str) -> List[List[str]]:
+def _get_kernel_hardening_data(kernel_config: str) -> list[list[str]]:
     try:
         with NamedTemporaryFile() as fp:
             fp.write(kernel_config.encode())
@@ -142,7 +144,7 @@ def _get_kernel_hardening_data(kernel_config: str) -> List[List[str]]:
     return []
 
 
-def _add_protection_info(hardening_result: List[List[str]]) -> List[HardeningCheckResult]:
+def _add_protection_info(hardening_result: list[list[str]]) -> list[HardeningCheckResult]:
     full_result = []
     for single_result in hardening_result:
         config_key = single_result[0]
@@ -152,7 +154,7 @@ def _add_protection_info(hardening_result: List[List[str]]) -> List[HardeningChe
     return full_result
 
 
-def _detach_actual_value_from_result(single_result: List[str]) -> str:
+def _detach_actual_value_from_result(single_result: list[str]) -> str:
     '''
     the result may contain the actual value after a colon
     e.g. 'FAIL: not found' or 'FAIL: "y"'

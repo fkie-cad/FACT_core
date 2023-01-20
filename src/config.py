@@ -8,7 +8,7 @@ from pydantic import BaseModel, Extra
 from werkzeug.local import LocalProxy
 
 _cfg = None
-cfg: 'Config' = LocalProxy(lambda: _cfg)
+cfg: Config = LocalProxy(lambda: _cfg)
 
 _configparser_cfg = None
 # For transitioning between using ConfigParser and this module.

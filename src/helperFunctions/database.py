@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from contextlib import contextmanager
-from typing import ContextManager, Generic, Type, TypeVar
+from typing import ContextManager, Generic, TypeVar
 
 DatabaseInterface = TypeVar('DatabaseInterface')
 
@@ -19,7 +21,7 @@ class ConnectTo(Generic[DatabaseInterface]):
                 query = connection.firmwares.find({})
     '''
 
-    def __init__(self, connected_interface: Type[DatabaseInterface]):
+    def __init__(self, connected_interface: type[DatabaseInterface]):
         self.interface = connected_interface
         self.connection = None
 

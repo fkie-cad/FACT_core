@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import os
 from contextlib import suppress
@@ -24,7 +26,7 @@ def get_software_names(yara_file_path):
 
 def extract_names(yara_file_path=SIGNATURE_PATH, target_path=TARGET_PATH):
     stashed_directory = os.getcwd()
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(__file__))
 
     software_names = get_software_names(yara_file_path)
 

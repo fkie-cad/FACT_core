@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from time import time
-from typing import List, Optional, Tuple
 
 from sqlalchemy import func, select, type_coerce
 from sqlalchemy.dialects.postgresql import JSONB
@@ -54,7 +53,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         comp_id = convert_uid_list_to_compare_id(uid_set)
         return comp_id
 
-    def get_comparison_result(self, comparison_id: str) -> Optional[dict]:
+    def get_comparison_result(self, comparison_id: str) -> dict | None:
         comparison_id = normalize_compare_id(comparison_id)
         if not self.comparison_exists(comparison_id):
             logging.debug(f'Compare result not found in db: {comparison_id}')
@@ -88,7 +87,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             )
             session.add(comparison_entry)
 
-    def page_comparison_results(self, skip=0, limit=0) -> List[Tuple[str, str, float]]:
+    def page_comparison_results(self, skip=0, limit=0) -> list[tuple[str, str, float]]:
         with self.get_read_only_session() as session:
             query = select(ComparisonEntry).order_by(ComparisonEntry.submission_date.desc())
             query = self._apply_offset_and_limit(query, skip, limit)
@@ -114,7 +113,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 return 0.0
             return analysis.result['entropy']
 
-    def get_exclusive_files(self, compare_id: str, root_uid: str) -> List[str]:
+    def get_exclusive_files(self, compare_id: str, root_uid: str) -> list[str]:
         if compare_id is None or root_uid is None:
             return []
         try:

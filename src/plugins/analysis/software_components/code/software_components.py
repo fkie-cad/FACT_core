@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 import re
 import sys
 from pathlib import Path
-from typing import List
 
 from common_helper_files import get_dir_of_file
 
@@ -60,7 +61,7 @@ class AnalysisPlugin(YaraBasePlugin):
         return ''
 
     @staticmethod
-    def _get_summary(results: dict) -> List[str]:
+    def _get_summary(results: dict) -> list[str]:
         summary = set()
         for key, result in results.items():
             if key != 'summary':

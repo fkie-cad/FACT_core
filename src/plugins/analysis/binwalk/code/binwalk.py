@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import string
 import subprocess
@@ -5,7 +7,6 @@ from base64 import b64encode
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 from tempfile import TemporaryDirectory
-from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
 from config import cfg
@@ -43,7 +44,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME] = result
         return file_object
 
-    def _extract_summary(self, binwalk_output: str) -> List[str]:
+    def _extract_summary(self, binwalk_output: str) -> list[str]:
         summary = []
         for line in self._iterate_valid_signature_lines(binwalk_output.splitlines()):
             signature_description = self._extract_description_from_signature_line(line.split())

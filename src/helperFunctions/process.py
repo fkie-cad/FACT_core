@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 import logging
 import os
 import traceback
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from multiprocessing import Pipe, Process
-from signal import SIGKILL, SIGTERM
-from typing import Callable, List, Optional, Tuple
+from signal import SIGTERM
+from threading import Thread
 
 import psutil
 
@@ -12,7 +16,7 @@ from config import cfg
 from helperFunctions.logging import TerminalColors, color_string
 
 
-def complete_shutdown(message: Optional[str] = None) -> None:
+def complete_shutdown(message: str | None = None) -> None:
     '''
     Shutdown all FACT processes (of the currently running component) by sending a signal to the process group.
 
@@ -21,8 +25,35 @@ def complete_shutdown(message: Optional[str] = None) -> None:
     if message is not None:
         logging.warning(message)
     logging.critical('SHUTTING DOWN SYSTEM')
-    process_group_id = os.getpgid(os.getpid())
-    os.killpg(process_group_id, SIGKILL)
+    _stop_remaining_fact_processes()
+
+
+def _stop_remaining_fact_processes():
+    """Find subprocesses of this process group and stop them."""
+    pgid = os.getpgrp()
+    futures = []
+    with ThreadPoolExecutor() as pool:
+        for proc in psutil.process_iter():
+            try:
+                if os.getpgid(proc.pid) == pgid and proc.pid != pgid:
+                    futures.append(pool.submit(_stop_process_by_pid, proc.pid))
+            except ProcessLookupError:
+                pass
+        for future in futures:
+            future.result()  # call result to make sure all threads are finished and there are no exceptions
+
+
+def _stop_process_by_pid(pid: int):
+    try:
+        proc = psutil.Process(pid)
+        try:
+            proc.wait(5)
+        except psutil.TimeoutExpired as err:
+            logging.warning(f'Timeout while waiting for process to shut down: {err} -> kill')
+            if proc and proc.is_running():
+                proc.kill()
+    except (ChildProcessError, psutil.NoSuchProcess):
+        pass  # process shut down itself in the meantime -> nothing to do
 
 
 class ExceptionSafeProcess(Process):
@@ -57,7 +88,7 @@ class ExceptionSafeProcess(Process):
             raise exception
 
     @property
-    def exception(self) -> Optional[Tuple[Exception, str]]:
+    def exception(self) -> tuple[Exception, str] | None:
         '''
         The exception that occurred in the process during execution and the respective stack trace.
         Is ``None`` if no exception occurred or the process was no yet executed.
@@ -107,22 +138,22 @@ def start_single_worker(process_index: int, label: str, function: Callable) -> E
 
 
 def check_worker_exceptions(
-    process_list: List[ExceptionSafeProcess],
+    process_list: list[ExceptionSafeProcess],
     worker_label: str,
-    worker_function: Optional[Callable] = None,
+    worker_function: Callable | None = None,
 ) -> bool:
     '''
     Iterate over the `process_list` and check if exceptions occurred. In case of an exception, the process and its
-    children will be terminated. If ``restart_workers`` is set to `False`, the worker will restarted with the ``worker_function``
-    as entrypoint.
-    Otherwise the worker will not be restarted. In this case, the function will always return ``False``. If ``restart_workers``
-    is set to `True` and an exception occurs, the worker will not be restarted and the return value is ``True``.
+    children will be terminated. If ``throw_exceptions`` in the FACT configuration is set to `false`, the worker
+    may be restarted by passing a function (if the value is not set, the worker will not be restarted). In this case,
+    the function will always return ``False``. If ``throw_exceptions`` is set to `true` and an exception occurs,
+    the worker will not be restarted and the return value is ``True``.
 
     :param process_list: A list of worker processes.
     :param worker_label: A label used for logging (e.g. `Analysis` or `Unpacking`).
-    :param restart_workers: Whether to do nothing or restart the worker.
     :param worker_function: A function used for restarting the worker (optional).
-    :return: ``True`` if an exception occurred in any process and ``restart_workers`` set to `True`. Returns ``False`` otherwise.
+    :return: ``True`` if an exception occurred in any process and ``throw_exceptions`` in the FACT configuration is
+             set to `true` and ``False`` otherwise.
     '''
     return_value = False
     for worker_process in process_list:
@@ -153,14 +184,24 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
     return new_process != old_process
 
 
-def stop_processes(processes: List[Process], timeout: float = 10.0):
+def stop_processes(processes: list[Process], timeout: float = 10.0):
     '''
-    Try to stop processes gracefully. If a process does not stop until `timeout` is reached, terminate it.
+    Try to stop processes gracefully in parallel. If a process does not stop until `timeout` is reached, kill it.
 
     :param processes: The list of processes that should be stopped.
     :param timeout: Timeout for joining the process in seconds.
     '''
+    thread_list = []
     for process in processes:
-        process.join(timeout=timeout)
-        if process.is_alive():
-            process.terminate()
+        thread = Thread(target=stop_process, args=(process, timeout))
+        thread.start()
+        thread_list.append(thread)
+    for thread in thread_list:
+        thread.join()
+
+
+def stop_process(process: Process, timeout: float = 10.0):
+    """Try to stop a single process gracefully. If it does not stop until `timeout` is reached, kill it."""
+    process.join(timeout=timeout)
+    if process.is_alive():
+        process.kill()
