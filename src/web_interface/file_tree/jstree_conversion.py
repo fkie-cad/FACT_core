@@ -34,7 +34,7 @@ def _get_not_analyzed_jstree_node(node: FileTreeNode):
 def _get_file_jstree_node(node: FileTreeNode):
     link = f'/analysis/{node.uid}/ro/{node.root_uid}'
     label = f'<b>{node.name}</b> (<span style="color:gray;">{human_readable_file_size(node.size)}</span>)'
-    mime = get_mime_for_text_file(node.type) if node.type == 'text/plain' else node.type
+    mime = get_mime_for_text_file(node.name) if node.type == 'text/plain' else node.type
     result = _get_jstree_node_contents(label, link, get_icon_for_mime(mime))
     result['data'] = {'uid': node.uid}
     return result
