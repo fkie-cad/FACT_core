@@ -145,18 +145,6 @@ def get_icon_for_mime(mime_type: str | None) -> str:
     return MIME_TO_ICON_PATH['unknown']
 
 
-def _find_icon_for_suffix(file_name: str) -> str | None:
-    suffix = Path(file_name).suffix.lstrip('.').lower()
-    if not suffix:
-        return None
-    if suffix in MIME_TO_ICON_PATH:
-        return MIME_TO_ICON_PATH[suffix]
-    for prefix in ['text', 'text-x', 'application', 'application-x']:
-        if f'{prefix}-{suffix}' in MIME_TO_ICON_PATH:
-            return MIME_TO_ICON_PATH[f'{prefix}-{suffix}']
-    return None
-
-
 def _get_partial_virtual_paths(virtual_path: dict[str, list[str]], new_root: str) -> list[str]:
     '''
     Returns a list of new partial virtual paths with ``new_root`` as the new root element.
