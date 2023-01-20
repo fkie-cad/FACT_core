@@ -1,2 +1,5 @@
 Sphinx==5.3.0
 sphinx_rtd_theme==1.0.0
+
+# Somehow the CI hangs otherwise
+pydantic
