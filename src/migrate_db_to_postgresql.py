@@ -201,9 +201,13 @@ class MigrationMongoInterface(MongoInterface):
                 logging.debug(f'Retrieving {analysis_key}')
                 tmp = self.sanitize_fs.get_last_version(sanitized_dict[key][analysis_key])
                 if tmp is not None:
-                    report = pickle.loads(tmp.read())
+                    try:
+                        report = pickle.loads(tmp.read())
+                    except ModuleNotFoundError:
+                        logging.error(f'Could not load sanitized dict: {sanitized_dict[key][analysis_key]}')
+                        report = {}
                 else:
-                    logging.error(f'sanitized file not found: {sanitized_dict[key][analysis_key]}')
+                    logging.error(f'Sanitized file not found: {sanitized_dict[key][analysis_key]}')
                     report = {}
                 tmp_dict[analysis_key] = report
         return tmp_dict
