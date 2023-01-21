@@ -70,7 +70,11 @@ FACT provides an optional basic authentication, role and user management. More i
   * [PDF Report Generator](https://github.com/fkie-cad/fact_pdf_report)
 
 ## Vagrant
-Thanks to @botlabsDev for providing a [Vagrantfile](https://github.com/botlabsDev/FACTbox) to test and evaluate FACT.
+We provide monthly and ready-to-use vagrant boxes of our master branch. [Vagrant](https://www.vagrantup.com/) is an easy and convenient way to get started with FACT without having to install it on your machine. Just setup vagrant and import our provided box into VirtualBox. Our boxes can be found [here](https://app.vagrantup.com/fact-cad/boxes/FACT-master)!
+
+Check out on how to get started with FACT and vagrant in our [tutorial](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.vagrant.md).
+
+*Thanks to @botlabsDev, who initially provided a [Vagrantfile](https://github.com/botlabsDev/FACTbox) that is now, however, deprecated.*
 
 ## Contribute
 The easiest way to contribute is writing your own plug-in.
