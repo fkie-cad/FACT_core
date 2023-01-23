@@ -50,6 +50,7 @@ class UserManagementRoutes(ComponentBase):
             with self.user_db_session('Error while creating user'):
                 self._user_db_interface.create_user(email=name, password=hash_password(password))
                 flash('Successfully created user', 'success')
+                # Possible Log injection
                 logging.info(f'Created user: {name}')
 
     @roles_accepted(*PRIVILEGES['manage_users'])
