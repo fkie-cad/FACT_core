@@ -50,3 +50,19 @@ Vagrant.configure("2") do |config|
 end
 ```
 Note: There is currently no automated process to migrate analysis data between boxes. Until we established export/import functionality, please do not update your Vagrant box if you want to keep your analysis results!
+
+## Known Issues
+
+Due to a [bug](https://github.com/hashicorp/vagrant/issues/12344) in some ubuntu vagrant versions, `vagrant up` will output the following error after starting the machine:
+
+```plain
+Warning: Authentication failure. Retrying...
+```
+
+Yet, your FACT box will still run and you can still `ssh` into it. Thus, form a functional perspective,
+you could ignore this error. However, you shouldn't because vagrant is ...
+
+* ... unable to gracefully shutdown the box, and ...
+* didn't insert a secure ssh private key.
+
+Please update your vagrant installation to a more recent version or follow the workaround provided [here](https://github.com/hashicorp/vagrant/issues/12344#issuecomment-835386483).
