@@ -55,7 +55,7 @@ def _decompress_indices(raw: bytes, indices: List[int], decompressor: object) ->
             decompressed = decompressor.decompress(raw[index:])
             if len(decompressed) > 0:
                 result.append(decompressed)
-        except (lzma.LZMAError, zlib.error, ValueError, OSError):
+        except (lzma.LZMAError, zlib.error, ValueError, OSError, EOFError):
             pass
 
     return result

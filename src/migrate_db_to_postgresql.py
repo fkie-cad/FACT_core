@@ -71,7 +71,7 @@ class MigrationMongoInterface(MongoInterface):
         self.file_objects = self.main.file_objects
         self.compare_results = self.main.compare_results
         # sanitize stuff
-        sanitize_db = self.config['data-storage'].get('sanitize-database', 'faf-sanitize')
+        sanitize_db = self.config['data-storage'].get('sanitize-database', 'faf_sanitize')
         self.sanitize_storage = self.client[sanitize_db]
         self.sanitize_fs = gridfs.GridFS(self.sanitize_storage)
 
@@ -160,7 +160,7 @@ class MigrationMongoInterface(MongoInterface):
                     sanitized_dict[key] = self._retrieve_binaries(sanitized_dict, key)
                 else:
                     sanitized_dict[key].pop('file_system_flag')
-            except (KeyError, IndexError, AttributeError, TypeError, pickle.PickleError):
+            except (KeyError, IndexError, AttributeError, TypeError, pickle.PickleError, gridfs.errors.NoFile):
                 logging.error('Could not retrieve information:', exc_info=True)
         return sanitized_dict
 

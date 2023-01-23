@@ -1,7 +1,7 @@
 # General build stuff
 testresources==2.0.1
 
-setuptools
+setuptools<66
 
 # General python dependencies
 appdirs==1.4.4

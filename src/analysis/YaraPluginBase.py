@@ -36,7 +36,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
             yara_version = process.stdout.readline().decode().strip()
 
         access_time = int(Path(self.signature_path).stat().st_mtime)
-        return f'{yara_version}_{access_time}'
+        return f'{yara_version}-{access_time}'
 
     def process_object(self, file_object):
         if self.signature_path is not None:
