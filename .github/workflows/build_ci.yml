@@ -1,0 +1,55 @@
+name: Build CI
+run-name: Build CI
+on:
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  build-ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ focal, jammy, buster, bullseye ]
+    runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
+    timeout-minutes: 45
+    steps:
+      - name: Add Masks
+        run: |
+          echo "::add-mask::${{ secrets.NPM_REGISTRY_URL }}"
+          echo "::add-mask::${{ secrets.NPM_REGISTRY_AUTH }}"
+          echo "::add-mask::${{ secrets.CODECOV_TOKEN }}"
+          echo "::add-mask::${{ secrets.NETWORK_MASK_1 }}"
+          echo "::add-mask::${{ secrets.NETWORK_MASK_2 }}"
+          echo "::add-mask::${{ secrets.NETWORK_MASK_3 }}"
+          echo "::add-mask::${{ secrets.INTERNAL_NODE_1 }}"
+          echo "::add-mask::${{ secrets.INTERNAL_NODE_2 }}"
+          echo "::add-mask::${{ secrets.INTERNAL_NODE_3 }}"
+          echo "::add-mask::${{ secrets.INTERNAL_NODE_4 }}"
+          echo "::add-mask::${{ secrets.INTERNAL_NODE_5 }}"
+          echo "::add-mask::${{ secrets.INTERNAL_NODE_6 }}"
+          echo "::add-mask::${{ secrets.INTERNAL_NODE_7 }}"
+          echo "::add-mask::${{ secrets.INTERNAL_NODE_8 }}"
+          echo "::add-mask::${{ secrets.SECRET_STRING_1 }}"
+          echo "::add-mask::${{ secrets.SECRET_STRING_2 }}"
+          echo "::add-mask::${{ secrets.SECRET_STRING_3 }}"
+      - name: Checkout Branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+      - name: Set ulimit
+        run: ulimit -n 9999
+      - name: Pre-Installation
+        shell: 'script -q -e -c "bash {0}"'
+        run: ./src/install/pre_install.sh
+      - name: Install FACT
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./src/install.py -U -R -N -L DEBUG
+      - name: Unit Tests
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          python3 -m pip install codecov
+          pytest --cov=.
