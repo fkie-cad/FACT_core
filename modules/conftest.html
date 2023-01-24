@@ -15,11 +15,13 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="helperFunctions" href="helperFunctions.html" />
+    <link rel="next" title="test" href="test.html" />
     <link rel="prev" title="config" href="config.html" /> 
 </head>
 
@@ -53,7 +55,19 @@
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">conftest</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">conftest</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig.init_kwargs"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig.init_kwargs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig.plugin_class"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig.plugin_class</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig.start_processes"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig.start_processes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#conftest.analysis_plugin"><code class="docutils literal notranslate"><span class="pre">analysis_plugin()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conftest.cfg_tuple"><code class="docutils literal notranslate"><span class="pre">cfg_tuple()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conftest.patch_cfg"><code class="docutils literal notranslate"><span class="pre">patch_cfg()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">plugins</a></li>
@@ -86,20 +100,52 @@
            <div itemprop="articleBody">
              
   <section id="module-conftest">
-<span id="conftest"></span><h1>conftest<a class="headerlink" href="#module-conftest" title="Permalink to this headline"></a></h1>
+<span id="conftest"></span><h1>conftest<a class="headerlink" href="#module-conftest" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="conftest.AnalysisPluginTestConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">AnalysisPluginTestConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plugin_class=&lt;class</span> <span class="pre">'analysis.PluginBase.AnalysisBasePlugin'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_processes=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_kwargs=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.AnalysisPluginTestConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class configuring the <a class="reference internal" href="#conftest.analysis_plugin" title="conftest.analysis_plugin"><code class="xref py py-func docutils literal notranslate"><span class="pre">analysis_plugin()</span></code></a> fixture.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plugin_class</strong> (<em>Type</em><em>[</em><em>AnalysisBasePlugin</em><em>]</em>) – </p></li>
+<li><p><strong>start_processes</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>init_kwargs</strong> (<em>dict</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="conftest.AnalysisPluginTestConfig.init_kwargs">
+<span class="sig-name descname"><span class="pre">init_kwargs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#conftest.AnalysisPluginTestConfig.init_kwargs" title="Permalink to this definition"></a></dt>
+<dd><p>Keyword arguments to be given to the <code class="docutils literal notranslate"><span class="pre">plugin_class</span></code> constructor.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="conftest.AnalysisPluginTestConfig.plugin_class">
+<span class="sig-name descname"><span class="pre">plugin_class</span></span><a class="headerlink" href="#conftest.AnalysisPluginTestConfig.plugin_class" title="Permalink to this definition"></a></dt>
+<dd><p>The class of the plugin to be tested. It will most probably be called <code class="docutils literal notranslate"><span class="pre">AnalysisPlugin</span></code>.</p>
+<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">AnalysisBasePlugin</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="conftest.AnalysisPluginTestConfig.start_processes">
+<span class="sig-name descname"><span class="pre">start_processes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#conftest.AnalysisPluginTestConfig.start_processes" title="Permalink to this definition"></a></dt>
+<dd><p>Whether or not to start the workers (see <code class="docutils literal notranslate"><span class="pre">AnalysisPlugin.start_worker</span></code>)</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="conftest.analysis_plugin">
 <span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">analysis_plugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monkeypatch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_cfg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.analysis_plugin" title="Permalink to this definition"></a></dt>
 <dd><p>Returns an instance of an AnalysisPlugin.
-The following pytest markers affect this fixture:</p>
-<ul class="simple">
-<li><p>AnalysisPluginClass: The plugin class type. Must be a class derived from <code class="docutils literal notranslate"><span class="pre">AnalysisBasePlugin</span></code>.
-The marker has to be set with <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.with_args</span></code> to work around pytest
-<cite>link weirdness &lt;https://docs.pytest.org/en/7.1.x/example/markers.html#passing-a-callable-to-custom-markers&gt;</cite>.</p></li>
-<li><p>plugin_start_worker: If set the AnalysisPluginClass.start_worker method will NOT be overwritten.
-If not set the method is overwritten by a stub that does nothing.</p></li>
-<li><p>plugin_init_kwargs: Additional keyword arguments that shall be passed to the <code class="docutils literal notranslate"><span class="pre">AnalysisPluginClass</span></code> constructor</p></li>
-</ul>
+This fixture can be configured by the supplying an instance of <code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig</span></code> as marker of the same
+name.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The documentation of <a class="reference internal" href="#conftest.AnalysisPluginTestConfig" title="conftest.AnalysisPluginTestConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig</span></code></a></p>
+</div>
 <p>If this fixture does not fit your needs (which normally should not be necessary) you can define a fixture like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
 <span class="k">def</span> <span class="nf">my_fancy_plugin</span><span class="p">(</span><span class="n">analysis_plugin</span><span class="p">)</span>
@@ -113,10 +159,13 @@ If not set the method is overwritten by a stub that does nothing.</p></li>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If you use the <code class="docutils literal notranslate"><span class="pre">plugin_start_worker</span></code> marker and want to modify plugin configuration like for example TIMEOUT
-you have to put the following in your test:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">AnalysisPluginClass</span><span class="o">.</span><span class="n">with_args</span><span class="p">(</span><span class="n">MyFancyPlugin</span><span class="p">)</span>
-<span class="c1"># Don&#39;t use `plugin_start_worker`</span>
+<p>If you want to set <code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig.start_processes</span> <span class="pre">=</span> <span class="pre">True</span></code> and want to modify plugin configuration
+like for example TIMEOUT you have to put the following in your test:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">AnalysisPluginTestConfig</span><span class="p">(</span>
+    <span class="n">plugin_class</span><span class="o">=</span><span class="n">MyFancyPlugin</span><span class="p">,</span>
+    <span class="c1"># Actually don&#39;t start the processes in the fixture</span>
+    <span class="n">start_processes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="k">def</span> <span class="nf">my_fancy_test</span><span class="p">(</span><span class="n">analysis_plugin</span><span class="p">,</span> <span class="n">monkeypatch</span><span class="p">):</span>
     <span class="c1"># Undo the patching of MyFancyPlugin.start_worker</span>
     <span class="n">monkeypatch</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
@@ -130,7 +179,7 @@ you have to put the following in your test:</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="conftest.cfg_tuple">
-<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">cfg_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.cfg_tuple" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">cfg_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_firmware_file_storage_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_docker_mount_base_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.cfg_tuple" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a <code class="docutils literal notranslate"><span class="pre">config.Config</span></code> and a <code class="docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code> with testing defaults.
 Defaults can be overwritten with the <code class="docutils literal notranslate"><span class="pre">cfg_defaults</span></code> pytest mark.</p>
 </dd></dl>
@@ -149,7 +198,7 @@ See <code class="docutils literal notranslate"><span class="pre">cfg_tuple</span
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="config.html" class="btn btn-neutral float-left" title="config" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="helperFunctions.html" class="btn btn-neutral float-right" title="helperFunctions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="test.html" class="btn btn-neutral float-right" title="test" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

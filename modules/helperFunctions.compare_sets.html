@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,8 +56,14 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.compare_sets module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.compare_sets module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.compare_sets.iter_element_and_rest"><code class="docutils literal notranslate"><span class="pre">iter_element_and_rest()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.compare_sets.remove_duplicates_from_list"><code class="docutils literal notranslate"><span class="pre">remove_duplicates_from_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.compare_sets.substring_is_in_list"><code class="docutils literal notranslate"><span class="pre">substring_is_in_list()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
@@ -109,7 +117,7 @@
            <div itemprop="articleBody">
              
   <section id="module-helperFunctions.compare_sets">
-<span id="helperfunctions-compare-sets-module"></span><h1>helperFunctions.compare_sets module<a class="headerlink" href="#module-helperFunctions.compare_sets" title="Permalink to this headline"></a></h1>
+<span id="helperfunctions-compare-sets-module"></span><h1>helperFunctions.compare_sets module<a class="headerlink" href="#module-helperFunctions.compare_sets" title="Permalink to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.compare_sets.iter_element_and_rest">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.compare_sets.</span></span><span class="sig-name descname"><span class="pre">iter_element_and_rest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.compare_sets.iter_element_and_rest" title="Permalink to this definition"></a></dt>

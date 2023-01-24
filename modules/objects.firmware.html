@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,10 +56,27 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="objects.html">objects</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="objects.file.html">objects.file module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">objects.firmware module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">objects.firmware module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#objects.firmware.Firmware"><code class="docutils literal notranslate"><span class="pre">Firmware</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.device_class"><code class="docutils literal notranslate"><span class="pre">Firmware.device_class</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.device_name"><code class="docutils literal notranslate"><span class="pre">Firmware.device_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.get_hid"><code class="docutils literal notranslate"><span class="pre">Firmware.get_hid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.part"><code class="docutils literal notranslate"><span class="pre">Firmware.part</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.release_date"><code class="docutils literal notranslate"><span class="pre">Firmware.release_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.set_binary"><code class="docutils literal notranslate"><span class="pre">Firmware.set_binary()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.set_part_name"><code class="docutils literal notranslate"><span class="pre">Firmware.set_part_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.set_tag"><code class="docutils literal notranslate"><span class="pre">Firmware.set_tag()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.tags"><code class="docutils literal notranslate"><span class="pre">Firmware.tags</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.vendor"><code class="docutils literal notranslate"><span class="pre">Firmware.vendor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.version"><code class="docutils literal notranslate"><span class="pre">Firmware.version</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">plugins</a></li>
@@ -91,11 +110,11 @@
            <div itemprop="articleBody">
              
   <section id="module-objects.firmware">
-<span id="objects-firmware-module"></span><h1>objects.firmware module<a class="headerlink" href="#module-objects.firmware" title="Permalink to this headline"></a></h1>
+<span id="objects-firmware-module"></span><h1>objects.firmware module<a class="headerlink" href="#module-objects.firmware" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="objects.firmware.Firmware">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">objects.firmware.</span></span><span class="sig-name descname"><span class="pre">Firmware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">objects.file.FileObject</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileObject</span></code></a></p>
 <p>Uploaded firmware image representation.</p>
 <p>In FACT, we represent an uploaded firmware image as specialized <a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileObject</span></code></a> with supplementary meta data.
 This class is the root of a virtual path tree with all extracted folders and files as branch- and leaf-instances of the <a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileObject</span></code></a> class:</p>

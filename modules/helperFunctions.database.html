@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,10 +56,15 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.database module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.database module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.database.ConnectTo"><code class="docutils literal notranslate"><span class="pre">ConnectTo</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.database.get_shared_session"><code class="docutils literal notranslate"><span class="pre">get_shared_session()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html">helperFunctions.fileSystem module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html">helperFunctions.hash module</a></li>
@@ -109,11 +116,11 @@
            <div itemprop="articleBody">
              
   <section id="module-helperFunctions.database">
-<span id="helperfunctions-database-module"></span><h1>helperFunctions.database module<a class="headerlink" href="#module-helperFunctions.database" title="Permalink to this headline"></a></h1>
+<span id="helperfunctions-database-module"></span><h1>helperFunctions.database module<a class="headerlink" href="#module-helperFunctions.database" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="helperFunctions.database.ConnectTo">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.database.</span></span><span class="sig-name descname"><span class="pre">ConnectTo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connected_interface</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.ConnectTo" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">helperFunctions.database.DatabaseInterface</span></code>]</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">DatabaseInterface</span></code>]</p>
 <p>Open a database connection using the interface passed to the constructor. Intended to be used as a context manager.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
@@ -133,10 +140,10 @@
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.database.</span></span><span class="sig-name descname"><span class="pre">get_shared_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.get_shared_session" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>database</strong> (<em>helperFunctions.database.DatabaseInterface</em>) – </p>
+<dd class="field-odd"><p><strong>database</strong> (<em>DatabaseInterface</em>) – </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><em>AbstractContextManager</em>[helperFunctions.database.DatabaseInterface]</p>
+<dd class="field-even"><p><em>AbstractContextManager</em>[<em>DatabaseInterface</em>]</p>
 </dd>
 </dl>
 </dd></dl>

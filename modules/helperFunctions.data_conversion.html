@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,9 +56,21 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.data_conversion module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.data_conversion module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.data_conversion.convert_compare_id_to_list"><code class="docutils literal notranslate"><span class="pre">convert_compare_id_to_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.data_conversion.convert_str_to_bool"><code class="docutils literal notranslate"><span class="pre">convert_str_to_bool()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.data_conversion.convert_time_to_str"><code class="docutils literal notranslate"><span class="pre">convert_time_to_str()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.data_conversion.convert_uid_list_to_compare_id"><code class="docutils literal notranslate"><span class="pre">convert_uid_list_to_compare_id()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.data_conversion.get_value_of_first_key"><code class="docutils literal notranslate"><span class="pre">get_value_of_first_key()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.data_conversion.make_bytes"><code class="docutils literal notranslate"><span class="pre">make_bytes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.data_conversion.make_unicode_string"><code class="docutils literal notranslate"><span class="pre">make_unicode_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.data_conversion.none_to_none"><code class="docutils literal notranslate"><span class="pre">none_to_none()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.data_conversion.normalize_compare_id"><code class="docutils literal notranslate"><span class="pre">normalize_compare_id()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html">helperFunctions.fileSystem module</a></li>
@@ -109,7 +123,7 @@
            <div itemprop="articleBody">
              
   <section id="module-helperFunctions.data_conversion">
-<span id="helperfunctions-data-conversion-module"></span><h1>helperFunctions.data_conversion module<a class="headerlink" href="#module-helperFunctions.data_conversion" title="Permalink to this headline"></a></h1>
+<span id="helperfunctions-data-conversion-module"></span><h1>helperFunctions.data_conversion module<a class="headerlink" href="#module-helperFunctions.data_conversion" title="Permalink to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.data_conversion.convert_compare_id_to_list">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.data_conversion.</span></span><span class="sig-name descname"><span class="pre">convert_compare_id_to_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.data_conversion.convert_compare_id_to_list" title="Permalink to this definition"></a></dt>

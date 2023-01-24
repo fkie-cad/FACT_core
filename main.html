@@ -15,7 +15,9 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -60,6 +62,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules/config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/test.html">test</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/objects.html">objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/plugins.html">plugins</a></li>
@@ -92,13 +95,13 @@
            <div itemprop="articleBody">
              
   <section id="challenges">
-<h1>Challenges<a class="headerlink" href="#challenges" title="Permalink to this headline"></a></h1>
+<h1>Challenges<a class="headerlink" href="#challenges" title="Permalink to this heading"></a></h1>
 <p>Firmware analysis is a tough challenge with a lot of tasks.
 Many of these tasks can be automated (either with new approaches or incorporation of existing tools) so that a security analyst can focus on his main task: Analyzing the firmware (and finding vulnerabilities).
 FACT implements this automation leading to more complete analysis as well as a massive speedup in vulnerability hunting (see picture blow).</p>
 <a class="reference internal image-reference" href="_images/FACT_Vulnerability_Hunting.png"><img alt="FACT analysis speedup" src="_images/FACT_Vulnerability_Hunting.png" style="width: 100%;" /></a>
 <section id="challenge-firmware-extraction">
-<h2>Challenge: Firmware Extraction<a class="headerlink" href="#challenge-firmware-extraction" title="Permalink to this headline"></a></h2>
+<h2>Challenge: Firmware Extraction<a class="headerlink" href="#challenge-firmware-extraction" title="Permalink to this heading"></a></h2>
 <p>Extraction of a firmware image can be very time consuming.
 At first you have to identify the container format.
 Afterwards you need to find an appropriate unpacker.
@@ -107,7 +110,7 @@ When you finished this task you must re-do these tasks for each layer multiple t
 FACT automates the whole process.</p>
 </section>
 <section id="challenge-initial-firmware-analysis">
-<h2>Challenge: Initial Firmware Analysis<a class="headerlink" href="#challenge-initial-firmware-analysis" title="Permalink to this headline"></a></h2>
+<h2>Challenge: Initial Firmware Analysis<a class="headerlink" href="#challenge-initial-firmware-analysis" title="Permalink to this heading"></a></h2>
 <p>The next challenge is to find out as much about the firmware as possible to identify potential risks and vulnerabilities. A few of these challenges solved by FACT are listed below:</p>
 <ul>
 <li><p>Software identification</p>
@@ -137,7 +140,7 @@ FACT automates the whole process.</p>
 </ul>
 </section>
 <section id="challenge-firmware-comparison">
-<h2>Challenge: Firmware Comparison<a class="headerlink" href="#challenge-firmware-comparison" title="Permalink to this headline"></a></h2>
+<h2>Challenge: Firmware Comparison<a class="headerlink" href="#challenge-firmware-comparison" title="Permalink to this heading"></a></h2>
 <p>In many cases you might want to compare Firmware samples.
 For instance, you might want to know if and where a manufacturer fixed an issue in a new firmware version.
 Or you might want to know if the firmware on your device is the original firmware of provided by the manufacturer.
@@ -150,14 +153,14 @@ Again FACT is able to automate many of these challenges:</p>
 </ul>
 </section>
 <section id="challenge-find-other-affected-firmware-images">
-<h2>Challenge: Find other affected Firmware Images<a class="headerlink" href="#challenge-find-other-affected-firmware-images" title="Permalink to this headline"></a></h2>
+<h2>Challenge: Find other affected Firmware Images<a class="headerlink" href="#challenge-find-other-affected-firmware-images" title="Permalink to this heading"></a></h2>
 <p>If you find a new vulnerability or a new container format, you might want to know if other firmware images share your finding.
 Therefore, FACT stores all firmware files and analysis results in a searchable database.
 You can search for byte patterns on all unpacked files as well as any kind of analysis result.</p>
 </section>
 </section>
 <section id="easy-to-install-easy-to-use">
-<h1>Easy to Install! Easy to Use!<a class="headerlink" href="#easy-to-install-easy-to-use" title="Permalink to this headline"></a></h1>
+<h1>Easy to Install! Easy to Use!<a class="headerlink" href="#easy-to-install-easy-to-use" title="Permalink to this heading"></a></h1>
 <p>FACT provides an installation script for Ubuntu 18.04 that installs FACT as well as all dependencies automatically.
 The installation script supports Ubuntu 19.04, Debian 9, Debian 10, Kali 2019.4, as well.
 However, there might be minor issues on these, because we do not actively develop on these platforms. If you find a bug please tell us.
@@ -165,7 +168,7 @@ Have a look at the  <a class="reference external" href="https://github.com/fkie-
 Furthermore, there is a web GUI so that you can start right away without any further knowledge about FACT or the firmware you want to look at.</p>
 </section>
 <section id="easy-to-extend-easy-to-integrate">
-<h1>Easy to Extend! Easy to Integrate!<a class="headerlink" href="#easy-to-extend-easy-to-integrate" title="Permalink to this headline"></a></h1>
+<h1>Easy to Extend! Easy to Integrate!<a class="headerlink" href="#easy-to-extend-easy-to-integrate" title="Permalink to this heading"></a></h1>
 <p>FACT is based on a plug-in concept.
 Extractors, analysis features and compare functionalities are implemented as plug-ins.
 More details can be found in the <a class="reference external" href="https://github.com/fkie-cad/FACT_core/wiki">Developer’s Manual</a>.
@@ -173,7 +176,7 @@ Integration is easy as well since we provide a REST API covering almost all of F
 More Details can be found in our <a class="reference external" href="https://github.com/fkie-cad/FACT_core/wiki/Rest-API">REST API documentation</a>.</p>
 </section>
 <section id="screenshots">
-<h1>Screenshots<a class="headerlink" href="#screenshots" title="Permalink to this headline"></a></h1>
+<h1>Screenshots<a class="headerlink" href="#screenshots" title="Permalink to this heading"></a></h1>
 <a class="reference internal image-reference" href="_images/01_main.png"><img alt="_images/01_main.png" src="_images/01_main.png" style="width: 30%;" /></a>
 <a class="reference internal image-reference" href="_images/02_upload.png"><img alt="_images/02_upload.png" src="_images/02_upload.png" style="width: 30%;" /></a>
 <a class="reference internal image-reference" href="_images/03_firmware_view.png"><img alt="_images/03_firmware_view.png" src="_images/03_firmware_view.png" style="width: 30%;" /></a>
@@ -188,7 +191,7 @@ More Details can be found in our <a class="reference external" href="https://git
 <a class="reference internal image-reference" href="_images/12_yara_search.png"><img alt="_images/12_yara_search.png" src="_images/12_yara_search.png" style="width: 30%;" /></a>
 </section>
 <section id="contributing">
-<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline"></a></h1>
+<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this heading"></a></h1>
 <p>There are many ways to contribute to FACT.
 For instance, you can write an unpacking, compare or analysis plug-in.
 You can develop your plug-in in your own repository under your favorite license.
@@ -201,17 +204,17 @@ Please have a look at our <a class="reference external" href="https://github.com
 No matter how you would like to contribute: If you have any question, do not hesitate to ask.</p>
 </section>
 <section id="latest-news-and-contact">
-<h1>Latest News and Contact<a class="headerlink" href="#latest-news-and-contact" title="Permalink to this headline"></a></h1>
+<h1>Latest News and Contact<a class="headerlink" href="#latest-news-and-contact" title="Permalink to this heading"></a></h1>
 <p>Follow us on Twitter <a class="reference external" href="https://twitter.com/FAandCTool">&#64;FAndCTool</a> to get the latest news about FACT.
 If you have any further questions, write a <a class="reference external" href="mailto:firmware-security&#37;&#52;&#48;fkie&#46;fraunhofer&#46;de">mail</a>.</p>
 </section>
 <section id="authors-and-acknowledgment">
-<h1>Authors and Acknowledgment<a class="headerlink" href="#authors-and-acknowledgment" title="Permalink to this headline"></a></h1>
+<h1>Authors and Acknowledgment<a class="headerlink" href="#authors-and-acknowledgment" title="Permalink to this heading"></a></h1>
 <p>FACT is developed by <a class="reference external" href="https://www.fkie.fraunhofer.de">Fraunhofer FKIE</a> and the FACT community.
 Development is partly financed by <a class="reference external" href="https://www.bsi.bund.de">German Federal Office for Information Security (BSI)</a> and others.</p>
 </section>
 <section id="source-code">
-<h1>Source Code<a class="headerlink" href="#source-code" title="Permalink to this headline"></a></h1>
+<h1>Source Code<a class="headerlink" href="#source-code" title="Permalink to this heading"></a></h1>
 <p>Source code and issue board live at <a class="reference external" href="https://github.com/fkie-cad/FACT_core/wiki">GitHub</a>.</p>
 </section>
 

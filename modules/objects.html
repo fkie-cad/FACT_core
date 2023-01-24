@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,6 +56,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">objects</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="objects.file.html">objects.file module</a></li>
@@ -90,11 +93,60 @@
            <div itemprop="articleBody">
              
   <section id="objects">
-<h1>objects<a class="headerlink" href="#objects" title="Permalink to this headline"></a></h1>
+<h1>objects<a class="headerlink" href="#objects" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="objects.file.html">objects.file module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="objects.firmware.html">objects.firmware module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.file.html">objects.file module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="objects.file.html#objects.file.FileObject"><code class="docutils literal notranslate"><span class="pre">FileObject</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.add_included_file"><code class="docutils literal notranslate"><span class="pre">FileObject.add_included_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.add_virtual_file_path_if_none_exists"><code class="docutils literal notranslate"><span class="pre">FileObject.add_virtual_file_path_if_none_exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.analysis_exception"><code class="docutils literal notranslate"><span class="pre">FileObject.analysis_exception</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.analysis_tags"><code class="docutils literal notranslate"><span class="pre">FileObject.analysis_tags</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.binary"><code class="docutils literal notranslate"><span class="pre">FileObject.binary</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.comments"><code class="docutils literal notranslate"><span class="pre">FileObject.comments</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.create_binary_from_path"><code class="docutils literal notranslate"><span class="pre">FileObject.create_binary_from_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.depth"><code class="docutils literal notranslate"><span class="pre">FileObject.depth</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.file_name"><code class="docutils literal notranslate"><span class="pre">FileObject.file_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.file_path"><code class="docutils literal notranslate"><span class="pre">FileObject.file_path</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.files_included"><code class="docutils literal notranslate"><span class="pre">FileObject.files_included</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.get_hid"><code class="docutils literal notranslate"><span class="pre">FileObject.get_hid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.get_root_uid"><code class="docutils literal notranslate"><span class="pre">FileObject.get_root_uid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.get_virtual_file_paths"><code class="docutils literal notranslate"><span class="pre">FileObject.get_virtual_file_paths()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.get_virtual_paths_for_all_uids"><code class="docutils literal notranslate"><span class="pre">FileObject.get_virtual_paths_for_all_uids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.get_virtual_paths_for_one_uid"><code class="docutils literal notranslate"><span class="pre">FileObject.get_virtual_paths_for_one_uid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.list_of_all_included_files"><code class="docutils literal notranslate"><span class="pre">FileObject.list_of_all_included_files</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.parent_firmware_uids"><code class="docutils literal notranslate"><span class="pre">FileObject.parent_firmware_uids</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.parents"><code class="docutils literal notranslate"><span class="pre">FileObject.parents</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.processed_analysis"><code class="docutils literal notranslate"><span class="pre">FileObject.processed_analysis</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.root_uid"><code class="docutils literal notranslate"><span class="pre">FileObject.root_uid</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.scheduled_analysis"><code class="docutils literal notranslate"><span class="pre">FileObject.scheduled_analysis</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.set_binary"><code class="docutils literal notranslate"><span class="pre">FileObject.set_binary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.sha256"><code class="docutils literal notranslate"><span class="pre">FileObject.sha256</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.size"><code class="docutils literal notranslate"><span class="pre">FileObject.size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.temporary_data"><code class="docutils literal notranslate"><span class="pre">FileObject.temporary_data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.uid"><code class="docutils literal notranslate"><span class="pre">FileObject.uid</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.file.html#objects.file.FileObject.virtual_file_path"><code class="docutils literal notranslate"><span class="pre">FileObject.virtual_file_path</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="objects.firmware.html">objects.firmware module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware"><code class="docutils literal notranslate"><span class="pre">Firmware</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.device_class"><code class="docutils literal notranslate"><span class="pre">Firmware.device_class</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.device_name"><code class="docutils literal notranslate"><span class="pre">Firmware.device_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.get_hid"><code class="docutils literal notranslate"><span class="pre">Firmware.get_hid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.part"><code class="docutils literal notranslate"><span class="pre">Firmware.part</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.release_date"><code class="docutils literal notranslate"><span class="pre">Firmware.release_date</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.set_binary"><code class="docutils literal notranslate"><span class="pre">Firmware.set_binary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.set_part_name"><code class="docutils literal notranslate"><span class="pre">Firmware.set_part_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.set_tag"><code class="docutils literal notranslate"><span class="pre">Firmware.set_tag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.tags"><code class="docutils literal notranslate"><span class="pre">Firmware.tags</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.vendor"><code class="docutils literal notranslate"><span class="pre">Firmware.vendor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware.version"><code class="docutils literal notranslate"><span class="pre">Firmware.version</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 </section>

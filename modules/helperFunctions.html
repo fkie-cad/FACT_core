@@ -15,12 +15,14 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="helperFunctions.compare_sets module" href="helperFunctions.compare_sets.html" />
-    <link rel="prev" title="conftest" href="conftest.html" /> 
+    <link rel="prev" title="conftest" href="test.unit.conftest.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -54,6 +56,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">helperFunctions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
@@ -108,29 +111,199 @@
            <div itemprop="articleBody">
              
   <section id="helperfunctions">
-<h1>helperFunctions<a class="headerlink" href="#helperfunctions" title="Permalink to this headline"></a></h1>
+<h1>helperFunctions<a class="headerlink" href="#helperfunctions" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.fileSystem.html">helperFunctions.fileSystem module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.hash.html">helperFunctions.hash module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.install.html">helperFunctions.install module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.merge_generators.html">helperFunctions.merge_generators module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.object_conversion.html">helperFunctions.object_conversion module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.plugin.html">helperFunctions.plugin module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.program_setup.html">helperFunctions.program_setup module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.tag.html">helperFunctions.tag module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.task_conversion.html">helperFunctions.task_conversion module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.virtual_file_path.html">helperFunctions.virtual_file_path module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.web_interface.html">helperFunctions.uid web_interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="helperFunctions.yara_binary_search.html">helperFunctions.yara_binary_search module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html#helperFunctions.compare_sets.iter_element_and_rest"><code class="docutils literal notranslate"><span class="pre">iter_element_and_rest()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html#helperFunctions.compare_sets.remove_duplicates_from_list"><code class="docutils literal notranslate"><span class="pre">remove_duplicates_from_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html#helperFunctions.compare_sets.substring_is_in_list"><code class="docutils literal notranslate"><span class="pre">substring_is_in_list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html#helperFunctions.data_conversion.convert_compare_id_to_list"><code class="docutils literal notranslate"><span class="pre">convert_compare_id_to_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html#helperFunctions.data_conversion.convert_str_to_bool"><code class="docutils literal notranslate"><span class="pre">convert_str_to_bool()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html#helperFunctions.data_conversion.convert_time_to_str"><code class="docutils literal notranslate"><span class="pre">convert_time_to_str()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html#helperFunctions.data_conversion.convert_uid_list_to_compare_id"><code class="docutils literal notranslate"><span class="pre">convert_uid_list_to_compare_id()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html#helperFunctions.data_conversion.get_value_of_first_key"><code class="docutils literal notranslate"><span class="pre">get_value_of_first_key()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html#helperFunctions.data_conversion.make_bytes"><code class="docutils literal notranslate"><span class="pre">make_bytes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html#helperFunctions.data_conversion.make_unicode_string"><code class="docutils literal notranslate"><span class="pre">make_unicode_string()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html#helperFunctions.data_conversion.none_to_none"><code class="docutils literal notranslate"><span class="pre">none_to_none()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html#helperFunctions.data_conversion.normalize_compare_id"><code class="docutils literal notranslate"><span class="pre">normalize_compare_id()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html#helperFunctions.database.ConnectTo"><code class="docutils literal notranslate"><span class="pre">ConnectTo</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html#helperFunctions.database.get_shared_session"><code class="docutils literal notranslate"><span class="pre">get_shared_session()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html#helperFunctions.docker.run_docker_container"><code class="docutils literal notranslate"><span class="pre">run_docker_container()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.fileSystem.html">helperFunctions.fileSystem module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html#helperFunctions.fileSystem.file_is_empty"><code class="docutils literal notranslate"><span class="pre">file_is_empty()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_config_dir"><code class="docutils literal notranslate"><span class="pre">get_config_dir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_relative_object_path"><code class="docutils literal notranslate"><span class="pre">get_relative_object_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_src_dir"><code class="docutils literal notranslate"><span class="pre">get_src_dir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_template_dir"><code class="docutils literal notranslate"><span class="pre">get_template_dir()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.hash.html">helperFunctions.hash module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html#helperFunctions.hash.get_hash"><code class="docutils literal notranslate"><span class="pre">get_hash()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html#helperFunctions.hash.get_imphash"><code class="docutils literal notranslate"><span class="pre">get_imphash()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html#helperFunctions.hash.get_md5"><code class="docutils literal notranslate"><span class="pre">get_md5()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html#helperFunctions.hash.get_sha256"><code class="docutils literal notranslate"><span class="pre">get_sha256()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html#helperFunctions.hash.get_ssdeep"><code class="docutils literal notranslate"><span class="pre">get_ssdeep()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html#helperFunctions.hash.get_tlsh"><code class="docutils literal notranslate"><span class="pre">get_tlsh()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html#helperFunctions.hash.get_tlsh_comparison"><code class="docutils literal notranslate"><span class="pre">get_tlsh_comparison()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html#helperFunctions.hash.normalize_lief_items"><code class="docutils literal notranslate"><span class="pre">normalize_lief_items()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.install.html">helperFunctions.install module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.InstallationError"><code class="docutils literal notranslate"><span class="pre">InstallationError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.OperateInDirectory"><code class="docutils literal notranslate"><span class="pre">OperateInDirectory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.apt_install_packages"><code class="docutils literal notranslate"><span class="pre">apt_install_packages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.apt_remove_packages"><code class="docutils literal notranslate"><span class="pre">apt_remove_packages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.apt_update_sources"><code class="docutils literal notranslate"><span class="pre">apt_update_sources()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.check_distribution"><code class="docutils literal notranslate"><span class="pre">check_distribution()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.check_if_command_in_path"><code class="docutils literal notranslate"><span class="pre">check_if_command_in_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.dnf_install_packages"><code class="docutils literal notranslate"><span class="pre">dnf_install_packages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.dnf_remove_packages"><code class="docutils literal notranslate"><span class="pre">dnf_remove_packages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.dnf_update_sources"><code class="docutils literal notranslate"><span class="pre">dnf_update_sources()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.install_github_project"><code class="docutils literal notranslate"><span class="pre">install_github_project()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.install_pip_packages"><code class="docutils literal notranslate"><span class="pre">install_pip_packages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.is_virtualenv"><code class="docutils literal notranslate"><span class="pre">is_virtualenv()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.log_current_packages"><code class="docutils literal notranslate"><span class="pre">log_current_packages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.read_package_list_from_file"><code class="docutils literal notranslate"><span class="pre">read_package_list_from_file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.remove_folder"><code class="docutils literal notranslate"><span class="pre">remove_folder()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html#helperFunctions.install.run_cmd_with_logging"><code class="docutils literal notranslate"><span class="pre">run_cmd_with_logging()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.ColoringFormatter"><code class="docutils literal notranslate"><span class="pre">ColoringFormatter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.ColoringFormatter.LOG_LEVEL_COLORS"><code class="docutils literal notranslate"><span class="pre">ColoringFormatter.LOG_LEVEL_COLORS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.ColoringFormatter.format"><code class="docutils literal notranslate"><span class="pre">ColoringFormatter.format()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors"><code class="docutils literal notranslate"><span class="pre">TerminalColors</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.BLUE"><code class="docutils literal notranslate"><span class="pre">TerminalColors.BLUE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.BOLD"><code class="docutils literal notranslate"><span class="pre">TerminalColors.BOLD</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.ENDC"><code class="docutils literal notranslate"><span class="pre">TerminalColors.ENDC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.FAIL"><code class="docutils literal notranslate"><span class="pre">TerminalColors.FAIL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.GREEN"><code class="docutils literal notranslate"><span class="pre">TerminalColors.GREEN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.HEADER"><code class="docutils literal notranslate"><span class="pre">TerminalColors.HEADER</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.OKBLUE"><code class="docutils literal notranslate"><span class="pre">TerminalColors.OKBLUE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.OKGREEN"><code class="docutils literal notranslate"><span class="pre">TerminalColors.OKGREEN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.PURPLE"><code class="docutils literal notranslate"><span class="pre">TerminalColors.PURPLE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.RED"><code class="docutils literal notranslate"><span class="pre">TerminalColors.RED</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.UNDERLINE"><code class="docutils literal notranslate"><span class="pre">TerminalColors.UNDERLINE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.WARNING"><code class="docutils literal notranslate"><span class="pre">TerminalColors.WARNING</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.TerminalColors.YELLOW"><code class="docutils literal notranslate"><span class="pre">TerminalColors.YELLOW</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html#helperFunctions.logging.color_string"><code class="docutils literal notranslate"><span class="pre">color_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.merge_generators.html">helperFunctions.merge_generators module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.merge_generators.html#helperFunctions.merge_generators.avg"><code class="docutils literal notranslate"><span class="pre">avg()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.merge_generators.html#helperFunctions.merge_generators.shuffled"><code class="docutils literal notranslate"><span class="pre">shuffled()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.object_conversion.html">helperFunctions.object_conversion module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_conversion.html#helperFunctions.object_conversion.create_meta_dict"><code class="docutils literal notranslate"><span class="pre">create_meta_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html#helperFunctions.pdf.build_pdf_report"><code class="docutils literal notranslate"><span class="pre">build_pdf_report()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.plugin.html">helperFunctions.plugin module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.plugin.html#helperFunctions.plugin.import_plugins"><code class="docutils literal notranslate"><span class="pre">import_plugins()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.ExceptionSafeProcess"><code class="docutils literal notranslate"><span class="pre">ExceptionSafeProcess</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.ExceptionSafeProcess.exception"><code class="docutils literal notranslate"><span class="pre">ExceptionSafeProcess.exception</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.ExceptionSafeProcess.run"><code class="docutils literal notranslate"><span class="pre">ExceptionSafeProcess.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.check_worker_exceptions"><code class="docutils literal notranslate"><span class="pre">check_worker_exceptions()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.complete_shutdown"><code class="docutils literal notranslate"><span class="pre">complete_shutdown()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.new_worker_was_started"><code class="docutils literal notranslate"><span class="pre">new_worker_was_started()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.start_single_worker"><code class="docutils literal notranslate"><span class="pre">start_single_worker()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.stop_process"><code class="docutils literal notranslate"><span class="pre">stop_process()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.stop_processes"><code class="docutils literal notranslate"><span class="pre">stop_processes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html#helperFunctions.process.terminate_process_and_children"><code class="docutils literal notranslate"><span class="pre">terminate_process_and_children()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.program_setup.html">helperFunctions.program_setup module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.program_setup.html#helperFunctions.program_setup.get_log_file_for_component"><code class="docutils literal notranslate"><span class="pre">get_log_file_for_component()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.program_setup.html#helperFunctions.program_setup.program_setup"><code class="docutils literal notranslate"><span class="pre">program_setup()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.program_setup.html#helperFunctions.program_setup.set_logging_cfg_from_args"><code class="docutils literal notranslate"><span class="pre">set_logging_cfg_from_args()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.program_setup.html#helperFunctions.program_setup.setup_logging"><code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.tag.html">helperFunctions.tag module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor"><code class="docutils literal notranslate"><span class="pre">TagColor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.ALL"><code class="docutils literal notranslate"><span class="pre">TagColor.ALL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.BLUE"><code class="docutils literal notranslate"><span class="pre">TagColor.BLUE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.DARK"><code class="docutils literal notranslate"><span class="pre">TagColor.DARK</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.GRAY"><code class="docutils literal notranslate"><span class="pre">TagColor.GRAY</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.GREEN"><code class="docutils literal notranslate"><span class="pre">TagColor.GREEN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.LIGHT"><code class="docutils literal notranslate"><span class="pre">TagColor.LIGHT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.LIGHT_BLUE"><code class="docutils literal notranslate"><span class="pre">TagColor.LIGHT_BLUE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.ORANGE"><code class="docutils literal notranslate"><span class="pre">TagColor.ORANGE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.RED"><code class="docutils literal notranslate"><span class="pre">TagColor.RED</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.task_conversion.html">helperFunctions.task_conversion module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.task_conversion.html#helperFunctions.task_conversion.check_for_errors"><code class="docutils literal notranslate"><span class="pre">check_for_errors()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.task_conversion.html#helperFunctions.task_conversion.convert_analysis_task_to_fw_obj"><code class="docutils literal notranslate"><span class="pre">convert_analysis_task_to_fw_obj()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.task_conversion.html#helperFunctions.task_conversion.create_analysis_task"><code class="docutils literal notranslate"><span class="pre">create_analysis_task()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.task_conversion.html#helperFunctions.task_conversion.create_re_analyze_task"><code class="docutils literal notranslate"><span class="pre">create_re_analyze_task()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.task_conversion.html#helperFunctions.task_conversion.get_file_name_and_binary_from_request"><code class="docutils literal notranslate"><span class="pre">get_file_name_and_binary_from_request()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html#helperFunctions.uid.create_uid"><code class="docutils literal notranslate"><span class="pre">create_uid()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html#helperFunctions.uid.is_list_of_uids"><code class="docutils literal notranslate"><span class="pre">is_list_of_uids()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html#helperFunctions.uid.is_uid"><code class="docutils literal notranslate"><span class="pre">is_uid()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.virtual_file_path.html">helperFunctions.virtual_file_path module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_base_of_virtual_path"><code class="docutils literal notranslate"><span class="pre">get_base_of_virtual_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_parent_uids_from_virtual_path"><code class="docutils literal notranslate"><span class="pre">get_parent_uids_from_virtual_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_top_of_virtual_path"><code class="docutils literal notranslate"><span class="pre">get_top_of_virtual_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_uids_from_virtual_path"><code class="docutils literal notranslate"><span class="pre">get_uids_from_virtual_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.join_virtual_path"><code class="docutils literal notranslate"><span class="pre">join_virtual_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.merge_vfp_lists"><code class="docutils literal notranslate"><span class="pre">merge_vfp_lists()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.split_virtual_path"><code class="docutils literal notranslate"><span class="pre">split_virtual_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.update_virtual_file_path"><code class="docutils literal notranslate"><span class="pre">update_virtual_file_path()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.web_interface.html">helperFunctions.uid web_interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html#helperFunctions.web_interface.apply_filters_to_query"><code class="docutils literal notranslate"><span class="pre">apply_filters_to_query()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html#helperFunctions.web_interface.cap_length_of_element"><code class="docutils literal notranslate"><span class="pre">cap_length_of_element()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html#helperFunctions.web_interface.filter_out_illegal_characters"><code class="docutils literal notranslate"><span class="pre">filter_out_illegal_characters()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html#helperFunctions.web_interface.format_time"><code class="docutils literal notranslate"><span class="pre">format_time()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html#helperFunctions.web_interface.get_alternating_color_list"><code class="docutils literal notranslate"><span class="pre">get_alternating_color_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html#helperFunctions.web_interface.get_color_list"><code class="docutils literal notranslate"><span class="pre">get_color_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html#helperFunctions.web_interface.get_template_as_string"><code class="docutils literal notranslate"><span class="pre">get_template_as_string()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html#helperFunctions.web_interface.password_is_legal"><code class="docutils literal notranslate"><span class="pre">password_is_legal()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.yara_binary_search.html">helperFunctions.yara_binary_search module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.yara_binary_search.html#helperFunctions.yara_binary_search.YaraBinarySearchScanner"><code class="docutils literal notranslate"><span class="pre">YaraBinarySearchScanner</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="helperFunctions.yara_binary_search.html#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result"><code class="docutils literal notranslate"><span class="pre">YaraBinarySearchScanner.get_binary_search_result()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.yara_binary_search.html#helperFunctions.yara_binary_search.get_yara_error"><code class="docutils literal notranslate"><span class="pre">get_yara_error()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.yara_binary_search.html#helperFunctions.yara_binary_search.is_valid_yara_rule_file"><code class="docutils literal notranslate"><span class="pre">is_valid_yara_rule_file()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
@@ -139,7 +312,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="conftest.html" class="btn btn-neutral float-left" title="conftest" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="test.unit.conftest.html" class="btn btn-neutral float-left" title="conftest" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="helperFunctions.compare_sets.html" class="btn btn-neutral float-right" title="helperFunctions.compare_sets module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

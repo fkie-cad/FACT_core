@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,6 +56,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
@@ -61,7 +64,26 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html">helperFunctions.fileSystem module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html">helperFunctions.hash module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.install module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.install module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.InstallationError"><code class="docutils literal notranslate"><span class="pre">InstallationError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.OperateInDirectory"><code class="docutils literal notranslate"><span class="pre">OperateInDirectory</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.apt_install_packages"><code class="docutils literal notranslate"><span class="pre">apt_install_packages()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.apt_remove_packages"><code class="docutils literal notranslate"><span class="pre">apt_remove_packages()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.apt_update_sources"><code class="docutils literal notranslate"><span class="pre">apt_update_sources()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.check_distribution"><code class="docutils literal notranslate"><span class="pre">check_distribution()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.check_if_command_in_path"><code class="docutils literal notranslate"><span class="pre">check_if_command_in_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.dnf_install_packages"><code class="docutils literal notranslate"><span class="pre">dnf_install_packages()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.dnf_remove_packages"><code class="docutils literal notranslate"><span class="pre">dnf_remove_packages()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.dnf_update_sources"><code class="docutils literal notranslate"><span class="pre">dnf_update_sources()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.install_github_project"><code class="docutils literal notranslate"><span class="pre">install_github_project()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.install_pip_packages"><code class="docutils literal notranslate"><span class="pre">install_pip_packages()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.is_virtualenv"><code class="docutils literal notranslate"><span class="pre">is_virtualenv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.log_current_packages"><code class="docutils literal notranslate"><span class="pre">log_current_packages()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.read_package_list_from_file"><code class="docutils literal notranslate"><span class="pre">read_package_list_from_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.remove_folder"><code class="docutils literal notranslate"><span class="pre">remove_folder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.install.run_cmd_with_logging"><code class="docutils literal notranslate"><span class="pre">run_cmd_with_logging()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.merge_generators.html">helperFunctions.merge_generators module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_conversion.html">helperFunctions.object_conversion module</a></li>
@@ -109,7 +131,7 @@
            <div itemprop="articleBody">
              
   <section id="module-helperFunctions.install">
-<span id="helperfunctions-install-module"></span><h1>helperFunctions.install module<a class="headerlink" href="#module-helperFunctions.install" title="Permalink to this headline"></a></h1>
+<span id="helperfunctions-install-module"></span><h1>helperFunctions.install module<a class="headerlink" href="#module-helperFunctions.install" title="Permalink to this heading"></a></h1>
 <dl class="py exception">
 <dt class="sig sig-object py" id="helperFunctions.install.InstallationError">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">InstallationError</span></span><a class="headerlink" href="#helperFunctions.install.InstallationError" title="Permalink to this definition"></a></dt>
@@ -245,7 +267,7 @@ fails because the package is already installed through the system’s package ma
 have one package per line (empty lines and comments are allowed).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>package_file</strong> (<em>pathlib.Path</em>) – The path to the package file.</p>
+<dd class="field-odd"><p><strong>package_file</strong> (<em>Path</em>) – The path to the package file.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -284,7 +306,7 @@ package name.
 There may not be multiple packages in one line.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>path</strong> (<em>pathlib.Path</em>) – The path to the file.</p>
+<dd class="field-odd"><p><strong>path</strong> (<em>Path</em>) – The path to the file.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A list of package names contained in the file.</p>

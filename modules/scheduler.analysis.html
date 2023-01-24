@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,11 +56,25 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">plugins</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="scheduler.html">scheduler</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">scheduler.analysis</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">scheduler.analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.check_exceptions"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.check_exceptions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.get_combined_analysis_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_combined_analysis_workload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.get_plugin_dict"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_plugin_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.get_scheduled_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_scheduled_workload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.shutdown"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.shutdown()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.start_analysis_of_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start_analysis_of_object()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.update_analysis_of_object_and_children"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_object_and_children()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.update_analysis_of_single_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_single_object()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="web_interface.html">web_interface</a></li>
@@ -90,7 +106,7 @@
            <div itemprop="articleBody">
              
   <section id="module-scheduler.analysis">
-<span id="scheduler-analysis"></span><h1>scheduler.analysis<a class="headerlink" href="#module-scheduler.analysis" title="Permalink to this headline"></a></h1>
+<span id="scheduler-analysis"></span><h1>scheduler.analysis<a class="headerlink" href="#module-scheduler.analysis" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scheduler.analysis.</span></span><span class="sig-name descname"><span class="pre">AnalysisScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_interface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unpacking_locks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler" title="Permalink to this definition"></a></dt>
@@ -250,7 +266,7 @@ notify all attached processes of the impending shutdown. Afterwards queues are c
 status module such that the progress of the firmware and its included files is tracked.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a>) – The firmware that is to be analyzed</p>
+<dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The firmware that is to be analyzed</p>
 </dd>
 </dl>
 </dd></dl>
@@ -262,7 +278,7 @@ status module such that the progress of the firmware and its included files is t
 extraction process. Scheduled analyses are propagated to the included objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a>) – The root file that is to be analyzed</p>
+<dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The root file that is to be analyzed</p>
 </dd>
 </dl>
 </dd></dl>
@@ -274,7 +290,7 @@ extraction process. Scheduled analyses are propagated to the included objects.</
 is simply iterated until all scheduled analyses are processed or skipped.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a>) – The file that is to be analyzed</p>
+<dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The file that is to be analyzed</p>
 </dd>
 </dl>
 </dd></dl>

@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,6 +56,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
@@ -74,7 +77,15 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.virtual_file_path.html">helperFunctions.virtual_file_path module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html">helperFunctions.uid web_interface</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.yara_binary_search module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.yara_binary_search module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner"><code class="docutils literal notranslate"><span class="pre">YaraBinarySearchScanner</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result"><code class="docutils literal notranslate"><span class="pre">YaraBinarySearchScanner.get_binary_search_result()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.yara_binary_search.get_yara_error"><code class="docutils literal notranslate"><span class="pre">get_yara_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.yara_binary_search.is_valid_yara_rule_file"><code class="docutils literal notranslate"><span class="pre">is_valid_yara_rule_file()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
@@ -109,7 +120,7 @@
            <div itemprop="articleBody">
              
   <section id="module-helperFunctions.yara_binary_search">
-<span id="helperfunctions-yara-binary-search-module"></span><h1>helperFunctions.yara_binary_search module<a class="headerlink" href="#module-helperFunctions.yara_binary_search" title="Permalink to this headline"></a></h1>
+<span id="helperfunctions-yara-binary-search-module"></span><h1>helperFunctions.yara_binary_search module<a class="headerlink" href="#module-helperFunctions.yara_binary_search" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="helperFunctions.yara_binary_search.YaraBinarySearchScanner">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></span><span class="sig-name descname"><span class="pre">YaraBinarySearchScanner</span></span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner" title="Permalink to this definition"></a></dt>

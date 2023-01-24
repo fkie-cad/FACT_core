@@ -14,7 +14,9 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -51,6 +53,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules/config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/test.html">test</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/objects.html">objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/plugins.html">plugins</a></li>
@@ -114,7 +117,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller">AbstractPluginInstaller (class in plugins.installer)</a>
 </li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.add_analysis_task">add_analysis_task() (test.unit.conftest.CommonIntercomMock method)</a>
+</li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.add_binary_search_request">add_binary_search_request() (test.unit.conftest.CommonIntercomMock static method)</a>
+</li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.add_compare_task">add_compare_task() (test.unit.conftest.CommonIntercomMock method)</a>
+</li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.add_included_file">add_included_file() (objects.file.FileObject method)</a>
+</li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.add_re_analyze_task">add_re_analyze_task() (test.unit.conftest.CommonIntercomMock method)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.add_virtual_file_path_if_none_exists">add_virtual_file_path_if_none_exists() (objects.file.FileObject method)</a>
 </li>
@@ -124,11 +135,13 @@
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.analysis_exception">analysis_exception (objects.file.FileObject attribute)</a>
 </li>
-      <li><a href="modules/conftest.html#conftest.analysis_plugin">analysis_plugin() (in module conftest)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/conftest.html#conftest.analysis_plugin">analysis_plugin() (in module conftest)</a>
+</li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.analysis_tags">analysis_tags (objects.file.FileObject attribute)</a>
+</li>
+      <li><a href="modules/conftest.html#conftest.AnalysisPluginTestConfig">AnalysisPluginTestConfig (class in conftest)</a>
 </li>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler">AnalysisScheduler (class in scheduler.analysis)</a>
 </li>
@@ -197,6 +210,8 @@
       <li><a href="modules/helperFunctions.logging.html#helperFunctions.logging.ColoringFormatter">ColoringFormatter (class in helperFunctions.logging)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.comments">comments (objects.file.FileObject attribute)</a>
+</li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock">CommonIntercomMock (class in test.unit.conftest)</a>
 </li>
       <li><a href="modules/config.html#config.ExpertSettings.communication_timeout">communication_timeout (config.ExpertSettings attribute)</a>
 </li>
@@ -276,14 +291,16 @@
 </li>
       <li><a href="modules/config.html#config.Config.database">database (config.Config attribute)</a>
 </li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.WebInterfaceUnitTestConfig.database_mock_class">database_mock_class (test.unit.conftest.WebInterfaceUnitTestConfig attribute)</a>
+</li>
       <li><a href="modules/config.html#config.DataStorage">DataStorage (class in config)</a>
 </li>
       <li><a href="modules/config.html#config.Config.default_plugins">default_plugins (config.Config attribute)</a>
 </li>
-      <li><a href="modules/config.html#config.DefaultPlugins">DefaultPlugins (class in config)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/config.html#config.DefaultPlugins">DefaultPlugins (class in config)</a>
+</li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.depth">depth (objects.file.FileObject attribute)</a>
 </li>
       <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.device_class">device_class (objects.firmware.Firmware attribute)</a>
@@ -334,10 +351,10 @@
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject">FileObject (class in objects.file)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/objects.file.html#objects.file.FileObject.files_included">files_included (objects.file.FileObject attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.filter_out_illegal_characters">filter_out_illegal_characters() (in module helperFunctions.web_interface)</a>
 </li>
       <li><a href="modules/objects.firmware.html#objects.firmware.Firmware">Firmware (class in objects.firmware)</a>
@@ -348,6 +365,8 @@
 </li>
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.format_time">format_time() (in module helperFunctions.web_interface)</a>
 </li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.FrontendDatabaseMock">FrontendDatabaseMock (class in test.unit.conftest)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -356,10 +375,18 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.get_alternating_color_list">get_alternating_color_list() (in module helperFunctions.web_interface)</a>
 </li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.get_available_analysis_plugins">get_available_analysis_plugins() (test.unit.conftest.CommonIntercomMock static method)</a>
+</li>
       <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_base_of_virtual_path">get_base_of_virtual_path() (in module helperFunctions.virtual_file_path)</a>
 </li>
-      <li><a href="modules/helperFunctions.yara_binary_search.html#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result">get_binary_search_result() (helperFunctions.yara_binary_search.YaraBinarySearchScanner method)</a>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.get_binary_and_filename">get_binary_and_filename() (test.unit.conftest.CommonIntercomMock static method)</a>
 </li>
+      <li><a href="modules/helperFunctions.yara_binary_search.html#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result">get_binary_search_result() (helperFunctions.yara_binary_search.YaraBinarySearchScanner method)</a>
+
+      <ul>
+        <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.get_binary_search_result">(test.unit.conftest.CommonIntercomMock static method)</a>
+</li>
+      </ul></li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_boolean_from_request">get_boolean_from_request() (in module web_interface.rest.helper)</a>
 </li>
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.get_color_list">get_color_list() (in module helperFunctions.web_interface)</a>
@@ -394,10 +421,12 @@
 </li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_query">get_query() (in module web_interface.rest.helper)</a>
 </li>
-      <li><a href="modules/helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_relative_object_path">get_relative_object_path() (in module helperFunctions.fileSystem)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_relative_object_path">get_relative_object_path() (in module helperFunctions.fileSystem)</a>
+</li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.get_repacked_binary_and_file_name">get_repacked_binary_and_file_name() (test.unit.conftest.CommonIntercomMock static method)</a>
+</li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.get_root_uid">get_root_uid() (objects.file.FileObject method)</a>
 </li>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.get_scheduled_workload">get_scheduled_workload() (scheduler.analysis.AnalysisScheduler method)</a>
@@ -600,6 +629,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.plugin.html#helperFunctions.plugin.import_plugins">import_plugins() (in module helperFunctions.plugin)</a>
 </li>
+      <li><a href="modules/conftest.html#conftest.AnalysisPluginTestConfig.init_kwargs">init_kwargs (conftest.AnalysisPluginTestConfig attribute)</a>
+</li>
       <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.install">install() (plugins.installer.AbstractPluginInstaller method)</a>
 </li>
       <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.install_docker_images">install_docker_images() (plugins.installer.AbstractPluginInstaller method)</a>
@@ -622,7 +653,11 @@
 </li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.InstallationError">InstallationError</a>
 </li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.WebInterfaceUnitTestConfig.intercom_mock_class">intercom_mock_class (test.unit.conftest.WebInterfaceUnitTestConfig attribute)</a>
+</li>
       <li><a href="modules/config.html#config.ExpertSettings.intercom_poll_delay">intercom_poll_delay (config.ExpertSettings attribute)</a>
+</li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.intercom_task_list">intercom_task_list() (in module test.unit.conftest)</a>
 </li>
       <li><a href="modules/helperFunctions.uid.html#helperFunctions.uid.is_list_of_uids">is_list_of_uids() (in module helperFunctions.uid)</a>
 </li>
@@ -744,6 +779,8 @@
 </li>
         <li><a href="modules/scheduler.analysis.html#module-scheduler.analysis">scheduler.analysis</a>
 </li>
+        <li><a href="modules/test.unit.conftest.html#module-test.unit.conftest">test.unit.conftest</a>
+</li>
         <li><a href="modules/web_interface.rest.helper.html#module-web_interface.rest.helper">web_interface.rest.helper</a>
 </li>
       </ul></li>
@@ -817,6 +854,10 @@
 </li>
       <li><a href="modules/conftest.html#conftest.patch_cfg">patch_cfg() (in module conftest)</a>
 </li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.peek_in_binary">peek_in_binary() (test.unit.conftest.CommonIntercomMock static method)</a>
+</li>
+      <li><a href="modules/conftest.html#conftest.AnalysisPluginTestConfig.plugin_class">plugin_class (conftest.AnalysisPluginTestConfig attribute)</a>
+</li>
       <li><a href="modules/config.html#config.Config.plugin_defaults">plugin_defaults (config.Config attribute)</a>
 </li>
       <li><a href="modules/config.html#config.PluginDefaults">PluginDefaults (class in config)</a>
@@ -830,10 +871,10 @@
       </ul></li>
       <li><a href="modules/config.html#config.DataStorage.postgres_admin_pw">postgres_admin_pw (config.DataStorage attribute)</a>
 </li>
-      <li><a href="modules/config.html#config.DataStorage.postgres_admin_user">postgres_admin_user (config.DataStorage attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/config.html#config.DataStorage.postgres_admin_user">postgres_admin_user (config.DataStorage attribute)</a>
+</li>
       <li><a href="modules/config.html#config.DataStorage.postgres_database">postgres_database (config.DataStorage attribute)</a>
 </li>
       <li><a href="modules/config.html#config.DataStorage.postgres_del_pw">postgres_del_pw (config.DataStorage attribute)</a>
@@ -936,7 +977,11 @@
       <li><a href="modules/helperFunctions.merge_generators.html#helperFunctions.merge_generators.shuffled">shuffled() (in module helperFunctions.merge_generators)</a>
 </li>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.shutdown">shutdown() (scheduler.analysis.AnalysisScheduler method)</a>
+
+      <ul>
+        <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.shutdown">(test.unit.conftest.CommonIntercomMock method)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/objects.file.html#objects.file.FileObject.size">size (objects.file.FileObject attribute)</a>
@@ -946,6 +991,8 @@
       <li><a href="modules/config.html#config.ExpertSettings.ssdeep_ignore">ssdeep_ignore (config.ExpertSettings attribute)</a>
 </li>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.start_analysis_of_object">start_analysis_of_object() (scheduler.analysis.AnalysisScheduler method)</a>
+</li>
+      <li><a href="modules/conftest.html#conftest.AnalysisPluginTestConfig.start_processes">start_processes (conftest.AnalysisPluginTestConfig attribute)</a>
 </li>
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.start_single_worker">start_single_worker() (in module helperFunctions.process)</a>
 </li>
@@ -973,15 +1020,26 @@
 </li>
       <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.tags">tags (objects.firmware.Firmware attribute)</a>
 </li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.task_list">task_list (test.unit.conftest.CommonIntercomMock attribute)</a>
+</li>
       <li><a href="modules/config.html#config.DataStorage.temp_dir_path">temp_dir_path (config.DataStorage attribute)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.temporary_data">temporary_data (objects.file.FileObject attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.logging.html#helperFunctions.logging.TerminalColors">TerminalColors (class in helperFunctions.logging)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.terminate_process_and_children">terminate_process_and_children() (in module helperFunctions.process)</a>
+</li>
+      <li>
+    test.unit.conftest
+
+      <ul>
+        <li><a href="modules/test.unit.conftest.html#module-test.unit.conftest">module</a>
+</li>
+      </ul></li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.test_client">test_client() (in module test.unit.conftest)</a>
 </li>
       <li><a href="modules/config.html#config.PluginDefaults.threads">threads (config.PluginDefaults attribute)</a>
 
@@ -1041,6 +1099,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.logging.html#helperFunctions.logging.TerminalColors.WARNING">WARNING (helperFunctions.logging.TerminalColors attribute)</a>
 </li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.web_frontend">web_frontend() (in module test.unit.conftest)</a>
+</li>
       <li>
     web_interface.rest.helper
 
@@ -1050,6 +1110,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.WebInterfaceUnitTestConfig">WebInterfaceUnitTestConfig (class in test.unit.conftest)</a>
+</li>
       <li><a href="modules/config.html#config.Unpack.whitelist">whitelist (config.Unpack attribute)</a>
 </li>
   </ul></td>

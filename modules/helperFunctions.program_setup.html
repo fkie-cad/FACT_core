@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,6 +56,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
@@ -68,7 +71,13 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.plugin.html">helperFunctions.plugin module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.program_setup module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.program_setup module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.program_setup.get_log_file_for_component"><code class="docutils literal notranslate"><span class="pre">get_log_file_for_component()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.program_setup.program_setup"><code class="docutils literal notranslate"><span class="pre">program_setup()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.program_setup.set_logging_cfg_from_args"><code class="docutils literal notranslate"><span class="pre">set_logging_cfg_from_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.program_setup.setup_logging"><code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.tag.html">helperFunctions.tag module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.task_conversion.html">helperFunctions.task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
@@ -109,7 +118,7 @@
            <div itemprop="articleBody">
              
   <section id="module-helperFunctions.program_setup">
-<span id="helperfunctions-program-setup-module"></span><h1>helperFunctions.program_setup module<a class="headerlink" href="#module-helperFunctions.program_setup" title="Permalink to this headline"></a></h1>
+<span id="helperfunctions-program-setup-module"></span><h1>helperFunctions.program_setup module<a class="headerlink" href="#module-helperFunctions.program_setup" title="Permalink to this heading"></a></h1>
 <p>Firmware Analysis and Comparison Tool (FACT)
 Copyright (C) 2015-2019  Fraunhofer FKIE</p>
 <p>This program is free software: you can redistribute it and/or modify
@@ -155,7 +164,7 @@ along with this program.  If not, see &lt;<a class="reference external" href="ht
 <dd><p>Command line parameters will overwrite values from the config file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>args</strong> (<em>argparse.Namespace</em>) – </p>
+<dd class="field-odd"><p><strong>args</strong> (<em>Namespace</em>) – </p>
 </dd>
 </dl>
 </dd></dl>

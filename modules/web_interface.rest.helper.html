@@ -15,7 +15,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -53,13 +55,23 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduler.html">scheduler</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="web_interface.html">web_interface</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="web_interface.rest.html">web_interface.rest</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">web_interface.rest.helper module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">web_interface.rest.helper module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#web_interface.rest.helper.error_message"><code class="docutils literal notranslate"><span class="pre">error_message()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#web_interface.rest.helper.get_boolean_from_request"><code class="docutils literal notranslate"><span class="pre">get_boolean_from_request()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#web_interface.rest.helper.get_current_gmt"><code class="docutils literal notranslate"><span class="pre">get_current_gmt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#web_interface.rest.helper.get_paging"><code class="docutils literal notranslate"><span class="pre">get_paging()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#web_interface.rest.helper.get_query"><code class="docutils literal notranslate"><span class="pre">get_query()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#web_interface.rest.helper.get_update"><code class="docutils literal notranslate"><span class="pre">get_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#web_interface.rest.helper.success_message"><code class="docutils literal notranslate"><span class="pre">success_message()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -93,7 +105,7 @@
            <div itemprop="articleBody">
              
   <section id="module-web_interface.rest.helper">
-<span id="web-interface-rest-helper-module"></span><h1>web_interface.rest.helper module<a class="headerlink" href="#module-web_interface.rest.helper" title="Permalink to this headline"></a></h1>
+<span id="web-interface-rest-helper-module"></span><h1>web_interface.rest.helper module<a class="headerlink" href="#module-web_interface.rest.helper" title="Permalink to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="web_interface.rest.helper.error_message">
 <span class="sig-prename descclassname"><span class="pre">web_interface.rest.helper.</span></span><span class="sig-name descname"><span class="pre">error_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targeted_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.error_message" title="Permalink to this definition"></a></dt>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>conftest &mdash; FACT  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="helperFunctions" href="helperFunctions.html" />
+    <link rel="prev" title="test.unit" href="test.unit.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> FACT
+            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-install-easy-to-use">Easy to Install! Easy to Use!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-extend-easy-to-integrate">Easy to Extend! Easy to Integrate!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#screenshots">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration.html">Upgrading FACT from 3 to 4</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="test.html">test</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="test.unit.html">test.unit</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">conftest</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.CommonIntercomMock"><code class="docutils literal notranslate"><span class="pre">CommonIntercomMock</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.FrontendDatabaseMock"><code class="docutils literal notranslate"><span class="pre">FrontendDatabaseMock</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.WebInterfaceUnitTestConfig"><code class="docutils literal notranslate"><span class="pre">WebInterfaceUnitTestConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.intercom_task_list"><code class="docutils literal notranslate"><span class="pre">intercom_task_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.test_client"><code class="docutils literal notranslate"><span class="pre">test_client()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.web_frontend"><code class="docutils literal notranslate"><span class="pre">web_frontend()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler.html">scheduler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web_interface.html">web_interface</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FACT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="test.html">test</a> &raquo;</li>
+          <li><a href="test.unit.html">test.unit</a> &raquo;</li>
+      <li>conftest</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/test.unit.conftest.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-test.unit.conftest">
+<span id="conftest"></span><h1>conftest<a class="headerlink" href="#module-test.unit.conftest" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">CommonIntercomMock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">__</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.add_analysis_task">
+<span class="sig-name descname"><span class="pre">add_analysis_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.add_analysis_task" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.add_binary_search_request">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">add_binary_search_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.add_binary_search_request" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.add_compare_task">
+<span class="sig-name descname"><span class="pre">add_compare_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.add_compare_task" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.add_re_analyze_task">
+<span class="sig-name descname"><span class="pre">add_re_analyze_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unpack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.add_re_analyze_task" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.get_available_analysis_plugins">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_available_analysis_plugins</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.get_available_analysis_plugins" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.get_binary_and_filename">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_binary_and_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.get_binary_and_filename" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.get_binary_search_result">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_binary_search_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.get_binary_search_result" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.get_repacked_binary_and_file_name">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_repacked_binary_and_file_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.get_repacked_binary_and_file_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.peek_in_binary">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">peek_in_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.peek_in_binary" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.shutdown">
+<span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.shutdown" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="test.unit.conftest.CommonIntercomMock.task_list">
+<span class="sig-name descname"><span class="pre">task_list</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#test.unit.conftest.CommonIntercomMock.task_list" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="test.unit.conftest.FrontendDatabaseMock">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">FrontendDatabaseMock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_mock</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.FrontendDatabaseMock" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class mocking <code class="xref py py-class docutils literal notranslate"><span class="pre">FrontendDatabase</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>db_mock</strong> (<em>CommonDatabaseMock</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="test.unit.conftest.WebInterfaceUnitTestConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">WebInterfaceUnitTestConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database_mock_class=&lt;class</span> <span class="pre">'test.common_helper.CommonDatabaseMock'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intercom_mock_class=&lt;class</span> <span class="pre">'test.unit.conftest.CommonIntercomMock'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.WebInterfaceUnitTestConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class configuring the <a class="reference internal" href="#test.unit.conftest.web_frontend" title="test.unit.conftest.web_frontend"><code class="xref py py-func docutils literal notranslate"><span class="pre">web_frontend()</span></code></a> fixture.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>database_mock_class</strong> (<em>Type</em>) – </p></li>
+<li><p><strong>intercom_mock_class</strong> (<em>Type</em><em>[</em><a class="reference internal" href="#test.unit.conftest.CommonIntercomMock" title="test.unit.conftest.CommonIntercomMock"><em>CommonIntercomMock</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="test.unit.conftest.WebInterfaceUnitTestConfig.database_mock_class">
+<span class="sig-name descname"><span class="pre">database_mock_class</span></span><a class="headerlink" href="#test.unit.conftest.WebInterfaceUnitTestConfig.database_mock_class" title="Permalink to this definition"></a></dt>
+<dd><p>A class that can be instanced to mock every <code class="docutils literal notranslate"><span class="pre">&#64;property</span></code> of
+<code class="xref py py-class docutils literal notranslate"><span class="pre">FrontendDatabase</span></code>.
+See also: The documentation of <a class="reference internal" href="#test.unit.conftest.FrontendDatabaseMock" title="test.unit.conftest.FrontendDatabaseMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrontendDatabaseMock</span></code></a></p>
+<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">CommonDatabaseMock</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="test.unit.conftest.WebInterfaceUnitTestConfig.intercom_mock_class">
+<span class="sig-name descname"><span class="pre">intercom_mock_class</span></span><a class="headerlink" href="#test.unit.conftest.WebInterfaceUnitTestConfig.intercom_mock_class" title="Permalink to this definition"></a></dt>
+<dd><p>A class mocking <code class="xref py py-class docutils literal notranslate"><span class="pre">InterComFrontEndBinding</span></code></p>
+<p>alias of <a class="reference internal" href="#test.unit.conftest.CommonIntercomMock" title="test.unit.conftest.CommonIntercomMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommonIntercomMock</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="test.unit.conftest.intercom_task_list">
+<span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">intercom_task_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.intercom_task_list" title="Permalink to this definition"></a></dt>
+<dd><p>A fixture used to add tasks in the <a class="reference internal" href="#test.unit.conftest.CommonIntercomMock" title="test.unit.conftest.CommonIntercomMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommonIntercomMock</span></code></a>.
+It can be used to inspect what tasks where added</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="test.unit.conftest.test_client">
+<span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">test_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">web_frontend</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.test_client" title="Permalink to this definition"></a></dt>
+<dd><p>Shorthand for <code class="docutils literal notranslate"><span class="pre">web_frontend.app.test_client</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="test.unit.conftest.web_frontend">
+<span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">web_frontend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monkeypatch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intercom_task_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.web_frontend" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an instance of <code class="xref py py-class docutils literal notranslate"><span class="pre">WebFrontEnd</span></code>.
+This fixture can be configured by providing an instance of <a class="reference internal" href="#test.unit.conftest.WebInterfaceUnitTestConfig" title="test.unit.conftest.WebInterfaceUnitTestConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">WebInterfaceUnitTestConfig</span></code></a> as a marker
+called <code class="docutils literal notranslate"><span class="pre">WebInterfaceUnitTestConfig</span></code>.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The fixture <a class="reference internal" href="#test.unit.conftest.intercom_task_list" title="test.unit.conftest.intercom_task_list"><code class="xref py py-func docutils literal notranslate"><span class="pre">intercom_task_list()</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><em>WebFrontEnd</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="test.unit.html" class="btn btn-neutral float-left" title="test.unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="helperFunctions.html" class="btn btn-neutral float-right" title="helperFunctions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2023  Fraunhofer FKIE.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
