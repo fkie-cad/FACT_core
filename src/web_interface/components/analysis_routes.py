@@ -223,14 +223,13 @@ class AnalysisRoutes(ComponentBase):
 
 
 def _add_preset_from_firmware(plugin_dict, fw: Firmware):
-    '''Adds a preset to plugin_dict with all plugins ticked that are processed
-    on the firmware fw.
-    Retruns the name of the new preset.
+    '''
+    Adds a preset to plugin_dict with all plugins ticked that are processed on the firmware fw.
+    Returns the name of the new preset.
     '''
     preset_name = fw.uid
 
     previously_processed_plugins = list(fw.processed_analysis.keys())
-    # FIXME: why is this even in there?
     with suppress(ValueError):
         plugin_dict.pop('unpacker')
         previously_processed_plugins.remove('unpacker')
