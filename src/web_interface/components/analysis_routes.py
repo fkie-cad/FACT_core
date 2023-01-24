@@ -132,7 +132,7 @@ class AnalysisRoutes(ComponentBase):
             plugin_dict = intercom.get_available_analysis_plugins()
 
         current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
-        analysis_presets = [current_analysis_preset] + list(cfg.default_plugins)
+        analysis_presets = [current_analysis_preset] + [preset for preset, _ in cfg.default_plugins]
 
         title = 're-do analysis' if re_do else 'update analysis'
 
