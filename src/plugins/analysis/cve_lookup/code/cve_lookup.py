@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import logging
 import operator
+import re
 import sys
 from collections import namedtuple
 from collections.abc import Callable
+from distutils.version import Version
 from itertools import combinations
 from pathlib import Path
-from re import match
 from typing import NamedTuple
 
 from packaging.version import InvalidVersion
@@ -31,6 +32,8 @@ MAX_TERM_SPREAD = (
     3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 )
 MAX_LEVENSHTEIN_DISTANCE = 0
+DOTTED_VERSION_REGEX = re.compile(r'^[a-zA-Z0-9\-]+(\\\.[a-zA-Z0-9\-]+)+$')
+VALID_VERSION_REGEX = re.compile(r'v?(\d+!)?\d+(\.\d+)*([.-]?(a(lpha)?|b(eta)?|c|dev|post|pre(view)?|r|rc)?\d+)?')
 
 
 class Product(NamedTuple):
@@ -61,7 +64,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['software_components']
-    VERSION = '0.0.4'
+    VERSION = '0.0.5'
     FILE = __file__
 
     def process_object(self, file_object):
@@ -158,7 +161,7 @@ def find_matching_cpe_product(cpe_matches: list[Product], requested_version: str
 
 
 def is_valid_dotted_version(version: str) -> bool:
-    return bool(match(r'^[a-zA-Z0-9\-]+(\\\.[a-zA-Z0-9\-]+)+$', version))
+    return bool(DOTTED_VERSION_REGEX.match(version))
 
 
 def find_cpe_product_with_version(cpe_matches, requested_version):
@@ -230,11 +233,32 @@ def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
     return True
 
 
+def coerce_version(version: str) -> Version:
+    '''
+    The version may not be PEP 440 compliant -> try to convert it to something that we can use for comparison
+    '''
+    try:
+        return parse_version(version)
+    except InvalidVersion:
+        # try to convert other conventions (e.g. debian policy) to PEP 440
+        fixed_version = version.lower().replace('~', '-').replace(':', '!', 1).replace('_', '-')
+    try:
+        return parse_version(fixed_version)
+    except InvalidVersion:
+        match = VALID_VERSION_REGEX.match(fixed_version)
+        if match:
+            valid_version = match.group()
+            rest = re.sub('[^a-zA-Z0-9._-]', '', fixed_version[len(valid_version) :]).lstrip('._-')
+            return parse_version(f'{valid_version}+{rest}')
+        # try to throw away revisions and other stuff at the end as a final measure
+        return parse_version(re.split('[^v.0-9]', fixed_version)[0])
+
+
 def compare_version(version1: str, version2: str, comp_operator: Callable) -> bool:
     try:
-        return comp_operator(parse_version(version1), parse_version(version2))
+        return comp_operator(coerce_version(version1), coerce_version(version2))
     except InvalidVersion as error:
-        logging.exception(f'Error while parsing software version: {error}')
+        logging.debug(f'[cve_lookup]: Error while parsing software version: {error}')
         return False
 
 

@@ -3,10 +3,9 @@ from os import remove
 from pathlib import Path
 
 import pytest
+from packaging.version import parse as parse_version
 
 from test.common_helper import TEST_FW
-
-from ..code.cve_lookup import AnalysisPlugin
 
 try:
     from ..code import cve_lookup as lookup
@@ -15,7 +14,7 @@ try:
 except ImportError:
     ROOT = Path(__file__).parent.parent
     sys.path.extend([str(ROOT / 'code'), str(ROOT / 'internal')])
-    import vuln_lookup_plugin as lookup
+    import cve_lookup as lookup
     from database_interface import DatabaseInterface
     from helper_functions import replace_characters_and_wildcards
 
@@ -214,7 +213,7 @@ def test_search_cve_summary(monkeypatch):
         assert MATCHED_SUMMARY == actual_match
 
 
-@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=lookup.AnalysisPlugin)
 class TestCveLookup:
     def test_process_object(self, analysis_plugin):
         TEST_FW.processed_analysis['software_components'] = SOFTWARE_COMPONENTS_ANALYSIS_RESULT
@@ -298,6 +297,8 @@ class TestCveLookup:
         ('v1.1b', 'ANY', '', 'v1.1a', '', 'v1.1c', True),
         ('v1.1a', 'ANY', '', 'v1.1b', '', 'v1.1c', False),
         ('1.1-r2345', 'ANY', '', '1.1-r1234', '', '1.1-r3456', True),
+        ('0.9.8m', 'ANY', '', '0.9.8f', '', '0.9.8t', True),
+        ('0.9.8f', 'ANY', '', '0.9.8m', '', '0.9.8t', False),
     ],
 )
 def test_versions_match(
@@ -359,3 +360,44 @@ def test_build_version_string(
         version_end_excluding,
     )
     assert lookup.build_version_string(cve_entry) == expected_output
+
+
+@pytest.mark.parametrize(
+    'input_version, expected_output',
+    [
+        ('1.2', '1.2'),
+        ('1.2.3.4.5', '1.2.3.4.5'),
+        ('2022.01.07', '2022.1.7'),
+        ('1.2_1', '1.2-1'),
+        ('1.2alpha2', '1.2-a2'),
+        ('1.2_pre3', '1.2rc3'),
+        ('1.2_3.4', '1.2-3+4'),
+        ('1.2-beta3_post4.dev5', '1.2.b3.r4.dev5'),  # combined suffix segments
+        ('1.2-1Ubuntu1', '1.2-1+ubuntu1'),
+        ('1.0.1g', '1.0.1+g'),  # OpenSSL
+        # actual versions from Ubuntu sources
+        ('30~pre9-5ubuntu2', '30rc9+5ubuntu2'),
+        ('5.1.1alpha+20110809-3', '5.1.1a0+20110809.3'),
+        ('1.5.0-1~webupd8~precise', '1.5.0-1+webupd8.precise'),
+        ('1:1.2.3.4.dfsg-3ubuntu4', '1!1.2.3.4+dfsg.3ubuntu4'),  # epoch (:/!) at the start
+    ],
+)
+def test_coerce_version(input_version, expected_output):
+    assert lookup.coerce_version(input_version) == parse_version(expected_output)
+
+
+@pytest.mark.parametrize(
+    'smaller_version, bigger_version',
+    [
+        ('1', '2'),
+        ('1.2', '1.3'),
+        ('1.2', '1.03'),
+        ('1.2a', '1.2'),
+        ('1.2-rc3', '1.2'),
+        ('1.2', '1.2-1'),
+        ('0.9.8zf', '0.9.8zg'),  # OpenSSL
+        ('1.2-1ubuntu1', '1.2-1ubuntu2'),  # Ubuntu
+    ],
+)
+def test_version_comparison(smaller_version, bigger_version):
+    assert lookup.coerce_version(smaller_version) < lookup.coerce_version(bigger_version)
