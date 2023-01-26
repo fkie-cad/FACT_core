@@ -6,12 +6,11 @@ import re
 import sys
 from collections import namedtuple
 from collections.abc import Callable
-from distutils.version import Version
 from itertools import combinations
 from pathlib import Path
 from typing import NamedTuple
 
-from packaging.version import InvalidVersion
+from packaging.version import InvalidVersion, Version
 from packaging.version import parse as parse_version
 from pyxdameraulevenshtein import damerau_levenshtein_distance as distance  # pylint: disable=no-name-in-module
 
@@ -145,11 +144,11 @@ def generate_search_terms(product_name: str) -> list[str]:
 
 def find_matching_cpe_product(cpe_matches: list[Product], requested_version: str) -> Product:
     if requested_version.isdigit() or is_valid_dotted_version(requested_version):
-        version_numbers = [t.version_number for t in cpe_matches]
+        version_numbers = [t.version_number for t in cpe_matches if t.version_number not in ['N/A', 'ANY']]
         if requested_version in version_numbers:
             return find_cpe_product_with_version(cpe_matches, requested_version)
         version_numbers.append(requested_version)
-        version_numbers.sort(key=parse_version)
+        version_numbers.sort(key=lambda v: parse_version(v.replace('\\', '')))
         next_closest_version = find_next_closest_version(version_numbers, requested_version)
         return find_cpe_product_with_version(cpe_matches, next_closest_version)
     if requested_version == 'ANY':
