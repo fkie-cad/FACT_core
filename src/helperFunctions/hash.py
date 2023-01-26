@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import contextlib
 import logging
 import sys
 from hashlib import md5, new
+from typing import TYPE_CHECKING
 
 import lief
 import ssdeep
@@ -9,7 +12,15 @@ import tlsh
 
 from helperFunctions.data_conversion import make_bytes
 
-ELF_MIME_TYPES = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+if TYPE_CHECKING:
+    from objects.file import FileObject
+
+ELF_MIME_TYPES = [
+    'application/x-executable',
+    'application/x-object',
+    'application/x-pie-executable',
+    'application/x-sharedlib',
+]
 
 
 def get_hash(hash_function, binary):
@@ -51,27 +62,25 @@ def get_tlsh_comparison(first, second):
     return tlsh.diff(first, second)  # pylint: disable=c-extension-no-member
 
 
-def get_imphash(file_object):
+def get_imphash(file_object: FileObject) -> str | None:
     '''
-    Generates and returns the md5 hash of the imported functions of an ELF file
-    represented by `file_object`.
-    The imports are sorted before the hex is generated so the order of imports
-    does not matter.
+    Generates and returns the md5 hash of the (sorted) imported functions of an ELF file represented by `file_object`.
+    Returns `None` if there are no imports or if an exception occurs.
 
     :param file_object: The FileObject of which the imphash shall be computed
     '''
     if _is_elf_file(file_object):
         try:
             with _suppress_stdout():
-                # pylint: disable=c-extension-no-member
-                functions = normalize_lief_items(lief.parse(file_object.file_path).imported_functions)
-            return md5(','.join(sorted(functions)).encode()).hexdigest()
-        except Exception:
+                functions = [f.name for f in lief.ELF.parse(file_object.file_path).imported_functions]
+            if functions:
+                return md5(','.join(sorted(functions)).encode()).hexdigest()
+        except Exception:  # pylint: disable=broad-except # we must not crash here as this is used by a mandatory plugin
             logging.exception(f'Could not compute imphash for {file_object.file_path}')
     return None
 
 
-def _is_elf_file(file_object):
+def _is_elf_file(file_object: FileObject) -> bool:
     return file_object.processed_analysis['file_type']['mime'] in ELF_MIME_TYPES
 
 
