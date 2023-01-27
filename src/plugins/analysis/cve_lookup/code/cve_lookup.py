@@ -148,7 +148,7 @@ def find_matching_cpe_product(cpe_matches: list[Product], requested_version: str
         if requested_version in version_numbers:
             return find_cpe_product_with_version(cpe_matches, requested_version)
         version_numbers.append(requested_version)
-        version_numbers.sort(key=lambda v: parse_version(v.replace('\\', '')))
+        version_numbers.sort(key=lambda v: coerce_version(unescape(v)))
         next_closest_version = find_next_closest_version(version_numbers, requested_version)
         return find_cpe_product_with_version(cpe_matches, next_closest_version)
     if requested_version == 'ANY':
@@ -247,10 +247,10 @@ def coerce_version(version: str) -> Version:
         match = VALID_VERSION_REGEX.match(fixed_version)
         if match:
             valid_version = match.group()
-            rest = re.sub('[^a-zA-Z0-9._-]', '', fixed_version[len(valid_version) :]).lstrip('._-')
+            rest = re.sub(r'[^\w.-]', '', fixed_version[len(valid_version) :]).lstrip('._-')
             return parse_version(f'{valid_version}+{rest}')
         # try to throw away revisions and other stuff at the end as a final measure
-        return parse_version(re.split('[^v.0-9]', fixed_version)[0])
+        return parse_version(re.split(r'[^v.\d]', fixed_version)[0])
 
 
 def compare_version(version1: str, version2: str, comp_operator: Callable) -> bool:
