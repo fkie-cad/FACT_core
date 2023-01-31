@@ -132,7 +132,7 @@ class AnalysisRoutes(ComponentBase):
             plugin_dict = intercom.get_available_analysis_plugins()
 
         current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
-        analysis_presets = [current_analysis_preset] + list(cfg.default_plugins)
+        analysis_presets = [current_analysis_preset] + [preset for preset, _ in cfg.default_plugins]
 
         title = 're-do analysis' if re_do else 'update analysis'
 
@@ -223,14 +223,13 @@ class AnalysisRoutes(ComponentBase):
 
 
 def _add_preset_from_firmware(plugin_dict, fw: Firmware):
-    '''Adds a preset to plugin_dict with all plugins ticked that are processed
-    on the firmware fw.
-    Retruns the name of the new preset.
+    '''
+    Adds a preset to plugin_dict with all plugins ticked that are processed on the firmware fw.
+    Returns the name of the new preset.
     '''
     preset_name = fw.uid
 
     previously_processed_plugins = list(fw.processed_analysis.keys())
-    # FIXME: why is this even in there?
     with suppress(ValueError):
         plugin_dict.pop('unpacker')
         previously_processed_plugins.remove('unpacker')

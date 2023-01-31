@@ -83,8 +83,10 @@ def execute_docker_error(monkeypatch):
     monkeypatch.setattr('docker.client.from_env', DockerClientMock)
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
-@pytest.mark.plugin_init_kwargs(unpacker=MockUnpacker())
+@pytest.mark.AnalysisPluginTestConfig(
+    plugin_class=AnalysisPlugin,
+    init_kwargs={'unpacker': MockUnpacker()},
+)
 class TestPluginQemuExec:
     def test_has_relevant_type(self, analysis_plugin):
         assert analysis_plugin._has_relevant_type(None) is False

@@ -17,6 +17,7 @@ docsrc/_build/
 docs/.buildinfo/
 src/bin
 src/web_interface/static/node_modules
+src/web_interface/static/file_icons
 
 # pytest
 .pytest_cache

@@ -1,20 +1,44 @@
 from __future__ import annotations
 
+import dataclasses
+import grp
 import logging
-import shutil
-import tempfile
+import os
 from configparser import ConfigParser
-from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Type
 
 import pytest
+from pydantic.dataclasses import dataclass
 
 import config
 from analysis.PluginBase import AnalysisBasePlugin
 from config import Config
-from test.common_helper import CommonDatabaseMock, create_docker_mount_base_dir
+from test.common_helper import CommonDatabaseMock
+from test.conftest import merge_markers
 
 
-def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, ConfigParser]:
+@pytest.fixture
+def _docker_mount_base_dir() -> str:
+    docker_gid = grp.getgrnam('docker').gr_gid
+
+    with TemporaryDirectory(prefix='fact-docker-mount-base-dir') as tmp_dir:
+        os.chown(tmp_dir, -1, docker_gid)
+        os.chmod(tmp_dir, 0o770)
+        yield tmp_dir
+
+
+@pytest.fixture
+def _firmware_file_storage_directory() -> str:
+    with TemporaryDirectory(prefix='fact-firmware-file-storage-directory') as tmp_dir:
+        yield tmp_dir
+
+
+def _get_test_config_tuple(
+    firmware_file_storage_directory,
+    docker_mount_base_dir,
+    defaults: dict | None = None,
+) -> tuple[Config, ConfigParser]:
     """Returns a tuple containing a `config.Config` instance and a `ConfigParser` instance.
     Both instances are equivalent and the latter is legacy only.
     The "docker-mount-base-dir" and "firmware-file-storage-directory" in the section "data-storage"
@@ -24,8 +48,10 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
     """
     config.load()
 
-    docker_mount_base_dir = create_docker_mount_base_dir()
-    firmware_file_storage_directory = Path(tempfile.mkdtemp())
+    if 'docker-mount-base-dir' in defaults:
+        raise ValueError('docker-mount-base-dir may not be changed with `@pytest.marker.cfg_defaults`')
+    if 'firmware-file-storage-directory' in defaults:
+        raise ValueError('firmware-file-storage-directory may not be changed with `@pytest.marker.cfg_defaults`')
 
     # This dict must exactly match the one that a ConfigParser instance would
     # read from the config file
@@ -47,12 +73,12 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'redis-test-db': config.cfg.data_storage.redis_test_db,  # Note: This is unused in production
             'redis-host': config.cfg.data_storage.redis_host,
             'redis-port': config.cfg.data_storage.redis_port,
-            'firmware-file-storage-directory': str(firmware_file_storage_directory),
+            'firmware-file-storage-directory': firmware_file_storage_directory,
             'user-database': 'sqlite:////media/data/fact_auth_data/fact_users.db',
             'password-salt': '1234',
             'structural-threshold': '40',  # TODO
             'temp-dir-path': '/tmp',
-            'docker-mount-base-dir': str(docker_mount_base_dir),
+            'docker-mount-base-dir': docker_mount_base_dir,
         },
         'database': {
             'ajax-stats-reload-time': '10000',  # TODO
@@ -64,7 +90,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
             'minimal': '',
         },
         'plugin-defaults': {
-            'threads': 2,
+            'threads': 1,
         },
         'expert-settings': {
             'authentication': 'false',
@@ -80,7 +106,7 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
         },
         'logging': {
             'logfile': '/tmp/fact_main.log',
-            'loglevel': 'WARNING',
+            'loglevel': 'INFO',
         },
         'unpack': {
             'base-port': '9900',
@@ -107,25 +133,19 @@ def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, Config
 
 # FIXME When configparser is not used anymore this should not be named cfg_tuple but rather cfg
 @pytest.fixture
-def cfg_tuple(request):
+def cfg_tuple(request, _firmware_file_storage_directory, _docker_mount_base_dir):
     """Returns a ``config.Config`` and a ``configparser.ConfigParser`` with testing defaults.
     Defaults can be overwritten with the ``cfg_defaults`` pytest mark.
     """
 
-    cfg_defaults = {}
-    # Not well documented but iter_markers iterates from closest to farthest
-    # https://docs.pytest.org/en/7.1.x/reference/reference.html?highlight=iter_markers#custom-marks
-    for cfg_defaults_marker in reversed(list(request.node.iter_markers('cfg_defaults'))):
-        cfg_defaults.update(cfg_defaults_marker.args[0])
+    cfg_defaults = merge_markers(request, 'cfg_defaults', dict)
 
-    cfg, configparser_cfg = _get_test_config_tuple(cfg_defaults)
+    cfg, configparser_cfg = _get_test_config_tuple(
+        _firmware_file_storage_directory,
+        _docker_mount_base_dir,
+        cfg_defaults,
+    )
     yield cfg, configparser_cfg
-
-    # Don't clean up directorys we didn't create ourselves
-    if not cfg_defaults.get('data-storage', {}).get('docker-mount-base-dir', None):
-        shutil.rmtree(cfg.data_storage.docker_mount_base_dir)
-    if not cfg_defaults.get('data-storage', {}).get('firmware-file-storage-directory', None):
-        shutil.rmtree(cfg.data_storage.firmware_file_storage_directory)
 
 
 @pytest.fixture(autouse=True)
@@ -149,17 +169,27 @@ def patch_cfg(cfg_tuple):
     mpatch.undo()
 
 
+@dataclass(config=dict(arbitrary_types_allowed=True))
+class AnalysisPluginTestConfig:
+    """A class configuring the :py:func:`analysis_plugin` fixture."""
+
+    #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
+    plugin_class: Type[AnalysisBasePlugin] = AnalysisBasePlugin
+    #: Whether or not to start the workers (see ``AnalysisPlugin.start_worker``)
+    start_processes: bool = False
+    #: Keyword arguments to be given to the ``plugin_class`` constructor.
+    init_kwargs: dict = dataclasses.field(default_factory=dict)
+
+
 @pytest.fixture
 def analysis_plugin(request, monkeypatch, patch_cfg):
     """Returns an instance of an AnalysisPlugin.
-    The following pytest markers affect this fixture:
+    This fixture can be configured by the supplying an instance of ``AnalysisPluginTestConfig`` as marker of the same
+    name.
 
-    * AnalysisPluginClass: The plugin class type. Must be a class derived from ``AnalysisBasePlugin``.
-      The marker has to be set with ``@pytest.mark.with_args`` to work around pytest
-      `link weirdness <https://docs.pytest.org/en/7.1.x/example/markers.html#passing-a-callable-to-custom-markers>`.
-    * plugin_start_worker: If set the AnalysisPluginClass.start_worker method will NOT be overwritten.
-      If not set the method is overwritten by a stub that does nothing.
-    * plugin_init_kwargs: Additional keyword arguments that shall be passed to the ``AnalysisPluginClass`` constructor
+    .. seealso::
+
+        The documentation of :py:class:`AnalysisPluginTestConfig`
 
     If this fixture does not fit your needs (which normally should not be necessary) you can define a fixture like this:
 
@@ -176,13 +206,16 @@ def analysis_plugin(request, monkeypatch, patch_cfg):
 
     .. Note::
 
-        If you use the ``plugin_start_worker`` marker and want to modify plugin configuration like for example TIMEOUT
-        you have to put the following in your test:
+        If you want to set ``AnalysisPluginTestConfig.start_processes = True`` and want to modify plugin configuration
+        like for example TIMEOUT you have to put the following in your test:
 
         .. code-block::
 
-            @pytest.mark.AnalysisPluginClass.with_args(MyFancyPlugin)
-            # Don't use `plugin_start_worker`
+            @pytest.mark.AnalysisPluginTestConfig(
+                plugin_class=MyFancyPlugin,
+                # Actually don't start the processes in the fixture
+                start_processes=False,
+            )
             def my_fancy_test(analysis_plugin, monkeypatch):
                 # Undo the patching of MyFancyPlugin.start_worker
                 monkeypatch.undo()
@@ -197,25 +230,16 @@ def analysis_plugin(request, monkeypatch, patch_cfg):
     # create a new instance.
     #
     # See also: The note in the doc comment.
+    test_config = merge_markers(request, 'AnalysisPluginTestConfig', AnalysisPluginTestConfig)
 
-    plugin_class_marker = request.node.get_closest_marker('AnalysisPluginClass')
-    assert plugin_class_marker, '@pytest.mark.AnalysisPluginClass has to be defined'
-    PluginClass = plugin_class_marker.args[0]
-    assert issubclass(
-        PluginClass, AnalysisBasePlugin
-    ), f'{PluginClass.__name__} is not a subclass of {AnalysisBasePlugin.__name__}'
+    PluginClass = test_config.plugin_class
 
-    # We don't want to actually start workers when testing, except for some special cases
-    plugin_start_worker_marker = request.node.get_closest_marker('plugin_start_worker')
-    if not plugin_start_worker_marker:
+    if not test_config.start_processes:
         monkeypatch.setattr(PluginClass, 'start_worker', lambda _: None)
-
-    plugin_init_kwargs_marker = request.node.get_closest_marker('plugin_init_kwargs')
-    kwargs = plugin_init_kwargs_marker.kwargs if plugin_init_kwargs_marker else {}
 
     plugin_instance = PluginClass(
         view_updater=CommonDatabaseMock(),
-        **kwargs,
+        **test_config.init_kwargs,
     )
     yield plugin_instance
 

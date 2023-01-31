@@ -24,7 +24,7 @@ def _rule_match(analysis_plugin, filename, expected_rule_name, expected_number_o
         ), f'Expected rule {expected_rule_name} missing'
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestCryptoMaterial:
     # pylint:disable=no-self-use
     def test_gnupg(self, analysis_plugin):

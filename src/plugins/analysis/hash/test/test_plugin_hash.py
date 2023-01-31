@@ -17,7 +17,7 @@ TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
         }
     },
 )
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginHash:
     def test_all_hashes(self, analysis_plugin):
         result = analysis_plugin.process_object(MockFileObject()).processed_analysis[analysis_plugin.NAME]

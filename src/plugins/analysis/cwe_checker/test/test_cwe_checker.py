@@ -5,7 +5,7 @@ from objects.file import FileObject
 from ..code.cwe_checker import AnalysisPlugin
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestCweCheckerFunctions:
     def test_parse_cwe_checker_output(self, analysis_plugin):
         test_data = """[

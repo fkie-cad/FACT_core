@@ -7,13 +7,16 @@ from typing import Iterable, NamedTuple
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 WEB_BASE_PATH = Path(__file__).parent.parent
-ICON_PATH = WEB_BASE_PATH / 'static/file_icons/mimetypes'
-MIME_TO_ICON_PATH = {p.stem: f'/{p.relative_to(WEB_BASE_PATH)}' for p in ICON_PATH.iterdir()}
+ICON_URL_BASE = 'static/file_icons'
+ICON_PATH = WEB_BASE_PATH / ICON_URL_BASE / 'mimetypes'
+MIME_TO_ICON_PATH = (
+    {p.stem: f'/{p.relative_to(WEB_BASE_PATH)}' for p in ICON_PATH.iterdir()} if ICON_PATH.is_dir() else {}
+)
 MIME_TO_ICON_PATH.update(
     {
-        'application-x-pie-executable': MIME_TO_ICON_PATH['application-x-executable'],
-        'application-x-dosexec': MIME_TO_ICON_PATH['application-x-ms-dos-executable'],
-        'linux-device-tree': '/static/file_icons/firmware.svg',
+        'application-x-pie-executable': f'/{ICON_URL_BASE}/mimetypes/application-x-executable.svg',
+        'application-x-dosexec': f'/{ICON_URL_BASE}/mimetypes/application-x-ms-dos-executable.svg',
+        'linux-device-tree': f'/{ICON_URL_BASE}/firmware.svg',
     }
 )
 CRYPTO_MIME = 'application-certificate'
@@ -88,13 +91,13 @@ ARCHIVE_FILE_TYPES = [
     'compression/zlib',
 ]
 TYPE_CATEGORY_TO_ICON = {
-    'audio/': MIME_TO_ICON_PATH['audio-x-generic'],
-    'filesystem/': '/static/file_icons/filesystem.svg',
-    'firmware/': '/static/file_icons/firmware.svg',
-    'font/': MIME_TO_ICON_PATH['font-x-generic'],
-    'image/': MIME_TO_ICON_PATH['image-x-generic'],
-    'text/': MIME_TO_ICON_PATH['text-x-generic'],
-    'video/': MIME_TO_ICON_PATH['video-x-generic'],
+    'audio/': f'/{ICON_URL_BASE}/mimetypes/audio-x-generic.svg',
+    'filesystem/': f'/{ICON_URL_BASE}/filesystem.svg',
+    'firmware/': f'/{ICON_URL_BASE}/firmware.svg',
+    'font/': f'/{ICON_URL_BASE}/mimetypes/font-x-generic.svg',
+    'image/': f'/{ICON_URL_BASE}/mimetypes/image-x-generic.svg',
+    'text/': f'/{ICON_URL_BASE}/mimetypes/text-x-generic.svg',
+    'video/': f'/{ICON_URL_BASE}/mimetypes/video-x-generic.svg',
 }
 
 
@@ -140,18 +143,6 @@ def get_icon_for_mime(mime_type: str | None) -> str:
         if mime_type.startswith(mime_category):
             return icon_path
     return MIME_TO_ICON_PATH['unknown']
-
-
-def _find_icon_for_suffix(file_name: str) -> str | None:
-    suffix = Path(file_name).suffix.lstrip('.').lower()
-    if not suffix:
-        return None
-    if suffix in MIME_TO_ICON_PATH:
-        return MIME_TO_ICON_PATH[suffix]
-    for prefix in ['text', 'text-x', 'application', 'application-x']:
-        if f'{prefix}-{suffix}' in MIME_TO_ICON_PATH:
-            return MIME_TO_ICON_PATH[f'{prefix}-{suffix}']
-    return None
 
 
 def _get_partial_virtual_paths(virtual_path: dict[str, list[str]], new_root: str) -> list[str]:

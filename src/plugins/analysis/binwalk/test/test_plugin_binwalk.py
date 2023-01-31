@@ -19,7 +19,7 @@ DECIMAL       HEXADECIMAL     DESCRIPTION
 '''
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestPluginBinwalk:
     def test_signature_analysis(self, analysis_plugin):
         test_file = FileObject(file_path=f'{get_test_data_dir()}/container/test.zip')

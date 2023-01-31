@@ -11,7 +11,7 @@ from plugins.analysis.known_vulnerabilities.code.known_vulnerabilities import An
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginsKnownVulnerabilities:
     _software_components_result = json.loads((Path(TEST_DATA_DIR) / 'sc.json').read_text())
 

@@ -4,8 +4,7 @@ from pathlib import Path
 import pytest
 
 import helperFunctions.fileSystem
-from test.common_helper import CommonIntercomMock
-from test.unit.web_interface.base import WebInterfaceTest
+from test.unit.conftest import CommonIntercomMock
 
 
 class MockIntercom(CommonIntercomMock):
@@ -14,11 +13,8 @@ class MockIntercom(CommonIntercomMock):
         return ['String1', 'String2', 'String3']
 
 
-class TestShowLogs(WebInterfaceTest):
-    @classmethod
-    def setup_class(cls, *_, **__):
-        super().setup_class(intercom_mock=MockIntercom)
-
+@pytest.mark.WebInterfaceUnitTestConfig(intercom_mock_class=MockIntercom)
+class TestShowLogs:
     @pytest.mark.cfg_defaults(
         {
             'logging': {
@@ -26,8 +22,8 @@ class TestShowLogs(WebInterfaceTest):
             }
         }
     )
-    def test_backend_available(self):
-        rv = self.test_client.get('/admin/logs')
+    def test_backend_available(self, test_client):
+        rv = test_client.get('/admin/logs')
         assert b'String1' in rv.data
 
     @pytest.mark.cfg_defaults(
@@ -37,6 +33,6 @@ class TestShowLogs(WebInterfaceTest):
             }
         }
     )
-    def test_frontend_logs(self):
-        rv = self.test_client.get('/admin/logs')
+    def test_frontend_logs(self, test_client):
+        rv = test_client.get('/admin/logs')
         assert b'Frontend_test' in rv.data

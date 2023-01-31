@@ -22,8 +22,10 @@ PLUGIN_PATH = Path(get_src_dir()) / 'plugins' / 'analysis'
         },
     }
 )
-@pytest.mark.AnalysisPluginClass.with_args(DummyPlugin)
-@pytest.mark.plugin_start_worker
+@pytest.mark.AnalysisPluginTestConfig(
+    plugin_class=DummyPlugin,
+    start_processes=True,
+)
 class TestPluginBaseCore:
     def test_object_processing_no_children(self, analysis_plugin):
         root_object = FileObject(binary=b'root_file')
@@ -48,7 +50,7 @@ class TestPluginBaseCore:
         assert child_object.uid in root_object.files_included, 'child object not in processed file'
 
 
-@pytest.mark.AnalysisPluginClass.with_args(DummyPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=DummyPlugin)
 class TestPluginBaseAddJob:
     def test_analysis_depth_not_reached_yet(self, analysis_plugin):
         fo = FileObject(binary=b'test', scheduled_analysis=[])
@@ -69,7 +71,7 @@ class TestPluginBaseAddJob:
         analysis_plugin.RECURSIVE = True
         assert analysis_plugin._analysis_depth_not_reached_yet(fo)
 
-    @pytest.mark.plugin_start_worker
+    @pytest.mark.AnalysisPluginTestConfig(start_processes=True)
     def test__add_job__recursive_is_set(self, analysis_plugin):
         fo = FileObject(binary=b'test', scheduled_analysis=[])
         fo.depth = 1
@@ -126,7 +128,7 @@ class TestPluginNotRunning:
         self.p_base.shutdown()
 
 
-@pytest.mark.AnalysisPluginClass.with_args(DummyPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=DummyPlugin)
 def test_timeout(analysis_plugin, monkeypatch):
     # See the note in the docs of analysis_pluing fixture for why this is necessary
     monkeypatch.undo()
