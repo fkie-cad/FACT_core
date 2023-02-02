@@ -1,0 +1,105 @@
+name: Bug Report
+description: File a bug report
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+        If you use FACT in docker please file the issue at [FACT_docker](https://github.com/fkie-cad/FACT_docker/issues)
+  - type: input
+    id: fact-version
+    attributes:
+      label: FACT version
+      description: |
+        The FACT version you are using.
+        Output of `git rev-parse HEAD` in the `FACT_core` directory.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        The general setup you are using to run FACT.
+        E.g. distribution and whether or not you run in an python venv.
+
+        Your distribution is the output of `lsb_release -sd`.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: What did you do to get the described behavior
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expeced Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: installation-logs
+    attributes:
+      label: Installation logs
+      description: |
+        Please paste the installer logs (`install.log`) here.
+        If you are sure this is not an installer problem you can omit it.
+
+        If the logs are too long, the last 100 lines should be sufficient.
+      value: |
+        <details>
+            <summary>install.log</summary>
+
+        ```
+        PASTE HERE
+        ```
+        </details>
+  - type: textarea
+    id: backend-logs
+    attributes:
+      label: Backend logs
+      description: |
+        Make sure to enable debug logging by starting with `-L DEBUG`!
+
+        Please paste the backend logs (by default stored at `/tmp/fact_main_backend.log`) here.
+        If you are sure this is not a backend problem you can omit it.
+
+        If the logs are too long, the last 100 lines should be sufficient.
+      value: |
+        <details>
+            <summary>fact_main_backend.log</summary>
+
+        ```
+        PASTE HERE
+        ```
+        </details>
+  - type: textarea
+    id: frontend-logs
+    attributes:
+      label: Frontend logs
+      description: |
+        Make sure to enable debug logging by starting with `-L DEBUG`!
+
+        Please paste the frontend logs (by default stored at `/tmp/fact_main_frontend.log`) here.
+        If you are sure this is not a frontend problem you can omit it.
+
+        If the logs are too long, the last 100 lines should be sufficient.
+      value: |
+        <details>
+            <summary>fact_main_frontend.log</summary>
+
+        ```
+        PASTE HERE
+        ```
+        </details>
+  - type: textarea
+    id: other
+    attributes:
+      label: Other information
+      description: |
+        Please share any other information that you think is relevant for describing/fixing the bug.

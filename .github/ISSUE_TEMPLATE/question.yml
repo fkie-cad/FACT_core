@@ -1,0 +1,26 @@
+name: Question
+description: Ask a question
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Make sure you have read and followed the [installation guide](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md)
+        If something does not work but it should you probably want to [file a bug report](https://github.com/fkie-cad/FACT_core/issues/new?assignees=&labels=bug&template=bug-report.yml).
+  - type: input
+    id: fact-version
+    attributes:
+      label: The FACT version you are using
+      description: |
+        Output of `git rev-parse HEAD` in the `FACT_core` directory.
+    validations:
+      required: false
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: |
+        Please formulate a detailed question.
+        If you provide more context it is more probable that we can help you.
+    validations:
+      required: true
