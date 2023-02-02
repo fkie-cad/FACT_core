@@ -1,0 +1,66 @@
+name: Bug Report
+description: File a bug report
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+        If you use FACT in docker please file the issue at [FACT_docker](https://github.com/fkie-cad/FACT_docker/issues)
+  - type: textarea
+    id: repro
+    attributes:
+      label: The FACT version you are using
+      description: Output of `git rev-parse HEAD` in the `FACT_core` directory.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce the observed behavior
+      description: What did you do to get the described behavior
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expeced Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: installation-logs
+    attributes:
+      label: Installation logs
+      description: |
+        Please paste the installer logs (`install.log`) here.
+        If you are sure this is not an installer problem you can omit it.
+      render: shell
+  - type: textarea
+    id: backend-logs
+    attributes:
+      label: Backend logs
+      description: |
+        Make sure to enable debug logging by starting with `-L DEBUG`!
+
+        Please paste the backend logs (by default stored at `/tmp/fact_main_backend.log`) here.
+        If you are sure this is not a backend problem you can omit it.
+      render: shell
+  - type: textarea
+    id: frontend-logs
+    attributes:
+      label: Frontend logs
+      description: |
+        Make sure to enable debug logging by starting with `-L DEBUG`!
+
+        Please paste the frontend logs (by default stored at `/tmp/fact_main_backend.log`) here.
+        If you are sure this is not a frontend problem you can omit it.
+      render: shell
+
+  - type: textarea
+    id: other
+    attributes:
+      label: Other information
+      description: |
+        Please share any other information that you think is relevant for describing/fixing the bug.
