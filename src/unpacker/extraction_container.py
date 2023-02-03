@@ -82,7 +82,7 @@ class ExtractionContainer:
         except PermissionError:
             logging.exception(f'Unable to delete worker folder {self.tmp_dir.name}')
 
-    def exception_happened(self):
+    def exception_happened(self) -> bool:
         return self.exception
 
     @staticmethod

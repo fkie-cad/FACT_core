@@ -47,7 +47,6 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.pending_tasks: dict[int, Thread] = {}
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
-        self.create_containers()
         self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
         self.work_load_process = self.start_work_load_monitor()
         self.extraction_process = self._start_extraction_loop()
@@ -72,14 +71,13 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         shutdown the scheduler
         '''
-        logging.debug('Shutting down...')
+        logging.debug('Shutting down unpacking scheduler ...')
         self.stop_condition.value = 1
         self.in_queue.close()
         stop_processes(
             [self.work_load_process, self.extraction_process],
-            max(cfg.expert_settings.block_delay, THROTTLE_INTERVAL) + 1,
+            10,  # give containers enough time to shut down
         )
-        self.stop_containers()
         logging.info('Unpacker Module offline')
 
     # ---- internal functions ----
@@ -96,6 +94,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         pool.shutdown(wait=True, cancel_futures=False)
 
     def extraction_loop(self):
+        self.create_containers()
         while self.stop_condition.value == 0:
             self.check_pending()
             try:
@@ -113,6 +112,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 sleep(0.2)
             except Empty:
                 pass
+        self.stop_containers()
 
     def check_pending(self):
         for container_id, thread in list(self.pending_tasks.items()):
