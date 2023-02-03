@@ -137,20 +137,23 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             try:
                 extracted_objects = self.unpacker.unpack(task, tmp_dir, container_url)
             except ExtractionError:
-                logging.warning(f'Exception happened during extraction of {task.uid}.')
+                docker_logs = self._fetch_logs(container)
+                logging.warning(f'Exception happened during extraction of {task.uid}.{docker_logs}')
                 container.exception = True
-                try:
-                    logging.warning(
-                        f'===Container Logs Start===\n{container.container.logs().decode()}\n===Container Logs End==='
-                    )
-                except DockerException:
-                    logging.error('Could not fetch unpacking container logs')
 
             # FixMe? sleep(0.1)  # This stuff is too fast for the FS to keep up ...
 
             self.post_unpack(task)
             if extracted_objects:
                 self.schedule_extracted_files(extracted_objects)
+
+    @staticmethod
+    def _fetch_logs(container) -> str:
+        try:
+            return f'\n===Container Logs Start===\n{container.container.logs().decode()}\n===Container Logs End==='
+        except DockerException:
+            logging.error('Could not fetch unpacking container logs')
+            return ''
 
     def schedule_extracted_files(self, object_list: list[FileObject]):
         for item in object_list:
