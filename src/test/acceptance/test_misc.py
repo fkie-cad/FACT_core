@@ -84,6 +84,10 @@ class TestAcceptanceMisc(TestAcceptanceBase):
     def _show_home(self):
         rv = self.test_client.get('/')
         assert b'backend cpu load' in rv.data
+        assert b'test comment' in rv.data
+        assert (
+            rv.data.count(f'onclick="location.href=\'/analysis/{self.test_fw_a.uid}\'"'.encode()) == 2
+        ), 'There should be two analysis links: one for latest comments and one for latest submissions'
 
     def _show_system_monitor(self):
         rv = self.test_client.get('/system_health')
@@ -97,6 +101,12 @@ class TestAcceptanceMisc(TestAcceptanceBase):
     def _click_release_date_histogram(self):
         rv = self.test_client.get('/database/browse?date="January 2009"')
         assert self.test_fw_a.uid.encode() in rv.data
+
+    def _add_comment(self):
+        data = {'comment': 'this is the test comment', 'author': 'test author'}
+        self.test_client.post(
+            f'/comment/{self.test_fw_a.uid}', content_type='multipart/form-data', data=data, follow_redirects=True
+        )
 
     def test_misc(self):
         self._upload_firmware_get()
@@ -118,4 +128,5 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         self._click_chart()
         self._click_release_date_histogram()
 
+        self._add_comment()
         self._show_home()
