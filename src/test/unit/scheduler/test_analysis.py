@@ -7,7 +7,6 @@ from unittest import TestCase, mock
 
 import pytest
 
-from config import configparser_cfg
 from objects.firmware import Firmware
 from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from storage.unpacking_locks import UnpackingLockManager
@@ -36,10 +35,6 @@ class AnalysisSchedulerTest(TestCase):
     @mock.patch('plugins.base.ViewUpdater', lambda *_: ViewUpdaterMock())
     def setUp(self):
         self.mocked_interface = BackendDbInterface()
-        config = configparser_cfg
-        config.add_section('ip_and_uri_finder')
-        config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-        config.set('default-plugins', 'default', 'file_hashes')
         self.tmp_queue = Queue()
         self.lock_manager = UnpackingLockManager()
         self.sched = AnalysisScheduler(

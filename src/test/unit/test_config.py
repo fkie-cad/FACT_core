@@ -3,8 +3,7 @@ import pytest
 
 # We explicitly don't want the patch_cfg fixture to be able to patch this function
 # This is why we import it here
-from config import load
-from config import cfg, configparser_cfg, parse_comma_separated_list
+from config import cfg, load, parse_comma_separated_list
 from test.common_helper import get_test_data_dir
 
 
@@ -13,7 +12,6 @@ def test_load():
     load(path=cfg_path)
 
     assert cfg is not None, 'cfg global was not set'
-    assert configparser_cfg is not None, 'configparser_cfg global was not set'
     assert cfg.data_storage.temp_dir_path == '/tmp', 'default value did not get set'
     assert getattr(cfg, 'users_and_passwords')['mime_whitelist'] == ['foo', 'bar']
     assert getattr(cfg, 'users_and_passwords')['mime_blacklist'] == ['foobar']
