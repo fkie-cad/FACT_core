@@ -4,7 +4,6 @@ from common_helper_encoder import ReportEncoder
 from flask import make_response
 from flask_restx import Api
 
-from config import configparser_cfg
 from web_interface.rest.rest_binary import api as binary_api
 from web_interface.rest.rest_binary_search import api as binary_search_api
 from web_interface.rest.rest_compare import api as compare_api
@@ -38,7 +37,7 @@ class RestBase:
             missing_analyses_api,
         ]:
             for _, _, _, kwargs in api.resources:
-                kwargs['resource_class_kwargs'] = {'config': configparser_cfg, 'db': db, 'intercom': intercom}
+                kwargs['resource_class_kwargs'] = {'db': db, 'intercom': intercom}
             self.api.add_namespace(api)
 
         self._wrap_response(self.api)
