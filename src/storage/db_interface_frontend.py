@@ -164,9 +164,9 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def get_latest_comments(self, limit=10):
         with self.get_read_only_session() as session:
-            subquery = select(func.jsonb_array_elements(FileObjectEntry.comments)).subquery()
+            subquery = select(FileObjectEntry.uid, func.jsonb_array_elements(FileObjectEntry.comments)).subquery()
             query = select(subquery).order_by(subquery.c.jsonb_array_elements.cast(JSONB)['time'].desc())
-            return list(session.execute(query.limit(limit)).scalars())
+            return [{'uid': uid, **comment_dict} for uid, comment_dict in session.execute(query.limit(limit))]
 
     # --- generic search ---
 

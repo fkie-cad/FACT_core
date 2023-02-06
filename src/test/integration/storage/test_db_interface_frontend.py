@@ -2,10 +2,8 @@ import pytest
 
 from storage.db_interface_frontend import CachedQuery
 from storage.query_conversion import QueryConversionException
-from test.common_helper import (
-    generate_analysis_entry,  # pylint: disable=wrong-import-order; pylint: disable=wrong-import-order
-)
-from test.common_helper import create_test_file_object, create_test_firmware
+from test.common_helper import generate_analysis_entry  # pylint: disable=wrong-import-order;
+from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
 from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
@@ -343,6 +341,8 @@ def test_get_other_versions(db):
 
 
 def test_get_latest_comments(db):
+    assert db.frontend.get_latest_comments(limit=2) == [], 'no comments in DB should not cause exceptions'
+
     fo1 = create_test_file_object()
     fo1.comments = [
         {'author': 'anonymous', 'comment': 'comment1', 'time': '1'},
@@ -353,11 +353,14 @@ def test_get_latest_comments(db):
     fo2.uid = 'fo2_uid'
     fo2.comments = [{'author': 'foo', 'comment': 'comment2', 'time': '2'}]
     db.backend.insert_object(fo2)
+
+    assert len(db.frontend.get_latest_comments(limit=10)) == 3, 'we added 3 comments, so we expect that many here'
     result = db.frontend.get_latest_comments(limit=2)
     assert len(result) == 2
     assert result[0]['time'] == '3', 'the first entry should have the newest timestamp'
     assert result[1]['time'] == '2'
     assert result[1]['comment'] == 'comment2'
+    assert result[1]['uid'] == 'fo2_uid'
 
 
 def test_generate_file_tree_level(db):
