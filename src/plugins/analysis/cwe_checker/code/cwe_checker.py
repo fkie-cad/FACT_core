@@ -51,7 +51,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if output is None:
             logging.error('Could not get version string from cwe_checker.')
         else:
-            logging.info(f'Version is {output}')
+            logging.debug(f'Version is {output}')
         return output
 
     @staticmethod

@@ -1,4 +1,5 @@
 import logging
+import os
 from multiprocessing import Queue, Value
 from queue import Empty
 
@@ -27,7 +28,6 @@ class ComparisonScheduler:
     def start(self):
         self.stop_condition.value = 0
         self.worker.start()
-        logging.info('Comparison Scheduler online...')
 
     def shutdown(self):
         '''
@@ -49,6 +49,7 @@ class ComparisonScheduler:
         self.in_queue.put((comparison_id, redo))
 
     def _comparison_scheduler_main(self):
+        logging.debug(f'Started comparison scheduler (pid={os.getpid()})')
         comparisons_done = set()
         while self.stop_condition.value == 0:
             self._compare_single_run(comparisons_done)

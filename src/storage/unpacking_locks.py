@@ -1,3 +1,4 @@
+import logging
 from multiprocessing import Manager
 
 
@@ -5,6 +6,7 @@ class UnpackingLockManager:
     def __init__(self):
         self.manager = Manager()
         self.unpacking_locks = self.manager.dict()
+        logging.debug(f'Started unpacking locks manager {getattr(self.manager, "._process", "")}')
 
     def shutdown(self):
         self.manager.shutdown()

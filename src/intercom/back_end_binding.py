@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import difflib
 import logging
+import os
 from collections.abc import Callable
 from multiprocessing import Process, Value
 from pathlib import Path
@@ -67,7 +68,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
     def shutdown(self):
         self.stop_condition.value = 1
         stop_processes(self.process_list, cfg.expert_settings.intercom_poll_delay + 1)
-        logging.warning('InterCom down')
+        logging.info('InterCom down')
 
     def _start_listener(self, listener: type[InterComListener], do_after_function: Callable | None = None, **kwargs):
         process = Process(target=self._backend_worker, args=(listener, do_after_function, kwargs))
@@ -76,7 +77,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 
     def _backend_worker(self, listener: type[InterComListener], do_after_function: Callable | None, additional_args):
         interface = listener(**additional_args)
-        logging.debug(f'{listener.__name__} listener started')
+        logging.debug(f'{listener.__name__} listener started (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             task = interface.get_next_task()
             if task is None:
