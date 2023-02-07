@@ -203,7 +203,7 @@ class MigrationMongoInterface(MongoInterface):
                 if tmp is not None:
                     try:
                         report = pickle.loads(tmp.read())
-                    except ModuleNotFoundError:
+                    except ModuleNotFoundError:  # sanitized result contains pickled class that cannot be loaded
                         logging.error(f'Could not load sanitized dict: {sanitized_dict[key][analysis_key]}')
                         report = {}
                 else:
