@@ -13,6 +13,7 @@ RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC = 300
 class AnalysisStatus:
     def __init__(self):
         self.manager = Manager()
+        logging.debug(f'Started AnalysisStatus manager {getattr(self.manager, "._process", "")}')
 
         self.currently_running = self.manager.dict()
         self.recently_finished = self.manager.dict()

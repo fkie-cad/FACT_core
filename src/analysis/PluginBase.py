@@ -1,5 +1,6 @@
 import ctypes
 import logging
+import os
 from multiprocessing import Array, Manager, Queue, Value
 from queue import Empty
 from time import time
@@ -127,6 +128,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.in_queue.close()
         stop_processes(self.workers, timeout=10.0)  # give running analyses some time to finish
         self.out_queue.close()
+        self.manager.shutdown()
 
     # ---- internal functions ----
 
@@ -199,6 +201,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.out_queue.put(fw_object)
 
     def worker(self, worker_id):
+        logging.debug(f'started {self.NAME} worker {worker_id} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             try:
                 next_task = self.in_queue.get(timeout=float(cfg.expert_settings.block_delay))

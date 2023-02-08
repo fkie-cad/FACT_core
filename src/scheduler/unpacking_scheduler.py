@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import suppress
 from multiprocessing import Queue, Value
 from queue import Empty
@@ -93,6 +94,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         return start_single_worker(None, 'unpack-load', self._work_load_monitor)
 
     def _work_load_monitor(self):
+        logging.debug(f'Started unpacking work load monitor (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             workload = self._get_combined_analysis_workload()
             unpack_queue_size = self.in_queue.qsize()
