@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import configparser
+import logging
 from configparser import ConfigParser
 from pathlib import Path
 from typing import Optional
@@ -193,6 +194,11 @@ def _verify_config(config: Config):
     """Analyze the config for simple errors that a sysadmin might make."""
     if not Path(config.data_storage.temp_dir_path).exists():
         raise ValueError('The "temp-dir-path" as specified in section "data-storage" does not exist.')
+
+    if isinstance(logging.getLevelName(config.logging.loglevel), str):
+        raise ValueError(
+            f'The "loglevel" {config.logging.loglevel} as specified in section "logging" is not a valid loglevel.'
+        )
 
 
 def _replace_hyphens_with_underscores(sections):
