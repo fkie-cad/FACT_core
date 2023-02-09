@@ -39,11 +39,6 @@ class TestUnpackScheduler:
         assert all(f in extracted_files for f in included_files)
         assert len(extracted_files[included_files[0]].files_included) == 1
 
-    @pytest.mark.skip(reason='TODO this test is useless')
-    def test_get_combined_analysis_workload(self, unpacking_scheduler):
-        result = unpacking_scheduler._get_combined_analysis_workload()  # pylint: disable=protected-access
-        assert result == 3, 'workload calculation not correct'
-
     @pytest.mark.backend_config_overwrite(
         {
             'unpacking': {
