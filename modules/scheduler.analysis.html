@@ -68,6 +68,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.get_plugin_dict"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_plugin_dict()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.get_scheduled_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_scheduled_workload()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.shutdown"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.shutdown()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.start"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.start_analysis_of_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start_analysis_of_object()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.update_analysis_of_object_and_children"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_object_and_children()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.update_analysis_of_single_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_single_object()</span></code></a></li>
@@ -258,6 +259,11 @@ in the analysis selection.</p>
 <dd><p>Shutdown the runner process, the result collector and all plugin processes. A multiprocessing.Value is set to
 notify all attached processes of the impending shutdown. Afterwards queues are closed once it’s safe.</p>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.start" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.start_analysis_of_object">

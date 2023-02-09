@@ -131,7 +131,7 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="conftest.AnalysisPluginTestConfig.start_processes">
 <span class="sig-name descname"><span class="pre">start_processes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#conftest.AnalysisPluginTestConfig.start_processes" title="Permalink to this definition"></a></dt>
-<dd><p>Whether or not to start the workers (see <code class="docutils literal notranslate"><span class="pre">AnalysisPlugin.start_worker</span></code>)</p>
+<dd><p>Whether or not to start the workers (see <code class="docutils literal notranslate"><span class="pre">AnalysisPlugin.start</span></code>)</p>
 </dd></dl>
 
 </dd></dl>
@@ -167,11 +167,9 @@ like for example TIMEOUT you have to put the following in your test:</p>
     <span class="n">start_processes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="k">def</span> <span class="nf">my_fancy_test</span><span class="p">(</span><span class="n">analysis_plugin</span><span class="p">,</span> <span class="n">monkeypatch</span><span class="p">):</span>
-    <span class="c1"># Undo the patching of MyFancyPlugin.start_worker</span>
-    <span class="n">monkeypatch</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
     <span class="n">analysis_plugin</span><span class="o">.</span><span class="n">TIMEOUT</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="c1"># Now start the worker</span>
-    <span class="n">analysis_plugin</span><span class="o">.</span><span class="n">start_worker</span><span class="p">()</span>
+    <span class="n">analysis_plugin</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
