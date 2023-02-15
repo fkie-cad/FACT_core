@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue, Value
 from pathlib import Path
@@ -48,6 +49,10 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
         self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
+        self.work_load_process = None
+        self.extraction_process = None
+
+    def start(self):
         self.work_load_process = self.start_work_load_monitor()
         self.extraction_process = self._start_extraction_loop()
         logging.info('Unpacking scheduler online')
@@ -57,15 +62,6 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         extraction_loop_process = ExceptionSafeProcess(target=self.extraction_loop)
         extraction_loop_process.start()
         return extraction_loop_process
-
-    def add_task(self, fo):
-        '''
-        schedule a firmware_object for unpacking
-        '''
-        self.in_queue.put(fo)
-
-    def get_scheduled_workload(self):
-        return {'unpacking_queue': self.in_queue.qsize()}
 
     def shutdown(self):
         '''
@@ -81,6 +77,15 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         logging.info('Unpacker Module offline')
 
     # ---- internal functions ----
+
+    def add_task(self, fo):
+        '''
+        schedule a firmware_object for unpacking
+        '''
+        self.in_queue.put(fo)
+
+    def get_scheduled_workload(self):
+        return {'unpacking_queue': self.in_queue.qsize()}
 
     def create_containers(self):
         for id_ in range(cfg.unpack.threads):
@@ -174,6 +179,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         return work_load_process
 
     def _work_load_monitor(self):
+        logging.debug(f'Started unpacking work load monitor (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             workload = self._get_combined_analysis_workload()
             unpack_queue_size = self.in_queue.qsize()
@@ -204,5 +210,4 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         shutdown = check_worker_exceptions(list_with_load_process, 'unpack-load', self._work_load_monitor)
         if new_worker_was_started(new_process=list_with_load_process[0], old_process=self.work_load_process):
             self.work_load_process = list_with_load_process.pop()
-
         return shutdown

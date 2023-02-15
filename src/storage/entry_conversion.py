@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from time import time
 
@@ -115,6 +116,12 @@ def _sanitize_value(analysis_data: dict, key: str, value):
         analysis_data[key] = value.replace('\0', '')
     elif isinstance(value, list):
         _sanitize_list(value)
+    elif isinstance(value, bytes):
+        logging.warning(
+            f'Plugin result contains bytes entry. '
+            f'Plugin results should only contain JSON compatible data structures!:\n\t{repr(value)}'
+        )
+        analysis_data[key] = value.decode(errors='replace')
 
 
 def _sanitize_key(analysis_data: dict, key: str):

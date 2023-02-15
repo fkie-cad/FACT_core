@@ -130,10 +130,8 @@ class TestPluginNotRunning:
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=DummyPlugin)
 def test_timeout(analysis_plugin, monkeypatch):
-    # See the note in the docs of analysis_pluing fixture for why this is necessary
-    monkeypatch.undo()
     analysis_plugin.TIMEOUT = 0
-    analysis_plugin.start_worker()
+    analysis_plugin.start()
 
     fo_in = FileObject(binary=b'test', scheduled_analysis=[])
     analysis_plugin.add_job(fo_in)

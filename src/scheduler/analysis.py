@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue, Value
@@ -18,7 +19,7 @@ from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_process
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
-from scheduler.task_scheduler import AnalysisTaskScheduler, MANDATORY_PLUGINS
+from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_base import DbInterfaceError
@@ -109,8 +110,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.db_backend_service = db_interface if db_interface else BackendDbInterface()
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
+
+    def start(self):
         self._start_runner_process()
         self._start_result_collector()
+        # FIXME use this (see FIXME in src/analysis/PluginBase.py)
+        # self._start_plugins()
         logging.info('Analysis System online...')
         logging.info(f'Plugins available: {self._get_list_of_available_plugins()}')
 
@@ -244,14 +249,18 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
 
+    def _start_plugins(self):
+        for plugin in self.analysis_plugins.values():
+            plugin.start()
+
     # ---- task runner functions ----
 
     def _start_runner_process(self):
-        logging.debug('Starting scheduler...')
         self.schedule_process = ExceptionSafeProcess(target=self._task_runner)
         self.schedule_process.start()
 
     def _task_runner(self):
+        logging.debug(f'Started analysis scheduler (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             try:
                 task = self.process_queue.get(timeout=cfg.expert_settings.block_delay)
@@ -411,11 +420,11 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     # ---- result collector functions ----
 
     def _start_result_collector(self):
-        logging.debug('Starting result collector')
         self.result_collector_process = ExceptionSafeProcess(target=self._result_collector)
         self.result_collector_process.start()
 
     def _result_collector(self):
+        logging.debug(f'Started analysis result collector (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():

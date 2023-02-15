@@ -28,10 +28,12 @@ class TestTagPropagation:
             post_analysis=self.count_analysis_finished_event,
             unpacking_locks=self.unpacking_lock_manager,
         )
+        self._analysis_scheduler.start()
         self._unpack_scheduler = UnpackingScheduler(
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
             unpacking_locks=self.unpacking_lock_manager,
         )
+        self._unpack_scheduler.start()
 
     def count_analysis_finished_event(self, uid, plugin, analysis_result):
         self.elements_finished_analyzing.value += 1

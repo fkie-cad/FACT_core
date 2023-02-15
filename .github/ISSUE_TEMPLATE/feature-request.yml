@@ -1,0 +1,16 @@
+name: Feature Request
+description: Reqeust a feature
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your interest in improving FACT.
+  - type: textarea
+    id: feature
+    attributes:
+      label: Feature description
+      description: |
+        Please describe what feature you miss and why it is useful.
+    validations:
+      required: true

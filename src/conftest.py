@@ -175,7 +175,7 @@ class AnalysisPluginTestConfig:
 
     #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
     plugin_class: Type[AnalysisBasePlugin] = AnalysisBasePlugin
-    #: Whether or not to start the workers (see ``AnalysisPlugin.start_worker``)
+    #: Whether or not to start the workers (see ``AnalysisPlugin.start``)
     start_processes: bool = False
     #: Keyword arguments to be given to the ``plugin_class`` constructor.
     init_kwargs: dict = dataclasses.field(default_factory=dict)
@@ -217,30 +217,23 @@ def analysis_plugin(request, monkeypatch, patch_cfg):
                 start_processes=False,
             )
             def my_fancy_test(analysis_plugin, monkeypatch):
-                # Undo the patching of MyFancyPlugin.start_worker
-                monkeypatch.undo()
                 analysis_plugin.TIMEOUT = 0
                 # Now start the worker
-                analysis_plugin.start_worker()
+                analysis_plugin.start()
     """
-    # IMPORTANT, READ BEFORE EDITING:
-    # This fixture uses the default monkeypatch fixture.
-    # The reason for this is that tests shall be able to undo the patching of `AnalysisPluginClass.start_worker`.
-    # If you want to monkeypatch anything other in this fixture don't use the default monkeypatch fixture but rather
-    # create a new instance.
-    #
-    # See also: The note in the doc comment.
     test_config = merge_markers(request, 'AnalysisPluginTestConfig', AnalysisPluginTestConfig)
 
     PluginClass = test_config.plugin_class
 
-    if not test_config.start_processes:
-        monkeypatch.setattr(PluginClass, 'start_worker', lambda _: None)
+    # We don't want to actually start workers when testing, except for some special cases
+    with monkeypatch.context() as mkp:
+        if not test_config.start_processes:
+            mkp.setattr(PluginClass, 'start', lambda _: None)
+        plugin_instance = PluginClass(
+            view_updater=CommonDatabaseMock(),
+            **test_config.init_kwargs,
+        )
 
-    plugin_instance = PluginClass(
-        view_updater=CommonDatabaseMock(),
-        **test_config.init_kwargs,
-    )
     yield plugin_instance
 
     plugin_instance.shutdown()

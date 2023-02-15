@@ -67,7 +67,25 @@ class FactBackend(FactBase):
             unpacking_locks=self.unpacking_lock_manager,
         )
 
+    def start(self):
+        self.analysis_service.start()
+        self.unpacking_service.start()
+        self.compare_service.start()
+        self.intercom.start()
+
+    def shutdown(self):
+        super().shutdown()
+        self.intercom.shutdown()
+        self.compare_service.shutdown()
+        self.unpacking_service.shutdown()
+        self.analysis_service.shutdown()
+        self.unpacking_lock_manager.shutdown()
+        if not self.args.testing:
+            complete_shutdown()
+
     def main(self):
+        self.start()
+
         while self.run:
             self.work_load_stat.update(
                 unpacking_workload=self.unpacking_service.get_scheduled_workload(),
@@ -92,16 +110,6 @@ class FactBackend(FactBase):
             # If we don't have enough rights to change the permissions we assume they are right
             # E.g. in FACT_docker the correct group is not the group named 'docker'
             logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
-
-    def shutdown(self):
-        super().shutdown()
-        self.intercom.shutdown()
-        self.compare_service.shutdown()
-        self.unpacking_service.shutdown()
-        self.analysis_service.shutdown()
-        self.unpacking_lock_manager.shutdown()
-        if not self.args.testing:
-            complete_shutdown()
 
     def _exception_occurred(self):
         return any(

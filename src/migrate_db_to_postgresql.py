@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 import pickle
 import sys
@@ -202,9 +201,13 @@ class MigrationMongoInterface(MongoInterface):
                 logging.debug(f'Retrieving {analysis_key}')
                 tmp = self.sanitize_fs.get_last_version(sanitized_dict[key][analysis_key])
                 if tmp is not None:
-                    report = pickle.loads(tmp.read())
+                    try:
+                        report = pickle.loads(tmp.read())
+                    except ModuleNotFoundError:  # sanitized result contains pickled class that cannot be loaded
+                        logging.error(f'Could not load sanitized dict: {sanitized_dict[key][analysis_key]}')
+                        report = {}
                 else:
-                    logging.error(f'sanitized file not found: {sanitized_dict[key][analysis_key]}')
+                    logging.error(f'Sanitized file not found: {sanitized_dict[key][analysis_key]}')
                     report = {}
                 tmp_dict[analysis_key] = report
         return tmp_dict
@@ -234,6 +237,9 @@ def _fix_illegal_dict(dict_: dict, label=''):  # pylint: disable=too-complex
             _fix_illegal_dict(value, label)
         elif isinstance(value, list):
             _fix_illegal_list(value, key, label)
+        elif isinstance(value, tuple):
+            dict_[key] = value = list(value)
+            _fix_illegal_list(value, key, label)
         elif isinstance(value, str):
             if '\0' in value:
                 logging.debug(
@@ -251,6 +257,9 @@ def _fix_illegal_list(list_: list, key=None, label=''):
             list_[index] = element.decode()
         elif isinstance(element, dict):
             _fix_illegal_dict(element, label)
+        elif isinstance(element, tuple):
+            list_[index] = element = list(element)
+            _fix_illegal_list(element, key, label)
         elif isinstance(element, list):
             _fix_illegal_list(element, key, label)
         elif isinstance(element, str):
@@ -349,21 +358,23 @@ class DbMigrator:
     def _migrate_single_object(self, firmware_object: Firmware | FileObject, parent_uid: str, root_uid: str):
         firmware_object.parents = [parent_uid]
         firmware_object.parent_firmware_uids = [root_uid]
-        for plugin, plugin_data in firmware_object.processed_analysis.items():
-            _fix_illegal_dict(plugin_data, plugin)
-            _check_for_missing_fields(plugin, plugin_data)
-            _migrate_plugin(plugin, plugin_data)
+        processed_analysis = firmware_object.processed_analysis
+        firmware_object.processed_analysis = {}
         try:
             self.postgres.insert_object(firmware_object)
         except StatementError:
             logging.error(f'Firmware contains errors: {firmware_object}')
             raise
-        except KeyError:
-            logging.error(
-                f'fields missing from analysis data: \n' f'{json.dumps(firmware_object.processed_analysis, indent=2)}',
-                exc_info=True,
-            )
-            raise
+        for plugin, plugin_data in processed_analysis.items():
+            try:
+                _fix_illegal_dict(plugin_data, plugin)
+                _check_for_missing_fields(plugin, plugin_data)
+                _migrate_plugin(plugin, plugin_data)
+                self.postgres.insert_analysis(firmware_object.uid, plugin, plugin_data)
+            except StatementError:
+                logging.error(
+                    f'Analysis {plugin} of file {firmware_object.uid} contains errors: {plugin_data} -> skipping'
+                )
 
 
 def migrate_comparisons(mongo: MigrationMongoInterface):

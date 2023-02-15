@@ -40,8 +40,9 @@ class TestSchedulerCompare(unittest.TestCase):
         self.config.set('expert-settings', 'block-delay', '2')
         self.config.set('expert-settings', 'ssdeep-ignore', '80')
 
+        db_mock = MockDbInterface()
         self.bs_patch_new = unittest.mock.patch(
-            target='storage.binary_service.BinaryService.__new__', new=lambda *_, **__: MockDbInterface()
+            target='storage.binary_service.BinaryService.__new__', new=lambda *_, **__: db_mock
         )
         self.bs_patch_init = unittest.mock.patch(
             target='storage.binary_service.BinaryService.__init__', new=lambda _: None
@@ -49,7 +50,7 @@ class TestSchedulerCompare(unittest.TestCase):
         self.bs_patch_new.start()
         self.bs_patch_init.start()
 
-        self.compare_scheduler = ComparisonScheduler(db_interface=MockDbInterface(), testing=True)
+        self.compare_scheduler = ComparisonScheduler(db_interface=db_mock, admin_db_interface=db_mock, testing=True)
 
     def tearDown(self):
         self.compare_scheduler.shutdown()

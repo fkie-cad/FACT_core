@@ -21,11 +21,13 @@ class TestFileAddition:
             db_interface=MockDbInterface(None),
             unpacking_locks=self.unpacking_lock_manager,
         )
+        self._analysis_scheduler.start()
         self._unpack_scheduler = UnpackingScheduler(
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
             fs_organizer=MockFSOrganizer(),
             unpacking_locks=self.unpacking_lock_manager,
         )
+        self._unpack_scheduler.start()
 
     def teardown(self):
         self._unpack_scheduler.shutdown()
