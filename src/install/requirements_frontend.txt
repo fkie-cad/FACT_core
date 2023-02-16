@@ -17,7 +17,7 @@ uwsgi==2.0.21
 virtualenv
 
 # must be below dependent packages (flask, flask-login, flask-restx)
-werkzeug==2.2.2
+werkzeug==2.2.3
 
 # Used for username validation by flask-security
 bleach==5.0.1
