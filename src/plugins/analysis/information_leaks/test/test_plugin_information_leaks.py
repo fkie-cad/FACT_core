@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from test.common_helper import MockFileObject
+from test.common_helper import MockFileObject  # pylint: disable=wrong-import-order
 
 from ..code.information_leaks import AnalysisPlugin, _check_file_path, _check_for_directories, _check_for_files
 
@@ -34,13 +34,7 @@ class TestAnalysisPluginInformationLeaks:
         assert fo.processed_analysis[analysis_plugin.NAME]['root_path'] == ['/root/user_name/this_directory']
 
         assert 'summary' in fo.processed_analysis[analysis_plugin.NAME]
-        assert fo.processed_analysis[analysis_plugin.NAME]['summary'] == [
-            '/home/multiple',
-            '/home/user/test/urandom',
-            '/home/user/urandom',
-            '/root/user_name/this_directory',
-            '/var/www/tmp/me_',
-        ]
+        assert sorted(fo.processed_analysis[analysis_plugin.NAME]['summary']) == ['root_path', 'user_paths', 'www_path']
 
     def test_find_artifacts(self, analysis_plugin):
         fo = MockFileObject()
