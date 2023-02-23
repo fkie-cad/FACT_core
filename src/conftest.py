@@ -220,15 +220,14 @@ def analysis_plugin(request, monkeypatch, patch_cfg):
 
     PluginClass = test_config.plugin_class
 
-    # We don't want to actually start workers when testing, except for some special cases
-    with monkeypatch.context() as mkp:
-        if not test_config.start_processes:
-            mkp.setattr(PluginClass, 'start', lambda _: None)
-        plugin_instance = PluginClass(
-            view_updater=CommonDatabaseMock(),
-            **test_config.init_kwargs,
-        )
+    plugin_instance = PluginClass(
+        view_updater=CommonDatabaseMock(),
+        **test_config.init_kwargs,
+    )
 
+    # We don't want to actually start workers when testing, except for some special cases
+    if test_config.start_processes:
+        plugin_instance.start()
     yield plugin_instance
 
     plugin_instance.shutdown()
