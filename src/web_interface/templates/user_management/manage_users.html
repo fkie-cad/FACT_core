@@ -29,25 +29,29 @@
 
                     <div class="modal-body">
                         <form method="post">
+                            {{ add_user_form.csrf_token }}
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                                 </div>
-                                <input id="username" type="text" class="form-control" name="username" value="" placeholder="username" required>
+                                {{ add_user_form.username(size=42) }}
+{#                                <input id="username" type="text" class="form-control" name="username" value="" placeholder="username" required>#}
                             </div>
 
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                                 </div>
-                                <input id="password1" type="password" class="form-control" name="password1" placeholder="password" required>
+                                {{ add_user_form.password(size=42) }}
+{#                                <input id="password1" type="password" class="form-control" name="password1" placeholder="password" required>#}
                             </div>
 
                             <div class="input-group mb-3">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                                 </div>
-                                <input id="password2" type="password" class="form-control" name="password2" placeholder="confirm password" required>
+                                {{ add_user_form.password_retype(size=42) }}
+{#                                <input id="password2" type="password" class="form-control" name="password2" placeholder="confirm password" required>#}
                             </div>
 
                             <button class="btn btn-primary" type="submit">Add</button>

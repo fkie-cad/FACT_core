@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from helperFunctions.web_interface import password_is_legal
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from web_interface.forms import AddUserForm
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES, ROLES
 
@@ -31,26 +32,31 @@ class UserManagementRoutes(ComponentBase):
                 flash(error_message)
 
     @roles_accepted(*PRIVILEGES['manage_users'])
-    @AppRoute('/admin/manage_users', GET, POST)
+    @AppRoute('/admin/manage_users', GET)
     def manage_users(self):
-        if request.method == 'POST':
-            self._add_user()
         user_list = self._user_db_interface.list_users()
-        return render_template('user_management/manage_users.html', users=user_list)
+        return render_template('user_management/manage_users.html', users=user_list, add_user_form=AddUserForm())
 
-    def _add_user(self):
-        name = request.form['username']
-        password = request.form['password1']
-        password_retype = request.form['password2']
-        if self._user_db_interface.user_exists(name):
+    @roles_accepted(*PRIVILEGES['manage_users'])
+    @AppRoute('/admin/manage_users', POST)
+    def add_user(self):
+        form = AddUserForm()
+        if not form.validate_on_submit():
+            error_str = '\n'.join(f'{k}: {v}' for k, v in form.errors)
+            flash(f'Error: validation failed:\n{error_str}', 'danger')
+        elif self._user_db_interface.user_exists(form.username.data):
             flash('Error: user is already in the database', 'danger')
-        elif password != password_retype:
+        elif form.password != form.password_retype:
             flash('Error: passwords do not match', 'danger')
         else:
             with self.user_db_session('Error while creating user'):
-                self._user_db_interface.create_user(email=name, password=hash_password(password))
+                self._user_db_interface.create_user(
+                    email=form.username.data,
+                    password=hash_password(form.password.data),
+                )
                 flash('Successfully created user', 'success')
-                logging.info(f'Created user: {name}')
+                logging.info(f'Created user: {form.username.data}')
+        return redirect(url_for('manage_users'))
 
     @roles_accepted(*PRIVILEGES['manage_users'])
     @AppRoute('/admin/user/<user_id>', GET)
