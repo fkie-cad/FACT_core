@@ -1,24 +1,11 @@
-import sys
-from pathlib import Path
-
 import pytest
 
-try:
-    from ..internal.helper_functions import (
-        escape_special_characters,
-        get_field_names,
-        get_field_string,
-        replace_characters_and_wildcards,
-    )
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from helper_functions import (
-        escape_special_characters,
-        get_field_names,
-        get_field_string,
-        replace_characters_and_wildcards,
-    )
-
+from ..internal.helper_functions import (
+    escape_special_characters,
+    get_field_names,
+    get_field_string,
+    replace_characters_and_wildcards,
+)
 
 DB_FIELDS = [('cpe_id', 'TEXT'), ('year', 'INTEGER'), ('vendor', 'TEXT')]
 

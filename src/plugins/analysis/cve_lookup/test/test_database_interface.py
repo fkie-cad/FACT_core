@@ -1,11 +1,11 @@
 import logging
 import sqlite3
-import sys
 from contextlib import suppress
 from os import remove
-from pathlib import Path
 
 import pytest
+
+from ..internal.database_interface import QUERIES, DatabaseInterface
 
 TEST_DB_PATH = 'test.db'
 TEST_QUERIES = {
@@ -14,12 +14,6 @@ TEST_QUERIES = {
     'test_insert': 'INSERT INTO {} (x) VALUES (?)',
     'test_insert_cve_id': 'INSERT INTO {} (cve_id, year) VALUES (?, ?)',
 }
-
-try:
-    from ..internal.database_interface import QUERIES, DatabaseInterface
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from database_interface import QUERIES, DatabaseInterface
 
 
 @pytest.fixture(scope='module', autouse=True)

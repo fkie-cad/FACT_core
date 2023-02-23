@@ -1,4 +1,3 @@
-import sys
 from datetime import datetime
 from glob import glob
 from os import remove
@@ -6,13 +5,8 @@ from pathlib import Path
 
 import pytest
 
-try:
-    from ..internal import data_parsing
-    from ..internal.helper_functions import CveEntry, CveSummaryEntry
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    import data_parsing
-    from helper_functions import CveEntry, CveSummaryEntry
+from ..internal import data_parsing
+from ..internal.helper_functions import CveEntry, CveSummaryEntry
 
 # contains a NODES list from the CVE 2012-0010 which serves as input for iterate_nodes()
 NODES = [
