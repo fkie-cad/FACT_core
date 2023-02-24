@@ -50,7 +50,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.in_queue.put(fo)
 
     def get_scheduled_workload(self):
-        return {'unpacking_queue': self.in_queue.qsize()}
+        return {'unpacking_queue': self.in_queue.qsize(), 'is_throttled': self.throttle_condition.value == 1}
 
     # ---- internal functions ----
 
