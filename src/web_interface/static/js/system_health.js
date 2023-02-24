@@ -32,8 +32,19 @@ async function updateSystemHealth() {
             const queueElement = document.getElementById("backend-unpacking-queue");
             if (entry.unpacking.unpacking_queue > 500) {
                 queueElement.classList.add("text-warning");
+            } else {
+                queueElement.classList.remove("text-warning");
             }
             queueElement.innerText = entry.unpacking.unpacking_queue.toString();
+
+            const throttleElement = document.getElementById("backend-unpacking-throttle-indicator");
+            if (entry.unpacking.is_throttled) {
+                throttleElement.innerHTML = '<i class="far fa-pause-circle fa-lg"></i>';
+            }
+            else {
+                throttleElement.innerHTML = '';
+             }
+
             Object.entries(entry.analysis.plugins).map(([pluginName, pluginData], index) => {
                 if (!pluginName.includes("dummy")){
                     updatePluginCard(pluginName, pluginData);

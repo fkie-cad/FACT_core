@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from itertools import chain
 from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
@@ -77,7 +76,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     DESCRIPTION = 'Find leaked information like compilation artifacts'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib', 'text/plain']
-    VERSION = '0.1.3'
+    VERSION = '0.1.4'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
@@ -86,11 +85,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self._find_artifacts(file_object)
             file_object.processed_analysis[self.NAME]['summary'] = sorted(file_object.processed_analysis[self.NAME])
         else:
-            result = _find_regex(file_object.binary, PATH_REGEX)
+            result, summary = _find_regex(file_object.binary, PATH_REGEX)
             file_object.processed_analysis[self.NAME].update(result)
-            file_object.processed_analysis[self.NAME]['summary'] = sorted(
-                {_filter_files_from_summary(p) for p in chain(*result.values())}
-            )
+            file_object.processed_analysis[self.NAME]['summary'] = summary
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):
@@ -110,7 +107,8 @@ def _check_file_path(file_path: str) -> dict[str, list[str]]:
 
 
 def _find_files(file_path: str) -> dict[str, list[str]]:
-    return _find_regex(file_path.encode(), FILES_REGEX)
+    files, _ = _find_regex(file_path.encode(), FILES_REGEX)
+    return files
 
 
 def _check_for_files(file_path: str) -> dict[str, list[str]]:
@@ -131,11 +129,13 @@ def _check_for_directories(file_path: str) -> dict[str, list[str]]:
     return results
 
 
-def _find_regex(search_term: bytes, regex_dict: dict[str, re.Pattern]) -> dict[str, list[str]]:
+def _find_regex(search_term: bytes, regex_dict: dict[str, re.Pattern]) -> tuple[dict[str, list[str]], list[str]]:
     results = {}
+    summary = set()
     for label, regex in regex_dict.items():
         result = regex.findall(search_term)
         if result:
             result_list = sorted({e.decode(errors='replace') for e in result})
             results.setdefault(label, []).extend(result_list)
-    return results
+            summary.add(label)
+    return results, list(summary)
