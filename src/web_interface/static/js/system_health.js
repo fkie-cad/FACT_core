@@ -39,7 +39,7 @@ async function updateSystemHealth() {
 
             const throttleElement = document.getElementById("backend-unpacking-throttle-indicator");
             if (entry.unpacking.is_throttled) {
-                throttleElement.innerText = '<i class="fa-regular fa-circle-pause"></i>';
+                throttleElement.innerHTML = '<i class="far fa-pause-circle fa-lg"></i>';
             }
             else {
                 throttleElement.innerHTML = '';
