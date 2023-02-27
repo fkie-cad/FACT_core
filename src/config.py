@@ -46,7 +46,7 @@ class DataStorage(BaseModel):
     postgres_admin_user: str
     postgres_admin_pw: str
 
-    redis_fact_db: str
+    redis_fact_db: int
     redis_test_db: str
     redis_host: str
     redis_port: int
