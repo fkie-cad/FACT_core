@@ -43,7 +43,7 @@ class AnalysisStatus:
         finally:
             self.currently_running_lock.release()
 
-    def _update_current_analysis(self, fw_object):
+    def _update_current_analysis(self, fw_object: FileObject):
         '''
         new file comes from unpacking:
         - file moved from files_to_unpack to files_to_analyze (could be duplicate!)
@@ -55,12 +55,22 @@ class AnalysisStatus:
                 set(updated_dict['files_to_analyze'])
             )
             updated_dict['total_files_count'] += len(new_files)
+            updated_dict['total_files_with_duplicates'] += 1
             updated_dict['files_to_unpack'] = list(set(updated_dict['files_to_unpack']).union(new_files))
             if fw_object.uid in updated_dict['files_to_unpack']:
                 updated_dict['files_to_unpack'].remove(fw_object.uid)
                 updated_dict['files_to_analyze'].append(fw_object.uid)
                 updated_dict['unpacked_files_count'] += 1
             self.currently_running[parent] = updated_dict
+
+    def update_post_analysis(self, fw_object: FileObject, plugin: str):
+        for parent in self._find_currently_analyzed_parents(fw_object):
+            self.currently_running_lock.acquire()
+            updated_dict = self.currently_running[parent]
+            updated_dict['analysis_plugins'].setdefault(plugin, 0)
+            updated_dict['analysis_plugins'][plugin] += 1
+            self.currently_running[parent] = updated_dict
+            self.currently_running_lock.release()
 
     @staticmethod
     def _init_current_analysis(fw_object: Firmware):
@@ -71,7 +81,9 @@ class AnalysisStatus:
             'unpacked_files_count': 1,
             'analyzed_files_count': 0,
             'total_files_count': 1 + len(fw_object.files_included),
+            'total_files_with_duplicates': 1,
             'hid': fw_object.get_hid(),
+            'analysis_plugins': {p: 0 for p in fw_object.scheduled_analysis},
         }
 
     def remove_from_current_analyses(self, fw_object: Firmware | FileObject):
@@ -114,7 +126,9 @@ class AnalysisStatus:
                 'analyzed_count': stats_dict['analyzed_files_count'],
                 'start_time': stats_dict['start_time'],
                 'total_count': stats_dict['total_files_count'],
+                'total_count_with_duplicates': stats_dict['total_files_with_duplicates'],
                 'hid': stats_dict['hid'],
+                'plugins': stats_dict['analysis_plugins'],
             }
             for uid, stats_dict in self.currently_running.items()
         }
