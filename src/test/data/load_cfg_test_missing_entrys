@@ -23,6 +23,7 @@ redis-fact-db = 3
 redis-test-db = 13
 redis-host = localhost
 redis-port = 6379
+redis-pw =
 
 firmware-file-storage-directory = /media/data/fact_fw_data
 
