@@ -16,7 +16,7 @@ from config import cfg
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import import_plugins
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_process
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
@@ -112,7 +112,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
 
     def start(self):
-        self._start_runner_process()
+        self._start_runner_processes()
         self._start_result_collector()
         # FIXME use this (see FIXME in src/analysis/PluginBase.py)
         # self._start_plugins()
@@ -128,13 +128,13 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.stop_condition.value = 1
         futures = []
         # first shut down scheduling, then analysis plugins and lastly the result collector
-        stop_process(self.schedule_process, cfg.expert_settings.block_delay + 1)
+        stop_processes(self.schedule_processes, cfg.expert_settings.block_delay + 1)
         with ThreadPoolExecutor() as pool:
             for plugin in self.analysis_plugins.values():
                 futures.append(pool.submit(plugin.shutdown))
             for future in futures:
                 future.result()  # call result to make sure all threads are finished and there are no exceptions
-        stop_process(self.result_collector_process, cfg.expert_settings.block_delay + 1)
+        stop_processes(self.result_collector_processes, cfg.expert_settings.block_delay + 1)
         self.process_queue.close()
         self.status.shutdown()
         logging.info('Analysis System offline')
@@ -255,9 +255,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     # ---- task runner functions ----
 
-    def _start_runner_process(self):
-        self.schedule_process = ExceptionSafeProcess(target=self._task_runner)
-        self.schedule_process.start()
+    def _start_runner_processes(self):
+        self.schedule_processes = [
+            ExceptionSafeProcess(target=self._task_runner) for _ in range(cfg.expert_settings.scheduling_worker_count)
+        ]
+        for process in self.schedule_processes:
+            process.start()
 
     def _task_runner(self):
         logging.debug(f'Started analysis scheduler (pid={os.getpid()})')
@@ -420,8 +423,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     # ---- result collector functions ----
 
     def _start_result_collector(self):
-        self.result_collector_process = ExceptionSafeProcess(target=self._result_collector)
-        self.result_collector_process.start()
+        self.result_collector_processes = [
+            ExceptionSafeProcess(target=self._result_collector)
+            for _ in range(cfg.expert_settings.collector_worker_count)
+        ]
+        for process in self.result_collector_processes:
+            process.start()
 
     def _result_collector(self):
         logging.debug(f'Started analysis result collector (pid={os.getpid()})')
@@ -508,7 +515,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for _, plugin in self.analysis_plugins.items():
             if plugin.check_exceptions():
                 return True
-        return check_worker_exceptions([self.schedule_process, self.result_collector_process], 'Scheduler')
+        return check_worker_exceptions(self.schedule_processes + self.result_collector_processes, 'Scheduler')
 
 
 def _fix_system_version(system_version: str | None) -> str:

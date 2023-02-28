@@ -100,6 +100,8 @@ class Statistics(BaseModel):
 
 class ExpertSettings(BaseModel):
     Config = _PydanticConfigExtraForbid
+    scheduling_worker_count: int = 4
+    collector_worker_count: int = 2
     block_delay: float
     ssdeep_ignore: int
     communication_timeout: int = 60
