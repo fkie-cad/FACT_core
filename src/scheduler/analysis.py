@@ -489,6 +489,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for plugin_name, plugin in self.analysis_plugins.items():
             workload['plugins'][plugin_name] = {
                 'queue': plugin.in_queue.qsize(),
+                'out_queue': plugin.out_queue.qsize(),
                 'active': (sum(plugin.active[i].value for i in range(plugin.thread_count))),
                 'stats': get_plugin_stats(plugin),
             }

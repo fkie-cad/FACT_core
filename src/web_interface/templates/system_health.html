@@ -59,7 +59,12 @@
                     <tr>
                         {{ icon_tooltip_desk('box-open', 'Pending items for extraction') }}
                         <td colspan="4" id="backend-unpacking-queue"></td>
-                        <td class="text-danger text-center" id="backend-unpacking-throttle-indicator" data-toggle="tooltip" data-placement="bottom" title="Pause indicates that unpacking is halted until analysis queue is under throttle limit again."></td>
+                        <td class="text-danger text-center" id="backend-unpacking-throttle-indicator" data-toggle="tooltip" data-placement="bottom"
+                            title="Pause indicates that unpacking is halted until analysis queue is under throttle limit again."></td>
+                    </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('microscope', 'Pending items for analysis') }}
+                        <td colspan="5" id="backend-analysis-queue"></td>
                     </tr>
                 {% endif %}
             </table>
@@ -77,14 +82,21 @@
                 <tr>
                     {{ icon_tooltip_desk('align-justify', 'Concurrent threads') }}
                     <td style="width: 46px;">{{ threads }}</td>
+
                     <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Currently processing">
                         <i class="fas fa-cog" style="color: darkgrey" id="{{ plugin_name }}-active-indicator"></i>
                     </td>
                     <td style="width: 46px;" id="{{ plugin_name }}-active"></td>
-                    <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Pending tasks">
+
+                    <td style="width: 20px;" data-toggle="tooltip" data-placement="bottom" title="Pending tasks">
                         <i class="fas fa-sign-in-alt" style="color: darkgrey" id="{{ plugin_name }}-queue-indicator"></i>
                     </td>
                     <td id="{{ plugin_name }}-queue"></td>
+
+                    <td style="width: 20px;" data-toggle="tooltip" data-placement="bottom" title="Finished tasks ready for collection">
+                        <i class="fas fa-sign-out-alt" style="color: darkgrey" id="{{ plugin_name }}-out-queue-indicator"></i>
+                    </td>
+                    <td id="{{ plugin_name }}-out-queue"></td>
                 </tr>
             </table>
 

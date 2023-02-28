@@ -27,8 +27,10 @@ class AnalysisStatus:
         self.currently_running_lock.acquire()
         update_dict = self.currently_running[fw_object.uid]
         update_dict['files_to_unpack'] = []
-        update_dict['unpacked_files_count'] = len(included_files) + 1
-        update_dict['total_files_count'] = len(included_files) + 1
+        file_count = len(included_files) + 1
+        update_dict['unpacked_files_count'] = file_count
+        update_dict['total_files_count'] = file_count
+        update_dict['total_files_with_duplicates'] = file_count
         update_dict['files_to_analyze'] = [fw_object.uid, *included_files]
         self.currently_running[fw_object.uid] = update_dict
         self.currently_running_lock.release()

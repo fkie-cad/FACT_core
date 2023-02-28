@@ -45,6 +45,9 @@ async function updateSystemHealth() {
                 throttleElement.innerHTML = '';
              }
 
+            const analysisQueueElement = document.getElementById("backend-analysis-queue");
+            analysisQueueElement.innerText = entry.analysis.analysis_main_scheduler.toString();
+
             Object.entries(entry.analysis.plugins).map(([pluginName, pluginData], index) => {
                 if (!pluginName.includes("dummy")){
                     updatePluginCard(pluginName, pluginData);
@@ -79,6 +82,7 @@ function updatePluginCard(pluginName, pluginData) {
     const activeElement = document.getElementById(`${pluginName}-active`);
     const queueIndicatorElement = document.getElementById(`${pluginName}-queue-indicator`);
     const queueElement = document.getElementById(`${pluginName}-queue`);
+    const outQueueElement = document.getElementById(`${pluginName}-out-queue`);
     const statsElement = document.getElementById(`${pluginName}-stats`);
     if (pluginData.active > 0) {
         activeIndicatorElement.classList.add("fa-spin");
@@ -101,6 +105,7 @@ function updatePluginCard(pluginName, pluginData) {
         queueElement.style.color = "darkgrey";
     }
     queueElement.innerText = pluginData.queue.toString();
+    outQueueElement.innerText = pluginData.out_queue.toString();
     if (pluginData.stats !== null) {
         statsElement.innerHTML = `
             <table class="table table-sm table-striped" style="margin-left: 16px">
