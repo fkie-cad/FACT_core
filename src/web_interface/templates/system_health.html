@@ -58,7 +58,8 @@
                 {% if component == "backend" %}
                     <tr>
                         {{ icon_tooltip_desk('box-open', 'Pending items for extraction') }}
-                        <td colspan="5" id="backend-unpacking-queue"></td>
+                        <td colspan="4" id="backend-unpacking-queue"></td>
+                        <td class="text-danger text-center" id="backend-unpacking-throttle-indicator" data-toggle="tooltip" data-placement="bottom" title="Pause indicates that unpacking is halted until analysis queue is under throttle limit again."></td>
                     </tr>
                 {% endif %}
             </table>

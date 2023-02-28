@@ -108,7 +108,13 @@ def _get_test_config_tuple(
             'logfile': '/tmp/fact_main.log',
             'loglevel': 'INFO',
         },
-        'unpack': {'max-depth': '10', 'memory-limit': '2048', 'threads': '4', 'whitelist': ''},
+        'unpack': {
+            'base-port': '9900',
+            'max-depth': '10',
+            'memory-limit': '2048',
+            'threads': '4',
+            'whitelist': '',
+        },
         'statistics': {'max_elements_per_chart': '10'},
     }
 

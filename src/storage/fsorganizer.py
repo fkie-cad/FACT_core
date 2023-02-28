@@ -7,13 +7,12 @@ from config import cfg
 
 
 class FSOrganizer:
-    '''
+    """
     This module organizes file system storage
-    '''
+    """
 
     def __init__(self):
         self.data_storage_path = Path(cfg.data_storage.firmware_file_storage_directory).absolute()
-
         self.data_storage_path.parent.mkdir(parents=True, exist_ok=True)
 
     def store_file(self, file_object):

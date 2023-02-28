@@ -7,7 +7,6 @@ from pathlib import Path
 from pydantic import BaseModel, Extra
 from werkzeug.local import LocalProxy
 
-# pylint: disable=invalid-name
 _cfg = None
 cfg: Config = LocalProxy(lambda: _cfg)
 
@@ -71,9 +70,10 @@ class Logging(BaseModel):
 class Unpack(BaseModel):
     Config = _PydanticConfigExtraForbid
     threads: int
+    memory_limit: int = 2048
     whitelist: list
     max_depth: int
-    memory_limit: int = 2048
+    base_port: int
 
 
 class DefaultPlugins(BaseModel):
