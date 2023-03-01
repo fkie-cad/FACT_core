@@ -42,6 +42,7 @@ def test_get_plugin_stats(mock_plugin):
 
 
 def test_update_duration_stats(mock_plugin):
+    mock_plugin.start()
     assert mock_plugin.analysis_stats_count.value == mock_plugin.analysis_stats_index.value == 0
     fw = create_test_firmware()
     for _ in range(4):
