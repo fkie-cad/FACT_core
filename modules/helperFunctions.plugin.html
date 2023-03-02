@@ -70,7 +70,8 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_conversion.html">helperFunctions.object_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.plugin module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.plugin.import_plugins"><code class="docutils literal notranslate"><span class="pre">import_plugins()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.plugin.discover_analysis_plugins"><code class="docutils literal notranslate"><span class="pre">discover_analysis_plugins()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.plugin.discover_compare_plugins"><code class="docutils literal notranslate"><span class="pre">discover_compare_plugins()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
@@ -117,18 +118,23 @@
   <section id="module-helperFunctions.plugin">
 <span id="helperfunctions-plugin-module"></span><h1>helperFunctions.plugin module<a class="headerlink" href="#module-helperFunctions.plugin" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.plugin.import_plugins">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.plugin.</span></span><span class="sig-name descname"><span class="pre">import_plugins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plugin_mount</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plugin_base_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.plugin.import_plugins" title="Permalink to this definition"></a></dt>
-<dd><p>Imports all plugins in plugin_base_dir with packagename plugin_mount</p>
+<dt class="sig sig-object py" id="helperFunctions.plugin.discover_analysis_plugins">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.plugin.</span></span><span class="sig-name descname"><span class="pre">discover_analysis_plugins</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.plugin.discover_analysis_plugins" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of modules where each module is an analysis plugin.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>plugin_mount</strong> – The packagename that the plugins will reside in</p></li>
-<li><p><strong>plugin_base_dir</strong> – The directory that contains the plugins</p></li>
-</ul>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A pluginbase.PluginSource containing all plugins from plugin_base_dir</p>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.plugin.discover_compare_plugins">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.plugin.</span></span><span class="sig-name descname"><span class="pre">discover_compare_plugins</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.plugin.discover_compare_plugins" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of modules where each module is a compare plugin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
