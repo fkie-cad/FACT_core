@@ -63,8 +63,7 @@ function updateProgressBarElement(elementId, percent, used, total) {
 function getProgressBar(percentage, labelCurrent, labelMax, unit) {
     const value = `${labelCurrent} ${unit} / ${labelMax} ${unit}`;
     return `
-        <div class="progress-bar text-center${percentage > 80 ? " bg-warning" : ""}" role="progressbar" style="width: ${percentage}%">
-        </div>
+        <div class="progress-bar text-center${percentage > 80 ? " bg-warning" : ""}" role="progressbar" style="width: ${percentage}%"></div>
         <div class="justify-content-center d-flex position-absolute w-100" style="margin-top: 10px;">
             ${value}
         </div>
@@ -139,61 +138,82 @@ function updatePluginCard(pluginName, pluginData) {
 }
 
 function updateCurrentAnalyses(analysisData) {
-    const currentAnalyses = analysisData.current_analyses;
     const currentAnalysesElement = document.getElementById("current-analyses");
     const currentAnalysesHTML = [].concat(
         Object.entries(analysisData.current_analyses)
-            .map(([uid, analysisStats], index) => createCurrentAnalysisItem(uid, analysisStats)),
+            .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid, false)),
         Object.entries(analysisData.recently_finished_analyses)
-            .map(([uid, analysisStats], index) => createFinishedAnalysisItem(uid, analysisStats)),
+            .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid, true)),
     ).join("\n");
     currentAnalysesElement.innerHTML = currentAnalysesHTML !== "" ? currentAnalysesHTML : "No analysis in progress";
+    document.querySelectorAll('div[role=tooltip]').forEach((element) => {element.remove();});
+    $("body").tooltip({selector: '[data-toggle="tooltip"]'});  // update tooltips for dynamically created elements
 }
 
-function createCurrentAnalysisItem(uid, data) {
-    const currentAnalysisProgress = data.analyzed_count / data.total_count;
-    const currentUnpackingProgress = (data.unpacked_count - data.analyzed_count) / data.total_count;
-    const analysisProgressString = `${data.analyzed_count} / ${data.total_count} (Elapsed: ${getDuration(data.start_time)})`;
+function createCurrentAnalysisItem(data, uid, isFinished) {
+    const timeString = isFinished ? `Finished in ${getDuration(null, data.duration)}` : `${getDuration(data.start_time)}`;
+    const total = isFinished ? data.total_files_count : data.total_count;
     return `
-        <div class="card clickable mt-2" onclick="location.href='/analysis/${uid}/ro/${uid}'">
-            <h6 class="card-title p-2" style="margin-bottom: 0 !important; padding-bottom: 0 !important;">${data.hid}</h6>
-            <div class="card-body p-2">
-                ${getProgressParagraph(analysisProgressString)}
-                <div class="progress" style="height: 20px;">
-                    <div
-                        class="progress-bar progress-bar-striped progress-bar-animated text-center"
-                        role="progressbar"
-                        style="width: ${currentAnalysisProgress * 100}%"
-                    >
-                    </div>
-                    <div
-                        class="progress-bar progress-bar-striped progress-bar-animated bg-warning text-center"
-                        role="progressbar"
-                        style="width: ${currentUnpackingProgress * 100}%"
-                    ></div>
+        <a href='/analysis/${uid}/ro/${uid}' style="color: black;">
+            <div class="card clickable mt-2">
+                <h6 class="card-title p-2" style="margin-bottom: 0 !important; padding-bottom: 0 !important;">${data.hid}</h6>
+                <div class="card-body p-2">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tr>
+                            ${createIconCell("box-open", "Unpacking Progress")}
+                            ${createProgressBarCell(isFinished ? data.total_files_count : data.unpacked_count, total)}
+                        </tr>
+                        <tr>
+                            ${createIconCell("microscope", "Analysis Progress")}
+                            ${createProgressBarCell(isFinished ? data.total_files_count : data.analyzed_count, total)}
+                        </tr>
+                        <tr>
+                            ${createIconCell("clock", "Elapsed Time")}
+                            <td>
+                                <p class="card-text">${timeString}</p>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </div>
-        </div>
+        </a>
     `;
 }
 
-function createFinishedAnalysisItem(uid, data) {
-    const progressString = `${data.total_files_count} / ${data.total_files_count} (Finished in: ${getDuration(null, data.duration)})`;
+function createProgressBarCell(count, total) {
+    const progress = count / total * 100;
+    const progressString = `${count} / ${total} (${progress.toFixed(1)}%)`;
+    const divClass = (progress >= 100.0) ? "progress-bar bg-success text-center" : "progress-bar text-center";
+    const pStyle = {
+        "color": "white",
+        "font-size": "0.75rem",
+        "position": "absolute",
+        "z-index": "3",
+        "width": "100%",
+        "margin-top": "1px",
+        "text-align": "center",
+        "padding-right": "83px",
+    };
     return `
-        <div class="card clickable mt-2" onclick="location.href='/analysis/${uid}/ro/${uid}'">
-            <h6 class="card-title p-2" style="margin-bottom: 0 !important; padding-bottom: 0 !important;">${data.hid}</h6>
-            <div class="card-body p-2">
-                ${getProgressParagraph(progressString)}
-                <div class="progress" style="height: 20px;">
-                    <div class="progress-bar progress-bar-striped bg-success text-center" role="progressbar" style="width: 100%"></div>
-                </div>
+        <td class="align-middle">
+            <p style="${objectToStyle(pStyle)}">${progressString}</p>
+            <div class="progress" style="height: 20px;">
+                <div class="${divClass}" role="progressbar" style="width: ${progress}%"></div>
             </div>
-        </div>
+        </td>
     `;
 }
 
-function getProgressParagraph(progressText) {
-    return `<p style="color: white; position: absolute; z-index: 3; width: 100%; margin-top: -3px; text-align: center; padding-right: 15px;"><small>${progressText}</small></p>`;
+function objectToStyle(obj) {
+    return Object.entries(obj).map(([k, v]) => `${k}: ${v};`).join(" ");
+}
+
+function createIconCell(icon, tooltip) {
+    return `
+        <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="${tooltip}">
+            <i class="fas fa-${icon}"></i>
+        </td>
+    `;
 }
 
 function getDuration(start=null, duration=null) {
