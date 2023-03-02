@@ -8,6 +8,7 @@ from time import sleep
 from config import cfg
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker, stop_processes
+from objects.firmware import Firmware
 from unpacker.unpack import Unpacker
 
 THROTTLE_INTERVAL = 2
@@ -43,11 +44,12 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         )
         logging.info('Unpacker Module offline')
 
-    def add_task(self, fo):
+    def add_task(self, fw: Firmware):
         '''
         schedule a firmware_object for unpacking
         '''
-        self.in_queue.put(fo)
+        fw.root_uid = fw.uid  # make sure the root_uid is set correctly for unpacking and analysis scheduling
+        self.in_queue.put(fw)
 
     def get_scheduled_workload(self):
         return {'unpacking_queue': self.in_queue.qsize(), 'is_throttled': self.throttle_condition.value == 1}

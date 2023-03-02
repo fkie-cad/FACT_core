@@ -23,7 +23,7 @@ class Unpacker(UnpackBase):
         self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
         self.unpacking_locks = unpacking_locks
 
-    def unpack(self, current_fo: FileObject):
+    def unpack(self, current_fo: FileObject) -> list[FileObject]:
         '''
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
@@ -42,10 +42,9 @@ class Unpacker(UnpackBase):
                 self._store_unpacking_error_skip_info(current_fo)
                 return []
 
-            extracted_file_objects = self.generate_and_store_file_objects(
+            extracted_file_objects = self.generate_objects_and_store_files(
                 extracted_files, Path(tmp_dir) / 'files', current_fo
             )
-            extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
             self.add_included_files_to_object(extracted_file_objects, current_fo)
             # set meta data
             current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
@@ -85,39 +84,33 @@ class Unpacker(UnpackBase):
             logging.error(f'[worker {self.worker_id}] Could not CleanUp tmp_dir: {type(error)} - {str(error)}')
 
     @staticmethod
-    def add_included_files_to_object(included_file_objects, root_file_object):
+    def add_included_files_to_object(included_file_objects: list[FileObject], root_file_object: FileObject):
         for item in included_file_objects:
             root_file_object.add_included_file(item)
 
-    def generate_and_store_file_objects(self, file_paths: list[Path], extraction_dir: Path, parent: FileObject):
+    def generate_objects_and_store_files(
+        self, file_paths: list[Path], extraction_dir: Path, parent: FileObject
+    ) -> list[FileObject]:
         extracted_files = {}
         for item in file_paths:
-            if not file_is_empty(item):
-                current_file = FileObject(file_path=str(item))
-                base = get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0])
-                current_virtual_path = join_virtual_path(
-                    base, parent.uid, get_relative_object_path(item, extraction_dir)
-                )
-                current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
-                if current_file.uid in extracted_files:  # the same file is extracted multiple times from one archive
-                    extracted_files[current_file.uid].virtual_file_path[parent.get_root_uid()].append(
-                        current_virtual_path
-                    )
-                else:
-                    self.unpacking_locks.set_unpacking_lock(current_file.uid)
-                    self.file_storage_system.store_file(current_file)
-                    current_file.virtual_file_path = {parent.get_root_uid(): [current_virtual_path]}
-                    current_file.parent_firmware_uids.add(parent.get_root_uid())
-                    extracted_files[current_file.uid] = current_file
-        return extracted_files
+            if file_is_empty(item):
+                continue
+            current_file = FileObject(file_path=str(item))
+            base = get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0])
+            current_virtual_path = join_virtual_path(base, parent.uid, get_relative_object_path(item, extraction_dir))
+            current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
+            if current_file.uid in extracted_files:  # the same file is extracted multiple times from one archive
+                extracted_files[current_file.uid].virtual_file_path[parent.get_root_uid()].append(current_virtual_path)
+            else:
+                self.unpacking_locks.set_unpacking_lock(current_file.uid)
+                self.file_storage_system.store_file(current_file)
+                current_file.virtual_file_path = {parent.get_root_uid(): [current_virtual_path]}
+                current_file.parent_firmware_uids.add(parent.get_root_uid())
+                extracted_files[current_file.uid] = current_file
+        extracted_files.pop(parent.uid, None)  # the same file should not be unpacked from itself
+        return list(extracted_files.values())
 
-    @staticmethod
-    def remove_duplicates(extracted_fo_dict, parent_fo):
-        if parent_fo.uid in extracted_fo_dict:
-            del extracted_fo_dict[parent_fo.uid]
-        return list(extracted_fo_dict.values())
-
-    def _generate_local_file_path(self, file_object: FileObject):
+    def _generate_local_file_path(self, file_object: FileObject) -> str:
         if not Path(file_object.file_path).exists():
             local_path = self.file_storage_system.generate_path(file_object.uid)
             return local_path
