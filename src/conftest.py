@@ -73,6 +73,7 @@ def _get_test_config_tuple(
             'redis-test-db': config.cfg.data_storage.redis_test_db,  # Note: This is unused in production
             'redis-host': config.cfg.data_storage.redis_host,
             'redis-port': config.cfg.data_storage.redis_port,
+            'redis-pw': '',
             'firmware-file-storage-directory': firmware_file_storage_directory,
             'user-database': 'sqlite:////media/data/fact_auth_data/fact_users.db',
             'password-salt': '1234',

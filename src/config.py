@@ -3,6 +3,7 @@ from __future__ import annotations
 import configparser
 from configparser import ConfigParser
 from pathlib import Path
+from typing import Optional
 
 from pydantic import BaseModel, Extra
 from werkzeug.local import LocalProxy
@@ -45,10 +46,11 @@ class DataStorage(BaseModel):
     postgres_admin_user: str
     postgres_admin_pw: str
 
-    redis_fact_db: str
+    redis_fact_db: int
     redis_test_db: str
     redis_host: str
     redis_port: int
+    redis_pw: Optional[str]
 
     firmware_file_storage_directory: str
 
