@@ -186,7 +186,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _load_plugins(self):
         for plugin in discover_analysis_plugins():
-            self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
+            try:
+                self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
+            except Exception:  # pylint: disable=broad-except
+                logging.error(f'Could not import analysis plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
     def get_plugin_dict(self) -> dict:
         '''
