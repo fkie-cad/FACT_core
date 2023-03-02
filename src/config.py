@@ -110,6 +110,7 @@ class ExpertSettings(BaseModel):
     nginx: bool
     intercom_poll_delay: float
     radare2_host: str
+    unpacking_delay: float
 
 
 # We need to allow extra here since we don't know what plugins will be loaded
