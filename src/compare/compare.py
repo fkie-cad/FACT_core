@@ -75,7 +75,10 @@ class Compare:
 
     def _init_plugins(self):
         for plugin in discover_compare_plugins():
-            self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(db_interface=self.db_interface)
+            try:
+                self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(db_interface=self.db_interface)
+            except Exception:  # pylint: disable=broad-except
+                logging.error(f'Could not import comparison plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
     def _execute_compare_plugins(self, fo_list):
         return {name: plugin.compare(fo_list) for name, plugin in self.compare_plugins.items()}
