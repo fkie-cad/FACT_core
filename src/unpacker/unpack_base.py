@@ -52,7 +52,7 @@ class UnpackBase:
         try:
             response = requests.get(worker_url, timeout=WORKER_TIMEOUT)
         except ReadTimeout as error:
-            raise ExtractionError('Timout during extraction.') from error
+            raise ExtractionError('Timeout during extraction.') from error
         except requests.exceptions.ConnectionError as error:
             raise ExtractionError('Extraction container could not be reached.') from error
         if response.status_code != 200:
