@@ -104,6 +104,7 @@ def _get_test_config_tuple(
             'throw-exceptions': 'true',  # Always throw exceptions to avoid miraculous timeouts in test cases
             'unpack-threshold': '0.8',
             'unpack_throttle_limit': '50',
+            'unpacking_delay': '0.0',
         },
         'logging': {
             'logfile': '/tmp/fact_main.log',
