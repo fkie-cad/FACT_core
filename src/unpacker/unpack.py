@@ -47,34 +47,35 @@ class Unpacker(UnpackBase):
             )
             self.add_included_files_to_object(extracted_file_objects, current_fo)
             # set meta data
-            current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
+            current_fo.processed_analysis['unpacker'] = json.loads(
+                Path(tmp_dir, 'reports', 'meta.json').read_text()  # pylint: disable=unspecified-encoding
+            )
 
         return extracted_file_objects
 
-    @staticmethod
-    def _store_unpacking_error_skip_info(file_object: FileObject):
-        file_object.processed_analysis['unpacker'] = {
-            'plugin_used': 'None',
-            'number_of_unpacked_files': 0,
-            'plugin_version': '0.0',
-            'analysis_date': time(),
-            'info': 'Unpacking stopped because extractor raised a exception (possible timeout)',
-            'tags': {
-                'extractor error': {'value': 'possible extractor timeout', 'color': TagColor.ORANGE, 'propagate': False}
-            },
-        }
+    def _store_unpacking_error_skip_info(self, file_object: FileObject):
+        file_object.processed_analysis['unpacker'] = self._init_skipped_analysis(
+            'Unpacking stopped because extractor raised a exception (possible timeout)',
+            'extractor error',
+            'possible extractor timeout',
+        )
+
+    def _store_unpacking_depth_skip_info(self, file_object: FileObject):
+        file_object.processed_analysis['unpacker'] = self._init_skipped_analysis(
+            'Unpacking stopped because maximum unpacking depth was reached',
+            'depth reached',
+            'unpacking depth reached',
+        )
 
     @staticmethod
-    def _store_unpacking_depth_skip_info(file_object: FileObject):
-        file_object.processed_analysis['unpacker'] = {
+    def _init_skipped_analysis(message: str, tag: str, tag_tooltip: str) -> dict:
+        return {
             'plugin_used': 'None',
             'number_of_unpacked_files': 0,
             'plugin_version': '0.0',
             'analysis_date': time(),
-            'info': 'Unpacking stopped because maximum unpacking depth was reached',
-            'tags': {
-                'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}
-            },
+            'info': message,
+            'tags': {tag: {'value': tag_tooltip, 'color': TagColor.ORANGE, 'propagate': False}},
         }
 
     def cleanup(self, tmp_dir):
