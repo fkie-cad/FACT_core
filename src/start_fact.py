@@ -37,10 +37,45 @@ except ImportError:
     sys.exit(1)
 
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.program_setup import setup_argparser
+from helperFunctions.program_setup import setup_argparser, setup_logging
 
-PROGRAM_NAME = 'FACT Starter'
-PROGRAM_DESCRIPTION = 'This script starts all installed FACT components'
+
+class FactStarter:
+    PROGRAM_NAME = 'FACT Starter'
+    PROGRAM_DESCRIPTION = 'This script starts all installed FACT components'
+
+    def __init__(self):
+        self.run = False
+
+    def start(self):
+        self.run = True
+
+        def _handle_sigterm(signum, frame):
+            del signum, frame
+            self.shutdown()
+
+        signal.signal(signal.SIGINT, _handle_sigterm)
+        signal.signal(signal.SIGTERM, _handle_sigterm)
+
+        args = setup_argparser(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+        config.load(args.config_file)
+        setup_logging(args, self.PROGRAM_NAME)
+
+        db_process = _start_component('database', args)
+        frontend_process = _start_component('frontend', args)
+        backend_process = _start_component('backend', args)
+
+        while self.run:
+            sleep(1)
+            if args.testing:
+                break
+
+        _terminate_process(backend_process)
+        _terminate_process(frontend_process)
+        _terminate_process(db_process)
+
+    def shutdown(self):
+        self.run = False
 
 
 def _evaluate_optional_args(args: argparse.Namespace):
@@ -57,12 +92,14 @@ def _start_component(component: str, args: argparse.Namespace) -> Popen | None:
     if not script_path.exists():
         logging.debug(f'{component} not installed')
         return None
+    logging.info(f'starting {component}')
     optional_args = _evaluate_optional_args(args)
-    command = f'''{script_path} \
-        -l {getattr(cfg.logging, f"logfile_{component}")} \
-        -L {cfg.logging.loglevel} \
-        {optional_args} \
-        '''
+    command = (
+        f'{script_path} '
+        f'-l {getattr(cfg.logging, f"logfile_{component}")} '
+        f'-L {args.log_level} '
+        f'{optional_args} '
+    )
 
     if args.config_file is not None:
         command += f'-C {args.config_file}'
@@ -81,31 +118,7 @@ def _terminate_process(process: Popen | None):
             pass
 
 
-def shutdown(*_):
-    global run
-    run = False
-
-
-signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
-
-
 if __name__ == '__main__':
-    run = True
-    args = setup_argparser(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-    config.load(args.config_file)
-
-    db_process = _start_component('database', args)
-    frontend_process = _start_component('frontend', args)
-    backend_process = _start_component('backend', args)
-
-    while run:
-        sleep(1)
-        if args.testing:
-            break
-
-    _terminate_process(backend_process)
-    _terminate_process(frontend_process)
-    _terminate_process(db_process)
-
+    starter = FactStarter()
+    starter.start()
     sys.exit()
