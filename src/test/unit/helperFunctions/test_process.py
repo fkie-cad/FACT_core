@@ -23,11 +23,9 @@ def test_exception_safe_process():
     assert str(process.exception[0]) == 'now that\'s annoying'
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config_overwrite(
     {
-        'expert-settings': {
-            'throw-exceptions': 'true',
-        }
+        'throw_exceptions': True,
     }
 )
 def test_check_worker_exceptions():
@@ -43,11 +41,9 @@ def test_check_worker_exceptions():
     assert len(process_list) == 0
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config_overwrite(
     {
-        'expert-settings': {
-            'throw-exceptions': 'false',
-        }
+        'throw_exceptions': False,
     }
 )
 def test_check_worker_restart(caplog):

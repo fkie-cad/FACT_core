@@ -12,7 +12,7 @@ from threading import Thread
 
 import psutil
 
-from config import cfg
+import config
 from helperFunctions.logging import TerminalColors, color_string
 
 
@@ -162,7 +162,7 @@ def check_worker_exceptions(
             logging.error(color_string(f'Exception in {worker_label} process:\n{stack_trace}', TerminalColors.FAIL))
             terminate_process_and_children(worker_process)
             process_list.remove(worker_process)
-            if cfg.expert_settings.throw_exceptions:
+            if config.backend.throw_exceptions:
                 return_value = True
             elif worker_function is not None:
                 process_index = int(worker_process.name.split('-')[-1])

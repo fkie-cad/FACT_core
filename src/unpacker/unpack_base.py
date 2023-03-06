@@ -11,7 +11,7 @@ from common_helper_files import safe_rglob
 from docker.types import Mount
 from requests import ReadTimeout, exceptions
 
-from config import cfg
+import config
 from helperFunctions.docker import run_docker_container
 from unpacker.extraction_container import EXTRACTOR_DOCKER_IMAGE, ExtractionContainer
 
@@ -68,7 +68,7 @@ class UnpackBase:
                 EXTRACTOR_DOCKER_IMAGE,
                 combine_stderr_stdout=True,
                 privileged=True,
-                mem_limit=f'{cfg.unpack.memory_limit}m',
+                mem_limit=f'{config.backend.unpacking.memory_limit}m',
                 mounts=[
                     Mount('/dev/', '/dev/', type='bind'),
                     Mount('/tmp/extractor', tmp_dir, type='bind'),

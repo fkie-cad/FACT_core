@@ -15,11 +15,9 @@ def compare_plugin():
     yield ComparePlugin(view_updater=CommonDatabaseMock())
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config(
     {
-        'expert-settings': {
-            'ssdeep-ignore': '80',
-        },
+        'ssdeep_ignore': 80,
     }
 )
 class TestPluginBase:

@@ -29,7 +29,6 @@ from subprocess import Popen, TimeoutExpired
 from time import sleep
 
 import config
-from config import cfg
 
 try:
     import fact_base  # pylint: disable=unused-import  # noqa: F401  # just check if FACT is installed
@@ -96,7 +95,7 @@ def _start_component(component: str, args: argparse.Namespace) -> Popen | None:
     optional_args = _evaluate_optional_args(args)
     command = (
         f'{script_path} '
-        f'-l {getattr(cfg.logging, f"logfile_{component}")} '
+        f'-l {getattr(config.common.logging, f"file_{component}")} '
         f'-L {args.log_level} '
         f'{optional_args} '
     )

@@ -27,10 +27,8 @@ def mock_check_output(call, *_, shell=True, stderr=None, **__):
     raise CalledProcessError(1, call, b'', stderr)
 
 
-@pytest.mark.cfg_defaults(
-    {
-        'data-storage': {'firmware-file-storage-directory': path.join(get_test_data_dir(), TEST_FILE_1)},
-    }
+@pytest.mark.backend_config_overwrite(
+    {'firmware_file_storage_directory': path.join(get_test_data_dir(), TEST_FILE_1)},
 )
 class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
     @mock.patch('helperFunctions.yara_binary_search.DbInterfaceCommon', MockCommonDbInterface)

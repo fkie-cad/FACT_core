@@ -1,4 +1,3 @@
-from configparser import ConfigParser
 from typing import NamedTuple
 
 import pytest
@@ -10,6 +9,16 @@ from prompt_toolkit.output import DummyOutput
 from manage_users import setup_argparse, start_user_management
 from web_interface.app import create_app
 from web_interface.security.authentication import add_flask_security_to_app
+
+pytest.mark.frontend_config_overwrite(
+    {
+        'authentication': {
+            'enabled': True,
+            'user-database': 'sqlite://',
+            'password-salt': 'salt',
+        },
+    }
+)
 
 
 class Prompt(NamedTuple):
@@ -38,19 +47,8 @@ def test_setup_argparse(monkeypatch):
 
 
 def _setup_frontend():
-    parser = ConfigParser()
     # See add_config_from_configparser_to_app for needed values
-    parser.read_dict(
-        {
-            'data-storage': {
-                # We want an in memory database for testing
-                'user-database': 'sqlite://',
-                'password-salt': 'salt',
-            },
-            'expert-settings': {'authentication': 'true'},
-        }
-    )
-    test_app = create_app(parser)
+    test_app = create_app()
     db, store = add_flask_security_to_app(test_app)
     return test_app, store, db
 

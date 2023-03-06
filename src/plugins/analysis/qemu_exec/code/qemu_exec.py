@@ -18,8 +18,8 @@ from docker.types import Mount
 from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
@@ -46,7 +46,7 @@ class Unpacker(UnpackBase):
             return None
 
         extraction_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-            prefix='FACT_plugin_qemu_exec', dir=cfg.data_storage.docker_mount_base_dir
+            prefix='FACT_plugin_qemu_exec', dir=config.backend.docker_mount_base_dir
         )
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir

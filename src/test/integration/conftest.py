@@ -58,9 +58,11 @@ class MockDataStorage(BaseModel, extra=Extra.forbid):
 class MockConfig(BaseModel, extra=Extra.forbid):
     """This class is a mock of ``config.py:Config``.
     It must contain exactly what is needed for everything in the storage module to work.
-    This can be found e.g. by using ripgrep: ``rg 'cfg\\.'``.
+    This can be found e.g. by using ripgrep: ``rg 'config\\.'``.
     """
-    data_storage: MockDataStorage
+
+    postgres: config.Common.Postgres
+    redis: config.Common.Redis
 
 
 # Integration tests test the system as a whole so one can reasonably expect the database to be populated.
@@ -69,37 +71,42 @@ def _db_interface():
     """Creates the tables that backend needs.
     This is equivalent to executing ``init_postgres.py``.
     """
-    # Since this fixture is session scope it cant use the function scoped fixture cfg_tuple.
+    # Since this fixture is session scope it cant use the function scoped fixture common_config.
     # To create the database we need the database section to be loaded.
     # We just patch it here.
     with pytest.MonkeyPatch.context() as mpk:
         config.load()
         # Make sure to match the config here with the one in src/conftest.py:_get_test_config_tuple
-        sections = {
-            'data-storage': {
-                'postgres-server': 'localhost',
-                'postgres-port': '5432',
-                'postgres-database': 'fact_test',
-                'postgres-test-database': 'fact_test',
-                'postgres-ro-user': config.cfg.data_storage.postgres_ro_user,
-                'postgres-ro-pw': config.cfg.data_storage.postgres_ro_pw,
-                'postgres-rw-user': config.cfg.data_storage.postgres_rw_user,
-                'postgres-rw-pw': config.cfg.data_storage.postgres_rw_pw,
-                'postgres-del-user': config.cfg.data_storage.postgres_del_user,
-                'postgres-del-pw': config.cfg.data_storage.postgres_del_pw,
-                'postgres-admin-user': config.cfg.data_storage.postgres_del_user,
-                'postgres-admin-pw': config.cfg.data_storage.postgres_del_pw,
-                'redis-fact-db': config.cfg.data_storage.redis_test_db,  # Note: This is unused in testing
-                'redis-test-db': config.cfg.data_storage.redis_test_db,  # Note: This is unused in production
-                'redis-host': config.cfg.data_storage.redis_host,
-                'redis-port': config.cfg.data_storage.redis_port,
+
+        database_config = {
+            'redis': {
+                'fact_db': config.common.redis.test_db,
+                'test_db': config.common.redis.test_db,
+                'host': config.common.redis.host,
+                'port': config.common.redis.port,
+                # FIXME Omitting the password might be wrong
+            },
+            'postgres': {
+                'server': config.common.postgres.server,
+                'port': config.common.postgres.port,
+                'database': config.common.postgres.test_database,
+                'test_database': config.common.postgres.test_database,
+                'ro_user': config.common.postgres.ro_user,
+                'ro_pw': config.common.postgres.ro_pw,
+                'rw_user': config.common.postgres.rw_user,
+                'rw_pw': config.common.postgres.rw_pw,
+                'del_user': config.common.postgres.del_user,
+                'del_pw': config.common.postgres.del_pw,
+                'admin_user': config.common.postgres.admin_user,
+                'admin_pw': config.common.postgres.admin_pw,
             },
         }
 
-        config._replace_hyphens_with_underscores(sections)
-        cfg = MockConfig(**sections)
+        cfg = MockConfig(**database_config)
 
-        mpk.setattr('config._cfg', cfg)
+        mpk.setattr('config._common', cfg)
+        mpk.setattr('config._backend', cfg)
+        mpk.setattr('config._frontend', cfg)
 
         db_setup = DbSetup()
 

@@ -8,7 +8,7 @@ from common_helper_files import get_binary_from_file
 from flask import flash, redirect, render_template, render_template_string, request, url_for
 from flask_login.utils import current_user
 
-from config import cfg
+import config
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.fileSystem import get_src_dir
@@ -133,7 +133,7 @@ class AnalysisRoutes(ComponentBase):
             plugin_dict = intercom.get_available_analysis_plugins()
 
         current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
-        analysis_presets = [current_analysis_preset] + [preset for preset, _ in cfg.default_plugins]
+        analysis_presets = [current_analysis_preset] + [preset for preset in config.frontend.analysis_preset]
 
         title = 're-do analysis' if re_do else 'update analysis'
 

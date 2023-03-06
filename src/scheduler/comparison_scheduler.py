@@ -3,8 +3,8 @@ import os
 from multiprocessing import Queue, Value
 from queue import Empty
 
+import config
 from compare.compare import Compare
-from config import cfg
 from helperFunctions.data_conversion import convert_compare_id_to_list
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker
 from storage.db_interface_admin import AdminDbInterface
@@ -54,7 +54,7 @@ class ComparisonScheduler:
 
     def _compare_single_run(self, comparisons_done):
         try:
-            comparison_id, redo = self.in_queue.get(timeout=cfg.expert_settings.block_delay)
+            comparison_id, redo = self.in_queue.get(timeout=config.backend.block_delay)
         except Empty:
             return
         if self._comparison_should_start(comparison_id, redo, comparisons_done):
