@@ -7,8 +7,8 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
+import config
 from compile_yara_signatures import main as compile_signatures
-from config import cfg
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import (
     InstallationError,
@@ -87,7 +87,7 @@ def install_plugin_docker_images():
 def _create_firmware_directory():
     logging.info('Creating firmware directory')
 
-    data_dir_name = cfg.data_storage.firmware_file_storage_directory
+    data_dir_name = config.backend.firmware_file_storage_directory
     mkdir_process = subprocess.run(
         f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, text=True
     )

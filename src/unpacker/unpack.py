@@ -7,7 +7,7 @@ from time import time
 
 from fact_helper_file import get_file_type_from_path
 
-from config import cfg
+import config
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
@@ -28,8 +28,10 @@ class Unpacker(UnpackBase):
         '''
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
-        if current_fo.depth >= cfg.unpack.max_depth:
-            logging.warning(f'{current_fo.uid} is not extracted since depth limit ({cfg.unpack.max_depth}) is reached')
+        if current_fo.depth >= config.backend.unpacking.max_depth:
+            logging.warning(
+                f'{current_fo.uid} is not extracted since depth limit ({config.backend.unpacking.max_depth}) is reached'
+            )
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 

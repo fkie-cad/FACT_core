@@ -14,7 +14,7 @@ from docker.models.containers import Container
 from docker.types import Mount
 from requests.adapters import HTTPAdapter, Retry
 
-from config import cfg
+import config
 
 DOCKER_CLIENT = docker.from_env()
 EXTRACTOR_DOCKER_IMAGE = 'fkiecad/fact_extractor'
@@ -24,7 +24,7 @@ class ExtractionContainer:
     def __init__(self, id_: int, tmp_dir: TemporaryDirectory, value: multiprocessing.managers.ValueProxy):
         self.id_ = id_
         self.tmp_dir = tmp_dir
-        self.port = cfg.unpack.base_port + id_
+        self.port = config.backend.unpacking.base_port + id_
         self.container_id = None
         self.exception = value
         self._adapter = HTTPAdapter(max_retries=Retry(total=5, backoff_factor=0.1))
@@ -44,7 +44,7 @@ class ExtractionContainer:
         container = DOCKER_CLIENT.containers.run(
             image=EXTRACTOR_DOCKER_IMAGE,
             ports={'5000/tcp': self.port},
-            mem_limit=f'{cfg.unpack.memory_limit}m',
+            mem_limit=f'{config.backend.unpacking.memory_limit}m',
             mounts=[volume],
             volumes={'/dev': {'bind': '/dev', 'mode': 'rw'}},
             privileged=True,

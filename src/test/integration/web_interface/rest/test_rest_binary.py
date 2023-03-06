@@ -18,8 +18,7 @@ class TestRestDownload(RestTestBase):
     def teardown(self):
         self.test_queue.close()
 
-    def test_rest_download_valid(self, db, cfg_tuple):
-        cfg, _ = cfg_tuple
+    def test_rest_download_valid(self, db, backend_config):
         backend_binding = InterComBackEndBinding(
             analysis_service=test_backend_scheduler.AnalysisServiceMock(),
             compare_service=test_backend_scheduler.ServiceMock(self.test_queue),
@@ -30,7 +29,7 @@ class TestRestDownload(RestTestBase):
             test_firmware = create_test_firmware(
                 device_class='test class', device_name='test device', vendor='test vendor'
             )
-            store_binary_on_file_system(cfg.data_storage.firmware_file_storage_directory, test_firmware)
+            store_binary_on_file_system(backend_config.firmware_file_storage_directory, test_firmware)
             self.db_interface.add_object(test_firmware)
 
             response = self.test_client.get(f'/rest/binary/{test_firmware.uid}', follow_redirects=True).data.decode()

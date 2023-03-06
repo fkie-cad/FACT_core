@@ -8,7 +8,7 @@ from tempfile import NamedTemporaryFile
 
 import yara
 
-from config import cfg
+import config
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
 
@@ -24,7 +24,7 @@ class YaraBinarySearchScanner:
 
     def __init__(self):
         self.matches = []
-        self.db_path = cfg.data_storage.firmware_file_storage_directory
+        self.db_path = config.backend.firmware_file_storage_directory
         self.db = DbInterfaceCommon()
         self.fs_organizer = FSOrganizer()
 

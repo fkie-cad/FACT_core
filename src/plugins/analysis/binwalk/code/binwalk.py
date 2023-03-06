@@ -8,8 +8,8 @@ from pathlib import Path
 from subprocess import PIPE, STDOUT
 from tempfile import TemporaryDirectory
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -23,7 +23,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         result = {}
-        with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=cfg.data_storage.temp_dir_path) as tmp_dir:
+        with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=config.backend.temp_dir_path) as tmp_dir:
             cmd_process = subprocess.run(
                 f'(cd {tmp_dir} && xvfb-run -a binwalk -BEJ {file_object.file_path})',
                 shell=True,

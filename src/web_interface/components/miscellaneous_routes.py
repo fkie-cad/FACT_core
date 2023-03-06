@@ -7,7 +7,7 @@ from time import time
 from flask import redirect, render_template, request, url_for
 from flask_security import login_required
 
-from config import cfg
+import config
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.web_interface import format_time
 from statistic.update import StatsUpdater
@@ -25,12 +25,12 @@ class MiscellaneousRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/', GET)
     def show_home(self):
-        latest_count = cfg.database.number_of_latest_firmwares_to_display
+        latest_count = config.frontend.number_of_latest_firmwares_to_display
         with get_shared_session(self.db.frontend) as frontend_db:
             latest_firmware_submissions = frontend_db.get_last_added_firmwares(latest_count)
             latest_comments = frontend_db.get_latest_comments(latest_count)
         latest_comparison_results = self.db.comparison.page_comparison_results(limit=10)
-        ajax_stats_reload_time = cfg.database.ajax_stats_reload_time
+        ajax_stats_reload_time = config.frontend.ajax_stats_reload_time
         general_stats = self.stats_updater.get_general_stats()
 
         return render_template(
@@ -116,7 +116,7 @@ class MiscellaneousRoutes(ComponentBase):
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
 
     def _get_frontend_logs(self):
-        frontend_logs = Path(cfg.logging.logfile_frontend)
+        frontend_logs = Path(config.frontend.logging.file_frontend)
         if frontend_logs.is_file():
             return frontend_logs.read_text().splitlines()[-100:]
         return []

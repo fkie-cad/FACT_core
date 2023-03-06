@@ -12,8 +12,8 @@ from typing import NamedTuple
 
 from docker.types import Mount
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
@@ -102,7 +102,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self._add_tag(file_object, self.result)
 
     def _extract_metadata_from_file_system(self, file_object: FileObject):
-        with TemporaryDirectory(dir=cfg.data_storage.docker_mount_base_dir) as tmp_dir:
+        with TemporaryDirectory(dir=config.backend.docker_mount_base_dir) as tmp_dir:
             input_file = Path(tmp_dir) / 'input.img'
             input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
             output = self._mount_in_docker(tmp_dir)

@@ -62,4 +62,4 @@ def test_file_is_zero_broken_link():
 
 
 def test_get_config_dir():
-    assert os.path.exists(f'{get_config_dir()}/main.cfg'), 'main config file not found'
+    assert os.path.exists(f'{get_config_dir()}/fact-core.toml'), 'main config file not found'

@@ -29,8 +29,8 @@ try:
 except (ImportError, ModuleNotFoundError):
     sys.exit(1)
 
+import config
 from analysis.PluginBase import PluginInitException
-from config import cfg
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
@@ -101,7 +101,7 @@ class FactBackend(FactBase):
 
     @staticmethod
     def _create_docker_base_dir():
-        docker_mount_base_dir = Path(cfg.data_storage.docker_mount_base_dir)
+        docker_mount_base_dir = Path(config.backend.docker_mount_base_dir)
         docker_mount_base_dir.mkdir(0o770, exist_ok=True)
         docker_gid = grp.getgrnam('docker').gr_gid
         try:

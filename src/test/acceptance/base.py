@@ -20,11 +20,9 @@ from web_interface.frontend_main import WebFrontEnd
 TMP_DB_NAME = 'tmp_acceptance_tests'
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.frontend_config_overwrite(
     {
-        'expert-settings': {
-            'authentication': 'false',
-        }
+        'authentication': {'enabled': False},
     }
 )
 class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instance-attributes

@@ -11,7 +11,7 @@ from time import sleep
 
 from docker.errors import DockerException
 
-from config import cfg
+import config
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import (
     ExceptionSafeProcess,
@@ -102,9 +102,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         return {'unpacking_queue': self.in_queue.qsize(), 'is_throttled': self.throttle_condition.value == 1}
 
     def create_containers(self):
-        for id_ in range(cfg.unpack.threads):
+        for id_ in range(config.backend.unpacking.processes):
             tmp_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-                dir=cfg.data_storage.docker_mount_base_dir
+                dir=config.backend.docker_mount_base_dir
             )
             container = ExtractionContainer(id_=id_, tmp_dir=tmp_dir, value=self.manager.Value('i', 0))
             container.start()
@@ -160,7 +160,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 logging.warning(f'Exception happened during extraction of {task.uid}.{docker_logs}')
                 container.set_exception()
 
-            sleep(cfg.expert_settings.unpacking_delay)  # unpacking may be too fast for the FS to keep up
+            sleep(config.backend.unpacking.delay)  # unpacking may be too fast for the FS to keep up
 
             self.post_unpack(task)
             if extracted_objects:
@@ -207,7 +207,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             message = f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}'
             log_function(color_string(message, TerminalColors.WARNING))
 
-            if workload < cfg.expert_settings.unpack_throttle_limit:
+            if workload < config.backend.unpacking.throttle_limit:
                 self.throttle_condition.value = 0
             else:
                 self.throttle_condition.value = 1

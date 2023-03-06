@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 from re import Pattern
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
 
@@ -29,9 +29,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self.regexes = self._compile_regexes()
 
     def _compile_regexes(self) -> list[tuple[Pattern[bytes], str]]:
-        min_length = str(getattr(cfg, self.NAME, {}).get('min-length', 8))
+        min_length = getattr(config.backend.plugin.get(self.NAME, {}), 'min-length', 8)
         return [
-            (re.compile(regex.replace(b'$len', min_length.encode())), encoding)
+            (re.compile(regex.replace(b'$len', str(min_length).encode())), encoding)
             for regex, encoding in self.STRING_REGEXES
         ]
 

@@ -6,8 +6,8 @@ from tempfile import TemporaryDirectory
 from docker.errors import DockerException
 from docker.types import Mount
 
+import config
 from analysis.YaraPluginBase import YaraBasePlugin
-from config import cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 
@@ -87,7 +87,7 @@ class AnalysisPlugin(YaraBasePlugin):
         return matched_vulnerabilities
 
     def _check_netusb_vulnerability(self, input_file_data: bytes):
-        with TemporaryDirectory(prefix='known_vulns_', dir=cfg.data_storage.docker_mount_base_dir) as tmp_dir:
+        with TemporaryDirectory(prefix='known_vulns_', dir=config.backend.docker_mount_base_dir) as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
             ghidra_input_file = tmp_dir_path / 'ghidra_input'
             ghidra_input_file.write_bytes(input_file_data)

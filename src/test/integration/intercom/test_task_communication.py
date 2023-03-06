@@ -45,11 +45,9 @@ class BinaryServiceMock:
         assert False, 'if this line reached something went wrong'
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.frontend_config_overwrite(
     {
-        'expert-settings': {
-            'communication-timeout': '1',
-        }
+        'communication_timeout': '1',
     }
 )
 class TestInterComTaskCommunication:

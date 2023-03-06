@@ -7,7 +7,7 @@ from typing import Any
 
 from redis.client import Redis
 
-from config import cfg
+import config
 
 REDIS_MAX_VALUE_SIZE = 512_000_000  # 512 MB (not to be confused with 512 MiB)
 CHUNK_MAGIC = b'$CHUNKED$'
@@ -17,10 +17,10 @@ SEPARATOR = '#'
 class RedisInterface:
     def __init__(self, chunk_size=REDIS_MAX_VALUE_SIZE):
         self.chunk_size = chunk_size
-        redis_db = cfg.data_storage.redis_fact_db
-        redis_host = cfg.data_storage.redis_host
-        redis_port = cfg.data_storage.redis_port
-        redis_pw = cfg.data_storage.redis_pw
+        redis_db = config.common.redis.fact_db
+        redis_host = config.common.redis.host
+        redis_port = config.common.redis.port
+        redis_pw = config.common.redis.password
 
         self.redis = Redis(host=redis_host, port=redis_port, db=redis_db, password=redis_pw)
 

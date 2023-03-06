@@ -9,7 +9,7 @@ import requests
 from fact_helper_file import get_file_type_from_binary
 from flask import Response, make_response, redirect, render_template, request
 
-from config import cfg
+import config
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.pdf import build_pdf_report
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
@@ -49,7 +49,7 @@ class IORoutes(ComponentBase):
             device_classes=device_class_list,
             vendors=vendor_list,
             error=error,
-            analysis_presets=[preset for preset, _ in cfg.default_plugins],
+            analysis_presets=[preset for preset in config.frontend.analysis_preset],
             device_names=json.dumps(device_name_dict, sort_keys=True),
             analysis_plugin_dict=analysis_plugins,
             plugin_set='default',
@@ -112,7 +112,7 @@ class IORoutes(ComponentBase):
             return render_template('error.html', message='timeout')
         binary, _ = result
         try:
-            host = self._get_radare_endpoint()
+            host = config.frontend.radare2_url
             response = requests.post(f'{host}/v1/retrieve', data=binary, verify=False)
             if response.status_code != 200:
                 raise TimeoutError(response.text)
@@ -121,13 +121,6 @@ class IORoutes(ComponentBase):
             return redirect(target_link)
         except (requests.exceptions.ConnectionError, TimeoutError, KeyError) as error:
             return render_template('error.html', message=str(error))
-
-    @staticmethod
-    def _get_radare_endpoint() -> str:
-        radare2_host = cfg.expert_settings.radare2_host
-        if cfg.expert_settings.nginx:
-            return f'https://{radare2_host}/radare'
-        return f'http://{radare2_host}:8000'
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/pdf-download/<uid>', GET)
@@ -140,7 +133,7 @@ class IORoutes(ComponentBase):
             firmware = frontend_db.get_complete_object_including_all_summaries(uid)
 
         try:
-            with TemporaryDirectory(dir=cfg.data_storage.docker_mount_base_dir) as folder:
+            with TemporaryDirectory(dir=config.frontend.docker_mount_base_dir) as folder:
                 pdf_path = build_pdf_report(firmware, Path(folder))
                 binary = pdf_path.read_bytes()
         except RuntimeError as error:

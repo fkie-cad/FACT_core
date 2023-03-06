@@ -6,8 +6,8 @@ import logging
 from common_helper_filter.time import time_format
 from flask import render_template
 
+import config
 import web_interface.filter as flt
-from config import cfg
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
 from helperFunctions.hash import get_md5
@@ -141,7 +141,7 @@ class FilterClass:
         return new_result
 
     def check_auth(self, _):
-        return cfg.expert_settings.authentication
+        return config.frontend.authentication.enabled
 
     def data_to_chart_limited(self, data, limit: int | None = None, color_list=None):
         limit = self._get_chart_element_count() if limit is None else limit
@@ -157,7 +157,7 @@ class FilterClass:
         }
 
     def _get_chart_element_count(self):
-        limit = cfg.statistics.max_elements_per_chart
+        limit = config.frontend.max_elements_per_chart
         if limit > 100:
             logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
             return 100
