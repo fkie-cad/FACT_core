@@ -114,7 +114,7 @@ def _get_test_config_tuple(
             'base-port': '9900',
             'max-depth': '10',
             'memory-limit': '2048',
-            'threads': '4',
+            'threads': '2',
             'whitelist': '',
         },
         'statistics': {'max_elements_per_chart': '10'},

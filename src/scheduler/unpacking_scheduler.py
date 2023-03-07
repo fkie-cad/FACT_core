@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import Queue, Value
+from multiprocessing import Manager, Queue, Value
 from pathlib import Path
 from queue import Empty
 from tempfile import TemporaryDirectory
@@ -44,7 +44,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.get_analysis_workload = analysis_workload
         self.in_queue = Queue()
         self.work_load_counter = 25
-        self.workers: list[ExtractionContainer] = []
+        self.manager = Manager()
+        self.workers = self.manager.list()  # type: list[ExtractionContainer]
+        self.worker_tmp_dirs = []  # type: list[TemporaryDirectory]
         self.pending_tasks: dict[int, Thread] = {}
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
@@ -53,6 +55,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.extraction_process = None
 
     def start(self):
+        self.create_containers()
         self.work_load_process = self.start_work_load_monitor()
         self.extraction_process = self._start_extraction_loop()
         logging.info('Unpacking scheduler online')
@@ -74,7 +77,17 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             [self.work_load_process, self.extraction_process],
             10,  # give containers enough time to shut down
         )
+        self.stop_containers()
+        self._clean_tmp_dirs()
+        self.manager.shutdown()
         logging.info('Unpacker Module offline')
+
+    def _clean_tmp_dirs(self):
+        for tmp_dir in self.worker_tmp_dirs:
+            try:
+                tmp_dir.cleanup()
+            except PermissionError:
+                logging.exception(f'Worker directory "{tmp_dir.name}" could not be cleaned')
 
     # ---- internal functions ----
 
@@ -89,9 +102,13 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     def create_containers(self):
         for id_ in range(cfg.unpack.threads):
-            container = ExtractionContainer(id_=id_)
+            tmp_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
+                dir=cfg.data_storage.docker_mount_base_dir
+            )
+            container = ExtractionContainer(id_=id_, tmp_dir=tmp_dir, value=self.manager.Value('i', 0))
             container.start()
             self.workers.append(container)
+            self.worker_tmp_dirs.append(tmp_dir)
 
     def stop_containers(self):
         pool = ThreadPoolExecutor(max_workers=len(self.workers))
@@ -99,7 +116,6 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         pool.shutdown(wait=True, cancel_futures=False)
 
     def extraction_loop(self):
-        self.create_containers()
         while self.stop_condition.value == 0:
             self.check_pending()
             try:
@@ -117,15 +133,15 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 sleep(0.2)
             except Empty:
                 pass
-        self.stop_containers()
 
     def check_pending(self):
         for container_id, thread in list(self.pending_tasks.items()):
             if not thread.is_alive():
                 thread.join()
                 container = self.workers[container_id]
-                if container.exception_happened():
+                if container.exception_occurred():
                     container.restart()
+                    self.workers[container_id] = container  # force update of manager
                 self.pending_tasks.pop(container_id)
 
     def get_free_worker(self) -> ExtractionContainer:
@@ -144,7 +160,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             except ExtractionError:
                 docker_logs = self._fetch_logs(container)
                 logging.warning(f'Exception happened during extraction of {task.uid}.{docker_logs}')
-                container.exception = True
+                container.set_exception()
 
             sleep(cfg.expert_settings.unpacking_delay)  # unpacking may be too fast for the FS to keep up
 
@@ -153,9 +169,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 self.schedule_extracted_files(extracted_objects)
 
     @staticmethod
-    def _fetch_logs(container) -> str:
+    def _fetch_logs(container: ExtractionContainer) -> str:
         try:
-            return f'\n===Container Logs Start===\n{container.container.logs().decode()}\n===Container Logs End==='
+            return f'\n===Container Logs Start===\n{container.get_logs()}\n===Container Logs End==='
         except DockerException:
             logging.error('Could not fetch unpacking container logs')
             return ''
