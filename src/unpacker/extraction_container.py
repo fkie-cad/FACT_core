@@ -70,6 +70,8 @@ class ExtractionContainer:
             container = self._get_container()
         container.stop(timeout=5)
         with suppress(DockerException):
+            container.kill()
+        with suppress(DockerException):
             container.remove()
 
     def _get_container(self) -> Container:

@@ -111,9 +111,8 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             self.worker_tmp_dirs.append(tmp_dir)
 
     def stop_containers(self):
-        pool = ThreadPoolExecutor(max_workers=len(self.workers))
-        pool.map(lambda container: container.stop(), self.workers)
-        pool.shutdown(wait=True, cancel_futures=False)
+        with ThreadPoolExecutor(max_workers=len(self.workers)) as pool:
+            pool.map(lambda container: container.stop(), self.workers)
 
     def extraction_loop(self):
         while self.stop_condition.value == 0:
