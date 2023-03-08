@@ -8,7 +8,6 @@ from typing import Optional
 from pydantic import BaseModel, Extra
 from werkzeug.local import LocalProxy
 
-# pylint: disable=invalid-name
 _cfg = None
 cfg: Config = LocalProxy(lambda: _cfg)
 
@@ -73,9 +72,10 @@ class Logging(BaseModel):
 class Unpack(BaseModel):
     Config = _PydanticConfigExtraForbid
     threads: int
+    memory_limit: int = 2048
     whitelist: list
     max_depth: int
-    memory_limit: int = 2048
+    base_port: int
 
 
 class DefaultPlugins(BaseModel):
@@ -110,6 +110,7 @@ class ExpertSettings(BaseModel):
     nginx: bool
     intercom_poll_delay: float
     radare2_host: str
+    unpacking_delay: float
 
 
 # We need to allow extra here since we don't know what plugins will be loaded

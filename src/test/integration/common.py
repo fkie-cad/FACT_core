@@ -7,7 +7,9 @@ class MockFSOrganizer:
         self._data_folder = TemporaryDirectory()
 
     def store_file(self, file_object):
-        Path(self._data_folder.name, file_object.uid).write_bytes(file_object.binary)
+        destination_path = Path(self._data_folder.name, file_object.uid)
+        destination_path.write_bytes(file_object.binary)
+        file_object.file_path = str(destination_path)
 
     def delete_file(self, uid):
         file_path = Path(self._data_folder.name, uid)
