@@ -1,4 +1,5 @@
 import gc
+import queue
 from configparser import ConfigParser
 from multiprocessing import Event, Queue
 from tempfile import TemporaryDirectory
@@ -12,6 +13,7 @@ from objects.firmware import Firmware
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
+from unpacker.unpack_base import ExtractionError
 
 
 class TestUnpackScheduler(TestCase):
@@ -91,3 +93,21 @@ class TestUnpackScheduler(TestCase):
         self.sleep_event.set()
 
         sleep(seconds)
+
+    def test_failing_unpack(self):
+        mkp = pytest.MonkeyPatch()
+
+        def _raise_extraction_error(*_):
+            raise ExtractionError
+
+        mkp.setattr(
+            'scheduler.unpacking_scheduler.Unpacker.unpack',
+            _raise_extraction_error,
+        )
+        self._start_scheduler()
+
+        test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test_zip.tar.gz')
+        self.scheduler.add_task(test_fw)
+
+        with pytest.raises(queue.Empty):
+            self.tmp_queue.get(timeout=5)
