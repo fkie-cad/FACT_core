@@ -100,11 +100,6 @@ def common_config(request, _docker_mount_base_dir) -> config.Common:
 def backend_config(request, common_config, _firmware_file_storage_directory) -> config.Backend:
     overwrite_config = merge_markers(request, 'backend_config_overwrite', dict)
 
-    if 'firmware_file_storage_directory' in overwrite_config:
-        raise ValueError(
-            'firmware-file-storage-directory may not be changed with `@pytest.marker.backend_config_overwrite`'
-        )
-
     test_config = {
         'firmware_file_storage_directory': _firmware_file_storage_directory,
         'block_delay': 0.1,
