@@ -15,13 +15,6 @@ def parse_arguments() -> argparse.Namespace():
     return args
 
 
-def get_script_path(ghidra_path: Path) -> Path:
-    """
-    Returns script path
-    """
-    return ghidra_path / 'Ghidra/Features/Python/ghidra_scripts/ipc_analyzer.py'
-
-
 def check_ghidra(ghidra_path: Path) -> bool:
     """
     Checks if Ghidra executable exists
@@ -37,10 +30,11 @@ def get_ghidra_command(ghidra_path: Path, project_path: Path, file_path: Path, r
     Builds the Ghidra command
     """
     headless_path = ghidra_path / 'support/analyzeHeadless'
-    script_path = get_script_path(ghidra_path)
+    pre_script = 'headless_prescript.py'
+    post_script = 'ipc_analyzer.py'
     project_name = 'tmp_ghidra_project'
     return f'{headless_path} {project_path} {project_name} -readOnly \
-            -import {file_path} -postscript {script_path} {result_path}'
+            -import {file_path} -preScript {pre_script} -postScript {post_script} {result_path}'
 
 
 def get_binaries(file_path: Path) -> list[Path]:
