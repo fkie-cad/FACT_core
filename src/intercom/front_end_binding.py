@@ -28,7 +28,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def add_compare_task(self, compare_id, force=False):
         self._add_to_redis_queue('compare_task', (compare_id, force), compare_id)
 
-    def delete_file(self, uid_list):
+    def delete_file(self, uid_list: list[str]):
         self._add_to_redis_queue('file_delete_task', uid_list)
 
     def get_available_analysis_plugins(self):
@@ -37,7 +37,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
             raise Exception('No available plug-ins found. FACT backend might be down!')
         return plugin_dict
 
-    def get_binary_and_filename(self, uid):
+    def get_binary_and_filename(self, uid: str) -> tuple[bytes | None, str | None]:
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
 
     def get_file_diff(self, uid_pair: tuple[str, str]) -> str | None:
@@ -46,7 +46,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def peek_in_binary(self, uid: str, offset: int, length: int) -> bytes:
         return self._request_response_listener((uid, offset, length), 'binary_peek_task', 'binary_peek_task_resp')
 
-    def get_repacked_binary_and_file_name(self, uid):
+    def get_repacked_binary_and_file_name(self, uid: str):
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
 
     def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: str | None = None):

@@ -18,7 +18,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import Session, backref, declarative_base, relationship
+from sqlalchemy.orm import Session, backref, declarative_base, mapped_column, relationship
+
+from intercom.front_end_binding import InterComFrontEndBinding
 
 Base = declarative_base()
 UID = VARCHAR(78)
@@ -78,10 +80,14 @@ class FileObjectEntry(Base):
     depth = Column(Integer, nullable=False)
     size = Column(BigInteger, nullable=False)
     comments = Column(MutableList.as_mutable(JSONB))
-    virtual_file_paths = Column(MutableDict.as_mutable(JSONB))
     is_firmware = Column(Boolean, nullable=False)
 
-    firmware = relationship('FirmwareEntry', back_populates='root_object', uselist=False, cascade='all, delete')  # 1:1
+    firmware = relationship(  # 1:1
+        'FirmwareEntry',
+        back_populates='root_object',
+        uselist=False,
+        cascade='all, delete',
+    )
     parent_files = relationship(  # n:n
         'FileObjectEntry',
         secondary=included_files_table,
@@ -113,6 +119,13 @@ class FileObjectEntry(Base):
         secondary=comparisons_table,
         cascade='all, delete',  # comparisons should also be deleted when the file object is deleted
         backref=backref('file_objects'),
+    )
+    virtual_file_paths = relationship(  # 1:n
+        'VirtualFilePath',
+        back_populates='_file_object',
+        uselist=True,
+        primaryjoin='FileObjectEntry.uid==VirtualFilePath.file_uid',
+        cascade='all, delete',  # this probably doesn't matter because parent VFP deletion should come first (see below)
     )
 
     def get_included_uids(self) -> set[str]:
@@ -171,6 +184,28 @@ class WebInterfaceTemplateEntry(Base):
     template = Column(LargeBinary, nullable=False)
 
 
+class VirtualFilePath(Base):
+    """Represents a file path `file_path` of file `file_object` extracted from `_parent_object`"""
+
+    __tablename__ = 'virtual_file_path'
+
+    parent_uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), nullable=False)
+    file_uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), nullable=False)
+    file_path = mapped_column(VARCHAR, nullable=False)
+
+    _file_object = relationship(
+        'FileObjectEntry',
+        back_populates='virtual_file_paths',
+        uselist=False,
+        foreign_keys=[file_uid],
+    )
+    # for cascade deletion:
+    _parent_object = relationship('FileObjectEntry', uselist=False, foreign_keys=[parent_uid])
+
+    # unique constraint: each combination of parent + child + path should be unique
+    __table_args__ = (PrimaryKeyConstraint('parent_uid', 'file_uid', 'file_path', name='_vfp_primary_key'),)
+
+
 @event.listens_for(Session, 'persistent_to_deleted')
 def delete_file_orphans(session, deleted_object):
     """
@@ -184,3 +219,13 @@ def delete_file_orphans(session, deleted_object):
         for item in session.execute(query).scalars():
             logging.debug(f'deletion of {deleted_object} triggers deletion of {item} (cascade)')
             session.delete(item)
+
+
+@event.listens_for(Session, 'persistent_to_deleted')
+def delete_file(session, deleted_object):
+    """
+    If a FileObjectEntry is deleted from the DB, also delete the actual file from the file system.
+    """
+    if isinstance(deleted_object, FileObjectEntry):
+        intercom = InterComFrontEndBinding()
+        intercom.delete_file([deleted_object.uid])

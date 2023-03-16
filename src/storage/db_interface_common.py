@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import JSONB
@@ -14,7 +14,14 @@ from objects.firmware import Firmware
 from storage.db_interface_base import ReadOnlyDbInterface
 from storage.entry_conversion import analysis_entry_to_dict, file_object_from_entry, firmware_from_entry
 from storage.query_conversion import build_query_from_dict
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, fw_files_table, included_files_table
+from storage.schema import (
+    AnalysisEntry,
+    FileObjectEntry,
+    FirmwareEntry,
+    VirtualFilePath,
+    fw_files_table,
+    included_files_table,
+)
 
 PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
     'crypto_material',
@@ -89,8 +96,15 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                 .join(children_table, children_table.c.child_uid == FileObjectEntry.uid)
                 .group_by(FileObjectEntry)
             )
+            virtual_file_paths = self.get_vfps_for_uid_list(uid_list)
             file_objects = [
-                file_object_from_entry(fo_entry, analysis_filter, {f for f in included_files if f}, set(parents))
+                file_object_from_entry(
+                    fo_entry,
+                    analysis_filter,
+                    included_files={f for f in included_files if f},
+                    parents=set(parents),
+                    virtual_file_paths=virtual_file_paths[fo_entry.uid],
+                )
                 for fo_entry, included_files, parents in session.execute(query)
             ]
             fw_query = select(FirmwareEntry).filter(FirmwareEntry.uid.in_(uid_list))
@@ -110,6 +124,76 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         if entry is None:
             return None
         return analysis_entry_to_dict(entry)
+
+    def get_vfps(self, uid: str, parent_uid: str | None = None) -> dict[str, list[str]]:
+        """
+        Get all virtual file paths of file with UID `uid` in all parent files. If `parent_uid` is set, returns only the
+        paths in this parent file.
+        """
+        with self.get_read_only_session() as session:
+            query = select(VirtualFilePath.parent_uid, VirtualFilePath.file_path).filter(
+                VirtualFilePath.file_uid == uid
+            )
+            if parent_uid is not None:
+                query = query.filter(VirtualFilePath.parent_uid == parent_uid)
+            result = {}
+            for parent, path in session.execute(query) or []:
+                result.setdefault(parent, []).append(path)
+            return result
+
+    def get_vfps_for_uid_list(self, uid_list: list[str]) -> dict[str, dict[str, list[str]]]:
+        """
+        Gets all virtual file paths (see `get_vfps()`) for a list of UIDs. Returns a dictionary with key=uid and
+        value=vfp_dict for that file (vfp_dict is the same as the output of `get_vfps()` for that file).
+        """
+        with self.get_read_only_session() as session:
+            query = select(VirtualFilePath).filter(VirtualFilePath.file_uid.in_(uid_list))
+            result = {}
+            for vfp in session.execute(query) or []:  # type: VirtualFilePath
+                result.setdefault(vfp.file_uid, {}).setdefault(vfp.parent_uid, []).append(vfp.file_path)
+            return result
+
+    def get_file_tree_path(self, uid: str) -> list[list[str]]:
+        return self.get_file_tree_path_for_uid_list([uid]).get(uid, [])
+
+    def get_file_tree_path_for_uid_list(self, uid_list: list[str]) -> dict[str, list[list[str]]]:
+        """
+        Generate all file paths for a list of UIDs `uid_list`. A path is a list of UIDs representing the path from root
+        (firmware) to the file in the file tree (with root having index 0 and so on).
+        """
+        with self.get_read_only_session() as session:
+            top_query = (
+                select(included_files_table)
+                .filter(included_files_table.c.child_uid.in_(uid_list))
+                .cte(recursive=True)  # this makes the query recursive
+            )
+            child = aliased(top_query)
+            parent = aliased(included_files_table)
+            bottom_query = select(
+                top_query.union_all(select(parent).join(child, parent.c.child_uid == child.c.parent_uid))
+            )
+            return self._convert_tuples_to_path(session.execute(bottom_query) or [], uid_list)
+
+    def _convert_tuples_to_path(
+        self, parent_child_pairs: Iterable[tuple[str, str]], uid_list: list[str]
+    ) -> dict[str, list[list[str]]]:
+        child_to_parents = {}
+        for parent, child in parent_child_pairs:
+            child_to_parents.setdefault(child, set()).add(parent)
+        return {uid: self._generate_file_tree_path(uid, child_to_parents) for uid in uid_list}
+
+    def _generate_file_tree_path(self, uid: str, child_to_parents: dict[str, set[str]]) -> list[list[str]]:
+        """
+        Combines all child-parent relations in the `child_to_parents` dict into a list of paths (as uid list) from `uid`
+        to roots (FW uids) through the file tree.
+        """
+        return [
+            [*path, uid]
+            for parent in child_to_parents.get(uid, [])
+            for path in (
+                self._generate_file_tree_path(parent, child_to_parents) if parent in child_to_parents else [[parent]]
+            )
+        ]
 
     # ===== included files. =====
 

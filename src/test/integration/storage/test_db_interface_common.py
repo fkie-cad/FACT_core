@@ -306,3 +306,24 @@ def test_collect_analysis_tags(db):
     assert 'foo' in fo.analysis_tags and 'bar' in fo.analysis_tags
     assert set(fo.analysis_tags['foo']) == {'tag_a', 'tag_b'}
     assert fo.analysis_tags['foo']['tag_a'] == tags1['tag_a']
+
+
+def test_get_file_tree_path(db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+
+    assert db.common.get_file_tree_path_for_uid_list([child_fo.uid]) == {child_fo.uid: []}
+    assert db.common.get_file_tree_path(child_fo.uid) == []
+
+    db.backend.insert_object(fw)
+    db.backend.insert_object(parent_fo)
+    db.backend.insert_object(child_fo)
+
+    child_path = db.common.get_file_tree_path_for_uid_list([child_fo.uid])
+    assert child_path == {child_fo.uid: [[fw.uid, parent_fo.uid, child_fo.uid]]}
+    assert db.common.get_file_tree_path(child_fo.uid) == [[fw.uid, parent_fo.uid, child_fo.uid]]
+
+    parent_path = db.common.get_file_tree_path_for_uid_list([parent_fo.uid])
+    assert parent_path == {parent_fo.uid: [[fw.uid, parent_fo.uid]]}
+
+    combined = db.common.get_file_tree_path_for_uid_list([parent_fo.uid, child_fo.uid])
+    assert len(combined) == 2

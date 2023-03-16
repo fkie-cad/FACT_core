@@ -44,7 +44,9 @@ class Unpacker(UnpackBase):
         for item in extracted_file_objects:
             current_fo.add_included_file(item)
 
-        current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
+        current_fo.processed_analysis['unpacker'] = json.loads(
+            Path(tmp_dir, 'reports', 'meta.json').read_text(encoding='utf-8')
+        )
         return extracted_file_objects
 
     @staticmethod

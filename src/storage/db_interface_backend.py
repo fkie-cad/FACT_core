@@ -16,7 +16,7 @@ from storage.entry_conversion import (
     create_firmware_entry,
     get_analysis_without_meta,
 )
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
 
 
 class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
@@ -108,6 +108,25 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 file_object=fo_backref,
             )
             session.add(analysis)
+
+    def add_vfp(self, parent_uid: str, child_uid: str, path: str):
+        """Adds a new "virtual file path" for file `child_uid` with path `path` in `parent_uid`"""
+        with self.get_read_write_session() as session:
+            child_fo = session.get(FileObjectEntry, child_uid)
+            parent_fo = session.get(FileObjectEntry, parent_uid)
+            if child_fo is None or parent_fo is None:
+                logging.error(
+                    f'Could not store VFP because either parent "{parent_uid}" or child "{child_uid}" was not found'
+                )
+                return
+            vfp = VirtualFilePath(
+                parent_uid=parent_uid,
+                file_uid=child_uid,
+                file_path=path,
+                _file_object=child_fo,
+                _parent_object=parent_fo,
+            )
+            session.add(vfp)
 
     # ===== Update / UPDATE =====
 

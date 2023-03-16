@@ -7,7 +7,7 @@ from time import time
 from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
 
 META_KEYS = {'tags', 'summary', 'analysis_date', 'plugin_version', 'system_version', 'file_system_flag'}
 
@@ -30,10 +30,18 @@ def file_object_from_entry(
     analysis_filter: list[str] | None = None,
     included_files: set[str] | None = None,
     parents: set[str] | None = None,
+    virtual_file_paths: dict[str, list[str]] | None = None,
 ) -> FileObject:
     file_object = FileObject()
-    _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents)
+    _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents, virtual_file_paths)
     return file_object
+
+
+def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, list[str]]:
+    result = {}
+    for vfp_entry in vfp_list or []:
+        result.setdefault(vfp_entry.parent_uid, []).append(vfp_entry.file_path)
+    return result
 
 
 def _populate_fo_data(
@@ -42,11 +50,14 @@ def _populate_fo_data(
     analysis_filter: list[str] | None = None,
     included_files: set[str] | None = None,
     parents: set[str] | None = None,
+    virtual_file_paths: dict[str, list[str]] | None = None,
 ):
     file_object.uid = fo_entry.uid
     file_object.size = fo_entry.size
     file_object.file_name = fo_entry.file_name
-    file_object.virtual_file_path = fo_entry.virtual_file_paths
+    file_object.virtual_file_path = (
+        _convert_vfp_entries_to_dict(fo_entry.virtual_file_paths) if virtual_file_paths is None else virtual_file_paths
+    )
     file_object.processed_analysis = {
         analysis_entry.plugin: analysis_entry_to_dict(analysis_entry)
         for analysis_entry in fo_entry.analyses
@@ -84,6 +95,18 @@ def get_analysis_without_meta(analysis_data: dict) -> dict:
     return analysis_without_meta
 
 
+def _create_vfp_entries(file_object: FileObject) -> list[VirtualFilePath]:
+    return [
+        VirtualFilePath(
+            parent_uid=parent_uid,
+            file_uid=file_object.uid,
+            file_path=path,
+        )
+        for parent_uid, path_list in file_object.virtual_file_path.items()
+        for path in path_list
+    ]
+
+
 def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
     return FileObjectEntry(
         uid=file_object.uid,
@@ -95,7 +118,7 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
         depth=file_object.depth,
         size=file_object.size,
         comments=file_object.comments,
-        virtual_file_paths=file_object.virtual_file_path,
+        virtual_file_paths=_create_vfp_entries(file_object),
         is_firmware=isinstance(file_object, Firmware),
         firmware=None,
         analyses=[],

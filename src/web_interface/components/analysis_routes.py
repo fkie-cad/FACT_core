@@ -162,8 +162,11 @@ class AnalysisRoutes(ComponentBase):
 
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
         if re_do:
+            with ConnectTo(self.intercom) as intercom:
+                analysis_task['binary'], _ = intercom.get_binary_and_filename(uid)
             base_fw = None
-            self.db.admin.delete_firmware(uid, delete_root_file=False)
+            self.db.admin.delete_firmware(uid)
+            # FixMe? do we need to wait for cascade/event listener to finish?
         else:
             base_fw = self.db.frontend.get_object(uid)
             base_fw.force_update = force_reanalysis

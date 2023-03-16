@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from sqlalchemy import text
+
 from config import cfg
 from storage.db_connection import AdminConnection, DbConnection
 from storage.db_interface_base import ReadWriteDbInterface
@@ -21,29 +23,33 @@ class DbSetup(ReadWriteDbInterface):
         if not self.user_exists(user_name):
             with self.get_read_write_session() as session:
                 session.execute(
-                    f'CREATE ROLE {user_name} LOGIN PASSWORD \'{password}\' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE;'
+                    text(
+                        f'CREATE ROLE {user_name} LOGIN PASSWORD \'{password}\' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE;'
+                    )
                 )
 
     def user_exists(self, user_name: str) -> bool:
         with self.get_read_only_session() as session:
-            return bool(session.execute(f'SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = \'{user_name}\'').scalar())
+            return bool(
+                session.execute(text(f'SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = \'{user_name}\'')).scalar()
+            )
 
     def database_exists(self, db_name: str) -> bool:
         with self.get_read_only_session() as session:
-            return bool(session.execute(f'SELECT 1 FROM pg_database WHERE datname = \'{db_name}\'').scalar())
+            return bool(session.execute(text(f'SELECT 1 FROM pg_database WHERE datname = \'{db_name}\'')).scalar())
 
     def create_database(self, db_name: str):
         if not self.database_exists(db_name):
             with self.get_read_write_session() as session:
-                session.execute(f'CREATE DATABASE {db_name};')
+                session.execute(text(f'CREATE DATABASE {db_name};'))
 
     def grant_connect(self, database_name: str, user_name: str):
         with self.get_read_write_session() as session:
-            session.execute(f'GRANT CONNECT ON DATABASE {database_name} TO {user_name};')
+            session.execute(text(f'GRANT CONNECT ON DATABASE {database_name} TO {user_name};'))
 
     def grant_usage(self, user_name: str):
         with self.get_read_write_session() as session:
-            session.execute(f'GRANT USAGE ON SCHEMA public TO {user_name};')
+            session.execute(text(f'GRANT USAGE ON SCHEMA public TO {user_name};'))
 
     def set_table_privileges(self):
         for key, privileges in [
@@ -57,4 +63,4 @@ class DbSetup(ReadWriteDbInterface):
 
     def grant_privilege(self, user_name: str, privilege: str):
         with self.get_read_write_session() as session:
-            session.execute(f'GRANT {privilege} ON ALL TABLES IN SCHEMA public TO {user_name};')
+            session.execute(text(f'GRANT {privilege} ON ALL TABLES IN SCHEMA public TO {user_name};'))

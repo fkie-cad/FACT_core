@@ -14,7 +14,7 @@ def create_fw_with_child_fo():
     fo.parent_firmware_uids.add(fw.uid)
     fw.files_included.add(fo.uid)
     fw.virtual_file_path = {fw.uid: [f'|{fw.uid}|']}
-    fo.virtual_file_path = {fw.uid: [f'|{fw.uid}|/folder/{fo.file_name}']}
+    fo.virtual_file_path = {fw.uid: [f'/folder/{fo.file_name}']}
     return fo, fw
 
 
@@ -26,7 +26,7 @@ def create_fw_with_parent_and_child():
     parent_fo.files_included.add(child_fo.uid)
     child_fo.parents.append(parent_fo.uid)
     child_fo.parent_firmware_uids.add(fw.uid)
-    child_fo.virtual_file_path = {fw.uid: [f'|{fw.uid}|{parent_fo.uid}|/folder/{child_fo.file_name}']}
+    child_fo.virtual_file_path = {parent_fo.uid: [f'/folder/{child_fo.file_name}']}
     return fw, parent_fo, child_fo
 
 
