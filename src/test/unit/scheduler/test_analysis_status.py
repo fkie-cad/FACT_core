@@ -42,6 +42,7 @@ class TestAnalysisStatus:
                 'files_to_analyze': ['bar'],
                 'total_files_count': 2,
                 'unpacked_files_count': 1,
+                'total_files_with_duplicates': 2,
             }
         }
         fo = FileObject(binary=b'foo')
@@ -55,6 +56,7 @@ class TestAnalysisStatus:
         assert sorted(result['files_to_analyze']) == ['bar', 'foo']
         assert result['unpacked_files_count'] == 2
         assert result['total_files_count'] == 3
+        assert result['total_files_with_duplicates'] == 3
 
     def test_add_duplicate_file_to_current_analyses(self):
         self.status.currently_running = {
@@ -63,6 +65,7 @@ class TestAnalysisStatus:
                 'files_to_analyze': ['duplicate'],
                 'total_files_count': 2,
                 'unpacked_files_count': 3,
+                'total_files_with_duplicates': 2,
             }
         }
         fo = FileObject(binary=b'foo')

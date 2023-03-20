@@ -85,7 +85,7 @@ class AnalysisStatus:
             'total_files_count': 1 + len(fw_object.files_included),
             'total_files_with_duplicates': 1,
             'hid': fw_object.get_hid(),
-            'analysis_plugins': {p: 0 for p in fw_object.scheduled_analysis},
+            'analysis_plugins': {p: 0 for p in fw_object.scheduled_analysis or []},
         }
 
     def remove_from_current_analyses(self, fw_object: Firmware | FileObject):
