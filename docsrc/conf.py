@@ -87,7 +87,6 @@ autodoc_mock_imports = [
     'networkx',
     'numpy',
     'passlib',
-    'pluginbase',
     'prompt_toolkit',
     'psutil',
     'psycopg2',

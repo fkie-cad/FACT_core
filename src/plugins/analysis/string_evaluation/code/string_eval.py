@@ -1,14 +1,7 @@
-import sys
-from pathlib import Path
-
 from analysis.PluginBase import AnalysisBasePlugin
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
-try:
-    from ..internal.string_eval import eval_strings
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from string_eval import eval_strings
+from ..internal.string_eval import eval_strings
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

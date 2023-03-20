@@ -43,7 +43,7 @@ def test_imphash():
 def test_imphash_bad_file():
     fo = create_test_file_object()
     fo.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
-    assert not get_imphash(fo)
+    assert get_imphash(fo) is None
 
 
 def test_normalize_items_from_strings():

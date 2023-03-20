@@ -73,6 +73,7 @@ def _get_test_config_tuple(
             'redis-test-db': config.cfg.data_storage.redis_test_db,  # Note: This is unused in production
             'redis-host': config.cfg.data_storage.redis_host,
             'redis-port': config.cfg.data_storage.redis_port,
+            'redis-pw': '',
             'firmware-file-storage-directory': firmware_file_storage_directory,
             'user-database': 'sqlite:////media/data/fact_auth_data/fact_users.db',
             'password-salt': '1234',
@@ -103,6 +104,7 @@ def _get_test_config_tuple(
             'throw-exceptions': 'true',  # Always throw exceptions to avoid miraculous timeouts in test cases
             'unpack-threshold': '0.8',
             'unpack_throttle_limit': '50',
+            'unpacking_delay': '0.0',
         },
         'logging': {
             'logfile': '/tmp/fact_main.log',
@@ -112,7 +114,7 @@ def _get_test_config_tuple(
             'base-port': '9900',
             'max-depth': '10',
             'memory-limit': '2048',
-            'threads': '4',
+            'threads': '2',
             'whitelist': '',
         },
         'statistics': {'max_elements_per_chart': '10'},
@@ -225,15 +227,14 @@ def analysis_plugin(request, monkeypatch, patch_cfg):
 
     PluginClass = test_config.plugin_class
 
-    # We don't want to actually start workers when testing, except for some special cases
-    with monkeypatch.context() as mkp:
-        if not test_config.start_processes:
-            mkp.setattr(PluginClass, 'start', lambda _: None)
-        plugin_instance = PluginClass(
-            view_updater=CommonDatabaseMock(),
-            **test_config.init_kwargs,
-        )
+    plugin_instance = PluginClass(
+        view_updater=CommonDatabaseMock(),
+        **test_config.init_kwargs,
+    )
 
+    # We don't want to actually start workers when testing, except for some special cases
+    if test_config.start_processes:
+        plugin_instance.start()
     yield plugin_instance
 
     plugin_instance.shutdown()

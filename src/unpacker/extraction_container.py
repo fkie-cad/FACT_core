@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import multiprocessing
 from contextlib import suppress
 from os import getgid, getuid
 from tempfile import TemporaryDirectory
@@ -17,19 +18,15 @@ EXTRACTOR_DOCKER_IMAGE = 'fkiecad/fact_extractor'
 
 
 class ExtractionContainer:
-    def __init__(self, id_: int):
+    def __init__(self, id_: int, tmp_dir: TemporaryDirectory, value: multiprocessing.managers.ValueProxy):
         self.id_ = id_
-
-        self.tmp_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-            dir=cfg.data_storage.docker_mount_base_dir
-        )
+        self.tmp_dir = tmp_dir
         self.port = cfg.unpack.base_port + id_
-
-        self.container = None
-        self.exception = False
+        self.container_id = None
+        self.exception = value
 
     def start(self):
-        if self.container is not None:
+        if self.container_id is not None:
             raise RuntimeError('Already running.')
 
         try:
@@ -38,19 +35,9 @@ class ExtractionContainer:
             if 'port is already allocated' in str(exception):
                 self._recover_from_port_in_use(exception)
 
-    def _recover_from_port_in_use(self, exception: Exception):
-        logging.warning('Extractor port already in use -> trying to remove old container...')
-        for running_container in DOCKER_CLIENT.containers.list():
-            if self._is_extractor_container(running_container) and self._has_same_port(running_container):
-                self._remove_container(running_container)
-                self._start_container()
-                return
-        logging.error('Could not free extractor port')
-        raise RuntimeError('Could not create extractor container') from exception
-
     def _start_container(self):
         volume = Mount('/tmp/extractor', self.tmp_dir.name, read_only=False, type='bind')
-        self.container = DOCKER_CLIENT.containers.run(
+        container = DOCKER_CLIENT.containers.run(
             image=EXTRACTOR_DOCKER_IMAGE,
             ports={'5000/tcp': self.port},
             mem_limit=f'{cfg.unpack.memory_limit}m',
@@ -62,40 +49,57 @@ class ExtractionContainer:
             environment={'CHMOD_OWNER': f'{getuid()}:{getgid()}'},
             entrypoint='gunicorn --timeout 600 -w 1 -b 0.0.0.0:5000 server:app',
         )
+        self.container_id = container.id
         logging.info(f'Started unpack worker {self.id_}')
 
-    @staticmethod
-    def _is_extractor_container(container: Container):
-        return any(tag == EXTRACTOR_DOCKER_IMAGE for tag in container.image.attrs['RepoTags'])
-
-    def _has_same_port(self, container: Container):
-        return any(entry['HostPort'] == str(self.port) for entry in container.ports.get('5000/tcp', []))
-
     def stop(self):
-        if self.container is None:
+        if self.container_id is None:
             raise RuntimeError('Container is not running.')
 
         logging.info(f'Stopping unpack worker {self.id_}')
-        self._remove_container(self.container)
-        try:
-            self.tmp_dir.cleanup()
-        except PermissionError:
-            logging.exception(f'Unable to delete worker folder {self.tmp_dir.name}')
+        self._remove_container()
 
-    def exception_happened(self) -> bool:
-        return self.exception
+    def set_exception(self):
+        return self.exception.set(1)
 
-    @staticmethod
-    def _remove_container(container: Container):
+    def exception_occurred(self) -> bool:
+        return self.exception.get() == 1
+
+    def _remove_container(self, container: Container | None = None):
+        if not container:
+            container = self._get_container()
         container.stop(timeout=5)
+        with suppress(DockerException):
+            container.kill()
         with suppress(DockerException):
             container.remove()
 
+    def _get_container(self) -> Container:
+        return DOCKER_CLIENT.containers.get(self.container_id)
+
     def restart(self):
         self.stop()
-        self.tmp_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-            dir=cfg.data_storage.docker_mount_base_dir
-        )
-        self.exception = False
-        self.container = None
+        self.exception.set(0)
+        self.container_id = None
         self.start()
+
+    def _recover_from_port_in_use(self, exception: Exception):
+        logging.warning('Extractor port already in use -> trying to remove old container...')
+        for running_container in DOCKER_CLIENT.containers.list():
+            if self._is_extractor_container(running_container) and self._has_same_port(running_container):
+                self._remove_container(running_container)
+                self._start_container()
+                return
+        logging.error('Could not free extractor port')
+        raise RuntimeError('Could not create extractor container') from exception
+
+    @staticmethod
+    def _is_extractor_container(container: Container) -> bool:
+        return any(tag == EXTRACTOR_DOCKER_IMAGE for tag in container.image.attrs['RepoTags'])
+
+    def _has_same_port(self, container: Container) -> bool:
+        return any(entry['HostPort'] == str(self.port) for entry in container.ports.get('5000/tcp', []))
+
+    def get_logs(self) -> str:
+        container = self._get_container()
+        return container.logs().decode(errors='replace')

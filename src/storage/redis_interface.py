@@ -20,8 +20,9 @@ class RedisInterface:
         redis_db = cfg.data_storage.redis_fact_db
         redis_host = cfg.data_storage.redis_host
         redis_port = cfg.data_storage.redis_port
+        redis_pw = cfg.data_storage.redis_pw
 
-        self.redis = Redis(host=redis_host, port=redis_port, db=redis_db)
+        self.redis = Redis(host=redis_host, port=redis_port, db=redis_db, password=redis_pw)
 
     def set(self, key: str, value: Any):
         self.redis.set(key, self._split_if_necessary(dumps(value)))
