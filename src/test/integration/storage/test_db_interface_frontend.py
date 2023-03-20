@@ -94,7 +94,9 @@ def test_get_device_name_dict(db):
     insert_test_fw(db, 'fw2', vendor='vendor1', device_class='class1', device_name='name2')
     insert_test_fw(db, 'fw3', vendor='vendor1', device_class='class2', device_name='name1')
     insert_test_fw(db, 'fw4', vendor='vendor2', device_class='class1', device_name='name1')
-    assert db.frontend.get_device_name_dict() == {
+    device_name_dict = db.frontend.get_device_name_dict()
+    device_name_dict.get('class1', {}).get('vendor1', []).sort()
+    assert device_name_dict == {
         'class1': {'vendor1': ['name1', 'name2'], 'vendor2': ['name1']},
         'class2': {'vendor1': ['name1']},
     }
