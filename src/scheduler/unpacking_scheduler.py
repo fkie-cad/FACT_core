@@ -208,7 +208,6 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             message = f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}'
             log_function(color_string(message, TerminalColors.WARNING))
 
-            # unpack throttling: FixMe?
             if workload < cfg.expert_settings.unpack_throttle_limit:
                 self.throttle_condition.value = 0
             else:
