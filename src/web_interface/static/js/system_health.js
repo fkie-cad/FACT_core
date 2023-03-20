@@ -158,9 +158,10 @@ function updateCurrentAnalyses(analysisData) {
 function createCurrentAnalysisItem(data, uid, isFinished) {
     const timeString = isFinished ? `Finished in ${getDuration(null, data.duration)}` : `${getDuration(data.start_time)}`;
     const total = isFinished ? data.total_files_count : data.total_count;
-    const width = isFinished ? "30px": "50%";
+    const showDetails = Boolean(document.getElementById("ca-show-details").checked);
+    const width = isFinished || !showDetails ? "30px": "50%";
     const unpackingIsFinished = isFinished ? null : (data.unpacked_count == data.total_count);
-    const padding = isFinished ? 83 : 211;
+    const padding = isFinished || !showDetails ? 55 : 211;
     return `
         <a href='/analysis/${uid}/ro/${uid}' style="color: black;">
             <div class="card clickable mt-2">
@@ -181,7 +182,7 @@ function createCurrentAnalysisItem(data, uid, isFinished) {
                             ${createIconCell("microscope", "Analysis Progress", width)}
                             ${createProgressBarCell(isFinished ? data.total_files_count : data.analyzed_count, total, padding)}
                         </tr>
-                        ${isFinished ? "" : createPluginProgress(data, unpackingIsFinished)}
+                        ${!isFinished && showDetails ? createPluginProgress(data, unpackingIsFinished) : ""}
                     </table>
                 </div>
             </div>
