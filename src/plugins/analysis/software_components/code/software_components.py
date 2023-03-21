@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import os
 import re
-import sys
-from pathlib import Path
 
 from common_helper_files import get_dir_of_file
 
@@ -15,11 +13,7 @@ from objects.file import FileObject
 from plugins.analysis.software_components.bin import OS_LIST
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
-try:
-    from ..internal.resolve_version_format_string import extract_data_from_ghidra
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from resolve_version_format_string import extract_data_from_ghidra
+from ..internal.resolve_version_format_string import extract_data_from_ghidra
 
 SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')
 

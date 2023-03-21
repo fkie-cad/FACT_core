@@ -15,7 +15,7 @@ from analysis.PluginBase import AnalysisBasePlugin
 from config import cfg
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
-from helperFunctions.plugin import import_plugins
+from helperFunctions.plugin import discover_analysis_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
@@ -114,8 +114,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def start(self):
         self._start_runner_processes()
         self._start_result_collector()
-        # FIXME use this (see FIXME in src/analysis/PluginBase.py)
-        # self._start_plugins()
+        self._start_plugins()
         logging.info('Analysis System online...')
         logging.info(f'Plugins available: {self._get_list_of_available_plugins()}')
 
@@ -195,16 +194,11 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     # ---- plugin initialization ----
 
     def _load_plugins(self):
-        source = import_plugins('analysis.plugins', 'plugins/analysis')
-        for plugin_name in source.list_plugins():
+        for plugin in discover_analysis_plugins():
             try:
-                plugin = source.load_plugin(plugin_name)
-            except Exception:  # pylint: disable=broad-except
-                # This exception could be caused by upgrading dependencies to incompatible versions. Another cause could
-                # be missing dependencies. So if anything goes wrong we want to inform the user about it
-                logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
-            else:
                 self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
+            except Exception:  # pylint: disable=broad-except
+                logging.error(f'Could not import analysis plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
     def get_plugin_dict(self) -> dict:
         '''

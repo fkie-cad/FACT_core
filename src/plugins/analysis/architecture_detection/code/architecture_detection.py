@@ -3,20 +3,7 @@ from __future__ import annotations
 from analysis.PluginBase import AnalysisBasePlugin
 from storage.fsorganizer import FSOrganizer
 
-try:
-    from ..internal import dt, elf, kconfig, metadata
-except ImportError:
-    import sys
-    from pathlib import Path
-
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-
-    import dt
-    import elf
-    import kconfig
-    import metadata
-
-    sys.path.pop()
+from ..internal import dt, elf, kconfig, metadata
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

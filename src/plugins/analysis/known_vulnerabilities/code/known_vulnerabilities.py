@@ -1,5 +1,4 @@
 import json
-import sys
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -12,12 +11,7 @@ from config import cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 
-try:
-    from ..internal.rulebook import evaluate, vulnerabilities
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from rulebook import evaluate, vulnerabilities
-
+from ..internal.rulebook import evaluate, vulnerabilities
 
 VULNERABILITIES = vulnerabilities()
 

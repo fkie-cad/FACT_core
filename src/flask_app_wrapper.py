@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 import config
-from helperFunctions.program_setup import set_logging_cfg_from_args, setup_logging
+from helperFunctions.program_setup import setup_logging
 from web_interface.frontend_main import WebFrontEnd
 
 
@@ -33,8 +33,8 @@ def create_web_interface():
         args = pickle.loads(args_path.read_bytes())
         config_file = getattr(args, 'config_file', None)
         config.load(config_file)
-        set_logging_cfg_from_args(args)
-    setup_logging(args, component='frontend')
+
+    setup_logging(args, 'frontend')
     return WebFrontEnd()
 
 

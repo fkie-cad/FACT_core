@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from contextlib import suppress
 
-from helperFunctions.plugin import import_plugins
+from helperFunctions.plugin import discover_compare_plugins
 from objects.firmware import Firmware
 from storage.binary_service import BinaryService
 from storage.db_interface_comparison import ComparisonDbInterface
@@ -74,17 +74,11 @@ class Compare:
         self._init_plugins()
 
     def _init_plugins(self):
-        self.source = import_plugins(
-            'compare.plugins', 'plugins/compare'
-        )  # pylint: disable=attribute-defined-outside-init
-        for plugin_name in self.source.list_plugins():
+        for plugin in discover_compare_plugins():
             try:
-                plugin = self.source.load_plugin(plugin_name)
-            except Exception:  # pylint: disable=broad-except
-                # For why this exception can occur see Analysis.AnalysisScheduler.load_plugins
-                logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
-            else:
                 self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(db_interface=self.db_interface)
+            except Exception:  # pylint: disable=broad-except
+                logging.error(f'Could not import comparison plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
     def _execute_compare_plugins(self, fo_list):
         return {name: plugin.compare(fo_list) for name, plugin in self.compare_plugins.items()}

@@ -1,19 +1,13 @@
-import unittest
+from helperFunctions.fileSystem import get_src_dir
+from helperFunctions.plugin import discover_analysis_plugins
 
-from helperFunctions.plugin import _get_plugin_src_dirs, import_plugins
-
-TEST_PLUGINS_BASE_PATH = 'test/data/plugin_system'
+TEST_PLUGINS_SRC_DIR = f'{get_src_dir()}/test/data/plugin_system'
 
 
-class TestHelperFunctionsPlugin(unittest.TestCase):
-    def test_get_plugin_src_dirs(self):
-        result = _get_plugin_src_dirs(TEST_PLUGINS_BASE_PATH)
-        assert isinstance(result, list), 'result is not a list'
-        assert 'plugin_one' in sorted(result)[0], 'plugin not found'
-        assert len(result) == 2, 'number of found plugin directories not correct'
+def test_import_plugins(monkeypatch):
+    monkeypatch.setattr('helperFunctions.plugin.get_src_dir', lambda: TEST_PLUGINS_SRC_DIR)
 
-    def test_load_plugins(self):
-        result = import_plugins('plugins.test', TEST_PLUGINS_BASE_PATH)
-        imported_plugins = result.list_plugins()
-        assert len(imported_plugins) == 1, 'worng number of plugins imported'
-        assert imported_plugins[0] == 'plugin_one', 'plugin name not correct'
+    plugins = sorted(discover_analysis_plugins(), key=lambda k: k.__name__)
+    # "plugin_one" and "crashes_during_instantiation"
+    assert len(plugins) == 2, 'wrong number of plugins imported'
+    assert plugins[1].__name__ == 'plugins.analysis.plugin_one.code.plugin_one', 'plugin name not correct'

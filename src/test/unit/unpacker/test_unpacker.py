@@ -1,5 +1,6 @@
-# pylint: disable=no-self-use,wrong-import-order
+# pylint: disable=redefined-outer-name,wrong-import-order
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import pytest
 
@@ -66,7 +67,8 @@ class TestUnpackerCoreMain:
     test_file_path = str(TEST_DATA_DIR / 'container/test.zip')
 
     def main_unpack_check(self, unpacker, test_object, number_unpacked_files, first_unpacker):
-        extracted_files = unpacker.unpack(test_object)
+        with TemporaryDirectory() as tmp_dir:
+            extracted_files = unpacker.unpack(test_object, tmp_dir)
         assert len(test_object.files_included) == number_unpacked_files, 'not all files added to parent'
         assert len(extracted_files) == number_unpacked_files, 'not all files found'
         assert test_object.processed_analysis['unpacker']['plugin_used'] == first_unpacker, 'Wrong plugin in Meta'
@@ -87,6 +89,7 @@ class TestUnpackerCoreMain:
     def test_unpacking_depth_reached(self, unpacker):
         test_file = FileObject(file_path=self.test_file_path)
         test_file.depth = 10
-        unpacker.unpack(test_file)
+        with TemporaryDirectory() as tmp_dir:
+            unpacker.unpack(test_file, tmp_dir)
         assert 'unpacker' in test_file.processed_analysis
         assert 'maximum unpacking depth was reached' in test_file.processed_analysis['unpacker']['info']

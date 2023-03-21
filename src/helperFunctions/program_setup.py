@@ -19,40 +19,16 @@
 import argparse
 import logging
 import sys
-from pathlib import Path
+from contextlib import suppress
 
 from common_helper_files import create_dir_for_file
 
-import config
 from config import cfg
-from helperFunctions.fileSystem import get_config_dir
 from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
 
 
-def program_setup(name, description, component=None, version=__VERSION__, command_line_options=None):
-    '''
-    Creates an ArgumentParser with some default options and parse command_line_options.
-
-    :param command_line_options: The arguments to parse
-    :return: The parsed args from argparser
-    '''
-    args = _setup_argparser(name, description, command_line_options=command_line_options or sys.argv, version=version)
-    config.load(args.config_file)
-    set_logging_cfg_from_args(args)
-    setup_logging(args, component)
-    return args
-
-
-def set_logging_cfg_from_args(args: argparse.Namespace):
-    """Command line parameters will overwrite values from the config file"""
-    if args.log_file is not None:
-        cfg.logging.logfile = args.log_file
-    if args.log_level is not None:
-        cfg.logging.loglevel = args.log_level
-
-
-def _setup_argparser(name, description, command_line_options, version=__VERSION__):
+def setup_argparser(name, description, command_line_options=sys.argv, version=__VERSION__):
     '''
     Sets up an ArgumentParser with some default flags and parses
     command_line_options.
@@ -64,11 +40,13 @@ def _setup_argparser(name, description, command_line_options, version=__VERSION_
     parser.add_argument('-V', '--version', action='version', version=f'{name} {version}')
     parser.add_argument('-l', '--log_file', help='path to log file', default=None)
     parser.add_argument(
-        '-L', '--log_level', help='define the log level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default=None
+        '-L',
+        '--log_level',
+        help='define the log level for the console',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
+        default='INFO',
     )
-    parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
-    parser.add_argument('-s', '--silent', action='store_true', default=False, help='don\'t log to command line')
-    parser.add_argument('-C', '--config_file', help='set path to config File', default=f'{get_config_dir()}/main.cfg')
+    parser.add_argument('-C', '--config_file', help='set path to config File', default=None)
     parser.add_argument(
         '-t', '--testing', default=False, action='store_true', help='shutdown system after one iteration'
     )
@@ -76,28 +54,45 @@ def _setup_argparser(name, description, command_line_options, version=__VERSION_
     return parser.parse_args(command_line_options[1:])
 
 
-def setup_logging(args, component=None):
-    log_level = getattr(logging, cfg.logging.loglevel, None)
-    log_format = dict(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    logger = logging.getLogger('')
-    logger.setLevel(logging.DEBUG)
+def _get_logging_config(args, component):
+    """
+    Returns a tuple of (logfile, file_loglevel, console_loglevel) read from args and the config file.
+    The loglevel is returned as an integer.
+    Assumes that :py:func:`config.load` was called beforehand.
+    """
+    console_loglevel = logging.getLevelName(args.log_level)
 
-    log_file = get_log_file_for_component(component)
-    create_dir_for_file(log_file)
-    file_log = logging.FileHandler(log_file)
-    file_log.setLevel(log_level)
+    file_loglevel = logging.getLevelName(cfg.logging.loglevel)
+
+    if args.log_file:
+        logfile = args.log_file
+        # Don't crash if component is not a standart one
+        with suppress(ValueError):
+            setattr(cfg.logging, f'logfile_{component}', logfile)
+    elif component not in ['frontend', 'backend', 'database']:
+        logfile = f'/tmp/fact_{component}.log'
+    else:
+        logfile = getattr(cfg.logging, f'logfile_{component}')
+
+    return logfile, file_loglevel, console_loglevel
+
+
+def setup_logging(args, component):
+    logfile, file_loglevel, console_loglevel = _get_logging_config(args, component)
+
+    log_format = dict(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+    logger = logging.getLogger()
+    # Pass all messages to handlers
+    logger.setLevel(logging.NOTSET)
+
+    create_dir_for_file(logfile)
+    file_log = logging.FileHandler(logfile)
+    file_log.setLevel(file_loglevel)
     file_log.setFormatter(logging.Formatter(**log_format))
     logger.addHandler(file_log)
 
-    if not args.silent:
-        console_log = logging.StreamHandler()
-        console_log.setLevel(logging.DEBUG if args.debug else logging.INFO)
-        console_log.setFormatter(ColoringFormatter(**log_format))
-        logger.addHandler(console_log)
-
-
-def get_log_file_for_component(component: str) -> str:
-    log_file = Path(cfg.logging.logfile)
-    if component is None:
-        return cfg.logging.logfile
-    return f'{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}'
+    console_log = logging.StreamHandler()
+    console_log.setLevel(console_loglevel)
+    console_log.setFormatter(ColoringFormatter(**log_format))
+    logger.addHandler(console_log)

@@ -1,6 +1,5 @@
 # pylint: disable=wrong-import-order
 import glob
-import sys
 from pathlib import Path
 from subprocess import CompletedProcess
 
@@ -9,17 +8,9 @@ import pytest
 from objects.file import FileObject
 
 from ..code.kernel_config import AnalysisPlugin
-
-try:
-    from ..internal.checksec_check_kernel import check_kernel_config
-    from ..internal.decomp import GZDecompressor
-    from ..internal.kernel_config_hardening_check import check_kernel_hardening
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from checksec_check_kernel import check_kernel_config
-    from decomp import GZDecompressor
-    from kernel_config_hardening_check import check_kernel_hardening
-
+from ..internal.checksec_check_kernel import check_kernel_config
+from ..internal.decomp import GZDecompressor
+from ..internal.kernel_config_hardening_check import check_kernel_hardening
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 

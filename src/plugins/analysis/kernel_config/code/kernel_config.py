@@ -1,23 +1,13 @@
 from __future__ import annotations
 
 import re
-import sys
-from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
+from plugins.analysis.kernel_config.internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
+from plugins.analysis.kernel_config.internal.decomp import decompress
+from plugins.analysis.kernel_config.internal.kernel_config_hardening_check import check_kernel_hardening
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
-
-try:
-    from plugins.analysis.kernel_config.internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
-    from plugins.analysis.kernel_config.internal.decomp import decompress
-    from plugins.analysis.kernel_config.internal.kernel_config_hardening_check import check_kernel_hardening
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
-    from decomp import decompress
-    from kernel_config_hardening_check import check_kernel_hardening
-
 
 MAGIC_WORD = b'IKCFG_ST\037\213'
 
