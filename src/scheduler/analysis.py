@@ -4,7 +4,7 @@ import logging
 import os
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import Queue, Value
+from multiprocessing import Lock, Queue, Value
 from queue import Empty
 from time import sleep, time
 
@@ -102,6 +102,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
         self.unpacking_locks = unpacking_locks
+        self.scheduling_lock = Lock()
 
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
@@ -163,13 +164,14 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
         :param fo: The firmware that is to be analyzed
         '''
-        try:
-            self.pre_analysis(fo)
-        except DbInterfaceError as error:
-            # trying to add an object to the DB could lead to an error if the root FW or the parents are missing
-            # (e.g. because they were recently deleted)
-            logging.error(f'Could not add {fo.uid} to the DB: {error}')
-            return
+        with self.scheduling_lock:  # if multiple unpacking threads call this in parallel, this can cause DB errors
+            try:
+                self.pre_analysis(fo)
+            except DbInterfaceError as error:
+                # trying to add an object to the DB could lead to an error if the root FW or the parents are missing
+                # (e.g. because they were recently deleted)
+                logging.error(f'Could not add {fo.uid} to the DB: {error}')
+                return
 
         if self.status.file_should_be_analyzed(fo):
             self.status.add_to_current_analyses(fo)
