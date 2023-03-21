@@ -72,9 +72,7 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.plugin.html">helperFunctions.plugin module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.program_setup module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.program_setup.get_log_file_for_component"><code class="docutils literal notranslate"><span class="pre">get_log_file_for_component()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.program_setup.program_setup"><code class="docutils literal notranslate"><span class="pre">program_setup()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.program_setup.set_logging_cfg_from_args"><code class="docutils literal notranslate"><span class="pre">set_logging_cfg_from_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.program_setup.setup_argparser"><code class="docutils literal notranslate"><span class="pre">setup_argparser()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.program_setup.setup_logging"><code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code></a></li>
 </ul>
 </li>
@@ -132,46 +130,20 @@ GNU General Public License for more details.</p>
 <p>You should have received a copy of the GNU General Public License
 along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.program_setup.get_log_file_for_component">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.program_setup.</span></span><span class="sig-name descname"><span class="pre">get_log_file_for_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.program_setup.get_log_file_for_component" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>component</strong> (<em>str</em>) – </p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.program_setup.program_setup">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.program_setup.</span></span><span class="sig-name descname"><span class="pre">program_setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'4.1-dev'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command_line_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.program_setup.program_setup" title="Permalink to this definition"></a></dt>
-<dd><p>Creates an ArgumentParser with some default options and parse command_line_options.</p>
+<dt class="sig sig-object py" id="helperFunctions.program_setup.setup_argparser">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.program_setup.</span></span><span class="sig-name descname"><span class="pre">setup_argparser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command_line_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['/opt/hostedtoolcache/Python/3.8.16/x64/bin/sphinx-build',</span> <span class="pre">'-M',</span> <span class="pre">'html',</span> <span class="pre">'.',</span> <span class="pre">'_build',</span> <span class="pre">'-W']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'4.1-dev'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.program_setup.setup_argparser" title="Permalink to this definition"></a></dt>
+<dd><p>Sets up an ArgumentParser with some default flags and parses
+command_line_options.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>command_line_options</strong> – The arguments to parse</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The parsed args from argparser</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.program_setup.set_logging_cfg_from_args">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.program_setup.</span></span><span class="sig-name descname"><span class="pre">set_logging_cfg_from_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.program_setup.set_logging_cfg_from_args" title="Permalink to this definition"></a></dt>
-<dd><p>Command line parameters will overwrite values from the config file</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>args</strong> (<em>Namespace</em>) – </p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The populated namespace from ArgumentParser.parse_args</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.program_setup.setup_logging">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.program_setup.</span></span><span class="sig-name descname"><span class="pre">setup_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.program_setup.setup_logging" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.program_setup.</span></span><span class="sig-name descname"><span class="pre">setup_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.program_setup.setup_logging" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
