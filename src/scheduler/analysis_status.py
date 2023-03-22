@@ -23,7 +23,7 @@ class AnalysisStatus:
     def shutdown(self):
         self.manager.shutdown()
 
-    def add_update_to_current_analyses(self, fw_object: Firmware | FileObject, included_files: list[str]):
+    def add_update_to_current_analyses(self, fw_object: Firmware | FileObject, included_files: list[str] | set[str]):
         self.add_to_current_analyses(fw_object)
         with self._get_lock():
             update_dict = self.currently_running[fw_object.uid]

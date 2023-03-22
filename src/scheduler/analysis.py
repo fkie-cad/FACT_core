@@ -106,6 +106,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
+        self.schedule_processes = []
+        self.result_collector_processes = []
 
         self.fs_organizer = FSOrganizer()
         self.db_backend_service = db_interface if db_interface else BackendDbInterface()
@@ -164,6 +166,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
         :param fo: The firmware that is to be analyzed
         '''
+        # FixMe: remove this when no duplicate files come from unpacking any more
         with self.scheduling_lock:  # if multiple unpacking threads call this in parallel, this can cause DB errors
             try:
                 self.pre_analysis(fo)
@@ -432,19 +435,21 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
                 try:
-                    fw = plugin.out_queue.get_nowait()
+                    result = plugin.out_queue.get_nowait()
                 except (Empty, ValueError):
                     pass
                 else:
                     nop = False
-                    if plugin_name in fw.processed_analysis:
-                        if fw.analysis_exception:
-                            self.task_scheduler.reschedule_failed_analysis_task(fw)
-
-                        self.post_analysis(fw.uid, plugin_name, fw.processed_analysis[plugin_name])
-                    self._check_further_process_or_complete(fw)
+                    self._handle_collected_result(result, plugin_name)
             if nop:
                 sleep(cfg.expert_settings.block_delay)
+
+    def _handle_collected_result(self, fo: FileObject, plugin_name: str):
+        if plugin_name in fo.processed_analysis:
+            if fo.analysis_exception:
+                self.task_scheduler.reschedule_failed_analysis_task(fo)
+            self.post_analysis(fo.uid, plugin_name, fo.processed_analysis[plugin_name])
+        self._check_further_process_or_complete(fo)
 
     def _check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
