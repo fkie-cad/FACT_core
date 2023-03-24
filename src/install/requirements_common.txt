@@ -26,6 +26,8 @@ yara-python==4.2.3
 
 # Config validation
 pydantic==1.10.2
+# Config parsing
+toml==0.10.2
 
 git+https://github.com/fkie-cad/fact_helper_file.git
 
