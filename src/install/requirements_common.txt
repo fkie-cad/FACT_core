@@ -33,3 +33,6 @@ git+https://github.com/fkie-cad/fact_helper_file.git
 git+https://github.com/fkie-cad/common_helper_files.git
 git+https://github.com/fkie-cad/common_helper_filter.git
 git+https://github.com/mass-project/common_helper_encoder.git
+
+# database migration
+alembic==1.10.2
