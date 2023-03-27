@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 
 from alembic import config, script
@@ -15,8 +14,4 @@ def db_needs_migration():
         script_ = script.ScriptDirectory.from_config(alembic_cfg)
         with db.engine.begin() as connection:
             context = migration.MigrationContext.configure(connection)
-
-            db_version = context.get_current_revision()
-            current_head = script_.get_current_head()
-            logging.warning(f'{db_version=}, {current_head=}')
-            return db_version != current_head
+            return context.get_current_revision() != script_.get_current_head()
