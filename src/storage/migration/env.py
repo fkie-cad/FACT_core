@@ -2,6 +2,7 @@
 from logging.config import fileConfig
 
 from alembic import context
+
 from config import load
 from storage.db_connection import AdminConnection
 from storage.schema import Base
@@ -27,5 +28,4 @@ def run_migrations_online() -> None:
             context.run_migrations()
 
 
-if __name__ == '__main__':
-    run_migrations_online()
+run_migrations_online()
