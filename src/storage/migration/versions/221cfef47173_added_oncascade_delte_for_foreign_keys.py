@@ -15,7 +15,7 @@ branch_labels = None
 depends_on = None
 
 
-def upgrade() -> None:
+def upgrade():
     # added ondelete='CASCADE' on ForeignKey "uid" in table "analysis":
     op.drop_constraint('analysis_uid_fkey', 'analysis', type_='foreignkey')
     op.create_foreign_key('analysis_uid_fkey', 'analysis', 'file_object', ['uid'], ['uid'], ondelete='CASCADE')
@@ -60,7 +60,7 @@ def upgrade() -> None:
     op.create_foreign_key('firmware_uid_fkey', 'firmware', 'file_object', ['uid'], ['uid'], ondelete='CASCADE')
 
 
-def downgrade() -> None:
+def downgrade():
     op.drop_constraint('included_files_child_uid_fkey', 'included_files', type_='foreignkey')
     op.create_foreign_key('included_files_child_uid_fkey', 'included_files', 'file_object', ['child_uid'], ['uid'])
     op.drop_constraint('included_files_parent_uid_fkey', 'included_files', type_='foreignkey')

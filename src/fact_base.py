@@ -83,6 +83,6 @@ class FactBase:
         if db_needs_migration():
             logging.error(
                 'The database schema in "storage/schema.py" does not match the schema of the configured database. '
-                'Please run `alembic upgrade head` to update the schema.'
+                'Please run `alembic upgrade head` from `src` to update the schema.'
             )
             raise DbInterfaceError('Schema mismatch')
