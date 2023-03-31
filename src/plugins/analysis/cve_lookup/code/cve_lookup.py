@@ -68,6 +68,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         cves = {'cve_results': {}}
+        # This for loop mixes two things: A single software ("component") with mutliple version matches
+        # and multiple softwares.
         for component in file_object.processed_analysis['software_components']['summary']:
             product, version = self._split_component(component)
             if product and version:
