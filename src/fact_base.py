@@ -11,6 +11,8 @@ try:
 
     from helperFunctions.program_setup import setup_argparser, setup_logging
     from statistic.work_load import WorkLoadStatistic
+    from storage.db_interface_base import DbInterfaceError
+    from storage.migration import db_needs_migration
 except (ImportError, ModuleNotFoundError):
     logging.exception(
         'Could not load dependencies. Please make sure that you have installed FACT correctly '
@@ -35,6 +37,7 @@ class FactBase:
         self.args = setup_argparser(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
         config.load(self.args.config_file)
         setup_logging(self.args, self.COMPONENT)
+        self.do_self_test()
 
         self._register_signal_handlers()
         self.work_load_stat = WorkLoadStatistic(component=self.COMPONENT)
@@ -74,3 +77,12 @@ class FactBase:
     @staticmethod
     def _is_main_process() -> bool:
         return os.getpid() == os.getpgrp()
+
+    @staticmethod
+    def do_self_test():
+        if db_needs_migration():
+            logging.error(
+                'The database schema in "storage/schema.py" does not match the schema of the configured database. '
+                'Please run `alembic upgrade head` from `src` to update the schema.'
+            )
+            raise DbInterfaceError('Schema mismatch')
