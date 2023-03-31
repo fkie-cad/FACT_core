@@ -4,7 +4,7 @@ import logging
 import os
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import Queue, Value
+from multiprocessing import Lock, Queue, Value
 from queue import Empty
 from time import sleep, time
 
@@ -16,7 +16,7 @@ from config import cfg
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_process
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
@@ -84,10 +84,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     actual analysis process is out of scope. Database interaction happens before (pre_analysis) and after
     (post_analysis) the running of a task, to store intermediate results for live updates, and final results.
 
-    :param config: The ConfigParser object shared by all backend entities.
     :param pre_analysis: A database callback to execute before running an analysis task.
     :param post_analysis: A database callback to execute after running an analysis task.
     :param db_interface: An object reference to an instance of BackEndDbInterface.
+    :param unpacking_locks: An instance of UnpackingLockManager.
     '''
 
     def __init__(
@@ -95,16 +95,19 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         pre_analysis: Callable[[FileObject], None] = None,
         post_analysis: Callable[[str, str, dict], None] = None,
         db_interface=None,
-        unpacking_locks=None,
+        unpacking_locks: UnpackingLockManager | None = None,
     ):
         self.analysis_plugins = {}
         self._load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
-        self.unpacking_locks: UnpackingLockManager = unpacking_locks
+        self.unpacking_locks = unpacking_locks
+        self.scheduling_lock = Lock()
 
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
+        self.schedule_processes = []
+        self.result_collector_processes = []
 
         self.fs_organizer = FSOrganizer()
         self.db_backend_service = db_interface if db_interface else BackendDbInterface()
@@ -112,7 +115,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
 
     def start(self):
-        self._start_runner_process()
+        self._start_runner_processes()
         self._start_result_collector()
         self._start_plugins()
         logging.info('Analysis System online...')
@@ -127,13 +130,13 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.stop_condition.value = 1
         futures = []
         # first shut down scheduling, then analysis plugins and lastly the result collector
-        stop_process(self.schedule_process, cfg.expert_settings.block_delay + 1)
+        stop_processes(self.schedule_processes, cfg.expert_settings.block_delay + 1)
         with ThreadPoolExecutor() as pool:
             for plugin in self.analysis_plugins.values():
                 futures.append(pool.submit(plugin.shutdown))
             for future in futures:
                 future.result()  # call result to make sure all threads are finished and there are no exceptions
-        stop_process(self.result_collector_process, cfg.expert_settings.block_delay + 1)
+        stop_processes(self.result_collector_processes, cfg.expert_settings.block_delay + 1)
         self.process_queue.close()
         self.status.shutdown()
         logging.info('Analysis System offline')
@@ -163,9 +166,22 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
         :param fo: The firmware that is to be analyzed
         '''
-        self.status.add_to_current_analyses(fo)
-        self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
-        self._check_further_process_or_complete(fo)
+        # FixMe: remove this when no duplicate files come from unpacking any more
+        with self.scheduling_lock:  # if multiple unpacking threads call this in parallel, this can cause DB errors
+            try:
+                self.pre_analysis(fo)
+            except DbInterfaceError as error:
+                # trying to add an object to the DB could lead to an error if the root FW or the parents are missing
+                # (e.g. because they were recently deleted)
+                logging.error(f'Could not add {fo.uid} to the DB: {error}')
+                return
+
+        if self.status.file_should_be_analyzed(fo):
+            self.status.add_to_current_analyses(fo)
+            self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
+            self._check_further_process_or_complete(fo)
+        else:
+            logging.info(f'Skipping analysis of {fo.uid} (duplicate file)')
 
     def update_analysis_of_single_object(self, fo: FileObject):
         '''
@@ -178,9 +194,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self._check_further_process_or_complete(fo)
 
     def _get_list_of_available_plugins(self) -> list[str]:
-        plugin_list = list(self.analysis_plugins.keys())
-        plugin_list.sort(key=str.lower)
-        return plugin_list
+        return sorted(self.analysis_plugins, key=str.lower)
 
     # ---- plugin initialization ----
 
@@ -249,9 +263,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     # ---- task runner functions ----
 
-    def _start_runner_process(self):
-        self.schedule_process = ExceptionSafeProcess(target=self._task_runner)
-        self.schedule_process.start()
+    def _start_runner_processes(self):
+        self.schedule_processes = [
+            ExceptionSafeProcess(target=self._task_runner) for _ in range(cfg.expert_settings.scheduling_worker_count)
+        ]
+        for process in self.schedule_processes:
+            process.start()
 
     def _task_runner(self):
         logging.debug(f'Started analysis scheduler (pid={os.getpid()})')
@@ -264,15 +281,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 self._process_next_analysis_task(task)
 
     def _process_next_analysis_task(self, fw_object: FileObject):
-        try:
-            self.pre_analysis(fw_object)
-        except DbInterfaceError as error:
-            # trying to add an object to the DB could lead to an error if the root FW or the parents are missing
-            # (e.g. because they were recently deleted)
-            logging.error(f'Could not add {fw_object.uid} to the DB: {error}')
-            self.status.remove_from_current_analyses(fw_object)
-            return
-
         self.unpacking_locks.release_unpacking_lock(fw_object.uid)
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
@@ -416,8 +424,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     # ---- result collector functions ----
 
     def _start_result_collector(self):
-        self.result_collector_process = ExceptionSafeProcess(target=self._result_collector)
-        self.result_collector_process.start()
+        self.result_collector_processes = [
+            ExceptionSafeProcess(target=self._result_collector)
+            for _ in range(cfg.expert_settings.collector_worker_count)
+        ]
+        for process in self.result_collector_processes:
+            process.start()
 
     def _result_collector(self):
         logging.debug(f'Started analysis result collector (pid={os.getpid()})')
@@ -425,20 +437,22 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
                 try:
-                    fw = plugin.out_queue.get_nowait()
+                    result = plugin.out_queue.get_nowait()
                 except (Empty, ValueError):
                     pass
                 else:
                     nop = False
-                    if plugin_name in fw.processed_analysis:
-                        if fw.analysis_exception:
-                            self.task_scheduler.reschedule_failed_analysis_task(fw)
-
-                        self.status.update_post_analysis(fw, plugin_name)
-                        self.post_analysis(fw.uid, plugin_name, fw.processed_analysis[plugin_name])
-                    self._check_further_process_or_complete(fw)
+                    self._handle_collected_result(result, plugin_name)
             if nop:
                 sleep(cfg.expert_settings.block_delay)
+
+    def _handle_collected_result(self, fo: FileObject, plugin_name: str):
+        if plugin_name in fo.processed_analysis:
+            if fo.analysis_exception:
+                self.task_scheduler.reschedule_failed_analysis_task(fo)
+            self.status.update_post_analysis(fo, plugin_name)
+            self.post_analysis(fo.uid, plugin_name, fo.processed_analysis[plugin_name])
+        self._check_further_process_or_complete(fo)
 
     def _check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
@@ -506,7 +520,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for _, plugin in self.analysis_plugins.items():
             if plugin.check_exceptions():
                 return True
-        return check_worker_exceptions([self.schedule_process, self.result_collector_process], 'Scheduler')
+        return check_worker_exceptions(self.schedule_processes + self.result_collector_processes, 'Scheduler')
 
 
 def _fix_system_version(system_version: str | None) -> str:

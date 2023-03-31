@@ -19,7 +19,8 @@
 
 import sys
 
-from helperFunctions.program_setup import program_setup
+import config
+from helperFunctions.program_setup import setup_argparser, setup_logging
 from statistic.update import StatsUpdater
 
 PROGRAM_NAME = 'FACT Statistic Updater'
@@ -27,9 +28,9 @@ PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
 
 
 def main(command_line_options=None):
-    if command_line_options is None:
-        command_line_options = sys.argv
-    program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
+    args = setup_argparser(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options or sys.argv)
+    config.load(args.config_file)
+    setup_logging(args, 'statistic')
 
     updater = StatsUpdater()
     updater.update_all_stats()

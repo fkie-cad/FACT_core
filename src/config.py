@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import configparser
+import logging
 from configparser import ConfigParser
 from pathlib import Path
 from typing import Optional
@@ -65,8 +66,10 @@ class DataStorage(BaseModel):
 
 class Logging(BaseModel):
     Config = _PydanticConfigExtraForbid
-    logfile: str
-    loglevel: str
+    logfile_backend: str = '/tmp/fact_backend.log'
+    logfile_frontend: str = '/tmp/fact_frontend.log'
+    logfile_database: str = '/tmp/fact_database.log'
+    loglevel: str = 'WARNING'
 
 
 class Unpack(BaseModel):
@@ -100,6 +103,8 @@ class Statistics(BaseModel):
 
 class ExpertSettings(BaseModel):
     Config = _PydanticConfigExtraForbid
+    scheduling_worker_count: int = 4
+    collector_worker_count: int = 2
     block_delay: float
     ssdeep_ignore: int
     communication_timeout: int = 60
@@ -192,6 +197,11 @@ def _verify_config(config: Config):
     """Analyze the config for simple errors that a sysadmin might make."""
     if not Path(config.data_storage.temp_dir_path).exists():
         raise ValueError('The "temp-dir-path" as specified in section "data-storage" does not exist.')
+
+    if isinstance(logging.getLevelName(config.logging.loglevel), str):
+        raise ValueError(
+            f'The "loglevel" {config.logging.loglevel} as specified in section "logging" is not a valid loglevel.'
+        )
 
 
 def _replace_hyphens_with_underscores(sections):

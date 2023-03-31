@@ -16,7 +16,7 @@ from helperFunctions.fileSystem import get_src_dir
         ('start_fact.py', 'FACT Starter'),
         ('start_fact_backend.py', 'FACT Backend'),
         ('start_fact_frontend.py', 'FACT Frontend'),
-        ('start_fact_db.py', 'FACT DB-Service'),
+        ('start_fact_database.py', 'FACT DB-Service'),
     ],
 )
 def test_start_script_help_and_version(script, expected_str):
