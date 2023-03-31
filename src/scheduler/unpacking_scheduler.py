@@ -21,6 +21,7 @@ from helperFunctions.process import (
     stop_processes,
 )
 from objects.file import FileObject
+from objects.firmware import Firmware
 from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack import Unpacker
 from unpacker.unpack_base import ExtractionError
@@ -91,11 +92,12 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     # ---- internal functions ----
 
-    def add_task(self, fo):
+    def add_task(self, fw: Firmware):
         '''
         schedule a firmware_object for unpacking
         '''
-        self.in_queue.put(fo)
+        fw.root_uid = fw.uid  # make sure the root_uid is set correctly for unpacking and analysis scheduling
+        self.in_queue.put(fw)
 
     def get_scheduled_workload(self):
         return {'unpacking_queue': self.in_queue.qsize(), 'is_throttled': self.throttle_condition.value == 1}

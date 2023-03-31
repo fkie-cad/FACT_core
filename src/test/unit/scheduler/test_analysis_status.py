@@ -45,7 +45,7 @@ class TestAnalysisStatus:
             }
         }
         fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
+        fo.root_uid = 'parent_uid'
         fo.files_included = ['bar', 'new']
         fo.uid = 'foo'
         self.status.add_to_current_analyses(fo)
@@ -66,7 +66,7 @@ class TestAnalysisStatus:
             }
         }
         fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
+        fo.root_uid = 'parent_uid'
         fo.files_included = ['duplicate']
         fo.uid = 'foo'
         self.status.add_to_current_analyses(fo)
@@ -79,7 +79,7 @@ class TestAnalysisStatus:
             'parent_uid': {'files_to_unpack': [], 'files_to_analyze': ['foo', 'bar'], 'analyzed_files_count': 0}
         }
         fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
+        fo.root_uid = 'parent_uid'
         fo.uid = 'foo'
         self.status.remove_from_current_analyses(fo)
         assert 'parent_uid' in self.status.currently_running
@@ -89,7 +89,7 @@ class TestAnalysisStatus:
     def test_remove_but_not_found(self, caplog):
         self.status.currently_running = {'parent_uid': {'files_to_analyze': ['bar'], 'analyzed_files_count': 1}}
         fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
+        fo.root_uid = 'parent_uid'
         fo.uid = 'foo'
         with caplog.at_level(logging.DEBUG):
             self.status.remove_from_current_analyses(fo)
@@ -108,7 +108,7 @@ class TestAnalysisStatus:
         }
         self.status.recently_finished = {}
         fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
+        fo.root_uid = 'parent_uid'
         fo.uid = 'foo'
         self.status.remove_from_current_analyses(fo)
         assert self.status.currently_running == {}
@@ -120,7 +120,7 @@ class TestAnalysisStatus:
             'parent_uid': {'files_to_unpack': ['bar'], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1}
         }
         fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
+        fo.root_uid = 'parent_uid'
         fo.uid = 'foo'
         self.status.remove_from_current_analyses(fo)
         result = self.status.currently_running
