@@ -167,10 +167,10 @@ actual analysis process is out of scope. Database interaction happens before (pr
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> – The ConfigParser object shared by all backend entities.</p></li>
 <li><p><strong>pre_analysis</strong> (<em>Callable</em><em>[</em><em>[</em><a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a><em>]</em><em>, </em><em>None</em><em>]</em>) – A database callback to execute before running an analysis task.</p></li>
 <li><p><strong>post_analysis</strong> (<em>Callable</em><em>[</em><em>[</em><em>str</em><em>, </em><em>str</em><em>, </em><em>dict</em><em>]</em><em>, </em><em>None</em><em>]</em>) – A database callback to execute after running an analysis task.</p></li>
 <li><p><strong>db_interface</strong> – An object reference to an instance of BackEndDbInterface.</p></li>
+<li><p><strong>unpacking_locks</strong> (<em>UnpackingLockManager</em><em> | </em><em>None</em>) – An instance of UnpackingLockManager.</p></li>
 </ul>
 </dd>
 </dl>
