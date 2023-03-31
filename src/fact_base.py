@@ -12,7 +12,7 @@ try:
     from helperFunctions.program_setup import setup_argparser, setup_logging
     from statistic.work_load import WorkLoadStatistic
     from storage.db_interface_base import DbInterfaceError
-    from storage.migration.util import db_needs_migration
+    from storage.migration import db_needs_migration
 except (ImportError, ModuleNotFoundError):
     logging.exception(
         'Could not load dependencies. Please make sure that you have installed FACT correctly '
