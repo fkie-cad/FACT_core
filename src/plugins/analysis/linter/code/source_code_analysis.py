@@ -1,7 +1,5 @@
 import json
 import logging
-import sys
-from pathlib import Path
 
 from docker.types import Mount
 
@@ -9,11 +7,7 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
 from storage.fsorganizer import FSOrganizer
 
-try:
-    from internal import linters
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent))
-    from internal import linters
+from ..internal import linters
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

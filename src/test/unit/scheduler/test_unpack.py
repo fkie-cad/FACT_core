@@ -42,20 +42,23 @@ class TestUnpackScheduler(TestCase):
     def test_unpack_a_container_including_another_container(self):
         self._start_scheduler()
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test_zip.tar.gz')
+        included_files = [
+            'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227',
+            'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28',
+        ]
         self.scheduler.add_task(test_fw)
-        outer_container = self.tmp_queue.get(timeout=5)
-        assert len(outer_container.files_included) == 2, 'not all children of root found'
+        extracted_files = {}
+        for _ in range(3):
+            file = self.tmp_queue.get(timeout=5)
+            extracted_files[file.uid] = file
+
+        assert test_fw.uid in extracted_files
+        assert len(extracted_files[test_fw.uid].files_included) == 2, 'not all children of fw found'
         assert (
-            'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227' in outer_container.files_included
-        ), 'included container not extracted. Unpacker tar.gz modul broken?'
-        included_files = [self.tmp_queue.get(timeout=5), self.tmp_queue.get(timeout=5)]
-        for item in included_files:
-            if item.uid == 'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227':
-                assert len(item.files_included) == 1, 'number of files in included container not correct'
-            else:
-                assert (
-                    item.uid == 'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28'
-                ), 'none container file not rescheduled'
+            included_files[0] in extracted_files[test_fw.uid].files_included
+        ), 'included container not extracted. Unpacker tar.gz module broken?'
+        assert all(f in extracted_files for f in included_files)
+        assert len(extracted_files[included_files[0]].files_included) == 1
 
     def test_get_combined_analysis_workload(self):
         self._start_scheduler()

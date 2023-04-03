@@ -7,8 +7,6 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-import requests
-
 from compile_yara_signatures import main as compile_signatures
 from config import cfg
 from helperFunctions.fileSystem import get_src_dir
@@ -122,22 +120,15 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
 
 
 def _install_yara():  # pylint: disable=too-complex
-
-    # CAUTION: Yara python binding is installed in install/common.py, because it is needed in the frontend as well.
-
-    try:
-        latest_url = requests.get('https://github.com/VirusTotal/yara/releases/latest').url
-        latest_version = latest_url.split('/tag/')[1]
-    except (AttributeError, KeyError):
-        raise InstallationError('Could not find latest yara version') from None
+    yara_version = 'v4.2.3'  # must be the same version as `yara-python` in `install/requirements_common.txt`
 
     yara_process = subprocess.run('yara --version', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
-    if yara_process.returncode == 0 and yara_process.stdout.strip() == latest_version.strip('v'):
+    if yara_process.returncode == 0 and yara_process.stdout.strip() == yara_version.strip('v'):
         logging.info('Skipping yara installation: Already installed and up to date')
         return
 
-    logging.info(f'Installing yara {latest_version}')
-    archive = f'{latest_version}.zip'
+    logging.info(f'Installing yara {yara_version}')
+    archive = f'{yara_version}.zip'
     download_url = f'https://github.com/VirusTotal/yara/archive/refs/tags/{archive}'
     wget_process = subprocess.run(f'wget {download_url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
     if wget_process.returncode != 0:

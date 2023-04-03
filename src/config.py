@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import configparser
+import logging
 from configparser import ConfigParser
 from pathlib import Path
+from typing import Optional
 
 from pydantic import BaseModel, Extra
 from werkzeug.local import LocalProxy
 
-# pylint: disable=invalid-name
 _cfg = None
 cfg: Config = LocalProxy(lambda: _cfg)
 
@@ -46,10 +47,11 @@ class DataStorage(BaseModel):
     postgres_admin_user: str
     postgres_admin_pw: str
 
-    redis_fact_db: str
+    redis_fact_db: int
     redis_test_db: str
     redis_host: str
     redis_port: int
+    redis_pw: Optional[str]
 
     firmware_file_storage_directory: str
 
@@ -64,16 +66,19 @@ class DataStorage(BaseModel):
 
 class Logging(BaseModel):
     Config = _PydanticConfigExtraForbid
-    logfile: str
-    loglevel: str
+    logfile_backend: str = '/tmp/fact_backend.log'
+    logfile_frontend: str = '/tmp/fact_frontend.log'
+    logfile_database: str = '/tmp/fact_database.log'
+    loglevel: str = 'WARNING'
 
 
 class Unpack(BaseModel):
     Config = _PydanticConfigExtraForbid
     threads: int
+    memory_limit: int = 2048
     whitelist: list
     max_depth: int
-    memory_limit: int = 2048
+    base_port: int
 
 
 class DefaultPlugins(BaseModel):
@@ -98,6 +103,8 @@ class Statistics(BaseModel):
 
 class ExpertSettings(BaseModel):
     Config = _PydanticConfigExtraForbid
+    scheduling_worker_count: int = 4
+    collector_worker_count: int = 2
     block_delay: float
     ssdeep_ignore: int
     communication_timeout: int = 60
@@ -108,6 +115,7 @@ class ExpertSettings(BaseModel):
     nginx: bool
     intercom_poll_delay: float
     radare2_host: str
+    unpacking_delay: float
 
 
 # We need to allow extra here since we don't know what plugins will be loaded
@@ -189,6 +197,11 @@ def _verify_config(config: Config):
     """Analyze the config for simple errors that a sysadmin might make."""
     if not Path(config.data_storage.temp_dir_path).exists():
         raise ValueError('The "temp-dir-path" as specified in section "data-storage" does not exist.')
+
+    if isinstance(logging.getLevelName(config.logging.loglevel), str):
+        raise ValueError(
+            f'The "loglevel" {config.logging.loglevel} as specified in section "logging" is not a valid loglevel.'
+        )
 
 
 def _replace_hyphens_with_underscores(sections):

@@ -1,44 +1,49 @@
 from __future__ import annotations
 
+import importlib
 import logging
+import sys
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
-
-from common_helper_files import get_dirs_in_dir
-from pluginbase import PluginBase
 
 from helperFunctions.fileSystem import get_src_dir
 
 
-def import_plugins(plugin_mount, plugin_base_dir):
-    '''
-    Imports all plugins in plugin_base_dir with packagename plugin_mount
-
-    :param plugin_mount: The packagename that the plugins will reside in
-    :param plugin_base_dir: The directory that contains the plugins
-    :return: A pluginbase.PluginSource containing all plugins from plugin_base_dir
-    '''
-    plugin_base = PluginBase(package=plugin_mount)
-    plugin_src_dirs = _get_plugin_src_dirs(plugin_base_dir)
-    return plugin_base.make_plugin_source(searchpath=plugin_src_dirs)
+def discover_analysis_plugins() -> list:
+    """Returns a list of modules where each module is an analysis plugin."""
+    return _import_plugins('analysis')
 
 
-def _get_plugin_src_dirs(base_dir: str) -> list[str]:
-    '''
-    Returns a list of all plugin code directories.
-    E.g. if base_dir contains the qemu_exec plugin it would return
-    `base_dir`/qemu_exec/code.
+def discover_compare_plugins() -> list:
+    """Returns a list of modules where each module is a compare plugin."""
+    return _import_plugins('compare')
 
-    :param base_dir: The root directory of all plugins
-    '''
-    plug_in_base_path = Path(get_src_dir(), base_dir)
-    plugin_dirs = get_dirs_in_dir(str(plug_in_base_path))
+
+def _import_plugins(plugin_type):
+    assert plugin_type in ['analysis', 'compare']
+
     plugins = []
-    for plugin_path in plugin_dirs:
-        if plugin_path.endswith('__pycache__'):
+    src_dir = get_src_dir()
+    for plugin_file in Path(src_dir).glob(f'plugins/{plugin_type}/*/code/*.py'):
+        if plugin_file.name == '__init__.py':
             continue
-        plugin_code_dir = Path(plugin_path, 'code')
-        if plugin_code_dir.is_dir():
-            plugins.append(str(plugin_code_dir))
-        else:
-            logging.warning(f'Plugin has no code directory: {plugin_path}')
+
+        # The module name has to be the name in the FACT import tree.
+        # If it isn't we can't do relative imports of the `internal` modules
+        module_name = str(plugin_file).replace('/', '.')[len(src_dir + '/') : -len('.py')]
+
+        loader = SourceFileLoader(module_name, str(plugin_file))
+        spec = importlib.util.spec_from_loader(loader.name, loader)
+        plugin_module = importlib.util.module_from_spec(spec)
+
+        sys.modules[spec.name] = plugin_module
+        try:
+            loader.exec_module(plugin_module)
+            plugins.append(plugin_module)
+        except Exception:  # pylint: disable=broad-except
+            sys.modules.pop(spec.name)
+            # This exception could be caused by upgrading dependencies to incompatible versions. Another cause could
+            # be missing dependencies. So if anything goes wrong we want to inform the user about it
+            logging.error(f'Could not import plugin {module_name} due to exception', exc_info=True)
+
     return plugins

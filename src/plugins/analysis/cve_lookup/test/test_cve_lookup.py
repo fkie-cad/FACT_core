@@ -1,23 +1,13 @@
-import sys
 from os import remove
-from pathlib import Path
 
 import pytest
 from packaging.version import parse as parse_version
 
 from test.common_helper import TEST_FW
 
-try:
-    from ..code import cve_lookup as lookup
-    from ..internal.database_interface import DatabaseInterface
-    from ..internal.helper_functions import replace_characters_and_wildcards
-except ImportError:
-    ROOT = Path(__file__).parent.parent
-    sys.path.extend([str(ROOT / 'code'), str(ROOT / 'internal')])
-    import cve_lookup as lookup
-    from database_interface import DatabaseInterface
-    from helper_functions import replace_characters_and_wildcards
-
+from ..code import cve_lookup as lookup
+from ..internal.database_interface import DatabaseInterface
+from ..internal.helper_functions import replace_characters_and_wildcards
 
 # pylint: disable=redefined-outer-name
 lookup.MAX_LEVENSHTEIN_DISTANCE = 3

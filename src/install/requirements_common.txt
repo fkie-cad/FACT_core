@@ -16,7 +16,7 @@ pytest-timeout==2.1.0
 pytest==7.2.0
 python-magic==0.4.27
 python-tlsh==4.5.0
-redis==4.3.4
+redis==4.5.4
 requests==2.28.1
 rich==12.6.0
 sqlalchemy==1.4.43
@@ -33,3 +33,6 @@ git+https://github.com/fkie-cad/fact_helper_file.git
 git+https://github.com/fkie-cad/common_helper_files.git
 git+https://github.com/fkie-cad/common_helper_filter.git
 git+https://github.com/mass-project/common_helper_encoder.git
+
+# database migration
+alembic==1.10.2

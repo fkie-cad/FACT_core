@@ -1,5 +1,6 @@
-# pylint: disable=no-self-use,wrong-import-order
+# pylint: disable=redefined-outer-name,wrong-import-order
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import pytest
 
@@ -34,23 +35,22 @@ def test_fo():
 )
 class TestUnpackerCore:
     def test_dont_store_zero_file(self, unpacker, test_fo):
-        file_paths = [EXTRACTION_DIR / 'zero_byte', EXTRACTION_DIR / 'get_files_test' / 'testfile1']
-        file_objects = unpacker.generate_and_store_file_objects(file_paths, EXTRACTION_DIR, test_fo)
-        file_objects = list(file_objects.values())
+        file_paths = [EXTRACTION_DIR / 'zero_byte', EXTRACTION_DIR / 'get_files_test' / 'testfile2']
+        file_objects = unpacker.generate_objects_and_store_files(file_paths, EXTRACTION_DIR, test_fo)
         assert len(file_objects) == 1, 'number of objects not correct'
-        assert file_objects[0].file_name == 'testfile1', 'wrong object created'
-        parent_uid = test_fo.uid
-        assert f'|{parent_uid}|/get_files_test/testfile1' in file_objects[0].virtual_file_path[test_fo.uid]
+        assert file_objects[0].file_name == 'testfile2', 'wrong object created'
+        assert f'|{test_fo.uid}|/get_files_test/testfile2' in file_objects[0].virtual_file_path[test_fo.uid]
 
-    def test_remove_duplicates_child_equals_parent(self, unpacker):
-        parent = FileObject(binary=b'parent_content')
-        result = unpacker.remove_duplicates({parent.uid: parent}, parent)
-        assert len(result) == 0, 'parent not removed from list'
+    def test_remove_duplicates_child_equals_parent(self, unpacker, test_fo):
+        file_paths = [EXTRACTION_DIR / 'get_files_test' / 'testfile1']
+        # testfile1 is the same file as test_fo -> should be removed
+        file_objects = unpacker.generate_objects_and_store_files(file_paths, EXTRACTION_DIR, test_fo)
+        assert len(file_objects) == 0, 'the same file should not be unpacked from itself'
 
     def test_file_is_locked(self, unpacker, test_fo):
         assert not unpacker.unpacking_locks.unpacking_lock_is_set(test_fo.uid)
         file_paths = [TEST_DATA_DIR / 'get_files_test' / 'testfile1']
-        unpacker.generate_and_store_file_objects(file_paths, EXTRACTION_DIR, test_fo)
+        unpacker.generate_objects_and_store_files(file_paths, EXTRACTION_DIR, test_fo)
         assert unpacker.unpacking_locks.unpacking_lock_is_set(test_fo.uid)
 
 
@@ -67,7 +67,8 @@ class TestUnpackerCoreMain:
     test_file_path = str(TEST_DATA_DIR / 'container/test.zip')
 
     def main_unpack_check(self, unpacker, test_object, number_unpacked_files, first_unpacker):
-        extracted_files = unpacker.unpack(test_object)
+        with TemporaryDirectory() as tmp_dir:
+            extracted_files = unpacker.unpack(test_object, tmp_dir)
         assert len(test_object.files_included) == number_unpacked_files, 'not all files added to parent'
         assert len(extracted_files) == number_unpacked_files, 'not all files found'
         assert test_object.processed_analysis['unpacker']['plugin_used'] == first_unpacker, 'Wrong plugin in Meta'
@@ -88,6 +89,7 @@ class TestUnpackerCoreMain:
     def test_unpacking_depth_reached(self, unpacker):
         test_file = FileObject(file_path=self.test_file_path)
         test_file.depth = 10
-        unpacker.unpack(test_file)
+        with TemporaryDirectory() as tmp_dir:
+            unpacker.unpack(test_file, tmp_dir)
         assert 'unpacker' in test_file.processed_analysis
         assert 'maximum unpacking depth was reached' in test_file.processed_analysis['unpacker']['info']
