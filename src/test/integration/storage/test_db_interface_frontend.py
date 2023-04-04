@@ -289,6 +289,19 @@ def test_generic_search_tags(db):
     assert db.frontend.generic_search({'firmware_tags': {'$overlap': ['none']}}) == []
 
 
+def test_generic_search_unequal(db):
+    insert_test_fw(db, 'uid1', device_class='c1', vendor='v1', device_name='n1', file_name='f1')
+    insert_test_fw(db, 'uid2', device_class='c2', vendor='v2', device_name='n2', file_name='f2')
+    db.backend.add_analysis('uid1', 'some_plugin', generate_analysis_entry(analysis_result={'foo': 'foo', 'test': 1}))
+    db.backend.add_analysis('uid2', 'some_plugin', generate_analysis_entry(analysis_result={'foo': 'bar', 'test': 2}))
+
+    assert db.frontend.generic_search({'device_class': {'$ne': 'c1'}}) == ['uid2']
+    assert db.frontend.generic_search({'vendor': {'$ne': 'v2'}}) == ['uid1']
+    assert db.frontend.generic_search({'vendor': {'$ne': 'v2'}}) == ['uid1']
+    assert db.frontend.generic_search({'processed_analysis.some_plugin.foo': {'$ne': 'bar'}}) == ['uid1']
+    assert db.frontend.generic_search({'processed_analysis.some_plugin.test': {'$ne': 2}}) == ['uid1']
+
+
 def test_inverted_search(db):
     fo, fw = create_fw_with_child_fo()
     fo.file_name = 'foo.bar'

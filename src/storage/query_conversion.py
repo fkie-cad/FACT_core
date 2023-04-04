@@ -52,9 +52,9 @@ def query_parent_firmware(search_dict: dict, inverted: bool, count: bool = False
     return select(FirmwareEntry).filter(query_filter).order_by(*FIRMWARE_ORDER)
 
 
-def build_query_from_dict(
+def build_query_from_dict(  # pylint: disable=too-complex, too-many-branches
     query_dict: dict,
-    query: Select | None = None,  # pylint: disable=too-complex, too-many-branches
+    query: Select | None = None,
     fw_only: bool = False,
     or_query: bool = False,
 ) -> Select:
@@ -124,6 +124,8 @@ def _dict_key_to_filter(column, key: str, value: Any):  # pylint: disable=too-co
         return column.ilike(f'%{value["$like"]}%')
     if '$in' in value:  # filter by list
         return column.in_(value['$in'])
+    if '$ne' in value:  # not equal
+        return column != value['$ne']
     if '$lt' in value:  # less than
         return column < value['$lt']
     if '$gt' in value:  # greater than
