@@ -227,9 +227,9 @@ def prompt_loop(app, store, db, session):  # pylint: disable=too-complex
 
 
 def start_user_management(app, store, db, session):
-    # We expect flask-security to be initialized
-    db.create_all()
-    prompt_loop(app, store, db, session)
+    with app.app_context():
+        db.create_all()
+        prompt_loop(app, store, db, session)
 
 
 def main():
