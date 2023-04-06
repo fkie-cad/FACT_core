@@ -72,8 +72,12 @@ def _get_compatible_entry(dts: str) -> str | None:
 
 
 def construct_result(file_object):
+    device_tree_result = file_object.processed_analysis['device_tree'].get('result', {})
+    if not device_tree_result:
+        return {}
+
     result = {}
-    for dt_dict in file_object.processed_analysis['device_tree'].get('result', {}).get('device_trees', []):
+    for dt_dict in device_tree_result.get('device_trees', []):
         dt = dt_dict['device_tree']
 
         compatible_entry = _get_compatible_entry(dt)
