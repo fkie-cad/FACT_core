@@ -5,4 +5,5 @@ plugins
    :maxdepth: 4
 
    plugins.installer
+   plugins.analysis
 
