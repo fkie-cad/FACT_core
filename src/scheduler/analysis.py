@@ -583,7 +583,7 @@ class AnalysisScheduler:
 
     @staticmethod
     def _remove_unwanted_plugins(list_of_plugins):
-        defaults = ['dummy_plugin_for_testing_only']
+        defaults = ['dummy_plugin_for_testing_only', 'ExamplePlugin']
         for plugin in defaults:
             list_of_plugins.remove(plugin)
         return list_of_plugins
