@@ -10,28 +10,28 @@
             <col style="width: 600px">
         </colgroup>
         <tbody class="table-analysis">
-            {% for key, entry in analysis_result.items() %}
+            {% for match_dict in analysis_result["matches"] %}
                 <tr>
-                    {% set row_count = 3 + (1 if entry.meta.date else 0) + (1 if entry.meta.author else 0) %}
+                    {% set row_count = 3 + (1 if match_dict.meta.date else 0) + (1 if match_dict.meta.author else 0) %}
                     <td class="table-head-light" rowspan={{ row_count }}>{{ loop.index - 1 }}</td>
                     <td class="table-head-light">Matched Rule</td>
-                    <td class="table-head-light">{{ entry['rule'] }} </td>
+                    <td class="table-head-light">{{ match_dict['rule'] }} </td>
                 </tr>
                 <tr>
                     <td> Description</td>
-                    <td> {{ entry['meta']['description'] }} </td>
+                    <td> {{ match_dict['meta']['description'] }} </td>
                 </tr>
-                {% if entry.meta.date %}
+                {% if match_dict.meta.date %}
                     <tr>
                         <td>Rule Version</td>
-                        <td>{{ entry['meta']['date'] }}</td>
+                        <td>{{ match_dict['meta']['date'] }}</td>
                     </tr>
                 {% endif %}
-                {% if entry.meta.author %}
+                {% if match_dict.meta.author %}
                     <tr>
                         <td>Rule Author</td>
                         <td><a href="https://github.com/Yara-Rules/rules/blob/master/crypto/crypto_signatures.yar">
-                            {{ entry['meta']['author'] }}
+                            {{ match_dict['meta']['author'] }}
                         </a></td>
                     </tr>
                 {% endif %}
@@ -48,7 +48,7 @@
                                 <td class="table-head-light">name</td>
                                 <td class="table-head-light" style="width: 90%">matched value</td>
                             </tr>
-                            {% for offset, name, matched_string in entry['strings'] %}
+                            {% for offset, name, matched_string in match_dict['strings'] %}
                                 <tr>
                                     <td> 0x{{ '0%x' % offset }} </td>
                                     <td> {{ name[1:] }} </td>
