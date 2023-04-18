@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
 
 import requests
-from flask import make_response, redirect, render_template, request
+from fact_helper_file import get_file_type_from_binary
+from flask import Response, make_response, redirect, render_template, request
 
 from config import cfg
 from helperFunctions.database import ConnectTo, get_shared_session
@@ -64,7 +67,7 @@ class IORoutes(ComponentBase):
     def download_tar(self, uid):
         return self._prepare_file_download(uid, packed=True)
 
-    def _prepare_file_download(self, uid, packed=False):
+    def _prepare_file_download(self, uid: str, packed: bool = False) -> str | Response:
         if not self.db.frontend.exists(uid):
             return render_template('uid_not_found.html', uid=uid)
         with ConnectTo(self.intercom) as sc:
@@ -77,7 +80,13 @@ class IORoutes(ComponentBase):
         binary, file_name = result
         response = make_response(binary)
         response.headers['Content-Disposition'] = f'attachment; filename={file_name}'
+        response.headers['Content-Type'] = 'application/gzip' if packed else self._get_file_download_mime(binary, uid)
         return response
+
+    def _get_file_download_mime(self, binary: bytes, uid: str) -> str:
+        type_analysis = self.db.frontend.get_analysis(uid, 'file_type')
+        mime = type_analysis.get('mime') if type_analysis is not None else None
+        return mime or get_file_type_from_binary(binary)['mime']
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/ida-download/<compare_id>', GET)
