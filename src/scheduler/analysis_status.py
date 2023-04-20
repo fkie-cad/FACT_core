@@ -27,12 +27,12 @@ class AnalysisStatus:
         self.add_to_current_analyses(fw_object)
         with self._get_lock():
             update_dict = self.currently_running[fw_object.uid]
-            update_dict['files_to_unpack'] = []
+            update_dict['files_to_unpack'] = set()
             file_count = len(included_files) + 1
             update_dict['unpacked_files_count'] = file_count
             update_dict['total_files_count'] = file_count
             update_dict['total_files_with_duplicates'] = file_count
-            update_dict['files_to_analyze'] = [fw_object.uid, *included_files]
+            update_dict['files_to_analyze'] = {fw_object.uid, *included_files}
             self.currently_running[fw_object.uid] = update_dict
 
     def add_to_current_analyses(self, fw_object: Firmware | FileObject):
@@ -50,15 +50,14 @@ class AnalysisStatus:
         '''
         for parent in self._find_currently_analyzed_parents(fw_object):
             updated_dict = self.currently_running[parent]
-            new_files = set(fw_object.files_included) - set(updated_dict['files_to_unpack']).union(
-                set(updated_dict['files_to_analyze'])
-            )
+            all_files = updated_dict['files_to_unpack'].union(updated_dict['files_to_analyze'])
+            new_files = set(fw_object.files_included) - all_files
             updated_dict['total_files_count'] += len(new_files)
             updated_dict['total_files_with_duplicates'] += 1
-            updated_dict['files_to_unpack'] = list(set(updated_dict['files_to_unpack']).union(new_files))
+            updated_dict['files_to_unpack'].update(new_files)
             if fw_object.uid in updated_dict['files_to_unpack']:
                 updated_dict['files_to_unpack'].remove(fw_object.uid)
-                updated_dict['files_to_analyze'].append(fw_object.uid)
+                updated_dict['files_to_analyze'].add(fw_object.uid)
                 updated_dict['unpacked_files_count'] += 1
             self.currently_running[parent] = updated_dict
 
@@ -73,8 +72,8 @@ class AnalysisStatus:
     @staticmethod
     def _init_current_analysis(fw_object: Firmware):
         return {
-            'files_to_unpack': list(fw_object.files_included),
-            'files_to_analyze': [fw_object.uid],
+            'files_to_unpack': set(fw_object.files_included),
+            'files_to_analyze': {fw_object.uid},
             'start_time': time(),
             'unpacked_files_count': 1,
             'analyzed_files_count': 0,
@@ -92,7 +91,7 @@ class AnalysisStatus:
                     # probably a file that occurred multiple times in one firmware
                     logging.debug(f'Failed to remove {fw_object.uid} from current analysis of {parent}')
                     continue
-                updated_dict['files_to_analyze'] = list(set(updated_dict['files_to_analyze']) - {fw_object.uid})
+                updated_dict['files_to_analyze'].remove(fw_object.uid)
                 updated_dict['analyzed_files_count'] += 1
                 if len(updated_dict['files_to_unpack']) == len(updated_dict['files_to_analyze']) == 0:
                     self.recently_finished[parent] = self._init_recently_finished(updated_dict)
@@ -108,7 +107,7 @@ class AnalysisStatus:
         with self._get_lock():
             if fw_object.root_uid not in self.currently_running:
                 return False  # analysis (of all non-duplicates) is already completed
-            return fw_object.uid in self.currently_running[fw_object.root_uid]['files_to_unpack'][:]
+            return fw_object.uid in self.currently_running[fw_object.root_uid]['files_to_unpack']
 
     @contextmanager
     def _get_lock(self):
