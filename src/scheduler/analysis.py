@@ -298,6 +298,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 file_object.scheduled_analysis
             ):
                 self._add_completed_analysis_results_to_file_object(analysis_to_do, file_object)
+            self.status.update_post_analysis(file_object, analysis_to_do)
             self._check_further_process_or_complete(file_object)
         elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(
             analysis_to_do, file_object
@@ -305,6 +306,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (blacklisted file type)')
             analysis_result = self._get_skipped_analysis_result(analysis_to_do)
             file_object.processed_analysis[analysis_to_do] = analysis_result
+            self.status.update_post_analysis(file_object, analysis_to_do)
             self.post_analysis(file_object.uid, analysis_to_do, analysis_result)
             self._check_further_process_or_complete(file_object)
         else:
@@ -448,6 +450,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         if plugin_name in fo.processed_analysis:
             if fo.analysis_exception:
                 self.task_scheduler.reschedule_failed_analysis_task(fo)
+            self.status.update_post_analysis(fo, plugin_name)
             self.post_analysis(fo.uid, plugin_name, fo.processed_analysis[plugin_name])
         self._check_further_process_or_complete(fo)
 
@@ -494,6 +497,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for plugin_name, plugin in self.analysis_plugins.items():
             workload['plugins'][plugin_name] = {
                 'queue': plugin.in_queue.qsize(),
+                'out_queue': plugin.out_queue.qsize(),
                 'active': (sum(plugin.active[i].value for i in range(plugin.thread_count))),
                 'stats': get_plugin_stats(plugin),
             }

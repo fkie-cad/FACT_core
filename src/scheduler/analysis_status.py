@@ -28,8 +28,10 @@ class AnalysisStatus:
         with self._get_lock():
             update_dict = self.currently_running[fw_object.uid]
             update_dict['files_to_unpack'] = []
-            update_dict['unpacked_files_count'] = len(included_files) + 1
-            update_dict['total_files_count'] = len(included_files) + 1
+            file_count = len(included_files) + 1
+            update_dict['unpacked_files_count'] = file_count
+            update_dict['total_files_count'] = file_count
+            update_dict['total_files_with_duplicates'] = file_count
             update_dict['files_to_analyze'] = [fw_object.uid, *included_files]
             self.currently_running[fw_object.uid] = update_dict
 
@@ -52,12 +54,21 @@ class AnalysisStatus:
                 set(updated_dict['files_to_analyze'])
             )
             updated_dict['total_files_count'] += len(new_files)
+            updated_dict['total_files_with_duplicates'] += 1
             updated_dict['files_to_unpack'] = list(set(updated_dict['files_to_unpack']).union(new_files))
             if fw_object.uid in updated_dict['files_to_unpack']:
                 updated_dict['files_to_unpack'].remove(fw_object.uid)
                 updated_dict['files_to_analyze'].append(fw_object.uid)
                 updated_dict['unpacked_files_count'] += 1
             self.currently_running[parent] = updated_dict
+
+    def update_post_analysis(self, fw_object: FileObject, plugin: str):
+        with self._get_lock():
+            for parent in self._find_currently_analyzed_parents(fw_object):
+                updated_dict = self.currently_running[parent]
+                updated_dict['analysis_plugins'].setdefault(plugin, 0)
+                updated_dict['analysis_plugins'][plugin] += 1
+                self.currently_running[parent] = updated_dict
 
     @staticmethod
     def _init_current_analysis(fw_object: Firmware):
@@ -68,7 +79,9 @@ class AnalysisStatus:
             'unpacked_files_count': 1,
             'analyzed_files_count': 0,
             'total_files_count': 1 + len(fw_object.files_included),
+            'total_files_with_duplicates': 1,
             'hid': fw_object.get_hid(),
+            'analysis_plugins': {p: 0 for p in fw_object.scheduled_analysis or []},
         }
 
     def remove_from_current_analyses(self, fw_object: Firmware | FileObject):
@@ -126,7 +139,9 @@ class AnalysisStatus:
                 'analyzed_count': stats_dict['analyzed_files_count'],
                 'start_time': stats_dict['start_time'],
                 'total_count': stats_dict['total_files_count'],
+                'total_count_with_duplicates': stats_dict['total_files_with_duplicates'],
                 'hid': stats_dict['hid'],
+                'plugins': stats_dict['analysis_plugins'],
             }
             for uid, stats_dict in self.currently_running.items()
         }
