@@ -78,27 +78,6 @@
         <div class="card-body">
             <h5 class="card-title">{{ plugin_name }}</h5>
             <h6 class="card-subtitle mb-2 text-muted">{{ version }}</h6>
-            <table class="table table-borderless">
-                <tr>
-                    {{ icon_tooltip_desk('align-justify', 'Concurrent threads') }}
-                    <td style="width: 46px;">{{ threads }}</td>
-
-                    <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Currently processing">
-                        <i class="fas fa-cog text-muted" id="{{ plugin_name }}-active-indicator"></i>
-                    </td>
-                    <td class="text-muted" style="width: 46px;" id="{{ plugin_name }}-active"></td>
-
-                    <td style="width: 20px;" data-toggle="tooltip" data-placement="bottom" title="Pending tasks">
-                        <i class="fas fa-sign-in-alt text-muted" id="{{ plugin_name }}-queue-indicator"></i>
-                    </td>
-                    <td class="text-muted" id="{{ plugin_name }}-queue"></td>
-
-                    <td style="width: 20px;" data-toggle="tooltip" data-placement="bottom" title="Finished tasks ready for collection">
-                        <i class="fas fa-sign-out-alt text-muted" id="{{ plugin_name }}-out-queue-indicator"></i>
-                    </td>
-                    <td class="text-muted" id="{{ plugin_name }}-out-queue"></td>
-                </tr>
-            </table>
 
             <div class="collapse m-0 p-0 mt-3" id="{{ plugin_name }}">
                 <span class="card-text">
@@ -142,38 +121,78 @@
     {% endfor %}
 </div>
 
-<!-- Current Analyses -->
-<div class="row justify-content-center">
-    <div class="card m-2" style="width: 430px;">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center" style="width: 100%">
-                <h5 class="card-title">Currently analyzed firmware</h5>
+<div class="row justify-content-center mt-4">
+    {# anaylsis plugin status #}
+    <div class="col-3">
+        <div class="card m-2" style="width: 430px;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center" style="width: 100%">
+                    <h5 class="card-title">Analysis Plugin Status</h5>
+                </div>
+                <table class="table table-sm m-2">
+                    {% for plugin_name, plugin_data in analysis_plugin_info.items() %}
+                        {% set description, _, __, version, dependencies, blacklist, whitelist, threads = plugin_data %}
+                        <tr>
+                            <td>{{ plugin_name }}</td>
+
+                            {{ icon_tooltip_desk('align-justify', 'Concurrent threads') }}
+                            <td style="width: 40px;">{{ threads }}</td>
+
+                            <td data-toggle="tooltip" data-placement="bottom" title="Currently processing">
+                                <i class="fas fa-cog text-muted" id="{{ plugin_name }}-active-indicator"></i>
+                            </td>
+                            <td style="width: 40px;" id="{{ plugin_name }}-active"></td>
+
+                            <td data-toggle="tooltip" data-placement="bottom" title="Pending tasks">
+                                <i class="fas fa-sign-in-alt text-muted" id="{{ plugin_name }}-queue-indicator"></i>
+                            </td>
+                            <td style="width: 40px;" id="{{ plugin_name }}-queue"></td>
+
+                            <td data-toggle="tooltip" data-placement="bottom" title="Finished tasks ready for collection">
+                                <i class="fas fa-sign-out-alt text-muted" id="{{ plugin_name }}-out-queue-indicator"></i>
+                            </td>
+                            <td style="width: 40px;" id="{{ plugin_name }}-out-queue"></td>
+                        </tr>
+                    {% endfor %}
+                </table>
             </div>
-            <div id="current-analyses">
-                <!-- Filled with JavaScript -->
-            </div>
-            <div class="form-check mt-2 mb-0">
-                <input class="form-check-input" type="checkbox" value="" id="ca-show-details">
-                <label class="form-check-label" for="ca-show-details">Show details</label>
+        </div>
+    </div>
+
+    <div class="col-3">
+        <!-- Current Analyses -->
+        <div class="row justify-content-center">
+            <div class="card m-2" style="width: 430px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center" style="width: 100%">
+                        <h5 class="card-title">Currently analyzed firmware</h5>
+                    </div>
+                    <div id="current-analyses">
+                        <!-- Filled with JavaScript -->
+                    </div>
+                    <div class="form-check mt-2 mb-0">
+                        <input class="form-check-input" type="checkbox" value="" id="ca-show-details">
+                        <label class="form-check-label" for="ca-show-details">Show details</label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-
 {% if analysis_plugin_info %}
-    <div class="row justify-content-center my-3">
-        <div style="width: 430px;" class="border-secondary border-top border-bottom align-middle">
-            <h5 class="d-flex justify-content-center mb-0 p-2">Analysis Plugins</h5>
+        <div class="row justify-content-center my-3">
+            <div style="width: 430px;" class="border-secondary border-top border-bottom align-middle">
+                <h5 class="d-flex justify-content-center mb-0 p-2">Analysis Plugins</h5>
+            </div>
         </div>
-    </div>
-    <div class="row justify-content-center">
-        {% for plugin_name in analysis_plugin_info | sort %}
-            {% if plugin_name != "unpacker" %}
-                {{ plugin_card(plugin_name) }}
-            {% endif %}
-        {% endfor %}
-    </div>
+        <div class="row justify-content-center">
+            {% for plugin_name in analysis_plugin_info | sort %}
+                {% if plugin_name != "unpacker" %}
+                    {{ plugin_card(plugin_name) }}
+                {% endif %}
+            {% endfor %}
+        </div>
 {% endif %}
 
 {% endblock %}
