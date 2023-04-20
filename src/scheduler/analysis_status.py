@@ -63,13 +63,12 @@ class AnalysisStatus:
             self.currently_running[parent] = updated_dict
 
     def update_post_analysis(self, fw_object: FileObject, plugin: str):
-        for parent in self._find_currently_analyzed_parents(fw_object):
-            self.currently_running_lock.acquire()
-            updated_dict = self.currently_running[parent]
-            updated_dict['analysis_plugins'].setdefault(plugin, 0)
-            updated_dict['analysis_plugins'][plugin] += 1
-            self.currently_running[parent] = updated_dict
-            self.currently_running_lock.release()
+        with self._get_lock():
+            for parent in self._find_currently_analyzed_parents(fw_object):
+                updated_dict = self.currently_running[parent]
+                updated_dict['analysis_plugins'].setdefault(plugin, 0)
+                updated_dict['analysis_plugins'][plugin] += 1
+                self.currently_running[parent] = updated_dict
 
     @staticmethod
     def _init_current_analysis(fw_object: Firmware):
