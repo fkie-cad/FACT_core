@@ -30,6 +30,7 @@ class StatisticRoutes(ComponentBase):
     @AppRoute('/system_health', GET)
     def show_system_health(self):
         plugin_dict = self.intercom.get_available_analysis_plugins()
+        plugin_dict.pop('unpacker')
         return render_template('system_health.html', analysis_plugin_info=plugin_dict)
 
     def _get_stats_from_db(self):
