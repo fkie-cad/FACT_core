@@ -45,6 +45,9 @@ async function updateSystemHealth() {
                 throttleElement.innerHTML = '';
              }
 
+            const analysisQueueElement = document.getElementById("backend-analysis-queue");
+            analysisQueueElement.innerText = entry.analysis.analysis_main_scheduler.toString();
+
             Object.entries(entry.analysis.plugins).map(([pluginName, pluginData], index) => {
                 if (!pluginName.includes("dummy")){
                     updatePluginCard(pluginName, pluginData);
@@ -79,6 +82,7 @@ function updatePluginCard(pluginName, pluginData) {
     const activeElement = document.getElementById(`${pluginName}-active`);
     const queueIndicatorElement = document.getElementById(`${pluginName}-queue-indicator`);
     const queueElement = document.getElementById(`${pluginName}-queue`);
+    const outQueueElement = document.getElementById(`${pluginName}-out-queue`);
     const statsElement = document.getElementById(`${pluginName}-stats`);
     if (pluginData.active > 0) {
         activeIndicatorElement.classList.add("fa-spin");
@@ -101,6 +105,7 @@ function updatePluginCard(pluginName, pluginData) {
         queueElement.style.color = "darkgrey";
     }
     queueElement.innerText = pluginData.queue.toString();
+    outQueueElement.innerText = pluginData.out_queue.toString();
     if (pluginData.stats !== null) {
         statsElement.innerHTML = `
             <table class="table table-sm table-striped" style="margin-left: 16px">
@@ -153,6 +158,10 @@ function updateCurrentAnalyses(analysisData) {
 function createCurrentAnalysisItem(data, uid, isFinished) {
     const timeString = isFinished ? `Finished in ${getDuration(null, data.duration)}` : `${getDuration(data.start_time)}`;
     const total = isFinished ? data.total_files_count : data.total_count;
+    const showDetails = Boolean(document.getElementById("ca-show-details").checked);
+    const width = isFinished || !showDetails ? "30px": "50%";
+    const unpackingIsFinished = isFinished ? null : (data.unpacked_count == data.total_count);
+    const padding = isFinished || !showDetails ? 55 : 211;
     return `
         <a href='/analysis/${uid}/ro/${uid}' style="color: black;">
             <div class="card clickable mt-2">
@@ -160,19 +169,20 @@ function createCurrentAnalysisItem(data, uid, isFinished) {
                 <div class="card-body p-2">
                     <table class="table table-borderless table-sm mb-0">
                         <tr>
-                            ${createIconCell("box-open", "Unpacking Progress")}
-                            ${createProgressBarCell(isFinished ? data.total_files_count : data.unpacked_count, total)}
-                        </tr>
-                        <tr>
-                            ${createIconCell("microscope", "Analysis Progress")}
-                            ${createProgressBarCell(isFinished ? data.total_files_count : data.analyzed_count, total)}
-                        </tr>
-                        <tr>
-                            ${createIconCell("clock", "Elapsed Time")}
+                            ${createIconCell("clock", "Elapsed Time", width)}
                             <td>
                                 <p class="card-text">${timeString}</p>
                             </td>
                         </tr>
+                        <tr>
+                            ${createIconCell("box-open", "Unpacking Progress", width)}
+                            ${createProgressBarCell(isFinished ? data.total_files_count : data.unpacked_count, total, padding)}
+                        </tr>
+                        <tr>
+                            ${createIconCell("microscope", "Analysis Progress", width)}
+                            ${createProgressBarCell(isFinished ? data.total_files_count : data.analyzed_count, total, padding)}
+                        </tr>
+                        ${!isFinished && showDetails ? createPluginProgress(data, unpackingIsFinished) : ""}
                     </table>
                 </div>
             </div>
@@ -180,10 +190,25 @@ function createCurrentAnalysisItem(data, uid, isFinished) {
     `;
 }
 
-function createProgressBarCell(count, total) {
+function createPluginProgress(data, unpackingIsFinished) {
+    return Object.entries(data.plugins).map(
+        ([pluginName, pluginCount]) => createSinglePluginProgress(pluginName, pluginCount, data.total_count_with_duplicates, unpackingIsFinished)
+    ).join("\n");
+}
+
+function createSinglePluginProgress(plugin, count, total, unpackingIsFinished) {
+    return `
+        <tr>
+            <td class="text-right">${plugin}</td>
+            ${createProgressBarCell(count, total, 211, unpackingIsFinished)}
+        </tr>
+    `;
+}
+
+function createProgressBarCell(count, total, padding_offset=211, unpackingIsFinished=true) {
     const progress = count / total * 100;
     const progressString = `${count} / ${total} (${progress.toFixed(1)}%)`;
-    const divClass = (progress >= 100.0) ? "progress-bar bg-success text-center" : "progress-bar text-center";
+    const divClass = (progress >= 100.0) ? `progress-bar ${unpackingIsFinished ? "bg-success" : "bg-warning"}` : "progress-bar";
     const pStyle = {
         "color": "white",
         "font-size": "0.75rem",
@@ -192,7 +217,7 @@ function createProgressBarCell(count, total) {
         "width": "100%",
         "margin-top": "1px",
         "text-align": "center",
-        "padding-right": "83px",
+        "padding-right": `${padding_offset}px`,
     };
     return `
         <td class="align-middle">
@@ -208,9 +233,9 @@ function objectToStyle(obj) {
     return Object.entries(obj).map(([k, v]) => `${k}: ${v};`).join(" ");
 }
 
-function createIconCell(icon, tooltip) {
+function createIconCell(icon, tooltip, width) {
     return `
-        <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="${tooltip}">
+        <td class="align-middle text-right" style="width: ${width};" data-toggle="tooltip" data-placement="bottom" title="${tooltip}">
             <i class="fas fa-${icon}"></i>
         </td>
     `;

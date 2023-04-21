@@ -79,8 +79,8 @@ class GhidraAnalysis:
         decompiler = DecompInterface()
         options = DecompileOptions()
         decompiler.setOptions(options)
-        decompiler.toggleCCode(True)
         decompiler.toggleSyntaxTree(True)
+        decompiler.toggleCCode(False)
         decompiler.setSimplificationStyle('decompile')
         decompiler.openProgram(current_program)
         return decompiler

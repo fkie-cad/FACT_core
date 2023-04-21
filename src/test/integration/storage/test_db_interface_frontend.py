@@ -94,7 +94,9 @@ def test_get_device_name_dict(db):
     insert_test_fw(db, 'fw2', vendor='vendor1', device_class='class1', device_name='name2')
     insert_test_fw(db, 'fw3', vendor='vendor1', device_class='class2', device_name='name1')
     insert_test_fw(db, 'fw4', vendor='vendor2', device_class='class1', device_name='name1')
-    assert db.frontend.get_device_name_dict() == {
+    device_name_dict = db.frontend.get_device_name_dict()
+    device_name_dict.get('class1', {}).get('vendor1', []).sort()
+    assert device_name_dict == {
         'class1': {'vendor1': ['name1', 'name2'], 'vendor2': ['name1']},
         'class2': {'vendor1': ['name1']},
     }
@@ -285,6 +287,19 @@ def test_generic_search_tags(db):
     assert sorted(db.frontend.generic_search({'firmware_tags': {'$contains': 'foo'}})) == ['fw_1', 'fw_2']
     assert sorted(db.frontend.generic_search({'firmware_tags': {'$overlap': ['bar', 'test']}})) == ['fw_1', 'fw_2']
     assert db.frontend.generic_search({'firmware_tags': {'$overlap': ['none']}}) == []
+
+
+def test_generic_search_unequal(db):
+    insert_test_fw(db, 'uid1', device_class='c1', vendor='v1', device_name='n1', file_name='f1')
+    insert_test_fw(db, 'uid2', device_class='c2', vendor='v2', device_name='n2', file_name='f2')
+    db.backend.add_analysis('uid1', 'some_plugin', generate_analysis_entry(analysis_result={'foo': 'foo', 'test': 1}))
+    db.backend.add_analysis('uid2', 'some_plugin', generate_analysis_entry(analysis_result={'foo': 'bar', 'test': 2}))
+
+    assert db.frontend.generic_search({'device_class': {'$ne': 'c1'}}) == ['uid2']
+    assert db.frontend.generic_search({'vendor': {'$ne': 'v2'}}) == ['uid1']
+    assert db.frontend.generic_search({'vendor': {'$ne': 'v2'}}) == ['uid1']
+    assert db.frontend.generic_search({'processed_analysis.some_plugin.foo': {'$ne': 'bar'}}) == ['uid1']
+    assert db.frontend.generic_search({'processed_analysis.some_plugin.test': {'$ne': 2}}) == ['uid1']
 
 
 def test_inverted_search(db):

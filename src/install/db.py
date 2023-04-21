@@ -63,7 +63,9 @@ def main():
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
+            Path('start_fact_database').unlink()
+            # FIXME This can be removed after the next release that expects a rerun of the installer
             Path('start_fact_db').unlink()
-        Path('start_fact_db').symlink_to('src/start_fact_db.py')
+        Path('start_fact_database').symlink_to('src/start_fact_database.py')
 
     return 0

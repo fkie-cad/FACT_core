@@ -107,7 +107,9 @@ def _get_test_config_tuple(
             'unpacking_delay': '0.0',
         },
         'logging': {
-            'logfile': '/tmp/fact_main.log',
+            'logfile-backend': '/tmp/fact_backend.log',
+            'logfile-frontend': '/tmp/fact_frontend.log',
+            'logfile-database': '/tmp/fact_database.log',
             'loglevel': 'INFO',
         },
         'unpack': {

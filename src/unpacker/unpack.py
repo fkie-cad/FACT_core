@@ -21,7 +21,7 @@ class Unpacker(UnpackBase):
         self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
         self.unpacking_locks = unpacking_locks
 
-    def unpack(self, current_fo: FileObject, tmp_dir: str, container_url: str | None = None):
+    def unpack(self, current_fo: FileObject, tmp_dir: str, container_url: str | None = None) -> list[FileObject]:
         '''
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
@@ -37,10 +37,9 @@ class Unpacker(UnpackBase):
             self._store_unpacking_error_skip_info(current_fo, error=error)
             raise
 
-        extracted_file_objects = self.generate_and_store_file_objects(
+        extracted_file_objects = self.generate_objects_and_store_files(
             extracted_files, Path(tmp_dir) / 'files', current_fo
         )
-        extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
         for item in extracted_file_objects:
             current_fo.add_included_file(item)
 
@@ -49,61 +48,55 @@ class Unpacker(UnpackBase):
         )
         return extracted_file_objects
 
+    def _store_unpacking_error_skip_info(self, file_object: FileObject, error: Exception = None):
+        file_object.processed_analysis['unpacker'] = self._init_skipped_analysis(
+            'Unpacking stopped because extractor raised a exception (possible timeout)',
+            'extractor error',
+            str(error) if error else 'possible extractor timeout',
+        )
+
+    def _store_unpacking_depth_skip_info(self, file_object: FileObject):
+        file_object.processed_analysis['unpacker'] = self._init_skipped_analysis(
+            'Unpacking stopped because maximum unpacking depth was reached',
+            'depth reached',
+            'unpacking depth reached',
+        )
+
     @staticmethod
-    def _store_unpacking_error_skip_info(file_object: FileObject, error: Exception = None):
-        message = str(error) if error else 'possible extractor timeout'
-        file_object.processed_analysis['unpacker'] = {
+    def _init_skipped_analysis(message: str, tag: str, tag_tooltip: str) -> dict:
+        return {
             'plugin_used': 'None',
             'number_of_unpacked_files': 0,
             'plugin_version': '0.0',
             'analysis_date': time(),
-            'info': 'Unpacking stopped because extractor raised a exception (possible timeout)',
-            'tags': {'extractor error': {'value': message, 'color': TagColor.ORANGE, 'propagate': False}},
+            'info': message,
+            'tags': {tag: {'value': tag_tooltip, 'color': TagColor.ORANGE, 'propagate': False}},
         }
 
-    @staticmethod
-    def _store_unpacking_depth_skip_info(file_object: FileObject):
-        file_object.processed_analysis['unpacker'] = {
-            'plugin_used': 'None',
-            'number_of_unpacked_files': 0,
-            'plugin_version': '0.0',
-            'analysis_date': time(),
-            'info': 'Unpacking stopped because maximum unpacking depth was reached',
-            'tags': {
-                'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}
-            },
-        }
-
-    def generate_and_store_file_objects(
+    def generate_objects_and_store_files(
         self, file_paths: list[Path], extraction_dir: Path, parent: FileObject
-    ) -> dict[str, FileObject]:
+    ) -> list[FileObject]:
         extracted_files = {}
         for item in file_paths:
-            if not file_is_empty(item):
-                current_file = FileObject(file_path=str(item))
-                base = get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0])
-                current_virtual_path = join_virtual_path(
-                    base, parent.uid, get_relative_object_path(item, extraction_dir)
-                )
-                current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
-                if current_file.uid not in extracted_files:
-                    # the same file can be contained multiple times in one archive -> only the VFP needs an update
-                    self.unpacking_locks.set_unpacking_lock(current_file.uid)
-                    self.file_storage_system.store_file(current_file)
-                    current_file.parent_firmware_uids.add(parent.get_root_uid())
-                    extracted_files[current_file.uid] = current_file
-                extracted_files[current_file.uid].virtual_file_path.setdefault(parent.get_root_uid(), []).append(
-                    current_virtual_path
-                )
-        return extracted_files
+            if file_is_empty(item):
+                continue
+            current_file = FileObject(file_path=str(item))
+            base = get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0])
+            current_virtual_path = join_virtual_path(base, parent.uid, get_relative_object_path(item, extraction_dir))
+            current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
+            if current_file.uid not in extracted_files:
+                # the same file can be contained multiple times in one archive -> only the VFP needs an update
+                self.unpacking_locks.set_unpacking_lock(current_file.uid)
+                self.file_storage_system.store_file(current_file)
+                current_file.parent_firmware_uids.add(parent.get_root_uid())
+                extracted_files[current_file.uid] = current_file
+            extracted_files[current_file.uid].virtual_file_path.setdefault(parent.get_root_uid(), []).append(
+                current_virtual_path
+            )
+        extracted_files.pop(parent.uid, None)  # the same file should not be unpacked from itself
+        return list(extracted_files.values())
 
-    @staticmethod
-    def remove_duplicates(extracted_fo_dict, parent_fo) -> list[FileObject]:
-        if parent_fo.uid in extracted_fo_dict:
-            del extracted_fo_dict[parent_fo.uid]
-        return list(extracted_fo_dict.values())
-
-    def _generate_local_file_path(self, file_object: FileObject):
+    def _generate_local_file_path(self, file_object: FileObject) -> str:
         if not Path(file_object.file_path).exists():
             local_path = self.file_storage_system.generate_path(file_object.uid)
             return local_path

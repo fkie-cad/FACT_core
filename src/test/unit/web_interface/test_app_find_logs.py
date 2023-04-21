@@ -18,18 +18,19 @@ class TestShowLogs:
     @pytest.mark.cfg_defaults(
         {
             'logging': {
-                'logfile': 'NonExistentFile',
+                'logfile-backend': 'NonExistentFile',
             }
         }
     )
     def test_backend_available(self, test_client):
         rv = test_client.get('/admin/logs')
+
         assert b'String1' in rv.data
 
     @pytest.mark.cfg_defaults(
         {
             'logging': {
-                'logfile': str(Path(helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs'),
+                'logfile-frontend': str(Path(helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs_frontend')
             }
         }
     )

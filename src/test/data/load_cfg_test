@@ -43,7 +43,9 @@ temp-dir-path =
 docker-mount-base-dir = /tmp/fact-docker-mount-base-dir
 
 [logging]
-logfile=/some/path
+logfile-backend=/some/path-backend
+logfile-frontend=/some/path-frontend
+logfile-database=/some/path-database
 loglevel=WARNING
 
 
