@@ -87,7 +87,7 @@ def _setup_argparser():
         '--log_level',
         help='define the log level',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
-        default='WARNING',
+        default='INFO',
     )
     return parser.parse_args()
 
