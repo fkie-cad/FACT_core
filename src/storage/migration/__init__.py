@@ -9,6 +9,7 @@ from storage.db_connection import AdminConnection
 
 
 def db_needs_migration():
+    return False
     with OperateInDirectory(get_src_dir()):  # alembic must be executed from src for paths to line up
         with AdminConnection().engine.connect() as db:
             alembic_cfg_path = Path(__file__).parent.parent.parent / 'alembic.ini'
