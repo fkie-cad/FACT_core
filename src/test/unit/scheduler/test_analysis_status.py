@@ -29,8 +29,8 @@ class TestAnalysisStatus:
         self.status.add_to_current_analyses(fw)
         assert fw.uid in self.status.currently_running
         result = self.status.currently_running[fw.uid]
-        assert result['files_to_unpack'] == ['foo', 'bar']
-        assert result['files_to_analyze'] == [fw.uid]
+        assert result['files_to_unpack'] == {'foo', 'bar'}
+        assert result['files_to_analyze'] == {fw.uid}
         assert result['unpacked_files_count'] == 1
         assert result['analyzed_files_count'] == 0
         assert result['total_files_count'] == 3
@@ -38,8 +38,8 @@ class TestAnalysisStatus:
     def test_add_file_to_current_analyses(self):
         self.status.currently_running = {
             'parent_uid': {
-                'files_to_unpack': ['foo'],
-                'files_to_analyze': ['bar'],
+                'files_to_unpack': {'foo'},
+                'files_to_analyze': {'bar'},
                 'total_files_count': 2,
                 'unpacked_files_count': 1,
                 'total_files_with_duplicates': 2,
@@ -61,8 +61,8 @@ class TestAnalysisStatus:
     def test_add_duplicate_file_to_current_analyses(self):
         self.status.currently_running = {
             'parent_uid': {
-                'files_to_unpack': ['foo'],
-                'files_to_analyze': ['duplicate'],
+                'files_to_unpack': {'foo'},
+                'files_to_analyze': {'duplicate'},
                 'total_files_count': 2,
                 'unpacked_files_count': 3,
                 'total_files_with_duplicates': 2,
