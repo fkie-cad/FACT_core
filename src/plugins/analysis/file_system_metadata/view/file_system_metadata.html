@@ -3,28 +3,26 @@
 
 {% block analysis_result_details %}
 
-{% set analysis = firmware.processed_analysis[selected_analysis] %}
-
-{% if 'files' in analysis %}
+{% if 'files' in analysis_result %}
     <tr>
         <th class="table-success" colspan="2">
             Results for Included Files
         </th>
     </tr>
-    {% for file in analysis['files'] %}
+    {% for file in analysis_result['files'] %}
         <tr>
-            <td>{{ analysis['files'][file]['file path'] }}</td>
+            <td>{{ analysis_result['files'][file]['file path'] }}</td>
             <td class="p-0">
                 <table class="table table-bordered mb-0">
-                    {% for key in analysis['files'][file] | sort %}
+                    {% for key in analysis_result['files'][file] | sort %}
                         {% if key != 'file path' %}
                         <tr>
                             <td>{{ key }}</td>
                             <td>
                                 {% if 'time' in key %}
-                                    {{ analysis['files'][file][key] | nice_unix_time | safe }}
+                                    {{ analysis_result['files'][file][key] | nice_unix_time | safe }}
                                 {% else %}
-                                    {{ analysis['files'][file][key] | safe }}
+                                    {{ analysis_result['files'][file][key] | safe }}
                                 {% endif %}
                             </td>
                         </tr>
@@ -41,9 +39,7 @@
 
 {% block ajax %}
 
-{% set analysis = firmware.processed_analysis[selected_analysis] %}
-
-{% if 'contained_in_file_system' in analysis and analysis.contained_in_file_system == True %}
+{% if 'contained_in_file_system' in analysis_result and analysis_result.contained_in_file_system == True %}
     <div id="file_results"></div>
     <script>
         $(document).ready(function() {

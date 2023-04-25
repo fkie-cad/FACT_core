@@ -4,8 +4,8 @@
 
     <table class="table table-bordered">
         <colgroup>
-             <col width="12.5%">
-             <col width="87.5%">
+             <col style="width: 12.5%">
+             <col style="width: 87.5%">
         </colgroup>
         <thead class="thead-light">
             <tr>
@@ -13,31 +13,31 @@
             </tr>
         </thead>
         <tbody class="table-analysis">
-            {% if firmware.processed_analysis[selected_analysis]['skipped'] %}
+            {% if analysis_result['skipped'] %}
             <tr>
                 <td class="table-warning">Analysis was skipped</td>
-                <td>{{ firmware.processed_analysis[selected_analysis]['skipped'] }}</td>
+                <td>{{ analysis_result['skipped'] }}</td>
             </tr>
             {% endif %}
-            {% if firmware.processed_analysis[selected_analysis]['analysis_date'] %}
+            {% if analysis_result['analysis_date'] %}
             <tr>
                 <td class="table-head-light">Time of Analysis</td>
-                <td>{{ firmware.processed_analysis[selected_analysis]['analysis_date'] | nice_unix_time }}</td>
+                <td>{{ analysis_result['analysis_date'] | nice_unix_time }}</td>
             </tr>
             {% endif %}
-            {% if firmware.processed_analysis[selected_analysis]['plugin_version'] %}
+            {% if analysis_result['plugin_version'] %}
             <tr>
                 <td class="table-head-light">Plugin Version</td>
-                <td>{{ firmware.processed_analysis[selected_analysis]['plugin_version']}}</td>
+                <td>{{ analysis_result['plugin_version']}}</td>
             </tr>
             {% endif %}
-            {% if firmware.processed_analysis[selected_analysis]['system_version'] %}
+            {% if analysis_result['system_version'] %}
             <tr>
                 <td class="table-head-light">System Version</td>
-                <td>{{ firmware.processed_analysis[selected_analysis]['system_version']}}</td>
+                <td>{{ analysis_result['system_version']}}</td>
             </tr>
             {% endif %}
-            {% if 'skipped' not in firmware.processed_analysis[selected_analysis] %}
+            {% if 'skipped' not in analysis_result %}
                 {% block analysis_result_details %}
 
                 {% endblock %}

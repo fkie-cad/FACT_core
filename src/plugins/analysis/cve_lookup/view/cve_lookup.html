@@ -1,7 +1,7 @@
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
-    {% for product_name, result in firmware.processed_analysis[selected_analysis]['cve_results'].items()|sort %}
+    {% for product_name, result in analysis_result['cve_results'].items() | sort %}
         <tr>
             <td>{{ product_name }}</td>
             {% if result == ['N/A'] %}

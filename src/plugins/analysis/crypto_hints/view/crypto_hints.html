@@ -5,12 +5,12 @@
     </table>
     <table class="table table-bordered">
         <colgroup>
-            <col width="50">
-            <col width="150">
-            <col width="600">
+            <col style="width: 50px">
+            <col style="width: 150px">
+            <col style="width: 600px">
         </colgroup>
         <tbody class="table-analysis">
-            {% for key, entry in firmware.processed_analysis[selected_analysis].items() %}
+            {% for key, entry in analysis_result.items() %}
                 {% if key | is_not_mandatory_analysis_entry %}
                     <tr>
                         {% set row_count = 3 + (1 if entry.meta.date else 0) + (1 if entry.meta.author else 0) %}
@@ -41,8 +41,8 @@
                         <td class="p-0 m-0">
                             <table class="table table-bordered" style="margin:0px;">
                                 <colgroup>
-                                    <col width="75">
-                                    <col width="525">
+                                    <col style="width: 75px">
+                                    <col style="width: 525px">
                                 </colgroup>
                                 <tr>
                                     <td class="table-head-light">offset</td>

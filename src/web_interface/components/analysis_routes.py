@@ -66,6 +66,7 @@ class AnalysisRoutes(ComponentBase):
             self._get_correct_template(selected_analysis, file_obj),
             uid=uid,
             firmware=file_obj,
+            analysis_result=file_obj.processed_analysis.get(selected_analysis),
             selected_analysis=selected_analysis,
             all_analyzed_flag=included_fo_analysis_complete,
             root_uid=none_to_none(root_uid),

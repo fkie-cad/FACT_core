@@ -2,7 +2,7 @@
 
 {% block analysis_result_details %}
 
-{% set analysis = firmware.processed_analysis[selected_analysis]['Output'] %}
+{% set analysis = analysis_result['Output'] %}
 {% for key in analysis.keys() | sort %}
     <tr>
         <td>
