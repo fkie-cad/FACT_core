@@ -45,7 +45,7 @@ jobs:
         run: |
           sudo apt install -y python3-venv
           python3 -m venv venv
-          source venv/bin/activate
+          . venv/bin/activate
           echo venv $VIRTUAL_ENV
       - name: Pre-Installation
         shell: 'script -q -e -c "bash {0}"'
