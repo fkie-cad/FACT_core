@@ -46,6 +46,7 @@ jobs:
           sudo apt install -y python3-venv
           python3 -m venv venv
           . venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
           echo venv $VIRTUAL_ENV
       - name: Pre-Installation
         shell: 'script -q -e -c "bash {0}"'
