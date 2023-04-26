@@ -43,6 +43,7 @@ jobs:
         run: ulimit -n 9999
       - name: venv Setup
         run: |
+          sudo apt install -y python3-venv
           python3 -m venv venv
           source venv/bin/activate
           echo venv $VIRTUAL_ENV
