@@ -85,6 +85,7 @@ def get_analysis_without_meta(analysis_data: dict) -> dict:
 
 
 def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
+    sanitize(file_object.virtual_file_path)
     return FileObjectEntry(
         uid=file_object.uid,
         sha256=file_object.sha256,
@@ -112,8 +113,8 @@ def sanitize(analysis_data: dict):
 def _sanitize_value(analysis_data: dict, key: str, value):
     if isinstance(value, dict):
         sanitize(value)
-    elif isinstance(value, str) and '\0' in value:
-        analysis_data[key] = value.replace('\0', '')
+    elif isinstance(value, str):
+        analysis_data[key] = _sanitize_string(value)
     elif isinstance(value, list):
         _sanitize_list(value)
     elif isinstance(value, bytes):
@@ -122,6 +123,15 @@ def _sanitize_value(analysis_data: dict, key: str, value):
             f'Plugin results should only contain JSON compatible data structures!:\n\t{repr(value)}'
         )
         analysis_data[key] = value.decode(errors='replace')
+
+
+def _sanitize_string(string: str) -> str:
+    string = string.replace('\0', '')
+    try:
+        string.encode()
+    except UnicodeEncodeError:
+        string = string.encode(errors='replace').decode()
+    return string
 
 
 def _sanitize_key(analysis_data: dict, key: str):
@@ -133,8 +143,8 @@ def _sanitize_list(value: list) -> list:
     for index, element in enumerate(value):
         if isinstance(element, dict):
             sanitize(element)
-        elif isinstance(element, str) and '\0' in element:
-            value[index] = element.replace('\0', '')
+        elif isinstance(element, str):
+            value[index] = _sanitize_string(element)
     return value
 
 

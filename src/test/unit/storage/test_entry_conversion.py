@@ -13,6 +13,7 @@ from storage.entry_conversion import get_analysis_without_meta, sanitize
         ({'ille\0gal': 'abc'}, {'illegal': 'abc'}),
         ({'nested': {'key\0': 'abc'}}, {'nested': {'key': 'abc'}}),
         ({'list': ['item\x001', {'list_in_dict': ['item2\0']}]}, {'list': ['item1', {'list_in_dict': ['item2']}]}),
+        ({'vfp': {'123': ['123|/\udcc4\udcd6\udcdc\udce4\udcf6\udcfc\udcdf']}}, {'vfp': {'123': ['123|/???????']}}),
     ],
 )
 def test_sanitize(input_dict, expected):
