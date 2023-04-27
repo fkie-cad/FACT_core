@@ -5,11 +5,11 @@
         <th class="table-head-light">TLSH score</th>
         <th class="table-head-light">Similar file</th>
     </tr>
-    {% for key in firmware.processed_analysis[selected_analysis].keys() %}
+    {% for key, value in analysis_result.items() %}
 
         {% if key | is_not_mandatory_analysis_entry %}
         <tr>
-            <td>{{ firmware.processed_analysis[selected_analysis][key] }}</td>
+            <td>{{ value }}</td>
             <td>{{ key | replace_uid_with_hid_link | safe }}</td>
         </tr>
         {% endif %}

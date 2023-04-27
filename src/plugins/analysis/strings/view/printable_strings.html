@@ -2,10 +2,9 @@
 
 {% block analysis_result_details %}
 
-    {% set analysis = firmware.processed_analysis[selected_analysis] %}
     <tr>
         <td>String count</td>
-        <td>{{ firmware.processed_analysis[selected_analysis]['strings'] | length }}</td>
+        <td>{{ analysis_result['strings'] | length }}</td>
     </tr>
     <tr>
         <td rowspan="4">Strings</td>
@@ -16,11 +15,11 @@
     <tr>
         <td class="p-0">
             <div class="collapse" id="collapse-strings" style="width: 100%">
-                <pre class="p-2 bg-light mb-0" style="white-space: pre-wrap;">{{ analysis['strings'] | list_to_line_break_string }}</pre>
+                <pre class="p-2 bg-light mb-0" style="white-space: pre-wrap;">{{ analysis_result['strings'] | list_to_line_break_string }}</pre>
             </div>
         </td>
     </tr>
-    {% if 'offsets' in analysis %}  <!-- backwards compatibility -->
+    {% if 'offsets' in analysis_result %}  <!-- backwards compatibility -->
         <tr>
             <td data-toggle="collapse" class="clickable" data-target="#collapse-offset">
                 <span class="fas fa-angle-down"></span> Ordered by offset
@@ -29,8 +28,8 @@
         <tr>
             <td class="p-0">
                 <div class="collapse" id="collapse-offset" style="width: 100%">
-                {% if 'offsets' in analysis %}
-                    <pre class="p-2 bg-light mb-0" style="white-space: pre-wrap;">{{ analysis['offsets'] | format_string_list_with_offset }}</pre>
+                {% if 'offsets' in analysis_result %}
+                    <pre class="p-2 bg-light mb-0" style="white-space: pre-wrap;">{{ analysis_result['offsets'] | format_string_list_with_offset }}</pre>
                 {% else %}
                     <pre>None</pre>
                 {% endif %}

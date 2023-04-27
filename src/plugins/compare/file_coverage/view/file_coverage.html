@@ -4,8 +4,8 @@
 
         $(".collapse").on('show.bs.collapse', function(){
             // event: collapsible content is starting to expand
-            var id = $(this).prop('id');
-            var loading_gif = document.getElementById(id + '_gif');
+            const id = $(this).prop('id');
+            const loading_gif = document.getElementById(id + '_gif');
 
             if (isEmpty($(this))) {
                 loading_gif.style.display = "block";
