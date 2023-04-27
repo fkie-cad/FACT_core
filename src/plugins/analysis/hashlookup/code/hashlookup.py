@@ -21,7 +21,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object: FileObject):
         try:
-            sha2_hash = file_object.processed_analysis['file_hashes']['sha256']
+            sha2_hash = file_object.processed_analysis['file_hashes']['result']['sha256']
         except KeyError:
             message = 'Lookup needs sha256 hash of file. It\'s missing so sth. seems to be wrong with the hash plugin'
             logging.error(message)

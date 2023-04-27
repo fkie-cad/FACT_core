@@ -20,6 +20,31 @@ from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.base import BasePlugin
 
+META_KEYS = {
+    'tags',
+    'summary',
+    'analysis_date',
+    'plugin_version',
+    'system_version',
+    'file_system_flag',
+    'result',
+}
+
+
+def sanitize_processed_analysis(processed_analysis_entry: dict) -> dict:
+    # Old analysis plugins (before analysis.PluginV0) could write anything they want to processed_analysis.
+    # We put everything the plugin wrote into a separate dict so that it matches the behavior of analysis.PluginV0
+    result = {}
+    for key in list(processed_analysis_entry):
+        if key in META_KEYS:
+            continue
+
+        result[key] = processed_analysis_entry.pop(key)
+
+    processed_analysis_entry['result'] = result
+
+    return processed_analysis_entry
+
 
 class PluginInitException(Exception):
     def __init__(self, *args, plugin: 'AnalysisBasePlugin'):
@@ -154,7 +179,11 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
             file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
 
     def init_dict(self) -> dict:
-        result_update = {'analysis_date': time(), 'plugin_version': self.VERSION}
+        result_update = {
+            'analysis_date': time(),
+            'plugin_version': self.VERSION,
+            'result': {},
+        }
         if self.SYSTEM_VERSION:
             result_update.update({'system_version': self.SYSTEM_VERSION})
         return result_update
@@ -178,13 +207,18 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         if duration > 120:
             logging.info(f'Analysis {self.NAME} on {next_task.uid} is slow: took {duration:.1f} seconds')
         self._update_duration_stats(duration)
+
         if self.timeout_happened(process):
-            self._handle_failed_analysis(next_task, process, worker_id, 'Timeout')
+            result_fo = self._handle_failed_analysis(next_task, process, worker_id, 'Timeout')
         elif process.exception:
-            self._handle_failed_analysis(next_task, process, worker_id, 'Exception')
+            result_fo = self._handle_failed_analysis(next_task, process, worker_id, 'Exception')
         else:
-            self.out_queue.put(result.pop())
+            result_fo = result.pop()
             logging.debug(f'Worker {worker_id}: Finished {self.NAME} analysis on {next_task.uid}')
+
+        processed_analysis_entry = result_fo.processed_analysis.pop(self.NAME)
+        result_fo.processed_analysis[self.NAME] = sanitize_processed_analysis(processed_analysis_entry)
+        self.out_queue.put(result_fo)
 
     def _update_duration_stats(self, duration):
         with self.analysis_stats.get_lock():
@@ -200,7 +234,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         terminate_process_and_children(process)
         fw_object.analysis_exception = (self.NAME, f'{cause} occurred during analysis')
         logging.error(f'Worker {worker_id}: {cause} during analysis {self.NAME} on {fw_object.uid}')
-        self.out_queue.put(fw_object)
+
+        return fw_object
 
     def worker(self, worker_id):
         logging.debug(f'started {self.NAME} worker {worker_id} (pid={os.getpid()})')

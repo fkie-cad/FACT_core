@@ -29,7 +29,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _is_text_file(file_object):
-        return file_object.processed_analysis['file_type']['mime'] in ['text/plain']
+        return file_object.processed_analysis['file_type']['result']['mime'] in ['text/plain']
 
     @staticmethod
     def _get_file_path(file_object: FileObject):

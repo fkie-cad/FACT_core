@@ -205,7 +205,7 @@ class CompareRoutes(ComponentBase):
             if root_uid in [None, 'None']:
                 root_uid = fo.get_root_uid()
             fw_hid = frontend_db.get_object(root_uid).get_hid()
-        mime = fo.processed_analysis.get('file_type', {}).get('mime')
+        mime = fo.processed_analysis.get('file_type', {}).get('result', {}).get('mime')
         return FileDiffData(uid, mime, fw_hid)
 
 

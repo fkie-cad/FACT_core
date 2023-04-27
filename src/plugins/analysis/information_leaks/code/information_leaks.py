@@ -81,7 +81,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object: FileObject) -> FileObject:
         file_object.processed_analysis[self.NAME] = {}
-        if file_object.processed_analysis['file_type']['mime'] == 'text/plain':
+        if file_object.processed_analysis['file_type']['result']['mime'] == 'text/plain':
             self._find_artifacts(file_object)
             file_object.processed_analysis[self.NAME]['summary'] = sorted(file_object.processed_analysis[self.NAME])
         else:
