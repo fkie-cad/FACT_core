@@ -103,7 +103,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return res
 
     def _is_supported_arch(self, file_object):
-        arch_type = file_object.processed_analysis['file_type']['full'].lower()
+        arch_type = file_object.processed_analysis['file_type']['result']['full'].lower()
         return any(supported_arch in arch_type for supported_arch in self.SUPPORTED_ARCHS)
 
     def _do_full_analysis(self, file_object):

@@ -25,7 +25,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         try:
-            if re.search(r'.*elf.*', file_object.processed_analysis['file_type']['full'].lower()) is not None:
+            if re.search(r'.*elf.*', file_object.processed_analysis['file_type']['result']['full'].lower()) is not None:
 
                 mitigation_dict, mitigation_dict_summary = check_mitigations(file_object.file_path)
                 file_object.processed_analysis[self.NAME] = mitigation_dict

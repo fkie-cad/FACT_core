@@ -29,7 +29,7 @@ class MetaDataDetector:
     endianness = {'little endian': ['LSB', '80386', '80486', 'x86'], 'big endian': ['MSB']}
 
     def get_device_architecture(self, file_object):
-        type_of_file = file_object.processed_analysis['file_type']['full']
+        type_of_file = file_object.processed_analysis['file_type']['result']['full']
         arch_dict = file_object.processed_analysis.get('cpu_architecture', {})
         architecture = self._search_for_arch_keys(type_of_file, self.architectures, delimiter='')
         if not architecture:

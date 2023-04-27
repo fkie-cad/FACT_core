@@ -16,25 +16,25 @@
             {% if analysis_result['skipped'] %}
             <tr>
                 <td class="table-warning">Analysis was skipped</td>
-                <td>{{ analysis_result['skipped'] }}</td>
+                <td>{{ analysis_metadata['skipped'] }}</td>
             </tr>
             {% endif %}
-            {% if analysis_result['analysis_date'] %}
+            {% if analysis_metadata['analysis_date'] %}
             <tr>
                 <td class="table-head-light">Time of Analysis</td>
-                <td>{{ analysis_result['analysis_date'] | nice_unix_time }}</td>
+                <td>{{ analysis_metadata['analysis_date'] | nice_unix_time }}</td>
             </tr>
             {% endif %}
-            {% if analysis_result['plugin_version'] %}
+            {% if analysis_metadata['plugin_version'] %}
             <tr>
                 <td class="table-head-light">Plugin Version</td>
-                <td>{{ analysis_result['plugin_version']}}</td>
+                <td>{{ analysis_metadata['plugin_version']}}</td>
             </tr>
             {% endif %}
-            {% if analysis_result['system_version'] %}
+            {% if analysis_metadata['system_version'] %}
             <tr>
                 <td class="table-head-light">System Version</td>
-                <td>{{ analysis_result['system_version']}}</td>
+                <td>{{ analysis_metadata['system_version']}}</td>
             </tr>
             {% endif %}
             {% if 'skipped' not in analysis_result %}

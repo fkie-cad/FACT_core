@@ -93,7 +93,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {}
         file_object.processed_analysis[self.NAME]['summary'] = []
 
-        if file_object.processed_analysis['file_type']['mime'] in self.FILE_TYPES:
+        if file_object.processed_analysis['file_type']['result']['mime'] in self.FILE_TYPES:
             return self._process_included_binary(file_object)
         return self._process_container(file_object)
 

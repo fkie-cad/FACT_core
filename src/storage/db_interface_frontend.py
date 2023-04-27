@@ -226,7 +226,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def _get_unpacker_name(self, fw_entry: FirmwareEntry) -> str:
         unpacker_analysis = self._get_analysis_entry(fw_entry.uid, 'unpacker')
-        if unpacker_analysis is None:
+        if unpacker_analysis is None or unpacker_analysis.result is None:
             return 'NOP'
         return unpacker_analysis.result['plugin_used']
 

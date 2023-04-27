@@ -10,12 +10,7 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError, DbSerializationError, ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
-from storage.entry_conversion import (
-    create_analysis_entries,
-    create_file_object_entry,
-    create_firmware_entry,
-    get_analysis_without_meta,
-)
+from storage.entry_conversion import create_analysis_entries, create_file_object_entry, create_firmware_entry, sanitize
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
 
@@ -96,6 +91,9 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 raise DbInterfaceError(f'Could not find file object for analysis update: {uid}')
             if any(item not in analysis_dict for item in ['plugin_version', 'analysis_date']):
                 raise DbInterfaceError(f'Analysis data of {plugin} is incomplete: {analysis_dict}')
+
+            result = analysis_dict.get('result', {})
+            sanitize(result)
             analysis = AnalysisEntry(
                 uid=uid,
                 plugin=plugin,
@@ -104,7 +102,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 analysis_date=analysis_dict['analysis_date'],
                 summary=analysis_dict.get('summary'),
                 tags=analysis_dict.get('tags'),
-                result=get_analysis_without_meta(analysis_dict),
+                result=result,
                 file_object=fo_backref,
             )
             session.add(analysis)
@@ -145,7 +143,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             entry.analysis_date = analysis_data['analysis_date']
             entry.summary = analysis_data.get('summary')
             entry.tags = analysis_data.get('tags')
-            entry.result = get_analysis_without_meta(analysis_data)
+            entry.result = analysis_data.get('result', {})
 
     def update_file_object_parents(self, file_uid: str, root_uid: str, parent_uid):
         with self.get_read_write_session() as session:
