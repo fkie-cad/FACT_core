@@ -69,6 +69,17 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 query = query.filter_by(**q_filter)
             return session.execute(query).scalar()
 
+    def get_fo_count(self) -> Any:
+        with self.get_read_only_session() as session:
+            query = select(func.count(FileObjectEntry.uid))
+            return session.execute(query).scalar()
+
+    def get_cumulated_fo_size(self) -> Any:
+        with self.get_read_only_session() as session:
+            query = select(func.sum(FileObjectEntry.size))
+            sum_ = session.execute(query).scalar()
+            return int(sum_) if sum_ is not None else 0
+
     def count_distinct_values(self, key: InstrumentedAttribute, q_filter=None) -> Stats:
         """
         Get a sorted list of tuples with all unique values of a column `key` and the count of occurrences.

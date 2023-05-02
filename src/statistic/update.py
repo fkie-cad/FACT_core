@@ -51,11 +51,11 @@ class StatsUpdater:
                 'number_of_firmwares': self.db.get_count(q_filter=self.match, firmware=True),
                 'total_firmware_size': self.db.get_sum(FileObjectEntry.size, q_filter=self.match, firmware=True),
                 'average_firmware_size': self.db.get_avg(FileObjectEntry.size, q_filter=self.match, firmware=True),
-                'number_of_unique_files': self.db.get_count(q_filter=self.match, firmware=False),
-                'total_file_size': self.db.get_sum(FileObjectEntry.size, q_filter=self.match, firmware=False),
-                'average_file_size': self.db.get_avg(FileObjectEntry.size, q_filter=self.match, firmware=False),
+                'number_of_unique_files': self.db.get_fo_count(),
+                'total_file_size': self.db.get_cumulated_fo_size(),
                 'creation_time': time(),
             }
+        stats['average_file_size'] = int(stats['total_file_size']) / int(stats['number_of_unique_files'])
         benchmark = stats['creation_time'] - self.start_time
         stats['benchmark'] = benchmark
         logging.info(f'time to create stats: {time_format(benchmark)}')
