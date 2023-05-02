@@ -26,8 +26,7 @@ def test_insert(db, fw_object):
 
 def test_update_parents(db):
     fo, fw = create_fw_with_child_fo()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
 
     fo_db = db.common.get_object(fo.uid)
     assert fo_db.parents == {fw.uid}
@@ -46,8 +45,7 @@ def test_vfp(db):
     fo, fw = create_fw_with_child_fo()
     fo.virtual_file_path = {}
     fw.virtual_file_path = {}
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
 
     assert db.backend.get_vfps(fo.uid) == {}
 
@@ -64,30 +62,31 @@ def test_vfp(db):
 
 
 def test_vfp_multiple_parents(db):
-    fo, fw = create_fw_with_child_fo()
+    fw, parent_fo, fo = create_fw_with_parent_and_child()
     fw2 = create_test_firmware()
     fw2.uid = 'test_fw2'
-    for obj in [fw, fw2, fo]:
+    for obj in [fw, fw2, parent_fo, fo]:
         obj.virtual_file_path = {}
         db.backend.insert_object(obj)
 
     assert db.backend.get_vfps(fo.uid) == {}
-    db.backend.add_vfp(fw.uid, fo.uid, 'foo')
+    db.backend.add_vfp(parent_fo.uid, fo.uid, 'foo')
     db.backend.add_vfp(fw2.uid, fo.uid, 'bar')
 
-    assert db.backend.get_vfps(fo.uid) == {fw.uid: ['foo'], fw2.uid: ['bar']}
-    assert db.backend.get_vfps(fo.uid, parent_uid=fw.uid) == {fw.uid: ['foo']}
+    assert db.backend.get_vfps(fo.uid) == {parent_fo.uid: ['foo'], fw2.uid: ['bar']}
+    assert db.backend.get_vfps(fo.uid, parent_uid=parent_fo.uid) == {parent_fo.uid: ['foo']}
     assert db.backend.get_vfps(fo.uid, parent_uid=fw2.uid) == {fw2.uid: ['bar']}
 
+    assert db.backend.get_vfps(fo.uid, root_uid=fw.uid) == {parent_fo.uid: ['foo']}
+    assert db.backend.get_vfps(fo.uid, root_uid=fw2.uid) == {fw2.uid: ['bar']}
+
     db.admin.delete_firmware(fw2.uid)
-    assert db.backend.get_vfps(fo.uid) == {fw.uid: ['foo']}, 'fw2 VFP should have been deleted by cascade'
+    assert db.backend.get_vfps(fo.uid) == {parent_fo.uid: ['foo']}, 'fw2 VFP should have been deleted by cascade'
 
 
 def test_object_conversion_vfp(db):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(parent_fo)
-    db.backend.insert_object(child_fo)
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
 
     parent_vfp = db.backend.get_vfps(parent_fo.uid)
     parent_from_db = db.common.get_object(parent_fo.uid)
@@ -104,8 +103,7 @@ def test_object_conversion_vfp(db):
 def test_update_duplicate_other_fw(db):
     # fo is included in another fw -> check if update of entry works correctly
     fo, fw = create_fw_with_child_fo()
-    db.backend.add_object(fw)
-    db.backend.add_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
 
     fw2 = create_test_firmware()
     fw2.uid = 'test_fw2'
@@ -130,8 +128,7 @@ def test_update_duplicate_other_fw(db):
 def test_update_duplicate_same_fw(db):
     # fo is included multiple times in the same fw -> check if update of entry works correctly
     fo, fw = create_fw_with_child_fo()
-    db.backend.add_object(fw)
-    db.backend.add_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
 
     fo.virtual_file_path[fw.uid].append(f'{fw.uid}|/some/other/path')
     db.backend.add_object(fo)

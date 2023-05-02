@@ -55,9 +55,7 @@ def _populate_fo_data(
     file_object.uid = fo_entry.uid
     file_object.size = fo_entry.size
     file_object.file_name = fo_entry.file_name
-    file_object.virtual_file_path = (
-        _convert_vfp_entries_to_dict(fo_entry.virtual_file_paths) if virtual_file_paths is None else virtual_file_paths
-    )
+    file_object.virtual_file_path = virtual_file_paths or {}
     file_object.processed_analysis = {
         analysis_entry.plugin: analysis_entry_to_dict(analysis_entry)
         for analysis_entry in fo_entry.analyses
@@ -95,7 +93,7 @@ def get_analysis_without_meta(analysis_data: dict) -> dict:
     return analysis_without_meta
 
 
-def _create_vfp_entries(file_object: FileObject) -> list[VirtualFilePath]:
+def create_vfp_entries(file_object: FileObject) -> list[VirtualFilePath]:
     return [
         VirtualFilePath(
             parent_uid=parent_uid,
@@ -118,7 +116,6 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
         depth=file_object.depth,
         size=file_object.size,
         comments=file_object.comments,
-        virtual_file_paths=_create_vfp_entries(file_object),
         is_firmware=isinstance(file_object, Firmware),
         firmware=None,
         analyses=[],
