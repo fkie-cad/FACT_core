@@ -116,13 +116,6 @@ class FileObjectEntry(Base):
         cascade='all, delete',  # comparisons should also be deleted when the file object is deleted
         backref=backref('file_objects'),
     )
-    virtual_file_paths = relationship(  # 1:n
-        'VirtualFilePath',
-        back_populates='_file_object',
-        uselist=True,
-        primaryjoin='FileObjectEntry.uid==VirtualFilePath.file_uid',
-        cascade='all, delete',  # this probably doesn't matter because parent VFP deletion should come first (see below)
-    )
 
     def get_included_uids(self) -> set[str]:
         return {child.uid for child in self.included_files}
@@ -189,12 +182,7 @@ class VirtualFilePath(Base):
     file_uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), nullable=False)
     file_path = mapped_column(VARCHAR, nullable=False)
 
-    _file_object = relationship(
-        'FileObjectEntry',
-        back_populates='virtual_file_paths',
-        uselist=False,
-        foreign_keys=[file_uid],
-    )
+    _file_object = relationship('FileObjectEntry', uselist=False, foreign_keys=[file_uid])
     # for cascade deletion:
     _parent_object = relationship('FileObjectEntry', uselist=False, foreign_keys=[parent_uid])
 
