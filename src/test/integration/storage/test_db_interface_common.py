@@ -85,9 +85,8 @@ def test_is_fw(db):
 
 def test_get_object_relationship(db):
     fo, fw = create_fw_with_child_fo()
+    db.backend.insert_multiple_objects(fw, fo)
 
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
     db_fo = db.common.get_object(fo.uid)
     db_fw = db.common.get_object(fw.uid)
     assert db_fo.parents == {fw.uid}
@@ -97,25 +96,20 @@ def test_get_object_relationship(db):
 
 def test_all_files_in_fw(db):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(parent_fo)
-    db.backend.insert_object(child_fo)
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
     assert db.common.get_all_files_in_fw(fw.uid) == {child_fo.uid, parent_fo.uid}
 
 
 def test_all_files_in_fo(db):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(parent_fo)
-    db.backend.insert_object(child_fo)
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
     assert db.common.get_all_files_in_fo(fw) == {fw.uid, parent_fo.uid, child_fo.uid}
     assert db.common.get_all_files_in_fo(parent_fo) == {parent_fo.uid, child_fo.uid}
 
 
 def test_get_objects_by_uid_list(db):
     fo, fw = create_fw_with_child_fo()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
     result = db.common.get_objects_by_uid_list([fo.uid, fw.uid])
     assert len(result) == 2
     objects_by_uid = {fo.uid: fo for fo in result}
@@ -140,9 +134,7 @@ def test_get_complete_object(db):
     fw.processed_analysis['test_plugin'] = generate_analysis_entry(summary=['entry0'])
     parent_fo.processed_analysis['test_plugin'] = generate_analysis_entry(summary=['entry1', 'entry2'])
     child_fo.processed_analysis['test_plugin'] = generate_analysis_entry(summary=['entry2', 'entry3'])
-    db.backend.insert_object(fw)
-    db.backend.insert_object(parent_fo)
-    db.backend.insert_object(child_fo)
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
 
     result = db.common.get_complete_object_including_all_summaries(fw.uid)
     assert isinstance(result, Firmware)
@@ -204,8 +196,7 @@ def test_get_file_object_number(db):
 
 def test_get_summary_fw(db):
     fo, fw = create_fw_with_child_fo()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
 
     summary = db.common.get_summary(fw, 'dummy')
     assert isinstance(summary, dict), 'summary is not a dict'
@@ -220,9 +211,7 @@ def test_get_summary_fw(db):
 
 def test_get_summary_fo(db):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(parent_fo)
-    db.backend.insert_object(child_fo)
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
 
     summary = db.common.get_summary(parent_fo, 'dummy')
     assert parent_fo.uid in summary['sum a'], 'summary of the file itself should be included'
@@ -236,8 +225,7 @@ def test_collect_child_tags_propagate(db):
     fo, fw = create_fw_with_child_fo()
     tag = {'OS Version': {'color': 'success', 'value': 'FactOS', 'propagate': True}}
     fo.processed_analysis['software_components'] = generate_analysis_entry(tags=tag)
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
     assert db.common._collect_analysis_tags_from_children(fw.uid) == {'software_components': tag}
 
 
@@ -245,16 +233,14 @@ def test_collect_child_tags_no_propagate(db):
     fo, fw = create_fw_with_child_fo()
     tag = {'OS Version': {'color': 'success', 'value': 'FactOS', 'propagate': False}}
     fo.processed_analysis['software_components'] = generate_analysis_entry(tags=tag)
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
     assert db.common._collect_analysis_tags_from_children(fw.uid) == {}
 
 
 def test_collect_child_tags_no_tags(db):
     fo, fw = create_fw_with_child_fo()
     fo.processed_analysis['software_components'] = generate_analysis_entry(tags={})
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
     assert db.common._collect_analysis_tags_from_children(fw.uid) == {}
 
 
@@ -265,9 +251,7 @@ def test_collect_child_tags_duplicate(db):
     fo_2 = create_test_file_object('get_files_test/testfile2')
     fo_2.processed_analysis['software_components'] = generate_analysis_entry(tags=tag)
     fo_2.parent_firmware_uids.add(fw.uid)
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
-    db.backend.insert_object(fo_2)
+    db.backend.insert_multiple_objects(fw, fo, fo_2)
 
     assert db.common._collect_analysis_tags_from_children(fw.uid) == {'software_components': tag}
 
@@ -280,9 +264,7 @@ def test_collect_child_tags_unique_tags(db):
     tags = {'OS Version': {'color': 'success', 'value': 'OtherOS 0.2', 'propagate': True}}
     fo_2.processed_analysis['software_components'] = generate_analysis_entry(tags=tags)
     fo_2.parent_firmware_uids.add(fw.uid)
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
-    db.backend.insert_object(fo_2)
+    db.backend.insert_multiple_objects(fw, fo, fo_2)
 
     assert len(db.common._collect_analysis_tags_from_children(fw.uid)['software_components']) == 2
 
@@ -314,9 +296,7 @@ def test_get_file_tree_path(db):
     assert db.common.get_file_tree_path_for_uid_list([child_fo.uid]) == {child_fo.uid: []}
     assert db.common.get_file_tree_path(child_fo.uid) == []
 
-    db.backend.insert_object(fw)
-    db.backend.insert_object(parent_fo)
-    db.backend.insert_object(child_fo)
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
 
     child_path = db.common.get_file_tree_path_for_uid_list([child_fo.uid])
     assert child_path == {child_fo.uid: [[fw.uid, parent_fo.uid, child_fo.uid]]}
@@ -327,3 +307,58 @@ def test_get_file_tree_path(db):
 
     combined = db.common.get_file_tree_path_for_uid_list([parent_fo.uid, child_fo.uid])
     assert len(combined) == 2
+
+
+def test_get_vfps_for_uid_list(db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    parent_fo.virtual_file_path = {fw.uid: ['/a/b']}
+    child_fo.virtual_file_path = {parent_fo.uid: ['/test']}
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
+    expected = {
+        parent_fo.uid: parent_fo.virtual_file_path,
+        child_fo.uid: child_fo.virtual_file_path,
+    }
+    assert db.common.get_vfps_for_uid_list([parent_fo.uid, child_fo.uid]) == expected
+
+
+def test_get_vfps_for_root_uid(db):
+    fo, parent_1, fw_1, fw_2 = _get_fo_that_is_in_2_firmwares()
+    db.backend.insert_multiple_objects(fw_2, fw_1, parent_1, fo)
+
+    assert db.common.get_vfps(fo.uid) == fo.virtual_file_path
+    assert db.common.get_vfps_for_uid_list([fo.uid]) == {fo.uid: fo.virtual_file_path}
+
+    assert db.common.get_vfps(fo.uid, root_uid=fw_1.uid) == {parent_1.uid: ['/folder/testfile1']}
+    assert db.common.get_vfps(fo.uid, root_uid=fw_2.uid) == {fw_2.uid: ['/foo/bar']}
+    assert db.common.get_vfps_for_uid_list([fo.uid], root_uid=fw_1.uid) == {
+        fo.uid: {parent_1.uid: ['/folder/testfile1']}
+    }
+
+
+def test_tree_path_with_root_uid(db):
+    child_fo, parent_fo, fw, fw2 = _get_fo_that_is_in_2_firmwares()
+    db.backend.insert_multiple_objects(fw, fw2, parent_fo, child_fo)
+
+    result = sorted(db.common.get_file_tree_path_for_uid_list([child_fo.uid], root_uid=None).get(child_fo.uid))
+    assert len(result) == 2
+    assert result[0] == [fw.uid, parent_fo.uid, child_fo.uid]
+    assert result[1] == [fw2.uid, child_fo.uid]
+
+    result = sorted(db.common.get_file_tree_path_for_uid_list([child_fo.uid], root_uid=fw.uid).get(child_fo.uid))
+    assert len(result) == 1
+    assert result[0][0] == fw.uid
+
+    result = sorted(db.common.get_file_tree_path_for_uid_list([child_fo.uid], root_uid=fw2.uid).get(child_fo.uid))
+    assert len(result) == 1
+    assert result[0][0] == fw2.uid
+
+
+def _get_fo_that_is_in_2_firmwares():
+    fw_1, parent_1, fo = create_fw_with_parent_and_child()
+    fw_2 = create_test_firmware()
+    fw_2.uid = 'fw2'
+    fw_2.files_included.add(fo.uid)
+    fo.parents.append(fw_2.uid)
+    fo.parent_firmware_uids.add(fw_2.uid)
+    fo.virtual_file_path[fw_2.uid] = ['/foo/bar']
+    return fo, parent_1, fw_1, fw_2

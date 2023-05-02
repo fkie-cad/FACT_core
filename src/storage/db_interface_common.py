@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from operator import or_
 from typing import Dict, Iterable, List
 
 from sqlalchemy import distinct, func, select
@@ -76,7 +77,8 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             fo_entry = session.get(FileObjectEntry, uid)
             if fo_entry is None:
                 return None
-            return file_object_from_entry(fo_entry, analysis_filter=analysis_filter)
+            vfp_dict = self.get_vfps(uid)
+            return file_object_from_entry(fo_entry, analysis_filter=analysis_filter, virtual_file_paths=vfp_dict)
 
     def get_objects_by_uid_list(
         self, uid_list: list[str], analysis_filter: list[str] | None = None
@@ -125,10 +127,10 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return None
         return analysis_entry_to_dict(entry)
 
-    def get_vfps(self, uid: str, parent_uid: str | None = None) -> dict[str, list[str]]:
+    def get_vfps(self, uid: str, parent_uid: str | None = None, root_uid: str | None = None) -> dict[str, list[str]]:
         """
         Get all virtual file paths of file with UID `uid` in all parent files. If `parent_uid` is set, returns only the
-        paths in this parent file.
+        paths in this parent file. If `root_uid` is set, return only the paths inside the firmware with UID root_uid.
         """
         with self.get_read_only_session() as session:
             query = select(VirtualFilePath.parent_uid, VirtualFilePath.file_path).filter(
@@ -136,30 +138,53 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             )
             if parent_uid is not None:
                 query = query.filter(VirtualFilePath.parent_uid == parent_uid)
+            if root_uid is not None:
+                query = query.outerjoin(fw_files_table, fw_files_table.c.file_uid == VirtualFilePath.parent_uid).filter(
+                    or_(fw_files_table.c.root_uid == root_uid, VirtualFilePath.parent_uid == root_uid)
+                )
             result = {}
             for parent, path in session.execute(query) or []:
                 result.setdefault(parent, []).append(path)
             return result
 
-    def get_vfps_for_uid_list(self, uid_list: list[str]) -> dict[str, dict[str, list[str]]]:
+    def get_vfps_for_uid_list(
+        self, uid_list: list[str], root_uid: str | None = None
+    ) -> dict[str, dict[str, list[str]]]:
         """
         Gets all virtual file paths (see `get_vfps()`) for a list of UIDs. Returns a dictionary with key=uid and
-        value=vfp_dict for that file (vfp_dict is the same as the output of `get_vfps()` for that file).
+        value=vfp_dict for that file (vfp_dict is the same as the output of `get_vfps()` for that file). If `root_uid`
+        is set, only return the paths inside the firmware with UID `root_uid`.
         """
         with self.get_read_only_session() as session:
             query = select(VirtualFilePath).filter(VirtualFilePath.file_uid.in_(uid_list))
+            if root_uid:
+                query = query.outerjoin(fw_files_table, fw_files_table.c.file_uid == VirtualFilePath.parent_uid)
+                query = query.filter(
+                    or_(
+                        fw_files_table.c.root_uid == root_uid,  # we only want the parents that are in root
+                        VirtualFilePath.parent_uid == root_uid,  # or parent == root (no entry in fw_files_table then)
+                    )
+                )
             result = {}
-            for vfp in session.execute(query) or []:  # type: VirtualFilePath
+            for vfp in session.execute(query).scalars() or []:  # type: VirtualFilePath
                 result.setdefault(vfp.file_uid, {}).setdefault(vfp.parent_uid, []).append(vfp.file_path)
             return result
 
     def get_file_tree_path(self, uid: str) -> list[list[str]]:
         return self.get_file_tree_path_for_uid_list([uid]).get(uid, [])
 
-    def get_file_tree_path_for_uid_list(self, uid_list: list[str]) -> dict[str, list[list[str]]]:
+    def get_file_tree_path_for_uid_list(
+        self, uid_list: list[str], root_uid: str | None = None
+    ) -> dict[str, list[list[str]]]:
         """
         Generate all file paths for a list of UIDs `uid_list`. A path is a list of UIDs representing the path from root
         (firmware) to the file in the file tree (with root having index 0 and so on).
+        result: {
+            "uid_1": [
+                ["root_uid", ..., "parent_uid", "uid_1"], ...
+            ], ...
+        }
+        if `root_uid` is set, include only the paths that start with root_uid.
         """
         with self.get_read_only_session() as session:
             top_query = (
@@ -172,7 +197,18 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             bottom_query = select(
                 top_query.union_all(select(parent).join(child, parent.c.child_uid == child.c.parent_uid))
             )
-            return self._convert_tuples_to_path(session.execute(bottom_query) or [], uid_list)
+            path_dict = self._convert_tuples_to_path(session.execute(bottom_query) or [], uid_list)
+            if root_uid is not None:
+                self._remove_paths_lacking_root_uid(path_dict, root_uid)
+            return path_dict
+
+    @staticmethod
+    def _remove_paths_lacking_root_uid(path_dict: dict[str, list[list[str]]], root_uid: str):
+        """Remove the paths that don't start with root_uid"""
+        for path_list in path_dict.values():
+            for uid_list in path_list[:]:
+                if uid_list[0] != root_uid:
+                    path_list.remove(uid_list)
 
     def _convert_tuples_to_path(
         self, parent_child_pairs: Iterable[tuple[str, str]], uid_list: list[str]
