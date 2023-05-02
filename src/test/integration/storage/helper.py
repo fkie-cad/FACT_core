@@ -59,6 +59,7 @@ def insert_test_fo(db, uid, file_name='test.zip', size=1, analysis: dict | None 
     test_fo.uid = uid
     test_fo.file_name = file_name
     test_fo.size = size
+    test_fo.virtual_file_path = {}
     if analysis:
         test_fo.processed_analysis = analysis
     if parent_fw:
