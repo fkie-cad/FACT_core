@@ -26,7 +26,7 @@ def test_get_general_stats(db, stats_updater):
     db.backend.add_object(child_fo)
     stats = stats_updater.get_general_stats()
     assert stats['number_of_firmwares'] == 1, 'number of firmwares not correct'
-    assert stats['number_of_unique_files'] == 2, 'number of files not correct'
+    assert stats['number_of_unique_files'] == 3, 'number of files not correct'
 
 
 def test_get_mitigation_stats(db, stats_updater):

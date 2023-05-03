@@ -55,7 +55,9 @@ class StatsUpdater:
                 'total_file_size': self.db.get_cumulated_fo_size(),
                 'creation_time': time(),
             }
-        stats['average_file_size'] = int(stats['total_file_size']) / int(stats['number_of_unique_files'])
+        stats['average_file_size'] = (
+            stats['total_file_size'] / stats['number_of_unique_files'] if stats['number_of_unique_files'] > 0 else 0
+        )
         benchmark = stats['creation_time'] - self.start_time
         stats['benchmark'] = benchmark
         logging.info(f'time to create stats: {time_format(benchmark)}')

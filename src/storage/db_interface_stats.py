@@ -69,12 +69,13 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 query = query.filter_by(**q_filter)
             return session.execute(query).scalar()
 
-    def get_fo_count(self) -> Any:
+    def get_fo_count(self) -> int:
         with self.get_read_only_session() as session:
             query = select(func.count(FileObjectEntry.uid))
-            return session.execute(query).scalar()
+            count = session.execute(query).scalar()
+            return int(count) if count is not None else 0
 
-    def get_cumulated_fo_size(self) -> Any:
+    def get_cumulated_fo_size(self) -> int:
         with self.get_read_only_session() as session:
             query = select(func.sum(FileObjectEntry.size))
             sum_ = session.execute(query).scalar()
