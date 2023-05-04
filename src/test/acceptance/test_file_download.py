@@ -3,13 +3,7 @@ import tarfile
 
 import pytest
 
-from storage.fsorganizer import FSOrganizer
 from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
-
-
-@pytest.fixture
-def fsorganizer():
-    return FSOrganizer()
 
 
 @pytest.fixture(autouse=True)

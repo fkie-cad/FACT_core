@@ -3,15 +3,9 @@ from base64 import standard_b64encode
 
 import pytest
 
-from storage.fsorganizer import FSOrganizer
 from test.common_helper import create_test_firmware
 
 test_fw = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
-
-
-@pytest.fixture
-def fsorganizer():
-    return FSOrganizer()
 
 
 class TestRestDownloadFirmware:

@@ -513,3 +513,8 @@ class SchedulerTestConfig:
             return SchedulerTestConfig.Integration(**test_config_dict)
         else:
             raise err
+
+
+@pytest.fixture
+def fsorganizer() -> FSOrganizer:
+    return FSOrganizer()
