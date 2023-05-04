@@ -15,13 +15,6 @@ other_fw = create_test_firmware()
 other_fw.uid = '1234abcd_123'
 
 
-# TODO: These tests are kind of badly written.
-#       They work even if the intercom_backend_binding thing is not started
-@pytest.fixture(autouse=True)
-def _autouse_intercom_backend_binding(intercom_backend_binding):
-    pass
-
-
 @pytest.fixture(autouse=True)
 def _auto_insert_firmwares(backend_db):
     uid = parent_fw.uid
