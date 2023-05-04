@@ -43,7 +43,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DESCRIPTION = 'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
-    VERSION = '0.5.2'
+    VERSION = '0.5.3'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
