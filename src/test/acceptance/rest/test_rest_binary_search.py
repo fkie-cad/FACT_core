@@ -5,16 +5,10 @@ from time import sleep, time
 
 import pytest
 
-from storage.fsorganizer import FSOrganizer
 from test.common_helper import get_firmware_for_rest_upload_test
 
 # the file inside the uploaded test file, that is matched by the binary search
 MATCH_FILE_UID = 'd558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62'
-
-
-@pytest.fixture
-def fsorganizer() -> FSOrganizer:
-    return FSOrganizer()
 
 
 class TestRestBinarySearch:
