@@ -12,7 +12,6 @@ from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
-from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
 from storage.db_interface_frontend import MetaEntry
 from web_interface.filter import elapsed_time, random_collapse_id
@@ -87,14 +86,13 @@ class FilterClass:
             filename_only=filename_only,
         )
 
-    def _nice_virtual_path_list(self, virtual_path_list: list[str]) -> list[str]:
+    def _nice_virtual_path_list(self, virtual_path_list: list[list[str]], root_uid: str | None = None) -> list[str]:
+        root_uid = none_to_none(root_uid)
         path_list = []
-        for virtual_path in virtual_path_list:
-            uid_list = split_virtual_path(virtual_path)
-            components = [
-                self._virtual_path_element_to_span(hid, uid, root_uid=uid_list[0])
-                for hid, uid in zip(split_virtual_path(self._filter_replace_uid_with_hid(virtual_path)), uid_list)
-            ]
+        all_uids = {uid for uid_list in virtual_path_list for uid in uid_list}
+        hid_dict = self.db.frontend.get_hid_dict(all_uids, root_uid=root_uid)
+        for uid_list in virtual_path_list:
+            components = [self._virtual_path_element_to_span(hid_dict[uid], uid, root_uid=root_uid) for uid in uid_list]
             path_list.append(' '.join(components))
         return path_list
 
@@ -116,13 +114,16 @@ class FilterClass:
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware: MetaEntry, root_uid: str, other_versions, selected_analysis):
+    def _render_general_information_table(
+        firmware: MetaEntry, root_uid: str, other_versions, selected_analysis, file_tree_paths
+    ):
         return render_template(
             'generic_view/general_information.html',
             firmware=firmware,
             root_uid=root_uid,
             other_versions=other_versions,
             selected_analysis=selected_analysis,
+            file_tree_paths=file_tree_paths,
         )
 
     @staticmethod

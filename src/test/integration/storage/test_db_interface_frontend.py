@@ -60,10 +60,11 @@ def test_get_hid_invalid_uid(db):
 
 
 def test_get_data_for_nice_list(db):
-    uid_list = [TEST_FW.uid, TEST_FO.uid]
-    db.backend.add_object(TEST_FW)
-    TEST_FO.virtual_file_path = {'TEST_FW.uid': [f'|{TEST_FW.uid}|/file/path']}
-    db.backend.add_object(TEST_FO)
+    fo, fw = create_fw_with_child_fo()
+    uid_list = [fw.uid, fo.uid]
+    db.backend.add_object(fw)
+    fo.virtual_file_path = {fw.uid: ['/file/path']}
+    db.backend.add_object(fo)
 
     nice_list_data = db.frontend.get_data_for_nice_list(uid_list, uid_list[0])
     assert len(nice_list_data) == 2
@@ -565,8 +566,7 @@ def test_data_for_dependency_graph(db):
     child_fo, parent_fw = create_fw_with_child_fo()
     assert db.frontend.get_data_for_dependency_graph(parent_fw.uid) == []
 
-    db.backend.insert_object(parent_fw)
-    db.backend.insert_object(child_fo)
+    db.backend.insert_multiple_objects(parent_fw, child_fo)
 
     assert db.frontend.get_data_for_dependency_graph(child_fo.uid) == [], 'should be empty if no files included'
 
@@ -577,3 +577,10 @@ def test_data_for_dependency_graph(db):
     assert result[0].libraries is None
     assert result[0].full_type == 'Not a PE file'
     assert result[0].file_name == 'testfile1'
+
+
+def test_get_root_uid(db):
+    child_fo, parent_fw = create_fw_with_child_fo()
+    db.backend.insert_multiple_objects(parent_fw, child_fo)
+    assert db.frontend.get_root_uid(child_fo.uid) == parent_fw.uid
+    assert db.frontend.get_root_uid(parent_fw.uid) == parent_fw.uid

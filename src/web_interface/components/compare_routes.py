@@ -203,7 +203,7 @@ class CompareRoutes(ComponentBase):
         with get_shared_session(self.db.frontend) as frontend_db:
             fo = frontend_db.get_object(uid)
             if root_uid in [None, 'None']:
-                root_uid = fo.get_root_uid()
+                root_uid = frontend_db.get_root_uid(fo.uid)
             fw_hid = frontend_db.get_object(root_uid).get_hid()
         mime = fo.processed_analysis.get('file_type', {}).get('mime')
         return FileDiffData(uid, mime, fw_hid)

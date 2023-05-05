@@ -43,7 +43,6 @@ class AnalysisSchedulerTest(TestCase):
         self.tmp_queue = Queue()
         self.lock_manager = UnpackingLockManager()
         self.sched = AnalysisScheduler(
-            pre_analysis=lambda *_: None,
             post_analysis=self.dummy_callback,
             db_interface=self.mocked_interface,
             unpacking_locks=self.lock_manager,

@@ -24,7 +24,7 @@ class TestTagPropagation:
         self.unpacking_lock_manager = UnpackingLockManager()
 
         self._analysis_scheduler = AnalysisScheduler(
-            pre_analysis=self.backend_interface.add_object,
+            # pre_analysis=self.backend_interface.add_object, TODO
             post_analysis=self.count_analysis_finished_event,
             unpacking_locks=self.unpacking_lock_manager,
         )

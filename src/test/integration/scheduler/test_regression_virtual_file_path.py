@@ -58,7 +58,9 @@ def test_scheduler(finished_event, intermediate_event):
             intermediate_event.set()
 
     analyzer = AnalysisScheduler(
-        pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
+        # pre_analysis=count_pre_analysis, TODO
+        db_interface=interface,
+        unpacking_locks=unpacking_lock_manager,
     )
     analyzer.start()
     unpacker = UnpackingScheduler(post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager)

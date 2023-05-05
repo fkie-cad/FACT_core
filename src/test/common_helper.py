@@ -7,7 +7,6 @@ from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 
-from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -79,7 +78,6 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
         },
     }
     fo.processed_analysis.update(processed_analysis)
-    fo.virtual_file_path = fo.get_virtual_file_paths()
     return fo
 
 
@@ -94,7 +92,7 @@ NICE_LIST_DATA = {
     'files_included': TEST_FW.files_included,
     'size': TEST_FW.size,
     'mime-type': 'file-type-plugin/not-run-yet',
-    'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths()),
+    'current_virtual_path': [],  # TODO
 }
 COMPARISON_ID = f'{TEST_FW.uid};{TEST_FW_2.uid}'
 

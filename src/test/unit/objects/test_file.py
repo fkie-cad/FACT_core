@@ -49,38 +49,6 @@ class TestObjectsFile:  # pylint: disable=no-self-use
         assert test_child.uid in test_parent.files_included, 'uid of first file not found'
         assert test_child2.uid in test_parent.files_included, 'uid of second file not found'
 
-    def test_get_virtual_file_path(self):
-        fo = FileObject(binary=b'file_object')
-        assert fo.uid in fo.get_virtual_file_paths().keys(), 'not correct if path _ name not set'
-        fo.file_name = 'the_file_name.txt'
-        assert fo.get_virtual_file_paths()[fo.uid][0] == fo.uid, 'not correct if path not set'
-        fo.virtual_file_path = {fo.uid: '/foo/bar/the_file_name.txt'}
-        assert fo.get_virtual_file_paths()[fo.uid] == '/foo/bar/the_file_name.txt', 'not correct if path set'
-
-    def test_get_root_uid(self):
-        fo = FileObject(binary=b'file_object')
-        fo.virtual_file_path = {'root_uid_1': 'virtual_file_path', 'root_uid_2': 'virtual_file_path'}
-        assert fo.get_root_uid() in ['root_uid_1', 'root_uid_2']
-
-    def test_get_one_virtual_path(self):
-        fo = FileObject(binary=b'foo')
-        assert fo.get_virtual_paths_for_one_uid() == [fo.uid], 'No Path set should be uid'
-        fo.virtual_file_path = {
-            'uid_a': ['test_file_path_a'],
-            'uid_b': ['test_file_path_b'],
-            'uid_c': ['test_file_path_c'],
-        }
-        assert fo.get_virtual_paths_for_one_uid() == ['test_file_path_a']
-        assert fo.get_virtual_paths_for_one_uid(root_uid='uid_b') == ['test_file_path_b']
-        fo.root_uid = 'uid_c'
-        assert fo.get_virtual_paths_for_one_uid() == ['test_file_path_c']
-
-    def test_get_virtual_path_for_non_existing_root(self):
-        fo = FileObject(binary=b'foo')  # fo.virtual_file_path is empty
-        assert fo.get_virtual_paths_for_one_uid(root_uid='non_existing') == [fo.uid]
-        fo.virtual_file_path = {'other_root': ['some_vfp']}
-        assert fo.get_virtual_paths_for_one_uid(root_uid='non_existing') == ['some_vfp']
-
     def test_get_virtual_paths_for_all_uids(self):
         fo = FileObject(binary=b'foo')
         fo.virtual_file_path = {'root_uid_1': ['vfp1', 'vfp2'], 'root_uid_2': ['vfp3']}

@@ -16,7 +16,6 @@ from analysis.PluginBase import AnalysisBasePlugin
 from config import cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
-from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
 from objects.file import FileObject
 from storage.db_interface_common import DbInterfaceCommon
 
@@ -81,7 +80,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return self.parent_fo_has_fs_metadata_analysis_results(file_object)
 
     def parent_fo_has_fs_metadata_analysis_results(self, file_object: FileObject):
-        for parent_uid in get_parent_uids_from_virtual_path(file_object):
+        for parent_uid in file_object.parents:
             analysis_entry = self.db.get_analysis(parent_uid, 'file_type')
             if analysis_entry is not None:
                 if self._has_correct_type(analysis_entry['mime']):

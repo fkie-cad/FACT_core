@@ -16,7 +16,6 @@ class TestFileAddition:
 
         self.unpacking_lock_manager = UnpackingLockManager()
         self._analysis_scheduler = AnalysisScheduler(
-            pre_analysis=lambda *_: None,
             post_analysis=self._dummy_callback,
             db_interface=MockDbInterface(None),
             unpacking_locks=self.unpacking_lock_manager,

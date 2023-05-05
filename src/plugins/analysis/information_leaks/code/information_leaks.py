@@ -4,7 +4,6 @@ import re
 from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from objects.file import FileObject
 
 PATH_REGEX = {
@@ -93,9 +92,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _find_artifacts(self, file_object: FileObject):
         for virtual_path_list in file_object.virtual_file_path.values():
             for virtual_path in virtual_path_list:
-                file_object.processed_analysis[self.NAME].update(
-                    _check_file_path(get_top_of_virtual_path(virtual_path))
-                )
+                file_object.processed_analysis[self.NAME].update(_check_file_path(virtual_path))
 
 
 def _check_file_path(file_path: str) -> dict[str, list[str]]:

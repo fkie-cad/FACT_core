@@ -43,7 +43,9 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def objects_exist(self, compare_id: str) -> bool:
         uid_list = convert_compare_id_to_list(compare_id)
         with self.get_read_only_session() as session:
-            query = select(func.count(FileObjectEntry.uid)).filter(FileObjectEntry.uid.in_(uid_list))
+            query = select(func.count(FileObjectEntry.uid)).filter(  # pylint: disable=not-callable
+                FileObjectEntry.uid.in_(uid_list)
+            )
             return session.execute(query).scalar() == len(uid_list)
 
     @staticmethod
@@ -97,7 +99,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def get_total_number_of_results(self) -> int:
         with self.get_read_only_session() as session:
-            query = select(func.count(ComparisonEntry.comparison_id))
+            query = select(func.count(ComparisonEntry.comparison_id))  # pylint: disable=not-callable
             return session.execute(query).scalar()
 
     def get_ssdeep_hash(self, uid: str) -> str:
@@ -134,11 +136,19 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 .filter(AnalysisEntry.result['mime'] == type_coerce('text/plain', JSONB))
             )
             uid_list = list(session.execute(query).scalars())
-            vfp_data = self.get_vfps_for_uid_list(uid_list, root_uid=root_uid)
-            result = {}
-            for uid in vfp_data:
-                vfp_dict = vfp_data.get(uid)
-                for vfp_list in vfp_dict.values():
-                    for vfp in vfp_list:
-                        result.setdefault(vfp, set()).add(uid)
-            return result
+        vfp_data = self.get_vfps_for_uid_list(uid_list, root_uid=root_uid)
+        return self._transpose_vfp_dict(vfp_data)
+
+    @staticmethod
+    def _transpose_vfp_dict(vfp_data: dict[str, dict[str, list[str]]]) -> dict[str, set[str]]:
+        """
+        Look for files with the same "virtual file path".
+        input: {uid {parent_uid: [vfp]}} -> output: {vfp: [uid]}
+        """
+        result = {}
+        for uid in vfp_data:
+            vfp_dict = vfp_data.get(uid)
+            for vfp_list in vfp_dict.values():
+                for vfp in vfp_list:
+                    result.setdefault(vfp, set()).add(uid)
+        return result

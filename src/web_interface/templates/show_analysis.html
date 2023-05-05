@@ -112,7 +112,7 @@
         {# Header section #}
         <div class="header mb-4" style="word-wrap: break-word">
             <h3>
-                {{ firmware.get_hid(root_uid=root_uid) }}<br />
+                {{ firmware.uid | replace_uid_with_hid(root_uid=root_uid) | safe }}<br />
                 {% if firmware.analysis_tags or firmware.tags %}
                     {{ firmware.analysis_tags | render_analysis_tags | safe }}{{ firmware.tags | render_fw_tags | safe }}<br />
                 {% endif %}
@@ -129,7 +129,7 @@
 
     {# General info section #}
     <div class="col-lg-6">
-        {{ firmware | render_general_information(root_uid, other_versions, selected_analysis) | safe }}
+        {{ firmware | render_general_information(root_uid, other_versions, selected_analysis, file_tree_paths) | safe }}
     </div>
 
 </div>
@@ -163,7 +163,7 @@
                                     <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}/{{ root_uid }}'">
                                         &times;
                                     </span>
-                                    <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}" style="margin-left: 3px">{{ compare_uid |replace_uid_with_hid | safe }}</span>
+                                    <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}" style="margin-left: 3px">{{ compare_uid | replace_uid_with_hid | safe }}</span>
                                 </span>
                             </div>
                         {% endfor %}

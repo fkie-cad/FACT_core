@@ -54,8 +54,7 @@
             </tr>
         {% endif %}
         <tr>
-            {% set vfp_list = firmware.get_virtual_paths_for_one_uid(root_uid=root_uid) if root_uid else firmware.get_virtual_paths_for_all_uids() %}
-            {{ field_with_icon('project-diagram', vfp_list | nice_virtual_path_list | list_group_collapse | safe, 'Complete file paths in container', 5) }}
+            {{ field_with_icon('project-diagram', file_tree_paths | nice_virtual_path_list(root_uid) | list_group_collapse | safe, 'Complete file paths in container', 5) }}
         </tr>
         {% if other_versions %}
             <tr>

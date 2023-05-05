@@ -20,7 +20,6 @@ from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, Virtua
 
 
 class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
-
     # ===== Create / INSERT =====
 
     def add_object(self, fw_object: FileObject):
@@ -115,15 +114,18 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             )
             session.add(analysis)
 
-    def add_vfp(self, parent_uid: str, child_uid: str, path: str):
+    def add_vfp(self, parent_uid: str, child_uid: str, paths: list[str]):
         """Adds a new "virtual file path" for file `child_uid` with path `path` in `parent_uid`"""
         with self.get_read_write_session() as session:
-            vfp = VirtualFilePath(
-                parent_uid=parent_uid,
-                file_uid=child_uid,
-                file_path=path,
-            )
-            session.add(vfp)
+            vfp_list = [
+                VirtualFilePath(
+                    parent_uid=parent_uid,
+                    file_uid=child_uid,
+                    file_path=path,
+                )
+                for path in paths
+            ]
+            session.add_all(vfp_list)
 
     # ===== Update / UPDATE =====
 
@@ -145,14 +147,19 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def update_file_object(self, file_object: FileObject):
         with self.get_read_write_session() as session:
-            entry: FileObjectEntry = session.get(FileObjectEntry, file_object.uid)
+            entry = session.get(FileObjectEntry, file_object.uid)
+            if entry is None:
+                logging.error(f'Trying to update {file_object.uid} but no entry could be found in the DB')
+                return
             entry.file_name = file_object.file_name
             entry.depth = file_object.depth
             entry.size = file_object.size
             entry.comments = file_object.comments
             entry.is_firmware = isinstance(file_object, Firmware)
             self._update_parents(file_object.parent_firmware_uids, file_object.parents, entry, session)
-            self._update_virtual_file_path(file_object, session)
+            # firmware objects don't have VFPs because they are themselves not contained in another object
+            if not isinstance(file_object, Firmware):
+                self._update_virtual_file_path(file_object, session)
 
     @staticmethod
     def _update_virtual_file_path(file_object: FileObject, session: Session):

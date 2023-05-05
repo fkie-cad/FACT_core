@@ -50,8 +50,7 @@ def test_vfp(db):
     assert db.backend.get_vfps(fo.uid) == {}
 
     paths = ['foo/bar', 'test']
-    for path in paths:
-        db.backend.add_vfp(fw.uid, fo.uid, path)
+    db.backend.add_vfp(fw.uid, fo.uid, paths)
     vfp_dict = db.backend.get_vfps(fo.uid)
 
     assert fw.uid in vfp_dict
@@ -69,19 +68,19 @@ def test_vfp_multiple_parents(db):
         obj.virtual_file_path = {}
         db.backend.insert_object(obj)
 
-    assert db.backend.get_vfps(fo.uid) == {}
-    db.backend.add_vfp(parent_fo.uid, fo.uid, 'foo')
-    db.backend.add_vfp(fw2.uid, fo.uid, 'bar')
+    assert db.common.get_vfps(fo.uid) == {}
+    db.backend.add_vfp(parent_fo.uid, fo.uid, ['foo'])
+    db.backend.add_vfp(fw2.uid, fo.uid, ['bar'])
 
-    assert db.backend.get_vfps(fo.uid) == {parent_fo.uid: ['foo'], fw2.uid: ['bar']}
-    assert db.backend.get_vfps(fo.uid, parent_uid=parent_fo.uid) == {parent_fo.uid: ['foo']}
-    assert db.backend.get_vfps(fo.uid, parent_uid=fw2.uid) == {fw2.uid: ['bar']}
+    assert db.common.get_vfps(fo.uid) == {parent_fo.uid: ['foo'], fw2.uid: ['bar']}
+    assert db.common.get_vfps(fo.uid, parent_uid=parent_fo.uid) == {parent_fo.uid: ['foo']}
+    assert db.common.get_vfps(fo.uid, parent_uid=fw2.uid) == {fw2.uid: ['bar']}
 
-    assert db.backend.get_vfps(fo.uid, root_uid=fw.uid) == {parent_fo.uid: ['foo']}
-    assert db.backend.get_vfps(fo.uid, root_uid=fw2.uid) == {fw2.uid: ['bar']}
+    assert db.common.get_vfps(fo.uid, root_uid=fw.uid) == {parent_fo.uid: ['foo']}
+    assert db.common.get_vfps(fo.uid, root_uid=fw2.uid) == {fw2.uid: ['bar']}
 
     db.admin.delete_firmware(fw2.uid)
-    assert db.backend.get_vfps(fo.uid) == {parent_fo.uid: ['foo']}, 'fw2 VFP should have been deleted by cascade'
+    assert db.common.get_vfps(fo.uid) == {parent_fo.uid: ['foo']}, 'fw2 VFP should have been deleted by cascade'
 
 
 def test_object_conversion_vfp(db):

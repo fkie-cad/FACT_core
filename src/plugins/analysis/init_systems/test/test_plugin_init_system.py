@@ -15,7 +15,7 @@ def _get_fo(path):
     fo = FileObject(file_path=os.path.join(_test_init_dir, path))
     fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
     fo.root_uid = fo.uid
-    fo.virtual_file_path = {fo.get_root_uid(): [path]}
+    fo.virtual_file_path = {'parent_uid': ['/some/path']}
 
     return fo
 
