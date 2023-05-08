@@ -30,7 +30,7 @@ def test_get_plugin_stats(mock_plugin):
     mock_plugin.analysis_stats[2] = 3.0
     mock_plugin.analysis_stats_count.value = 3
 
-    result = get_plugin_stats(mock_plugin)
+    result = get_plugin_stats(mock_plugin.analysis_stats, mock_plugin.analysis_stats_count)
     assert result == {
         'count': '3',
         'max': '3.00',
@@ -54,4 +54,4 @@ def test_update_duration_stats(mock_plugin):
     assert mock_plugin.analysis_stats_count.value == 5
     assert mock_plugin.analysis_stats_index.value == 0, 'index should start at 0 when max count is reached'
 
-    assert get_plugin_stats(mock_plugin) is not None
+    assert get_plugin_stats(mock_plugin.analysis_stats, mock_plugin.analysis_stats_count) is not None
