@@ -99,7 +99,12 @@ class PluginV0(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def analyze(self, file_handle: io.FileIO, virtual_file_path: dict, analyses: dict[str, dict]) -> typing.Optional[Schema]:
+    def analyze(
+        self,
+        file_handle: io.FileIO,
+        virtual_file_path: dict,
+        analyses: dict[str, pydantic.BaseModel],
+    ) -> typing.Optional[Schema]:
         """Analyze a file.
         May return None if nothing was found.
 
