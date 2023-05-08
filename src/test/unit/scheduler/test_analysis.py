@@ -7,6 +7,7 @@ from unittest import TestCase, mock
 
 import pytest
 
+from analysis.PluginBase import AnalysisBasePlugin
 from objects.firmware import Firmware
 from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from storage.unpacking_locks import UnpackingLockManager
@@ -407,7 +408,8 @@ class TestAnalysisShouldReanalyse:
         assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, plugin, 'uid') == expected_result
 
 
-class PluginMock:
+class PluginMock(AnalysisBasePlugin):
+    # pylint: disable=super-init-not-called
     def __init__(self, dependencies):
         self.DEPENDENCIES = dependencies
 
@@ -417,6 +419,7 @@ def test_combined_analysis_workload(monkeypatch):
     scheduler = AnalysisScheduler()
 
     scheduler.analysis_plugins = {}
+    scheduler._plugin_runners = {}
     dummy_plugin = scheduler.analysis_plugins['dummy_plugin'] = PluginMock([])
     dummy_plugin.in_queue = Queue()  # pylint: disable=attribute-defined-outside-init
     scheduler.process_queue = Queue()
