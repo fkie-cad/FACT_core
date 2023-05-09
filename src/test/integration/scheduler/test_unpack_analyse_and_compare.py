@@ -66,13 +66,13 @@ class TestFileAddition:
         self._unpack_scheduler.add_task(test_fw_1)
         self._unpack_scheduler.add_task(test_fw_2)
 
-        self.analysis_finished_event.wait(timeout=20)
+        assert self.analysis_finished_event.wait(timeout=20)
 
         compare_id = normalize_compare_id(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
 
         assert self._compare_scheduler.add_task((compare_id, False)) is None, 'adding compare task creates error'
 
-        self.compare_finished_event.wait(timeout=10)
+        assert self.compare_finished_event.wait(timeout=10)
 
         result = comp_db.get_comparison_result(compare_id)
 

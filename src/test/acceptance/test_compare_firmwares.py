@@ -47,11 +47,11 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBaseFullStart):
     def test_compare_firmwares(self):
         for firmware in [self.test_fw_a, self.test_fw_c]:
             self.upload_test_firmware(firmware)
-        self.analysis_finished_event.wait(timeout=20)
+        assert self.analysis_finished_event.wait(timeout=20)
         self._show_analysis_without_compare_list()
         self._add_firmwares_to_compare()
         self._start_compare()
-        self.compare_finished_event.wait(timeout=20)
+        assert self.compare_finished_event.wait(timeout=20)
         self._show_comparison_results()
         self._show_home_page()
         self._show_compare_browse()

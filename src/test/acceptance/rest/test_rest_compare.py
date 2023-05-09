@@ -77,9 +77,9 @@ class TestRestCompareFirmware(TestAcceptanceBase):
     def test_run_from_upload_to_show_analysis(self):
         self._rest_upload_firmware(self.test_fw_a)
         self._rest_upload_firmware(self.test_fw_c)
-        self.analysis_finished_event.wait(timeout=20)
+        assert self.analysis_finished_event.wait(timeout=20)
         self._rest_search(self.test_fw_a)
         self._rest_search(self.test_fw_c)
         self._rest_start_compare()
-        self.compare_finished_event.wait(timeout=20)
+        assert self.compare_finished_event.wait(timeout=20)
         self._rest_get_compare()
