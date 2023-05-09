@@ -35,7 +35,7 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
     def test_binary_search(self):
         self._query_page_get()
         self.upload_test_firmware(self.test_fw_a)
-        self.analysis_finished_event.wait(timeout=15)
+        assert self.analysis_finished_event.wait(timeout=15)
         self._query_page_post_file_query()
         self._query_page_post_firmware_query()
         self._get_without_request_id()

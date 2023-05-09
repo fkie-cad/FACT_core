@@ -88,7 +88,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
     def test_run_from_upload_via_show_analysis_to_delete(self):
         self._upload_firmware_get()
         self.upload_test_firmware(self.test_fw_a)
-        self.analysis_finished_event.wait(timeout=15)
+        assert self.analysis_finished_event.wait(timeout=15)
         self._show_analysis_page()
         self._show_analysis_details_file_type()
         self._check_ajax_file_tree_routes()

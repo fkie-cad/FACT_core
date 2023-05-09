@@ -118,7 +118,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
             unpacking_workload=self.unpacking_service.get_scheduled_workload(),
             analysis_workload=self.analysis_service.get_scheduled_workload(),
         )
-        self.analysis_finished_event.wait(timeout=10)
+        assert self.analysis_finished_event.wait(timeout=10)
         self._show_system_monitor()
 
         self.updater.update_all_stats()

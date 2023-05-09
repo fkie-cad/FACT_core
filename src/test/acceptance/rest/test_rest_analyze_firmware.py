@@ -75,7 +75,7 @@ class TestRestFirmware(TestAcceptanceBase):
 
     def test_run_from_upload_to_show_analysis_and_search(self):
         self._rest_upload_firmware()
-        self.analysis_finished_event.wait(timeout=15)
+        assert self.analysis_finished_event.wait(timeout=15)
         self.elements_finished_analyzing.value = 4 * 2  # only one plugin to update, so we offset with 4 times 2 plugins
         self.analysis_finished_event.clear()
         self._rest_get_analysis_result()
@@ -84,6 +84,6 @@ class TestRestFirmware(TestAcceptanceBase):
         self._rest_update_analysis_bad_analysis()
         self._rest_update_analysis_success()
 
-        self.analysis_finished_event.wait(timeout=10)
+        assert self.analysis_finished_event.wait(timeout=10)
 
         self._rest_check_new_analysis_exists()

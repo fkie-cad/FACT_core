@@ -52,9 +52,9 @@ def test_scheduler(finished_event, intermediate_event):
     def count_pre_analysis(file_object):
         interface.add_object(file_object)
         elements_finished.value += 1
-        if elements_finished.value == 16:
+        if elements_finished.value == 8:
             finished_event.set()
-        elif elements_finished.value == 8:
+        elif elements_finished.value == 4:
             intermediate_event.set()
 
     analyzer = AnalysisScheduler(
@@ -91,11 +91,11 @@ def test_check_collision(
 ):  # pylint: disable=unused-argument
     add_test_file(test_scheduler, 'regression_one')
 
-    intermediate_event.wait(timeout=30)
+    assert intermediate_event.wait(timeout=30)
 
     add_test_file(test_scheduler, 'regression_two')
 
-    finished_event.wait(timeout=30)
+    assert finished_event.wait(timeout=30)
 
     first_response = test_app.get(f'/analysis/{TARGET_UID}/ro/{FIRST_ROOT_ID}')
     assert b'insufficient information' not in first_response.data
