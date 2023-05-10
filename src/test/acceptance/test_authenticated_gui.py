@@ -13,7 +13,7 @@ from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
 from web_interface.frontend_main import WebFrontEnd
 
-NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger']
+NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger', '/fs-static/pathfilename']
 REQUEST_FAILS = [b'404 Not Found', b'405 Method Not Allowed', b'The method is not allowed']
 MockUser = namedtuple('MockUser', ['name', 'password', 'key'])
 
