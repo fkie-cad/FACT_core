@@ -1,11 +1,12 @@
 import json
 from base64 import standard_b64encode
 from copy import deepcopy
+from http import HTTPStatus
 from urllib.parse import quote
 
 import pytest
 
-from test.common_helper import TEST_FW, CommonDatabaseMock
+from test.common_helper import TEST_FW, CommonDatabaseMock  # pylint: disable=wrong-import-order
 
 TEST_FW_PAYLOAD = {
     'binary': standard_b64encode(b'\x01\x23\x45\x67\x89').decode(),
@@ -80,7 +81,7 @@ class TestRestFirmware:
 
     def test_bad_put_request(self, test_client):
         response = test_client.put('/rest/firmware')
-        assert response.status_code == 400
+        assert response.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
     def test_submit_empty_data(self, test_client):
         response = test_client.put('/rest/firmware', json={}).json
