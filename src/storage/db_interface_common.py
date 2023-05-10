@@ -172,6 +172,17 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                 result.setdefault(vfp.file_uid, {}).setdefault(vfp.parent_uid, []).append(vfp.file_path)
             return result
 
+    def get_vfps_in_parent(self, parent_uid: str) -> dict[str, list[str]]:
+        """Get all virtual file paths (see `get_vfps()`) for files inside a container with UID `parent_uid`."""
+        with self.get_read_only_session() as session:
+            query = select(VirtualFilePath.file_uid, VirtualFilePath.file_path).filter(
+                VirtualFilePath.parent_uid == parent_uid
+            )
+            result = {}
+            for uid, path in session.execute(query):
+                result.setdefault(uid, []).append(path)
+            return result
+
     def get_file_tree_path(self, uid: str, root_uid: str | None = None) -> list[list[str]]:
         return self.get_file_tree_path_for_uid_list([uid], root_uid=root_uid).get(uid, [])
 

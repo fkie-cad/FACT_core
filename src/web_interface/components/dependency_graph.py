@@ -4,46 +4,30 @@ from os.path import normpath
 from pathlib import Path
 from typing import NamedTuple
 
-from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import get_color_list
 
 
 class DepGraphData(NamedTuple):
     uid: str
     file_name: str
-    virtual_file_paths: dict[str, list[str]]
+    virtual_file_paths: list[str]
     mime: str
     full_type: str
     libraries: list[str] | None = None
 
 
-def create_data_graph_nodes_and_groups(dependency_data: list[DepGraphData], parent_uid, root_uid, whitelist):
+def create_data_graph_nodes_and_groups(dependency_data: list[DepGraphData], whitelist):
     data_graph = {'nodes': [], 'edges': []}
     groups = set()
 
     for entry in dependency_data:
-        if entry.mime not in whitelist or root_uid not in entry.virtual_file_paths:
+        if entry.mime not in whitelist or not entry.virtual_file_paths:
             continue
-
         groups.add(entry.mime)
 
-        virtual_paths = entry.virtual_file_paths[root_uid]
-
-        for vpath in virtual_paths:
-
-            path_components = split_virtual_path(vpath)
-
-            if len(path_components) < 2:
-                continue
-
-            name_component = path_components[-1]
-            parent_component = path_components[-2]
-
-            if parent_component != parent_uid:
-                continue
-
+        for vpath in entry.virtual_file_paths:
             node = {
-                'label': name_component,
+                'label': vpath,
                 'id': vpath,
                 'entity': entry.uid,
                 'group': entry.mime,
@@ -51,11 +35,9 @@ def create_data_graph_nodes_and_groups(dependency_data: list[DepGraphData], pare
                 'linked_libraries': entry.libraries or [],
                 'elf_analysis_missing': entry.libraries is None,
             }
-
             data_graph['nodes'].append(node)
 
     data_graph['groups'] = sorted(groups)
-
     return data_graph
 
 
