@@ -163,7 +163,13 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         This usually is the file name for extracted files.
         :return: String representing a human-readable identifier for this file.
         '''
-        return list(self.virtual_file_path.values())[0][0]  # just get some random path
+        try:
+            return list(self.virtual_file_path.values())[0][0]  # just get some random path
+        except IndexError:
+            # this should normally not happen outside of tests as file objects are initialized with a "virtual file
+            # path" during unpacking
+            logging.warning(f'Virtual file paths of {self.uid} are emtpy: {self.virtual_file_path}')
+            return self.file_name
 
     def _create_from_file(self, file_path: str):
         self.set_binary(get_binary_from_file(file_path))

@@ -201,11 +201,8 @@ class AnalysisRoutes(ComponentBase):
             'application/x-sharedlib',
             'inode/symlink',
         ]
-
-        data_graph_part = create_data_graph_nodes_and_groups(data, uid, root_uid, whitelist)
-
+        data_graph_part = create_data_graph_nodes_and_groups(data, whitelist)
         colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
-
         if not data_graph_part['nodes']:
             flash(
                 'Error: Graph could not be rendered. '
@@ -215,13 +212,12 @@ class AnalysisRoutes(ComponentBase):
             return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
 
         data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data_graph_part)
-
         if elf_analysis_missing_from_files > 0:
             flash(
                 f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning'
             )
 
-        # TODO: Add a loading icon?
+        # FixMe: Add a loading icon?
         return render_template(
             'dependency_graph.html',
             **{key: json.dumps(data_graph[key]) for key in ['nodes', 'edges', 'groups']},

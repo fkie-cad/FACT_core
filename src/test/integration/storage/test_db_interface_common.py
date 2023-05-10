@@ -8,8 +8,10 @@ from .helper import (
     TEST_FO,
     TEST_FO_2,
     TEST_FW,
+    add_included_file,
     create_fw_with_child_fo,
     create_fw_with_parent_and_child,
+    get_fo_with_2_root_fw,
     insert_test_fo,
 )
 
@@ -322,21 +324,32 @@ def test_get_vfps_for_uid_list(db):
 
 
 def test_get_vfps_for_root_uid(db):
-    fo, parent_1, fw_1, fw_2 = _get_fo_that_is_in_2_firmwares()
+    fo, parent_1, fw_1, fw_2 = get_fo_with_2_root_fw()
     db.backend.insert_multiple_objects(fw_2, fw_1, parent_1, fo)
 
     assert db.common.get_vfps(fo.uid) == fo.virtual_file_path
     assert db.common.get_vfps_for_uid_list([fo.uid]) == {fo.uid: fo.virtual_file_path}
 
-    assert db.common.get_vfps(fo.uid, root_uid=fw_1.uid) == {parent_1.uid: ['/folder/testfile1']}
-    assert db.common.get_vfps(fo.uid, root_uid=fw_2.uid) == {fw_2.uid: ['/foo/bar']}
+    assert db.common.get_vfps(fo.uid, root_uid=fw_1.uid) == {parent_1.uid: fo.virtual_file_path.get(parent_1.uid)}
+    assert db.common.get_vfps(fo.uid, root_uid=fw_2.uid) == {fw_2.uid: fo.virtual_file_path.get(fw_2.uid)}
     assert db.common.get_vfps_for_uid_list([fo.uid], root_uid=fw_1.uid) == {
-        fo.uid: {parent_1.uid: ['/folder/testfile1']}
+        fo.uid: {parent_1.uid: fo.virtual_file_path.get(parent_1.uid)}
     }
 
 
+def test_get_vfps_in_parent(db):
+    fo, fw = create_fw_with_child_fo()
+    fo_2 = create_test_file_object(uid='fo_2')
+    add_included_file(fo_2, fw, fw, ['/foo', '/bar'])
+    db.backend.insert_multiple_objects(fw, fo, fo_2)
+    result = db.common.get_vfps_in_parent(fw.uid)
+    assert fo.uid in result and fo_2.uid in result
+    assert result[fo.uid] == fo.virtual_file_path[fw.uid]
+    assert set(result[fo_2.uid]) == set(fo_2.virtual_file_path[fw.uid])
+
+
 def test_tree_path_with_root_uid(db):
-    child_fo, parent_fo, fw, fw2 = _get_fo_that_is_in_2_firmwares()
+    child_fo, parent_fo, fw, fw2 = get_fo_with_2_root_fw()
     db.backend.insert_multiple_objects(fw, fw2, parent_fo, child_fo)
 
     result = sorted(db.common.get_file_tree_path_for_uid_list([child_fo.uid], root_uid=None).get(child_fo.uid))
@@ -351,14 +364,3 @@ def test_tree_path_with_root_uid(db):
     result = sorted(db.common.get_file_tree_path_for_uid_list([child_fo.uid], root_uid=fw2.uid).get(child_fo.uid))
     assert len(result) == 1
     assert result[0][0] == fw2.uid
-
-
-def _get_fo_that_is_in_2_firmwares():
-    fw_1, parent_1, fo = create_fw_with_parent_and_child()
-    fw_2 = create_test_firmware()
-    fw_2.uid = 'fw2'
-    fw_2.files_included.add(fo.uid)
-    fo.parents.append(fw_2.uid)
-    fo.parent_firmware_uids.add(fw_2.uid)
-    fo.virtual_file_path[fw_2.uid] = ['/foo/bar']
-    return fo, parent_1, fw_1, fw_2

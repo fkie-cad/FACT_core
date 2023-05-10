@@ -12,6 +12,7 @@ from .helper import (
     TEST_FW,
     create_fw_with_child_fo,
     create_fw_with_parent_and_child,
+    get_fo_with_2_root_fw,
     insert_test_fo,
     insert_test_fw,
 )
@@ -42,16 +43,16 @@ def test_get_hid(db):
 
 
 def test_get_hid_fo(db):
-    test_fo = create_test_file_object(bin_path='get_files_test/testfile2')
-    test_fo.virtual_file_path = {'a': ['|a|/test_file'], 'b': ['|b|/get_files_test/testfile2']}
-    db.backend.insert_object(test_fo)
-    result = db.frontend.get_hid(test_fo.uid, root_uid='b')
+    fo, parent_1, fw_1, fw_2 = get_fo_with_2_root_fw()
+    fo.virtual_file_path = {parent_1.uid: ['/test_file'], fw_2.uid: ['/get_files_test/testfile2']}
+    db.backend.insert_multiple_objects(fw_2, fw_1, parent_1, fo)
+    result = db.frontend.get_hid(fo.uid, root_uid=fw_2.uid)
     assert result == '/get_files_test/testfile2', 'fo hid not correct'
-    result = db.frontend.get_hid(test_fo.uid)
+    result = db.frontend.get_hid(fo.uid)
     assert isinstance(result, str), 'result is not a string'
-    assert result[0] == '/', 'first character not correct if no root_uid set'
-    result = db.frontend.get_hid(test_fo.uid, root_uid='c')
-    assert result[0] == '/', 'first character not correct if invalid root_uid set'
+    assert result.startswith('/'), 'first character not correct if no root_uid set'
+    result = db.frontend.get_hid(fo.uid, root_uid='invalid')
+    assert result == fo.file_name, 'file name should be fallback'
 
 
 def test_get_hid_invalid_uid(db):
@@ -383,14 +384,14 @@ def test_generate_file_tree_level(db):
     child_fo, parent_fw = create_fw_with_child_fo()
     child_fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'sometype'})
     uid = parent_fw.uid
-    child_fo.virtual_file_path = {uid: [f'|{uid}|/folder/{child_fo.file_name}']}
+    child_fo.virtual_file_path = {uid: [f'/folder/{child_fo.file_name}']}
     db.backend.add_object(parent_fw)
     db.backend.add_object(child_fo)
     for node in db.frontend.generate_file_tree_level(uid, uid):
         assert isinstance(node, FileTreeNode)
         assert node.name == parent_fw.file_name
         assert node.has_children
-    for node in db.frontend.generate_file_tree_level(child_fo.uid, uid):
+    for node in db.frontend.generate_file_tree_level(child_fo.uid, root_uid=uid, parent_uid=uid):
         assert isinstance(node, FileTreeNode)
         assert node.name == 'folder'
         assert node.has_children
@@ -577,6 +578,7 @@ def test_data_for_dependency_graph(db):
     assert result[0].libraries is None
     assert result[0].full_type == 'Not a PE file'
     assert result[0].file_name == 'testfile1'
+    assert result[0].virtual_file_paths == ['/folder/testfile1']
 
 
 def test_get_root_uid(db):

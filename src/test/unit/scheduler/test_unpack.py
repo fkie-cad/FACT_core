@@ -1,9 +1,8 @@
 import gc
 from configparser import ConfigParser
-from multiprocessing import Event, Queue
+from multiprocessing import Event, Manager, Queue
 from tempfile import TemporaryDirectory
 from time import sleep
-from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
@@ -14,8 +13,20 @@ from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
 
 
-class TestUnpackScheduler(TestCase):
-    def setUp(self):
+class MockDb:
+    def __init__(self):
+        self.manager = Manager()
+        self.counter = self.manager.Value('i', 0)
+
+    def add_object(self, fw_object):
+        self.counter.value += 1
+
+    def __call__(self, *args, **kwargs):  # hack: object can be instantiated again
+        return self
+
+
+class TestUnpackScheduler:
+    def setup_method(self):
         self.tmp_dir = TemporaryDirectory()
         self.config = ConfigParser()
         self.config.add_section('unpack')
@@ -29,14 +40,15 @@ class TestUnpackScheduler(TestCase):
         self.config.set('data-storage', 'firmware-file-storage-directory', self.tmp_dir.name)
         self.tmp_queue = Queue()
         self.scheduler = None
-
         self.sleep_event = Event()
+        self.db = MockDb()
 
-    def tearDown(self):
+    def teardown_method(self):
         if self.scheduler:
             self.scheduler.shutdown()
         self.tmp_dir.cleanup()
         self.tmp_queue.close()
+        self.db.manager.shutdown()
         gc.collect()
 
     def test_unpack_a_container_including_another_container(self):
@@ -48,7 +60,7 @@ class TestUnpackScheduler(TestCase):
         ]
         self.scheduler.add_task(test_fw)
         extracted_files = {}
-        for _ in range(3):
+        for _ in range(4):
             file = self.tmp_queue.get(timeout=5)
             extracted_files[file.uid] = file
 
@@ -59,6 +71,7 @@ class TestUnpackScheduler(TestCase):
         ), 'included container not extracted. Unpacker tar.gz module broken?'
         assert all(f in extracted_files for f in included_files)
         assert len(extracted_files[included_files[0]].files_included) == 1
+        assert self.db.counter.value == 4, 'objects were not added to DB'
 
     def test_get_combined_analysis_workload(self):
         self._start_scheduler()
@@ -84,6 +97,7 @@ class TestUnpackScheduler(TestCase):
             post_unpack=self._mock_callback,
             analysis_workload=lambda: 3,
             unpacking_locks=UnpackingLockManager(),
+            db_interface=self.db,
         )
         self.scheduler.start()
 

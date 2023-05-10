@@ -38,8 +38,9 @@ class TestUnpackerCore:
         file_paths = [EXTRACTION_DIR / 'zero_byte', EXTRACTION_DIR / 'get_files_test' / 'testfile2']
         file_objects = unpacker.generate_objects_and_store_files(file_paths, EXTRACTION_DIR, test_fo)
         assert len(file_objects) == 1, 'number of objects not correct'
-        assert file_objects[0].file_name == 'testfile2', 'wrong object created'
-        assert f'|{test_fo.uid}|/get_files_test/testfile2' in file_objects[0].virtual_file_path[test_fo.uid]
+        child_fo = file_objects[0]
+        assert child_fo.file_name == 'testfile2', 'wrong object created'
+        assert '/get_files_test/testfile2' in child_fo.virtual_file_path[test_fo.uid]
 
     def test_remove_duplicates_child_equals_parent(self, unpacker, test_fo):
         file_paths = [EXTRACTION_DIR / 'get_files_test' / 'testfile1']

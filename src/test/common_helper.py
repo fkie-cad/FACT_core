@@ -60,7 +60,7 @@ def create_test_firmware(
     return fw
 
 
-def create_test_file_object(bin_path='get_files_test/testfile1'):
+def create_test_file_object(bin_path='get_files_test/testfile1', uid=None):
     fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
     processed_analysis = {
         'dummy': {
@@ -78,6 +78,8 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
         },
     }
     fo.processed_analysis.update(processed_analysis)
+    if uid:
+        fo.uid = uid
     return fo
 
 
@@ -86,13 +88,14 @@ TEST_FW_2 = create_test_firmware(
     device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z'
 )
 TEST_TEXT_FILE = create_test_file_object()
+TEST_TEXT_FILE.virtual_file_path = {TEST_FW.uid: [TEST_TEXT_FILE.file_name]}
 TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')
 NICE_LIST_DATA = {
     'uid': TEST_FW.uid,
     'files_included': TEST_FW.files_included,
     'size': TEST_FW.size,
     'mime-type': 'file-type-plugin/not-run-yet',
-    'current_virtual_path': [],  # TODO
+    'current_virtual_path': [[TEST_FW.uid]],
 }
 COMPARISON_ID = f'{TEST_FW.uid};{TEST_FW_2.uid}'
 
@@ -224,6 +227,16 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
         if compare_id in ['existing_id', 'uid1;uid2', COMPARISON_ID]:
             return True
         return False
+
+    @staticmethod
+    def get_hid_dict(uid_set, root_uid):
+        return {uid: 'hid' for uid in uid_set}
+
+    @staticmethod
+    def get_file_tree_path(uid: str, root_uid=None):
+        if root_uid:
+            return [[root_uid, uid]]
+        return [[uid]]
 
 
 def fake_exit(self, *args):

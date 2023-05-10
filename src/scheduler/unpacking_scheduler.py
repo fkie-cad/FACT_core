@@ -41,7 +41,14 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     This scheduler performs unpacking on firmware objects
     '''
 
-    def __init__(self, post_unpack=None, analysis_workload=None, fs_organizer=None, unpacking_locks=None):
+    def __init__(
+        self,
+        post_unpack=None,
+        analysis_workload=None,
+        fs_organizer=None,
+        unpacking_locks=None,
+        db_interface=BackendDbInterface,
+    ):
         self.stop_condition = Value('i', 0)
         self.throttle_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload
@@ -58,6 +65,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
         self.work_load_process = None
         self.extraction_process = None
+        self.db_interface = db_interface
 
     @contextmanager
     def _sync(self):
@@ -135,7 +143,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 container = self.get_free_worker()
                 task = self.in_queue.get(timeout=1)
                 task_thread = Thread(
-                    target=self.work_thread,
+                    target=self._work_thread_wrapper,
                     kwargs=dict(task=task, container=container),
                 )
                 task_thread.start()
@@ -163,6 +171,16 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 return container
         raise NoFreeWorker()
 
+    def _work_thread_wrapper(self, task: FileObject, container: ExtractionContainer):
+        """
+        Exceptions in Threads will simply disappear when the thread is joined. We wrap everything in a
+        try-except block and log exceptions so that no exception occurs unnoticed.
+        """
+        try:
+            self.work_thread(task, container)
+        except Exception:
+            logging.exception(f'Exception occurred during unpacking of {task.uid}')
+
     def work_thread(self, task: FileObject, container: ExtractionContainer):
         if isinstance(task, Firmware):
             self._init_currently_unpacked(task)
@@ -181,7 +199,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             sleep(cfg.expert_settings.unpacking_delay)  # unpacking may be too fast for the FS to keep up
 
             # each worker needs its own interface because connections are not thread-safe
-            db_interface = BackendDbInterface()
+            db_interface = self.db_interface()
             db_interface.add_object(task)  # save FO before submitting to analysis scheduler
             self.post_unpack(task)
             self._update_currently_unpacked(task, extracted_objects, db_interface)

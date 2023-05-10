@@ -2,10 +2,9 @@
 import gc
 from multiprocessing import Queue
 
-from objects.firmware import Firmware
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import get_test_data_dir
+from test.common_helper import create_test_firmware
 from test.integration.common import MockFSOrganizer
 
 
@@ -27,8 +26,7 @@ class TestFileAddition:
         gc.collect()
 
     def test_unpack_only(self):
-        test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
-
+        test_fw = create_test_firmware()
         self._unpack_scheduler.add_task(test_fw)
 
         processed_container = self._tmp_queue.get(timeout=5)
