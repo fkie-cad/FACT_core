@@ -3,7 +3,7 @@ email-validator==1.3.0
 flask-login==0.6.2
 flask-paginate==2022.1.8
 flask-security-too==5.0.2
-flask-wtf==1.0.1
+flask-wtf==1.1.1
 flask==2.3.2
 flask_restx==1.0.3
 flask_sqlalchemy==3.0.2
