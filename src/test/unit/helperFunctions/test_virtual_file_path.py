@@ -1,26 +1,17 @@
 import pytest
 
-from helperFunctions.virtual_file_path import join_virtual_path, split_virtual_path
+from helperFunctions.virtual_file_path import get_paths_for_all_parents
 
 
 @pytest.mark.parametrize(
-    'virtual_path, expected_output',
+    'vfp_dict, expected',
     [
-        ('', []),
-        ('a|b|c', ['a', 'b', 'c']),
-        ('|a|b|c|', ['a', 'b', 'c']),
+        ({}, set()),
+        ({'parent': ['path1', 'path2']}, {'path1', 'path2'}),
+        ({'parent1': ['path1', 'path2'], 'parent2': ['path2', 'path3']}, {'path1', 'path2', 'path3'}),
     ],
 )
-def test_split_virtual_path(virtual_path, expected_output):
-    assert split_virtual_path(virtual_path) == expected_output
-
-
-@pytest.mark.parametrize(
-    'element_list, expected_output',
-    [
-        ([], ''),
-        (['a', 'b', 'c'], 'a|b|c'),
-    ],
-)
-def test_join_virtual_path(element_list, expected_output):
-    assert join_virtual_path(*element_list) == expected_output
+def test_get_paths_for_all_parents(vfp_dict, expected):
+    result = get_paths_for_all_parents(vfp_dict)
+    assert len(result) == len(expected)
+    assert set(result) == expected
