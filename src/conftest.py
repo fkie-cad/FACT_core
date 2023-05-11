@@ -112,7 +112,6 @@ def backend_config(request, common_config, _firmware_file_storage_directory) -> 
             'whitelist': [],
             'max_depth': 8,
             'memory_limit': 2048,
-            'threshold': 0.8,
             'throttle_limit': 50,
             'delay': 0.0,
             'base_port': 9900,
