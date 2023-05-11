@@ -10,12 +10,12 @@ from manage_users import setup_argparse, start_user_management
 from web_interface.app import create_app
 from web_interface.security.authentication import add_flask_security_to_app
 
-pytest.mark.frontend_config_overwrite(
+use_memory_db = pytest.mark.frontend_config_overwrite(
     {
         'authentication': {
             'enabled': True,
-            'user-database': 'sqlite://',
-            'password-salt': 'salt',
+            'user_database': 'sqlite://',
+            'password_salt': 'salt',
         },
     }
 )
@@ -78,6 +78,7 @@ def _setup_frontend():
         ['create_user', 'username', 'list_all_users'],
     ],
 )
+@use_memory_db
 def test_integration_try_actions(action_and_inputs, prompt):
     action_and_inputs.append('exit')
     for action in action_and_inputs:
@@ -89,6 +90,7 @@ def test_integration_try_actions(action_and_inputs, prompt):
     assert True, f'action sequence {action_and_inputs} caused error'
 
 
+@use_memory_db
 def test_add_role(prompt, capsys):
     action_and_inputs = [
         'create_user',
@@ -110,6 +112,7 @@ def test_add_role(prompt, capsys):
     assert 'test_user (guest, guest_analyst)' in captured.out
 
 
+@use_memory_db
 def test_password_is_hashed(prompt):
     action_and_inputs = ['create_user', 'test_user', 'exit']
     for action in action_and_inputs:
