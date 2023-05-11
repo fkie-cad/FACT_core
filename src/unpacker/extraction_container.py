@@ -18,7 +18,6 @@ from config import cfg
 
 DOCKER_CLIENT = docker.from_env()
 EXTRACTOR_DOCKER_IMAGE = 'fkiecad/fact_extractor'
-retries = Retry(total=5, backoff_factor=0.1)
 
 
 class ExtractionContainer:
@@ -28,8 +27,7 @@ class ExtractionContainer:
         self.port = cfg.unpack.base_port + id_
         self.container_id = None
         self.exception = value
-        self.session = requests.Session()
-        self.session.mount('http://', HTTPAdapter(max_retries=retries))
+        self._adapter = HTTPAdapter(max_retries=Retry(total=5, backoff_factor=0.1))
 
     def start(self):
         if self.container_id is not None:
@@ -112,4 +110,6 @@ class ExtractionContainer:
 
     def start_unpacking(self, tmp_dir: str, timeout: int | None = None):
         url = f'http://localhost:{self.port}/start/{Path(tmp_dir).name}'
-        return self.session.get(url, timeout=timeout)
+        with requests.Session() as session:
+            session.mount('http://', self._adapter)
+            return session.get(url, timeout=timeout)
