@@ -4,17 +4,21 @@ import logging
 import multiprocessing
 from contextlib import suppress
 from os import getgid, getuid
+from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import docker
+import requests
 from docker.errors import APIError, DockerException
 from docker.models.containers import Container
 from docker.types import Mount
+from requests.adapters import HTTPAdapter, Retry
 
 from config import cfg
 
 DOCKER_CLIENT = docker.from_env()
 EXTRACTOR_DOCKER_IMAGE = 'fkiecad/fact_extractor'
+retries = Retry(total=5, backoff_factor=0.1)
 
 
 class ExtractionContainer:
@@ -24,6 +28,8 @@ class ExtractionContainer:
         self.port = cfg.unpack.base_port + id_
         self.container_id = None
         self.exception = value
+        self.session = requests.Session()
+        self.session.mount('http://', HTTPAdapter(max_retries=retries))
 
     def start(self):
         if self.container_id is not None:
@@ -103,3 +109,7 @@ class ExtractionContainer:
     def get_logs(self) -> str:
         container = self._get_container()
         return container.logs().decode(errors='replace')
+
+    def start_unpacking(self, tmp_dir: str, timeout: int | None = None):
+        url = f'http://localhost:{self.port}/start/{Path(tmp_dir).name}'
+        return self.session.get(url, timeout=timeout)
