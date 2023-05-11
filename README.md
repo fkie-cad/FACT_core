@@ -20,15 +20,14 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 
 Minimal | Recommended | Software
 ------- | ----------- | --------
-4 Cores<br>8GB RAM<br>10 GB disk space | 16 Cores<br>64GB RAM<br>10* GB disk space | git<br>python 3.7 - 3.10<br>OS see below
+4 Cores<br>8GB RAM<br>10 GB disk space | 16 Cores<br>64GB RAM<br>10* GB disk space | git<br>python 3.8 - 3.11<br>OS see below
 
 > ~ 10 GB required to set up FACT code, container and binaries. Additional space is necessary for result storage. That can be on a separate partition or drive.
 
 It is possible to install FACT on any Linux distribution, but the installer is limited to
-- Ubuntu 18.04 (with Python >3.6)
 - Ubuntu 20.04 (stable)
 - Ubuntu 22.04 (stable)
-- Debian 10 (stable)
+- Debian 11 (stable)
 - Kali (experimental)
 
 :exclamation: **Caution: FACT is not intended to be used as public internet service. The GUI is not a hardened WEB-application and it may take your server at risk!**

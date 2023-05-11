@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ focal, jammy, buster, bullseye ]
+        os: [ focal, jammy, bullseye ]
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
     timeout-minutes: 45
     steps:
