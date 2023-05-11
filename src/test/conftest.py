@@ -31,6 +31,13 @@ from test.integration.common import MockFSOrganizer as FSOrganizerMock
 T = TypeVar('T')
 
 
+def _assert_fixture_is_requested(request: pytest.FixtureRequest, fixture: str):
+    # We cannot use request.getfixturevalue() to automatically load the fixture
+    # since this might cause dependency loops.
+    # What we actually need is sth like lazy loading a fixture.
+    assert fixture in request.fixturenames, f'{request.fixturename} cannot be used without requiring {fixture}'
+
+
 def merge_markers(request, name: str, dtype: Type[T]) -> T:
     """Merge all markers from closest to farthest. Closer markers overwrite markers that are farther away.
 
@@ -238,19 +245,22 @@ def stats_update_db(database_interfaces) -> StatsUpdateDbInterface:
 
 
 @pytest.fixture
-def post_analysis_queue() -> Queue:
+def post_analysis_queue(request) -> Queue:
     """A Queue in which the arguments of :py:func:`AnalysisScheduler.post_analysis` are put whenever it is called."""
+    _assert_fixture_is_requested(request, 'analysis_scheduler')
     return Queue()
 
 
 @pytest.fixture
-def pre_analysis_queue() -> Queue:
+def pre_analysis_queue(request) -> Queue:
     """A Queue in which the arguments of :py:func:`AnalysisScheduler.pre_analysis` are put whenever it is called."""
+    _assert_fixture_is_requested(request, 'analysis_scheduler')
+
     return Queue()
 
 
 @pytest.fixture
-def analysis_finished_event() -> Event:
+def analysis_finished_event(request) -> Event:
     """An event that is set once the :py:func:`analysis_scheduler` has analyzed
     :py:attribute:`SchedulerTestConfig.items_to_analyze` items.
 
@@ -261,6 +271,8 @@ def analysis_finished_event() -> Event:
     .. seealso::
 
        The documentation of :py:class:`SchedulerTestConfig`."""
+    _assert_fixture_is_requested(request, 'analysis_scheduler')
+
     return Event()
 
 
@@ -328,8 +340,9 @@ def analysis_scheduler(
 
 
 @pytest.fixture
-def post_unpack_queue() -> Queue:
+def post_unpack_queue(request) -> Queue:
     """A queue that is filled with the arguments of post_unpack of the unpacker"""
+    _assert_fixture_is_requested(request, 'unpacking_scheduler')
     return Queue()
 
 
@@ -367,7 +380,7 @@ def unpacking_scheduler(request, post_unpack_queue, _unpacking_lock_manager) -> 
 
 
 @pytest.fixture
-def comparison_finished_event() -> Event:
+def comparison_finished_event(request) -> Event:
     """The returned event is set once the comparison_scheduler is finished comparing.
     Note that the event must be reset if you want to do multiple comparisons in one test.
 
@@ -375,6 +388,7 @@ def comparison_finished_event() -> Event:
 
         :py:func:`Event.wait` does not raise an exception if the timeout was reached.
     """
+    _assert_fixture_is_requested(request, 'comparison_scheduler')
     return Event()
 
 
