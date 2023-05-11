@@ -289,6 +289,11 @@ def _unpacking_lock_manager() -> UnpackingLockManager:
     _manager.shutdown()
 
 
+@pytest.fixture(name='test_config')
+def _scheduler_test_config(request) -> 'SchedulerTestConfig':
+    return SchedulerTestConfig.get_instance_from_request(request)
+
+
 @pytest.fixture
 def analysis_scheduler(
     request,
@@ -297,11 +302,11 @@ def analysis_scheduler(
     analysis_finished_event,
     analysis_finished_counter,
     _unpacking_lock_manager,
+    test_config,
 ) -> AnalysisScheduler:
     """Returns an instance of :py:class:`~scheduler.analysis.AnalysisScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """
-    test_config: SchedulerTestConfig = SchedulerTestConfig.get_instance_from_request(request)
 
     with MonkeyPatch.context() as mkp:
         mkp.setattr('plugins.base.ViewUpdater', test_config.view_updater_class)
@@ -349,11 +354,10 @@ def post_unpack_queue(request) -> Queue:
 
 
 @pytest.fixture
-def unpacking_scheduler(request, post_unpack_queue, _unpacking_lock_manager) -> UnpackingScheduler:
+def unpacking_scheduler(request, post_unpack_queue, _unpacking_lock_manager, test_config) -> UnpackingScheduler:
     """Returns an instance of :py:class:`~scheduler.unpacking_scheduler.UnpackingScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """
-    test_config: SchedulerTestConfig = SchedulerTestConfig.get_instance_from_request(request)
     if test_config.pipeline:
         _analysis_scheduler = request.getfixturevalue('analysis_scheduler')
 
@@ -395,11 +399,10 @@ def comparison_finished_event(request) -> Event:
 
 
 @pytest.fixture
-def comparison_scheduler(request, comparison_finished_event) -> ComparisonScheduler:
+def comparison_scheduler(request, comparison_finished_event, test_config) -> ComparisonScheduler:
     """Returns an instance of :py:class:`~scheduler.comparison_scheduler.ComparisonScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """
-    test_config: SchedulerTestConfig = SchedulerTestConfig.get_instance_from_request(request)
     _comparison_scheduler = ComparisonScheduler()
 
     _comparison_scheduler.db_interface = test_config.comparison_db_class()
