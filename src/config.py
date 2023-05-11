@@ -130,7 +130,6 @@ class Backend(Common):
         max_depth: int
         memory_limit: int = 2048
 
-        threshold: float
         throttle_limit: int
 
         delay: float
