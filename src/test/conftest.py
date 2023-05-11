@@ -284,7 +284,9 @@ def analysis_finished_counter() -> Value:
 
 @pytest.fixture
 def _unpacking_lock_manager() -> UnpackingLockManager:
-    return UnpackingLockManager()
+    _manager = UnpackingLockManager()
+    yield _manager
+    _manager.shutdown()
 
 
 @pytest.fixture
