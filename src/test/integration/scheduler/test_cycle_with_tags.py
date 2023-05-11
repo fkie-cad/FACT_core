@@ -14,7 +14,7 @@ class TestTagPropagation:
         pipeline=True,
     )
     def test_run_analysis_with_tag(
-        self, analysis_finished_event, unpacking_scheduler, backend_db
+        self, analysis_finished_event, unpacking_scheduler, backend_db, analysis_scheduler
     ):  # pylint: disable=unused-argument
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/with_key.7z')
         test_fw.version, test_fw.vendor, test_fw.device_name, test_fw.device_class = ['foo'] * 4
