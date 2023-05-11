@@ -155,9 +155,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             extracted_objects = None
             try:
                 extracted_objects = self.unpacker.unpack(task, tmp_dir, container)
-            except ExtractionError:
+            except ExtractionError as error:
                 docker_logs = self._fetch_logs(container)
-                logging.warning(f'Exception happened during extraction of {task.uid}.{docker_logs}')
+                logging.exception(f'Exception happened during extraction of {task.uid}.{docker_logs}: {error}')
                 container.set_exception()
 
             sleep(config.backend.unpacking.delay)  # unpacking may be too fast for the FS to keep up
