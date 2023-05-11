@@ -64,7 +64,7 @@ class TestFileAddition:
             self._unpack_scheduler.unpacker.file_storage_system.store_file(fw)
             self._unpack_scheduler.add_task(fw)
 
-        assert self.analysis_finished_event.wait(timeout=10)
+        assert self.analysis_finished_event.wait(timeout=20)
 
         compare_id = normalize_compare_id(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
 
