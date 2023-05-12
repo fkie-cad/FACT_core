@@ -152,8 +152,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.pre_analysis(fo)
         self.unpacking_locks.release_unpacking_lock(fo.uid)
         self.status.add_update_to_current_analyses(fo, included_files)
-        for child_uid in included_files:
-            child_fo = self.db_backend_service.get_object(child_uid)
+        for child_fo in self.db_backend_service.get_objects_by_uid_list(included_files):
             child_fo.root_uid = fo.uid  # set correct root_uid so that "current analysis stats" work correctly
             child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
             self.task_scheduler.schedule_analysis_tasks(child_fo, fo.scheduled_analysis)
