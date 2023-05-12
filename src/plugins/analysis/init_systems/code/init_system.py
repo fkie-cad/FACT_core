@@ -32,8 +32,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_file_path(file_object: FileObject):
-        root_uid = file_object.root_uid or list(file_object.parent_firmware_uids)[0]
-        return file_object.virtual_file_path[root_uid][0]
+        return list(file_object.virtual_file_path.values())[0][0]
 
     def _get_systemd_config(self, file_object):
         result = {}

@@ -146,7 +146,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         :param fo: The root file that is to be analyzed
         '''
         included_files = self.db_backend_service.get_list_of_all_included_files(fo)
-        # self.pre_analysis(fo) TODO?
+        self.db_backend_service.update_object(fo)  # metadata of FW could have changed -> update in DB
         self.unpacking_locks.release_unpacking_lock(fo.uid)
         self.status.add_update_to_current_analyses(fo, included_files)
         for child_uid in included_files:

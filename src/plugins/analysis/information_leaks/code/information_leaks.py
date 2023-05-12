@@ -90,6 +90,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):
+        # FixMe: after removal of duplicate unpacking/analysis, all VFPs will only be found after analysis update
         for virtual_path_list in file_object.virtual_file_path.values():
             for virtual_path in virtual_path_list:
                 file_object.processed_analysis[self.NAME].update(_check_file_path(virtual_path))

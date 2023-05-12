@@ -42,7 +42,7 @@ class DbInterfaceMock:
 
         self.fo = create_test_file_object()
         self.fo.uid = 'foo'
-        self.fo.virtual_file_path['parent_uid'] = ['parent_uid|/some_file']
+        self.fo.parents = ['parent_uid']
 
     def get_object(self, uid):
         if uid == 'parent_uid':

@@ -19,10 +19,11 @@ class FoMock:
     def __init__(self, file_path: Path | None, file_type: str | None, parent_fo_type=''):
         self.file_path = file_path
         self.processed_analysis = {'file_type': {'mime': file_type}, PLUGIN_NAME: {}}
-        self.virtual_file_path = {}
         self.file_name = 'test'
         self.binary = file_path.read_bytes() if file_path is not None else None
         self.uid = 'deadbeef_123'
+        self.root_uid = 'root_uid'
+        self.parents = []
         if parent_fo_type:
             self.temporary_data = {'parent_fo_type': parent_fo_type}
 
@@ -246,11 +247,11 @@ class TestFileSystemMetadata:
     def test_no_temporary_data(self, file_system_metadata_plugin):
         fo = FoMock(None, None)
 
-        fo.virtual_file_path['some_uid'] = [f'|some_uid|{TEST_FW.uid}|/some_file']
+        fo.parents = [TEST_FW.uid]
         # mime-type in mocked db is 'application/octet-stream' so the result should be false
         assert file_system_metadata_plugin._parent_has_file_system_metadata(fo) is False
 
-        fo.virtual_file_path['some_uid'] = [f'|some_uid|{TEST_FW_2.uid}|/some_file']
+        fo.parents = [TEST_FW_2.uid]
         # mime-type in mocked db is 'filesystem/cramfs' so the result should be true
         assert file_system_metadata_plugin._parent_has_file_system_metadata(fo) is True
 

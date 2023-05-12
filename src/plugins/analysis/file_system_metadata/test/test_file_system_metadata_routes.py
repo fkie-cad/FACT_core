@@ -27,7 +27,7 @@ class DbInterfaceMock:
         self.fo = create_test_file_object()
         self.fo.uid = 'foo'
         self.fo.parents = [self.fw.uid]
-        self.fo.virtual_file_path['some_uid'] = [f'some_uid|{self.fw.uid}|/some_file']
+        self.fo.virtual_file_path[self.fw.uid] = ['/some_file']
 
     def get_object(self, uid):
         if uid == self.fw.uid:
@@ -37,7 +37,7 @@ class DbInterfaceMock:
         if uid == 'bar':
             fo = create_test_file_object()
             fo.parents = [self.fw.uid]
-            fo.virtual_file_path = {'some_uid': ['a|b|c']}
+            fo.virtual_file_path = {self.fw.uid: ['/c']}
             return fo
         return None
 
@@ -57,7 +57,7 @@ class TestFileSystemMetadataRoutesStatic:
         file_name = 'folder/file'
         encoded_name = b64_encode(file_name)
         parent_result = {'files': {encoded_name: {'result': 'value'}}}
-        fo.virtual_file_path['some_uid'] = [f'some_uid|parent_uid|/{file_name}']
+        fo.virtual_file_path['parent_uid'] = [f'/{file_name}']
 
         results = _get_results_from_parent_fo(parent_result, 'parent_uid', fo)
 
@@ -71,7 +71,7 @@ class TestFileSystemMetadataRoutesStatic:
         fo = create_test_file_object()
         fo.parents = ['parent_uid']
         file_names = ['file_a', 'file_b', 'file_c']
-        fo.virtual_file_path['some_uid'] = [f'some_uid|parent_uid|/{f}' for f in file_names]
+        fo.virtual_file_path['parent_uid'] = [f'/{f}' for f in file_names]
         parent_result = {'files': {b64_encode(f): {'result': 'value'} for f in file_names}}
 
         results = _get_results_from_parent_fo(parent_result, 'parent_uid', fo)
