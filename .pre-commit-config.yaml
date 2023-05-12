@@ -11,6 +11,8 @@ repos:
 
     -   id: check-merge-conflict
 
+    -   id: check-toml
+
     -   id: check-yaml
 
     -   id: double-quote-string-fixer
@@ -34,18 +36,6 @@ repos:
     -   id: trailing-whitespace
         types: [python]
 
--   repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
-    hooks:
-    -   id: flake8
-
--   repo: https://github.com/pre-commit/mirrors-pylint
-    rev: v3.0.0a4
-    hooks:
-    -   id: pylint
-        language: system
-        args: [--rcfile=pyproject.toml]
-
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 2.1.5
     hooks:
@@ -67,6 +57,11 @@ repos:
     -   id: isort
 
 -   repo: https://github.com/ambv/black
-    rev: stable
+    rev: 23.3.0
     hooks:
     -   id: black
+
+- repo: https://github.com/charliermarsh/ruff-pre-commit
+  rev: 'v0.0.265'
+  hooks:
+    - id: ruff

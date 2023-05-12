@@ -1,7 +1,7 @@
 [tool.black]
 line-length = 120
 skip-string-normalization = true
-target-version = ['py37']
+target-version = ['py38']
 
 [tool.pylint.main]
 init-hook = 'import sys; sys.path.append("./src")'
@@ -54,3 +54,26 @@ markers = [
     "common_config_overwrite: Overwrite defaults for the testing common config",
     "frontend_config_overwrite: Overwrite defaults for the testing frontend config",
 ]
+
+[tool.ruff]
+select = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH", "PTH", "ARG", "ERA"]
+ignore = ["A003"]
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".venv",
+    "bin",
+    "node_modules",
+    "venv",
+]
+line-length = 120
+target-version = "py38"
+
+[tool.ruff.per-file-ignores]
+"test*.py" = ["ARG002"]
+"conftest.py" = ["ARG002"]
+
+[tool.ruff.mccabe]
+max-complexity = 10
