@@ -13,7 +13,7 @@ _test_init_dir = os.path.join(get_dir_of_file(__file__), 'data')
 
 def _get_fo(path):
     fo = FileObject(file_path=os.path.join(_test_init_dir, path))
-    fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
+    fo.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
     fo.root_uid = fo.uid
     fo.virtual_file_path = {fo.get_root_uid(): [path]}
 
@@ -23,7 +23,7 @@ def _get_fo(path):
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginInit:
     test_file_not_text = FileObject(file_path=f'{_test_init_dir}etc/systemd/system/foobar')
-    test_file_not_text.processed_analysis['file_type'] = {'mime': 'application/zip'}
+    test_file_not_text.processed_analysis['file_type'] = {'result': {'mime': 'application/zip'}}
 
     test_files = {
         'systemd': 'etc/systemd/system/foobar',
