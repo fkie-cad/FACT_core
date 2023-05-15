@@ -186,7 +186,7 @@ def load(path: str | None = None):
     Backend.update_forward_refs()
     Frontend.update_forward_refs()
     if path is None:
-        path = Path(__file__).parent / 'config/fact-core.toml'
+        path = Path(__file__).parent / 'config/fact-core-config.toml'
 
     with open(path, encoding='utf8') as f:
         cfg = toml.load(f)
