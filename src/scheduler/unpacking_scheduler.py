@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from tempfile import TemporaryDirectory
@@ -143,7 +143,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 task = self.in_queue.get(timeout=1)
                 task_thread = Thread(
                     target=self._work_thread_wrapper,
-                    kwargs=dict(task=task, container=container),
+                    kwargs={'task': task, 'container': container},
                 )
                 task_thread.start()
                 logging.debug(f'Started Worker on {task.uid} ({container.tmp_dir})')
@@ -215,11 +215,14 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                     # FO was already unpacked from this FW -> only update VFP and skip unpacking/analysis
                     extracted_objects.remove(fo)
                     db_interface.add_vfp(task.uid, fo.uid, fo.virtual_file_path[task.uid])
-                    logging.debug(f'Skipping unpacking/analysis of {fo.uid} (part of {fo.root_uid}).')
-            currently_unpacked['remaining'].remove(task.uid)
-            self.currently_extracted[task.root_uid] = currently_unpacked  # overwrite object to trigger update
+                    logging.warning(f'Skipping unpacking/analysis of {fo.uid} (part of {fo.root_uid}).')
+            with suppress(KeyError):
+                currently_unpacked['remaining'].remove(task.uid)
             if not currently_unpacked['remaining']:
                 logging.info(f'Unpacking of firmware {task.root_uid} completed.')
+                self.currently_extracted.pop(task.root_uid)
+            else:
+                self.currently_extracted[task.root_uid] = currently_unpacked  # overwrite object to trigger update
 
     @staticmethod
     def _fetch_logs(container: ExtractionContainer) -> str:
