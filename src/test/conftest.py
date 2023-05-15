@@ -342,8 +342,9 @@ def analysis_scheduler(
 
     yield _analysis_scheduler
 
-    if test_config.start_processes:
-        _analysis_scheduler.shutdown()
+    # Even if plugins are not started their constructors start a manager
+    # FIXME this should only be called if test_config.start_processes is set
+    _analysis_scheduler.shutdown()
 
 
 @pytest.fixture
