@@ -1,11 +1,13 @@
 # FACT Installation
 
-FACT consists of three components: frontend, database and backend. All components can be installed on one machine as well as on different machines.
-There is an automated installation program supporting Ubuntu 16.04 and 18.04 host systems.  
-:exclamation: **The automated installation script might remove some packages of your ubuntu installation. In some cases FACT relies on newer versions of a software and replaces the old versions provided by the ubuntu repositories.**
+FACT consists of three components: frontend, database and backend.
+All components can be installed on one machine as well as on different machines.
+There is an automated installation program supporting Ubuntu 16.04 and 18.04 host systems.
+:exclamation: **The automated installation script might remove some packages of your ubuntu installation. In some cases
+FACT relies on newer versions of a software and replaces the old versions provided by the ubuntu repositories.**
 
 ## TL;DR
-Execute the following commands as user (not `root`!). 
+Execute the following commands as user (not `root`!).
 ```sh
 $ sudo apt update && sudo apt upgrade && sudo apt install git
 $ git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
@@ -23,14 +25,17 @@ $ sudo reboot
 $ ~/FACT_core/src/install.py
 $ ~/FACT_core/start_all_installed_fact_components
 ```
-Wait a few seconds, open your browser and go to `localhost:5000`  
+Wait a few seconds, open your browser and go to `localhost:5000`
 Use `Ctrl + c` in your terminal to shutdown FACT.
 
 ## Simple One System Setup
 
 ### Pre-Install
 
-Some components of FACT depend on docker. Since a restart is necessary before docker can run. The system has to be rebooted in between FACT installation. Thus the docker setup and some auxiliary stuff has been moved to the `pre_install.sh` script.
+Some components of FACT depend on docker.
+Since a restart is necessary before docker can run.
+The system has to be rebooted in between FACT installation.
+Thus the docker setup and some auxiliary stuff has been moved to the `pre_install.sh` script.
 
 The following lines will handle the first half of the installation (based on git not tarball):
 
@@ -41,14 +46,14 @@ $ cd FACT_core
 $ src/install/pre_install.sh
 ```
 
-Now modify *src/config/main.cfg* and *src/config/mongod.conf* to suit your needs.
-Especially, you should change the mongo passwords.
-The database is initialized with these passwords on first start.  
+Now modify `src/config/fact-core-config.toml` to suit your needs.
+Especially, you should change the postgres passwords.
+The database is initialized with these passwords on first start.
 
-Create the mongo data directory specified in *mongod.conf* and the firmware_file_storage_directory defined in *main.cfg*.
+Create the `firmware_file_storage_directory` defined in `fact-core-config.toml`.
 Make sure that the log directory exists as well.
 
-If you have any additional plug-ins, copy/clone them into corresponding *src/plugins/* directory.  
+If you have any additional plug-ins, copy/clone them into corresponding `src/plugins/` directory.
 
 :exclamation: **Reboot before executing the src/install.py** :exclamation:
 :exclamation: **You have to do the above steps before you do anything else** :exclamation:
@@ -56,8 +61,7 @@ If you have any additional plug-ins, copy/clone them into corresponding *src/plu
 ### Main-Install
 
 :customs: **The installation script installs a lot of dependencies that may have different licenses**
-  
-After reboot, enter the FACT_core directory and execute:  
+After reboot, enter the FACT_core directory and execute:
 
 ```sh
 $ src/install.py
@@ -76,31 +80,37 @@ save some time when you already have the images.
 
 The three components db, backend and frontend can be installed independently to create a distributed installation.
 
-The two worker components (frontend, backend) communicate exclusively through the database. The database in turn does not needed any knowledge of its place in the network, other than on which **ip:port** combination the database server has to be hosted.
-The main.cfg on the frontend system has to be altered so that the values of `data-storage.mongo-server` and `data-storage.mongo-port` match the **ip:port** for the database.
-The same has to be done for the backend. In addition, since the raw firmware and file binaries are stored in the backend, the `data-storage.firmware-file-storage-directory` has to be created (by default `/media/data/fact_fw_data`).
-On the database system, the `mongod.conf` has to be given the correct `net.bindIp` and `net.port`. In addition the path in `storage.dbPath` of the `mongod.conf` has to be created. 
+The two worker components (frontend, backend) communicate exclusively through the database.
+The database in turn does not needed any knowledge of its place in the network, other than on which **ip:port** combination the database server has to be hosted.
+The config on the frontend system has to be altered so that the values of `common.postgres.server` and `common.postgres.port` match the **ip:port** for the database.
+The same has to be done for the backend.
+In addition, since the raw firmware and file binaries are stored in the backend, the `backend.firmware-file-storage-directory` has to be created (by default `/media/data/fact_fw_data`).
 
 ## Installation with Nginx (**--nginx**)
 
 The installer supports automated installation and configuration of nginx.
-This will enable a ssl protected access to the frontend via port 443. 
+This will enable a ssl protected access to the frontend via port 443.
 Simply add the *-N* option to activate nginx support.
 See our [radare wiki page](https://github.com/fkie-cad/FACT_core/wiki/radare-integration) for some additional steps to allow forwarding of the radare webUI.
 
 ## Install Statistic Generation Cron Job (**--statistic_cronjob**)
 
-FACT provides statistics generated by triggering the *update_statistic* script. The install script can add a cronjob to trigger this script once an hour.
+FACT provides statistics generated by triggering the *update_statistic* script.
+The install script can add a cronjob to trigger this script once an hour.
 Just add the *-U* option on install.
 
 ## Installation with/without radare (**--no_radare**)
 
-In contrast to nginx, radare has to be deselected as it is installed by default. This can be done with the `-R` parameter. On additional notes regarding the setup of the radare binding see the extensive notes in the [wiki](https://github.com/fkie-cad/FACT_core/wiki/radare-integration).
+In contrast to nginx, radare has to be deselected as it is installed by default.
+This can be done with the `-R` parameter.
+On additional notes regarding the setup of the radare binding see the extensive notes in the [wiki](https://github.com/fkie-cad/FACT_core/wiki/radare-integration).
 
 ## Update an older Installation
 
-Simply checkout the new sources, re-run the `src/install/pre_install.sh` and then `src/install.py`. Rebooting is not necessary if docker is already present.
-For tarball installations, the easiest way is to backup the config files, remove the FACT folder, extract the new one and put the configuration back in. Then also re-run `src/install/pre_install.sh` and `src/install.py`.
+Simply checkout the new sources, re-run the `src/install/pre_install.sh` and then `src/install.py`.
+Rebooting is not necessary if docker is already present.
+For tarball installations, the easiest way is to backup the config files, remove the FACT folder, extract the new one and put the configuration back in.
+Then also re-run `src/install/pre_install.sh` and `src/install.py`.
 
 If your FACT installation is v3.2 or lower and you use authentification then you have to migrate the user database.
 To do so simply run the [migrate_database.py](src/migrate_database.py) script.
@@ -117,7 +127,8 @@ Below, you will find some hints for system-wide proxy configuration.
 
 ### Proxy Environment variables
 
-Most dependencies and tools used by FACT honor `*_PROXY` environment variables. You can set these on a system-wide scope inside `/etc/environment`.
+Most dependencies and tools used by FACT honor `*_PROXY` environment variables.
+You can set these on a system-wide scope inside `/etc/environment`.
 
 
 ```sh
@@ -141,14 +152,14 @@ You have two options to fix this issue.
 ```sh
 $ sudo visudo  # open the sudoers file and append the following line:
 Defaults env_keep += "ftp_proxy http_proxy https_proxy no_proxy"
-``` 
+```
 
 **Option 2:** Directly configure `apt` to use those env vars:
 
 ```sh
 $ echo 'Acquire::http::Proxy "http://<YOUR-PROXY-HERE>:<PORT>/";
 Acquire::https::Proxy "http://<YOUR-PROXY-HERE>:<PORT>/";' | sudo tee /etc/apt/apt.conf.d/00proxy
-``` 
+```
 
 ### Docker
 
@@ -156,4 +167,4 @@ Please refer to the [official docker documentation](https://docs.docker.com/netw
 
 ## Troubleshooting
 
-If you encounter any problems, check out our [Troubleshooting wiki](https://github.com/fkie-cad/FACT_core/wiki/Troubleshooting) before opening an issue on github. 
+If you encounter any problems, check out our [Troubleshooting wiki](https://github.com/fkie-cad/FACT_core/wiki/Troubleshooting) before opening an issue on github.

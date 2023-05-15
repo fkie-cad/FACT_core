@@ -11,9 +11,9 @@ from common_helper_files import safe_rglob
 from docker.types import Mount
 from requests import ReadTimeout, exceptions
 
-from config import cfg
+import config
 from helperFunctions.docker import run_docker_container
-from unpacker.extraction_container import EXTRACTOR_DOCKER_IMAGE
+from unpacker.extraction_container import EXTRACTOR_DOCKER_IMAGE, ExtractionContainer
 
 WORKER_TIMEOUT = 600  # in seconds
 
@@ -27,7 +27,9 @@ class UnpackBase:
     def get_extracted_files_dir(base_dir):
         return Path(base_dir, 'files')
 
-    def extract_files_from_file(self, file_path: str, tmp_dir: str, worker_url: str | None = None) -> list[Path]:
+    def extract_files_from_file(
+        self, file_path: str, tmp_dir: str, container: ExtractionContainer | None = None
+    ) -> list[Path]:
         self._initialize_shared_folder(tmp_dir)
         try:
             shutil.copy2(file_path, str(Path(tmp_dir, 'input', Path(file_path).name)))
@@ -35,8 +37,8 @@ class UnpackBase:
             logging.exception(f'Error during extraction of {file_path}')
             raise
 
-        if worker_url:
-            self._extract_with_worker(file_path, worker_url)
+        if container:
+            self._extract_with_worker(file_path, container, tmp_dir)
         else:  # start new container
             self._extract_with_new_container(tmp_dir)
 
@@ -48,9 +50,9 @@ class UnpackBase:
             makedirs(str(Path(tmp_dir, subpath)), exist_ok=True)
 
     @staticmethod
-    def _extract_with_worker(file_path: str, worker_url: str):
+    def _extract_with_worker(file_path: str, container: ExtractionContainer, tmp_dir: str):
         try:
-            response = requests.get(worker_url, timeout=WORKER_TIMEOUT)
+            response = container.start_unpacking(tmp_dir, timeout=WORKER_TIMEOUT)
         except ReadTimeout as error:
             raise ExtractionError('Timeout during extraction.') from error
         except requests.exceptions.ConnectionError as error:
@@ -66,7 +68,7 @@ class UnpackBase:
                 EXTRACTOR_DOCKER_IMAGE,
                 combine_stderr_stdout=True,
                 privileged=True,
-                mem_limit=f'{cfg.unpack.memory_limit}m',
+                mem_limit=f'{config.backend.unpacking.memory_limit}m',
                 mounts=[
                     Mount('/dev/', '/dev/', type='bind'),
                     Mount('/tmp/extractor', tmp_dir, type='bind'),

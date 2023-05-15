@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 
-from config import cfg
+import config
 from storage.schema import Base
 
 
@@ -12,12 +12,12 @@ class DbConnection:
     def __init__(self, user: str = None, password: str = None, db_name: str | None = None, **kwargs):
         self.base = Base
 
-        address = cfg.data_storage.postgres_server
-        port = cfg.data_storage.postgres_port
-        user = getattr(cfg.data_storage, user)
-        password = getattr(cfg.data_storage, password)
+        address = config.common.postgres.server
+        port = config.common.postgres.port
+        user = getattr(config.common.postgres, user)
+        password = getattr(config.common.postgres, password)
 
-        database = db_name if db_name else cfg.data_storage.postgres_database
+        database = db_name if db_name else config.common.postgres.database
         engine_url = URL.create(
             'postgresql',
             username=user,
@@ -34,22 +34,22 @@ class DbConnection:
 
 
 class ReadOnlyConnection(DbConnection):
-    def __init__(self, user: str = 'postgres_ro_user', password: str = 'postgres_ro_pw', **kwargs):
+    def __init__(self, user: str = 'ro_user', password: str = 'ro_pw', **kwargs):
         super().__init__(user, password, **kwargs)
 
 
 class ReadWriteConnection(DbConnection):
-    def __init__(self, user: str = 'postgres_rw_user', password: str = 'postgres_rw_pw', **kwargs):
+    def __init__(self, user: str = 'rw_user', password: str = 'rw_pw', **kwargs):
         super().__init__(user, password, **kwargs)
 
 
 class ReadWriteDeleteConnection(DbConnection):
-    def __init__(self, user: str = 'postgres_del_user', password: str = 'postgres_del_pw', **kwargs):
+    def __init__(self, user: str = 'del_user', password: str = 'del_pw', **kwargs):
         super().__init__(user, password, **kwargs)
 
 
 class AdminConnection(DbConnection):
-    def __init__(self, user: str = 'postgres_admin_user', password: str = 'postgres_admin_pw', **kwargs):
+    def __init__(self, user: str = 'admin_user', password: str = 'admin_pw', **kwargs):
         super().__init__(user, password, **kwargs)
 
     def create_tables(self):

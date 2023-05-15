@@ -9,7 +9,7 @@ from time import time
 import distro
 import psutil
 
-from config import cfg
+import config
 from storage.db_interface_stats import StatsUpdateDbInterface
 from version import __VERSION__
 
@@ -44,7 +44,7 @@ class WorkLoadStatistic:
     def _get_system_information(self):
         memory_usage = psutil.virtual_memory()
         try:
-            disk_usage = psutil.disk_usage(cfg.data_storage.firmware_file_storage_directory)
+            disk_usage = psutil.disk_usage(config.backend.firmware_file_storage_directory)
         except Exception:
             disk_usage = psutil.disk_usage('/')
         try:

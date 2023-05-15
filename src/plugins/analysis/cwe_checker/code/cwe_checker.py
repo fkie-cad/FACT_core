@@ -36,9 +36,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'Due to the nature of static analysis, this plugin may run for a long time.'
     )
     DEPENDENCIES = ['cpu_architecture', 'file_type']
-    VERSION = '0.5.1'
+    VERSION = '0.5.2'
     TIMEOUT = 600  # 10 minutes
-    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+    MIME_WHITELIST = [
+        'application/x-executable',
+        'application/x-object',
+        'application/x-pie-executable',
+        'application/x-sharedlib',
+    ]
     FILE = __file__
 
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
@@ -124,9 +129,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         '''
         if not self._is_supported_arch(file_object):
             logging.debug(
-                '{}\'s arch is not supported ({})'.format(
-                    file_object.file_path, file_object.processed_analysis['cpu_architecture']['summary']
-                )
+                f'{file_object.file_path}\'s arch is not supported ('
+                f'{file_object.processed_analysis["cpu_architecture"]["summary"]})'
             )
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:

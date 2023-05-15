@@ -11,10 +11,13 @@ from ..code.strings import AnalysisPlugin
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config_overwrite(
     {
-        'printable_strings': {
-            'min-length': '4',
+        'plugin': {
+            'printable_strings': {
+                'name': 'printable_strings',
+                'min-length': '4',
+            }
         }
     },
 )

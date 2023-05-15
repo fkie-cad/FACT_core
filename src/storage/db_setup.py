@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy import text
 
-from config import cfg
+import config
 from storage.db_connection import AdminConnection, DbConnection
 from storage.db_interface_base import ReadWriteDbInterface
 
@@ -57,7 +57,7 @@ class DbSetup(ReadWriteDbInterface):
             ('rw', [Privileges.SELECT, Privileges.INSERT, Privileges.UPDATE]),
             ('del', [Privileges.ALL]),
         ]:
-            user = getattr(cfg.data_storage, f'postgres_{key}_user')
+            user = getattr(config.backend.postgres, f'{key}_user')
             for privilege in privileges:
                 self.grant_privilege(user, privilege)
 

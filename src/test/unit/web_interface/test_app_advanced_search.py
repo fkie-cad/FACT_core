@@ -29,11 +29,9 @@ class DbMock(CommonDatabaseMock):
         return result
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.frontend_config_overwrite(
     {
-        'database': {
-            'results-per-page': 10,
-        },
+        'results_per_page': 10,
     }
 )
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)

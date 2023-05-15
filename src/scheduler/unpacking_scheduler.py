@@ -5,7 +5,6 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from multiprocessing import Manager, Queue, Value
-from pathlib import Path
 from queue import Empty
 from tempfile import TemporaryDirectory
 from threading import Thread
@@ -13,7 +12,7 @@ from time import sleep
 
 from docker.errors import DockerException
 
-from config import cfg
+import config
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import (
     ExceptionSafeProcess,
@@ -123,9 +122,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         return {'unpacking_queue': self.in_queue.qsize(), 'is_throttled': self.throttle_condition.value == 1}
 
     def create_containers(self):
-        for id_ in range(cfg.unpack.threads):
+        for id_ in range(config.backend.unpacking.processes):
             tmp_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-                dir=cfg.data_storage.docker_mount_base_dir
+                dir=config.backend.docker_mount_base_dir
             )
             container = ExtractionContainer(id_=id_, tmp_dir=tmp_dir, value=self.manager.Value('i', 0))
             container.start()
@@ -186,17 +185,15 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             self._init_currently_unpacked(task)
 
         with TemporaryDirectory(dir=container.tmp_dir.name) as tmp_dir:
-            container_url = f'http://localhost:{container.port}/start/{Path(tmp_dir).name}'
-
             try:
-                extracted_objects = self.unpacker.unpack(task, tmp_dir, container_url)
+                extracted_objects = self.unpacker.unpack(task, tmp_dir, container)
             except ExtractionError:
                 docker_logs = self._fetch_logs(container)
                 logging.warning(f'Exception happened during extraction of {task.uid}.{docker_logs}')
                 container.set_exception()
                 extracted_objects = []
 
-            sleep(cfg.expert_settings.unpacking_delay)  # unpacking may be too fast for the FS to keep up
+            sleep(config.backend.unpacking.delay)  # unpacking may be too fast for the FS to keep up
 
             # each worker needs its own interface because connections are not thread-safe
             db_interface = self.db_interface()
@@ -265,7 +262,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             message = f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}'
             log_function(color_string(message, TerminalColors.WARNING))
 
-            if workload < cfg.expert_settings.unpack_throttle_limit:
+            if workload < config.backend.unpacking.throttle_limit:
                 self.throttle_condition.value = 0
             else:
                 self.throttle_condition.value = 1

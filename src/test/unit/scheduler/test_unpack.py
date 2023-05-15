@@ -78,10 +78,10 @@ class TestUnpackScheduler:
         result = self.scheduler._get_combined_analysis_workload()  # pylint: disable=protected-access
         assert result == 3, 'workload calculation not correct'
 
-    @pytest.mark.cfg_defaults(
+    @pytest.mark.backend_config_overwrite(
         {
-            'expert-settings': {
-                'unpack-throttle-limit': -1,
+            'unpacking': {
+                'throttle_limit': -1,
             }
         }
     )

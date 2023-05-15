@@ -7,7 +7,6 @@ from shlex import split
 from subprocess import CalledProcessError, check_output
 
 import config
-from config import cfg
 from storage.db_setup import DbSetup
 
 
@@ -49,14 +48,14 @@ def main(command_line_options=None, config_path: str | None = None, skip_user_cr
 
     config.load(config_path)
 
-    host = cfg.data_storage.postgres_server
-    port = cfg.data_storage.postgres_port
+    host = config.common.postgres.server
+    port = config.common.postgres.port
 
-    fact_db = cfg.data_storage.postgres_database
-    test_db = cfg.data_storage.postgres_test_database
+    fact_db = config.common.postgres.database
+    test_db = config.common.postgres.test_database
 
-    admin_user = cfg.data_storage.postgres_admin_user
-    admin_password = cfg.data_storage.postgres_admin_pw
+    admin_user = config.common.postgres.admin_user
+    admin_password = config.common.postgres.admin_pw
 
     # skip_user_creation can be helpful if the DB is not directly accessible (e.g. FACT_docker)
     if not skip_user_creation and not user_exists(admin_user, host, port):
@@ -75,8 +74,8 @@ def main(command_line_options=None, config_path: str | None = None, skip_user_cr
 
 def _init_users(db: DbSetup, db_list: list[str]):
     for key in ['ro', 'rw', 'del']:
-        user = getattr(cfg.data_storage, f'postgres_{key}_user')
-        pw = getattr(cfg.data_storage, f'postgres_{key}_pw')
+        user = getattr(config.common.postgres, f'{key}_user')
+        pw = getattr(config.common.postgres, f'{key}_pw')
 
         db.create_user(user, pw)
         for db_name in db_list:

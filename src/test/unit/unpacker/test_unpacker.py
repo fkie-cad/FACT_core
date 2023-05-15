@@ -25,11 +25,11 @@ def test_fo():
     yield _test_fo
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config_overwrite(
     {
-        'unpack': {
-            'max-depth': '3',
-            'whitelist': 'text/plain, image/png',
+        'unpacking': {
+            'max_depth': 3,
+            'whitelist': ['text/plain', 'image/png'],
         },
     }
 )
@@ -55,11 +55,11 @@ class TestUnpackerCore:
         assert unpacker.unpacking_locks.unpacking_lock_is_set(test_fo.uid)
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config_overwrite(
     {
-        'unpack': {
-            'max-depth': '3',
-            'whitelist': 'text/plain, image/png',
+        'unpacking': {
+            'max_depth': 3,
+            'whitelist': ['text/plain', 'image/png'],
         },
     }
 )

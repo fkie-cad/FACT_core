@@ -1,21 +1,28 @@
 from __future__ import annotations
 
-import configparser
 import logging
-from configparser import ConfigParser
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Extra
+import toml
+from pydantic import BaseModel, Extra, validator
 from werkzeug.local import LocalProxy
 
-_cfg = None
-cfg: Config = LocalProxy(lambda: _cfg)
+# pylint: disable=invalid-name
+_backend = None
+#: Proxy to an instance of :py:class:`Backend`
+#: May only be used in parts of the code that are backend code.
+backend: Backend = LocalProxy(lambda: _backend)
 
-_configparser_cfg = None
-# For transitioning between using ConfigParser and this module.
-# Use cfg in new code
-configparser_cfg = LocalProxy(lambda: _configparser_cfg)
+_frontend = None
+#: Proxy to an instance of :py:class:`Frontend`
+#: May only be used in parts of the code that are frontend code.
+frontend: Frontend = LocalProxy(lambda: _frontend)
+
+_common = None
+#: Proxy to an instance of :py:class:`Common`
+#: May only be used in parts of the code that are neither frontend nor backend code.
+common: Common = LocalProxy(lambda: _common)
 
 
 class _PydanticConfigExtraForbid:
@@ -28,146 +35,145 @@ class _PydanticConfigExtraAllow:
     extra = Extra.allow
 
 
-class DataStorage(BaseModel):
-    Config = _PydanticConfigExtraForbid
-    postgres_server: str
-    postgres_port: int
-    postgres_database: str
-    postgres_test_database: str
+class Common(BaseModel):
+    class Postgres(BaseModel):
+        Config = _PydanticConfigExtraForbid
 
-    postgres_ro_user: str
-    postgres_ro_pw: str
+        server: str
+        port: int
+        database: str
+        test_database: str
 
-    postgres_rw_user: str
-    postgres_rw_pw: str
+        rw_user: str
+        rw_pw: str
 
-    postgres_del_user: str
-    postgres_del_pw: str
+        ro_user: str
+        ro_pw: str
 
-    postgres_admin_user: str
-    postgres_admin_pw: str
+        del_user: str
+        del_pw: str
 
-    redis_fact_db: int
-    redis_test_db: str
-    redis_host: str
-    redis_port: int
-    redis_pw: Optional[str]
+        admin_user: str
+        admin_pw: str
 
-    firmware_file_storage_directory: str
+    class Redis(BaseModel):
+        Config = _PydanticConfigExtraForbid
 
-    user_database: str
-    password_salt: str
+        fact_db: int
+        test_db: int
+        host: str
+        port: int
+        password: Optional[str]
 
-    structural_threshold: int
+    class Logging(BaseModel):
+        # pylint:disable=no-self-argument
+        Config = _PydanticConfigExtraForbid
+
+        file_backend: str = '/tmp/fact_backend.log'
+        file_frontend: str = '/tmp/fact_frontend.log'
+        file_database: str = '/tmp/fact_database.log'
+        level: str = 'WARNING'
+
+        @validator('level')
+        def _validate_level(cls, value):
+            if isinstance(logging.getLevelName(value), str):
+                raise ValueError(f'The "loglevel" {value} is not a valid loglevel.')
+
+            return value
+
+    class AnalysisPreset(BaseModel):
+        Config = _PydanticConfigExtraForbid
+
+        name: str
+        plugins: List[str]
+
+    postgres: Common.Postgres
+    redis: Common.Redis
+    logging: Common.Logging
+
+    analysis_preset: Dict[str, Common.AnalysisPreset]
 
     temp_dir_path: str = '/tmp'
     docker_mount_base_dir: str
 
 
-class Logging(BaseModel):
+class Frontend(Common):
     Config = _PydanticConfigExtraForbid
-    logfile_backend: str = '/tmp/fact_backend.log'
-    logfile_frontend: str = '/tmp/fact_frontend.log'
-    logfile_database: str = '/tmp/fact_database.log'
-    loglevel: str = 'WARNING'
 
+    class Authentication(BaseModel):
+        Config = _PydanticConfigExtraForbid
 
-class Unpack(BaseModel):
-    Config = _PydanticConfigExtraForbid
-    threads: int
-    memory_limit: int = 2048
-    whitelist: list
-    max_depth: int
-    base_port: int
+        enabled: bool
+        user_database: str
+        password_salt: str
 
+    communication_timeout: int = 60
 
-class DefaultPlugins(BaseModel):
-    Config = _PydanticConfigExtraAllow
+    authentication: Frontend.Authentication
 
-
-class PluginDefaults(BaseModel):
-    threads: int = 2
-
-
-class Database(BaseModel):
-    Config = _PydanticConfigExtraForbid
     results_per_page: int
     number_of_latest_firmwares_to_display: int = 10
     ajax_stats_reload_time: int
 
-
-class Statistics(BaseModel):
-    Config = _PydanticConfigExtraForbid
     max_elements_per_chart: int = 10
 
+    radare2_url: str
 
-class ExpertSettings(BaseModel):
+
+class Backend(Common):
+    # pylint:disable=no-self-argument
     Config = _PydanticConfigExtraForbid
+
+    class Unpacking(BaseModel):
+        processes: int
+        whitelist: list
+        max_depth: int
+        memory_limit: int = 2048
+
+        throttle_limit: int
+
+        delay: float
+        base_port: int
+
+    class PluginDefaults(BaseModel):
+        processes: int
+
+    class Plugin(BaseModel):
+        Config = _PydanticConfigExtraAllow
+
+        name: str
+
     scheduling_worker_count: int = 4
     collector_worker_count: int = 2
+
+    unpacking: Backend.Unpacking
+
+    firmware_file_storage_directory: str
+
     block_delay: float
     ssdeep_ignore: int
-    communication_timeout: int = 60
-    unpack_threshold: float
-    unpack_throttle_limit: int
-    throw_exceptions: bool
-    authentication: bool
-    nginx: bool
+
     intercom_poll_delay: float
-    radare2_host: str
-    unpacking_delay: float
 
+    throw_exceptions: bool
 
-# We need to allow extra here since we don't know what plugins will be loaded
-class Config(BaseModel):
-    Config = _PydanticConfigExtraAllow
-    data_storage: DataStorage
-    logging: Logging
-    unpack: Unpack
-    default_plugins: DefaultPlugins
-    plugin_defaults: PluginDefaults
-    database: Database
-    statistics: Statistics
-    expert_settings: ExpertSettings
+    plugin_defaults: Backend.PluginDefaults
+    plugin: Dict[str, Backend.Plugin]
 
-
-def _parse_dict(sections):
-    """
-    Parses the section of the config file given as a dictionary.
-    The following things are parsed:
-        * Entries whose value is an empty string just are removed.
-        * Comma separated lists are changed to actual lists.
-    """
-    # hyphens may not be contained in identifiers
-    # plugin names may also not contain hyphens, so this is fine
-    _replace_hyphens_with_underscores(sections)
-
-    sections['unpack']['whitelist'] = parse_comma_separated_list(sections['unpack']['whitelist'])
-    for plugin_set in sections['default_plugins']:
-        sections['default_plugins'][plugin_set] = parse_comma_separated_list(sections['default_plugins'][plugin_set])
-
-    for section_name, section in sections.items():
-        # The section name is not plugin configuration.
-        # We can't use the pydantic model here since plugin sections are all extra sections.
-        if section_name in Config.__fields__:
-            continue
-        section['mime_whitelist'] = parse_comma_separated_list(section.get('mime_whitelist', ''))
-        section['mime_blacklist'] = parse_comma_separated_list(section.get('mime_blacklist', ''))
-
-    # This must be done last since empty values e.g. in the default-plugins section might be interpreted otherwise if
-    # left empty.
-    for section_name, section in sections.items():
-        for entry, value in section.copy().items():
-            if value == '':
-                sections[section_name].pop(entry)
+    @validator('temp_dir_path')
+    def _validate_temp_dir_path(cls, value):
+        if not Path(value).exists():
+            raise ValueError('The "temp-dir-path" does not exist.')
+        return value
 
 
 def load(path: str | None = None):
     # pylint: disable=global-statement
     """Load the config file located at ``path``.
-    The file must be an ini file and is read into an `config.Config` instance.
-    This instance can be accessed with ``config.cfg`` after calling this function.
-    For legacy code that needs a ``ConfigParser`` instance ``config.configparser_cfg`` is provided.
+    The file must be a toml file and is read into instances of :py:class:`~config.Backend`,
+    :py:class:`~config.Frontend` and :py:class:`~config.Common`.
+
+    These instances can be accessed via ``config.backend`` after calling this function.
 
     .. important::
         This function may not be imported by ``from config import load``.
@@ -176,40 +182,58 @@ def load(path: str | None = None):
         When you only import the ``config`` module the ``load`` function will be looked up at runtime.
         See `this blog entry <https://alexmarandon.com/articles/python_mock_gotchas/>`_ for some more information.
     """
+    Common.update_forward_refs()
+    Backend.update_forward_refs()
+    Frontend.update_forward_refs()
     if path is None:
-        path = Path(__file__).parent / 'config/main.cfg'
+        path = Path(__file__).parent / 'config/fact-core-config.toml'
 
-    parser = ConfigParser()
     with open(path, encoding='utf8') as f:
-        parser.read_file(f)
+        cfg = toml.load(f)
 
-    parsed_sections = {key: dict(section) for key, section in parser.items() if key != configparser.DEFAULTSECT}
-    _parse_dict(parsed_sections)
-    global _cfg
-    global _configparser_cfg
-    _configparser_cfg = parser
-    _cfg = Config(**parsed_sections)
+    _replace_hyphens_with_underscores(cfg)
 
-    _verify_config(_cfg)
+    backend_dict = cfg['backend']
+    frontend_dict = cfg['frontend']
+    common_dict = cfg['common']
+
+    preset_list = common_dict.pop('analysis_preset', [])
+    preset_dict = {}
+    for preset in preset_list:
+        p = Common.AnalysisPreset(**preset)
+        preset_dict[p.name] = p.dict()
+
+    common_dict['analysis_preset'] = preset_dict
+
+    plugin_list = backend_dict.pop('plugin', [])
+    plugin_dict = {}
+    for plugin in plugin_list:
+        p = Backend.Plugin(**plugin)
+        plugin_dict[p.name] = p.dict()
+
+    backend_dict['plugin'] = plugin_dict
+
+    if 'common' not in cfg:
+        raise ValueError('The common section MUST be specified')
+
+    global _common
+    if 'common' in cfg:
+        _common = Common(**common_dict)
+
+    global _backend
+    if 'backend' in cfg:
+        _backend = Backend(**backend_dict, **common_dict)
+
+    global _frontend
+    if 'frontend' in cfg:
+        _frontend = Frontend(**frontend_dict, **common_dict)
 
 
-def _verify_config(config: Config):
-    """Analyze the config for simple errors that a sysadmin might make."""
-    if not Path(config.data_storage.temp_dir_path).exists():
-        raise ValueError('The "temp-dir-path" as specified in section "data-storage" does not exist.')
+def _replace_hyphens_with_underscores(dictionary):
+    if not isinstance(dictionary, dict):
+        return
 
-    if isinstance(logging.getLevelName(config.logging.loglevel), str):
-        raise ValueError(
-            f'The "loglevel" {config.logging.loglevel} as specified in section "logging" is not a valid loglevel.'
-        )
-
-
-def _replace_hyphens_with_underscores(sections):
-    for section in list(sections.keys()):
-        for key in list(sections[section].keys()):
-            sections[section][key.replace('-', '_')] = sections[section].pop(key)
-        sections[section.replace('-', '_')] = sections.pop(section)
-
-
-def parse_comma_separated_list(list_string):
-    return [item.strip() for item in list_string.split(',') if item != '']
+    for key in list(dictionary.keys()):
+        _replace_hyphens_with_underscores(dictionary[key])
+        value = dictionary.pop(key)
+        dictionary[key.replace('-', '_')] = value

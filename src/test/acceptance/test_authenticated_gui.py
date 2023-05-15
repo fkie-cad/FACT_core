@@ -13,7 +13,7 @@ from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
 from web_interface.frontend_main import WebFrontEnd
 
-NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger']
+NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger', '/fs-static/pathfilename']
 REQUEST_FAILS = [b'404 Not Found', b'405 Method Not Allowed', b'The method is not allowed']
 MockUser = namedtuple('MockUser', ['name', 'password', 'key'])
 
@@ -71,20 +71,18 @@ def start_backend(create_tables):
         pool.submit(analysis_service.shutdown)
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.frontend_config_overwrite(
     {
-        'expert-settings': {
-            'authentication': 'true',
-        },
-        'data-storage': {
+        'authentication': {
+            'enabled': True,
             # Contents of user_test.db
             #
             # username,          role,          pw,    api_key
             # t_guest,           guest,         test,  1okMSKUKlYxSvPn0sgfHM0SWd9zqNChyj5fbcIJgfKM=
             # t_guest_analyst,   guest_analyst, test,  mDsgjAM2iE543PySnTpPZr0u8KeGTPGzPjKJVO4I4Ww=
             # t_superuser,       superuser,     test,  k2GKnNaA5UlENStVI4AEJKQ7BP9ZqO+21Cx746BjJDo=
-            'user-database': f'sqlite:///{get_test_data_dir()}/user_test.db',
-        },
+            'user_database': f'sqlite:///{get_test_data_dir()}/user_test.db',
+        }
     }
 )
 class TestAcceptanceAuthentication:

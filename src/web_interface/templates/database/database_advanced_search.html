@@ -4,8 +4,6 @@
 
 
 {% block head %}
-    {# angularJS import #}
-    <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/advanced_search.js') }}"></script>
 {% endblock %}
 
@@ -31,13 +29,17 @@
         <h3 class="mb-3">Advanced Search</h3>
 
         <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
-            <div class="input-group {% if error %}has-error{% endif %} mb-3">
-                <input type="text" name="advanced_search" class="form-control" id="advanced_search" placeholder="MongoDB Search Request" required>
-                <div class="input-group-append">
-                    <button type="submit" value=submit class="btn btn-primary" id="input_submit">
-                        <span class="glyphicon glyphicon-search"></span> Search
+            <div class="form-group">
+                <textarea class="form-control" id="advanced_search" name="advanced_search" placeholder="Please enter your search query." style="width: 100%; height: 120px;" required></textarea>
+                <div class="btn-group" role="group" style="width: 100%;">
+                    <button type="button" class="btn btn-success btn-sm" id="check_input" style="width: 50%;" onClick="validateQuery();">
+                        <span><i class="fas fa-check"></i></span> Check Query
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" id="input_submit" style="width: 50%;" onClick="submitSearch(this.form);">
+                        <span><i class="fas fa-search"></i></span> Search
                     </button>
                 </div>
+                <div class="invalid-feedback mb-2" id="advanced_search_feedback"></div>
             </div>
             <div class="form-group form-check">
                 <input type="checkbox" class="form-check-input" name="only_firmwares" id="only_firmware" value="True" onchange="hide_checkbox()">

@@ -104,6 +104,7 @@ autodoc_mock_imports = [
     'ssdeep',
     'testresources',
     'tlsh',
+    'toml',
     'uwsgi',
     'werkzeug',
     'wtforms',

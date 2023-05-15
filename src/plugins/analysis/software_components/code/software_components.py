@@ -5,8 +5,8 @@ import re
 
 from common_helper_files import get_dir_of_file
 
+import config
 from analysis.YaraPluginBase import YaraBasePlugin
-from config import cfg
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -80,7 +80,7 @@ class AnalysisPlugin(YaraBasePlugin):
             key_strings = [s for _, _, s in result['strings'] if '%s' in s]
             if key_strings:
                 versions.update(
-                    extract_data_from_ghidra(file_object.binary, key_strings, cfg.data_storage.docker_mount_base_dir)
+                    extract_data_from_ghidra(file_object.binary, key_strings, config.backend.docker_mount_base_dir)
                 )
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')

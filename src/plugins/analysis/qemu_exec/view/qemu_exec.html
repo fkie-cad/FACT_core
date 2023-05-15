@@ -14,13 +14,13 @@
 
 {% block analysis_result_details %}
 
-    {% if 'files' in firmware.processed_analysis[selected_analysis] %}
+    {% if 'files' in analysis_result %}
 
         <th class="success" colspan="2">
             Results for Included Files
         </th>
 
-        {% for uid, result in firmware.processed_analysis[selected_analysis]['files'].items() %}
+        {% for uid, result in analysis_result['files'].items() %}
 
             <tr data-toggle="collapse" data-target="#collapse-{{ uid }}">
                 <td class="clickable" colspan=2>
@@ -51,16 +51,16 @@
                                     {% for arch in result['results'] %}
                                         <tr>
                                             {% if "strace" in result['results'][arch] %}
-                                                <td width="1px" rowspan="{{ (result['results'][arch] | length - 1) * 3  + 1 }}">
+                                                <td style="width: 1px" rowspan="{{ (result['results'][arch] | length - 1) * 3  + 1 }}">
                                             {% else %}
-                                                <td width="1px" rowspan="{{ (result['results'][arch] | length) * 3 }}">
+                                                <td style="width: 1px" rowspan="{{ (result['results'][arch] | length) * 3 }}">
                                             {% endif %}
                                                 {{ arch }}
                                             </td>
                                             {% for option in result['results'][arch] %}
                                                 {% if option != 'strace' %}
                                                     {% set option_result = result['results'][arch][option] %}
-                                                    <td width="1px" rowspan="3">{{ option }}</td>
+                                                    <td style="width: 1px" rowspan="3">{{ option }}</td>
                                                     <td>stdout</td>
                                                     <td class="qemu-td" style="padding: 5px;">
                                                         {% if option_result['stdout'] %}
@@ -81,7 +81,7 @@
                                                 {% endif %}
                                             {% endfor %}
                                             {% if 'strace' in result['results'][arch] %}
-                                                    <td width="1px">strace</td>
+                                                    <td style="width: 1px">strace</td>
                                                     <td colspan="2">
                                                         {% if result['results'][arch]['strace'] %}
                                                             <pre class="code-pre">{{ result['results'][arch]['strace'] | decompress }}</pre>
@@ -109,7 +109,7 @@
 
 
 {% block ajax %}
-    {% set analysis = firmware.processed_analysis[selected_analysis] %}
+    {% set analysis = analysis_result %}
 
     {% if 'parent_flag' in analysis and analysis.parent_flag == True %}
         <div id="file_results"></div>

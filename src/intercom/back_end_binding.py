@@ -8,7 +8,7 @@ from multiprocessing import Process, Value
 from pathlib import Path
 from time import sleep
 
-from config import cfg
+import config
 from helperFunctions.process import stop_processes
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_redis_binding import InterComListener, InterComListenerAndResponder, InterComRedisInterface
@@ -36,7 +36,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         self.compare_service = compare_service
         self.unpacking_service = unpacking_service
         self.unpacking_locks = unpacking_locks
-        self.poll_delay = cfg.expert_settings.intercom_poll_delay
+        self.poll_delay = config.backend.intercom_poll_delay
 
         self.stop_condition = Value('i', 0)
         self.process_list = []
@@ -64,7 +64,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 
     def shutdown(self):
         self.stop_condition.value = 1
-        stop_processes(self.process_list, cfg.expert_settings.intercom_poll_delay + 1)
+        stop_processes(self.process_list, config.backend.intercom_poll_delay + 1)
         logging.info('InterCom down')
 
     def _start_listener(self, listener: type[InterComListener], do_after_function: Callable | None = None, **kwargs):
@@ -244,7 +244,7 @@ class InterComBackEndLogsTask(InterComListenerAndResponder):
     OUTGOING_CONNECTION_TYPE = 'logs_task_resp'
 
     def get_response(self, task):
-        backend_logs = Path(cfg.logging.logfile_backend)
+        backend_logs = Path(config.backend.logging.file_backend)
         if backend_logs.is_file():
             return backend_logs.read_text().splitlines()[-100:]
         return []

@@ -1,0 +1,115 @@
+[common]
+# Test if default value gets set
+# temp-dir-path = "/tmp"
+# Directory that will be used to share data from the host to docker containers
+# Permissions have to be 0o770 and the group has to be 'docker'.
+# Will be created if it does not exist
+docker-mount-base-dir = "/tmp/fact-docker-mount-base-dir"
+
+[common.redis]
+fact-db = 3
+test-db = 13
+host = "localhost"
+port = 6379
+# Set the password for redis here if you have AUTH enabled
+# password =
+
+[common.logging]
+
+[common.postgres]
+server = "localhost"
+port = 5432
+database = "fact_db"
+test-database = "fact_test"
+ro-user = "fact_user_ro"
+ro-pw = "change_me_ro"
+rw-user = "fact_user_rw"
+rw-pw = "change_me_rw"
+del-user = "fact_user_del"
+del-pw = "change_me_del"
+admin-user = "fact_admin"
+admin-pw = "change_me_admin"
+
+[[common.analysis_preset]]
+name = "default"
+# choose preselected plugins
+plugins = [
+    "cpu_architecture",
+    "crypto_material",
+    "cve_lookup",
+    "exploit_mitigations",
+    "known_vulnerabilities",
+    "software_components",
+    "users_and_passwords",
+]
+
+[[common.analysis_preset]]
+name = "minimal"
+plugins = []
+
+[backend]
+firmware-file-storage-directory = "/media/data/fact_fw_data"
+block-delay = 0.1
+ssdeep-ignore = 1
+intercom-poll-delay = 1.0
+throw-exceptions = false
+
+[backend.plugin-defaults]
+# Default number of processes for plugins.
+# Can be overwritten by setting backend.plugin.processes
+processes = 4
+
+[backend.unpacking]
+processes = 4
+# file types in whitelist are not extracted
+whitelist = [
+    "application/x-object",
+    "application/x-shockwave-flash",
+    "audio/mpeg",
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "text/plain",
+    "video/mp4",
+    "video/mpeg",
+    "video/ogg",
+    "video/quicktime",
+    "video/x-msvideo",
+]
+# extract until this layer
+max-depth = 8
+# Memory limit in MiB.
+memory-limit = 2048
+threshold = 0.8
+throttle-limit = 50
+# tcp port(s) for task server
+base-port = 9900
+# if you experience FileNotFound errors during unpacking, increasing this value slightly might help
+delay = 0.0
+
+
+[[backend.plugin]]
+name = "cpu_architecture"
+processes = 4
+
+[[backend.plugin]]
+name = "cve_loookup"
+processes = 2
+
+
+[frontend]
+results-per-page = 10
+number-of-latest-firmwares-to-display = 10
+ajax-stats-reload-time = 10000
+max-elements-per-chart = 10
+# This is used in redirecting to the radare web service.
+# If you use our nginx config this must be set to "https://localhost/radare"
+# otherwise it must be set to "http://localhost:8000"
+radare2-url = "http://localhost:8000"
+communication-timeout = 60
+
+
+[frontend.authentication]
+enabled = false
+user-database = "sqlite:////media/data/fact_auth_data/fact_users.db"
+password-salt = "5up3r5tr0n6_p455w0rd_5417"

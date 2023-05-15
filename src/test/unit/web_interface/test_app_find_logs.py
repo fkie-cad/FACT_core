@@ -15,10 +15,10 @@ class MockIntercom(CommonIntercomMock):
 
 @pytest.mark.WebInterfaceUnitTestConfig(intercom_mock_class=MockIntercom)
 class TestShowLogs:
-    @pytest.mark.cfg_defaults(
+    @pytest.mark.frontend_config_overwrite(
         {
             'logging': {
-                'logfile-backend': 'NonExistentFile',
+                'file_backend': 'NonExistentFile',
             }
         }
     )
@@ -27,12 +27,8 @@ class TestShowLogs:
 
         assert b'String1' in rv.data
 
-    @pytest.mark.cfg_defaults(
-        {
-            'logging': {
-                'logfile-frontend': str(Path(helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs_frontend')
-            }
-        }
+    @pytest.mark.common_config_overwrite(
+        {'logging': {'file_frontend': str(Path(helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs_frontend')}}
     )
     def test_frontend_logs(self, test_client):
         rv = test_client.get('/admin/logs')

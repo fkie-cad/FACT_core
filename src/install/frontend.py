@@ -5,7 +5,7 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-from config import cfg
+import config
 from helperFunctions.install import (
     InstallationError,
     OperateInDirectory,
@@ -34,7 +34,7 @@ def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: 
 def _create_directory_for_authentication():  # pylint: disable=invalid-name
     logging.info('Creating directory for authentication')
 
-    dburi = cfg.data_storage.user_database
+    dburi = config.frontend.authentication.user_database
     # pylint: disable=fixme
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 

@@ -83,7 +83,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return file_object_from_entry(fo_entry, analysis_filter=analysis_filter, virtual_file_paths=vfp_dict)
 
     def get_objects_by_uid_list(
-        self, uid_list: list[str], analysis_filter: list[str] | None = None
+        self, uid_list: list[str] | set[str], analysis_filter: list[str] | None = None
     ) -> list[FileObject]:
         with self.get_read_only_session() as session:
             parents_table = aliased(included_files_table, name='parents')

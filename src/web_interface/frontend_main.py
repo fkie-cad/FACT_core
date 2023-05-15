@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 
-from config import configparser_cfg
 from intercom.front_end_binding import InterComFrontEndBinding
 from version import __VERSION__
 from web_interface.app import create_app
@@ -32,7 +31,7 @@ class WebFrontEnd:
         logging.info('Web front end online')
 
     def _setup_app(self):
-        self.app = create_app(configparser_cfg)
+        self.app = create_app()
         self.user_db, self.user_datastore = add_flask_security_to_app(self.app)
         base_args = dict(app=self.app, db=self.db, intercom=self.intercom)
 

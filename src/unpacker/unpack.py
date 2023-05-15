@@ -7,11 +7,12 @@ from time import time
 
 from fact_helper_file import get_file_type_from_path
 
-from config import cfg
+import config
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from storage.fsorganizer import FSOrganizer
+from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack_base import ExtractionError, UnpackBase
 
 
@@ -20,18 +21,22 @@ class Unpacker(UnpackBase):
         self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
         self.unpacking_locks = unpacking_locks
 
-    def unpack(self, current_fo: FileObject, tmp_dir: str, container_url: str | None = None) -> list[FileObject]:
+    def unpack(
+        self, current_fo: FileObject, tmp_dir: str, container: ExtractionContainer | None = None
+    ) -> list[FileObject]:
         '''
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
-        if current_fo.depth >= cfg.unpack.max_depth:
-            logging.warning(f'{current_fo.uid} is not extracted since depth limit ({cfg.unpack.max_depth}) is reached')
+        if current_fo.depth >= config.backend.unpacking.max_depth:
+            logging.warning(
+                f'{current_fo.uid} is not extracted since depth limit ({config.backend.unpacking.max_depth}) is reached'
+            )
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
         file_path = self._generate_local_file_path(current_fo)
         try:
-            extracted_files = self.extract_files_from_file(file_path, tmp_dir, container_url)
+            extracted_files = self.extract_files_from_file(file_path, tmp_dir, container)
         except ExtractionError as error:
             self._store_unpacking_error_skip_info(current_fo, error=error)
             raise

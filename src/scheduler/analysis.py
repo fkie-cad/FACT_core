@@ -11,8 +11,8 @@ from time import sleep, time
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
@@ -127,13 +127,13 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.stop_condition.value = 1
         futures = []
         # first shut down scheduling, then analysis plugins and lastly the result collector
-        stop_processes(self.schedule_processes, cfg.expert_settings.block_delay + 1)
+        stop_processes(self.schedule_processes, config.backend.block_delay + 1)
         with ThreadPoolExecutor() as pool:
             for plugin in self.analysis_plugins.values():
                 futures.append(pool.submit(plugin.shutdown))
             for future in futures:
                 future.result()  # call result to make sure all threads are finished and there are no exceptions
-        stop_processes(self.result_collector_processes, cfg.expert_settings.block_delay + 1)
+        stop_processes(self.result_collector_processes, config.backend.block_delay + 1)
         self.process_queue.close()
         self.status.shutdown()
         logging.info('Analysis System offline')
@@ -149,8 +149,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.db_backend_service.update_object(fo)  # metadata of FW could have changed -> update in DB
         self.unpacking_locks.release_unpacking_lock(fo.uid)
         self.status.add_update_to_current_analyses(fo, included_files)
-        for child_uid in included_files:
-            child_fo = self.db_backend_service.get_object(child_uid)
+        for child_fo in self.db_backend_service.get_objects_by_uid_list(included_files):
+            child_fo.root_uid = fo.uid  # set correct root_uid so that "current analysis stats" work correctly
             child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
             self.task_scheduler.schedule_analysis_tasks(child_fo, fo.scheduled_analysis)
             self._check_further_process_or_complete(child_fo)
@@ -218,18 +218,18 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         plugin_list = self._get_list_of_available_plugins()
         plugin_list = self._remove_unwanted_plugins(plugin_list)
-        plugin_sets = dict(cfg.default_plugins)
+        plugin_sets = config.backend.analysis_preset
         result = {}
         for plugin in plugin_list:
             current_plugin_plugin_sets = {}
             mandatory_flag = plugin in MANDATORY_PLUGINS
             for plugin_set in plugin_sets:
-                current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set]
+                current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set].plugins
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
             try:
-                thread_count = getattr(cfg, plugin)['threads']
+                thread_count = getattr(config.backend.plugin[plugin], 'processes')
             except (AttributeError, KeyError):
-                thread_count = cfg.plugin_defaults.threads
+                thread_count = config.backend.plugin_defaults.processes
             # TODO this should not be a tuple but rather a dictionary/class
             result[plugin] = (
                 self.analysis_plugins[plugin].DESCRIPTION,
@@ -252,7 +252,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _start_runner_processes(self):
         self.schedule_processes = [
-            ExceptionSafeProcess(target=self._task_runner) for _ in range(cfg.expert_settings.scheduling_worker_count)
+            ExceptionSafeProcess(target=self._task_runner) for _ in range(config.backend.scheduling_worker_count)
         ]
         for process in self.schedule_processes:
             process.start()
@@ -261,7 +261,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         logging.debug(f'Started analysis scheduler (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             try:
-                task = self.process_queue.get(timeout=cfg.expert_settings.block_delay)
+                task = self.process_queue.get(timeout=config.backend.block_delay)
             except Empty:
                 pass
             else:
@@ -399,8 +399,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def _get_blacklist_and_whitelist_from_config(analysis_plugin: str) -> tuple[list, list]:
-        blacklist = getattr(cfg, analysis_plugin, {}).get('mime_blacklist')
-        whitelist = getattr(cfg, analysis_plugin, {}).get('mime_whitelist')
+        blacklist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_blacklist', [])
+        whitelist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_whitelist', [])
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> tuple[list, list]:
@@ -412,8 +412,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _start_result_collector(self):
         self.result_collector_processes = [
-            ExceptionSafeProcess(target=self._result_collector)
-            for _ in range(cfg.expert_settings.collector_worker_count)
+            ExceptionSafeProcess(target=self._result_collector) for _ in range(config.backend.collector_worker_count)
         ]
         for process in self.result_collector_processes:
             process.start()
@@ -431,7 +430,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                     nop = False
                     self._handle_collected_result(result, plugin_name)
             if nop:
-                sleep(cfg.expert_settings.block_delay)
+                sleep(config.backend.block_delay)
 
     def _handle_collected_result(self, fo: FileObject, plugin_name: str):
         if plugin_name in fo.processed_analysis:

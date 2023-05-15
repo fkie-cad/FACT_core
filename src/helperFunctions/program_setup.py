@@ -23,7 +23,7 @@ from contextlib import suppress
 
 from common_helper_files import create_dir_for_file
 
-from config import cfg
+import config
 from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
 
@@ -62,17 +62,17 @@ def _get_logging_config(args, component):
     """
     console_loglevel = logging.getLevelName(args.log_level)
 
-    file_loglevel = logging.getLevelName(cfg.logging.loglevel)
+    file_loglevel = logging.getLevelName(config.common.logging.level)
 
     if args.log_file:
         logfile = args.log_file
         # Don't crash if component is not a standart one
         with suppress(ValueError):
-            setattr(cfg.logging, f'logfile_{component}', logfile)
+            setattr(config.common.logging, f'file_{component}', logfile)
     elif component not in ['frontend', 'backend', 'database']:
         logfile = f'/tmp/fact_{component}.log'
     else:
-        logfile = getattr(cfg.logging, f'logfile_{component}')
+        logfile = getattr(config.common.logging, f'file_{component}')
 
     return logfile, file_loglevel, console_loglevel
 

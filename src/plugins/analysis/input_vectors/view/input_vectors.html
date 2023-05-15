@@ -2,8 +2,8 @@
 
 {% block analysis_result_details %}
 
-{% for vector in firmware.processed_analysis[selected_analysis]['full'] | sort %}
-    {% set input_vector = firmware.processed_analysis[selected_analysis]['full'][vector] %}
+{% for vector in analysis_result['full'] | sort %}
+    {% set input_vector = analysis_result['full'][vector] %}
     {% if input_vector %}
     <tr>
         <td>{{ vector }}</td>
@@ -23,7 +23,7 @@
             {% else %}
                 <ul class="list-group mb-0 p-0">
                     {% for result in input_vector %}
-                        <li class="list-group-item rounded-0">{{result}}</li>
+                        <li class="list-group-item rounded-0">{{ result }}</li>
                     {% endfor %}
                 </ul>
             {% endif %}

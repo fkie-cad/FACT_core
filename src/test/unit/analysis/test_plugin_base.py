@@ -12,14 +12,15 @@ from plugins.analysis.dummy.code.dummy import AnalysisPlugin as DummyPlugin
 PLUGIN_PATH = Path(get_src_dir()) / 'plugins' / 'analysis'
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config_overwrite(
     {
-        'dummy_plugin_for_testing_only': {
-            'threads': '2',
+        'plugin': {
+            'dummy_plugin_for_testing_only': {
+                'name': 'dummy_plugin_for_testing_only',
+                'processes': 2,
+            }
         },
-        'expert-settings': {
-            'block-delay': '0.1',
-        },
+        'block_delay': 0.1,
     }
 )
 @pytest.mark.AnalysisPluginTestConfig(
@@ -97,28 +98,34 @@ class TestPluginBaseOffline:
 class TestPluginNotRunning:
     def multithread_config_test(self, multithread_flag, threads_wanted):
         self.p_base = DummyPlugin(no_multithread=multithread_flag)
-        assert self.p_base.thread_count == int(threads_wanted), 'number of threads not correct'
+        assert self.p_base.thread_count == threads_wanted, 'number of threads not correct'
         self.p_base.shutdown()
 
-    @pytest.mark.cfg_defaults(
+    @pytest.mark.backend_config_overwrite(
         {
-            'dummy_plugin_for_testing_only': {
-                'threads': '4',
+            'plugin': {
+                'dummy_plugin_for_testing_only': {
+                    'name': 'dummy_plugin_for_testing_only',
+                    'processes': 4,
+                }
             }
         }
     )
     def test_no_multithread(self):
-        self.multithread_config_test(True, '1')
+        self.multithread_config_test(True, 1)
 
-    @pytest.mark.cfg_defaults(
+    @pytest.mark.backend_config_overwrite(
         {
-            'dummy_plugin_for_testing_only': {
-                'threads': '2',
+            'plugin': {
+                'dummy_plugin_for_testing_only': {
+                    'name': 'dummy_plugin_for_testing_only',
+                    'processes': 2,
+                }
             }
         }
     )
     def test_normal_multithread(self):
-        self.multithread_config_test(False, '2')
+        self.multithread_config_test(False, 2)
 
     def test_init_result_dict(self):
         self.p_base = DummyPlugin()

@@ -5,7 +5,6 @@ import sqlite3
 import uuid
 
 import config
-from config import cfg
 
 
 def upgrade(cur):
@@ -82,7 +81,7 @@ def main():
 
     config.load()
 
-    db_path = cfg.data_storage.user_database[len('sqlite:///') :]
+    db_path = config.frontend.authentication.user_database[len('sqlite:///') :]
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()

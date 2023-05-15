@@ -13,23 +13,12 @@ class ArgumentMock:
     debug = False
 
 
-config_mock = {
-    'logging': {
-        'logfile-frontend': '/tmp/fact_test_frontend.log',
-        'logfile-backend': '/tmp/fact_test_backend.log',
-        'logfile-database': '/tmp/fact_test_database.log',
-        'loglevel': 'DEBUG',
-    }
-}
-
-
-def test_get_logging_config(cfg_tuple):
-    cfg, _ = cfg_tuple
+def test_get_logging_config(common_config):
     logfile, file_loglevel, console_loglevel = _get_logging_config(ArgumentMock, 'frontend')
     assert logfile == ArgumentMock.log_file
     assert console_loglevel == logging.getLevelName(ArgumentMock.log_level)
-    assert file_loglevel == logging.getLevelName(cfg.logging.loglevel)
-    assert cfg.logging.logfile_frontend == logfile
+    assert file_loglevel == logging.getLevelName(common_config.logging.level)
+    assert common_config.logging.file_frontend == logfile
 
 
 def test_setup_logging():

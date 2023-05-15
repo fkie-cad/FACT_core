@@ -229,6 +229,32 @@ def test_generic_search_json_array(db):
     assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'd'}}) == []
 
 
+def test_generic_search_dict_in_list(db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    parent_fo.processed_analysis = {
+        'plugin': generate_analysis_entry(analysis_result={'key': [{'name': 'a', 'foo': 'bar'}]})
+    }
+    child_fo.processed_analysis = {
+        'plugin': generate_analysis_entry(
+            analysis_result={'key': [{'name': 'b', 'foo': 'bar'}, {'name': 'c', 'foo': 'test'}]}
+        )
+    }
+    db.backend.insert_object(fw)
+    db.backend.insert_object(parent_fo)
+    db.backend.insert_object(child_fo)
+
+    assert db.frontend.generic_search({'processed_analysis.plugin.key': {'$contains': [{'name': 'a'}]}}) == [
+        parent_fo.uid
+    ]
+    assert db.frontend.generic_search({'processed_analysis.plugin.key': {'$contains': [{'name': 'b'}]}}) == [
+        child_fo.uid
+    ]
+    assert set(db.frontend.generic_search({'processed_analysis.plugin.key': {'$contains': [{'foo': 'bar'}]}})) == {
+        parent_fo.uid,
+        child_fo.uid,
+    }
+
+
 def test_generic_search_json_types(db):
     fo, fw = create_fw_with_child_fo()
     fo.processed_analysis = {

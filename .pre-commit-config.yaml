@@ -11,12 +11,11 @@ repos:
 
     -   id: check-merge-conflict
 
+    -   id: check-toml
+
     -   id: check-yaml
 
     -   id: double-quote-string-fixer
-
-    -   id: end-of-file-fixer
-        types: [python]
 
     -   id: fix-encoding-pragma
         args: [--remove]
@@ -30,21 +29,6 @@ repos:
 
     -   id: pretty-format-json
         args: [--autofix]
-
-    -   id: trailing-whitespace
-        types: [python]
-
--   repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
-    hooks:
-    -   id: flake8
-
--   repo: https://github.com/pre-commit/mirrors-pylint
-    rev: v3.0.0a4
-    hooks:
-    -   id: pylint
-        language: system
-        args: [--rcfile=pyproject.toml]
 
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 2.1.5
@@ -61,12 +45,13 @@ repos:
     hooks:
     -   id: jshint
 
--   repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.9.3
-    hooks:
-    -   id: isort
-
 -   repo: https://github.com/ambv/black
-    rev: stable
+    rev: 23.3.0
     hooks:
     -   id: black
+
+- repo: https://github.com/charliermarsh/ruff-pre-commit
+  rev: 'v0.0.267'
+  hooks:
+    - id: ruff
+      args: [ --fix, --exit-non-zero-on-fix ]

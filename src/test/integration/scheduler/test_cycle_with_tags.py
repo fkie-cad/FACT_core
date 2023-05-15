@@ -3,7 +3,6 @@ import gc
 from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
 
-from config import configparser_cfg
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
@@ -15,7 +14,6 @@ from test.common_helper import get_test_data_dir
 class TestTagPropagation:
     def setup(self):
         self._tmp_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
-        self._config = configparser_cfg
         self.analysis_finished_event = Event()
         self.elements_finished_analyzing = Value('i', 0)
         self.uid_of_key_file = '530bf2f1203b789bfe054d3118ebd29a04013c587efd22235b3b9677cee21c0e_2048'

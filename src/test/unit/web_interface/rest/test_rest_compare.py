@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from test.common_helper import COMPARISON_ID, TEST_FW, TEST_FW_2
 
 UID_1 = 'deadbeef' * 8 + '_1'
@@ -6,7 +8,7 @@ UID_2 = 'decafbad' * 8 + '_2'
 
 def test_bad_request(test_client):
     response = test_client.put('/rest/compare')
-    assert response.status_code == 400
+    assert response.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
 
 def test_empty_data(test_client):

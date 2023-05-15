@@ -4,7 +4,7 @@ import logging
 from time import sleep, time
 from typing import Any
 
-from config import cfg
+import config
 from intercom.common_redis_binding import InterComRedisInterface, generate_task_id
 
 
@@ -70,7 +70,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def _response_listener(self, response_connection, request_id, timeout=None):
         output_data = None
         if timeout is None:
-            timeout = time() + int(cfg.expert_settings.communication_timeout)
+            timeout = time() + int(config.frontend.communication_timeout)
         while timeout > time():
             output_data = self.redis.get(request_id)
             if output_data:

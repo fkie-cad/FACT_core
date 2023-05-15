@@ -6,7 +6,6 @@ from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
-from config import configparser_cfg
 from test.common_helper import create_test_file_object, create_test_firmware
 
 from ..code.file_system_metadata import AnalysisPlugin
@@ -134,7 +133,7 @@ class TestFileSystemMetadataRoutesRest(TestCase):
             routes.FSMetadataRoutesRest,
             endpoint,
             methods=methods,
-            resource_class_kwargs={'config': configparser_cfg, 'db': DbMock},
+            resource_class_kwargs={'db': DbMock},
         )
         self.test_client = app.test_client()
 

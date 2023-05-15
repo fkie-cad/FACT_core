@@ -10,10 +10,13 @@ from ..code.hash import AnalysisPlugin
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config_overwrite(
     {
-        'file_hashes': {
-            'hashes': 'md5, sha1, foo',
+        'plugin': {
+            'file_hashes': {
+                'name': 'file_hashes',
+                'hashes': ['md5', 'sha1', 'foo'],
+            },
         }
     },
 )

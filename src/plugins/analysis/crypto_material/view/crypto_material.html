@@ -2,16 +2,16 @@
 
 {% block analysis_result_details %}
 
-    {% for key in firmware.processed_analysis[selected_analysis] %}
+    {% for key in analysis_result %}
         {% if key | is_not_mandatory_analysis_entry %}
             <tr>
                 <td class="table-head-light">Description</td>
                 <td class="table-head-light">{{ key }}</td>
             </tr>
             <tr>
-                <td rowspan={{ firmware.processed_analysis[selected_analysis][key]['count'] + 1}}>Content</td>
+                <td rowspan={{ analysis_result[key]['count'] + 1}}>Content</td>
             </tr>
-            {% for material in firmware.processed_analysis[selected_analysis][key]['material'] %}
+            {% for material in analysis_result[key]['material'] %}
                 <tr>
                     <td class="m-0 p-0">
                         <pre class="border rounded p-2 bg-light" style="margin-bottom: 0; white-space: pre-wrap;">{{ material | safe }}</pre>

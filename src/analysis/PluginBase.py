@@ -8,7 +8,7 @@ from time import time
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
-from config import cfg
+import config
 from helperFunctions.process import (
     ExceptionSafeProcess,
     check_worker_exceptions,
@@ -66,7 +66,9 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         """
         Get the thread count from the config. If there is no configuration for this plugin use the default value.
         """
-        return int(getattr(cfg, self.NAME, {}).get('threads', cfg.plugin_defaults.threads))
+        default_process_count = config.backend.plugin_defaults.processes
+        plugin_config = config.backend.plugin.get(self.NAME, None)
+        return getattr(plugin_config, 'processes', default_process_count)
 
     def additional_setup(self):
         '''
@@ -204,7 +206,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         logging.debug(f'started {self.NAME} worker {worker_id} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             try:
-                next_task = self.in_queue.get(timeout=float(cfg.expert_settings.block_delay))
+                next_task = self.in_queue.get(timeout=float(config.backend.block_delay))
                 logging.debug(f'Worker {worker_id}: Begin {self.NAME} analysis on {next_task.uid}')
             except Empty:
                 self.active[worker_id].value = 0

@@ -1,10 +1,12 @@
 {% extends "analysis_plugins/general_information.html" %}
 
+{% block styles %}
+    <link type="text/css" href="{{ url_for('static', filename='css/code_pre.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block analysis_result_details %}
 
-<link type="text/css" href="src/web_interface/static/css/code_pre.css" rel="stylesheet">
-
-{% for key in firmware.processed_analysis[selected_analysis].keys() | sort %}
+{% for key, value in analysis_result.items() | sort %}
     {% if key | is_not_mandatory_analysis_entry %}
         <tr>
             <td>
@@ -16,14 +18,14 @@
                 </div>
 
                 <div class="collapse w-100" id="{{ key }}">
-                    {% if firmware.processed_analysis[selected_analysis][key] | is_list %}
-                        {% for value in firmware.processed_analysis[selected_analysis][key] %}
+                    {% if value | is_list %}
+                        {% for item in value %}
                              <ul>
-                                <li>{{ value }}</li>
+                                <li>{{ item }}</li>
                              </ul>
                         {% endfor %}
                     {% else %}
-                        <pre class="information-leaks-pre">{{ firmware.processed_analysis[selected_analysis][key] }}</pre>
+                        <pre class="information-leaks-pre">{{ value }}</pre>
                     {% endif %}
                 </div>
             </td>

@@ -7,7 +7,6 @@ from unittest import TestCase, mock
 
 import pytest
 
-from config import configparser_cfg
 from objects.firmware import Firmware
 from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from storage.unpacking_locks import UnpackingLockManager
@@ -25,10 +24,13 @@ class BackendDbInterface:
         pass
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.common_config_overwrite(
     {
-        'default-plugins': {
-            'default': 'file_hashes',
+        'analysis_preset': {
+            'default': {
+                'name': 'default',
+                'plugins': ['file_hashes'],
+            }
         }
     }
 )
@@ -36,10 +38,6 @@ class AnalysisSchedulerTest(TestCase):
     @mock.patch('plugins.base.ViewUpdater', lambda *_: ViewUpdaterMock())
     def setUp(self):
         self.mocked_interface = BackendDbInterface()
-        config = configparser_cfg
-        config.add_section('ip_and_uri_finder')
-        config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-        config.set('default-plugins', 'default', 'file_hashes')
         self.tmp_queue = Queue()
         self.lock_manager = UnpackingLockManager()
         self.sched = AnalysisScheduler(
@@ -59,14 +57,18 @@ class AnalysisSchedulerTest(TestCase):
         self.tmp_queue.put({'uid': uid, 'plugin': plugin, 'result': analysis_result})
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config_overwrite(
     {
-        'file_hashes': {
-            'hashes': 'md5, sha1, sha256, sha512, ripemd160, whirlpool',
-        },
-        'printable_strings': {
-            'min-length': 6,
-        },
+        'plugin': {
+            'file_hashes': {
+                'name': 'file_hashes',
+                'hashes': ['md5', 'sha1', 'sha256', 'sha512', 'ripemd160', 'whirlpool'],
+            },
+            'printable_strings': {
+                'name': 'printable_strings',
+                'min-length': 6,
+            },
+        }
     }
 )
 class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
@@ -127,11 +129,14 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
             self.sched._process_next_analysis_task(test_fw)
             assert not spy.was_called(), 'unknown plugin should simply be skipped'
 
-    @pytest.mark.cfg_defaults(
+    @pytest.mark.backend_config_overwrite(
         {
-            'dummy_plugin_for_testing_only': {
-                'mime_whitelist': 'foo, bar',
-            },
+            'plugin': {
+                'dummy_plugin_for_testing_only': {
+                    'name': 'dummy_plugin_for_testing_only',
+                    'mime_whitelist': ['foo', 'bar'],
+                },
+            }
         }
     )
     def test_skip_analysis_because_whitelist(self):
@@ -181,10 +186,13 @@ class TestAnalysisSchedulerBlacklist:
         assert whitelist == []
         assert isinstance(blacklist, list)
 
-    @pytest.mark.cfg_defaults(
+    @pytest.mark.backend_config_overwrite(
         {
-            'test_plugin': {
-                'mime_blacklist': 'type1, type2',
+            'plugin': {
+                'test_plugin': {
+                    'name': 'test_plugin',
+                    'mime_blacklist': ['type1', 'type2'],
+                }
             }
         }
     )
@@ -193,10 +201,13 @@ class TestAnalysisSchedulerBlacklist:
         assert blacklist == ['type1', 'type2']
         assert whitelist == []
 
-    @pytest.mark.cfg_defaults(
+    @pytest.mark.backend_config_overwrite(
         {
-            'test_plugin': {
-                'mime_blacklist': 'type1, type2',
+            'plugin': {
+                'test_plugin': {
+                    'name': 'test_plugin',
+                    'mime_blacklist': ['type1', 'type2'],
+                }
             }
         }
     )

@@ -1,9 +1,11 @@
+from http import HTTPStatus
+
 YARA_TEST_RULE = 'rule rulename {strings: $a = "foobar" condition: $a}'
 
 
 def test_no_data(test_client):
     response = test_client.post('/rest/binary_search')
-    assert response.status_code == 400
+    assert response.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
 
 def test_no_rule_file(test_client):

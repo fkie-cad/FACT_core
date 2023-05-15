@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ focal, jammy, buster, bullseye ]
+        os: [ focal, jammy, bullseye ]
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
     timeout-minutes: 45
     steps:
@@ -41,6 +41,13 @@ jobs:
           ref: ${{ github.ref }}
       - name: Set ulimit
         run: ulimit -n 9999
+      - name: venv Setup
+        run: |
+          sudo apt install -y python3-venv
+          python3 -m venv venv
+          . venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
+          echo venv $VIRTUAL_ENV
       - name: Pre-Installation
         shell: 'script -q -e -c "bash {0}"'
         run: ./src/install/pre_install.sh
