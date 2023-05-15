@@ -15,7 +15,7 @@ class TestAnalysisPluginInformationLeaks:
         fo = MockFileObject()
         fo.binary = (TEST_DATA_DIR / 'path_test_file').read_bytes()
         fo.processed_analysis[analysis_plugin.NAME] = {}
-        fo.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
+        fo.processed_analysis['file_type'] = {'result': {'mime': 'application/x-executable'}}
         fo.virtual_file_path = {}
         analysis_plugin.process_object(fo)
 
@@ -38,7 +38,7 @@ class TestAnalysisPluginInformationLeaks:
 
     def test_find_artifacts(self, analysis_plugin):
         fo = MockFileObject()
-        fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
+        fo.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
         fo.virtual_file_path = {
             1: [
                 'some_uid|/home/user/project/.git/config',

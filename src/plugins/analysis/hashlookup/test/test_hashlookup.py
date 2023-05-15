@@ -18,14 +18,14 @@ def file_object(monkeypatch):
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestHashlookup:
     def test_process_object_unknown_hash(self, analysis_plugin, file_object):
-        file_object.processed_analysis['file_hashes'] = {'sha256': file_object.sha256}
+        file_object.processed_analysis['file_hashes'] = {'result': {'sha256': file_object.sha256}}
         analysis_plugin.process_object(file_object)
         result = file_object.processed_analysis[analysis_plugin.NAME]
         assert 'message' in result
         assert 'sha256 hash unknown' in result['message']
 
     def test_process_object_known_hash(self, analysis_plugin, file_object):
-        file_object.processed_analysis['file_hashes'] = {'sha256': KNOWN_ZSH_HASH}
+        file_object.processed_analysis['file_hashes'] = {'result': {'sha256': KNOWN_ZSH_HASH}}
         analysis_plugin.process_object(file_object)
         result = file_object.processed_analysis[analysis_plugin.NAME]
         assert 'FileName' in result

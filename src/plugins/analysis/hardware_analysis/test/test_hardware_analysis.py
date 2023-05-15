@@ -34,7 +34,9 @@ class TestHardwareAnalysis:
         test_object = FileObject()
 
         test_object.processed_analysis['kernel_config'] = {
-            'kernel_config': 'This is a test\n#This is not important\nThis is important'
+            'result': {
+                'kernel_config': 'This is a test\n#This is not important\nThis is important',
+            }
         }
         result = analysis_plugin.filter_kernel_config(test_object)
 

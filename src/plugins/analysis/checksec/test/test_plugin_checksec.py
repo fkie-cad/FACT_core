@@ -36,7 +36,9 @@ FILE_PATH_EXE_STRIPPED = PLUGIN_DIR / 'test/data/Hallo_stripped'
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 def test_check_mitigations(analysis_plugin):
     test_file = FileObject(file_path=str(FILE_PATH_EXE))
-    test_file.processed_analysis['file_type'] = {'full': 'ELF 64-bit LSB shared object, x86-64, dynamically linked'}
+    test_file.processed_analysis['file_type'] = {
+        'result': {'full': 'ELF 64-bit LSB shared object, x86-64, dynamically linked'}
+    }
     analysis_plugin.process_object(test_file)
     result = test_file.processed_analysis[analysis_plugin.NAME]
 

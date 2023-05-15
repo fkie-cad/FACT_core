@@ -12,18 +12,22 @@ with open(Path(__file__).parent / 'data/dt.dts') as dt_file:
 
 _mock_device_tree_analysis = {
     'device_tree': {
-        'device_trees': [
-            {
-                'device_tree': dts,
-            },
-        ]
+        'result': {
+            'device_trees': [
+                {
+                    'device_tree': dts,
+                },
+            ]
+        }
     }
 }
 
 
 _mock_kernel_config_analysis_mips = {
     'kernel_config': {
-        'kernel_config': 'CONFIG_CPU_MIPS32_R2=y\n',
+        'result': {
+            'kernel_config': 'CONFIG_CPU_MIPS32_R2=y\n',
+        }
     }
 }
 
@@ -232,7 +236,7 @@ def test_elf_construct_result():
 )
 def test_metadatadetector_get_device_architecture(architecture, bitness, endianness, full_file_type):
     fo = FileObject()
-    fo.processed_analysis['file_type'] = {'mime': 'x-executable', 'full': full_file_type}
+    fo.processed_analysis['file_type'] = {'result': {'mime': 'x-executable', 'full': full_file_type}}
 
     result = metadata.construct_result(fo)
     assert (

@@ -54,18 +54,20 @@ SUMMARY_INPUT = ''
 SORT_CPE_MATCHES_OUTPUT = lookup.Product('microsoft', 'windows_8', '1\\.2\\.5')
 
 SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
-    'dnsmasq': {'meta': {'software_name': 'Dnsmasq', 'version': ['2.40']}},
-    'OpenSSL': {
-        'matches': True,
-        'meta': {
-            'description': 'SSL library',
-            'open_source': True,
-            'software_name': 'OpenSSL',
-            'version': [''],
-            'website': 'https://www.openssl.org',
+    'result': {
+        'dnsmasq': {'meta': {'software_name': 'Dnsmasq', 'version': ['2.40']}},
+        'OpenSSL': {
+            'matches': True,
+            'meta': {
+                'description': 'SSL library',
+                'open_source': True,
+                'software_name': 'OpenSSL',
+                'version': [''],
+                'website': 'https://www.openssl.org',
+            },
+            'rule': 'OpenSSL',
+            'strings': [[7194, '$a', 'T1BFTlNTTA==']],
         },
-        'rule': 'OpenSSL',
-        'strings': [[7194, '$a', 'T1BFTlNTTA==']],
     },
     'analysis_date': 1563453634.37708,
     'plugin_version': '0.3.2',
