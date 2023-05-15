@@ -46,11 +46,11 @@ $ cd FACT_core
 $ src/install/pre_install.sh
 ```
 
-Now modify `src/config/fact-core.toml` to suit your needs.
+Now modify `src/config/fact-core-config.toml` to suit your needs.
 Especially, you should change the postgres passwords.
 The database is initialized with these passwords on first start.
 
-Create the `firmware_file_storage_directory` defined in `fact-core.toml`.
+Create the `firmware_file_storage_directory` defined in `fact-core-config.toml`.
 Make sure that the log directory exists as well.
 
 If you have any additional plug-ins, copy/clone them into corresponding `src/plugins/` directory.

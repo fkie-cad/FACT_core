@@ -12,7 +12,7 @@ from test.common_helper import get_test_data_dir
 def test_load(monkeypatch):
     # Undo all monkeypatching which includes what `patch_config` patched.
     monkeypatch.undo()
-    cfg_path = f'{get_test_data_dir()}/fact-core.toml'
+    cfg_path = f'{get_test_data_dir()}/fact-core-config.toml'
     load(path=cfg_path)
 
     assert config.common is not None, 'common global was not set'
@@ -23,7 +23,7 @@ def test_load(monkeypatch):
 
 
 def test_load_missing_entrys(monkeypatch):
-    cfg_path = get_test_data_dir() + '/fact-core.toml-missing-entrys'
+    cfg_path = get_test_data_dir() + '/fact-core-config.toml-missing-entrys'
 
     with pytest.raises(pydantic.error_wrappers.ValidationError, match='server'):
         load(path=cfg_path)
