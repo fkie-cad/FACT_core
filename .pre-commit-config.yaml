@@ -51,17 +51,13 @@ repos:
     hooks:
     -   id: jshint
 
--   repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.9.3
-    hooks:
-    -   id: isort
-
 -   repo: https://github.com/ambv/black
     rev: 23.3.0
     hooks:
     -   id: black
 
 - repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: 'v0.0.265'
+  rev: 'v0.0.267'
   hooks:
     - id: ruff
+      args: [ --fix, --exit-non-zero-on-fix ]
