@@ -33,14 +33,6 @@ max-public-methods = 40
 [tool.pylint.imports]
 known-third-party = ["enchant", "docker"]
 
-[tool.isort]
-line_length=120
-default_section = "THIRDPARTY"
-known_first_party = ["analysis", "compare", "helperFunctions", "install", "intercom", "objects", "plugins", "scheduler",
-    "statistic", "storage", "test", "unpacker", "version", "web_interface"]
-known_third_party = "docker"
-profile = "black"
-
 [tool.pytest.ini_options]
 addopts = "-v"
 testpaths = [
@@ -56,10 +48,11 @@ markers = [
 ]
 
 [tool.ruff]
-select = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH", "PTH", "ARG", "ERA"]
+select = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH",
+    "PTH", "PLR", "PLW", "ARG", "ERA"]
 ignore = ["A003"]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
-fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+fixable = ["F", "W", "I", "C4", "PT", "RET"]
 exclude = [
     ".git",
     ".ruff_cache",
@@ -74,6 +67,11 @@ target-version = "py38"
 [tool.ruff.per-file-ignores]
 "test*.py" = ["ARG002"]
 "conftest.py" = ["ARG002"]
+
+[tool.ruff.isort]
+known-first-party = ["analysis", "compare", "helperFunctions", "install", "intercom", "objects", "plugins", "scheduler",
+    "statistic", "storage", "test", "unpacker", "version", "web_interface", "config"]
+known-third-party = ["docker"]
 
 [tool.ruff.mccabe]
 max-complexity = 10
