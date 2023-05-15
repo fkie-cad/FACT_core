@@ -13,6 +13,7 @@ from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
 from objects.file import FileObject
 from storage.fsorganizer import FSOrganizer
+from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack_base import ExtractionError, UnpackBase
 
 
@@ -21,7 +22,9 @@ class Unpacker(UnpackBase):
         self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
         self.unpacking_locks = unpacking_locks
 
-    def unpack(self, current_fo: FileObject, tmp_dir: str, container_url: str | None = None) -> list[FileObject]:
+    def unpack(
+        self, current_fo: FileObject, tmp_dir: str, container: ExtractionContainer | None = None
+    ) -> list[FileObject]:
         '''
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
@@ -32,7 +35,7 @@ class Unpacker(UnpackBase):
 
         file_path = self._generate_local_file_path(current_fo)
         try:
-            extracted_files = self.extract_files_from_file(file_path, tmp_dir, container_url)
+            extracted_files = self.extract_files_from_file(file_path, tmp_dir, container)
         except ExtractionError as error:
             self._store_unpacking_error_skip_info(current_fo, error=error)
             raise
