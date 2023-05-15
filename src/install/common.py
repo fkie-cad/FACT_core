@@ -27,7 +27,7 @@ PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_common.txt'
 
 def install_pip():
     python_version = '.'.join(python_version_tuple()[:2])
-    if parse_version(python_version) < parse_version('3.7'):
+    if parse_version(python_version) < parse_version('3.8'):
         logging.warning('Your Python version is outdated. Please upgrade it.')
         pip_link = f'https://bootstrap.pypa.io/pip/{python_version}/get-pip.py'
     else:
