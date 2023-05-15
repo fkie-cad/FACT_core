@@ -63,8 +63,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#conftest.analysis_plugin"><code class="docutils literal notranslate"><span class="pre">analysis_plugin()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#conftest.cfg_tuple"><code class="docutils literal notranslate"><span class="pre">cfg_tuple()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#conftest.patch_cfg"><code class="docutils literal notranslate"><span class="pre">patch_cfg()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conftest.backend_config"><code class="docutils literal notranslate"><span class="pre">backend_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conftest.common_config"><code class="docutils literal notranslate"><span class="pre">common_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conftest.frontend_config"><code class="docutils literal notranslate"><span class="pre">frontend_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conftest.patch_config"><code class="docutils literal notranslate"><span class="pre">patch_config()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
@@ -138,7 +140,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="conftest.analysis_plugin">
-<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">analysis_plugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monkeypatch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_cfg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.analysis_plugin" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">analysis_plugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monkeypatch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.analysis_plugin" title="Permalink to this definition"></a></dt>
 <dd><p>Returns an instance of an AnalysisPlugin.
 This fixture can be configured by the supplying an instance of <code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig</span></code> as marker of the same
 name.</p>
@@ -176,17 +178,45 @@ like for example TIMEOUT you have to put the following in your test:</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="conftest.cfg_tuple">
-<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">cfg_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_firmware_file_storage_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_docker_mount_base_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.cfg_tuple" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a <code class="docutils literal notranslate"><span class="pre">config.Config</span></code> and a <code class="docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code> with testing defaults.
-Defaults can be overwritten with the <code class="docutils literal notranslate"><span class="pre">cfg_defaults</span></code> pytest mark.</p>
+<dt class="sig sig-object py" id="conftest.backend_config">
+<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">backend_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">common_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_firmware_file_storage_directory</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.backend_config" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="config.html#config.Backend" title="config.Backend"><em>Backend</em></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="conftest.patch_cfg">
-<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">patch_cfg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg_tuple</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.patch_cfg" title="Permalink to this definition"></a></dt>
-<dd><p>This fixture will replace <code class="docutils literal notranslate"><span class="pre">config.cfg</span></code> and <code class="docutils literal notranslate"><span class="pre">config.configparser_cfg</span></code> with the default test config.
-See <code class="docutils literal notranslate"><span class="pre">cfg_tuple</span></code> on how to change defaults.</p>
+<dt class="sig sig-object py" id="conftest.common_config">
+<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">common_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_docker_mount_base_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.common_config" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="config.html#config.Common" title="config.Common"><em>Common</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="conftest.frontend_config">
+<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">frontend_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">common_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.frontend_config" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="config.html#config.Frontend" title="config.Frontend"><em>Frontend</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="conftest.patch_config">
+<span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">patch_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">monkeypatch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">common_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frontend_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.patch_config" title="Permalink to this definition"></a></dt>
+<dd><p>This fixture will replace :py:data`config.common`, <a class="reference internal" href="config.html#config.backend" title="config.backend"><code class="xref py py-data docutils literal notranslate"><span class="pre">config.backend</span></code></a> and <a class="reference internal" href="config.html#config.frontend" title="config.frontend"><code class="xref py py-data docutils literal notranslate"><span class="pre">config.frontend</span></code></a>
+with the default test config.</p>
+<p>Defaults in the test config can be ovewritten with the markers <code class="docutils literal notranslate"><span class="pre">backend_config_overwrite</span></code>,
+<code class="docutils literal notranslate"><span class="pre">frontend_config_overwrite</span></code> and <code class="docutils literal notranslate"><span class="pre">common_config_overwrite</span></code>.
+These three markers accept a single argument of the type <code class="docutils literal notranslate"><span class="pre">dict</span></code>.
+When using <code class="docutils literal notranslate"><span class="pre">backend_config_overwrite</span></code> the dictionary has to contain valid keyword arguments for
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Backend</span></code>.</p>
 </dd></dl>
 
 </section>
