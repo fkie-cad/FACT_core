@@ -4,7 +4,6 @@ import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Manager, Queue, Value
-from pathlib import Path
 from queue import Empty
 from tempfile import TemporaryDirectory
 from threading import Thread
@@ -153,11 +152,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     def work_thread(self, task: FileObject, container: ExtractionContainer):
         with TemporaryDirectory(dir=container.tmp_dir.name) as tmp_dir:
-            container_url = f'http://localhost:{container.port}/start/{Path(tmp_dir).name}'
-
             extracted_objects = None
             try:
-                extracted_objects = self.unpacker.unpack(task, tmp_dir, container_url)
+                extracted_objects = self.unpacker.unpack(task, tmp_dir, container)
             except ExtractionError:
                 docker_logs = self._fetch_logs(container)
                 logging.warning(f'Exception happened during extraction of {task.uid}.{docker_logs}')
