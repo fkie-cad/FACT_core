@@ -49,8 +49,8 @@ markers = [
 
 [tool.ruff]
 select = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH",
-    "PTH", "PLR", "PLW", "ARG", "ERA"]
-ignore = ["A003"]
+    "PTH", "PLR", "PLW", "ARG", "ERA", "RUF"]
+ignore = ["A003", "RUF001", "RUF002", "RUF003"]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = ["F", "W", "I", "C4", "PT", "RET"]
 exclude = [
@@ -59,6 +59,7 @@ exclude = [
     ".venv",
     "bin",
     "node_modules",
+    "scripts",  # ingore plugins/*/*/docker/scripts/* jython ghidra scripts
     "venv",
 ]
 line-length = 120
