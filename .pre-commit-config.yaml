@@ -17,9 +17,6 @@ repos:
 
     -   id: double-quote-string-fixer
 
-    -   id: end-of-file-fixer
-        types: [python]
-
     -   id: fix-encoding-pragma
         args: [--remove]
 
@@ -32,9 +29,6 @@ repos:
 
     -   id: pretty-format-json
         args: [--autofix]
-
-    -   id: trailing-whitespace
-        types: [python]
 
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 2.1.5
