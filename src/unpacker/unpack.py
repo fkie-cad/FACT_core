@@ -110,6 +110,6 @@ class Unpacker(UnpackBase):
 
     def _generate_local_file_path(self, file_object: FileObject) -> str:
         if not Path(file_object.file_path).exists():
-            local_path = self.file_storage_system.generate_path(file_object.uid)
+            local_path = self.file_storage_system.generate_path(file_object)
             return local_path
         return file_object.file_path
