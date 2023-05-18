@@ -25,7 +25,11 @@ def test_get_last_added_firmwares(db):
     insert_test_fw(db, 'fw3')
     fw4 = create_test_firmware()
     fw4.uid = 'fw4'
-    fw4.processed_analysis['unpacker'] = {'plugin_used': 'foobar', 'plugin_version': '1', 'analysis_date': 0}
+    fw4.processed_analysis['unpacker'] = {
+        'result': {'plugin_used': 'foobar'},
+        'plugin_version': '1',
+        'analysis_date': 0,
+    }
     db.backend.insert_object(fw4)
 
     result = db.frontend.get_last_added_firmwares(limit=3)

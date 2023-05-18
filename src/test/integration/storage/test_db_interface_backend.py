@@ -131,7 +131,9 @@ def test_insert_analysis(db):
     plugin = 'previously_not_run_plugin'
     new_analysis_data = {
         'summary': ['sum 1', 'sum 2'],
-        'foo': 'bar',
+        'result': {
+            'foo': 'bar',
+        },
         'plugin_version': '1',
         'analysis_date': 1.0,
         'tags': {},
@@ -145,10 +147,15 @@ def test_insert_analysis(db):
 
 def test_update_analysis(db):
     db.backend.insert_file_object(TEST_FO)
-    updated_analysis_data = {'summary': ['sum b'], 'content': 'file efgh', 'plugin_version': '1', 'analysis_date': 1.0}
+    updated_analysis_data = {
+        'summary': ['sum b'],
+        'result': {'content': 'file efgh'},
+        'plugin_version': '1',
+        'analysis_date': 1.0,
+    }
     db.backend.add_analysis(TEST_FO.uid, 'dummy', updated_analysis_data)
     analysis = db.common.get_analysis(TEST_FO.uid, 'dummy')
     assert analysis is not None
-    assert analysis['content'] == 'file efgh'
+    assert analysis['result']['content'] == 'file efgh'
     assert analysis['summary'] == updated_analysis_data['summary']
     assert analysis['plugin_version'] == updated_analysis_data['plugin_version']

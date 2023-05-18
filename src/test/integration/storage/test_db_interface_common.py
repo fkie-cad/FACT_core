@@ -128,7 +128,7 @@ def test_get_analysis(db):
     db.backend.insert_object(TEST_FW)
     result = db.common.get_analysis(TEST_FW.uid, 'file_type')
     assert isinstance(result, dict)
-    assert result['mime'] == TEST_FW.processed_analysis['file_type']['mime']
+    assert result['result']['mime'] == TEST_FW.processed_analysis['file_type']['result']['mime']
     assert result['summary'] == TEST_FW.processed_analysis['file_type']['summary']
     assert result['analysis_date'] == TEST_FW.processed_analysis['file_type']['analysis_date']
     assert result['plugin_version'] == TEST_FW.processed_analysis['file_type']['plugin_version']

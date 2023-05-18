@@ -71,9 +71,11 @@ class TestUnpackerCoreMain:
             extracted_files = unpacker.unpack(test_object, tmp_dir)
         assert len(test_object.files_included) == number_unpacked_files, 'not all files added to parent'
         assert len(extracted_files) == number_unpacked_files, 'not all files found'
-        assert test_object.processed_analysis['unpacker']['plugin_used'] == first_unpacker, 'Wrong plugin in Meta'
         assert (
-            test_object.processed_analysis['unpacker']['number_of_unpacked_files'] == number_unpacked_files
+            test_object.processed_analysis['unpacker']['result']['plugin_used'] == first_unpacker
+        ), 'Wrong plugin in Meta'
+        assert (
+            test_object.processed_analysis['unpacker']['result']['number_of_unpacked_files'] == number_unpacked_files
         ), 'Number of unpacked files wrong in Meta'
         self.check_depths_of_children(test_object, extracted_files)
 
@@ -92,4 +94,4 @@ class TestUnpackerCoreMain:
         with TemporaryDirectory() as tmp_dir:
             unpacker.unpack(test_file, tmp_dir)
         assert 'unpacker' in test_file.processed_analysis
-        assert 'maximum unpacking depth was reached' in test_file.processed_analysis['unpacker']['info']
+        assert 'maximum unpacking depth was reached' in test_file.processed_analysis['unpacker']['result']['info']
