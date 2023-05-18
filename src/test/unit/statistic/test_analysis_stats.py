@@ -13,8 +13,8 @@ class MockPlugin(AnalysisBasePlugin):
     VERSION = '0.0'
     ANALYSIS_STATS_LIMIT = 5
 
-    def _add_plugin_version_and_timestamp_to_analysis_result(self, _):
-        pass
+    def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):
+        return fo
 
 
 @pytest.fixture
