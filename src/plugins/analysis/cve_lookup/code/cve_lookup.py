@@ -22,10 +22,12 @@ from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 try:
     from ..internal.database_interface import QUERIES, DatabaseInterface
     from ..internal.helper_functions import replace_characters_and_wildcards, unescape
+    from ..internal.busybox_cve_filter import filter_busybox_cves
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from database_interface import QUERIES, DatabaseInterface
     from helper_functions import replace_characters_and_wildcards, unescape
+    from busybox_cve_filter import filter_busybox_cves
 
 MAX_TERM_SPREAD = (
     3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
@@ -73,6 +75,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if product and version:
                 vulnerabilities = look_up_vulnerabilities(product_name=product, requested_version=version)
                 if vulnerabilities:
+                    if 'busybox' in generate_search_terms(product):
+                        vulnerabilities = filter_busybox_cves(file_object, vulnerabilities, version)
                     cves['cve_results'][component] = vulnerabilities
 
         cves['summary'] = self._create_summary(cves['cve_results'])
