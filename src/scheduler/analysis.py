@@ -17,6 +17,7 @@ from queue import Empty
 from time import sleep
 
 import psutil
+import pydantic
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 from pydantic.dataclasses import dataclass
@@ -216,23 +217,37 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     # ---- plugin initialization ----
 
     def _load_plugins(self):
-        for plugin in discover_analysis_plugins():
+        schemata = {}
+
+        for plugin_module in discover_analysis_plugins():
             try:
                 # pylint:disable=invalid-name
-                PluginClass = plugin.AnalysisPlugin
+                PluginClass = plugin_module.AnalysisPlugin
                 if issubclass(PluginClass, analysis.PluginV0):
                     plugin: analysis.PluginV0 = PluginClass()
                     self.analysis_plugins[plugin.metadata.name] = plugin
-                    config = PluginRunner.Config(
-                        process_count=1,
-                        timeout=plugin.metadata.timeout,
-                    )
-                    runner = PluginRunner(plugin, config)
-                    self._plugin_runners[plugin.metadata.name] = runner
+                    schemata[plugin.metadata.name] = PluginClass.Schema
                 elif issubclass(PluginClass, AnalysisBasePlugin):
                     self.analysis_plugins[PluginClass.NAME] = PluginClass()
+                    schemata[PluginClass.NAME] = dict
             except Exception:  # pylint: disable=broad-except
-                logging.error(f'Could not import analysis plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
+                logging.error(f'Could not import analysis plugin {plugin_module.AnalysisPlugin.NAME}', exc_info=True)
+
+        for plugin in self.analysis_plugins.values():
+            if not isinstance(plugin, analysis.PluginV0):
+                continue
+
+            try:
+                process_count = getattr(config.backend.plugin[plugin], 'processes')
+            except (AttributeError, KeyError):
+                process_count = config.backend.plugin_defaults.processes
+
+            runner_config = PluginRunner.Config(
+                process_count=process_count,
+                timeout=plugin.metadata.timeout,
+            )
+            runner = PluginRunner(plugin, runner_config, schemata)
+            self._plugin_runners[plugin.metadata.name] = runner
 
     def get_plugin_dict(self) -> dict:
         '''
@@ -636,7 +651,7 @@ class PluginRunner:
         #: The path of the file on the disk
         path: str
         #: A dictionary containing plugin names as keys and their analysis as value.
-        dependencies: typing.Dict[str, dict]
+        dependencies: typing.Dict
         #: The schedulers state associated with the file that is analyzed.
         #: Here it is just the whole FileObject
         # We need this because the scheduler is using multiple processes which
@@ -647,11 +662,17 @@ class PluginRunner:
         # FileObject.scheduled_analysis)
         scheduler_state: FileObject
 
-    def __init__(self, plugin: analysis.PluginV0, config: Config):
+    def __init__(
+        self,
+        plugin: analysis.PluginV0,
+        config: Config,
+        schemata: typing.Dict[str, pydantic.BaseModel],
+    ):
         # mp.Queue[..] works: https://github.com/python/cpython/pull/19423
         # pylint: disable=unsubscriptable-object
         self._plugin = plugin
         self._config = config
+        self._schemata = schemata
 
         self._in_queue: mp.Queue[PluginRunner.Task] = mp.Queue()
         #: Workers put the ``Task.scheduler_state`` and the finished analysis in the out_queue
@@ -701,7 +722,10 @@ class PluginRunner:
         """
         dependencies = {}
         for dependency in self._plugin.metadata.dependencies:
-            dependencies[dependency] = file_object.processed_analysis
+            Schema = self._schemata[dependency]
+            # Try to convert to the schema defined by the plugin
+            result = file_object.processed_analysis[dependency]['result']
+            dependencies[dependency] = Schema(**result)
 
         logging.debug(f'Queueing analysis for {file_object.uid}')
         self._in_queue.put(
