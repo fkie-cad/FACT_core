@@ -1,32 +1,42 @@
 from __future__ import annotations
 
+import ctypes
+import io
 import logging
+import multiprocessing as mp
 import os
+import queue
+import signal
+import time
+import traceback
+import typing
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Lock, Queue, Value
 from queue import Empty
-from time import sleep, time
+from time import sleep
 
+import psutil
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
+from pydantic.dataclasses import dataclass
 
 import config
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from plugins import analysis
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
-from statistic.analysis_stats import get_plugin_stats
+from statistic.analysis_stats import ANALYSIS_STATS_LIMIT, get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
 from storage.fsorganizer import FSOrganizer
-from typing import TYPE_CHECKING, Optional
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
+    from collections.abc import Callable
     from storage.unpacking_locks import UnpackingLockManager
     from objects.file import FileObject
-    from analysis.PluginBase import AnalysisBasePlugin
-    from collections.abc import Callable
 
 
 class AnalysisScheduler:
@@ -94,11 +104,13 @@ class AnalysisScheduler:
 
     def __init__(
         self,
-        post_analysis: Optional[Callable[[str, str, dict], None]] = None,
+        post_analysis: typing.Optional[Callable[[str, str, dict], None]] = None,
         db_interface=None,
         unpacking_locks: UnpackingLockManager | None = None,
     ):
         self.analysis_plugins = {}
+        self._plugin_runners = {}
+
         self._load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
@@ -132,6 +144,10 @@ class AnalysisScheduler:
         futures = []
         # first shut down scheduling, then analysis plugins and lastly the result collector
         stop_processes(self.schedule_processes, config.backend.block_delay + 1)
+
+        for runner in self._plugin_runners.values():
+            runner.shutdown()
+
         with ThreadPoolExecutor() as pool:
             for plugin in self.analysis_plugins.values():
                 futures.append(pool.submit(plugin.shutdown))
@@ -189,7 +205,18 @@ class AnalysisScheduler:
     def _load_plugins(self):
         for plugin in discover_analysis_plugins():
             try:
-                self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
+                PluginClass = plugin.AnalysisPlugin  # noqa: N806
+                if issubclass(PluginClass, analysis.PluginV0):
+                    plugin: analysis.PluginV0 = PluginClass()  # noqa: PLW2901
+                    self.analysis_plugins[plugin.metadata.name] = plugin
+                    config = PluginRunner.Config(
+                        process_count=1,
+                        timeout=plugin.metadata.timeout,
+                    )
+                    runner = PluginRunner(plugin, config)
+                    self._plugin_runners[plugin.metadata.name] = runner
+                elif issubclass(PluginClass, AnalysisBasePlugin):
+                    self.analysis_plugins[PluginClass.NAME] = PluginClass()
             except Exception:
                 logging.error(f'Could not import analysis plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
@@ -249,6 +276,9 @@ class AnalysisScheduler:
         for plugin in self.analysis_plugins.values():
             plugin.start()
 
+        for runner in self._plugin_runners.values():
+            runner.start()
+
     # ---- task runner functions ----
 
     def _start_runner_processes(self):
@@ -300,7 +330,17 @@ class AnalysisScheduler:
         else:
             if file_object.binary is None:
                 self._set_binary(file_object)
-            self.analysis_plugins[analysis_to_do].add_job(file_object)
+            plugin = self.analysis_plugins[analysis_to_do]
+            if isinstance(plugin, analysis.PluginV0):
+                runner = self._plugin_runners[plugin.metadata.name]
+
+                if _dependencies_are_unfulfilled(plugin, file_object):
+                    logging.error(f'{file_object.uid}: dependencies of plugin {plugin.metadata.name} not fulfilled')
+                    return
+
+                runner.queue_analysis(file_object)
+            elif isinstance(plugin, AnalysisBasePlugin):
+                plugin.add_job(file_object)
 
     def _set_binary(self, file_object: FileObject):
         # the file_object.binary may be missing in case of an update
@@ -329,7 +369,11 @@ class AnalysisScheduler:
         return self._analysis_is_up_to_date(db_entry, self.analysis_plugins[analysis_to_do], uid)
 
     def _analysis_is_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
-        current_system_version = getattr(analysis_plugin, 'SYSTEM_VERSION', None)
+        try:
+            current_system_version = analysis_plugin.SYSTEM_VERSION
+        except AttributeError:
+            current_system_version = None
+
         try:
             if self._current_version_is_newer(analysis_plugin.VERSION, current_system_version, db_entry):
                 return False
@@ -368,7 +412,7 @@ class AnalysisScheduler:
     def _get_skipped_analysis_result(self, analysis_to_do: str) -> dict:
         return {
             'summary': [],
-            'analysis_date': time(),
+            'analysis_date': time.time(),
             'plugin_version': self.analysis_plugins[analysis_to_do].VERSION,
             'result': {
                 'skipped': 'blacklisted file type',
@@ -407,8 +451,16 @@ class AnalysisScheduler:
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> tuple[list, list]:
-        blacklist = getattr(self.analysis_plugins[analysis_plugin], 'MIME_BLACKLIST', [])
-        whitelist = getattr(self.analysis_plugins[analysis_plugin], 'MIME_WHITELIST', [])
+        try:
+            blacklist = self.analysis_plugins[analysis_plugin].MIME_BLACKLIST
+        except AttributeError:
+            blacklist = []
+
+        try:
+            whitelist = self.analysis_plugins[analysis_plugin].MIME_WHITELIST
+        except AttributeError:
+            whitelist = []
+
         return blacklist, whitelist
 
     # ---- result collector functions ----
@@ -421,17 +473,28 @@ class AnalysisScheduler:
             process.start()
 
     def _result_collector(self):
+        # Collects the results form plugins and writes them in FileObject.processed_analysis
         logging.debug(f'Started analysis result collector (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
+                if isinstance(plugin, analysis.PluginV0):
+                    runner = self._plugin_runners[plugin.metadata.name]
+                    out_queue = runner.out_queue
+                elif isinstance(plugin, AnalysisBasePlugin):
+                    out_queue = plugin.out_queue
+
                 try:
-                    result = plugin.out_queue.get_nowait()
+                    if isinstance(plugin, analysis.PluginV0):
+                        fw, entry = out_queue.get_nowait()
+                        runner.write_result_in_file_object(entry, fw)
+                    elif isinstance(plugin, AnalysisBasePlugin):
+                        fw = out_queue.get_nowait()
                 except (Empty, ValueError):
                     pass
                 else:
                     nop = False
-                    self._handle_collected_result(result, plugin_name)
+                    self._handle_collected_result(fw, plugin_name)
             if nop:
                 sleep(config.backend.block_delay)
 
@@ -453,7 +516,11 @@ class AnalysisScheduler:
     # ---- miscellaneous functions ----
 
     def get_combined_analysis_workload(self):
-        return self.process_queue.qsize() + sum(plugin.in_queue.qsize() for plugin in self.analysis_plugins.values())
+        plugin_queues = [
+            plugin.in_queue for plugin in self.analysis_plugins.values() if isinstance(plugin, AnalysisBasePlugin)
+        ]
+        runner_queue_sum = sum([runner.get_queue_len() for runner in self._plugin_runners.values()])
+        return self.process_queue.qsize() + sum(queue.qsize() for queue in plugin_queues) + runner_queue_sum
 
     def get_scheduled_workload(self) -> dict:
         """
@@ -482,12 +549,21 @@ class AnalysisScheduler:
             'plugins': {},
         }
         for plugin_name, plugin in self.analysis_plugins.items():
-            workload['plugins'][plugin_name] = {
-                'queue': plugin.in_queue.qsize(),
-                'out_queue': plugin.out_queue.qsize(),
-                'active': (sum(plugin.active[i].value for i in range(plugin.thread_count))),
-                'stats': get_plugin_stats(plugin),
-            }
+            if isinstance(plugin, analysis.PluginV0):
+                runner = self._plugin_runners[plugin_name]
+                workload['plugins'][plugin_name] = {
+                    'queue': runner.get_queue_len(),
+                    'out_queue': runner.out_queue.qsize(),
+                    'active': runner.get_active_worker_count(),
+                    'stats': get_plugin_stats(runner.stats, runner.stats_count),
+                }
+            elif isinstance(plugin, AnalysisBasePlugin):
+                workload['plugins'][plugin_name] = {
+                    'queue': plugin.in_queue.qsize(),
+                    'out_queue': plugin.out_queue.qsize(),
+                    'active': (sum(plugin.active[i].value for i in range(plugin.thread_count))),
+                    'stats': get_plugin_stats(plugin.analysis_stats, plugin.analysis_stats_count),
+                }
         return workload
 
     @staticmethod
@@ -505,6 +581,8 @@ class AnalysisScheduler:
         :return: Boolean value stating if any attached process ran into an exception
         """
         for _, plugin in self.analysis_plugins.items():
+            if isinstance(plugin, analysis.PluginV0):
+                continue
             if plugin.check_exceptions():
                 return True
         return check_worker_exceptions(self.schedule_processes + self.result_collector_processes, 'Scheduler')
@@ -514,3 +592,267 @@ def _fix_system_version(system_version: str | None) -> str:
     # the system version is optional -> return '0' if it is '' or None
     # YARA plugins used an invalid system version x.y_z (may still be in DB) -> replace all underscores with dashes
     return system_version.replace('_', '-') if system_version else '0'
+
+
+def _dependencies_are_unfulfilled(plugin: analysis.PluginV0, fw_object: FileObject):
+    # FIXME plugins can be in processed_analysis and could still be skipped, etc. -> need a way to verify that
+    # FIXME the analysis ran successfully
+    return any(dep not in fw_object.processed_analysis for dep in plugin.metadata.dependencies)
+
+
+class PluginRunner:
+    @dataclass
+    class Config:
+        """A class containing all parameters of the runner"""
+
+        process_count: int
+        #: Timeout in seconds after which the analysis is aborted
+        timeout: int
+
+    @dataclass(config={'arbitrary_types_allowed': True})
+    class Task:
+        """Contains all information a :py:class:`PluginWorker` needs to analyze a file."""
+
+        #: The virtual file path of the file object
+        #: See :py:class:`FileObject`.
+        virtual_file_path: dict
+        #: The path of the file on the disk
+        path: str
+        #: A dictionary containing plugin names as keys and their analysis as value.
+        dependencies: typing.Dict[str, dict]
+        #: The schedulers state associated with the file that is analyzed.
+        #: Here it is just the whole FileObject
+        # We need this because the scheduler is using multiple processes which
+        # communicate via multiprocessing.Queue's.
+        # Our implementation has no "master" process which contains all the
+        # state but rather the state is passed through the queues,
+        # even if a process (like PluginRunner) does not need all state (e.g.
+        # FileObject.scheduled_analysis)
+        scheduler_state: FileObject
+
+    def __init__(self, plugin: analysis.PluginV0, config: Config):
+        # mp.Queue[..] works: https://github.com/python/cpython/pull/19423
+
+        self._plugin = plugin
+        self._config = config
+
+        self._in_queue: mp.Queue[PluginRunner.Task] = mp.Queue()
+        #: Workers put the ``Task.scheduler_state`` and the finished analysis in the out_queue
+        self.out_queue: mp.Queue[tuple[FileObject, dict]] = mp.Queue()
+        self.out_queue.close()
+
+        self.stats = mp.Array(ctypes.c_float, ANALYSIS_STATS_LIMIT)
+        self.stats_count = mp.Value('i', 0)
+        self._stats_idx = mp.Value('i', 0)
+
+        self._fsorganizer = FSOrganizer()
+
+        worker_config = Worker.Config(
+            timeout=self._config.timeout,
+        )
+        self._workers = [
+            Worker(
+                plugin=plugin,
+                worker_config=worker_config,
+                in_queue=self._in_queue,
+                out_queue=self.out_queue,
+                stats=self.stats,
+                stats_count=self.stats_count,
+                stats_idx=self._stats_idx,
+            )
+            for _ in range(self._config.process_count)
+        ]
+
+    def get_queue_len(self) -> int:
+        return self._in_queue.qsize()
+
+    def get_active_worker_count(self) -> int:
+        """Returns the amount of workers that currently analyze a file"""
+        return sum([worker.is_alive() for worker in self._workers])
+
+    def start(self):
+        for worker in self._workers:
+            worker.start()
+
+    def shutdown(self):
+        for worker in self._workers:
+            worker.terminate()
+
+    def queue_analysis(self, file_object: FileObject):
+        """Queues the analysis of ``file_object`` with ``self._plugin``.
+        The caller of this method has to ensure that the dependencies are fulfilled.
+        """
+        dependencies = {}
+        for dependency in self._plugin.metadata.dependencies:
+            dependencies[dependency] = file_object.processed_analysis
+
+        logging.debug(f'Queueing analysis for {file_object.uid}')
+        self._in_queue.put(
+            PluginRunner.Task(
+                virtual_file_path=file_object.virtual_file_path,
+                path=self._fsorganizer.generate_path(file_object),
+                dependencies=dependencies,
+                scheduler_state=file_object,
+            )
+        )
+
+
+class Worker(mp.Process):
+    """A process that executes a plugin in a child process."""
+
+    # mp.Queue[..] works: https://github.com/python/cpython/pull/19423
+
+    # The amount of time in seconds that a worker has to complete when it shall terminate.
+    # We cannot rely on the plugins timeout as this might be too large.
+    SIGTERM_TIMEOUT = 5
+
+    class TimeoutError(Exception):  # noqa: A001
+        def __init__(self, timeout: float):
+            self.timeout = timeout
+
+    @dataclass
+    class Config:
+        """A class containing all parameters of the worker"""
+
+        #: Timeout in seconds after which the analysis is aborted
+        timeout: int
+
+    def __init__(  # noqa: PLR0913
+        self,
+        plugin: analysis.PluginV0,
+        worker_config: Config,
+        in_queue: mp.Queue[PluginRunner.Task],
+        out_queue: mp.Queue[tuple[str, list[str], dict]],
+        stats: mp.Array[ctypes.c_float],
+        stats_count: mp.Value[int],
+        stats_idx: mp.Value[int],
+    ):
+        super().__init__(name=f'{plugin.metadata.name} worker')
+        self._plugin = plugin
+        self._worker_config = worker_config
+
+        self._in_queue = in_queue
+        self._in_queue.close()
+        self._out_queue = out_queue
+
+        self._stats = stats
+        self._stats_count = stats_count
+        self._stats_idx = stats_idx
+
+        # Used for statistics
+        self._is_working = mp.Value('i')
+        self._is_working.value = 0
+
+    def is_working(self):
+        return self._is_working.value != 0
+
+    def run(self):  # noqa: C901, PLR0915
+        run = True
+        recv_conn, send_conn = mp.Pipe(duplex=False)
+
+        child_process = None
+
+        def _handle_sigterm(signum, frame):
+            del signum, frame
+            logging.critical(f'{self} received SIGTERM. Shutting down.')
+            nonlocal run
+            run = False
+
+            if child_process is None:
+                return
+
+            child_process.join(Worker.SIGTERM_TIMEOUT)
+            if child_process.is_alive():
+                raise Worker.TimeoutError(Worker.SIGTERM_TIMEOUT)
+
+        signal.signal(signal.SIGTERM, _handle_sigterm)
+
+        while run:
+            try:
+                # We must have some non-infinite delay here to avoid blocking even after _handle_sigterm is called
+                task = self._in_queue.get(block=True, timeout=config.backend.block_delay)
+            except queue.Empty:
+                continue
+
+            entry = {}
+            try:
+                self._is_working.value = 1
+                logging.debug(f'{self}: Begin {self._plugin.metadata.name} analysis on {task.scheduler_state.uid}')
+                start_time = time.time()
+
+                child_process = mp.Process(
+                    target=self._child_entrypoint,
+                    args=(self._plugin, task, send_conn),
+                )
+                child_process.start()
+                child_process.join(timeout=self._worker_config.timeout)
+                if not recv_conn.poll():
+                    raise Worker.TimeoutError(self._worker_config.timeout)
+
+                result = recv_conn.recv()
+
+                if isinstance(result, Exception):
+                    raise result
+
+                duration = time.time() - start_time
+
+                entry['analysis'] = result
+                logging.debug(f'{self}: Finished {self._plugin.metadata.name} analysis on {task.scheduler_state.uid}')
+                if duration > 120:  # noqa: PLR2004
+                    logging.info(
+                        f'Analysis {self._plugin.metadata.name} on {task.scheduler_state.uid} is slow: took {duration:.1f} seconds'  # noqa: E501
+                    )
+                self._update_duration_stats(duration)
+            except Worker.TimeoutError as err:
+                logging.warning(f'{self} timed out after {err.timeout} seconds.')
+                entry['timeout'] = (self._plugin.metadata.name, 'Analysis timed out')
+            except Exception as exc:
+                # As tracebacks can't be pickled we just print the __exception_str__ that we set in the child
+                logging.error(f'{self} got a exception during analysis:\n {exc}', exc_info=False)
+                logging.error(exc.__exception_str__)
+                entry['exception'] = (self._plugin.metadata.name, 'Analysis threw an exception')
+            finally:
+                # Don't kill another process if it uses the same PID as our dead worker
+                if child_process.is_alive():
+                    child = psutil.Process(pid=child_process.pid)
+                    for grandchild in child.children(recursive=True):
+                        grandchild.kill()
+                    child.kill()
+                self._is_working.value = 0
+
+            self._out_queue.put((task.scheduler_state, entry))
+
+    def write_result_in_file_object(self, entry: tuple, file_object: FileObject):
+        """Takes a file_object and an entry as it is returned by :py:func:`run`
+        and returns a FileObject with the corresponding fileds set.
+        """
+        if 'analysis' in entry:
+            file_object.processed_analysis[self._plugin.metadata.name] = entry['analysis']
+        elif 'timeout' in entry:
+            file_object.analysis_exception = entry['timeout']
+        elif 'exception' in entry:
+            file_object.analysis_exception = entry['exception']
+
+    @staticmethod
+    def _child_entrypoint(plugin: analysis.PluginV0, task: PluginRunner.Task, conn: mp.connection.Connection):
+        """Processes a single task then returns.
+        The result is written to ``conn``.
+        Exceptions and formatted tracebacks are also written to ``conn``.
+        """
+        try:
+            result = plugin.get_analysis(io.FileIO(task.path), task.virtual_file_path, task.dependencies)
+        except Exception as exc:
+            result = exc
+            result.__exception_str__ = traceback.format_exc()
+
+        conn.send(result)
+
+    def _update_duration_stats(self, duration):
+        with self._stats.get_lock():
+            self._stats[self._stats_idx.value] = duration
+        self._stats_idx.value += 1
+        if self._stats_idx.value >= ANALYSIS_STATS_LIMIT:
+            # if the stats array is full, overwrite the oldest result
+            self._stats_idx.value = 0
+        if self._stats_count.value < ANALYSIS_STATS_LIMIT:
+            self._stats_count.value += 1
