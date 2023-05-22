@@ -136,8 +136,7 @@ class PluginV0(metaclass=abc.ABCMeta):
         return {
             'analysis_date': start_time,
             'plugin_version': self.metadata.version,
-            # TODO system_version: The version of the plugin backend. E.g. yara
-            'system_version': self.metadata.version,
+            'system_version': self.metadata.system_version,
             'summary': summary,
             'tags': tags_dict,
             'result': result.dict() if result else {},
