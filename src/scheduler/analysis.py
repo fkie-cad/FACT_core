@@ -149,6 +149,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for runner in self._plugin_runners.values():
             runner.shutdown()
 
+        for runner in self._plugin_runners.values():
+            for worker in runner._workers:
+                worker.join(Worker.SIGTERM_TIMEOUT + 1)
+
         with ThreadPoolExecutor() as pool:
             for plugin in self.analysis_plugins.values():
                 futures.append(pool.submit(plugin.shutdown))
