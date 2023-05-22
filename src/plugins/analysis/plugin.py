@@ -101,7 +101,7 @@ class PluginV0(metaclass=abc.ABCMeta):
         self,
         file_handle: io.FileIO,
         virtual_file_path: dict,
-        analyses: dict[str, dict],
+        analyses: dict[str, pydantic.BaseModel],
     ) -> typing.Optional[Schema]:
         """Analyze a file.
         May return None if nothing was found.
