@@ -1,3 +1,5 @@
+import yara
+
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 
 
@@ -9,11 +11,6 @@ class AnalysisBasePluginAdapterMixin:
     def start(self):
         # This is a no-op
         pass
-
-    @property
-    def FILE(self):  # noqa: N802
-        # What is this even used for?
-        raise NotImplementedError
 
     @property
     def NAME(self):  # noqa: N802
@@ -59,3 +56,24 @@ class AnalysisBasePluginAdapterMixin:
     def shutdown(self):
         # The shutdown of plugin workers is handled by the PluginRunner
         pass
+
+
+def yara_match_to_dict(match: yara.Match) -> dict:
+    """Converts a ``yara.Match`` to the format that :py:class:`analysis.YaraPluginBase` would return."""
+    # FIXME (yara): Use this when we upgrade to yara-python 4.3.0
+    # for string_match in match.strings:
+    #    for string_instance in string_match.instances:
+
+    strings = [(offset, identifier, data.hex()) for offset, identifier, data in match.strings]
+
+    return {
+        'meta': {
+            # Optional
+            'date': match.meta.get('date'),
+            # Optional
+            'author': match.meta.get('author'),
+            'description': match.meta['description'],
+        },
+        'rule': match.rule,
+        'strings': strings,
+    }
