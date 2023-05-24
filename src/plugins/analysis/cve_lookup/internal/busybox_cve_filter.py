@@ -4,7 +4,6 @@ import requests
 from pathlib import Path
 from typing import Dict, List
 from objects.file import FileObject
-from database_interface import QUERIES, DatabaseInterface
 
 GROUP_1 = None
 GROUP_2 = None
