@@ -103,7 +103,17 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
 
         assert 'file_hashes' in result, 'file hashes plugin not found'
         assert 'file_type' in result, 'file type plugin not found'
+
+    def test_remove_example_plugins(self):
+        # Reloading plugins will discard the already started processes
+        self.sched.shutdown()
+        self.sched._load_plugins()
+        self.sched._remove_example_plugins()
+
+        result = self.sched.get_plugin_dict()
+
         assert 'dummy_plugin_for_testing_only' not in result, 'dummy plug-in not removed'
+        assert 'ExamplePlugin' not in result, 'ExamplePlugin not removed'
 
     def test_get_plugin_dict_description(self):
         result = self.sched.get_plugin_dict()
