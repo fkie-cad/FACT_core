@@ -207,6 +207,12 @@ class AnalysisScheduler:
 
     # ---- plugin initialization ----
 
+    def _remove_example_plugins(self):
+        plugins = ['dummy_plugin_for_testing_only', 'ExamplePlugin']
+        for plugin in plugins:
+            self._plugin_runners.pop(plugin, None)
+            self.analysis_plugins.pop(plugin, None)
+
     def _load_plugins(self):
         schemata = {}
 
@@ -239,6 +245,10 @@ class AnalysisScheduler:
             runner = PluginRunner(plugin, runner_config, schemata)
             self._plugin_runners[plugin.metadata.name] = runner
 
+        # FIXME: This is a hack and should be remove once we have unified fixtures for the scheduler
+        if not os.getenv('PYTEST_CURRENT_TEST'):
+            self._remove_example_plugins()
+
     def get_plugin_dict(self) -> dict:
         """
         Get information regarding all loaded plugins in form of a dictionary with the following form:
@@ -264,7 +274,6 @@ class AnalysisScheduler:
         :return: dict with information regarding all loaded plugins
         """
         plugin_list = self._get_list_of_available_plugins()
-        plugin_list = self._remove_unwanted_plugins(plugin_list)
         plugin_sets = config.backend.analysis_preset
         result = {}
         for plugin in plugin_list:
@@ -584,13 +593,6 @@ class AnalysisScheduler:
                     'stats': get_plugin_stats(plugin.analysis_stats, plugin.analysis_stats_count),
                 }
         return workload
-
-    @staticmethod
-    def _remove_unwanted_plugins(list_of_plugins):
-        defaults = ['dummy_plugin_for_testing_only', 'ExamplePlugin']
-        for plugin in defaults:
-            list_of_plugins.remove(plugin)
-        return list_of_plugins
 
     def check_exceptions(self) -> bool:
         """
