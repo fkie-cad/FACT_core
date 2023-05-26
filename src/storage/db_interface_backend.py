@@ -126,7 +126,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 for path in paths
             ]
             session.add_all(vfp_list)
-            # included_files_table needs also to be added
+            # included_files_table entry needs also to be added
             statement = included_files_table.insert().values(parent_uid=parent_uid, child_uid=child_uid)
             session.execute(statement)
 

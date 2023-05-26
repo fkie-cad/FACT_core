@@ -28,7 +28,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def add_compare_task(self, compare_id, force=False):
         self._add_to_redis_queue('compare_task', (compare_id, force), compare_id)
 
-    def delete_file(self, uid_list: list[str]):
+    def delete_file(self, uid_list: set[str]):
         self._add_to_redis_queue('file_delete_task', uid_list)
 
     def get_available_analysis_plugins(self):

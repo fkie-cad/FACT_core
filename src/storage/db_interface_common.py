@@ -41,6 +41,12 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             query = select(FileObjectEntry.uid).filter(FileObjectEntry.uid == uid)
             return bool(session.execute(query).scalar())
 
+    def uid_list_exists(self, uid_list: list[str] | set[str]) -> set:
+        """Check for a list of UIDs if DB entries exist. Returns a set of UIDs with existing DB entries."""
+        with self.get_read_only_session() as session:
+            query = select(FileObjectEntry.uid).filter(FileObjectEntry.uid.in_(uid_list))
+            return set(session.execute(query).scalars())
+
     def is_firmware(self, uid: str) -> bool:
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry.uid).filter(FirmwareEntry.uid == uid)
