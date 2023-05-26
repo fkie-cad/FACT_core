@@ -206,16 +206,19 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self, task: FileObject, extracted_objects: list[FileObject], db_interface: BackendDbInterface
     ):
         with self._sync():
-            currently_unpacked = self.currently_extracted[task.root_uid]
+            currently_unpacked = self.currently_extracted.get(task.root_uid)
+            if currently_unpacked is None:
+                # this file is a duplicate and unpacking of the FW is already finished -> do nothing
+                logging.warning(f'Skipping unpacking/analysis of {task.uid} (already done)')
+                extracted_objects.clear()
+                return
+
+            if task.uid in currently_unpacked['delayed_vfp_update']:
+                for parent_uid, path_list in currently_unpacked['delayed_vfp_update'][task.uid].items():
+                    db_interface.add_vfp(parent_uid, task.uid, path_list)
             currently_unpacked['done'].add(task.uid)
-            for fo in extracted_objects[:]:
-                if fo.uid not in currently_unpacked['done']:
-                    currently_unpacked['remaining'].add(fo.uid)
-                else:
-                    # FO was already unpacked from this FW -> only update VFP and skip unpacking/analysis
-                    extracted_objects.remove(fo)
-                    db_interface.add_vfp(task.uid, fo.uid, fo.virtual_file_path[task.uid])
-                    logging.warning(f'Skipping unpacking/analysis of {fo.uid} (part of {fo.root_uid}).')
+
+            self._update_extracted_objects(currently_unpacked, db_interface, extracted_objects, task)
             with suppress(KeyError):
                 currently_unpacked['remaining'].remove(task.uid)
             if not currently_unpacked['remaining']:
@@ -223,6 +226,27 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 self.currently_extracted.pop(task.root_uid)
             else:
                 self.currently_extracted[task.root_uid] = currently_unpacked  # overwrite object to trigger update
+
+    @staticmethod
+    def _update_extracted_objects(
+        currently_unpacked: dict,
+        db_interface: BackendDbInterface,
+        extracted_objects: list[FileObject],
+        current_fo: FileObject,
+    ):
+        for fo in extracted_objects[:]:
+            path_list = fo.virtual_file_path[current_fo.uid]
+            # 3 cases: unpacking not yet started, unpacking currently in progress, unpacking already done
+            if fo.uid in currently_unpacked['remaining']:
+                # FO is currently being unpacked -> DB entry is not yet created -> delay VFP update
+                extracted_objects.remove(fo)
+                currently_unpacked['delayed_vfp_update'].setdefault(fo.uid, {})[current_fo.uid] = path_list
+            elif fo.uid not in currently_unpacked['done']:  # unpacking of FO not yet started (usually new file)
+                currently_unpacked['remaining'].add(fo.uid)
+            else:  # FO was already unpacked from this FW -> only update VFP and skip unpacking/analysis
+                extracted_objects.remove(fo)
+                db_interface.add_vfp(current_fo.uid, fo.uid, path_list)
+                logging.warning(f'Skipping unpacking/analysis of {fo.uid} (part of {fo.root_uid}).')
 
     @staticmethod
     def _fetch_logs(container: ExtractionContainer) -> str:
@@ -288,4 +312,4 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             if fo.uid in self.currently_extracted:
                 logging.warning(f'starting unpacking of {fo.uid} but it is currently also still being unpacked')
             else:
-                self.currently_extracted[fo.uid] = {'remaining': {fo.uid}, 'done': set()}
+                self.currently_extracted[fo.uid] = {'remaining': {fo.uid}, 'done': set(), 'delayed_vfp_update': {}}
