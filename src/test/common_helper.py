@@ -174,6 +174,9 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
+    def uid_list_exists(self, uid_list):
+        return set()
+
     def all_uids_found_in_database(self, uid_list):
         return True
 

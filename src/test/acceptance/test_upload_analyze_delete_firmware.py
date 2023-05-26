@@ -79,7 +79,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         local_firmware_path = Path(fs_backend.generate_path_from_uid(self.test_fw_a.uid))
         assert local_firmware_path.exists(), 'file not found before delete'
         rv = self.test_client.get(f'/admin/delete/{self.test_fw_a.uid}')
-        assert b'Deleted 4 file(s) from database' in rv.data, 'deletion success page not shown'
+        assert b'deleted 4 files' in rv.data, 'deletion success page not shown'
         rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
         assert b'File not found in database' in rv.data, 'file is still available after delete'
         time.sleep(3)

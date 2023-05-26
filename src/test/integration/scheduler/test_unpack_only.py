@@ -5,7 +5,7 @@ from multiprocessing import Queue
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import create_test_firmware
-from test.integration.common import MockFSOrganizer
+from test.integration.common import MockFSOrganizer, MockDbInterface
 
 
 class TestFileAddition:
@@ -16,6 +16,7 @@ class TestFileAddition:
             post_unpack=self._dummy_callback,
             fs_organizer=MockFSOrganizer(),
             unpacking_locks=self.unpacking_lock_manager,
+            db_interface=MockDbInterface,
         )
         self._unpack_scheduler.start()
 

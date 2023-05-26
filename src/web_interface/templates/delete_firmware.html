@@ -5,6 +5,6 @@
 {% block body %}
     <div class="alert alert-danger mt-4">
         <h3 class="alert-heading">Firmware deleted <i class="fas fa-trash-alt"></i></h3>
-        <h6>Deleted firmware with UID: {{ uid }}</h6>
+        <h6>Deleted firmware with UID: {{ uid }} (deleted {{ deleted_count }} files and updated {{ updated_count }} database entries)</h6>
     </div>
 {% endblock %}

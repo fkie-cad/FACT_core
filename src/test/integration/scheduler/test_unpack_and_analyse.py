@@ -25,6 +25,7 @@ class TestFileAddition:
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
             fs_organizer=MockFSOrganizer(),
             unpacking_locks=self.unpacking_lock_manager,
+            db_interface=MockDbInterface,
         )
         self._unpack_scheduler.start()
 

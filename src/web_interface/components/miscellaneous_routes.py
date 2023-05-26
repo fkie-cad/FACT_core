@@ -71,8 +71,13 @@ class MiscellaneousRoutes(ComponentBase):
     def delete_firmware(self, uid):
         if not self.db.frontend.is_firmware(uid):
             return render_template('error.html', message=f'Firmware not found in database: {uid}')
-        self.db.admin.delete_firmware(uid)
-        return render_template('delete_firmware.html')
+        updated_count, deleted_count = self.db.admin.delete_firmware(uid)
+        return render_template(
+            'delete_firmware.html',
+            uid=uid,
+            deleted_count=deleted_count,
+            updated_count=deleted_count,
+        )
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/missing_analyses', GET)

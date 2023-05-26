@@ -42,36 +42,33 @@ def test_update_parents(db):
 
 
 def test_vfp(db):
-    fo, fw = create_fw_with_child_fo()
-    fo.virtual_file_path = {}
-    fw.virtual_file_path = {}
-    db.backend.insert_multiple_objects(fw, fo)
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
 
-    assert db.backend.get_vfps(fo.uid) == {}
+    assert len(db.backend.get_vfps(child_fo.uid)) == 1
 
     paths = ['foo/bar', 'test']
-    db.backend.add_vfp(fw.uid, fo.uid, paths)
-    vfp_dict = db.backend.get_vfps(fo.uid)
+    db.backend.add_vfp(fw.uid, child_fo.uid, paths)
+    vfp_dict = db.backend.get_vfps(child_fo.uid)
 
-    assert fw.uid in vfp_dict
+    assert set(vfp_dict) == {fw.uid, parent_fo.uid}
     assert sorted(vfp_dict[fw.uid]) == paths
 
     db.admin.delete_firmware(fw.uid)
-    assert db.backend.get_vfps(fo.uid) == {}, 'VFP should have been deleted by cascade'
+    assert db.backend.get_vfps(child_fo.uid) == {}, 'VFP should have been deleted by cascade'
 
 
 def test_vfp_multiple_parents(db):
     fw, parent_fo, fo = create_fw_with_parent_and_child()
+    fo.virtual_file_path = {parent_fo.uid: ['foo']}
     fw2 = create_test_firmware()
     fw2.uid = 'test_fw2'
     for obj in [fw, fw2, parent_fo, fo]:
-        obj.virtual_file_path = {}
         db.backend.insert_object(obj)
 
-    assert db.common.get_vfps(fo.uid) == {}
-    db.backend.add_vfp(parent_fo.uid, fo.uid, ['foo'])
-    db.backend.add_vfp(fw2.uid, fo.uid, ['bar'])
+    assert set(db.common.get_vfps(fo.uid)) == {parent_fo.uid}
 
+    db.backend.add_vfp(fw2.uid, fo.uid, ['bar'])
     assert db.common.get_vfps(fo.uid) == {parent_fo.uid: ['foo'], fw2.uid: ['bar']}
     assert db.common.get_vfps(fo.uid, parent_uid=parent_fo.uid) == {parent_fo.uid: ['foo']}
     assert db.common.get_vfps(fo.uid, parent_uid=fw2.uid) == {fw2.uid: ['bar']}
