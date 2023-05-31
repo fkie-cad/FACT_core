@@ -223,7 +223,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     @staticmethod
     def _get_hid_for_fw_entry(entry: FirmwareEntry) -> str:
-        part = '' if entry.device_part == '' else f' {entry.device_part}'
+        part = '' if not entry.device_part else f' {entry.device_part}'
         return f'{entry.vendor} {entry.device_name} -{part} {entry.version} ({entry.device_class})'
 
     def _get_unpacker_name(self, fw_entry: FirmwareEntry) -> str:

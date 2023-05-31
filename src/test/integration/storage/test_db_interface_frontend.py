@@ -60,12 +60,22 @@ def test_get_hid_invalid_uid(db):
     assert result == '', 'invalid uid should result in empty string'
 
 
+def test_get_hid_dict(db):
+    fo, fw = create_fw_with_child_fo()
+    fo.virtual_file_path[fw.uid] = ['/foo']
+    db.backend.insert_multiple_objects(fw, fo)
+    uid_set = {fo.uid, fw.uid}
+    hid_dict = db.frontend.get_hid_dict(uid_set, root_uid=fw.uid)
+    assert all(uid in hid_dict for uid in uid_set)
+    assert hid_dict[fo.uid] == '/foo'
+    assert hid_dict[fw.uid] == f'{fw.vendor} {fw.device_name} - {fw.version} ({fw.device_class})'
+
+
 def test_get_data_for_nice_list(db):
     fo, fw = create_fw_with_child_fo()
     uid_list = [fw.uid, fo.uid]
-    db.backend.add_object(fw)
     fo.virtual_file_path = {fw.uid: ['/file/path']}
-    db.backend.add_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
 
     nice_list_data = db.frontend.get_data_for_nice_list(uid_list, uid_list[0])
     assert len(nice_list_data) == 2
@@ -162,7 +172,7 @@ def test_generic_search_unknown_op(db):
 
 
 @pytest.mark.parametrize(
-    'query, expected',
+    ('query', 'expected'),
     [
         ({}, ['uid_1']),
         ({'vendor': 'test_vendor'}, ['uid_1']),
@@ -179,8 +189,7 @@ def test_generic_search_parent(db):
     fw.file_name = 'fw.image'
     fo.file_name = 'foo.bar'
     fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'foo': 'bar', 'list': ['a', 'b']})}
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
 
     # insert some unrelated objects to assure non-matching objects are not found
     insert_test_fw(db, 'some_other_fw', vendor='foo123')
@@ -205,8 +214,7 @@ def test_generic_search_nested(db):
             analysis_result={'nested': {'key': 'value'}, 'nested_2': {'inner_nested': {'foo': 'bar', 'test': 3}}}
         )
     }
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
 
     assert db.frontend.generic_search({'processed_analysis.plugin.nested.key': 'value'}) == [fo.uid]
     assert db.frontend.generic_search({'processed_analysis.plugin.nested.key': {'$in': ['value', 'other_value']}}) == [
@@ -411,8 +419,7 @@ def test_generate_file_tree_level(db):
     child_fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'sometype'})
     uid = parent_fw.uid
     child_fo.virtual_file_path = {uid: [f'/folder/{child_fo.file_name}']}
-    db.backend.add_object(parent_fw)
-    db.backend.add_object(child_fo)
+    db.backend.insert_multiple_objects(parent_fw, child_fo)
     for node in db.frontend.generate_file_tree_level(uid, uid):
         assert isinstance(node, FileTreeNode)
         assert node.name == parent_fw.file_name
@@ -432,9 +439,7 @@ def test_get_file_tree_data(db):
     fw.processed_analysis = {'file_type': generate_analysis_entry(analysis_result={'failed': 'some error'})}
     parent_fo.processed_analysis = {'file_type': generate_analysis_entry(analysis_result={'mime': 'foo_type'})}
     child_fo.processed_analysis = {}  # simulate that file_type did not run yet
-    db.backend.add_object(fw)
-    db.backend.add_object(parent_fo)
-    db.backend.add_object(child_fo)
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
 
     result = db.frontend.get_file_tree_data([fw.uid, parent_fo.uid, child_fo.uid])
     assert len(result) == 3
@@ -451,7 +456,7 @@ def test_get_file_tree_data(db):
 
 
 @pytest.mark.parametrize(
-    'query, expected, expected_fw, expected_inv',
+    ('query', 'expected', 'expected_fw', 'expected_inv'),
     [
         ({}, 1, 1, 1),
         ({'size': 123}, 2, 1, 0),
@@ -465,9 +470,7 @@ def test_get_number_of_total_matches(db, query, expected, expected_fw, expected_
     parent_fo.size = 123
     child_fo.size = 123
     child_fo.file_name = 'foo.bar'
-    db.backend.add_object(fw)
-    db.backend.add_object(parent_fo)
-    db.backend.add_object(child_fo)
+    db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
     assert db.frontend.get_number_of_total_matches(query, only_parent_firmwares=False, inverted=False) == expected
     assert db.frontend.get_number_of_total_matches(query, only_parent_firmwares=True, inverted=False) == expected_fw
     assert db.frontend.get_number_of_total_matches(query, only_parent_firmwares=True, inverted=True) == expected_inv
@@ -488,8 +491,7 @@ def test_rest_get_file_object_uids(db):
 def test_rest_get_firmware_uids(db):
     child_fo, parent_fw = create_fw_with_child_fo()
     child_fo.file_name = 'foo_file'
-    db.backend.add_object(parent_fw)
-    db.backend.add_object(child_fo)
+    db.backend.insert_multiple_objects(parent_fw, child_fo)
     test_fw1 = insert_test_fw(db, 'fw1', vendor='foo_vendor', file_name='fw1', device_name='some_device')
     test_fw2 = insert_test_fw(db, 'fw2', vendor='foo_vendor', file_name='fw2')
 
