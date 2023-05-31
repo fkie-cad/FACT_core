@@ -8,6 +8,7 @@ from common_helper_files import get_binary_from_file
 from helperFunctions.data_conversion import make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
+from helperFunctions.virtual_file_path import get_some_vfp
 
 
 class FileObject:  # pylint: disable=too-many-instance-attributes
@@ -164,7 +165,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         :return: String representing a human-readable identifier for this file.
         '''
         try:
-            return list(self.virtual_file_path.values())[0][0]  # just get some random path
+            return get_some_vfp(self.virtual_file_path)
         except IndexError:
             # this should normally not happen outside of tests as file objects are initialized with a "virtual file
             # path" during unpacking
@@ -203,7 +204,11 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         return [vfp for vfp_list in self.virtual_file_path.values() for vfp in vfp_list]
 
     def __str__(self) -> str:
-        return f'UID: {self.uid}\n Processed analysis: {list(self.processed_analysis.keys())}\n Files included: {self.files_included}'
+        return (
+            f'UID: {self.uid}\n'
+            f' Processed analysis: {list(self.processed_analysis.keys())}\n'
+            f' Files included: {self.files_included}'
+        )
 
     def __repr__(self) -> str:
         return self.__str__()

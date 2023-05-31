@@ -156,13 +156,15 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return result
 
     def get_vfps_for_uid_list(
-        self, uid_list: list[str], root_uid: str | None = None
+        self, uid_list: list[str] | set[str], root_uid: str | None = None
     ) -> dict[str, dict[str, list[str]]]:
         """
         Gets all virtual file paths (see `get_vfps()`) for a list of UIDs. Returns a dictionary with key=uid and
         value=vfp_dict for that file (vfp_dict is the same as the output of `get_vfps()` for that file). If `root_uid`
         is set, only return the paths inside the firmware with UID `root_uid`.
         """
+        if not uid_list:
+            return {}
         with self.get_read_only_session() as session:
             query = select(VirtualFilePath).filter(VirtualFilePath.file_uid.in_(uid_list))
             if root_uid:
