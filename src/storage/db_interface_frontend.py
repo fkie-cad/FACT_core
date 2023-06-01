@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
+from helperFunctions.virtual_file_path import get_some_vfp
 from objects.firmware import Firmware
 from storage.db_interface_common import DbInterfaceCommon
 from storage.query_conversion import build_generic_search_query, build_query_from_dict, query_parent_firmware
@@ -103,18 +104,12 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def get_hid_dict(self, uid_set: set[str], root_uid: str) -> dict[str, str]:
         with self.get_read_only_session() as session:
-            query = (
-                select(FileObjectEntry, FirmwareEntry)
-                .outerjoin(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
-                .filter(FileObjectEntry.uid.in_(uid_set))
-            )
-            result = {}
-            for fo_entry, fw_entry in session.execute(query):
-                if fw_entry is None:  # FO
-                    result[fo_entry.uid] = self._get_hid_fo(fo_entry.uid, root_uid) or fo_entry.file_name
-                else:  # FW
-                    result[fo_entry.uid] = self._get_hid_firmware(fw_entry)
-        return result
+            query = select(FirmwareEntry).filter(FirmwareEntry.uid.in_(uid_set))
+            hid_dict = {fw_entry.uid: self._get_hid_firmware(fw_entry) for fw_entry in session.execute(query).scalars()}
+        vfp_data = self.get_vfps_for_uid_list(uid_set - set(hid_dict), root_uid=root_uid)
+        for uid, vfp_dict in vfp_data.items():
+            hid_dict[uid] = get_some_vfp(vfp_dict)
+        return hid_dict
 
     @staticmethod
     def _get_current_vfp(vfp: dict[str, list[str]]) -> list[str]:
@@ -228,7 +223,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     @staticmethod
     def _get_hid_for_fw_entry(entry: FirmwareEntry) -> str:
-        part = '' if entry.device_part == '' else f' {entry.device_part}'
+        part = '' if not entry.device_part else f' {entry.device_part}'
         return f'{entry.vendor} {entry.device_name} -{part} {entry.version} ({entry.device_class})'
 
     def _get_unpacker_name(self, fw_entry: FirmwareEntry) -> str:

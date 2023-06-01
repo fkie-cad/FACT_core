@@ -14,8 +14,7 @@ def test_delete_cascade(db):
     fo, fw = create_fw_with_child_fo()
     assert db.common.exists(fo.uid) is False
     assert db.common.exists(fw.uid) is False
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fo)
     assert db.common.exists(fo.uid) is True
     assert db.common.exists(fw.uid) is True
     db.admin.delete_object(fw.uid)
@@ -25,10 +24,7 @@ def test_delete_cascade(db):
 
 def test_delete_firmware(db):
     fw, parent, child = create_fw_with_parent_and_child()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(parent)
-    db.backend.insert_object(child)
-
+    db.backend.insert_multiple_objects(fw, parent, child)
     db.admin.delete_firmware(fw.uid)
 
     assert db.common.exists(fw.uid) is False
@@ -43,9 +39,7 @@ def test_delete_but_fo_is_in_fw(db):
     fo.parents.append(fw2.uid)
     fo.parent_firmware_uids.add(fw2.uid)
     fo.virtual_file_path.update({fw2.uid: [f'|{fw2.uid}|/some/path']})
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fw2)
-    db.backend.insert_object(fo)
+    db.backend.insert_multiple_objects(fw, fw2, fo)
 
     removed_vps, deleted_files = db.admin.delete_firmware(fw.uid)
 
@@ -64,16 +58,13 @@ def test_delete_but_fo_is_in_fw(db):
 
 def test_same_fw_multiple_parents(db):
     fw, parent, child = create_fw_with_parent_and_child()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(parent)
     parent2 = create_test_file_object()
     parent2.uid = 'parent2'
     parent2.parents.append(fw.uid)
     parent2.parent_firmware_uids.add(fw.uid)
-    db.backend.insert_object(parent2)
     # child has multiple parents but all in the same FW -> should still be deleted by cascade
     child.parents.append(parent2.uid)
-    db.backend.insert_object(child)
+    db.backend.insert_multiple_objects(fw, parent, parent2, child)
 
     db.admin.delete_firmware(fw.uid)
 
