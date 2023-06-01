@@ -5,6 +5,8 @@ Revises: 221cfef47173
 Create Date: 2023-04-28 14:57:12.541876
 
 """
+from __future__ import annotations
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, orm, PrimaryKeyConstraint, select, Table, text
