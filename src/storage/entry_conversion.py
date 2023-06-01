@@ -103,11 +103,13 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
     )
 
 
-def sanitize(analysis_data: dict):
+def sanitize(analysis_data: dict) -> dict:
     '''Null bytes are not legal in PostgreSQL JSON columns -> remove them'''
     for key, value in list(analysis_data.items()):
         _sanitize_value(analysis_data, key, value)
         _sanitize_key(analysis_data, key)
+
+    return analysis_data
 
 
 def _sanitize_value(analysis_data: dict, key: str, value):
