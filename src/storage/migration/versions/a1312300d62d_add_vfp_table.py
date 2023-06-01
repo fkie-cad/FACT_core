@@ -7,7 +7,7 @@ Create Date: 2023-04-28 14:57:12.541876
 """
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, PrimaryKeyConstraint, Table, orm, select, text
+from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, orm, PrimaryKeyConstraint, select, Table, text
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import CHAR, JSONB, VARCHAR
 from sqlalchemy.ext.mutable import MutableDict, MutableList
@@ -89,7 +89,7 @@ def _create_vfp_table_entries():
         for vfp_list in vfp_dict.values():
             for virtual_path in vfp_list:
                 elements = [e for e in virtual_path.split('|') if e]
-                if len(elements) < 2:
+                if len(elements) < 2:  # noqa: PLR2004
                     continue  # we skip firmware VFP entries (without parent)
                 *_, parent_uid, path = elements
                 vfp_entries.append(VirtualFilePath(parent_uid=parent_uid, file_uid=uid, file_path=path))
@@ -137,6 +137,7 @@ def _downgrade_vfp_entries():
 
     full_paths = {uid: _generate_full_path(uid, child_to_parents) for uid in child_to_parents}
 
+    root_uids = set()
     for uid, uid_path_list in full_paths.items():
         query = select(VirtualFilePath.file_path, VirtualFilePath.parent_uid).filter(VirtualFilePath.file_uid == uid)
         path_dict = {}
@@ -146,12 +147,19 @@ def _downgrade_vfp_entries():
         vfp_dict = {}
         for uid_list in uid_path_list:
             root_uid, parent_uid = uid_list[0], uid_list[-2]
+            root_uids.add(root_uid)
             vfp_dict.setdefault(root_uid, [])
             for path in path_dict[parent_uid]:
                 vfp_dict[root_uid].append('|'.join(uid_list[:-1] + [path]))
 
         fo_entry = session.get(FileObjectEntry, uid)
         fo_entry.virtual_file_paths = vfp_dict
+
+    # VFP entries of root objects still need to be updated because they have no entries in the VirtualFilePath table
+    for uid in root_uids:
+        fo_entry = session.get(FileObjectEntry, uid)
+        fo_entry.virtual_file_paths = {uid: [uid]}
+
     session.commit()
 
 
