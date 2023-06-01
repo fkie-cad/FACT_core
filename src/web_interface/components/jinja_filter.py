@@ -129,8 +129,6 @@ class FilterClass:
     def _split_user_and_password_type_entry(result: dict):
         new_result = {}
         for key, value in result.items():
-            if not flt.is_not_mandatory_analysis_entry(key):
-                continue
             if ':' in key:
                 *user_elements, password_type = key.split(':')
                 user = ':'.join(user_elements)
@@ -192,7 +190,6 @@ class FilterClass:
         self._app.jinja_env.filters['hide_dts_binary_data'] = flt.hide_dts_binary_data
         self._app.jinja_env.filters['infection_color'] = flt.infection_color
         self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
-        self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_mandatory_analysis_entry
         self._app.jinja_env.filters['json_dumps'] = json.dumps
         self._app.jinja_env.filters['link_cve'] = flt.replace_cve_with_link
         self._app.jinja_env.filters['link_cwe'] = flt.replace_cwe_with_link

@@ -15,14 +15,12 @@
         </tr>
     {% endif %}
     {% for key, value in analysis_result.items() | sort %}
-        {% if key | is_not_mandatory_analysis_entry(['init_type', 'description']) %}
-            <tr>
-                <td>{{ key }}</td>
-                <td>
-                    <pre class="border rounded p-2 bg-light" style="white-space: pre-wrap;"><code>{{ value }}</code></pre>
-                </td>
-            </tr>
-        {% endif %}
+        <tr>
+            <td>{{ key }}</td>
+            <td>
+                <pre class="border rounded p-2 bg-light" style="white-space: pre-wrap;"><code>{{ value }}</code></pre>
+            </td>
+        </tr>
     {% endfor %}
 
 {% endblock %}

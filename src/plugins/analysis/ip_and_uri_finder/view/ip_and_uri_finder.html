@@ -3,42 +3,40 @@
 {% block analysis_result_details %}
 
     {% for key, value in analysis_result.items() %}
-        {% if key | is_not_mandatory_analysis_entry %}
-            <tr>
-            {% if value != [] %}
-                <td>
-                    {% if key == "ips_v4" %}IPv4
-                    {% elif key == "ips_v6" %}IPv6
-                    {% elif key == "ips" %}IP
-                    {% else %}URI{% endif %}
-                </td>
-                <td class="p-0">
-                    <ul class="list-group p-0 mb-0" style="width: 100%;">
-                        {% for item in value %}
-                            {% if key == "ips_v6" or  key == "ips_v4" %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center rounded-0">
-                                    {{ item[0] }}
-                                    {% if item[1] %}
-                                        <a href="https://www.google.de/maps/place/{{ item[1] }}">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                        </a>
-                                    {% endif %}
-                                </li>
-                            {% else %}
-                                <li class="list-group-item rounded-0">
-                                    {% if key != 'ips' %}
-                                        <a href="{{ item }}">{{ item }}</a>
-                                    {% else %}
-                                        {{ item }}
-                                    {% endif %}
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                </td>
-            {% endif %}
-            </tr>
+        <tr>
+        {% if value != [] %}
+            <td>
+                {% if key == "ips_v4" %}IPv4
+                {% elif key == "ips_v6" %}IPv6
+                {% elif key == "ips" %}IP
+                {% else %}URI{% endif %}
+            </td>
+            <td class="p-0">
+                <ul class="list-group p-0 mb-0" style="width: 100%;">
+                    {% for item in value %}
+                        {% if key == "ips_v6" or  key == "ips_v4" %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center rounded-0">
+                                {{ item[0] }}
+                                {% if item[1] %}
+                                    <a href="https://www.google.de/maps/place/{{ item[1] }}">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </a>
+                                {% endif %}
+                            </li>
+                        {% else %}
+                            <li class="list-group-item rounded-0">
+                                {% if key != 'ips' %}
+                                    <a href="{{ item }}">{{ item }}</a>
+                                {% else %}
+                                    {{ item }}
+                                {% endif %}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </td>
         {% endif %}
+        </tr>
     {% endfor %}
 
 {% endblock %}
