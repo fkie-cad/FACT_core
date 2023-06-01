@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 
 import config
 from storage.db_connection import AdminConnection, DbConnection
@@ -33,6 +33,10 @@ class DbSetup(ReadWriteDbInterface):
             return bool(
                 session.execute(text(f'SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = \'{user_name}\'')).scalar()
             )
+
+    def table_exists(self, table_name: str):
+        with self.connection.engine.connect() as db, db.engine.begin() as connection:
+            return inspect(connection).has_table(table_name, None)
 
     def database_exists(self, db_name: str) -> bool:
         with self.get_read_only_session() as session:
