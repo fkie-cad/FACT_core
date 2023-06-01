@@ -9,12 +9,10 @@
 </tr>
     {% for key, value in analysis_result.items() %}
         {% if value %}
-            {% if key | is_not_mandatory_analysis_entry %}
-                <tr>
-                    <td> {{ key }} </td>
-                    <td><pre><code style="word-break: break-all; white-space: pre-wrap;">{{ value | nice_generic | safe }}</code></pre></td>
-                </tr>
-            {% endif %}
+            <tr>
+                <td> {{ key }} </td>
+                <td><pre><code style="word-break: break-all; white-space: pre-wrap;">{{ value | nice_generic | safe }}</code></pre></td>
+            </tr>
         {% endif %}
     {% endfor %}
 

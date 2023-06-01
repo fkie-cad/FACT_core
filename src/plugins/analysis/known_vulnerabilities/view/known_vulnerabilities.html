@@ -3,27 +3,25 @@
 {% block analysis_result_details %}
 
 {% for key in analysis_result %}
-    {% if key | is_not_mandatory_analysis_entry %}
-        <tr>
-            <td class="table-{{ analysis_result[key]['score'] | vulnerability_class }}">{{ key }}</td>
-            <td class="d-flex justify-content-between align-items-center">
-                {{ analysis_result[key]['description'] }}
-                {% if analysis_result[key]['link'] %}
-                    <a href="{{ analysis_result[key]['link'] }}" target="_blank"><span class="fas fa-link"></span></a>
-                {% endif %}
-                {% if analysis_result[key]['additional_data'] %}
-                    <table class="table table-bordered mb-0 pb-0">
-                        {% for inner_key, value in analysis_result[key]['additional_data'].items() %}
-                            <tr>
-                                <td>{{ inner_key }}</td>
-                                <td>{{ value }}</td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                {% endif %}
-            </td>
-        </tr>
-    {% endif %}
+    <tr>
+        <td class="table-{{ analysis_result[key]['score'] | vulnerability_class }}">{{ key }}</td>
+        <td class="d-flex justify-content-between align-items-center">
+            {{ analysis_result[key]['description'] }}
+            {% if analysis_result[key]['link'] %}
+                <a href="{{ analysis_result[key]['link'] }}" target="_blank"><span class="fas fa-link"></span></a>
+            {% endif %}
+            {% if analysis_result[key]['additional_data'] %}
+                <table class="table table-bordered mb-0 pb-0">
+                    {% for inner_key, value in analysis_result[key]['additional_data'].items() %}
+                        <tr>
+                            <td>{{ inner_key }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </td>
+    </tr>
 {% endfor %}
 
 {% endblock %}

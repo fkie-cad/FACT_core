@@ -7,11 +7,9 @@
 </tr>
     {# old results do not have the "architectures" key #}
     {% for result, method in analysis_result.get("architectures", analysis_result).items() %}
-        {% if result | is_not_mandatory_analysis_entry %}
-            <tr>
-                <td>{{ result }}</td>
-                <td>{{ method }}</td>
-            </tr>
-        {% endif %}
+        <tr>
+            <td>{{ result }}</td>
+            <td>{{ method }}</td>
+        </tr>
     {% endfor %}
 {% endblock %}

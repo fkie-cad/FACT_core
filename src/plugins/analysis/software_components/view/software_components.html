@@ -11,33 +11,31 @@
         </colgroup>
         <tbody class="table-analysis">
             {% for key in analysis_result %}
-                {% if key | is_not_mandatory_analysis_entry %}
-                    <tr>
-                        <td rowspan=5>{{ loop.index - 1 }}</td>
-                        <td>Software Name</td>
-                        <td>{{ analysis_result[key]['meta']['software_name'] }}</td>
-                    </tr>
-                    <tr>
-                        <td>Version</td>
-                        <td>
-                        {% for version in analysis_result[key]['meta']['version'] %}
-                            {{ version }}
-                        {% endfor %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Description</td>
-                        <td>{{ analysis_result[key]['meta']['description'] }}</td>
-                    </tr>
-                    <tr>
-                        <td>Website</td>
-                        <td><a href="{{ analysis_result[key]['meta']['website'] }}">{{ analysis_result[key]['meta']['website'] }}</a></td>
-                    </tr>
-                    <tr>
-                        <td>Matched Sequence</td>
-                        <td>{{ analysis_result[key]['strings'] }}</td>
-                    </tr>
-                {% endif %}
+                <tr>
+                    <td rowspan=5>{{ loop.index - 1 }}</td>
+                    <td>Software Name</td>
+                    <td>{{ analysis_result[key]['meta']['software_name'] }}</td>
+                </tr>
+                <tr>
+                    <td>Version</td>
+                    <td>
+                    {% for version in analysis_result[key]['meta']['version'] %}
+                        {{ version }}
+                    {% endfor %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Description</td>
+                    <td>{{ analysis_result[key]['meta']['description'] }}</td>
+                </tr>
+                <tr>
+                    <td>Website</td>
+                    <td><a href="{{ analysis_result[key]['meta']['website'] }}">{{ analysis_result[key]['meta']['website'] }}</a></td>
+                </tr>
+                <tr>
+                    <td>Matched Sequence</td>
+                    <td>{{ analysis_result[key]['strings'] }}</td>
+                </tr>
             {% endfor %}
         </tbody>
 
