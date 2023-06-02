@@ -71,12 +71,9 @@ class MiscellaneousRoutes(ComponentBase):
     def delete_firmware(self, uid):
         if not self.db.frontend.is_firmware(uid):
             return render_template('error.html', message=f'Firmware not found in database: {uid}')
-        updated_count, deleted_count = self.db.admin.delete_firmware(uid)
+        deleted_virtual_path_entries, deleted_files = self.db.admin.delete_firmware(uid)
         return render_template(
-            'delete_firmware.html',
-            uid=uid,
-            deleted_count=deleted_count,
-            updated_count=deleted_count,
+            'delete_firmware.html', deleted_vps=deleted_virtual_path_entries, deleted_files=deleted_files, uid=uid
         )
 
     @roles_accepted(*PRIVILEGES['delete'])
