@@ -17,7 +17,7 @@ class TestAnalysisPluginsKnownVulnerabilities:
 
     def test_process_object_yara(self, analysis_plugin):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'testfile'))
-        test_file.processed_analysis['file_hashes'] = {'sha256': '1234'}
+        test_file.processed_analysis['file_hashes'] = {'result': {'sha256': '1234'}}
         test_file.processed_analysis['software_components'] = {}
 
         results = analysis_plugin.process_object(test_file).processed_analysis[analysis_plugin.NAME]
@@ -31,7 +31,7 @@ class TestAnalysisPluginsKnownVulnerabilities:
 
     def test_process_object_software(self, analysis_plugin):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
-        test_file.processed_analysis['file_hashes'] = {'sha256': '1234'}
+        test_file.processed_analysis['file_hashes'] = {'result': {'sha256': '1234'}}
         test_file.processed_analysis['software_components'] = self._software_components_result
 
         results = analysis_plugin.process_object(test_file).processed_analysis[analysis_plugin.NAME]
@@ -42,8 +42,8 @@ class TestAnalysisPluginsKnownVulnerabilities:
 
     def test_process_object_software_wrong_version(self, analysis_plugin):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
-        test_file.processed_analysis['file_hashes'] = {'sha256': '1234'}
-        self._software_components_result['OpenSSL']['meta']['version'] = ['0.9.8', '1.0.0', '']
+        test_file.processed_analysis['file_hashes'] = {'result': {'sha256': '1234'}}
+        self._software_components_result['result']['OpenSSL']['meta']['version'] = ['0.9.8', '1.0.0', '']
         test_file.processed_analysis['software_components'] = self._software_components_result
 
         results = analysis_plugin.process_object(test_file).processed_analysis[analysis_plugin.NAME]
@@ -53,7 +53,7 @@ class TestAnalysisPluginsKnownVulnerabilities:
     def test_process_object_hash(self, analysis_plugin):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
         test_file.processed_analysis['file_hashes'] = {
-            'sha256': '7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'
+            'result': {'sha256': '7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'}
         }
         test_file.processed_analysis['software_components'] = {}
 

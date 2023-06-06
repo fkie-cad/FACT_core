@@ -18,7 +18,6 @@ TEST_BROKEN = TEST_DATA / 'broken.dtb'
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 def test_process_object(analysis_plugin):
     test_object = FileObject()
-    test_object.processed_analysis['file_type'] = {'mime': 'linux/device-tree'}
     test_object.binary = TEST_FILE.read_bytes()
     test_object.file_path = str(TEST_FILE)
     processed_object = analysis_plugin.process_object(test_object)
