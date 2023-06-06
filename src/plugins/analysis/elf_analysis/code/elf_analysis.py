@@ -29,11 +29,9 @@ BEHAVIOUR_CLASSES = json.loads(TEMPLATE_FILE_PATH.read_text())
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
-    DEPENDENCIES = ['file_type']
-    VERSION = '0.3.3'
+    VERSION = '0.3.4'
     MIME_WHITELIST = [
         'application/x-executable',
         'application/x-pie-executable',
