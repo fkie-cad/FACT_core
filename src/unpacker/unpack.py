@@ -16,6 +16,8 @@ from storage.fsorganizer import FSOrganizer
 from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack_base import ExtractionError, UnpackBase
 
+from analysis.PluginBase import sanitize_processed_analysis
+
 
 class Unpacker(UnpackBase):
     def __init__(self, fs_organizer=None, unpacking_locks=None):
@@ -48,7 +50,12 @@ class Unpacker(UnpackBase):
         for item in extracted_file_objects:
             current_fo.add_included_file(item)
 
-        current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
+        current_fo.processed_analysis['unpacker'] = sanitize_processed_analysis(
+            json.loads(
+                Path(tmp_dir, 'reports', 'meta.json').read_text(),
+            ),
+        )
+
         return extracted_file_objects
 
     def _store_unpacking_error_skip_info(self, file_object: FileObject, error: Exception = None):
@@ -68,11 +75,13 @@ class Unpacker(UnpackBase):
     @staticmethod
     def _init_skipped_analysis(message: str, tag: str, tag_tooltip: str) -> dict:
         return {
-            'plugin_used': 'None',
-            'number_of_unpacked_files': 0,
+            'result': {
+                'plugin_used': 'None',
+                'info': message,
+                'number_of_unpacked_files': 0,
+            },
             'plugin_version': '0.0',
             'analysis_date': time(),
-            'info': message,
             'tags': {tag: {'value': tag_tooltip, 'color': TagColor.ORANGE, 'propagate': False}},
         }
 

@@ -38,7 +38,7 @@ class TestSourceCodeAnalysis:
         assert result['full'][0]['symbol'] == 'unused-import'
 
     def test_process_object_no_issues(self, analysis_plugin, test_object, monkeypatch):
-        test_object.processed_analysis['file_type'] = {'full': 'anything containing python'}
+        test_object.processed_analysis['file_type'] = {'result': {'full': 'anything containing python'}}
         monkeypatch.setattr(
             'storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_object.file_path
         )

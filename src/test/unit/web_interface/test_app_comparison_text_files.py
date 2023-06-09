@@ -35,21 +35,21 @@ class DbMock(CommonDatabaseMock):
 )
 class TestAppComparisonTextFiles:
     def test_comparison_text_files(self, test_client):
-        TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'
-        TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = 'text/plain'
+        TEST_TEXT_FILE.processed_analysis['file_type']['result']['mime'] = 'text/plain'
+        TEST_TEXT_FILE2.processed_analysis['file_type']['result']['mime'] = 'text/plain'
         response = _load_diff(test_client)
         # As the javascript rendering is done clientside we test if the diff string is valid
         assert TEST_TEXT_FILE.file_name in response.decode()
 
     def test_wrong_mime_type(self, test_client):
-        TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'
-        TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = 'some/type'
+        TEST_TEXT_FILE.processed_analysis['file_type']['result']['mime'] = 'text/plain'
+        TEST_TEXT_FILE2.processed_analysis['file_type']['result']['mime'] = 'some/type'
         response = _load_diff(test_client)
         assert b'compare non-text mimetypes' in response
 
     def test_analysis_not_finished(self, test_client):
-        TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = None
-        TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = None
+        TEST_TEXT_FILE.processed_analysis['file_type']['result']['mime'] = None
+        TEST_TEXT_FILE2.processed_analysis['file_type']['result']['mime'] = None
         response = _load_diff(test_client)
         assert b'file_type analysis is not finished' in response
 

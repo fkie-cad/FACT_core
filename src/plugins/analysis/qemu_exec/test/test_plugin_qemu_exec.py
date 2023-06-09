@@ -214,7 +214,7 @@ class TestPluginQemuExec:
     @pytest.mark.timeout(10)
     def test_process_object__included_binary(self, analysis_plugin):
         test_fw = create_test_firmware()
-        test_fw.processed_analysis['file_type']['mime'] = analysis_plugin.FILE_TYPES[0]
+        test_fw.processed_analysis['file_type']['result']['mime'] = analysis_plugin.FILE_TYPES[0]
 
         analysis_plugin.process_object(test_fw)
         assert analysis_plugin.NAME in test_fw.processed_analysis

@@ -13,8 +13,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'device_tree'
     DESCRIPTION = 'get the device tree in text from the device tree blob'
-    DEPENDENCIES = ['file_type']
-    VERSION = '1.0'
+    VERSION = '1.0.1'
     MIME_BLACKLIST = [*MIME_BLACKLIST_COMPRESSED, 'audio', 'image', 'video']
     FILE = __file__
 

@@ -81,7 +81,7 @@ def get_imphash(file_object: FileObject) -> str | None:
 
 
 def _is_elf_file(file_object: FileObject) -> bool:
-    return file_object.processed_analysis['file_type']['mime'] in ELF_MIME_TYPES
+    return file_object.processed_analysis['file_type']['result']['mime'] in ELF_MIME_TYPES
 
 
 def normalize_lief_items(functions):

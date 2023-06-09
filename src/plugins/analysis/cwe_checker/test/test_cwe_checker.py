@@ -42,5 +42,5 @@ class TestCweCheckerFunctions:
             'interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, '
             'BuildID[sha1]=8e756708f62592be105b5e8b423080d38ddc8391, stripped'
         )
-        fo.processed_analysis = {'file_type': {'full': test_data}}
+        fo.processed_analysis = {'file_type': {'result': {'full': test_data}}}
         assert analysis_plugin._is_supported_arch(fo)

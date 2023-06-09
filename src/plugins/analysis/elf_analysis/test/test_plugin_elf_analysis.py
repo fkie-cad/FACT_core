@@ -37,17 +37,16 @@ MOCK_LIEF_RESULT = LiefResult(
 )
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture()
 def stub_object():
     test_object = FileObject(file_path=str(TEST_DATA))
-    test_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
     return test_object
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestElfAnalysis:
     @pytest.mark.parametrize(
-        'tag, tag_color',
+        ('tag', 'tag_color'),
         [
             ('crypto', TagColor.RED),
             ('file_system', TagColor.BLUE),
@@ -61,7 +60,7 @@ class TestElfAnalysis:
         assert analysis_plugin._get_color_codes(tag) == tag_color
 
     @pytest.mark.parametrize(
-        'indicators, behaviour_class, libraries, tags, expected',
+        ('indicators', 'behaviour_class', 'libraries', 'tags', 'expected'),
         [
             (['a'], 'b', ['c'], [], []),
             (['a', 'b', 'c'], 'b', ['c'], [], ['b']),
@@ -76,7 +75,7 @@ class TestElfAnalysis:
         assert tags == expected
 
     @pytest.mark.parametrize(
-        'functions, behaviour_class, indicators, tags, expected_result',
+        ('functions', 'behaviour_class', 'indicators', 'tags', 'expected_result'),
         [
             ([], '', [], [], []),
             (['a'], 'c', ['b'], [], []),
@@ -99,7 +98,7 @@ class TestElfAnalysis:
         assert sorted(tags) == ['three', 'two']
 
     @pytest.mark.parametrize(
-        'symbol_versions, expected',
+        ('symbol_versions', 'expected'),
         [
             (
                 ['GLIBC_2.3.4(4)', '* Local *', 'GLIBC_2.2.5(3)', '* Global *', 'GLIBC_2.2.5(3)'],
@@ -134,7 +133,7 @@ class TestElfAnalysis:
 
     final_analysis_test_data = [({}, {}, 0), ({'header': [], 'segments': [1, 2], 'a': []}, {}, 1)]
 
-    @pytest.mark.parametrize('binary_json_dict, elf_dict, expected', final_analysis_test_data)
+    @pytest.mark.parametrize(('binary_json_dict', 'elf_dict', 'expected'), final_analysis_test_data)
     def test_get_final_analysis_dict(self, analysis_plugin, binary_json_dict, elf_dict, expected):
         analysis_plugin.get_final_analysis_dict(binary_json_dict, elf_dict)
         assert len(elf_dict) == expected
@@ -148,7 +147,6 @@ class TestElfAnalysis:
         monkeypatch.setattr('lief.parse', lambda _: MOCK_LIEF_RESULT)
         monkeypatch.setattr('lief.to_json', lambda _: MOCK_DATA)
 
-        stub_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
         analysis_plugin.process_object(stub_object)
 
         output = stub_object.processed_analysis[analysis_plugin.NAME]['Output']

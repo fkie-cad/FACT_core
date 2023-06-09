@@ -62,11 +62,15 @@ class AnalysisRoutes(ComponentBase):
             included_fo_analysis_complete = not frontend_db.all_uids_found_in_database(list(file_obj.files_included))
         with ConnectTo(self.intercom) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
+
+        analysis = file_obj.processed_analysis.get(selected_analysis, {})
+
         return render_template_string(
             self._get_correct_template(selected_analysis, file_obj),
             uid=uid,
             firmware=file_obj,
-            analysis_result=file_obj.processed_analysis.get(selected_analysis),
+            analysis_result=analysis.get('result', {}),
+            analysis_metadata={k: v for k, v in analysis.items() if k != 'result'},
             selected_analysis=selected_analysis,
             all_analyzed_flag=included_fo_analysis_complete,
             root_uid=none_to_none(root_uid),
@@ -81,7 +85,7 @@ class AnalysisRoutes(ComponentBase):
         )
 
     def _get_correct_template(self, selected_analysis: str | None, fw_object: Firmware | FileObject):
-        if selected_analysis and 'failed' in fw_object.processed_analysis[selected_analysis]:
+        if selected_analysis and 'failed' in fw_object.processed_analysis[selected_analysis].get('result', {}):
             return get_template_as_string('analysis_plugins/fail.html')
         if selected_analysis:
             return self._get_analysis_view(selected_analysis)

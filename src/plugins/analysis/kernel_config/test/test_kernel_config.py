@@ -19,25 +19,25 @@ TEST_DATA_DIR = Path(__file__).parent / 'data'
 class ExtractIKConfigTest:
     def test_probably_kernel_config_true(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-        test_file.processed_analysis['file_type'] = dict(mime='text/plain')
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
         assert analysis_plugin.probably_kernel_config(test_file.binary)
 
     def test_probably_kernel_config_false(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG_MAGIC_CORRUPT'))
-        test_file.processed_analysis['file_type'] = dict(mime='text/plain')
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
         assert not analysis_plugin.probably_kernel_config(test_file.binary)
 
     def test_probably_kernel_config_utf_error(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'random_invalid/a.image'))
-        test_file.processed_analysis['file_type'] = dict(mime='text/plain')
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
         assert not analysis_plugin.probably_kernel_config(test_file.binary)
 
     def test_process_configs_ko_success(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'synthetic/configs.ko'))
-        test_file.processed_analysis['file_type'] = dict(mime='text/plain')
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
         analysis_plugin.process_object(test_file)
 
@@ -46,7 +46,7 @@ class ExtractIKConfigTest:
 
     def test_process_configs_ko_failure(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'synthetic/ko_failure/configs.ko'))
-        test_file.processed_analysis['file_type'] = dict(mime='text/plain')
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
         analysis_plugin.process_object(test_file)
 
@@ -55,7 +55,7 @@ class ExtractIKConfigTest:
 
     def test_process_valid_plain_text(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-        test_file.processed_analysis['file_type'] = dict(mime='text/plain')
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
         analysis_plugin.process_object(test_file)
 
@@ -64,7 +64,7 @@ class ExtractIKConfigTest:
 
     def test_process_invalid_plain_text(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'random_invalid/c.image'))
-        test_file.processed_analysis['file_type'] = dict(mime='text/plain')
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
         analysis_plugin.process_object(test_file)
 
@@ -73,8 +73,8 @@ class ExtractIKConfigTest:
 
     def test_extract_ko_success(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'synthetic/configs.ko'))
-        test_file.processed_analysis['file_type'] = dict(mime='application/octet-stream')
-        test_file.processed_analysis['software_components'] = dict(summary=['Linux Kernel'])
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
+        test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
 
         result = AnalysisPlugin.try_object_extract_ikconfig(test_file.binary)
 
@@ -84,8 +84,8 @@ class ExtractIKConfigTest:
     def test_process_objects_kernel_image(self, analysis_plugin):
         for valid_image in glob.glob(str(TEST_DATA_DIR / 'synthetic/*.image')):
             test_file = FileObject(file_path=str(valid_image))
-            test_file.processed_analysis['file_type'] = dict(mime='application/octet-stream')
-            test_file.processed_analysis['software_components'] = dict(summary=['Linux Kernel'])
+            test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
+            test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
 
             analysis_plugin.process_object(test_file)
 
@@ -94,8 +94,8 @@ class ExtractIKConfigTest:
 
         for bad_image in glob.glob(str(TEST_DATA_DIR / 'random_invalid/*.image')):
             test_file = FileObject(file_path=str(bad_image))
-            test_file.processed_analysis['file_type'] = dict(mime='application/octet-stream')
-            test_file.processed_analysis['software_components'] = dict(summary=['Linux Kernel'])
+            test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
+            test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
 
             analysis_plugin.process_object(test_file)
 
@@ -105,46 +105,46 @@ class ExtractIKConfigTest:
 
 def test_plaintext_mime_true():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = dict(mime='text/plain')
+    test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
     assert AnalysisPlugin.object_mime_is_plaintext(test_file)
 
 
 def test_plaintext_mime_false():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = dict(mime='application/json')
+    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/json'}}
 
     assert not AnalysisPlugin.object_mime_is_plaintext(test_file)
 
 
 def test_try_extract_decompress_fail():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'synthetic/configs.ko.corrupted'))
-    test_file.processed_analysis['file_type'] = dict(mime='application/octet-stream')
-    test_file.processed_analysis['software_components'] = dict(summary=['Linux Kernel'])
+    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
+    test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
 
     assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''
 
 
 def test_is_kernel_image_true():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = dict(mime='application/octet-stream')
-    test_file.processed_analysis['software_components'] = dict(summary=['Linux Kernel'])
+    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
+    test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
 
     assert AnalysisPlugin.object_is_kernel_image(test_file)
 
 
 def test_is_kernel_image_false():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = dict(mime='application/octet-stream')
-    test_file.processed_analysis['software_components'] = dict(summary=['FreeBSD Kernel'])
+    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
+    test_file.processed_analysis['software_components'] = {'summary': ['FreeBSD Kernel']}
 
     assert not AnalysisPlugin.object_is_kernel_image(test_file)
 
 
 def test_try_extract_fail():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = dict(mime='application/octet-stream')
-    test_file.processed_analysis['software_components'] = dict(summary=['Linux Kernel'])
+    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
+    test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
 
     assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''
 
@@ -152,8 +152,8 @@ def test_try_extract_fail():
 def test_try_extract_random_fail():
     for fp in glob.glob(str(TEST_DATA_DIR / 'random_invalid/*.image')):
         test_file = FileObject(file_path=fp)
-        test_file.processed_analysis['file_type'] = dict(mime='application/octet-stream')
-        test_file.processed_analysis['software_components'] = dict(summary=['Linux Kernel'])
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
+        test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
         assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''
 
 
@@ -198,7 +198,7 @@ def test_check_hardening_no_results():
 
 
 @pytest.mark.parametrize(
-    'full_type, expected_output',
+    ('full_type', 'expected_output'),
     [
         ('foobar 123', False),
         ('Linux make config build file, ASCII text', True),
@@ -207,6 +207,6 @@ def test_check_hardening_no_results():
 )
 def test_foo1(full_type, expected_output):
     test_file = FileObject()
-    test_file.processed_analysis['file_type'] = dict(full=full_type)
+    test_file.processed_analysis['file_type'] = {'result': {'full': full_type}}
 
     assert AnalysisPlugin.has_kconfig_type(test_file) == expected_output

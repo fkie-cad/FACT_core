@@ -329,19 +329,6 @@ def test_comment_out_regex_meta_chars(input_data, expected_result):
     assert flt.comment_out_regex_meta_chars(input_data) == expected_result
 
 
-@pytest.mark.parametrize(
-    'input_data, additional, expected_result',
-    [
-        ('real_result', None, True),
-        ('analysis_date', None, False),
-        ('real_result', ['additional_key'], True),
-        ('filtered_result', ['filtered_result'], False),
-    ],
-)
-def test_is_not_mandatory_analysis_entry(input_data, additional, expected_result):
-    assert flt.is_not_mandatory_analysis_entry(input_data, additional) is expected_result
-
-
 def test_version_links_no_analysis():
     links = flt.create_firmware_version_links([('uid_123', '1.0'), ('uid_234', '1.1')])
     assert '<a href="/analysis/uid_123">1.0</a>' in links

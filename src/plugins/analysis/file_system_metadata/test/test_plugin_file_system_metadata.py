@@ -18,7 +18,7 @@ TEST_DATA_DIR = Path(__file__).parent / 'data'
 class FoMock:
     def __init__(self, file_path: Path | None, file_type: str | None, parent_fo_type=''):
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {'mime': file_type}, PLUGIN_NAME: {}}
+        self.processed_analysis = {'file_type': {'result': {'mime': file_type}}, PLUGIN_NAME: {}}
         self.virtual_file_path = {}
         self.file_name = 'test'
         self.binary = file_path.read_bytes() if file_path is not None else None
@@ -44,8 +44,8 @@ class TarMock:
 
 class DbMock(CommonDatabaseMock):
     FILE_TYPE_RESULTS = {
-        TEST_FW.uid: {'mime': 'application/octet-stream'},
-        TEST_FW_2.uid: {'mime': 'filesystem/cramfs'},
+        TEST_FW.uid: {'result': {'mime': 'application/octet-stream'}},
+        TEST_FW_2.uid: {'result': {'mime': 'filesystem/cramfs'}},
     }
 
     def get_analysis(self, uid, _):
@@ -56,7 +56,7 @@ class DbMock(CommonDatabaseMock):
 def file_system_metadata_plugin(analysis_plugin):
     analysis_plugin.result = {}
     analysis_plugin.db = DbMock()
-    yield analysis_plugin
+    return analysis_plugin
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)

@@ -354,12 +354,6 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: list[dict]):
     return unique_keys
 
 
-def is_not_mandatory_analysis_entry(item: str, additional_entries: list[str] | None = None) -> bool:
-    return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags'] and (
-        additional_entries is None or item not in additional_entries
-    )
-
-
 def random_collapse_id():
     return ''.join(random.choice(ascii_letters) for _ in range(10))
 

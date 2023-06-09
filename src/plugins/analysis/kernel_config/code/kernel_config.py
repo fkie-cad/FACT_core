@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING
 
 from analysis.PluginBase import AnalysisBasePlugin
-from objects.file import FileObject
-from plugins.analysis.kernel_config.internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
+from plugins.analysis.kernel_config.internal.checksec_check_kernel import check_kernel_config, CHECKSEC_PATH
 from plugins.analysis.kernel_config.internal.decomp import decompress
 from plugins.analysis.kernel_config.internal.kernel_config_hardening_check import check_kernel_hardening
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 MAGIC_WORD = b'IKCFG_ST\037\213'
 
@@ -55,7 +58,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def has_kconfig_type(file_object: FileObject) -> bool:
-        return 'Linux make config' in file_object.processed_analysis.get('file_type', {}).get('full', '')
+        file_type_str = file_object.processed_analysis.get('file_type', {}).get('result', {}).get('full', '')
+        return 'Linux make config' in file_type_str
 
     @staticmethod
     def _get_summary(results: dict) -> list[str]:
@@ -102,12 +106,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def object_mime_is_plaintext(file_object: FileObject) -> bool:
-        analysis = file_object.processed_analysis
-        return (
-            'file_type' in analysis
-            and 'mime' in analysis['file_type']
-            and analysis['file_type']['mime'] == 'text/plain'
-        )
+        return file_object.processed_analysis.get('file_type', {}).get('result', {}).get('mime') == 'text/plain'
 
     @staticmethod
     def object_is_kernel_image(file_object: FileObject) -> bool:
