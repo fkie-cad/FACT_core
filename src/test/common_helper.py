@@ -39,14 +39,24 @@ def create_test_firmware(
     processed_analysis = {
         'dummy': {
             'summary': ['sum a', 'fw exclusive sum a'],
-            'content': 'abcd',
+            'result': {
+                'content': 'abcd',
+            },
             'plugin_version': '0',
             'analysis_date': 0.0,
         },
-        'unpacker': {'plugin_used': 'used_unpack_plugin', 'plugin_version': '1.0', 'analysis_date': 0.0},
+        'unpacker': {
+            'result': {
+                'plugin_used': 'used_unpack_plugin',
+            },
+            'plugin_version': '1.0',
+            'analysis_date': 0.0,
+        },
         'file_type': {
-            'mime': 'test_type',
-            'full': 'Not a PE file',
+            'result': {
+                'mime': 'test_type',
+                'full': 'Not a PE file',
+            },
             'summary': ['a summary'],
             'plugin_version': '1.0',
             'analysis_date': 0.0,
@@ -65,14 +75,24 @@ def create_test_file_object(bin_path='get_files_test/testfile1', uid=None):
     processed_analysis = {
         'dummy': {
             'summary': ['sum a', 'file exclusive sum b'],
-            'content': 'file abcd',
+            'result': {
+                'content': 'file abcd',
+            },
             'plugin_version': '0',
             'analysis_date': '0',
         },
-        'file_type': {'full': 'Not a PE file', 'plugin_version': '1.0', 'analysis_date': '0'},
+        'file_type': {
+            'result': {
+                'full': 'Not a PE file',
+            },
+            'plugin_version': '1.0',
+            'analysis_date': '0',
+        },
         'unpacker': {
-            'file_system_flag': False,
-            'plugin_used': 'unpacker_name',
+            'result': {
+                'file_system_flag': False,
+                'plugin_used': 'unpacker_name',
+            },
             'plugin_version': '1.0',
             'analysis_date': '0',
         },
@@ -110,7 +130,7 @@ class MockFileObject:
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
+        self.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
 
 
 class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
@@ -133,21 +153,21 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
         if uid == TEST_FW.uid:
             result = deepcopy(TEST_FW)
             result.processed_analysis = {
-                'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
-                'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result',
+                'file_type': {'result': {'mime': 'application/octet-stream', 'full': 'test text'}},
+                'mandatory_plugin': {'result': 'mandatory result'},
+                'optional_plugin': {'result': 'optional result'},
             }
             return result
         if uid == TEST_TEXT_FILE.uid:
             result = deepcopy(TEST_TEXT_FILE)
-            result.processed_analysis = {'file_type': {'mime': 'text/plain', 'full': 'plain text'}}
+            result.processed_analysis = {'file_type': {'result': {'mime': 'text/plain', 'full': 'plain text'}}}
             return result
         if uid == self.fw2_uid:
             result = deepcopy(TEST_FW_2)
             result.processed_analysis = {
-                'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
-                'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result',
+                'file_type': {'result': {'mime': 'filesystem/cramfs', 'full': 'test text'}},
+                'mandatory_plugin': {'result': 'mandatory result'},
+                'optional_plugin': {'result': 'optional result'},
             }
             result.release_date = '2000-01-01'
             return result
@@ -292,5 +312,5 @@ def generate_analysis_entry(
         'analysis_date': analysis_date,
         'summary': summary or [],
         'tags': tags or {},
-        **(analysis_result or {}),
+        'result': analysis_result or {},
     }

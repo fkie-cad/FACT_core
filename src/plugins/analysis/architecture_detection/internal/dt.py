@@ -52,7 +52,7 @@ def _get_compatible_entry(dts: str) -> str | None:
 
         cpu_name = None
         # According to the naming convention such a key should always exist
-        for key in cpus.keys():
+        for key in cpus:
             if 'cpu@' in key:
                 cpu_name = key
                 break
@@ -73,7 +73,7 @@ def _get_compatible_entry(dts: str) -> str | None:
 
 def construct_result(file_object):
     result = {}
-    for dt_dict in file_object.processed_analysis.get('device_tree', {}).get('device_trees', []):
+    for dt_dict in file_object.processed_analysis['device_tree'].get('result', {}).get('device_trees', []):
         dt = dt_dict['device_tree']
 
         compatible_entry = _get_compatible_entry(dt)

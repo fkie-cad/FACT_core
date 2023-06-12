@@ -83,7 +83,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         for parent_uid in file_object.parents:
             analysis_entry = self.db.get_analysis(parent_uid, 'file_type')
             if analysis_entry is not None:
-                if self._has_correct_type(analysis_entry['mime']):
+                if self._has_correct_type(analysis_entry['result']['mime']):
                     return True
         return False
 
@@ -91,7 +91,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return mime_type in self.ARCHIVE_MIME_TYPES + self.FS_MIME_TYPES
 
     def _extract_metadata(self, file_object: FileObject):
-        file_type = file_object.processed_analysis['file_type']['mime']
+        file_type = file_object.processed_analysis['file_type']['result']['mime']
         if file_type in self.FS_MIME_TYPES:
             self._extract_metadata_from_file_system(file_object)
         elif file_type in self.ARCHIVE_MIME_TYPES:

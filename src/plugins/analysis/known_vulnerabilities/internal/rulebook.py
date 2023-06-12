@@ -46,13 +46,13 @@ class Vulnerability:
                 raise ValueError(error_message)
 
     def get_dict(self):
-        return dict(
-            description=self.description,
-            score=self.score,
-            reliability=self.reliability,
-            link=self.link,
-            short_name=self.short_name,
-        )
+        return {
+            'description': self.description,
+            'score': self.score,
+            'reliability': self.reliability,
+            'link': self.link,
+            'short_name': self.short_name,
+        }
 
 
 class SingleRule:
@@ -155,7 +155,7 @@ def _get_dotted_path_from_dictionary(dictionary, dotted_path):
 
 def vulnerabilities():
     heartbleed_rule = SingleRule(
-        value_path=['software_components.OpenSSL.meta.version'],
+        value_path=['software_components.result.OpenSSL.meta.version'],
         relation='intersection',
         comparison=[f'1.0.1{minor}' for minor in 'abcde'],
     )
@@ -169,7 +169,7 @@ def vulnerabilities():
     )
 
     netgear_cgi_rule = SingleRule(
-        value_path=['file_hashes.sha256'],
+        value_path=['file_hashes.result.sha256'],
         relation='equals',
         comparison='7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a',
     )

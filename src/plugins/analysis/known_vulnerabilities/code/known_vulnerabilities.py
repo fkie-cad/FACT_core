@@ -33,7 +33,7 @@ class AnalysisPlugin(YaraBasePlugin):
         matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
 
         # CVE-2021-45608 NetUSB
-        if 'NetUSB' in file_object.processed_analysis.get('software_components', {}):
+        if 'NetUSB' in file_object.processed_analysis.get('software_components', {}).get('result', {}):
             matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
 
         for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
@@ -106,14 +106,14 @@ class AnalysisPlugin(YaraBasePlugin):
                 return [
                     (
                         'CVE-2021-45608',
-                        dict(
-                            description='CVE-2021-45608: vulnerability in KCodes NetUSB kernel module',
-                            score='high' if ghidra_results['is_vulnerable'] is True else 'none',
-                            reliability=90,
-                            link='https://nvd.nist.gov/vuln/detail/CVE-2021-45608',
-                            short_name='CVE-2021-45608',
-                            additional_data=ghidra_results,
-                        ),
+                        {
+                            'description': 'CVE-2021-45608: vulnerability in KCodes NetUSB kernel module',
+                            'score': 'high' if ghidra_results['is_vulnerable'] is True else 'none',
+                            'reliability': 90,
+                            'link': 'https://nvd.nist.gov/vuln/detail/CVE-2021-45608',
+                            'short_name': 'CVE-2021-45608',
+                            'additional_data': ghidra_results,
+                        },
                     )
                 ]
             except (json.JSONDecodeError, FileNotFoundError):

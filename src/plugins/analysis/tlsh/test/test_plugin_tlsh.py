@@ -17,7 +17,7 @@ class MockDb:
 @pytest.fixture(scope='function')
 def test_object():
     fo = create_test_file_object()
-    fo.processed_analysis['file_hashes'] = {'tlsh': HASH_1}
+    fo.processed_analysis['file_hashes'] = {'result': {'tlsh': HASH_1}}
     return fo
 
 
@@ -36,7 +36,7 @@ class TestTlsh:
 
     def test_no_matching_file(self, test_object, tlsh_plugin):
         not_matching_hash = '0CC34689821658B06B1B258BCC16689308A671AB3223B3E3684F8d695A658742F0DAB1'
-        test_object.processed_analysis['file_hashes'] = {'tlsh': not_matching_hash}
+        test_object.processed_analysis['file_hashes'] = {'result': {'tlsh': not_matching_hash}}
         result = tlsh_plugin.process_object(test_object)
 
         assert result.processed_analysis[tlsh_plugin.NAME] == {}
@@ -48,7 +48,7 @@ class TestTlsh:
         assert result.processed_analysis[tlsh_plugin.NAME] == {}
 
     def test_file_has_no_tlsh_hash(self, test_object, tlsh_plugin):
-        test_object.processed_analysis['file_hashes'].pop('tlsh')
+        test_object.processed_analysis['file_hashes']['result'].pop('tlsh')
         result = tlsh_plugin.process_object(test_object)
 
         assert result.processed_analysis[tlsh_plugin.NAME] == {}

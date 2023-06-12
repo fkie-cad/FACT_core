@@ -3,22 +3,19 @@ import pytest
 
 from compare.compare import Compare
 from compare.PluginBase import CompareBasePlugin
-from helperFunctions.hash import get_ssdeep
 from test.common_helper import create_test_file_object, create_test_firmware
 
 
 @pytest.fixture(autouse=True)
-def no_compare_views(monkeypatch):
-    monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)
+def _no_compare_views(monkeypatch):
+    monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda *_: None)
 
 
 class MockDbInterface:
     def __init__(self):
         self.fw = create_test_firmware()
         self.fo = create_test_file_object()
-        self.fo.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fo.binary)}
         self.fw.add_included_file(self.fo)
-        self.fw.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw.binary)}
 
     def get_object(self, uid, analysis_filter=None):
         if uid == self.fw.uid:
@@ -40,15 +37,13 @@ class MockDbInterface:
         return {}
 
 
-@pytest.fixture
+@pytest.fixture()
 def compare_system():
     return Compare(db_interface=MockDbInterface())
 
 
 fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
-fw_one.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(fw_one.binary)}
 fw_two = create_test_firmware(device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True)
-fw_two.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(fw_two.binary)}
 
 
 def test_compare_objects(compare_system):

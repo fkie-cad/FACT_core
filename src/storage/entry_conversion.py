@@ -9,8 +9,6 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
 
-META_KEYS = {'tags', 'summary', 'analysis_date', 'plugin_version', 'system_version', 'file_system_flag'}
-
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
     firmware = Firmware()
@@ -87,12 +85,6 @@ def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> Firm
     )
 
 
-def get_analysis_without_meta(analysis_data: dict) -> dict:
-    analysis_without_meta = {key: value for key, value in analysis_data.items() if key not in META_KEYS}
-    sanitize(analysis_without_meta)
-    return analysis_without_meta
-
-
 def create_vfp_entries(file_object: FileObject) -> list[VirtualFilePath]:
     return [
         VirtualFilePath(
@@ -123,11 +115,13 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
     )
 
 
-def sanitize(analysis_data: dict):
+def sanitize(analysis_data: dict) -> dict:
     '''Null bytes are not legal in PostgreSQL JSON columns -> remove them'''
     for key, value in list(analysis_data.items()):
         _sanitize_value(analysis_data, key, value)
         _sanitize_key(analysis_data, key)
+
+    return analysis_data
 
 
 def _sanitize_value(analysis_data: dict, key: str, value):
@@ -178,7 +172,7 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
             analysis_date=analysis_data.get('analysis_date'),
             summary=_sanitize_list(analysis_data.get('summary', [])),
             tags=analysis_data.get('tags'),
-            result=get_analysis_without_meta(analysis_data),
+            result=sanitize(analysis_data.get('result', {})),
             file_object=fo_backref,
         )
         for plugin_name, analysis_data in file_object.processed_analysis.items()
@@ -192,5 +186,5 @@ def analysis_entry_to_dict(entry: AnalysisEntry) -> dict:
         'system_version': entry.system_version,
         'summary': entry.summary or [],
         'tags': entry.tags or {},
-        **(entry.result or {}),
+        'result': entry.result or {},
     }

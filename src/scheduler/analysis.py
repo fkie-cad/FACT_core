@@ -366,10 +366,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _get_skipped_analysis_result(self, analysis_to_do: str) -> dict:
         return {
-            'skipped': 'blacklisted file type',
             'summary': [],
             'analysis_date': time(),
             'plugin_version': self.analysis_plugins[analysis_to_do].VERSION,
+            'result': {
+                'skipped': 'blacklisted file type',
+            },
         }
 
     def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject):
@@ -389,7 +391,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def _get_file_type_from_object_or_db(self, fw_object: FileObject) -> str | None:
         if 'file_type' not in fw_object.processed_analysis:
             self._add_completed_analysis_results_to_file_object('file_type', fw_object)
-        return fw_object.processed_analysis['file_type']['mime'].lower()
+        return fw_object.processed_analysis['file_type']['result']['mime'].lower()
 
     def _get_blacklist_and_whitelist(self, next_analysis: str) -> tuple[list, list]:
         blacklist, whitelist = self._get_blacklist_and_whitelist_from_config(next_analysis)

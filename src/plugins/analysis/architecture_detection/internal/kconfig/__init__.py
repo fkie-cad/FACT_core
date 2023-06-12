@@ -4,7 +4,7 @@ from plugins.analysis.architecture_detection.internal.kconfig.mips import constr
 
 def construct_result(file_object):
     result = {}
-    kconfig_str = file_object.processed_analysis.get('kernel_config', {}).get('kernel_config')
+    kconfig_str = file_object.processed_analysis.get('kernel_config', {}).get('result', {}).get('kernel_config')
 
     if kconfig_str is None:
         return {}

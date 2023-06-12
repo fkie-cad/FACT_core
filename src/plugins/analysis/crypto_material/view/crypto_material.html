@@ -3,28 +3,26 @@
 {% block analysis_result_details %}
 
     {% for key in analysis_result %}
-        {% if key | is_not_mandatory_analysis_entry %}
+        <tr>
+            <td class="table-head-light">Description</td>
+            <td class="table-head-light">{{ key }}</td>
+        </tr>
+        <tr>
+            <td rowspan={{ analysis_result[key]['count'] + 1}}>Content</td>
+        </tr>
+        {% for material in analysis_result[key]['material'] %}
             <tr>
-                <td class="table-head-light">Description</td>
-                <td class="table-head-light">{{ key }}</td>
-            </tr>
-            <tr>
-                <td rowspan={{ analysis_result[key]['count'] + 1}}>Content</td>
-            </tr>
-            {% for material in analysis_result[key]['material'] %}
-                <tr>
-                    <td class="m-0 p-0">
-                        <pre class="border rounded p-2 bg-light" style="margin-bottom: 0; white-space: pre-wrap;">{{ material | safe }}</pre>
+                <td class="m-0 p-0">
+                    <pre class="border rounded p-2 bg-light" style="margin-bottom: 0; white-space: pre-wrap;">{{ material | safe }}</pre>
 
-                        {# Crypto Key Search Button #}
-                        {% set query = {"processed_analysis.crypto_material." + key + ".material": {"$like": material[-100:] | get_searchable_crypto_block }} | json_dumps %}
-                        <button class="btn btn-outline-secondary btn-sm" type="button" style="margin-bottom: 10px" onclick="window.location.href='{{ '/database/browse?query=' + query | urlencode }}'">
-                            <span class="fas fa-search"></span> Search for other occurrences
-                        </button>
-                    </td>
-                </tr>
-            {% endfor %}
-        {% endif %}
+                    {# Crypto Key Search Button #}
+                    {% set query = {"processed_analysis.crypto_material." + key + ".material": {"$like": material[-100:] | get_searchable_crypto_block }} | json_dumps %}
+                    <button class="btn btn-outline-secondary btn-sm" type="button" style="margin-bottom: 10px" onclick="window.location.href='{{ '/database/browse?query=' + query | urlencode }}'">
+                        <span class="fas fa-search"></span> Search for other occurrences
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
     {% endfor %}
 
 {% endblock %}

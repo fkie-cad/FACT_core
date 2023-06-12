@@ -43,11 +43,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def get_modinfo(file_object):
         # getting the information from the *.ko files .modinfo
-        return file_object.processed_analysis['elf_analysis'].get('Output', {}).get('modinfo')
+        return file_object.processed_analysis['elf_analysis']['result'].get('Output', {}).get('modinfo')
 
     @staticmethod
     def filter_kernel_config(file_object):
-        kernel_config_dict = file_object.processed_analysis['kernel_config']
+        kernel_config_dict = file_object.processed_analysis['kernel_config']['result']
         kernel_config = kernel_config_dict.get('kernel_config')
         # FIXME: finer filter
         if isinstance(kernel_config, str):

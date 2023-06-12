@@ -35,7 +35,7 @@ def _search_for_arch_keys(file_type_output, arch_dict, delimiter=', '):
 
 
 def construct_result(file_object):
-    type_of_file = file_object.processed_analysis['file_type']['full']
+    type_of_file = file_object.processed_analysis['file_type']['result']['full']
     arch_dict = file_object.processed_analysis.get('cpu_architecture', dict())
     architecture = _search_for_arch_keys(type_of_file, _architectures, delimiter='')
     if not architecture:
