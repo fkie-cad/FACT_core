@@ -73,13 +73,19 @@ class TestAnalysisPluginPasswordFileAnalyzer:
 
 
 def test_crack_hash_failure():
-    passwd_entry = [
-        b'user',
-        b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==',
-    ]
+    passwd_entry = [b'user', b'BfKEUi/mdF1D2']
     result_entry = {}
     assert crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False
     assert 'ERROR' in result_entry
+    assert result_entry['ERROR'] == 'password cracking not successful'
+
+
+def test_hash_unsupported():
+    passwd_entry = [b'user', b'foobar']
+    result_entry = {}
+    assert crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False
+    assert 'ERROR' in result_entry
+    assert result_entry['ERROR'] == 'hash type is not supported'
 
 
 def test_crack_hash_success():
