@@ -43,7 +43,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DESCRIPTION = 'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
-    VERSION = '0.5.3'
+    VERSION = '0.5.4'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
@@ -122,12 +122,15 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
             logging_label='users_and_passwords',
         )
         result_entry['log'] = john_process.stdout
+        if 'No password hashes loaded' in john_process.stdout:
+            result_entry['ERROR'] = 'hash type is not supported'
+            return False
         output = parse_john_output(john_process.stdout)
     if output:
         if any('0 password hashes cracked' in line for line in output):
-            result_entry['ERROR'] = 'hash type is not supported'
+            result_entry['ERROR'] = 'password cracking not successful'
             return False
-        with suppress(KeyError):
+        with suppress(IndexError):
             result_entry['password'] = output[0].split(':')[1]
             return True
     return False
