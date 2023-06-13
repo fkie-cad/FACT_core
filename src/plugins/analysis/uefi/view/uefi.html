@@ -1,0 +1,50 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+    {% for category, category_results in analysis_result.items() %}
+        <tr>
+            <td>{{ category | safe }}</td>
+            <td class="p-0">
+                <table class="table table-bordered m-0" style="width: 100%">
+                    {% for rule, rule_results in category_results.items() %}
+                        <tr>
+                            <td>{{ rule | safe }}</td>
+                            <td class="p-0">
+                                <table class="table table-bordered m-0" style="width: 100%">
+                                    <tr>
+                                        <td>url</td>
+                                        <td>{{ rule_results.url | safe }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>author</td>
+                                        <td>{{ rule_results.author | safe }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>variants</td>
+                                        <td class="p-0">
+                                            <table class="table table-bordered m-0" style="width: 100%">
+                                                {% for variant, variant_data in rule_results.variants.items() %}
+                                                    <tr>
+                                                        <td>{{ variant | safe }}</td>
+                                                        {% if variant_data.match %}
+                                                            <td class="table-danger">{{ variant_data.output | safe }}</td>
+                                                        {% else %}
+                                                            <td class="table-success">{{ variant_data.output | safe }}</td>
+                                                        {% endif %}
+                                                    </tr>
+                                                {% endfor %}
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+    {% endfor %}
+
+{% endblock %}
+
