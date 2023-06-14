@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import logging
+from contextlib import suppress
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from objects.file import FileObject
@@ -128,10 +130,15 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 )
                 for path in paths
             ]
-            session.add_all(vfp_list)
-            # included_files_table entry needs also to be added
+            for vfp in vfp_list:
+                session.merge(vfp)  # use merge in case paths exist already
+
+    def add_child_to_parent(self, parent_uid: str, child_uid: str):
+        with self.get_read_write_session() as session:
             statement = included_files_table.insert().values(parent_uid=parent_uid, child_uid=child_uid)
-            session.execute(statement)
+            with suppress(IntegrityError):
+                # entry may already exist, but it is faster trying to create it and failing than checking beforehand
+                session.execute(statement)
 
     # ===== Update / UPDATE =====
 

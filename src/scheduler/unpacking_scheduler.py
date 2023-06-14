@@ -216,6 +216,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             if task.uid in currently_unpacked['delayed_vfp_update']:
                 for parent_uid, path_list in currently_unpacked['delayed_vfp_update'][task.uid].items():
                     db_interface.add_vfp(parent_uid, task.uid, path_list)
+                    db_interface.add_child_to_parent(parent_uid=parent_uid, child_uid=task.uid)
             currently_unpacked['done'].add(task.uid)
 
             self._update_extracted_objects(currently_unpacked, db_interface, extracted_objects, task)
@@ -246,6 +247,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             else:  # FO was already unpacked from this FW -> only update VFP and skip unpacking/analysis
                 extracted_objects.remove(fo)
                 db_interface.add_vfp(current_fo.uid, fo.uid, path_list)
+                db_interface.add_child_to_parent(parent_uid=current_fo.uid, child_uid=fo.uid)
                 logging.warning(f'Skipping unpacking/analysis of {fo.uid} (part of {fo.root_uid}).')
 
     @staticmethod

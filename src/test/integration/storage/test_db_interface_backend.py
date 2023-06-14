@@ -41,7 +41,7 @@ def test_update_parents(db):
     assert fo_db.parents == {fw.uid, fw2.uid}
 
 
-def test_vfp(db):
+def test_add_vfp(db):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
     db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
 
@@ -49,10 +49,21 @@ def test_vfp(db):
 
     paths = ['foo/bar', 'test']
     db.backend.add_vfp(fw.uid, child_fo.uid, paths)
+    db.backend.add_child_to_parent(fw.uid, child_fo.uid)
     vfp_dict = db.backend.get_vfps(child_fo.uid)
 
     assert set(vfp_dict) == {fw.uid, parent_fo.uid}
     assert sorted(vfp_dict[fw.uid]) == paths
+
+    # add another path
+    updated_paths = ['/new/path']
+    db.backend.add_vfp(fw.uid, child_fo.uid, updated_paths)
+    vfp_dict = db.backend.get_vfps(child_fo.uid)
+    assert sorted(vfp_dict[fw.uid]) == updated_paths + paths
+
+    # trying to add a duplicate should not cause an exception
+    db.backend.add_vfp(fw.uid, child_fo.uid, updated_paths)
+    db.backend.add_child_to_parent(fw.uid, child_fo.uid)
 
     db.admin.delete_firmware(fw.uid)
     assert db.backend.get_vfps(child_fo.uid) == {}, 'VFP should have been deleted by cascade'
