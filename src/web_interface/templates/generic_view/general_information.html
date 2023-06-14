@@ -45,7 +45,7 @@
         </tr>
         {% if "file_type" in firmware.processed_analysis %}
             <tr>
-                {{ field_with_icon('file', firmware.processed_analysis["file_type"]["full"], 'File type', 5) }}
+                {{ field_with_icon('file', firmware.processed_analysis["file_type"].get("result", {}).get("full", "file_type analysis missing"), 'File type', 5) }}
             </tr>
         {% endif %}
         {% if firmware.parent_firmware_uids %}
