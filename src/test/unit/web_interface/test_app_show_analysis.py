@@ -17,6 +17,7 @@ class TestAppShowAnalysis:
         assert b'<strong>UID:</strong> ' + make_bytes(TEST_FW.uid) in result
         assert b'data-toggle="tooltip" title="mandatory plugin description"' in result
         assert b'data-toggle="tooltip" title="optional plugin description"' in result
+        assert b'test text' in result, 'general info: file type is missing'
 
         # check release date not available
         assert b'1970-01-01' not in result
