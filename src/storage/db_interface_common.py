@@ -219,6 +219,12 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                 top_query.union_all(select(parent).join(child, parent.c.child_uid == child.c.parent_uid))
             )
             path_dict = self._convert_tuples_to_path(session.execute(bottom_query) or [], uid_list)
+
+            for uid, path_list in path_dict.items():
+                if not path_list:
+                    # if this is a FW/root object, there is no path data => use [[uid]] as fallback
+                    path_list.append([uid])
+
             if root_uid is not None:
                 self._remove_paths_lacking_root_uid(path_dict, root_uid)
             return path_dict

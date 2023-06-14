@@ -85,7 +85,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                     'size': size,
                     'file_name': file_name,
                     'mime-type': mime_dict.get(uid, 'file-type-plugin/not-run-yet'),
-                    'current_virtual_path': file_tree_data[uid] if uid in file_tree_data else [[uid]],
+                    'current_virtual_path': file_tree_data[uid],
                 }
                 for uid, size, file_name in session.execute(query)
             ]

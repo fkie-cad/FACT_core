@@ -295,8 +295,8 @@ def test_collect_analysis_tags(db):
 def test_get_file_tree_path(db):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
 
-    assert db.common.get_file_tree_path_for_uid_list([child_fo.uid]) == {child_fo.uid: []}
-    assert db.common.get_file_tree_path(child_fo.uid) == []
+    assert db.common.get_file_tree_path_for_uid_list([fw.uid]) == {fw.uid: [[fw.uid]]}, 'fallback does not work'
+    assert db.common.get_file_tree_path(fw.uid) == [[fw.uid]], 'fallback does not work'
 
     db.backend.insert_multiple_objects(fw, parent_fo, child_fo)
 
