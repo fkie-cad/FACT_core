@@ -50,6 +50,15 @@ class VirtualFilePath(Base):
 
     __table_args__ = (PrimaryKeyConstraint('parent_uid', 'file_uid', 'file_path', name='_vfp_primary_key'),)
 
+    def __eq__(self, other: VirtualFilePath) -> bool:
+        if not isinstance(other, VirtualFilePath):
+            raise ValueError('A VirtualFilePath object can only be compared with another VirtualFilePath object.')
+        return (
+            self.parent_uid == other.parent_uid
+            and self.file_uid == other.file_uid
+            and self.file_path == other.file_path
+        )
+
 
 included_files_table = Table(
     'included_files',
@@ -92,9 +101,11 @@ def _create_vfp_table_entries():
             for virtual_path in vfp_list:
                 elements = [e for e in virtual_path.split('|') if e]
                 if len(elements) < 2:  # noqa: PLR2004
-                    continue  # we skip firmware VFP entries (without parent)
+                    continue  # we skip firmware (aka root file object) VFP entries (without parent)
                 *_, parent_uid, path = elements
-                vfp_entries.append(VirtualFilePath(parent_uid=parent_uid, file_uid=uid, file_path=path))
+                vfp = VirtualFilePath(parent_uid=parent_uid, file_uid=uid, file_path=path)
+                if vfp not in vfp_entries:
+                    vfp_entries.append(vfp)
         if vfp_entries:
             session.add_all(vfp_entries)
     session.commit()
