@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import yaml
@@ -17,7 +18,7 @@ BLACKLIST = [
     'RsbStuffingCheck.yml',  # too many false positives
 ]
 CLI_COLOR_REGEX = re.compile(rb'\x1b\[\d{1,3}m')
-RESULT_PARSING_REGEX = re.compile(r'Scanner result (\w+?) \(variant: (\w+?)\) ([\w ]+?) \(')
+RESULT_PARSING_REGEX = re.compile(r'Scanner result ([^\n]+?) \(variant: ([^\n]+?)\) ([^(]+?)(?: \(|\n|$)')
 NO_MATCH_STR = 'No threat detected'
 
 
@@ -73,8 +74,9 @@ def _load_rules(rule_files: list[Path]) -> dict[str, dict]:
 
 def _scan_file(rules: dict[str, dict], rule_files: list[Path]):
     rules_str = ' '.join(f'-r {file}' for file in rule_files)
+    mode = os.environ.get('UEFI_ANALYSIS_MODE', default='module')
     proc = run(
-        split(f'fwhunt_scan_analyzer.py scan-module {INPUT_FILE} {rules_str}'),
+        split(f'fwhunt_scan_analyzer.py scan-{mode} {INPUT_FILE} {rules_str}'),
         capture_output=True,
     )
     if proc.returncode != 0:
