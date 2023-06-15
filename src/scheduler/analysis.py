@@ -653,7 +653,7 @@ class PluginRunner:
 
         #: The virtual file path of the file object
         #: See :py:class:`FileObject`.
-        virtual_file_path: dict
+        virtual_file_path: typing.Dict
         #: The path of the file on the disk
         path: str
         #: A dictionary containing plugin names as keys and their analysis as value.
@@ -770,11 +770,11 @@ class Worker(mp.Process):
         self,
         plugin: analysis.PluginV0,
         worker_config: Config,
-        in_queue: mp.Queue[PluginRunner.Task],
-        out_queue: mp.Queue[tuple[str, list[str], dict]],
-        stats: mp.Array[ctypes.c_float],
-        stats_count: mp.Value[int],
-        stats_idx: mp.Value[int],
+        in_queue: mp.Queue,
+        out_queue: mp.Queue,
+        stats: mp.Array,
+        stats_count: mp.Value,
+        stats_idx: mp.Value,
     ):
         super().__init__(name=f'{plugin.metadata.name} worker')
         self._plugin = plugin
