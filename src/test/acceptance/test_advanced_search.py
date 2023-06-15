@@ -18,15 +18,13 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
 
         self.parent_fw = create_test_firmware()
         self.child_fo = create_test_file_object()
-        uid = self.parent_fw.uid
-        self.child_fo.parent_firmware_uids = [uid]
-        self.db_backend_interface.add_object(self.parent_fw)
+        self.child_fo.virtual_file_path = {self.parent_fw.uid: ['/some/path']}
+        self.child_fo.parent_firmware_uids = [self.parent_fw.uid]
         self.child_fo.processed_analysis['unpacker'] = generate_analysis_entry(analysis_result={'plugin_used': 'test'})
         self.child_fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'some_type'})
-        self.db_backend_interface.add_object(self.child_fo)
         self.other_fw = create_test_firmware()
         self.other_fw.uid = '1234abcd_123'
-        self.db_backend_interface.add_object(self.other_fw)
+        self.db_backend_interface.insert_multiple_objects(self.parent_fw, self.child_fo, self.other_fw)
 
     def tearDown(self):
         self._stop_backend()
