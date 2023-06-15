@@ -70,7 +70,7 @@ def create_test_firmware(
     return fw
 
 
-def create_test_file_object(bin_path='get_files_test/testfile1', uid=None):
+def create_test_file_object(bin_path='get_files_test/testfile1', uid=None, analyses=None):
     fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
     processed_analysis = {
         'dummy': {
@@ -84,6 +84,7 @@ def create_test_file_object(bin_path='get_files_test/testfile1', uid=None):
         'file_type': {
             'result': {
                 'full': 'Not a PE file',
+                'mime': 'test_type',
             },
             'plugin_version': '1.0',
             'analysis_date': '0',
@@ -97,6 +98,8 @@ def create_test_file_object(bin_path='get_files_test/testfile1', uid=None):
             'analysis_date': '0',
         },
     }
+    if analyses:
+        processed_analysis.update(analyses)
     fo.processed_analysis.update(processed_analysis)
     if uid:
         fo.uid = uid

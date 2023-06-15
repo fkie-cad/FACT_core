@@ -187,9 +187,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         with TemporaryDirectory(dir=container.tmp_dir.name) as tmp_dir:
             try:
                 extracted_objects = self.unpacker.unpack(task, tmp_dir, container)
-            except ExtractionError:
+            except ExtractionError as error:
                 docker_logs = self._fetch_logs(container)
-                logging.warning(f'Exception happened during extraction of {task.uid}.{docker_logs}')
+                logging.exception(f'Exception happened during extraction of {task.uid}.{docker_logs}: {error}')
                 container.set_exception()
                 extracted_objects = []
 

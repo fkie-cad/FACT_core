@@ -88,7 +88,7 @@ class TestUnpackScheduler:
     def test_throttle(self):
         with patch(target='scheduler.unpacking_scheduler.sleep', new=self._trigger_sleep):
             self._start_scheduler()
-            self.sleep_event.wait(timeout=10)
+            assert self.sleep_event.wait(timeout=10)
 
         assert self.scheduler.throttle_condition.value == 1, 'unpack load throttle not functional'
 

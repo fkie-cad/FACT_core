@@ -11,7 +11,6 @@ from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
-from test.integration.common import MockFSOrganizer  # pylint: disable=wrong-import-order
 
 
 class TestFileAddition:
@@ -31,12 +30,13 @@ class TestFileAddition:
         self._analysis_scheduler.start()
         self._unpack_scheduler = UnpackingScheduler(
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
-            fs_organizer=MockFSOrganizer(),
             unpacking_locks=unpacking_lock_manager,
         )
         self._unpack_scheduler.start()
-        self._compare_scheduler = ComparisonScheduler(callback=self.trigger_compare_finished_event)
-        self._compare_scheduler.start()
+        self._comparison_scheduler = ComparisonScheduler(
+            callback=self.trigger_compare_finished_event,
+        )
+        self._comparison_scheduler.start()
 
     def count_analysis_finished_event(self, uid, plugin, analysis_result):
         self.backend_interface.add_analysis(uid, plugin, analysis_result)
@@ -48,31 +48,29 @@ class TestFileAddition:
         self.compare_finished_event.set()
 
     def teardown(self):
-        self._compare_scheduler.shutdown()
+        self._comparison_scheduler.shutdown()
         self._unpack_scheduler.shutdown()
         self._analysis_scheduler.shutdown()
-
         self._tmp_dir.cleanup()
         gc.collect()
 
     def test_unpack_analyse_and_compare(self, db, comp_db):
         test_fw_1 = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
-        test_fw_1.version, test_fw_1.vendor, test_fw_1.device_name, test_fw_1.device_class = ['foo'] * 4
-        test_fw_1.release_date = '2017-01-01'
         test_fw_2 = Firmware(file_path=f'{get_test_data_dir()}/regression_one')
-        test_fw_2.version, test_fw_2.vendor, test_fw_2.device_name, test_fw_2.device_class = ['foo'] * 4
-        test_fw_2.release_date = '2017-01-01'
 
-        self._unpack_scheduler.add_task(test_fw_1)
-        self._unpack_scheduler.add_task(test_fw_2)
+        for fw in [test_fw_1, test_fw_2]:
+            fw.version, fw.vendor, fw.device_name, fw.device_class = ['foo'] * 4
+            fw.release_date = '2017-01-01'
+            self._unpack_scheduler.unpacker.file_storage_system.store_file(fw)
+            self._unpack_scheduler.add_task(fw)
 
-        self.analysis_finished_event.wait(timeout=20)
+        assert self.analysis_finished_event.wait(timeout=20)
 
         compare_id = normalize_compare_id(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
 
-        assert self._compare_scheduler.add_task((compare_id, False)) is None, 'adding compare task creates error'
+        assert self._comparison_scheduler.add_task((compare_id, False)) is None, 'adding comparison task creates error'
 
-        self.compare_finished_event.wait(timeout=10)
+        assert self.compare_finished_event.wait(timeout=10)
 
         result = comp_db.get_comparison_result(compare_id)
 

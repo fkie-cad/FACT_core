@@ -20,7 +20,7 @@ class Compare:
     def __init__(self, db_interface: ComparisonDbInterface | None = None):
         self.db_interface = db_interface
         self._setup_plugins()
-        logging.info(f'Plug-ins available: {self.compare_plugins.keys()}')
+        logging.info(f'Plugins available: {self.compare_plugins.keys()}')
 
     def compare(self, uid_list):
         logging.info(f'Compare in progress: {uid_list}')
