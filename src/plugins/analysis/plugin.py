@@ -7,15 +7,13 @@ import typing
 
 import pydantic
 from packaging.version import Version
-from pydantic import validator
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel, validator
 
 if typing.TYPE_CHECKING:
     import io
 
 
-@dataclass
-class Tag:
+class Tag(BaseModel):
     """A dataclass for tags that is more convenient than dictionaries.
     The structure of the dict is defined in the docs for :py:attr:`objects.FileObject.analysis_tags`.
     """
@@ -38,8 +36,7 @@ class PluginV0(metaclass=abc.ABCMeta):
     Analysis plugins should not depend on FACT_core code where they mustn't.
     """
 
-    @dataclass
-    class MetaData:
+    class MetaData(BaseModel):
         """A class containing all metadata that describes the plugin"""
 
         #: Name of the plugin
