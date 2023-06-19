@@ -3,7 +3,6 @@ from typing import List, NamedTuple, Type, TypeVar
 
 import pytest
 from pydantic import BaseModel, Extra
-from pydantic.dataclasses import dataclass
 from pytest import MonkeyPatch  # noqa: PT013
 
 import config
@@ -44,7 +43,7 @@ def merge_markers(request, name: str, dtype: Type[T]) -> T:
 
     :param request: The pytest request where the markers will be taken from.
     :param name: The name of the marker.
-    :param dtype: The type that the marker should have. Must be a ``pydantic.dataclasses.dataclass`` or ``dict``.
+    :param dtype: The type that the marker should have. Must be an instance of ``pydantic.BaseModel`` or ``dict``.
 
     :return: An instance of ``dtype``.
     """
@@ -450,8 +449,7 @@ class ViewUpdaterMock:
         pass
 
 
-@dataclass
-class SchedulerTestConfig:
+class SchedulerTestConfig(BaseModel):
     """A declarative class that describes the desired behavior for the fixtures :py:func:`~analysis_finished_event`,
      :py:func:`unpacking_scheduler` and :py:func:`comparison_scheduler`.
 
