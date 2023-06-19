@@ -1,5 +1,4 @@
 # pylint: disable=redefined-outer-name
-import dataclasses
 from multiprocessing import Event, Queue, Value
 from typing import List, NamedTuple, Type, TypeVar
 
@@ -67,8 +66,8 @@ def merge_markers(request, name: str, dtype: Type[T]) -> T:
             assert isinstance(argument, dtype)
             if isinstance(argument, dict):
                 marker_dict.update(argument)
-            else:
-                marker_dict.update(dataclasses.asdict(argument))
+            elif isinstance(argument, BaseModel):
+                marker_dict.update(argument.dict())
         else:
             raise _err
     return dtype(**marker_dict)
@@ -84,7 +83,7 @@ class DatabaseInterfaces(NamedTuple):
     stats_update: StatsUpdateDbInterface
 
 
-class MockDataStorage(BaseModel, extra=Extra.forbid):
+class MockDataStorage(BaseModel):
     postgres_server: str
     postgres_port: int
     postgres_database: str
@@ -107,14 +106,20 @@ class MockDataStorage(BaseModel, extra=Extra.forbid):
     redis_host: str
     redis_port: int
 
+    class Config:
+        extra = Extra.forbid
 
-class ConfigCommonMock(BaseModel, extra=Extra.forbid):
+
+class ConfigCommonMock(BaseModel):
     """This class is a mock of :py:class:`config.Common` which only contains
     postgres and redis configuration.
     """
 
     postgres: config.Common.Postgres
     redis: config.Common.Redis
+
+    class Config:
+        extra = Extra.forbid
 
 
 class MockIntercom:
