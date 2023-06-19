@@ -3,7 +3,7 @@
 from typing import Type
 
 import pytest
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 
 from test.common_helper import TEST_FW, TEST_TEXT_FILE, CommonDatabaseMock
 from test.conftest import merge_markers
@@ -98,8 +98,7 @@ class _UserDbMock:
             pass
 
 
-@dataclass
-class WebInterfaceUnitTestConfig:
+class WebInterfaceUnitTestConfig(BaseModel):
     """A class configuring the :py:func:`web_frontend` fixture."""
 
     #: A class that can be instanced to mock every ``@property`` of
