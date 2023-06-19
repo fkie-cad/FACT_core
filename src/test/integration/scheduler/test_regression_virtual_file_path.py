@@ -29,21 +29,21 @@ def intermediate_event():
 
 
 @pytest.fixture()
-def analyzed_objects():
+def unpacked_objects():
     manager = Manager()
     yield manager.list()
     manager.shutdown()
 
 
 @pytest.fixture()
-def test_scheduler(finished_event, intermediate_event, analyzed_objects):
+def test_scheduler(finished_event, intermediate_event, unpacked_objects):
     interface = BackendDbInterface()
     unpacking_lock_manager = UnpackingLockManager()
     elements_finished = Value('i', 0)
 
     def count_pre_analysis(file_object):
         interface.add_object(file_object)
-        analyzed_objects.append(file_object.uid)
+        unpacked_objects.append(file_object.uid)
         elements_finished.value += 1
         if elements_finished.value == INCLUDED_FILE_COUNT:
             intermediate_event.set()
@@ -86,13 +86,13 @@ def test_check_collision(db, test_scheduler, finished_event, intermediate_event)
     assert fo_from_db.virtual_file_path[SECOND_ROOT_ID] == ['/test']
 
 
-def test_unpacking_skip(db, test_scheduler, intermediate_event, analyzed_objects):
+def test_unpacking_skip(db, test_scheduler, intermediate_event, unpacked_objects):
     add_test_file(test_scheduler, 'vfp_test.zip')
 
     assert intermediate_event.wait(timeout=20)
 
-    assert len(list(analyzed_objects)) == INCLUDED_FILE_COUNT
-    assert list(analyzed_objects).count(DUPLICATE_UID) == 1, 'is contained two times, 2nd unpacking should be skipped'
+    assert len(list(unpacked_objects)) == INCLUDED_FILE_COUNT
+    assert list(unpacked_objects).count(DUPLICATE_UID) == 1, 'is contained two times, 2nd unpacking should be skipped'
     fo_from_db = db.frontend.get_object(DUPLICATE_UID)
     assert fo_from_db.virtual_file_path == {
         DUPLICATE_PARENT_1: ['/folder/inner.zip'],
