@@ -20,7 +20,7 @@ import psutil
 import pydantic
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 
 import config
 from analysis.PluginBase import AnalysisBasePlugin
@@ -639,16 +639,14 @@ def _dependencies_are_unfulfilled(plugin: analysis.PluginV0, fw_object: FileObje
 
 class PluginRunner:
     # pylint:disable=too-many-instance-attributes
-    @dataclass
-    class Config:
+    class Config(BaseModel):
         """A class containing all parameters of the runner"""
 
         process_count: int
         #: Timeout in seconds after which the analysis is aborted
         timeout: int
 
-    @dataclass(config={'arbitrary_types_allowed': True})
-    class Task:
+    class Task(BaseModel):
         """Contains all information a :py:class:`PluginWorker` needs to analyze a file."""
 
         #: The virtual file path of the file object
@@ -667,6 +665,9 @@ class PluginRunner:
         # even if a process (like PluginRunner) does not need all state (e.g.
         # FileObject.scheduled_analysis)
         scheduler_state: FileObject
+
+        class Config:
+            arbitrary_types_allowed = True
 
     def __init__(
         self,
@@ -759,8 +760,7 @@ class Worker(mp.Process):
         def __init__(self, timeout: float):
             self.timeout = timeout
 
-    @dataclass
-    class Config:
+    class Config(BaseModel):
         """A class containing all parameters of the worker"""
 
         #: Timeout in seconds after which the analysis is aborted
