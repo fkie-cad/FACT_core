@@ -69,11 +69,11 @@ def add_test_file(scheduler: UnpackingScheduler, path_in_test_dir: str):
 def test_check_collision(db, test_scheduler, finished_event, intermediate_event):
     add_test_file(test_scheduler, 'regression_one')
 
-    assert intermediate_event.wait(timeout=5)
+    assert intermediate_event.wait(timeout=20)
 
     add_test_file(test_scheduler, 'regression_two')
 
-    assert finished_event.wait(timeout=30)
+    assert finished_event.wait(timeout=20)
 
     fo_from_db = db.frontend.get_object(TARGET_UID)
     assert len(fo_from_db.virtual_file_path) == 2, 'fo should have two parents'  # noqa: PLR2004
