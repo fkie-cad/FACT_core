@@ -5,7 +5,6 @@ import pytest
 
 from objects.firmware import Firmware
 from scheduler.unpacking_scheduler import UnpackingScheduler
-from storage.db_interface_backend import BackendDbInterface
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
 
@@ -37,12 +36,10 @@ def unpacked_objects():
 
 @pytest.fixture()
 def test_scheduler(finished_event, intermediate_event, unpacked_objects):
-    interface = BackendDbInterface()
     unpacking_lock_manager = UnpackingLockManager()
     elements_finished = Value('i', 0)
 
     def count_pre_analysis(file_object):
-        interface.add_object(file_object)
         unpacked_objects.append(file_object.uid)
         elements_finished.value += 1
         if elements_finished.value == INCLUDED_FILE_COUNT:
