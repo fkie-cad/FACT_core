@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>helperFunctions.virtual_file_path module &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,12 +29,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -109,9 +112,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
-      <li>helperFunctions.virtual_file_path module</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="helperFunctions.html">helperFunctions</a></li>
+      <li class="breadcrumb-item active">helperFunctions.virtual_file_path module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/helperFunctions.virtual_file_path.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -127,10 +130,10 @@
 <dt class="sig sig-object py" id="helperFunctions.virtual_file_path.get_base_of_virtual_path">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_base_of_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">virtual_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_base_of_virtual_path" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>virtual_path</strong> (<em>str</em>) – </p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str</p>
 </dd>
 </dl>
@@ -141,13 +144,13 @@
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_parent_uids_from_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_parent_uids_from_virtual_path" title="Permalink to this definition"></a></dt>
 <dd><p>Get the UIDs of parent files (aka files with include this file) from the virtual file paths of a FileObject.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>file_object</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The FileObject whose virtual file paths are searched for parent UIDs</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A set of parent UIDs</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>set[str]</p>
 </dd>
 </dl>
@@ -157,10 +160,10 @@
 <dt class="sig sig-object py" id="helperFunctions.virtual_file_path.get_top_of_virtual_path">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_top_of_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">virtual_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_top_of_virtual_path" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>virtual_path</strong> (<em>str</em>) – </p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str</p>
 </dd>
 </dl>
@@ -171,13 +174,13 @@
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_uids_from_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">virtual_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_uids_from_virtual_path" title="Permalink to this definition"></a></dt>
 <dd><p>Get all UIDs from a virtual file path (one element from the virtual path list for one root UID of a FW).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>virtual_path</strong> (<em>str</em>) – A virtual path consisting of UIDs, separators (‘|’) and file paths</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A list of UIDs</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list[str]</p>
 </dd>
 </dl>
@@ -187,10 +190,10 @@
 <dt class="sig sig-object py" id="helperFunctions.virtual_file_path.join_virtual_path">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">join_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.join_virtual_path" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>elements</strong> (<em>str</em>) – </p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str</p>
 </dd>
 </dl>
@@ -202,13 +205,13 @@
 <dd><p>virtual file paths (VFPs) with the same base are updated and should be replaced
 VFPs with different bases correspond to different archives in the firmware and should be kept</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>old_vfp_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 <li><p><strong>new_vfp_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list[str]</p>
 </dd>
 </dl>
@@ -218,10 +221,10 @@ VFPs with different bases correspond to different archives in the firmware and s
 <dt class="sig sig-object py" id="helperFunctions.virtual_file_path.split_virtual_path">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">split_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">virtual_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.split_virtual_path" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>virtual_path</strong> (<em>str</em>) – </p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list[str]</p>
 </dd>
 </dl>
@@ -236,16 +239,16 @@ even in multiple different firmware images (e.g. common files across patch level
 Thus updating the virtual file paths dict requires some logic.
 This function returns the combined dict across newfound virtual paths and existing ones.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>new_vfp</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – current virtual file path dictionary</p></li>
 <li><p><strong>old_vfp</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – old virtual file path dictionary (existing DB entry)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>updated (merged) virtual file path dictionary</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict[str, list[str]]</p>
 </dd>
 </dl>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>helperFunctions.compare_sets module &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,12 +29,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -104,9 +107,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
-      <li>helperFunctions.compare_sets module</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="helperFunctions.html">helperFunctions</a></li>
+      <li class="breadcrumb-item active">helperFunctions.compare_sets module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/helperFunctions.compare_sets.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -124,13 +127,13 @@
 <dd><p>Iterate over each element of an iterable object (e.g. a list) and also get all other (remaining) elements
 from the object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>iterable</strong> (<em>Iterable</em><em>[</em><em>_T</em><em>]</em>) – The object that will be iterated over.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A generator with tuples containing the item and the rest (all other elements).</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Iterator[tuple[_T, Iterable[_T]]]</p>
 </dd>
 </dl>
@@ -141,16 +144,16 @@ from the object.</p>
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.compare_sets.</span></span><span class="sig-name descname"><span class="pre">remove_duplicates_from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.compare_sets.remove_duplicates_from_list" title="Permalink to this definition"></a></dt>
 <dd><p>Remove duplicates from a list.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>list</strong> – The input list (possibly) containing duplicates.</p></li>
 <li><p><strong>list_</strong> (<em>list</em><em>[</em><em>_T</em><em>]</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A new list only containing unique elements.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list[_T]</p>
 </dd>
 </dl>
@@ -161,16 +164,16 @@ from the object.</p>
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.compare_sets.</span></span><span class="sig-name descname"><span class="pre">substring_is_in_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substring_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.compare_sets.substring_is_in_list" title="Permalink to this definition"></a></dt>
 <dd><p>Check if any element in a list of strings is a substring of the provided string.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>string</strong> (<em>str</em>) – The string that is checked if it contains any of the substrings.</p></li>
 <li><p><strong>substring_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – A list of possible substrings.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><cite>True</cite> if a substring is found and <cite>False</cite> otherwise.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>conftest &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,12 +29,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -57,6 +60,10 @@
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">conftest</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig.Config"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig.Config</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig.Config.arbitrary_types_allowed"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig.Config.arbitrary_types_allowed</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig.init_kwargs"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig.init_kwargs</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig.plugin_class"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig.plugin_class</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#conftest.AnalysisPluginTestConfig.start_processes"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginTestConfig.start_processes</span></code></a></li>
@@ -90,8 +97,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>conftest</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">conftest</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/conftest.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -105,18 +112,31 @@
 <span id="conftest"></span><h1>conftest<a class="headerlink" href="#module-conftest" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="conftest.AnalysisPluginTestConfig">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">AnalysisPluginTestConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plugin_class=&lt;class</span> <span class="pre">'analysis.PluginBase.AnalysisBasePlugin'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_processes=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_kwargs=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.AnalysisPluginTestConfig" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">AnalysisPluginTestConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.AnalysisPluginTestConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
 <p>A class configuring the <a class="reference internal" href="#conftest.analysis_plugin" title="conftest.analysis_plugin"><code class="xref py py-func docutils literal notranslate"><span class="pre">analysis_plugin()</span></code></a> fixture.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>plugin_class</strong> (<em>Type</em><em>[</em><em>AnalysisBasePlugin</em><em>]</em>) – </p></li>
-<li><p><strong>start_processes</strong> (<em>bool</em>) – </p></li>
-<li><p><strong>init_kwargs</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
 </ul>
 </dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
 </dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="conftest.AnalysisPluginTestConfig.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#conftest.AnalysisPluginTestConfig.Config" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="conftest.AnalysisPluginTestConfig.Config.arbitrary_types_allowed">
+<span class="sig-name descname"><span class="pre">arbitrary_types_allowed</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#conftest.AnalysisPluginTestConfig.Config.arbitrary_types_allowed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="conftest.AnalysisPluginTestConfig.init_kwargs">
 <span class="sig-name descname"><span class="pre">init_kwargs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#conftest.AnalysisPluginTestConfig.init_kwargs" title="Permalink to this definition"></a></dt>
@@ -181,7 +201,7 @@ like for example TIMEOUT you have to put the following in your test:</p>
 <dt class="sig sig-object py" id="conftest.backend_config">
 <span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">backend_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">common_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_firmware_file_storage_directory</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.backend_config" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="config.html#config.Backend" title="config.Backend"><em>Backend</em></a></p>
 </dd>
 </dl>
@@ -191,7 +211,7 @@ like for example TIMEOUT you have to put the following in your test:</p>
 <dt class="sig sig-object py" id="conftest.common_config">
 <span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">common_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_docker_mount_base_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.common_config" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="config.html#config.Common" title="config.Common"><em>Common</em></a></p>
 </dd>
 </dl>
@@ -201,7 +221,7 @@ like for example TIMEOUT you have to put the following in your test:</p>
 <dt class="sig sig-object py" id="conftest.frontend_config">
 <span class="sig-prename descclassname"><span class="pre">conftest.</span></span><span class="sig-name descname"><span class="pre">frontend_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">common_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#conftest.frontend_config" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="config.html#config.Frontend" title="config.Frontend"><em>Frontend</em></a></p>
 </dd>
 </dl>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>scheduler.analysis &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,12 +29,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -94,9 +97,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="scheduler.html">scheduler</a> &raquo;</li>
-      <li>scheduler.analysis</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="scheduler.html">scheduler</a></li>
+      <li class="breadcrumb-item active">scheduler.analysis</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/scheduler.analysis.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -165,7 +168,7 @@ by the scheduler using the <cite>add_job</cite> function, and an out-queue that 
 actual analysis process is out of scope. Database interaction happens before (pre_analysis) and after
 (post_analysis) the running of a task, to store intermediate results for live updates, and final results.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>pre_analysis</strong> (<em>Callable</em><em>[</em><em>[</em><a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a><em>]</em><em>, </em><em>None</em><em>]</em>) – A database callback to execute before running an analysis task.</p></li>
 <li><p><strong>post_analysis</strong> (<em>Callable</em><em>[</em><em>[</em><em>str</em><em>, </em><em>str</em><em>, </em><em>dict</em><em>]</em><em>, </em><em>None</em><em>]</em>) – A database callback to execute after running an analysis task.</p></li>
@@ -180,10 +183,10 @@ actual analysis process is out of scope. Database interaction happens before (pr
 <dd><p>Iterate all attached processes and see if an exception occurred in any. Depending on configuration, plugin
 exceptions are not registered as they are restarted after an exception occurs.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Boolean value stating if any attached process ran into an exception</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>bool</p>
 </dd>
 </dl>
@@ -215,10 +218,10 @@ exceptions are not registered as they are restarted after an exception occurs.</
 <p>Mandatory plugins are not shown in the analysis selection but always executed. Default plugins are pre-selected
 in the analysis selection.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict with information regarding all loaded plugins</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict</p>
 </dd>
 </dl>
@@ -244,10 +247,10 @@ in the analysis selection.</p>
 </div>
 </div></blockquote>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Dictionary containing current workload statistics</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict</p>
 </dd>
 </dl>
@@ -271,7 +274,7 @@ notify all attached processes of the impending shutdown. Afterwards queues are c
 <dd><p>This function is used to start analysis of a firmware object. The function registers the firmware with the
 status module such that the progress of the firmware and its included files is tracked.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The firmware that is to be analyzed</p>
 </dd>
 </dl>
@@ -283,7 +286,7 @@ status module such that the progress of the firmware and its included files is t
 <dd><p>This function is used to analyze an object and all its recursively included objects without repeating the
 extraction process. Scheduled analyses are propagated to the included objects.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The root file that is to be analyzed</p>
 </dd>
 </dl>
@@ -295,7 +298,7 @@ extraction process. Scheduled analyses are propagated to the included objects.</
 <dd><p>This function is used to add analysis tasks for a single file. This function has no side effects so the object
 is simply iterated until all scheduled analyses are processed or skipped.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The file that is to be analyzed</p>
 </dd>
 </dl>

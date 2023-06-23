@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>objects.file module &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,12 +29,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -114,9 +117,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="objects.html">objects</a> &raquo;</li>
-      <li>objects.file module</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="objects.html">objects</a></li>
+      <li class="breadcrumb-item active">objects.file module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/objects.file.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -135,7 +138,7 @@
 <p>FileObject is the primary data structure in FACT.
 It holds all meta information of a file along with analysis results and some internal values for scheduling.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>binary</strong> (<em>bytes</em><em> | </em><em>None</em>) – The file in binary representation. Either this or <cite>file_path</cite> has to be present.</p></li>
 <li><p><strong>file_name</strong> (<em>str</em><em> | </em><em>None</em>) – The file’s name.</p></li>
@@ -157,10 +160,10 @@ The function also takes care of a number of fields for the child object:</p>
 <li><p><cite>virtual_file_path</cite>: Sets a new virtual_file_path for the child, being &lt;this_files_current_vfp|child_path&gt;.</p></li>
 </ul>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>file_object</strong> – File that was extracted from the current file</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
 </dd>
 </dl>
@@ -172,13 +175,13 @@ The function also takes care of a number of fields for the child object:</p>
 <dd><p>Add virtual file paths (vfps) to this file based on an existing list of vfps on the parent
 and the parent’s uid as root.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>parent_paths</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of virtual paths on parent object.</p></li>
 <li><p><strong>parent_uid</strong> (<em>str</em>) – uid of parent.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
 </dd>
 </dl>
@@ -219,7 +222,7 @@ Comments are dicts with the keys time (float), author (str) and comment (str).</
 <dt class="sig sig-object py" id="objects.file.FileObject.create_binary_from_path">
 <span class="sig-name descname"><span class="pre">create_binary_from_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.create_binary_from_path" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
 </dd>
 </dl>
@@ -260,13 +263,13 @@ Only lists the next layer, not recursively included files on lower extraction la
 This usually is the file name for extracted files.
 As files can have different names across occurrences, uid of a specific root object can be specified.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>root_uid</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – (Optional) root uid to base HID on.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>root_uid</strong> (<em>str</em><em> | </em><em>None</em>) – (Optional) root uid to base HID on.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>String representing a human-readable identifier for this file.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -278,10 +281,10 @@ As files can have different names across occurrences, uid of a specific root obj
 <dd><p>Return <cite>self.root_uid</cite> if set.
 Else gets uid from root of first virtual file path.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>uid of root firmware as string.</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str</p>
 </dd>
 </dl>
@@ -292,10 +295,10 @@ Else gets uid from root of first virtual file path.</p>
 <span class="sig-name descname"><span class="pre">get_virtual_file_paths</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_file_paths" title="Permalink to this definition"></a></dt>
 <dd><p>Get virtual file paths of current file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Dict mapping uids of root objects to lists of paths in each root.</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict[str, list]</p>
 </dd>
 </dl>
@@ -306,10 +309,10 @@ Else gets uid from root of first virtual file path.</p>
 <span class="sig-name descname"><span class="pre">get_virtual_paths_for_all_uids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_paths_for_all_uids" title="Permalink to this definition"></a></dt>
 <dd><p>Get all virtual file paths (VFPs) of the file in all firmware containers.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>List of virtual paths.</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list[str]</p>
 </dd>
 </dl>
@@ -322,13 +325,13 @@ Else gets uid from root of first virtual file path.</p>
 If not, similar to <a class="reference internal" href="#objects.file.FileObject.get_root_uid" title="objects.file.FileObject.get_root_uid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_root_uid()</span></code></a> either return paths of <cite>self.root_uid</cite>
 or fall back to first uid of list of all root uids.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>root_uid</strong> (<em>str</em>) – (Optional) root uid to get vfps for.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of virtual paths.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list[str]</p>
 </dd>
 </dl>
@@ -393,10 +396,10 @@ This value might not be set at all times (cf. <a class="reference internal" href
 <dd><p>Store the binary representation of the file as byte string.
 Additionally, set binary related metadata (size, hash) and compute uid after that.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>binary</strong> (<em>bytes</em>) – file in binary representation</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
 </dd>
 </dl>
@@ -427,7 +430,7 @@ It will not be persisted to the database, so it dies after the analysis cycle.</
 <dd><p>Unique identifier of this file.
 Consisting of the file’s sha256 hash, and it’s length in the form <cite>hash_length</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>uid of this file.</p>
 </dd>
 </dl>

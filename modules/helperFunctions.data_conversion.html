@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>helperFunctions.data_conversion module &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,12 +29,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -110,9 +113,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
-      <li>helperFunctions.data_conversion module</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="helperFunctions.html">helperFunctions</a></li>
+      <li class="breadcrumb-item active">helperFunctions.data_conversion module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/helperFunctions.data_conversion.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -129,13 +132,13 @@
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.data_conversion.</span></span><span class="sig-name descname"><span class="pre">convert_compare_id_to_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.data_conversion.convert_compare_id_to_list" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a compare ID back to a list of UIDs.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>compare_id</strong> (<em>str</em>) – The compare ID.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The according UID list.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list[str]</p>
 </dd>
 </dl>
@@ -147,10 +150,10 @@
 <dd><p>Convert a string to a boolean, e.g. <cite>“0”</cite> to <cite>False</cite> or <cite>“Y”</cite> to <cite>True</cite>.
 Replaces <cite>distutils.util.strtobool</cite> which was deprecated in Python 3.10.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>string</strong> (<em>str</em>) – </p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>bool</p>
 </dd>
 </dl>
@@ -162,13 +165,13 @@ Replaces <cite>distutils.util.strtobool</cite> which was deprecated in Python 3.
 <dd><p>Convert a time object to a string. The time object may be a datetime.date object or a string. If it is anything else,
 the output defaults to <cite>“1970-01-01”</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>time_obj</strong> (<em>Any</em>) – The time object, that is converted to string.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The converted time object as string or a default date (if the conversion fails).</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -180,13 +183,13 @@ the output defaults to <cite>“1970-01-01”</cite>.</p>
 <dd><p>Convert a list of UIDs to a compare ID (which is a unique string consisting of UIDs separated by semi-colons, used
 to identify a FACT <cite>Firmware</cite> or <cite>FileObject</cite> comparison).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>uid_list</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em>) – A list of <cite>FileObject</cite> or <cite>Firmware</cite> UIDs.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The compare ID.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -197,13 +200,13 @@ to identify a FACT <cite>Firmware</cite> or <cite>FileObject</cite> comparison).
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.data_conversion.</span></span><span class="sig-name descname"><span class="pre">get_value_of_first_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.data_conversion.get_value_of_first_key" title="Permalink to this definition"></a></dt>
 <dd><p>Get the value of the first key in a dictionary. If the dict is empty, return <cite>None</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>input_dict</strong> (<em>dict</em><em>[</em><em>_KT</em><em>, </em><em>_VT</em><em>]</em>) – The dictionary to get the value from.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The value of the first key in the dictionary or <cite>None</cite> if it is empty.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>_VT | None</p>
 </dd>
 </dl>
@@ -214,13 +217,13 @@ to identify a FACT <cite>Firmware</cite> or <cite>FileObject</cite> comparison).
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.data_conversion.</span></span><span class="sig-name descname"><span class="pre">make_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.data_conversion.make_bytes" title="Permalink to this definition"></a></dt>
 <dd><p>Convert <cite>data</cite> into bytes (if necessary).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>data</strong> (<em>AnyStr</em><em> | </em><em>list</em><em>[</em><em>int</em><em>]</em>) – Some sort of data that can be converted to bytes.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The data as bytes.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bytes</p>
 </dd>
 </dl>
@@ -231,10 +234,10 @@ to identify a FACT <cite>Firmware</cite> or <cite>FileObject</cite> comparison).
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.data_conversion.</span></span><span class="sig-name descname"><span class="pre">make_unicode_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.data_conversion.make_unicode_string" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a (byte) string or some arbitrary object into a string.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>code</strong> (<em>Any</em>) – </p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str</p>
 </dd>
 </dl>
@@ -246,10 +249,10 @@ to identify a FACT <cite>Firmware</cite> or <cite>FileObject</cite> comparison).
 <dd><p>Convert a string to <cite>None</cite> if it consists of the word <cite>“None”</cite> or return the input data otherwise.
 Used to convert a string coming from the web interface to a NoneType object if necessary.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>input_data</strong> (<em>str</em><em> | </em><em>None</em>) – A string that may</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str | None</p>
 </dd>
 </dl>
@@ -260,13 +263,13 @@ Used to convert a string coming from the web interface to a NoneType object if n
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.data_conversion.</span></span><span class="sig-name descname"><span class="pre">normalize_compare_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.data_conversion.normalize_compare_id" title="Permalink to this definition"></a></dt>
 <dd><p>Sort the UIDs in a compare ID (so that it is unique) and return it.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>compare_id</strong> (<em>str</em>) – The compare ID.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The according unique compare ID with reordered UIDs.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>

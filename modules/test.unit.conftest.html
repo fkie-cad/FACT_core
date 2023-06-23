@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>conftest &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,12 +29,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -91,10 +94,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="test.html">test</a> &raquo;</li>
-          <li><a href="test.unit.html">test.unit</a> &raquo;</li>
-      <li>conftest</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="test.html">test</a></li>
+          <li class="breadcrumb-item"><a href="test.unit.html">test.unit</a></li>
+      <li class="breadcrumb-item active">conftest</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/test.unit.conftest.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -173,7 +176,7 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A class mocking <code class="xref py py-class docutils literal notranslate"><span class="pre">FrontendDatabase</span></code>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>db_mock</strong> (<em>CommonDatabaseMock</em>) – </p>
 </dd>
 </dl>
@@ -181,15 +184,18 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="test.unit.conftest.WebInterfaceUnitTestConfig">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">WebInterfaceUnitTestConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database_mock_class=&lt;class</span> <span class="pre">'test.common_helper.CommonDatabaseMock'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intercom_mock_class=&lt;class</span> <span class="pre">'test.unit.conftest.CommonIntercomMock'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.WebInterfaceUnitTestConfig" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">WebInterfaceUnitTestConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.WebInterfaceUnitTestConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
 <p>A class configuring the <a class="reference internal" href="#test.unit.conftest.web_frontend" title="test.unit.conftest.web_frontend"><code class="xref py py-func docutils literal notranslate"><span class="pre">web_frontend()</span></code></a> fixture.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>database_mock_class</strong> (<em>Type</em>) – </p></li>
-<li><p><strong>intercom_mock_class</strong> (<em>Type</em><em>[</em><a class="reference internal" href="#test.unit.conftest.CommonIntercomMock" title="test.unit.conftest.CommonIntercomMock"><em>CommonIntercomMock</em></a><em>]</em>) – </p></li>
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
 </dd>
 </dl>
 <dl class="py attribute">
@@ -216,7 +222,7 @@ See also: The documentation of <a class="reference internal" href="#test.unit.co
 <dd><p>A fixture used to add tasks in the <a class="reference internal" href="#test.unit.conftest.CommonIntercomMock" title="test.unit.conftest.CommonIntercomMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommonIntercomMock</span></code></a>.
 It can be used to inspect what tasks where added</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list</p>
 </dd>
 </dl>
@@ -239,7 +245,7 @@ called <code class="docutils literal notranslate"><span class="pre">WebInterface
 <p>The fixture <a class="reference internal" href="#test.unit.conftest.intercom_task_list" title="test.unit.conftest.intercom_task_list"><code class="xref py py-func docutils literal notranslate"><span class="pre">intercom_task_list()</span></code></a>.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><em>WebFrontEnd</em></p>
 </dd>
 </dl>

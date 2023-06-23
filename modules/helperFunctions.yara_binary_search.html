@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>helperFunctions.yara_binary_search module &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,12 +29,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -107,9 +110,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
-      <li>helperFunctions.yara_binary_search module</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="helperFunctions.html">helperFunctions</a></li>
+      <li class="breadcrumb-item active">helperFunctions.yara_binary_search module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/helperFunctions.yara_binary_search.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -129,7 +132,7 @@
 either match a given set of patterns on all files in the database or focus only on files included in a single
 firmware.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>config</strong> – The FACT configuration.</p>
 </dd>
 </dl>
@@ -138,14 +141,14 @@ firmware.</p>
 <span class="sig-name descname"><span class="pre">get_binary_search_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result" title="Permalink to this definition"></a></dt>
 <dd><p>Perform a yara search on the files in the database.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>task</strong> (<em>tuple</em><em>[</em><em>bytes</em><em>, </em><em>str</em><em> | </em><em>None</em><em>]</em>) – A tuple containing the yara_rules (byte string with the contents of the yara rule file) and
 optionally a firmware uid if only the contents of a single firmware are to be scanned.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict of matching rules with lists of (unique) matched UIDs as values or an error message.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict[str, list[str]] | str</p>
 </dd>
 </dl>
@@ -158,13 +161,13 @@ optionally a firmware uid if only the contents of a single firmware are to be sc
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></span><span class="sig-name descname"><span class="pre">get_yara_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rules_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.get_yara_error" title="Permalink to this definition"></a></dt>
 <dd><p>Get the exception that is caused by trying to compile <code class="docutils literal notranslate"><span class="pre">rules_file</span></code> with yara or <code class="docutils literal notranslate"><span class="pre">None</span></code> if there is none.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>rules_file</strong> (<em>str</em><em> | </em><em>bytes</em>) – A string containing yara rules.</p>
 </dd>
-<dt class="field-even">Result</dt>
+<dt class="field-even">Result<span class="colon">:</span></dt>
 <dd class="field-even"><p>The exception if compiling the rules causes an exception or <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Exception | None</p>
 </dd>
 </dl>
@@ -175,16 +178,16 @@ optionally a firmware uid if only the contents of a single firmware are to be sc
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></span><span class="sig-name descname"><span class="pre">is_valid_yara_rule_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">yara_rules</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.is_valid_yara_rule_file" title="Permalink to this definition"></a></dt>
 <dd><p>Check if <code class="docutils literal notranslate"><span class="pre">yara_rules</span></code> is a valid set of yara rules.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Param</dt>
+<dt class="field-odd">Param<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A string containing yara rules.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if the rules are valid and <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
 </dd>
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>yara_rules</strong> (<em>str</em><em> | </em><em>bytes</em>) – </p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>bool</p>
 </dd>
 </dl>

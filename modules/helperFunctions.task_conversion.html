@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>helperFunctions.task_conversion module &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -30,12 +29,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -106,9 +109,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
-      <li>helperFunctions.task_conversion module</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="helperFunctions.html">helperFunctions</a></li>
+      <li class="breadcrumb-item active">helperFunctions.task_conversion module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/helperFunctions.task_conversion.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -126,13 +129,13 @@
 <dd><p>Check an analysis task for missing fields and return a dict with error messages (that are intended to be displayed
 in the webinterface).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A dictionary containing error messages in the form <cite>{task_key: error_message}</cite>.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict[str, str]</p>
 </dd>
 </dl>
@@ -143,16 +146,16 @@ in the webinterface).</p>
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">convert_analysis_task_to_fw_obj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_fw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.convert_analysis_task_to_fw_obj" title="Permalink to this definition"></a></dt>
 <dd><p>Convert an analysis task to a firmware object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p></li>
 <li><p><strong>base_fw</strong> (<a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware" title="objects.firmware.Firmware"><em>Firmware</em></a><em> | </em><em>None</em>) – The existing <cite>Firmware</cite> object in case of analysis update.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A <cite>Firmware</cite> object based on the analysis task data.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware" title="objects.firmware.Firmware">Firmware</a></p>
 </dd>
 </dl>
@@ -163,13 +166,13 @@ in the webinterface).</p>
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">create_analysis_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.create_analysis_task" title="Permalink to this definition"></a></dt>
 <dd><p>Create an analysis task from the data stored in the flask request object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>request</strong> (<em>Request</em>) – The flask request object.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A dict containing the analysis task data.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict[str, Any]</p>
 </dd>
 </dl>
@@ -180,16 +183,16 @@ in the webinterface).</p>
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">create_re_analyze_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.create_re_analyze_task" title="Permalink to this definition"></a></dt>
 <dd><p>Create an analysis task for a file that is already in the database.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>request</strong> (<em>Request</em>) – The flask request object.</p></li>
 <li><p><strong>uid</strong> (<em>str</em>) – The unique identifier of the firmware.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A dict containing the analysis task data.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict[str, Any]</p>
 </dd>
 </dl>
@@ -200,16 +203,16 @@ in the webinterface).</p>
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">get_file_name_and_binary_from_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.get_file_name_and_binary_from_request" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieves the file name and content from the flask request object.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>request</strong> (<em>Request</em>) – The flask request object.</p></li>
 <li><p><strong>config</strong> – The FACT configuration.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A Tuple containing the file name and the file content.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple[str, bytes]</p>
 </dd>
 </dl>

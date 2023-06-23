@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>web_interface.rest.helper module &mdash; FACT  documentation</title>
@@ -12,10 +12,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -29,12 +28,16 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> FACT
-            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            FACT
+              <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -91,10 +94,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="web_interface.html">web_interface</a> &raquo;</li>
-          <li><a href="web_interface.rest.html">web_interface.rest</a> &raquo;</li>
-      <li>web_interface.rest.helper module</li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="web_interface.html">web_interface</a></li>
+          <li class="breadcrumb-item"><a href="web_interface.rest.html">web_interface.rest</a></li>
+      <li class="breadcrumb-item active">web_interface.rest.helper module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/modules/web_interface.rest.helper.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -111,7 +114,7 @@
 <span class="sig-prename descclassname"><span class="pre">web_interface.rest.helper.</span></span><span class="sig-name descname"><span class="pre">error_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targeted_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.error_message" title="Permalink to this definition"></a></dt>
 <dd><p>Create error response including error message and useful meta information, such as the request parameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>error</strong> (<em>str</em>) – String containing a reason why the request failed.</p></li>
 <li><p><strong>targeted_url</strong> (<em>str</em>) – Requested URL.</p></li>
@@ -119,10 +122,10 @@
 <li><p><strong>return_code</strong> (<em>int</em>) – HTTP status code for response. Defaults to 400 Bad Request.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict containing a response adhering to the FACT rest api guidelines.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple[dict, int]</p>
 </dd>
 </dl>
@@ -133,16 +136,16 @@
 <span class="sig-prename descclassname"><span class="pre">web_interface.rest.helper.</span></span><span class="sig-name descname"><span class="pre">get_boolean_from_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.get_boolean_from_request" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieve a specific flag from the request parameters as a boolean.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>request_parameters</strong> (<em>werkzeug.datastructures.ImmutableMultiDict</em>) – dict containing the request parameters.</p></li>
 <li><p><strong>name</strong> (<em>str</em>) – Identifier of the flag that is to be retrieved.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The retrieved flag as boolean.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -153,10 +156,10 @@
 <span class="sig-prename descclassname"><span class="pre">web_interface.rest.helper.</span></span><span class="sig-name descname"><span class="pre">get_current_gmt</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.get_current_gmt" title="Permalink to this definition"></a></dt>
 <dd><p>Get the current unix time. The system value might depend on NTP.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Current time as unix timestamp integer.</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>int</p>
 </dd>
 </dl>
@@ -167,13 +170,13 @@
 <span class="sig-prename descclassname"><span class="pre">web_interface.rest.helper.</span></span><span class="sig-name descname"><span class="pre">get_paging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.get_paging" title="Permalink to this definition"></a></dt>
 <dd><p>Parse paging parameter offset and limit from request parameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>request_parameters</strong> (<em>ImmutableMultiDict</em>) – dict containing the request parameters.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The paging parameters offset and limit as integers.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple[int, int]</p>
 </dd>
 </dl>
@@ -184,13 +187,13 @@
 <span class="sig-prename descclassname"><span class="pre">web_interface.rest.helper.</span></span><span class="sig-name descname"><span class="pre">get_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.get_query" title="Permalink to this definition"></a></dt>
 <dd><p>Parse the query parameter from request parameters. Query is a dictionary representing a MongoDB query.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>request_parameters</strong> (<em>werkzeug.datastructures.ImmutableMultiDict</em>) – dict containing the request parameters.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The MongoDB query as dict.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
@@ -202,13 +205,13 @@
 <dd><p>Parse the update parameter from request parameters. Update is a list of analysis plugins whose analysis results
 shall be updated.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>request_parameters</strong> (<em>werkzeug.datastructures.ImmutableMultiDict</em>) – dict containing the request parameters.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The list of analysis plugins.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list</p>
 </dd>
 </dl>
@@ -219,7 +222,7 @@ shall be updated.</p>
 <span class="sig-prename descclassname"><span class="pre">web_interface.rest.helper.</span></span><span class="sig-name descname"><span class="pre">success_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targeted_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.success_message" title="Permalink to this definition"></a></dt>
 <dd><p>Create success response including requested data and useful meta information, such as the request parameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>dict</em>) – dict containing the requested data.</p></li>
 <li><p><strong>targeted_url</strong> (<em>str</em>) – Requested URL.</p></li>
@@ -227,10 +230,10 @@ shall be updated.</p>
 <li><p><strong>return_code</strong> (<em>int</em>) – HTTP status code for response. Defaults to 200 OK.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict containing a response adhering to the FACT rest api guidelines.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple[dict, int]</p>
 </dd>
 </dl>
