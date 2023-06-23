@@ -43,6 +43,7 @@ class TestAcceptanceAdvancedSearch:
         assert parent_fw.uid.encode() in rv.data
         assert child_fo.uid.encode() not in rv.data
 
+    @pytest.mark.usefixtures('intercom_backend_binding')
     def test_advanced_search_file_object(self, test_client):
         rv = test_client.post(
             '/database/advanced_search',
