@@ -19,9 +19,15 @@ def add_test_file(scheduler, path_in_test_dir):
     scheduler.add_task(firmware)
 
 
+class MockIntercom:
+    @staticmethod
+    def get_available_analysis_plugins():
+        return {'foo': 'bar'}
+
+
 @pytest.fixture
 def test_client():
-    _web_frontend = WebFrontEnd()
+    _web_frontend = WebFrontEnd(intercom=MockIntercom)
     _web_frontend.app.config['TESTING'] = True
     return _web_frontend.app.test_client()
 
