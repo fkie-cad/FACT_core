@@ -658,15 +658,13 @@ class PluginRunner:
         config: Config,
         schemata: typing.Dict[str, pydantic.BaseModel],
     ):
-        # mp.Queue[..] works: https://github.com/python/cpython/pull/19423
-
         self._plugin = plugin
         self._config = config
         self._schemata = schemata
 
-        self._in_queue: mp.Queue[PluginRunner.Task] = mp.Queue()
+        self._in_queue: mp.Queue = mp.Queue()
         #: Workers put the ``Task.scheduler_state`` and the finished analysis in the out_queue
-        self.out_queue: mp.Queue[tuple[FileObject, dict]] = mp.Queue()
+        self.out_queue: mp.Queue = mp.Queue()
         self.out_queue.close()
 
         self.stats = mp.Array(ctypes.c_float, ANALYSIS_STATS_LIMIT)
@@ -730,8 +728,6 @@ class PluginRunner:
 
 class Worker(mp.Process):
     """A process that executes a plugin in a child process."""
-
-    # mp.Queue[..] works: https://github.com/python/cpython/pull/19423
 
     # The amount of time in seconds that a worker has to complete when it shall terminate.
     # We cannot rely on the plugins timeout as this might be too large.
