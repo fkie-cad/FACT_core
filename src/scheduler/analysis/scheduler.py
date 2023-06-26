@@ -27,8 +27,10 @@ from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_base import DbInterfaceError
 from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
+from pathlib import Path
 
 from .plugin import PluginRunner, Worker
+from storage.db_interface_view_sync import ViewUpdater
 
 
 class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
@@ -229,6 +231,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                     plugin: AnalysisPluginV0 = PluginClass()
                     self.analysis_plugins[plugin.metadata.name] = plugin
                     schemata[plugin.metadata.name] = PluginClass.Schema
+                    _sync_view(plugin_module, plugin.metadata.name)
                 elif issubclass(PluginClass, AnalysisBasePlugin):
                     self.analysis_plugins[PluginClass.NAME] = PluginClass()
                     schemata[PluginClass.NAME] = dict
@@ -627,3 +630,32 @@ def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObjec
     # FIXME plugins can be in processed_analysis and could still be skipped, etc. -> need a way to verify that
     # FIXME the analysis ran successfully
     return any(dep not in fw_object.processed_analysis for dep in plugin.metadata.dependencies)
+
+
+def _sync_view(plugin_module, plugin_name):
+    view_path = _get_view_path(plugin_module, plugin_name)
+
+    if view_path is None:
+        return
+
+    _view_updater = ViewUpdater()
+
+    _view_updater.update_view(
+        plugin_name,
+        view_path.read_bytes(),
+    )
+
+
+def _get_view_path(plugin_module, plugin_name) -> Path | None:
+    views_dir = Path(plugin_module.__file__).parent.parent / 'view'
+    view_files = list(views_dir.iterdir()) if views_dir.is_dir() else []
+
+    if len(view_files) == 0:
+        logging.debug(f'{plugin_name}: No view available! Generic view will be used.')
+        return None
+
+    if len(view_files) > 1:
+        raise RuntimeError(f'{plugin_name}: Plug-in provides more than one view!')
+
+    assert len(view_files) == 1
+    return view_files[0]
