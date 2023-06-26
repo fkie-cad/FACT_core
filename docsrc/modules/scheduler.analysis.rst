@@ -1,7 +1,8 @@
 scheduler.analysis
 ==================
 
-.. automodule:: scheduler.analysis
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. toctree::
+   :maxdepth: 4
+
+   scheduler.analysis.plugin
+   scheduler.analysis.scheduler
