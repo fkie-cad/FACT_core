@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 import config
 from objects.file import FileObject
-from plugins import analysis
+from analysis.plugin import AnalysisPluginV0
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 from storage.fsorganizer import FSOrganizer
 
@@ -54,7 +54,7 @@ class PluginRunner:
 
     def __init__(
         self,
-        plugin: analysis.PluginV0,
+        plugin: AnalysisPluginV0,
         config: Config,
         schemata: typing.Dict[str, pydantic.BaseModel],
     ):
@@ -147,7 +147,7 @@ class Worker(mp.Process):
 
     def __init__(  # noqa: PLR0913
         self,
-        plugin: analysis.PluginV0,
+        plugin: AnalysisPluginV0,
         worker_config: Config,
         in_queue: mp.Queue,
         out_queue: mp.Queue,
@@ -263,7 +263,7 @@ class Worker(mp.Process):
             file_object.analysis_exception = entry['exception']
 
     @staticmethod
-    def _child_entrypoint(plugin: analysis.PluginV0, task: PluginRunner.Task, conn: mp.connection.Connection):
+    def _child_entrypoint(plugin: AnalysisPluginV0, task: PluginRunner.Task, conn: mp.connection.Connection):
         """Processes a single task then returns.
         The result is written to ``conn``.
         Exceptions and formatted tracebacks are also written to ``conn``.

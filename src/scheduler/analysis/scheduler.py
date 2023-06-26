@@ -13,11 +13,11 @@ from packaging.version import parse as parse_version
 
 import config
 from analysis.PluginBase import AnalysisBasePlugin
+from analysis.plugin import AnalysisPluginV0
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
-from plugins import analysis
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
@@ -213,8 +213,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             try:
                 # pylint:disable=invalid-name
                 PluginClass = plugin_module.AnalysisPlugin  # noqa: N806
-                if issubclass(PluginClass, analysis.PluginV0):
-                    plugin: analysis.PluginV0 = PluginClass()
+                if issubclass(PluginClass, AnalysisPluginV0):
+                    plugin: AnalysisPluginV0 = PluginClass()
                     self.analysis_plugins[plugin.metadata.name] = plugin
                     schemata[plugin.metadata.name] = PluginClass.Schema
                 elif issubclass(PluginClass, AnalysisBasePlugin):
@@ -224,7 +224,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 logging.error(f'Could not import analysis plugin {plugin_module.AnalysisPlugin.NAME}', exc_info=True)
 
         for plugin in self.analysis_plugins.values():
-            if not isinstance(plugin, analysis.PluginV0):
+            if not isinstance(plugin, AnalysisPluginV0):
                 continue
 
             try:
@@ -353,7 +353,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             if file_object.binary is None:
                 self._set_binary(file_object)
             plugin = self.analysis_plugins[analysis_to_do]
-            if isinstance(plugin, analysis.PluginV0):
+            if isinstance(plugin, AnalysisPluginV0):
                 runner = self._plugin_runners[plugin.metadata.name]
 
                 if _dependencies_are_unfulfilled(plugin, file_object):
@@ -500,14 +500,14 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         while self.stop_condition.value == 0:
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
-                if isinstance(plugin, analysis.PluginV0):
+                if isinstance(plugin, AnalysisPluginV0):
                     runner = self._plugin_runners[plugin.metadata.name]
                     out_queue = runner.out_queue
                 elif isinstance(plugin, AnalysisBasePlugin):
                     out_queue = plugin.out_queue
 
                 try:
-                    if isinstance(plugin, analysis.PluginV0):
+                    if isinstance(plugin, AnalysisPluginV0):
                         fw, entry = out_queue.get_nowait()
                         runner.write_result_in_file_object(entry, fw)
                     elif isinstance(plugin, AnalysisBasePlugin):
@@ -571,7 +571,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             'plugins': {},
         }
         for plugin_name, plugin in self.analysis_plugins.items():
-            if isinstance(plugin, analysis.PluginV0):
+            if isinstance(plugin, AnalysisPluginV0):
                 runner = self._plugin_runners[plugin_name]
                 workload['plugins'][plugin_name] = {
                     'queue': runner.get_queue_len(),
@@ -596,7 +596,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         :return: Boolean value stating if any attached process ran into an exception
         """
         for _, plugin in self.analysis_plugins.items():
-            if isinstance(plugin, analysis.PluginV0):
+            if isinstance(plugin, AnalysisPluginV0):
                 continue
             if plugin.check_exceptions():
                 return True
@@ -609,7 +609,7 @@ def _fix_system_version(system_version: str | None) -> str:
     return system_version.replace('_', '-') if system_version else '0'
 
 
-def _dependencies_are_unfulfilled(plugin: analysis.PluginV0, fw_object: FileObject):
+def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObject):
     # FIXME plugins can be in processed_analysis and could still be skipped, etc. -> need a way to verify that
     # FIXME the analysis ran successfully
     return any(dep not in fw_object.processed_analysis for dep in plugin.metadata.dependencies)
