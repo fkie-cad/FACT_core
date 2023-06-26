@@ -2,14 +2,14 @@ import io
 
 import yara
 
+from analysis.plugin import AnalysisPluginV0
 from helperFunctions.fileSystem import get_src_dir
-from plugins import analysis
 
 
 class Yara:
-    """A convenience class for using yara within :py:class:`PluginV0`"""
+    """A convenience class for using yara within :py:class:`AnalysisPluginV0`"""
 
-    def __init__(self, plugin: analysis.PluginV0):
+    def __init__(self, plugin: AnalysisPluginV0):
         """Sets system_version.
         Raises an FileNotFoundError if the signatures are not compiled.
         """

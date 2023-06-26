@@ -30,7 +30,7 @@ class Tag(BaseModel):
     propagate: bool = False
 
 
-class PluginV0(metaclass=abc.ABCMeta):
+class AnalysisPluginV0(metaclass=abc.ABCMeta):
     """An abstract class that all analysis plugins must inherit from.
 
     Analysis plugins should not depend on FACT_core code where they mustn't.
@@ -70,7 +70,7 @@ class PluginV0(metaclass=abc.ABCMeta):
             return value
 
     def __init__(self, metadata: MetaData):
-        self.metadata: PluginV0.MetaData = metadata
+        self.metadata: AnalysisPluginV0.MetaData = metadata
 
     # The type MetaData.Schema
     Schema = typing.TypeVar('Schema')

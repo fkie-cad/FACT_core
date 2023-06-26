@@ -2,11 +2,11 @@ import io
 
 import pydantic
 
-import plugins.analysis.compat  # noqa: F401
-from plugins import analysis
+from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+from analysis.plugin import AnalysisPluginV0
 
 
-class AnalysisPlugin(analysis.PluginV0, analysis.compat.AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     class Schema(pydantic.BaseModel):
         number: int
         name: str
@@ -15,7 +15,7 @@ class AnalysisPlugin(analysis.PluginV0, analysis.compat.AnalysisBasePluginAdapte
         dependant_analysis: dict
 
     def __init__(self):
-        metadata = analysis.PluginV0.MetaData(
+        metadata = AnalysisPluginV0.MetaData(
             name='ExamplePlugin',
             description='An example description',
             version='0.0.0',
