@@ -32,8 +32,8 @@ META_KEYS = {
 
 
 def sanitize_processed_analysis(processed_analysis_entry: dict) -> dict:
-    # Old analysis plugins (before analysis.PluginV0) could write anything they want to processed_analysis.
-    # We put everything the plugin wrote into a separate dict so that it matches the behavior of analysis.PluginV0
+    # Old analysis plugins (before AnalysisPluginV0) could write anything they want to processed_analysis.
+    # We put everything the plugin wrote into a separate dict so that it matches the behavior of AnalysisPluginV0
     result = {}
     for key in list(processed_analysis_entry):
         if key in META_KEYS:

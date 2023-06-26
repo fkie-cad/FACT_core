@@ -4,7 +4,7 @@ from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 
 
 class AnalysisBasePluginAdapterMixin:
-    """A mixin that makes PluginV0 compatible to AnalysisBasePlugin"""
+    """A mixin that makes AnalysisPluginV0 compatible to AnalysisBasePlugin"""
 
     # pylint: disable=invalid-name
 

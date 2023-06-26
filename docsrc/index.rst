@@ -24,6 +24,7 @@ Contents
    :maxdepth: 2
    :caption: Modules:
 
+   modules/analysis
    modules/config
    modules/conftest
    modules/test
