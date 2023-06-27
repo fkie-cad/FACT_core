@@ -1,4 +1,5 @@
-from multiprocessing import Queue
+from __future__ import annotations
+
 from pathlib import Path
 from queue import Empty
 
@@ -6,6 +7,11 @@ import pytest
 
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from multiprocessing import Queue
 
 FIRST_ROOT_ID = '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415'
 SECOND_ROOT_ID = '0383cac1dd8fbeb770559163edbd571c21696c435a4942bec6df151983719731_52143'
