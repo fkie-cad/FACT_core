@@ -6,7 +6,7 @@
     "bootstrap-select": "^1.13.18",
     "chart.js": "^2.3.0",
     "diff2html": "^3.4.18",
-    "highlight.js": "^11.6.0",
+    "@highlightjs/cdn-assets": "^11.8.0",
     "jquery": "^3.5.0",
     "jstree": "^3.3.12",
     "jstree-bootstrap-theme": "^1.0.1",
