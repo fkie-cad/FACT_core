@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-
-import logging
 import os
+import logging
 from pathlib import Path
 
+from internal.db_setup import DbSetup
+from internal.data_parsing import parse_data
+from internal.db_connection import DbConnection
+
 try:
-    from helperFunctions.install import check_distribution, run_cmd_with_logging
+    from helperFunctions.install import check_distribution
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
@@ -13,7 +16,7 @@ except ImportError:
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from helperFunctions.install import check_distribution, run_cmd_with_logging
+    from helperFunctions.install import check_distribution
     from plugins.installer import AbstractPluginInstaller
 
 
@@ -21,14 +24,15 @@ class CveLookupInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_files(self):
-        # FIXME expose a function in setup_repository to to this directily
-        # from python instead of executing the script
+        '''
+        Install files for the CVE lookup plugin.
+        '''
         os.chdir('internal')
-        if not os.access('cve_cpe.db', os.R_OK):
-            run_cmd_with_logging('python3 setup_repository.py')
-
-        run_cmd_with_logging('python3 setup_repository.py --update')
-
+        cve_list = parse_data()
+        connection = DbConnection()
+        connection.create_tables()
+        db = DbSetup(connection)
+        db.add_cve_items(cve_list)
         os.chdir(self.base_path)
 
 
