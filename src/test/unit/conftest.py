@@ -1,8 +1,9 @@
 # pylint: disable=no-self-use
+
 from typing import Type
 
 import pytest
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 
 from test.common_helper import TEST_FW, TEST_TEXT_FILE, CommonDatabaseMock
 from test.conftest import merge_markers
@@ -97,8 +98,7 @@ class _UserDbMock:
             pass
 
 
-@dataclass
-class WebInterfaceUnitTestConfig:
+class WebInterfaceUnitTestConfig(BaseModel):
     """A class configuring the :py:func:`web_frontend` fixture."""
 
     #: A class that can be instanced to mock every ``@property`` of
@@ -113,7 +113,7 @@ class WebInterfaceUnitTestConfig:
 def intercom_task_list() -> list:
     """A fixture used to add tasks in the :py:class:`CommonIntercomMock`.
     It can be used to inspect what tasks where added"""
-    yield []
+    return []
 
 
 @pytest.fixture
@@ -143,10 +143,10 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
 
     frontend.app.config['TESTING'] = True
 
-    yield frontend
+    return frontend
 
 
 @pytest.fixture
 def test_client(web_frontend):
     """Shorthand for ``web_frontend.app.test_client``"""
-    yield web_frontend.app.test_client()
+    return web_frontend.app.test_client()

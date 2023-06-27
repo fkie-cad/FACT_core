@@ -41,7 +41,7 @@ def get_fo_with_2_root_fw():
 
 
 def insert_test_fw(
-    db,
+    backend_db,
     uid,
     file_name='test.zip',
     device_class='class',
@@ -60,11 +60,13 @@ def insert_test_fw(
         test_fw.processed_analysis = analysis
     if tags:
         test_fw.tags = tags
-    db.backend.insert_object(test_fw)
+    backend_db.insert_object(test_fw)
     return test_fw
 
 
-def insert_test_fo(db, uid, file_name='test.zip', size=1, analysis: dict | None = None, parent_fw=None, comments=None):
+def insert_test_fo(
+    backend_db, uid, file_name='test.zip', size=1, analysis: dict | None = None, parent_fw=None, comments=None
+):
     test_fo = create_test_file_object()
     test_fo.uid = uid
     test_fo.file_name = file_name
@@ -76,4 +78,4 @@ def insert_test_fo(db, uid, file_name='test.zip', size=1, analysis: dict | None 
         test_fo.parent_firmware_uids = [parent_fw]
     if comments:
         test_fo.comments = comments
-    db.backend.insert_object(test_fo)
+    backend_db.insert_object(test_fo)

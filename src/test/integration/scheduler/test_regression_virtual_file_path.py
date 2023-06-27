@@ -1,11 +1,10 @@
-from multiprocessing import Event, Manager, Value
+from multiprocessing import Queue
 from pathlib import Path
+from queue import Empty
 
 import pytest
 
 from objects.firmware import Firmware
-from scheduler.unpacking_scheduler import UnpackingScheduler
-from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
 
 FIRST_ROOT_ID = '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415'
@@ -17,65 +16,29 @@ DUPLICATE_PARENT_2 = '03acd27c78d7ce2766b4c240f4f6eae4676870e805f378c0910edf70c2
 INCLUDED_FILE_COUNT = 4
 
 
-@pytest.fixture()
-def finished_event():
-    return Event()
-
-
-@pytest.fixture()
-def intermediate_event():
-    return Event()
-
-
-@pytest.fixture()
-def unpacked_objects():
-    manager = Manager()
-    yield manager.list()
-    manager.shutdown()
-
-
-@pytest.fixture()
-def test_scheduler(finished_event, intermediate_event, unpacked_objects):
-    unpacking_lock_manager = UnpackingLockManager()
-    elements_finished = Value('i', 0)
-
-    def count_pre_analysis(file_object):
-        unpacked_objects.append(file_object.uid)
-        elements_finished.value += 1
-        if elements_finished.value == INCLUDED_FILE_COUNT:
-            intermediate_event.set()
-        elif elements_finished.value == INCLUDED_FILE_COUNT * 2:
-            finished_event.set()
-
-    unpacker = UnpackingScheduler(
-        post_unpack=count_pre_analysis,
-        unpacking_locks=unpacking_lock_manager,
-    )
-    unpacker.start()
-    try:
-        yield unpacker
-    finally:
-        unpacker.shutdown()
-        unpacking_lock_manager.shutdown()
-
-
-def add_test_file(scheduler: UnpackingScheduler, path_in_test_dir: str):
+def add_test_file(scheduler, path_in_test_dir):
     firmware = Firmware(file_path=str(Path(get_test_data_dir(), path_in_test_dir)))
     firmware.release_date = '1990-01-16'
     firmware.version, firmware.vendor, firmware.device_name, firmware.device_class = ['foo'] * 4
     scheduler.add_task(firmware)
 
 
-def test_check_collision(db, test_scheduler, finished_event, intermediate_event):
-    add_test_file(test_scheduler, 'regression_one')
+@pytest.mark.SchedulerTestConfig(items_to_unpack=4)
+def test_check_collision(
+    frontend_db,
+    unpacking_scheduler,
+    unpacking_finished_counter,
+    unpacking_finished_event,
+):
+    add_test_file(unpacking_scheduler, 'regression_one')
+    assert unpacking_finished_event.wait(timeout=20)
+    unpacking_finished_counter.value = 0
+    unpacking_finished_event.clear()
 
-    assert intermediate_event.wait(timeout=20)
+    add_test_file(unpacking_scheduler, 'regression_two')
+    assert unpacking_finished_event.wait(timeout=20)
 
-    add_test_file(test_scheduler, 'regression_two')
-
-    assert finished_event.wait(timeout=20)
-
-    fo_from_db = db.frontend.get_object(TARGET_UID)
+    fo_from_db = frontend_db.get_object(TARGET_UID)
     assert len(fo_from_db.virtual_file_path) == 2, 'fo should have two parents'  # noqa: PLR2004
     assert FIRST_ROOT_ID in fo_from_db.virtual_file_path
     assert fo_from_db.virtual_file_path[FIRST_ROOT_ID] == ['/test']
@@ -83,15 +46,32 @@ def test_check_collision(db, test_scheduler, finished_event, intermediate_event)
     assert fo_from_db.virtual_file_path[SECOND_ROOT_ID] == ['/test']
 
 
-def test_unpacking_skip(db, test_scheduler, intermediate_event, unpacked_objects):
-    add_test_file(test_scheduler, 'vfp_test.zip')
+@pytest.mark.SchedulerTestConfig(items_to_unpack=4)
+def test_unpacking_skip(
+    frontend_db,
+    unpacking_scheduler,
+    unpacking_finished_event,
+    post_unpack_queue,
+):
+    add_test_file(unpacking_scheduler, 'vfp_test.zip')
 
-    assert intermediate_event.wait(timeout=20)
+    assert unpacking_finished_event.wait(timeout=20)
 
+    unpacked_objects = _collect_unpacked_files(post_unpack_queue)
     assert len(list(unpacked_objects)) == INCLUDED_FILE_COUNT
-    assert list(unpacked_objects).count(DUPLICATE_UID) == 1, 'is contained two times, 2nd unpacking should be skipped'
-    fo_from_db = db.frontend.get_object(DUPLICATE_UID)
+    assert unpacked_objects.count(DUPLICATE_UID) == 1, 'is contained two times, 2nd unpacking should be skipped'
+    fo_from_db = frontend_db.get_object(DUPLICATE_UID)
     assert fo_from_db.virtual_file_path == {
         DUPLICATE_PARENT_1: ['/folder/inner.zip'],
         DUPLICATE_PARENT_2: ['/inner.zip'],
     }, 'all VFPs should be there even if unpacking was skipped'
+
+
+def _collect_unpacked_files(queue: Queue) -> list[str]:
+    result = []
+    while True:
+        try:
+            fo = queue.get(timeout=0)
+            result.append(fo.uid)
+        except Empty:
+            return result

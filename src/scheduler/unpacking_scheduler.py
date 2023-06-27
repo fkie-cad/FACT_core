@@ -53,17 +53,18 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.get_analysis_workload = analysis_workload
         self.in_queue = Queue()
         self.work_load_counter = 25
-        self.manager = Manager()
-        self.workers = self.manager.list()  # type: list[ExtractionContainer]
-        self.currently_extracted = self.manager.dict()  # type: dict[str, dict[str, set]]
         self.worker_tmp_dirs = []  # type: list[TemporaryDirectory]
-        self.sync_lock = self.manager.Lock()
         self.pending_tasks: dict[int, Thread] = {}
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
         self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
+
+        self.manager = None
+        self.workers = None
         self.work_load_process = None
         self.extraction_process = None
+        self.currently_extracted = None
+        self.sync_lock = None
         self.db_interface = db_interface
 
     @contextmanager
@@ -75,6 +76,10 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             self.sync_lock.release()
 
     def start(self):
+        self.manager = Manager()
+        self.workers = self.manager.list()  # type: list[ExtractionContainer]
+        self.currently_extracted = self.manager.dict()  # type: dict[str, dict[str, set]]
+        self.sync_lock = self.manager.Lock()
         self.create_containers()
         self.work_load_process = self.start_work_load_monitor()
         self.extraction_process = self._start_extraction_loop()
@@ -95,7 +100,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.in_queue.close()
         stop_processes(
             [self.work_load_process, self.extraction_process],
-            10,  # give containers enough time to shut down
+            THROTTLE_INTERVAL,
         )
         self.stop_containers()
         self._clean_tmp_dirs()

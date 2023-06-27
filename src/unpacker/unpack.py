@@ -36,9 +36,9 @@ class Unpacker(UnpackBase):
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
-        file_path = self._generate_local_file_path(current_fo)
+        self._check_path(current_fo)
         try:
-            extracted_files = self.extract_files_from_file(file_path, tmp_dir, container)
+            extracted_files = self.extract_files_from_file(current_fo.file_path, tmp_dir, container)
         except ExtractionError as error:
             self._store_unpacking_error_skip_info(current_fo, error=error)
             raise
@@ -103,8 +103,9 @@ class Unpacker(UnpackBase):
         extracted_files.pop(parent.uid, None)  # the same file should not be unpacked from itself
         return list(extracted_files.values())
 
-    def _generate_local_file_path(self, file_object: FileObject) -> str:
+    def _check_path(self, file_object: FileObject):
         if not Path(file_object.file_path).exists():
-            local_path = self.file_storage_system.generate_path(file_object.uid)
-            return local_path
-        return file_object.file_path
+            logging.error(f'File with path "{file_object.file_path}" not found ({file_object.uid}).')
+            error = ExtractionError('File not found')
+            self._store_unpacking_error_skip_info(file_object, error=error)
+            raise error
