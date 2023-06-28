@@ -405,8 +405,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 .filter(AnalysisEntry.plugin == 'file_type')
             )
             return [
-                DepGraphData(uid, file_name, vfp_dict.get(uid), mime, full_type, libraries_by_uid.get(uid))
-                for uid, file_name, mime, full_type in session.execute(query)
+                DepGraphData(uid_, file_name, vfp_dict.get(uid_), mime, full_type, libraries_by_uid.get(uid_))
+                for uid_, file_name, mime, full_type in session.execute(query)
             ]
 
     @staticmethod

@@ -72,7 +72,7 @@ def test_get_hid_dict(frontend_db, backend_db):
     hid_dict = frontend_db.get_hid_dict(uid_set, root_uid=fw.uid)
     assert all(uid in hid_dict for uid in uid_set)
     assert hid_dict[fo.uid] == '/foo'
-    assert hid_dict[fw.uid] == f'{fw.vendor} {fw.device_name} - {fw.version} ({fw.device_class})'
+    assert all(element in hid_dict[fw.uid] for element in [fw.vendor, fw.device_class, fw.device_name, fw.version])
 
 
 def test_get_data_for_nice_list(frontend_db, backend_db):

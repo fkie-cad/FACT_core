@@ -56,9 +56,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         if not uid_list:
             return True
         with self.get_read_only_session() as session:
-            query = select(func.count(FileObjectEntry.uid)).filter(  # pylint: disable=not-callable
-                FileObjectEntry.uid.in_(uid_list)
-            )
+            query = select(func.count(FileObjectEntry.uid)).filter(FileObjectEntry.uid.in_(uid_list))
             return session.execute(query).scalar() >= len(uid_list)
 
     # ===== Read / SELECT =====
@@ -97,8 +95,8 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             query = (
                 select(
                     FileObjectEntry,
-                    func.array_agg(parents_table.c.child_uid),  # pylint: disable=not-callable
-                    func.array_agg(children_table.c.parent_uid),  # pylint: disable=not-callable
+                    func.array_agg(parents_table.c.child_uid),
+                    func.array_agg(children_table.c.parent_uid),
                 )
                 .filter(FileObjectEntry.uid.in_(uid_list))
                 # outer join here because objects may not have included files
@@ -355,7 +353,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     def get_firmware_number(self, query: dict | None = None) -> int:
         with self.get_read_only_session() as session:
-            db_query = select(func.count(FirmwareEntry.uid))  # pylint: disable=not-callable
+            db_query = select(func.count(FirmwareEntry.uid))
             if query:
                 db_query = build_query_from_dict(query_dict=query, query=db_query, fw_only=True)
             return session.execute(db_query).scalar()
@@ -364,9 +362,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         if zero_on_empty_query and query == {}:
             return 0
         with self.get_read_only_session() as session:
-            query = build_query_from_dict(
-                query, query=select(func.count(distinct(FileObjectEntry.uid)))  # pylint: disable=not-callable
-            )
+            query = build_query_from_dict(query, query=select(func.count(distinct(FileObjectEntry.uid))))
             return session.execute(query).scalar()
 
     @staticmethod
