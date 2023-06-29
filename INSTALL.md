@@ -1,7 +1,7 @@
 # FACT installation
 
 FACT consists of three components: frontend, database and backend.
-All components can be installed on different machines, but you can also install everything on one machine.
+All components can be installed on different machines (see [Multi-system (distributed) setup](#multi-system-distributed-setup)), but you can also install everything on one machine (see [Simple (non-distributed) setup](#simple-non-distributed-setup)).
 There is an automated installation script supporting Ubuntu 20.04 and 22.04 systems.
 :exclamation: **The automated installation script might remove some packages of your ubuntu installation. In some cases
 FACT relies on newer versions of a software and replaces the old versions provided by the ubuntu repositories.**
@@ -100,7 +100,7 @@ src/install.py
 
 :beer: **Get a drink... Installation of the dependencies might take some time...** :tea:
 
-More advanced setup options can be viewed using the help function of the installer `$ src/install.py --help` and are 
+More advanced setup options can be viewed using the help function of the installer `src/install.py --help` and are 
 explained in some detailed in the following paragraphs.
 
 If the environment variable `FACT_INSTALLER_SKIP_DOCKER` is set the installer
@@ -108,9 +108,11 @@ will skip all pulling/building of docker images.
 This is primarily used for the docker container of FACT but can also be used to
 save some time when you already have the images.
 
-## Multi-system (distributed) setup (**--backend**, **--frontend**, **--db**)
+## Multi-system (distributed) setup
 
 The three components (database, backend and frontend) can be installed independently to create a distributed installation.
+For this, the components can be individually installed using the command line options `--frontend`, `--backend`, and
+`--database` (see `src/install.py --help`).
 The two worker components (frontend, backend) both use the database and communicated through Redis.
 This means the database and Redis need to be accessible from these systems.
 The database in turn does not needed any knowledge of its place in the network, other than on which **ip:port** 
