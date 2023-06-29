@@ -112,7 +112,7 @@ save some time when you already have the images.
 
 The three components (database, backend and frontend) can be installed independently to create a distributed installation.
 For this, the components can be individually installed using the command line options `--frontend`, `--backend`, and
-`--database` (see `src/install.py --help`).
+`--db` (see `src/install.py --help`).
 The two worker components (frontend, backend) both use the database and communicated through Redis.
 This means the database and Redis need to be accessible from these systems.
 The database in turn does not needed any knowledge of its place in the network, other than on which **ip:port** 
