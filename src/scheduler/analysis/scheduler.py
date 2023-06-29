@@ -145,6 +145,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
         for runner in self._plugin_runners.values():
             for worker in runner._workers:
+                if not worker.is_alive():
+                    continue
                 worker.join(Worker.SIGTERM_TIMEOUT + 1)
 
         with ThreadPoolExecutor() as pool:
