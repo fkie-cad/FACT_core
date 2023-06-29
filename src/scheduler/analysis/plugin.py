@@ -102,6 +102,8 @@ class PluginRunner:
 
     def shutdown(self):
         for worker in self._workers:
+            if not worker.is_alive():
+                continue
             worker.terminate()
 
     def queue_analysis(self, file_object: FileObject):
