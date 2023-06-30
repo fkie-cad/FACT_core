@@ -1,7 +1,7 @@
 # FACT installation
 
 FACT consists of three components: frontend, database and backend.
-All components can be installed on different machines (see [Multi-system (distributed) setup](#multi-system-distributed-setup)), but you can also install everything on one machine (see [Simple (non-distributed) setup](#simple-non-distributed-setup)).
+All components can be installed on different machines (see [Distributed setup](#distributed-setup)), but you can also install everything on one machine (see [Simple (non-distributed) setup](#simple-non-distributed-setup)).
 There is an automated installation script supporting Ubuntu 20.04 and 22.04 systems.
 :exclamation: **The automated installation script might remove some packages of your ubuntu installation. In some cases
 FACT relies on newer versions of a software and replaces the old versions provided by the ubuntu repositories.**
@@ -108,7 +108,7 @@ will skip all pulling/building of docker images.
 This is primarily used for the docker container of FACT but can also be used to
 save some time when you already have the images.
 
-## Multi-system (distributed) setup
+## Distributed setup
 
 The three components (database, backend and frontend) can be installed independently to create a distributed installation.
 For this, the components can be individually installed using the command line options `--frontend`, `--backend`, and
