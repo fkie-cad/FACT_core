@@ -7,6 +7,8 @@ Create Date: 2023-04-28 14:57:12.541876
 """
 from __future__ import annotations
 
+import logging
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, orm, PrimaryKeyConstraint, select, Table, text
@@ -103,12 +105,20 @@ def _create_vfp_table_entries():
                 if len(elements) < 2:  # noqa: PLR2004
                     continue  # we skip firmware (aka root file object) VFP entries (without parent)
                 *_, parent_uid, path = elements
+                if not _parent_exists(session, parent_uid):
+                    logging.warning(f'Parent file object with UID {parent_uid} not found in the DB -> skipping')
+                    continue
                 vfp = VirtualFilePath(parent_uid=parent_uid, file_uid=uid, file_path=path)
                 if vfp not in vfp_entries:
                     vfp_entries.append(vfp)
         if vfp_entries:
             session.add_all(vfp_entries)
     session.commit()
+
+
+def _parent_exists(session, parent_uid: str) -> bool:
+    query = select(FileObjectEntry.uid).filter(FileObjectEntry.uid == parent_uid)
+    return bool(session.execute(query).scalar())
 
 
 USER_PRIVILEGES = [
