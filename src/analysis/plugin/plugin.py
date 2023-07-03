@@ -135,7 +135,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
             'system_version': self.metadata.system_version,
             'summary': summary,
             'tags': tags_dict,
-            'result': result.dict() if result else {},
+            'result': result.dict() if result else None,
         }
 
     def get_tags(self, result: Schema, summary: list[str]) -> list[Tag]:
