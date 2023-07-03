@@ -50,7 +50,7 @@ markers = [
 
 [tool.ruff]
 select = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH",
-    "PTH", "PLR", "PLW", "ARG", "ERA", "RUF"]
+    "PTH", "PLR", "PLW", "ARG", "ERA", "RUF", "Q"]
 ignore = [
     "A003",
     "RUF001",
@@ -61,7 +61,7 @@ ignore = [
     "UP007",
 ]
 fixable = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH",
-    "PTH", "PLR", "PLW", "ARG", "ERA", "RUF"]
+    "PTH", "PLR", "PLW", "ARG", "ERA", "RUF", "Q"]
 exclude = [
     ".git",
     ".ruff_cache",
@@ -88,3 +88,8 @@ max-complexity = 10
 
 [tool.ruff.flake8-pytest-style]
 fixture-parentheses = false
+
+[tool.ruff.flake8-quotes]
+inline-quotes = "single"
+multiline-quotes = "single"
+docstring-quotes = "double"
