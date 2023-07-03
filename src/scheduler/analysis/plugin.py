@@ -65,7 +65,6 @@ class PluginRunner:
         self._in_queue: mp.Queue = mp.Queue()
         #: Workers put the ``Task.scheduler_state`` and the finished analysis in the out_queue
         self.out_queue: mp.Queue = mp.Queue()
-        self.out_queue.close()
 
         self.stats = mp.Array(ctypes.c_float, ANALYSIS_STATS_LIMIT)
         self.stats_count = mp.Value('i', 0)
@@ -162,7 +161,6 @@ class Worker(mp.Process):
         self._worker_config = worker_config
 
         self._in_queue = in_queue
-        self._in_queue.close()
         self._out_queue = out_queue
 
         self._stats = stats
