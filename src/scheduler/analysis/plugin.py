@@ -126,6 +126,17 @@ class PluginRunner:
             )
         )
 
+    def write_result_in_file_object(self, entry: dict, file_object: FileObject):
+        """Takes a file_object and an entry as it is returned by :py:func:`Worker.run`
+        and returns a FileObject with the corresponding fileds set.
+        """
+        if 'analysis' in entry:
+            file_object.processed_analysis[self._plugin.metadata.name] = entry['analysis']
+        elif 'timeout' in entry:
+            file_object.analysis_exception = entry['timeout']
+        elif 'exception' in entry:
+            file_object.analysis_exception = entry['exception']
+
 
 class Worker(mp.Process):
     """A process that executes a plugin in a child process."""
@@ -250,17 +261,6 @@ class Worker(mp.Process):
                 self._is_working.value = 0
 
             self._out_queue.put((task.scheduler_state, entry))
-
-    def write_result_in_file_object(self, entry: tuple, file_object: FileObject):
-        """Takes a file_object and an entry as it is returned by :py:func:`run`
-        and returns a FileObject with the corresponding fileds set.
-        """
-        if 'analysis' in entry:
-            file_object.processed_analysis[self._plugin.metadata.name] = entry['analysis']
-        elif 'timeout' in entry:
-            file_object.analysis_exception = entry['timeout']
-        elif 'exception' in entry:
-            file_object.analysis_exception = entry['exception']
 
     @staticmethod
     def _child_entrypoint(plugin: AnalysisPluginV0, task: PluginRunner.Task, conn: mp.connection.Connection):
