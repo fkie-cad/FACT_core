@@ -37,7 +37,7 @@
                 <td>{{ analysis_metadata['system_version']}}</td>
             </tr>
             {% endif %}
-            {% if 'skipped' not in analysis_result %}
+            {% if analysis_result is not none and 'skipped' not in analysis_result %}
                 {% block analysis_result_details %}
 
                 {% endblock %}
