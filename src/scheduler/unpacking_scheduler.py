@@ -214,7 +214,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             currently_unpacked = self.currently_extracted.get(task.root_uid)
             if currently_unpacked is None:
                 # this file is a duplicate and unpacking of the FW is already finished -> do nothing
-                logging.warning(f'Skipping unpacking/analysis of {task.uid} (already done)')
+                logging.debug(f'Skipping unpacking/analysis of {task.uid} (already done)')
                 extracted_objects.clear()
                 return
 
@@ -253,7 +253,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 extracted_objects.remove(fo)
                 db_interface.add_vfp(current_fo.uid, fo.uid, path_list)
                 db_interface.add_child_to_parent(parent_uid=current_fo.uid, child_uid=fo.uid)
-                logging.warning(f'Skipping unpacking/analysis of {fo.uid} (part of {fo.root_uid}).')
+                logging.debug(f'Skipping unpacking/analysis of {fo.uid} (part of {fo.root_uid}).')
 
     @staticmethod
     def _fetch_logs(container: ExtractionContainer) -> str:
