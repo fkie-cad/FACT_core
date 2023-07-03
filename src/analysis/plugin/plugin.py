@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-import dataclasses
 import time
 import typing
 
@@ -125,7 +124,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         # Misses the root uid, which must be added by the scheduler
         tags_dict = {}
         for tag in tags:
-            tag_dict = dataclasses.asdict(tag)
+            tag_dict = tag.dict()
             name = tag_dict.pop('name')
             tags_dict.update({name: tag_dict})
 
