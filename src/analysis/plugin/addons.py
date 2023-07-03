@@ -1,9 +1,13 @@
-import io
+from __future__ import annotations
 
 import yara
 
-from analysis.plugin import AnalysisPluginV0
 from helperFunctions.fileSystem import get_src_dir
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from analysis.plugin import AnalysisPluginV0
+    import io
 
 
 class Yara:
@@ -13,7 +17,7 @@ class Yara:
         """Sets system_version.
         Raises an FileNotFoundError if the signatures are not compiled.
         """
-        if plugin.metadata.system_version is None:
+        if plugin.metadata.system_version is not None:
             raise RuntimeError('YaraAddon would overwrite system_version')
         plugin.metadata.system_version = yara.__version__
 
