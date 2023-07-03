@@ -1,31 +1,39 @@
 from fact_helper_file import get_file_type_from_path
+import pydantic
 
-from analysis.PluginBase import AnalysisBasePlugin
+from analysis.plugin import AnalysisPluginV0
+from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+
+import io
+from typing import List
 
 
-class AnalysisPlugin(AnalysisBasePlugin):
-    '''
-    This Plugin detects the mime type of the file
-    '''
+class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+    class Schema(pydantic.BaseModel):
+        #: The files mimetype
+        mime: str
+        #: The files full description
+        full: str
 
-    NAME = 'file_type'
-    DESCRIPTION = 'identify the file type'
-    VERSION = '1.0'
-    FILE = __file__
-
-    def process_object(self, file_object):
-        '''
-        This function must be implemented by the plugin.
-        Analysis result must be a list stored in file_object.processed_analysis[self.NAME]
-        '''
-        file_type = get_file_type_from_path(file_object.file_path)
-        file_object.processed_analysis[self.NAME] = file_type
-        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(
-            file_object.processed_analysis[self.NAME]
+    def __init__(self):
+        super().__init__(
+            metadata=AnalysisPluginV0.MetaData(
+                name='file_type',
+                description='identify the file type',
+                version='1.1.0',
+                Schema=AnalysisPlugin.Schema,
+            ),
         )
-        return file_object
 
-    @staticmethod
-    def _get_summary(results):
-        summary = [results['mime']]
-        return summary
+    def summarize(self, result: Schema) -> List[str]:
+        return [result.mime]
+
+    def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
+        del virtual_file_path, analyses
+
+        file_dict = get_file_type_from_path(file_handle.name)
+
+        return AnalysisPlugin.Schema(
+            mime=file_dict['mime'],
+            full=file_dict['full'],
+        )
