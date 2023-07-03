@@ -233,7 +233,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 continue
 
             try:
-                process_count = config.backend.plugin[plugin].processes
+                process_count = config.backend.plugin[plugin.metadata.name].processes
             except (AttributeError, KeyError):
                 process_count = config.backend.plugin_defaults.processes
 
