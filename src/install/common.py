@@ -46,6 +46,13 @@ def main(distribution):
 
     BIN_DIR.mkdir(exist_ok=True)
 
+    with OperateInDirectory('../../src/bin'):
+        run_cmd_with_logging(
+            'wget https://github.com/maringuu/firmware-magic-database/releases/download/v0.1.0/firmware.mgc'
+        )
+    run_cmd_with_logging(f'file -C -m {INSTALL_DIR / "internal_symlink_magic"}')
+    run_cmd_with_logging(f'mv {INSTALL_DIR / "internal_symlink_magic.mgc"} {BIN_DIR}')
+
     apt_packages_path = INSTALL_DIR / 'apt-pkgs-common.txt'
     dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-common.txt'
 
