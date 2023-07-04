@@ -143,6 +143,9 @@ def main(skip_docker, radare, nginx, distribution):
         pkgs = read_package_list_from_file(INSTALL_DIR / 'dnf-pkgs-frontend.txt')
         dnf_install_packages(*pkgs)
 
+    with OperateInDirectory('../../src/bin'):
+        run_cmd_with_logging('wget https://github.com/maringuu/fact-mime-database/releases/download/v0.1.0/fact.mgc')
+
     # flask-security is not maintained anymore and replaced by flask-security-too.
     # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
     run_cmd_with_logging('sudo -EH pip3 uninstall -y flask-security')
