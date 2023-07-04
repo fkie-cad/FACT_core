@@ -1,5 +1,6 @@
-from fact_helper_file import get_file_type_from_path
 import pydantic
+
+from helperFunctions import magic
 
 from analysis.plugin import AnalysisPluginV0
 from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
@@ -31,9 +32,9 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
         del virtual_file_path, analyses
 
-        file_dict = get_file_type_from_path(file_handle.name)
+        filename = file_handle.name
 
         return AnalysisPlugin.Schema(
-            mime=file_dict['mime'],
-            full=file_dict['full'],
+            mime=magic.from_file(filename, mime=True),
+            full=magic.from_file(filename, mime=False),
         )

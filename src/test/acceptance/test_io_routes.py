@@ -1,8 +1,8 @@
 import pytest
-from fact_helper_file import get_file_type_from_binary
 
 from storage.db_interface_comparison import ComparisonDbInterface
 from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
+from helperFunctions import magic
 
 COMPARE_RESULT = {
     'general': {'a': {'id1': '<empty>', 'id2': '<empty>'}, 'b': {'id1': '<empty>', 'id2': '<empty>'}},
@@ -68,4 +68,4 @@ class TestAcceptanceIoRoutes:
         assert response.status_code == 200, 'pdf download failed'
         device = self.test_fw.device_name.replace(' ', '_')
         assert response.headers['Content-Disposition'] == f'attachment; filename={device}_analysis_report.pdf'
-        assert get_file_type_from_binary(response.data)['mime'] == 'application/pdf'
+        assert magic.from_buffer(response.data) == 'application/pdf'

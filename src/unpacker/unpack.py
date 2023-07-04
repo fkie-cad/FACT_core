@@ -5,9 +5,8 @@ import logging
 from pathlib import Path
 from time import time
 
-from fact_helper_file import get_file_type_from_path
-
 import config
+from helperFunctions import magic
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
@@ -95,7 +94,7 @@ class Unpacker(UnpackBase):
             current_file = FileObject(file_path=str(item))
             base = get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0])
             current_virtual_path = join_virtual_path(base, parent.uid, get_relative_object_path(item, extraction_dir))
-            current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
+            current_file.temporary_data['parent_fo_type'] = magic.from_file(parent.file_path)
             if current_file.uid not in extracted_files:
                 # the same file can be contained multiple times in one archive -> only the VFP needs an update
                 self.unpacking_locks.set_unpacking_lock(current_file.uid)

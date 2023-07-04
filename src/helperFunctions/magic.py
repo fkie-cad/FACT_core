@@ -27,11 +27,11 @@ def _get_magic(mime: bool) -> pymagic.Magic:
     return _magic_by_mime[mime]
 
 
-def from_file(filename, mime=False):
+def from_file(filename, mime=False) -> str:
     """A wrapper for pymagic's ``magic.Magic.from_file``"""
     return _get_magic(mime).from_file(filename)
 
 
-def from_buffer(filename, mime=False):
+def from_buffer(filename, mime=False) -> str:
     """A wrapper for pymagic's ``magic.Magic.from_buffer``"""
     return _get_magic(mime).from_buffer(filename)
