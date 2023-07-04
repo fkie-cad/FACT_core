@@ -4,7 +4,7 @@ import grp
 import logging
 import os
 from tempfile import TemporaryDirectory
-from typing import Type
+from typing import Type, Union
 
 import pytest
 from pydantic import BaseModel, Field
@@ -12,6 +12,7 @@ from pydantic.utils import deep_update
 
 import config
 from analysis.PluginBase import AnalysisBasePlugin
+from analysis.plugin import AnalysisPluginV0
 from test.common_helper import CommonDatabaseMock
 from test.conftest import merge_markers
 
@@ -177,10 +178,12 @@ class AnalysisPluginTestConfig(BaseModel):
     """A class configuring the :py:func:`analysis_plugin` fixture."""
 
     #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
-    plugin_class: Type[AnalysisBasePlugin] = AnalysisBasePlugin
-    #: Whether or not to start the workers (see ``AnalysisPlugin.start``)
+    plugin_class: Union[Type[AnalysisBasePlugin], Type[AnalysisPluginV0]] = AnalysisBasePlugin
+    #: Whether or not to start the workers (see ``AnalysisPlugin.start``).
+    #: Not supported for AnalysisPluginV0
     start_processes: bool = False
     #: Keyword arguments to be given to the ``plugin_class`` constructor.
+    #: Not supported for AnalysisPluginV0
     init_kwargs: dict = Field(default_factory=dict)
 
     class Config:
@@ -229,16 +232,28 @@ def analysis_plugin(request, monkeypatch, patch_config):  # noqa: ARG001
     """
     test_config = merge_markers(request, 'AnalysisPluginTestConfig', AnalysisPluginTestConfig)
 
+    # FIXME now with AnalysisPluginV0 analysis plugins became way simpler
+    # We might want to delete everything from AnalysisPluginTestConfig in the future
     PluginClass = test_config.plugin_class  # noqa: N806
+    if issubclass(PluginClass, AnalysisPluginV0):
+        assert (
+            test_config.init_kwargs == {}
+        ), 'AnalysisPluginTestConfig.init_kwargs must be empty for AnalysisPluginV0 instances'
+        assert (
+            not test_config.start_processes
+        ), 'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
 
-    plugin_instance = PluginClass(
-        view_updater=CommonDatabaseMock(),
-        **test_config.init_kwargs,
-    )
+        yield PluginClass()
+    elif issubclass(PluginClass, AnalysisBasePlugin):
+        plugin_instance = PluginClass(
+            view_updater=CommonDatabaseMock(),
+            **test_config.init_kwargs,
+        )
 
-    # We don't want to actually start workers when testing, except for some special cases
-    if test_config.start_processes:
-        plugin_instance.start()
-    yield plugin_instance
+        # We don't want to actually start workers when testing, except for some special cases
+        if test_config.start_processes:
+            plugin_instance.start()
 
-    plugin_instance.shutdown()
+        yield plugin_instance
+
+        plugin_instance.shutdown()
