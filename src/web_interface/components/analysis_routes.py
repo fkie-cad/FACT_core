@@ -61,7 +61,7 @@ class AnalysisRoutes(ComponentBase):
                 other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
             included_fo_analysis_complete = not frontend_db.all_uids_found_in_database(list(file_obj.files_included))
             file_tree_paths = (
-                frontend_db.get_file_tree_path(uid, root_uid=root_uid)
+                frontend_db.get_file_tree_path(uid, root_uid=none_to_none(root_uid))
                 if not isinstance(file_obj, Firmware)
                 else [[file_obj.uid]]
             )
