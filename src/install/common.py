@@ -46,6 +46,13 @@ def main(distribution):
 
     BIN_DIR.mkdir(exist_ok=True)
 
+    run_cmd_with_logging(
+        f'wget -O {BIN_DIR / "firmware"} https://github.com/fkie-cad/firmware-magic-database/releases/download/v0.2.0/firmware'
+    )
+    run_cmd_with_logging(f'file -C -m {BIN_DIR / "firmware"}')
+    run_cmd_with_logging(f'file -C -m {INSTALL_DIR / "internal_symlink_magic"}')
+    run_cmd_with_logging(f'mv {INSTALL_DIR / "internal_symlink_magic.mgc"} {BIN_DIR}')
+
     apt_packages_path = INSTALL_DIR / 'apt-pkgs-common.txt'
     dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-common.txt'
 
