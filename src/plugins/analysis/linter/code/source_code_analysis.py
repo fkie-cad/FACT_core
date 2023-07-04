@@ -46,6 +46,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         After only receiving text files thanks to the whitelist, we try to detect the correct scripting language
         and then call a linter if a supported language is detected
         """
+        file_object.processed_analysis[self.NAME] = {}
+
         script_type = self._get_script_type(file_object)
         if script_type is None:
             file_object.processed_analysis[self.NAME] = {
@@ -90,9 +92,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         )
         output_json = json.loads(result.stdout)
 
-        # FIXME plugins should not set the output for other plugins
-        # But due to performance reasons we don't want the filetype plugin to run linguist
-        file_object.processed_analysis['file_type']['result']['linguist'] = ''.join(
+        file_object.processed_analysis[self.NAME]['linguist'] = ''.join(
             [f'{k:<10} {v!s:<10}\n' for k, v in output_json[container_path].items()]
         )
 
