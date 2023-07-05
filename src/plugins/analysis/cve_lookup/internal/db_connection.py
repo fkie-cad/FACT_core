@@ -13,10 +13,10 @@ DB_PATH = str(Path(__file__).parent / 'cve_cpe.db')
 
 
 class DbConnection:
-    def __init__(self):
+    def __init__(self, connection_string: str = f'sqlite:///{DB_PATH}'):
+        self.connection_string = connection_string
         self.base = Base
-        connection_string = f'sqlite:///{DB_PATH}'
-        self.engine = create_engine(connection_string, echo=False)
+        self.engine = create_engine(self.connection_string, echo=False)
         self.session_maker = sessionmaker(bind=self.engine)
 
     def create_tables(self):
@@ -24,3 +24,9 @@ class DbConnection:
         Creates the database tables based on the defined models.
         '''
         self.base.metadata.create_all(self.engine)
+
+    def drop_tables(self):
+        '''
+        Drop the database tables based on the defined models.
+        '''
+        self.base.metadata.drop_all(self.engine)

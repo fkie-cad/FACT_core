@@ -29,6 +29,7 @@ except ImportError:
     from helper_functions import replace_characters_and_wildcards
 
 VALID_VERSION_REGEX = re.compile(r'v?(\d+!)?\d+(\.\d+)*([.-]?(a(lpha)?|b(eta)?|c|dev|post|pre(view)?|r|rc)?\d+)?')
+DB_PATH = str(Path(__file__).parent / '../internal/cve_cpe.db')
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -110,7 +111,8 @@ def look_up_vulnerabilities(product_name: str, requested_version: str) -> dict:
     Look up vulnerabilities for a given product and requested version.
     '''
     vulnerabilities = {}
-    db = DbInterface(DbConnection())
+    connection = DbConnection(f'sqlite:///{DB_PATH}')
+    db = DbInterface(connection)
     product_terms, version = (
         replace_characters_and_wildcards(generate_search_terms(product_name)),
         replace_characters_and_wildcards([requested_version])[0],
