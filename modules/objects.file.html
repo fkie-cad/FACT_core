@@ -65,7 +65,6 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">objects.file module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#objects.file.FileObject"><code class="docutils literal notranslate"><span class="pre">FileObject</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.add_included_file"><code class="docutils literal notranslate"><span class="pre">FileObject.add_included_file()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.add_virtual_file_path_if_none_exists"><code class="docutils literal notranslate"><span class="pre">FileObject.add_virtual_file_path_if_none_exists()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.analysis_exception"><code class="docutils literal notranslate"><span class="pre">FileObject.analysis_exception</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.analysis_tags"><code class="docutils literal notranslate"><span class="pre">FileObject.analysis_tags</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.binary"><code class="docutils literal notranslate"><span class="pre">FileObject.binary</span></code></a></li>
@@ -76,10 +75,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.file_path"><code class="docutils literal notranslate"><span class="pre">FileObject.file_path</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.files_included"><code class="docutils literal notranslate"><span class="pre">FileObject.files_included</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.get_hid"><code class="docutils literal notranslate"><span class="pre">FileObject.get_hid()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.get_root_uid"><code class="docutils literal notranslate"><span class="pre">FileObject.get_root_uid()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.get_virtual_file_paths"><code class="docutils literal notranslate"><span class="pre">FileObject.get_virtual_file_paths()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.get_virtual_paths_for_all_uids"><code class="docutils literal notranslate"><span class="pre">FileObject.get_virtual_paths_for_all_uids()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.get_virtual_paths_for_one_uid"><code class="docutils literal notranslate"><span class="pre">FileObject.get_virtual_paths_for_one_uid()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.list_of_all_included_files"><code class="docutils literal notranslate"><span class="pre">FileObject.list_of_all_included_files</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.parent_firmware_uids"><code class="docutils literal notranslate"><span class="pre">FileObject.parent_firmware_uids</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.parents"><code class="docutils literal notranslate"><span class="pre">FileObject.parents</span></code></a></li>
@@ -161,25 +157,7 @@ The function also takes care of a number of fields for the child object:</p>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>file_object</strong> – File that was extracted from the current file</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="objects.file.FileObject.add_virtual_file_path_if_none_exists">
-<span class="sig-name descname"><span class="pre">add_virtual_file_path_if_none_exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.add_virtual_file_path_if_none_exists" title="Permalink to this definition"></a></dt>
-<dd><p>Add virtual file paths (vfps) to this file based on an existing list of vfps on the parent
-and the parent’s uid as root.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>parent_paths</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of virtual paths on parent object.</p></li>
-<li><p><strong>parent_uid</strong> (<em>str</em>) – uid of parent.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>file_object</strong> (<a class="reference internal" href="#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – File that was extracted from the current file</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
@@ -258,48 +236,13 @@ Only lists the next layer, not recursively included files on lower extraction la
 
 <dl class="py method">
 <dt class="sig sig-object py" id="objects.file.FileObject.get_hid">
-<span class="sig-name descname"><span class="pre">get_hid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_hid" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_hid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_hid" title="Permalink to this definition"></a></dt>
 <dd><p>Get a human-readable identifier for the given file.
 This usually is the file name for extracted files.
-As files can have different names across occurrences, uid of a specific root object can be specified.</p>
+:return: String representing a human-readable identifier for this file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>root_uid</strong> (<em>str</em><em> | </em><em>None</em>) – (Optional) root uid to base HID on.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>String representing a human-readable identifier for this file.</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="objects.file.FileObject.get_root_uid">
-<span class="sig-name descname"><span class="pre">get_root_uid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_root_uid" title="Permalink to this definition"></a></dt>
-<dd><p>Return <cite>self.root_uid</cite> if set.
-Else gets uid from root of first virtual file path.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>uid of root firmware as string.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="objects.file.FileObject.get_virtual_file_paths">
-<span class="sig-name descname"><span class="pre">get_virtual_file_paths</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_file_paths" title="Permalink to this definition"></a></dt>
-<dd><p>Get virtual file paths of current file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict mapping uids of root objects to lists of paths in each root.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict[str, list]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -314,25 +257,6 @@ Else gets uid from root of first virtual file path.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list[str]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="objects.file.FileObject.get_virtual_paths_for_one_uid">
-<span class="sig-name descname"><span class="pre">get_virtual_paths_for_one_uid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_paths_for_one_uid" title="Permalink to this definition"></a></dt>
-<dd><p>Get the virtual file path (vfp) of root_uid if argument set.
-If not, similar to <a class="reference internal" href="#objects.file.FileObject.get_root_uid" title="objects.file.FileObject.get_root_uid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_root_uid()</span></code></a> either return paths of <cite>self.root_uid</cite>
-or fall back to first uid of list of all root uids.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>root_uid</strong> (<em>str</em>) – (Optional) root uid to get vfps for.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>List of virtual paths.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list[str]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -381,7 +305,7 @@ The result dict can have any content, but always has at least the fields:</p>
 <span class="sig-name descname"><span class="pre">root_uid</span></span><a class="headerlink" href="#objects.file.FileObject.root_uid" title="Permalink to this definition"></a></dt>
 <dd><p>UID of root (i.e. firmware) object for the given file.
 Useful to associate results of children with firmware.
-This value might not be set at all times (cf. <a class="reference internal" href="#objects.file.FileObject.get_root_uid" title="objects.file.FileObject.get_root_uid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_root_uid()</span></code></a>).</p>
+Is only set during unpacking / analysis in the backend and <em>not</em> if you load the object from the DB!</p>
 </dd></dl>
 
 <dl class="py attribute">

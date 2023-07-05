@@ -79,14 +79,8 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.task_conversion.html">helperFunctions.task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.virtual_file_path module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.get_base_of_virtual_path"><code class="docutils literal notranslate"><span class="pre">get_base_of_virtual_path()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.get_parent_uids_from_virtual_path"><code class="docutils literal notranslate"><span class="pre">get_parent_uids_from_virtual_path()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.get_top_of_virtual_path"><code class="docutils literal notranslate"><span class="pre">get_top_of_virtual_path()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.get_uids_from_virtual_path"><code class="docutils literal notranslate"><span class="pre">get_uids_from_virtual_path()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.join_virtual_path"><code class="docutils literal notranslate"><span class="pre">join_virtual_path()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.merge_vfp_lists"><code class="docutils literal notranslate"><span class="pre">merge_vfp_lists()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.split_virtual_path"><code class="docutils literal notranslate"><span class="pre">split_virtual_path()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.update_virtual_file_path"><code class="docutils literal notranslate"><span class="pre">update_virtual_file_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.get_paths_for_all_parents"><code class="docutils literal notranslate"><span class="pre">get_paths_for_all_parents()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.get_some_vfp"><code class="docutils literal notranslate"><span class="pre">get_some_vfp()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html">helperFunctions.uid web_interface</a></li>
@@ -127,89 +121,13 @@
   <section id="module-helperFunctions.virtual_file_path">
 <span id="helperfunctions-virtual-file-path-module"></span><h1>helperFunctions.virtual_file_path module<a class="headerlink" href="#module-helperFunctions.virtual_file_path" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.get_base_of_virtual_path">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_base_of_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">virtual_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_base_of_virtual_path" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>virtual_path</strong> (<em>str</em>) – </p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.get_parent_uids_from_virtual_path">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_parent_uids_from_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_parent_uids_from_virtual_path" title="Permalink to this definition"></a></dt>
-<dd><p>Get the UIDs of parent files (aka files with include this file) from the virtual file paths of a FileObject.</p>
+<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.get_paths_for_all_parents">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_paths_for_all_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vfp_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_paths_for_all_parents" title="Permalink to this definition"></a></dt>
+<dd><p>Get a combined list of all paths in all parents (without duplicates)
+:param vfp_dict: A vfp dict (typically found in FileObject.virtual_file_path)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>file_object</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The FileObject whose virtual file paths are searched for parent UIDs</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A set of parent UIDs</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>set[str]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.get_top_of_virtual_path">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_top_of_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">virtual_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_top_of_virtual_path" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>virtual_path</strong> (<em>str</em>) – </p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.get_uids_from_virtual_path">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_uids_from_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">virtual_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_uids_from_virtual_path" title="Permalink to this definition"></a></dt>
-<dd><p>Get all UIDs from a virtual file path (one element from the virtual path list for one root UID of a FW).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>virtual_path</strong> (<em>str</em>) – A virtual path consisting of UIDs, separators (‘|’) and file paths</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of UIDs</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list[str]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.join_virtual_path">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">join_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">elements</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.join_virtual_path" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>elements</strong> (<em>str</em>) – </p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.merge_vfp_lists">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">merge_vfp_lists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">old_vfp_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_vfp_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.merge_vfp_lists" title="Permalink to this definition"></a></dt>
-<dd><p>virtual file paths (VFPs) with the same base are updated and should be replaced
-VFPs with different bases correspond to different archives in the firmware and should be kept</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>old_vfp_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – </p></li>
-<li><p><strong>new_vfp_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – </p></li>
-</ul>
+<dd class="field-odd"><p><strong>vfp_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – </p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>list[str]</p>
@@ -218,38 +136,15 @@ VFPs with different bases correspond to different archives in the firmware and s
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.split_virtual_path">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">split_virtual_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">virtual_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.split_virtual_path" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>virtual_path</strong> (<em>str</em>) – </p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list[str]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.update_virtual_file_path">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">update_virtual_file_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_vfp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_vfp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.update_virtual_file_path" title="Permalink to this definition"></a></dt>
-<dd><p>Get updated dict of virtual file paths.
-A file object can exist only once, multiple times inside the same firmware (e.g. sym links) or
-even in multiple different firmware images (e.g. common files across patch levels).
-Thus updating the virtual file paths dict requires some logic.
-This function returns the combined dict across newfound virtual paths and existing ones.</p>
+<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.get_some_vfp">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_some_vfp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vfp_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_some_vfp" title="Permalink to this definition"></a></dt>
+<dd><p>Just get some random virtual file path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>new_vfp</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – current virtual file path dictionary</p></li>
-<li><p><strong>old_vfp</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – old virtual file path dictionary (existing DB entry)</p></li>
-</ul>
+<dd class="field-odd"><p><strong>vfp_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – </p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>updated (merged) virtual file path dictionary</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict[str, list[str]]</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str | None</p>
 </dd>
 </dl>
 </dd></dl>
