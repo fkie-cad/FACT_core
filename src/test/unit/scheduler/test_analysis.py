@@ -78,8 +78,8 @@ class TestScheduleInitialAnalysis:
     @pytest.mark.backend_config_overwrite(
         {
             'analysis_preset': {
-                "default": {
-                    "name": "default",
+                'default': {
+                    'name': 'default',
                     'plugins': ['file_hashes'],
                 },
             }
@@ -130,7 +130,6 @@ class TestScheduleInitialAnalysis:
 
 
 class TestAnalysisSchedulerBlacklist:
-
     test_plugin = 'test_plugin'
     file_object = MockFileObject()
 
@@ -278,7 +277,13 @@ class TestAnalysisSkipping:
         cls.init_patch.stop()
 
     @pytest.mark.parametrize(
-        'plugin_version, plugin_system_version, analysis_plugin_version, ' 'analysis_system_version, expected_output',
+        (
+            'plugin_version',
+            'plugin_system_version',
+            'analysis_plugin_version',
+            'analysis_system_version',
+            'expected_output',
+        ),
         [
             ('1.0', None, '1.0', None, True),
             ('1.1', None, '1.0', None, False),
@@ -346,7 +351,7 @@ class TestAnalysisShouldReanalyse:
             self.system_version = system_version
 
         def get_analysis(self, *_):
-            return dict(analysis_date=self.date, system_version=None)
+            return {'analysis_date': self.date, 'system_version': None}
 
     @classmethod
     def setup_class(cls):
@@ -356,7 +361,15 @@ class TestAnalysisShouldReanalyse:
         cls.init_patch.stop()
 
     @pytest.mark.parametrize(
-        'plugin_date, dependency_date, plugin_version, system_version, db_plugin_version, db_system_version, expected_result',
+        (
+            'plugin_date',
+            'dependency_date',
+            'plugin_version',
+            'system_version',
+            'db_plugin_version',
+            'db_system_version',
+            'expected_result',
+        ),
         [
             (10, 20, '1.0', None, '1.0', None, False),  # analysis date < dependency date => not up to date
             (20, 10, '1.0', None, '1.0', None, True),  # analysis date > dependency date => up to date
@@ -378,9 +391,11 @@ class TestAnalysisShouldReanalyse:
         db_system_version,
         expected_result,
     ):
-        analysis_db_entry = dict(
-            plugin_version=db_plugin_version, analysis_date=plugin_date, system_version=db_system_version
-        )
+        analysis_db_entry = {
+            'plugin_version': db_plugin_version,
+            'analysis_date': plugin_date,
+            'system_version': db_system_version,
+        }
         self.scheduler.db_backend_service = self.BackendMock(dependency_date)
         plugin = self.PluginMock(plugin_version, system_version)
         assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, plugin, 'uid') == expected_result

@@ -316,7 +316,6 @@ def analysis_scheduler(
     with MonkeyPatch.context() as mkp:
         mkp.setattr('plugins.base.ViewUpdater', test_config.view_updater_class)
         _analysis_scheduler = AnalysisScheduler(
-            pre_analysis=lambda _: None,
             post_analysis=lambda *_: None,
             unpacking_locks=_unpacking_lock_manager,
         )
@@ -360,27 +359,47 @@ def post_unpack_queue(request) -> Queue:
 
 
 @pytest.fixture
-def unpacking_scheduler(request, post_unpack_queue, _unpacking_lock_manager, test_config) -> UnpackingScheduler:
+def unpacking_finished_event(request) -> Event:
+    """An event that triggers when the expected number of extractions are completed."""
+    _assert_fixture_is_requested(request, 'unpacking_scheduler')
+    return Event()
+
+
+@pytest.fixture
+def unpacking_finished_counter() -> Value:
+    """A :py:class:`Value` counting how many extractions are finished."""
+    return Value('i', 0)
+
+
+@pytest.fixture
+def unpacking_scheduler(
+    request,
+    post_unpack_queue,
+    _unpacking_lock_manager,
+    test_config,
+    unpacking_finished_event,
+    unpacking_finished_counter,
+) -> UnpackingScheduler:
     """Returns an instance of :py:class:`~scheduler.unpacking_scheduler.UnpackingScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """
     if test_config.pipeline:
         _analysis_scheduler = request.getfixturevalue('analysis_scheduler')
 
-    _unpacking_scheduler = UnpackingScheduler(
-        post_unpack=lambda _: None,
-        fs_organizer=None,
-        unpacking_locks=_unpacking_lock_manager,
-    )
-
-    _unpacking_scheduler.unpacker.file_storage_system = test_config.fs_organizer_class()
-
     def _post_unpack_hook(fw):
+        unpacking_finished_counter.value += 1
+        if unpacking_finished_counter.value == test_config.items_to_unpack:
+            unpacking_finished_event.set()
         post_unpack_queue.put(fw)
         if test_config.pipeline:
             _analysis_scheduler.start_analysis_of_object(fw)
 
-    _unpacking_scheduler.post_unpack = _post_unpack_hook
+    _unpacking_scheduler = UnpackingScheduler(
+        post_unpack=_post_unpack_hook,
+        fs_organizer=test_config.fs_organizer_class(),
+        unpacking_locks=_unpacking_lock_manager,
+        db_interface=test_config.backend_db_class,
+    )
 
     if test_config.start_processes:
         _unpacking_scheduler.start()
@@ -440,9 +459,6 @@ class SchedulerTestConfig:
     The fixtures don't do any assertions, they MUST be done by the test using the fixtures.
     """
 
-    #: The number of items that the :py:class:`~scheduler.analysis.AnalysisScheduler` must analyze before
-    #: :py:func:`analysis_finished_event` gets set.
-    items_to_analyze: int
     #: Set the class that is used as :py:class:`~storage.db_interface_backend.BackendDbInterface`.
     #: This can be either a mocked class or the actual :py:class:`~storage.db_interface_backend.BackendDbInterface`.
     #: This is used by the :py:func:`analysis_scheduler`
@@ -467,13 +483,18 @@ class SchedulerTestConfig:
     pipeline: bool
     #: If set to ``False`` no processes will be started.
     start_processes: bool
+    #: The number of items that the :py:class:`~scheduler.analysis.AnalysisScheduler` must analyze before
+    #: :py:func:`analysis_finished_event` gets set.
+    items_to_analyze: int = 0
+    #: The number of items that the :py:class:`~scheduler.unpacking_scheduler.UnpackingScheduler` must extract before
+    #: :py:func:`unpacking_finished_event` gets set.
+    items_to_unpack: int = 0
 
     @staticmethod
     def Integration(**kwargs):
         return SchedulerTestConfig(
             **dict(
                 {
-                    'items_to_analyze': 0,
                     'backend_db_class': BackendDbInterface,
                     'comparison_db_class': ComparisonDbInterface,
                     'fs_organizer_class': FSOrganizerMock,
@@ -490,7 +511,6 @@ class SchedulerTestConfig:
         return SchedulerTestConfig(
             **dict(
                 {
-                    'items_to_analyze': 0,
                     'backend_db_class': BackEndDbInterfaceMock,
                     'comparison_db_class': ComparisonDbInterface,
                     'fs_organizer_class': FSOrganizerMock,
@@ -507,7 +527,6 @@ class SchedulerTestConfig:
         return SchedulerTestConfig(
             **dict(
                 {
-                    'items_to_analyze': 0,
                     'backend_db_class': BackendDbInterface,
                     'comparison_db_class': ComparisonDbInterface,
                     'fs_organizer_class': FSOrganizer,

@@ -92,7 +92,7 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         #: This attribute is **optional**, the dict may be empty.
         self.tags: dict[str, TagColor] = {}
 
-        self._update_root_id_and_virtual_path()
+        self.root_uid = self.uid
 
     def set_part_name(self, part: str):
         '''
@@ -114,12 +114,8 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         :type binary: bytes
         '''
         super().set_binary(binary)
-        self._update_root_id_and_virtual_path()
-        self.md5 = get_md5(binary)
-
-    def _update_root_id_and_virtual_path(self):
         self.root_uid = self.uid
-        self.virtual_file_path = {self.uid: [self.uid]}
+        self.md5 = get_md5(binary)
 
     def set_tag(self, tag: str):
         '''
@@ -130,7 +126,7 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         '''
         self.tags[tag] = TagColor.GRAY
 
-    def get_hid(self, root_uid: str | None = None) -> str:
+    def get_hid(self) -> str:
         '''
         See :meth:`objects.file.FileObject.get_hid`.
         '''

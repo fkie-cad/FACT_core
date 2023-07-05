@@ -1,9 +1,21 @@
-from multiprocessing import Event
+from multiprocessing import Event, Manager
 
 import pytest
 
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
+
+
+class MockDb:
+    def __init__(self):
+        self.manager = Manager()
+        self.counter = self.manager.Value('i', 0)
+
+    def add_object(self, fw_object):
+        self.counter.value += 1
+
+    def __call__(self, *args, **kwargs):  # hack: object can be instantiated again
+        return self
 
 
 @pytest.mark.backend_config_overwrite(
@@ -27,7 +39,7 @@ class TestUnpackScheduler:
         ]
         unpacking_scheduler.add_task(test_fw)
         extracted_files = {}
-        for _ in range(3):
+        for _ in range(4):
             file = post_unpack_queue.get(timeout=5)
             extracted_files[file.uid] = file
 

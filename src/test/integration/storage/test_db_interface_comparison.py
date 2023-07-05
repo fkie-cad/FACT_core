@@ -23,8 +23,7 @@ def test_add_and_get_comparison_result(comparison_db, backend_db):
 
 def test_get_not_existing_result(comparison_db, backend_db):
     fw_one, fw_two, _, compare_id = _create_comparison()
-    backend_db.add_object(fw_one)
-    backend_db.add_object(fw_two)
+    backend_db.insert_multiple_objects(fw_one, fw_two)
     result = comparison_db.get_comparison_result(compare_id)
     assert result is None
 
@@ -67,8 +66,7 @@ def test_delete_fw_cascades_to_comp(backend_db, comparison_db, admin_db):
 
 def test_get_latest_removed_firmware(comparison_db, backend_db, admin_db):
     fw_one, fw_two, compare_dict, _ = _create_comparison()
-    backend_db.add_object(fw_one)
-    backend_db.add_object(fw_two)
+    backend_db.insert_multiple_objects(fw_one, fw_two)
     comparison_db.add_comparison_result(compare_dict)
 
     result = comparison_db.page_comparison_results(limit=10)
@@ -89,7 +87,7 @@ def test_get_total_number_of_results(comparison_db, backend_db):
 
 
 @pytest.mark.parametrize(
-    'root_uid, expected_result',
+    ('root_uid', 'expected_result'),
     [
         ('the_root_uid', ['uid1', 'uid2']),
         ('some_other_uid', []),
@@ -99,9 +97,7 @@ def test_get_total_number_of_results(comparison_db, backend_db):
 def test_get_exclusive_files(comparison_db, backend_db, root_uid, expected_result):
     fw_one, fw_two, compare_dict, comp_id = _create_comparison()
     compare_dict['plugins'] = {'File_Coverage': {'exclusive_files': {'the_root_uid': ['uid1', 'uid2']}}}
-
-    backend_db.add_object(fw_one)
-    backend_db.add_object(fw_two)
+    backend_db.insert_multiple_objects(fw_one, fw_two)
     comparison_db.add_comparison_result(compare_dict)
     exclusive_files = comparison_db.get_exclusive_files(comp_id, root_uid)
     assert exclusive_files == expected_result
@@ -109,9 +105,8 @@ def test_get_exclusive_files(comparison_db, backend_db, root_uid, expected_resul
 
 def test_get_vfp_of_included_text_files(backend_db, comparison_db):
     fo, fw = create_fw_with_child_fo()
-    backend_db.insert_object(fw)
     fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'text/plain'})
-    backend_db.insert_object(fo)
+    backend_db.insert_multiple_objects(fw, fo)
     result = comparison_db.get_vfp_of_included_text_files(fw.uid, [])
     assert result == {'/folder/testfile1': {fo.uid}}
 
@@ -135,7 +130,6 @@ def _create_comparison(uid1='uid1', uid2='uid2'):
 
 def _add_comparison(comparison_db, backend_db, uid1='uid1', uid2='uid2'):
     fw_one, fw_two, compare_dict, comparison_id = _create_comparison(uid1=uid1, uid2=uid2)
-    backend_db.add_object(fw_one)
-    backend_db.add_object(fw_two)
+    backend_db.insert_multiple_objects(fw_one, fw_two)
     comparison_db.add_comparison_result(compare_dict)
     return fw_one, fw_two, compare_dict, comparison_id

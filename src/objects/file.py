@@ -5,10 +5,10 @@ from pathlib import Path
 
 from common_helper_files import get_binary_from_file
 
-from helperFunctions.data_conversion import get_value_of_first_key, make_bytes, make_unicode_string
+from helperFunctions.data_conversion import make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
-from helperFunctions.virtual_file_path import get_base_of_virtual_path, get_top_of_virtual_path
+from helperFunctions.virtual_file_path import get_some_vfp
 
 
 class FileObject:  # pylint: disable=too-many-instance-attributes
@@ -47,7 +47,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
         #: UID of root (i.e. firmware) object for the given file.
         #: Useful to associate results of children with firmware.
-        #: This value might not be set at all times (cf. :func:`get_root_uid`).
+        #: Is only set during unpacking / analysis in the backend and *not* if you load the object from the DB!
         self.root_uid = None
 
         #: Extraction depth of this object. If outer firmware file, this is 0.
@@ -158,25 +158,25 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
             logging.warning(f'uid overwrite: Uid might not be related to binary data anymore: {self._uid} -> {new_uid}')
         self._uid = new_uid
 
-    def get_hid(self, root_uid: str = None) -> str:
+    def get_hid(self) -> str:
         '''
         Get a human-readable identifier for the given file.
         This usually is the file name for extracted files.
-        As files can have different names across occurrences, uid of a specific root object can be specified.
-
-        :param root_uid: (Optional) root uid to base HID on.
         :return: String representing a human-readable identifier for this file.
         '''
-        if root_uid is None:
-            root_uid = self.get_root_uid()
-        virtual_path = self.get_virtual_paths_for_one_uid(root_uid=root_uid)[0]
-        return get_top_of_virtual_path(virtual_path)
+        try:
+            return get_some_vfp(self.virtual_file_path)
+        except IndexError:
+            # this should normally not happen outside of tests as file objects are initialized with a "virtual file
+            # path" during unpacking
+            logging.warning(f'Virtual file paths of {self.uid} are emtpy: {self.virtual_file_path}')
+            return self.file_name
 
     def _create_from_file(self, file_path: str):
         self.set_binary(get_binary_from_file(file_path))
         self.create_binary_from_path()
 
-    def add_included_file(self, file_object) -> None:
+    def add_included_file(self, file_object: FileObject) -> None:
         '''
         This functions adds a file to this object's list of included files.
         The function also takes care of a number of fields for the child object:
@@ -191,43 +191,9 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         '''
         file_object.parents.append(self.uid)
         file_object.root_uid = self.root_uid
-        file_object.add_virtual_file_path_if_none_exists(
-            self.get_virtual_paths_for_one_uid(root_uid=self.root_uid), self.uid
-        )
         file_object.depth = self.depth + 1
         file_object.scheduled_analysis = self.scheduled_analysis
         self.files_included.add(file_object.uid)
-
-    def add_virtual_file_path_if_none_exists(self, parent_paths: list[str], parent_uid: str) -> None:
-        '''
-        Add virtual file paths (vfps) to this file based on an existing list of vfps on the parent
-        and the parent's uid as root.
-
-        :param parent_paths: List of virtual paths on parent object.
-        :param parent_uid: uid of parent.
-        '''
-        if self.root_uid not in self.virtual_file_path.keys():
-            self.virtual_file_path[self.root_uid] = []
-            for item in parent_paths:
-                base_path = get_base_of_virtual_path(item)
-                if base_path:
-                    base_path += '|'
-                self.virtual_file_path[self.root_uid].append(f'{base_path}{parent_uid}|{self.file_path}')
-
-    def get_virtual_paths_for_one_uid(self, root_uid: str = None) -> list[str]:
-        '''
-        Get the virtual file path (vfp) of root_uid if argument set.
-        If not, similar to :func:`get_root_uid` either return paths of `self.root_uid`
-        or fall back to first uid of list of all root uids.
-
-        :param root_uid: (Optional) root uid to get vfps for.
-        :return: List of virtual paths.
-        '''
-        file_paths = self.get_virtual_file_paths()
-        req_root_uid = root_uid or self.root_uid
-        if req_root_uid in file_paths:
-            return file_paths[req_root_uid]
-        return get_value_of_first_key(file_paths)  # fallback
 
     def get_virtual_paths_for_all_uids(self) -> list[str]:
         '''
@@ -235,31 +201,14 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
         :return: List of virtual paths.
         '''
-        return [vfp for vfp_list in self.get_virtual_file_paths().values() for vfp in vfp_list]
-
-    def get_virtual_file_paths(self) -> dict[str, list]:
-        '''
-        Get virtual file paths of current file.
-
-        :return: Dict mapping uids of root objects to lists of paths in each root.
-        '''
-        if self.virtual_file_path:
-            return self.virtual_file_path
-        return {self.uid: [str(self.uid)]}
-
-    def get_root_uid(self) -> str:
-        '''
-        Return `self.root_uid` if set.
-        Else gets uid from root of first virtual file path.
-
-        :return: uid of root firmware as string.
-        '''
-        if self.root_uid is not None:
-            return self.root_uid
-        return list(self.get_virtual_file_paths().keys())[0]
+        return [vfp for vfp_list in self.virtual_file_path.values() for vfp in vfp_list]
 
     def __str__(self) -> str:
-        return f'UID: {self.uid}\n Processed analysis: {list(self.processed_analysis.keys())}\n Files included: {self.files_included}'
+        return (
+            f'UID: {self.uid}\n'
+            f' Processed analysis: {list(self.processed_analysis.keys())}\n'
+            f' Files included: {self.files_included}'
+        )
 
     def __repr__(self) -> str:
         return self.__str__()

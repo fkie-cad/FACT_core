@@ -26,22 +26,35 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def delete_firmware(self, uid: str, delete_root_file: bool = True) -> tuple[int, int]:
         with self.get_read_write_session() as session:
-            fw: FileObjectEntry = session.get(FileObjectEntry, uid)
+            fw = session.get(FileObjectEntry, uid)  # type: FileObjectEntry | None
             if not fw or not fw.is_firmware:
                 logging.error(f'Trying to remove FW with UID {uid} but it could not be found in the DB.')
                 return 0, 0
             included_uids = self.get_all_files_in_fw(fw.uid)
             self.delete_object(uid)
             # DB entries of files that only belonged to this FW are deleted by event listener `delete_file_orphans()`
-            # DB entries of files that also belong to other FW should still be there but the VFP needs to be updated
-            still_in_db = self._update_vfp_entries(uid, included_uids, session)
+            # DB entries of files that also belong to other FW should still be there
+            still_in_db = self._find_files_still_in_db(included_uids, session)
         # if we subtract the updated files from all files that belonged to the FW we get the files that need to be
         # deleted from the file system (through the "intercom")
         uids_to_delete = included_uids - still_in_db
         if delete_root_file:
             uids_to_delete.add(uid)
-        self.intercom.delete_file(list(uids_to_delete))
+        else:
+            assert uid not in uids_to_delete  # this should never ever happen
+        self.intercom.delete_file(uids_to_delete)
         return len(still_in_db), len(uids_to_delete)
+
+    @staticmethod
+    def _find_files_still_in_db(included_files: set[str], session) -> set[str]:
+        """
+        :param included_files: A set of UIDs of all files included in the FW
+        :param session: The current DB session
+        :return: A set of UIDs from files included in the deleted FW that are still in the DB (because they are also
+            included in another FW). Can be empty if no file also occurs in another FW.
+        """
+        query = select(FileObjectEntry.uid).filter(FileObjectEntry.uid.in_(included_files))
+        return set(session.execute(query).scalars() or [])
 
     def delete_comparison(self, comparison_id: str):
         try:
@@ -50,23 +63,3 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             logging.debug(f'Old comparison deleted: {comparison_id}')
         except Exception as exception:
             logging.warning(f'Could not delete comparison {comparison_id}: {exception}', exc_info=True)
-
-    @staticmethod
-    def _update_vfp_entries(root_uid: str, included_files: set[str], session) -> set[str]:
-        """
-        :param root_uid: The UID of the deleted FW
-        :param included_files: A set of UIDs of all files included in the FW
-        :param session: The current DB session
-        :return: A set of UIDs from files included in the deleted FW that are still in the DB (because they are also
-            included in another FW) and whose virtual file paths were updated (i.e. entries of FW were removed)
-        """
-        files_still_in_db = set()
-        query = select(FileObjectEntry).filter(FileObjectEntry.uid.in_(included_files))
-        for fo_entry in session.execute(query).scalars():  # type: FileObjectEntry
-            files_still_in_db.add(fo_entry.uid)
-            fo_entry.virtual_file_paths = {
-                uid: path_list
-                for uid, path_list in fo_entry.virtual_file_paths.items()
-                if uid != root_uid  # remove the VFP entries of the deleted FW
-            }
-        return files_still_in_db

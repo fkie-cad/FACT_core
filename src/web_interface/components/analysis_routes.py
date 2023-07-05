@@ -60,6 +60,11 @@ class AnalysisRoutes(ComponentBase):
                 root_uid = file_obj.uid
                 other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
             included_fo_analysis_complete = not frontend_db.all_uids_found_in_database(list(file_obj.files_included))
+            file_tree_paths = (
+                frontend_db.get_file_tree_path(uid, root_uid=none_to_none(root_uid))
+                if not isinstance(file_obj, Firmware)
+                else [[file_obj.uid]]
+            )
         with ConnectTo(self.intercom) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
 
@@ -69,6 +74,7 @@ class AnalysisRoutes(ComponentBase):
             self._get_correct_template(selected_analysis, file_obj),
             uid=uid,
             firmware=file_obj,
+            file_tree_paths=file_tree_paths,
             analysis_result=analysis.get('result', {}),
             analysis_metadata={k: v for k, v in analysis.items() if k != 'result'},
             selected_analysis=selected_analysis,
@@ -167,8 +173,11 @@ class AnalysisRoutes(ComponentBase):
 
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
         if re_do:
+            with ConnectTo(self.intercom) as intercom:
+                analysis_task['binary'], _ = intercom.get_binary_and_filename(uid)
             base_fw = None
             self.db.admin.delete_firmware(uid, delete_root_file=False)
+            # FixMe? do we need to wait for cascade/event listener to finish?
         else:
             base_fw = self.db.frontend.get_object(uid)
             base_fw.force_update = force_reanalysis
@@ -178,17 +187,17 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/re-do_analysis/<uid>', GET, POST)
-    def redo_analysis(self, uid):
+    def redo_analysis(self, uid: str):
         if request.method == POST:
             return self.post_update_analysis(uid, re_do=True)
         return self.get_update_analysis(uid, re_do=True)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/dependency-graph/<uid>/<root_uid>', GET)
-    def show_elf_dependency_graph(self, uid, root_uid):
+    def show_elf_dependency_graph(self, uid: str, root_uid: str):
         with get_shared_session(self.db.frontend) as frontend_db:
             if root_uid in [None, 'None']:
-                root_uid = frontend_db.get_object(uid).get_root_uid()
+                root_uid = frontend_db.get_root_uid(uid)
             data = frontend_db.get_data_for_dependency_graph(uid)
 
         whitelist = [
@@ -197,11 +206,8 @@ class AnalysisRoutes(ComponentBase):
             'application/x-sharedlib',
             'inode/symlink',
         ]
-
-        data_graph_part = create_data_graph_nodes_and_groups(data, uid, root_uid, whitelist)
-
+        data_graph_part = create_data_graph_nodes_and_groups(data, whitelist)
         colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
-
         if not data_graph_part['nodes']:
             flash(
                 'Error: Graph could not be rendered. '
@@ -211,13 +217,12 @@ class AnalysisRoutes(ComponentBase):
             return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
 
         data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data_graph_part)
-
         if elf_analysis_missing_from_files > 0:
             flash(
                 f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning'
             )
 
-        # TODO: Add a loading icon?
+        # FixMe: Add a loading icon?
         return render_template(
             'dependency_graph.html',
             **{key: json.dumps(data_graph[key]) for key in ['nodes', 'edges', 'groups']},

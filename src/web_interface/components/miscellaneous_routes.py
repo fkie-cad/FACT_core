@@ -43,7 +43,7 @@ class MiscellaneousRoutes(ComponentBase):
         )
 
     @AppRoute('/about', GET)
-    def show_about(self):  # pylint: disable=no-self-use
+    def show_about(self):
         return render_template('about.html')
 
     @roles_accepted(*PRIVILEGES['comment'])

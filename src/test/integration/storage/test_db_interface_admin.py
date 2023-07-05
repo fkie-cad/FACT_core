@@ -14,8 +14,7 @@ def test_delete_cascade(admin_db, common_db, backend_db):
     fo, fw = create_fw_with_child_fo()
     assert common_db.exists(fo.uid) is False
     assert common_db.exists(fw.uid) is False
-    backend_db.insert_object(fw)
-    backend_db.insert_object(fo)
+    backend_db.insert_multiple_objects(fw, fo)
     assert common_db.exists(fo.uid) is True
     assert common_db.exists(fw.uid) is True
     admin_db.delete_object(fw.uid)
@@ -25,9 +24,7 @@ def test_delete_cascade(admin_db, common_db, backend_db):
 
 def test_delete_firmware(backend_db, admin_db, common_db):
     fw, parent, child = create_fw_with_parent_and_child()
-    backend_db.insert_object(fw)
-    backend_db.insert_object(parent)
-    backend_db.insert_object(child)
+    backend_db.insert_multiple_objects(fw, parent, child)
 
     admin_db.delete_firmware(fw.uid)
 
@@ -43,9 +40,7 @@ def test_delete_but_fo_is_in_fw(admin_db, common_db, backend_db):
     fo.parents.append(fw2.uid)
     fo.parent_firmware_uids.add(fw2.uid)
     fo.virtual_file_path.update({fw2.uid: [f'|{fw2.uid}|/some/path']})
-    backend_db.insert_object(fw)
-    backend_db.insert_object(fw2)
-    backend_db.insert_object(fo)
+    backend_db.insert_multiple_objects(fw, fw2, fo)
 
     removed_vps, deleted_files = admin_db.delete_firmware(fw.uid)
 
@@ -64,16 +59,13 @@ def test_delete_but_fo_is_in_fw(admin_db, common_db, backend_db):
 
 def test_same_fw_multiple_parents(backend_db, admin_db, common_db):
     fw, parent, child = create_fw_with_parent_and_child()
-    backend_db.insert_object(fw)
-    backend_db.insert_object(parent)
     parent2 = create_test_file_object()
     parent2.uid = 'parent2'
     parent2.parents.append(fw.uid)
     parent2.parent_firmware_uids.add(fw.uid)
-    backend_db.insert_object(parent2)
     # child has multiple parents but all in the same FW -> should still be deleted by cascade
     child.parents.append(parent2.uid)
-    backend_db.insert_object(child)
+    backend_db.insert_multiple_objects(fw, parent, parent2, child)
 
     admin_db.delete_firmware(fw.uid)
 

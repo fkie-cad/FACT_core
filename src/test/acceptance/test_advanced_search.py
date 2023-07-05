@@ -19,12 +19,11 @@ other_fw.uid = '1234abcd_123'
 def _auto_insert_firmwares(backend_db):
     uid = parent_fw.uid
     child_fo.parent_firmware_uids = [uid]
-    backend_db.add_object(parent_fw)
+    child_fo.virtual_file_path = {parent_fw.uid: ['/some/path']}
+    child_fo.parent_firmware_uids = [parent_fw.uid]
     child_fo.processed_analysis['unpacker'] = generate_analysis_entry(analysis_result={'plugin_used': 'test'})
     child_fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'some_type'})
-    backend_db.add_object(child_fo)
-
-    backend_db.add_object(other_fw)
+    backend_db.insert_multiple_objects(parent_fw, child_fo, other_fw)
 
 
 class TestAcceptanceAdvancedSearch:

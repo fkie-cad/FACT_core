@@ -12,6 +12,7 @@ from .helper import (
     TEST_FW,
     create_fw_with_child_fo,
     create_fw_with_parent_and_child,
+    get_fo_with_2_root_fw,
     insert_test_fo,
     insert_test_fw,
 )
@@ -46,16 +47,16 @@ def test_get_hid(frontend_db, backend_db):
 
 
 def test_get_hid_fo(frontend_db, backend_db):
-    test_fo = create_test_file_object(bin_path='get_files_test/testfile2')
-    test_fo.virtual_file_path = {'a': ['|a|/test_file'], 'b': ['|b|/get_files_test/testfile2']}
-    backend_db.insert_object(test_fo)
-    result = frontend_db.get_hid(test_fo.uid, root_uid='b')
+    fo, parent_1, fw_1, fw_2 = get_fo_with_2_root_fw()
+    fo.virtual_file_path = {parent_1.uid: ['/test_file'], fw_2.uid: ['/get_files_test/testfile2']}
+    backend_db.insert_multiple_objects(fw_2, fw_1, parent_1, fo)
+    result = frontend_db.get_hid(fo.uid, root_uid=fw_2.uid)
     assert result == '/get_files_test/testfile2', 'fo hid not correct'
-    result = frontend_db.get_hid(test_fo.uid)
+    result = frontend_db.get_hid(fo.uid)
     assert isinstance(result, str), 'result is not a string'
-    assert result[0] == '/', 'first character not correct if no root_uid set'
-    result = frontend_db.get_hid(test_fo.uid, root_uid='c')
-    assert result[0] == '/', 'first character not correct if invalid root_uid set'
+    assert result.startswith('/'), 'first character not correct if no root_uid set'
+    result = frontend_db.get_hid(fo.uid, root_uid='invalid')
+    assert result == fo.file_name, 'file name should be fallback'
 
 
 def test_get_hid_invalid_uid(frontend_db):
@@ -63,11 +64,22 @@ def test_get_hid_invalid_uid(frontend_db):
     assert result == '', 'invalid uid should result in empty string'
 
 
+def test_get_hid_dict(frontend_db, backend_db):
+    fo, fw = create_fw_with_child_fo()
+    fo.virtual_file_path[fw.uid] = ['/foo']
+    backend_db.insert_multiple_objects(fw, fo)
+    uid_set = {fo.uid, fw.uid}
+    hid_dict = frontend_db.get_hid_dict(uid_set, root_uid=fw.uid)
+    assert all(uid in hid_dict for uid in uid_set)
+    assert hid_dict[fo.uid] == '/foo'
+    assert all(element in hid_dict[fw.uid] for element in [fw.vendor, fw.device_class, fw.device_name, fw.version])
+
+
 def test_get_data_for_nice_list(frontend_db, backend_db):
-    uid_list = [TEST_FW.uid, TEST_FO.uid]
-    backend_db.add_object(TEST_FW)
-    TEST_FO.virtual_file_path = {'TEST_FW.uid': [f'|{TEST_FW.uid}|/file/path']}
-    backend_db.add_object(TEST_FO)
+    fo, fw = create_fw_with_child_fo()
+    uid_list = [fw.uid, fo.uid]
+    fo.virtual_file_path = {fw.uid: ['/file/path']}
+    backend_db.insert_multiple_objects(fw, fo)
 
     nice_list_data = frontend_db.get_data_for_nice_list(uid_list, uid_list[0])
     assert len(nice_list_data) == 2
@@ -164,7 +176,7 @@ def test_generic_search_unknown_op(frontend_db):
 
 
 @pytest.mark.parametrize(
-    'query, expected',
+    ('query', 'expected'),
     [
         ({}, ['uid_1']),
         ({'vendor': 'test_vendor'}, ['uid_1']),
@@ -181,8 +193,7 @@ def test_generic_search_parent(frontend_db, backend_db):
     fw.file_name = 'fw.image'
     fo.file_name = 'foo.bar'
     fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'foo': 'bar', 'list': ['a', 'b']})}
-    backend_db.insert_object(fw)
-    backend_db.insert_object(fo)
+    backend_db.insert_multiple_objects(fw, fo)
 
     # insert some unrelated objects to assure non-matching objects are not found
     insert_test_fw(backend_db, 'some_other_fw', vendor='foo123')
@@ -207,8 +218,7 @@ def test_generic_search_nested(frontend_db, backend_db):
             analysis_result={'nested': {'key': 'value'}, 'nested_2': {'inner_nested': {'foo': 'bar', 'test': 3}}}
         )
     }
-    backend_db.insert_object(fw)
-    backend_db.insert_object(fo)
+    backend_db.insert_multiple_objects(fw, fo)
 
     assert frontend_db.generic_search({'processed_analysis.plugin.nested.key': 'value'}) == [fo.uid]
     assert frontend_db.generic_search({'processed_analysis.plugin.nested.key': {'$in': ['value', 'other_value']}}) == [
@@ -412,14 +422,13 @@ def test_generate_file_tree_level(frontend_db, backend_db):
     child_fo, parent_fw = create_fw_with_child_fo()
     child_fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'sometype'})
     uid = parent_fw.uid
-    child_fo.virtual_file_path = {uid: [f'|{uid}|/folder/{child_fo.file_name}']}
-    backend_db.add_object(parent_fw)
-    backend_db.add_object(child_fo)
+    child_fo.virtual_file_path = {uid: [f'/folder/{child_fo.file_name}']}
+    backend_db.insert_multiple_objects(parent_fw, child_fo)
     for node in frontend_db.generate_file_tree_level(uid, uid):
         assert isinstance(node, FileTreeNode)
         assert node.name == parent_fw.file_name
         assert node.has_children
-    for node in frontend_db.generate_file_tree_level(child_fo.uid, uid):
+    for node in frontend_db.generate_file_tree_level(child_fo.uid, root_uid=uid, parent_uid=uid):
         assert isinstance(node, FileTreeNode)
         assert node.name == 'folder'
         assert node.has_children
@@ -434,9 +443,7 @@ def test_get_file_tree_data(frontend_db, backend_db):
     fw.processed_analysis = {'file_type': generate_analysis_entry(analysis_result={'failed': 'some error'})}
     parent_fo.processed_analysis = {'file_type': generate_analysis_entry(analysis_result={'mime': 'foo_type'})}
     child_fo.processed_analysis = {}  # simulate that file_type did not run yet
-    backend_db.add_object(fw)
-    backend_db.add_object(parent_fo)
-    backend_db.add_object(child_fo)
+    backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
 
     result = frontend_db.get_file_tree_data([fw.uid, parent_fo.uid, child_fo.uid])
     assert len(result) == 3
@@ -453,7 +460,7 @@ def test_get_file_tree_data(frontend_db, backend_db):
 
 
 @pytest.mark.parametrize(
-    'query, expected, expected_fw, expected_inv',
+    ('query', 'expected', 'expected_fw', 'expected_inv'),
     [
         ({}, 1, 1, 1),
         ({'size': 123}, 2, 1, 0),
@@ -467,9 +474,7 @@ def test_get_number_of_total_matches(frontend_db, backend_db, query, expected, e
     parent_fo.size = 123
     child_fo.size = 123
     child_fo.file_name = 'foo.bar'
-    backend_db.add_object(fw)
-    backend_db.add_object(parent_fo)
-    backend_db.add_object(child_fo)
+    backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
     assert frontend_db.get_number_of_total_matches(query, only_parent_firmwares=False, inverted=False) == expected
     assert frontend_db.get_number_of_total_matches(query, only_parent_firmwares=True, inverted=False) == expected_fw
     assert frontend_db.get_number_of_total_matches(query, only_parent_firmwares=True, inverted=True) == expected_inv
@@ -490,8 +495,7 @@ def test_rest_get_file_object_uids(frontend_db, backend_db):
 def test_rest_get_firmware_uids(frontend_db, backend_db):
     child_fo, parent_fw = create_fw_with_child_fo()
     child_fo.file_name = 'foo_file'
-    backend_db.add_object(parent_fw)
-    backend_db.add_object(child_fo)
+    backend_db.insert_multiple_objects(parent_fw, child_fo)
     test_fw1 = insert_test_fw(backend_db, 'fw1', vendor='foo_vendor', file_name='fw1', device_name='some_device')
     test_fw2 = insert_test_fw(backend_db, 'fw2', vendor='foo_vendor', file_name='fw2')
 
@@ -595,8 +599,7 @@ def test_data_for_dependency_graph(frontend_db, backend_db):
     child_fo, parent_fw = create_fw_with_child_fo()
     assert frontend_db.get_data_for_dependency_graph(parent_fw.uid) == []
 
-    backend_db.insert_object(parent_fw)
-    backend_db.insert_object(child_fo)
+    backend_db.insert_multiple_objects(parent_fw, child_fo)
 
     assert frontend_db.get_data_for_dependency_graph(child_fo.uid) == [], 'should be empty if no files included'
 
@@ -607,3 +610,11 @@ def test_data_for_dependency_graph(frontend_db, backend_db):
     assert result[0].libraries is None
     assert result[0].full_type == 'Not a PE file'
     assert result[0].file_name == 'testfile1'
+    assert result[0].virtual_file_paths == ['/folder/testfile1']
+
+
+def test_get_root_uid(frontend_db, backend_db):
+    child_fo, parent_fw = create_fw_with_child_fo()
+    backend_db.insert_multiple_objects(parent_fw, child_fo)
+    assert frontend_db.get_root_uid(child_fo.uid) == parent_fw.uid
+    assert frontend_db.get_root_uid(parent_fw.uid) == parent_fw.uid

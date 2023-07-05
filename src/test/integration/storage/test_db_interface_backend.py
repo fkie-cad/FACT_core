@@ -4,7 +4,7 @@ import pytest
 
 from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
 
-from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo
+from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child
 
 
 def test_insert_objects(backend_db):
@@ -26,8 +26,7 @@ def test_insert(backend_db, common_db, fw_object):
 
 def test_update_parents(backend_db, common_db):
     fo, fw = create_fw_with_child_fo()
-    backend_db.insert_object(fw)
-    backend_db.insert_object(fo)
+    backend_db.insert_multiple_objects(fw, fo)
 
     fo_db = common_db.get_object(fo.uid)
     assert fo_db.parents == {fw.uid}
@@ -42,11 +41,76 @@ def test_update_parents(backend_db, common_db):
     assert fo_db.parents == {fw.uid, fw2.uid}
 
 
+def test_add_vfp(backend_db, admin_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
+
+    assert len(backend_db.get_vfps(child_fo.uid)) == 1
+
+    paths = ['foo/bar', 'test']
+    backend_db.add_vfp(fw.uid, child_fo.uid, paths)
+    backend_db.add_child_to_parent(fw.uid, child_fo.uid)
+    vfp_dict = backend_db.get_vfps(child_fo.uid)
+
+    assert set(vfp_dict) == {fw.uid, parent_fo.uid}
+    assert sorted(vfp_dict[fw.uid]) == paths
+
+    # add another path
+    updated_paths = ['/new/path']
+    backend_db.add_vfp(fw.uid, child_fo.uid, updated_paths)
+    vfp_dict = backend_db.get_vfps(child_fo.uid)
+    assert sorted(vfp_dict[fw.uid]) == updated_paths + paths
+
+    # trying to add a duplicate should not cause an exception
+    backend_db.add_vfp(fw.uid, child_fo.uid, updated_paths)
+    backend_db.add_child_to_parent(fw.uid, child_fo.uid)
+
+    admin_db.delete_firmware(fw.uid)
+    assert backend_db.get_vfps(child_fo.uid) == {}, 'VFP should have been deleted by cascade'
+
+
+def test_vfp_multiple_parents(common_db, backend_db, admin_db):
+    fw, parent_fo, fo = create_fw_with_parent_and_child()
+    fo.virtual_file_path = {parent_fo.uid: ['foo']}
+    fw2 = create_test_firmware()
+    fw2.uid = 'test_fw2'
+    for obj in [fw, fw2, parent_fo, fo]:
+        backend_db.insert_object(obj)
+
+    assert set(common_db.get_vfps(fo.uid)) == {parent_fo.uid}
+
+    backend_db.add_vfp(fw2.uid, fo.uid, ['bar'])
+    assert common_db.get_vfps(fo.uid) == {parent_fo.uid: ['foo'], fw2.uid: ['bar']}
+    assert common_db.get_vfps(fo.uid, parent_uid=parent_fo.uid) == {parent_fo.uid: ['foo']}
+    assert common_db.get_vfps(fo.uid, parent_uid=fw2.uid) == {fw2.uid: ['bar']}
+
+    assert common_db.get_vfps(fo.uid, root_uid=fw.uid) == {parent_fo.uid: ['foo']}
+    assert common_db.get_vfps(fo.uid, root_uid=fw2.uid) == {fw2.uid: ['bar']}
+
+    admin_db.delete_firmware(fw2.uid)
+    assert common_db.get_vfps(fo.uid) == {parent_fo.uid: ['foo']}, 'fw2 VFP should have been deleted by cascade'
+
+
+def test_object_conversion_vfp(common_db, backend_db, admin_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
+
+    parent_vfp = backend_db.get_vfps(parent_fo.uid)
+    parent_from_db = common_db.get_object(parent_fo.uid)
+    assert parent_vfp == {fw.uid: [f'/folder/{parent_fo.file_name}']}
+    assert parent_from_db.virtual_file_path == parent_vfp, 'result of obj conversion and get_vfps() should be the same'
+
+    child_from_db = common_db.get_object(child_fo.uid)
+    assert child_from_db.virtual_file_path == {parent_fo.uid: [f'/folder/{child_fo.file_name}']}
+
+    admin_db.delete_firmware(fw.uid)
+    assert backend_db.get_vfps(child_fo.uid) == {}, 'VFP should have been deleted by cascade'
+
+
 def test_update_duplicate_other_fw(backend_db, frontend_db):
     # fo is included in another fw -> check if update of entry works correctly
     fo, fw = create_fw_with_child_fo()
-    backend_db.add_object(fw)
-    backend_db.add_object(fo)
+    backend_db.insert_multiple_objects(fw, fo)
 
     fw2 = create_test_firmware()
     fw2.uid = 'test_fw2'
@@ -71,8 +135,7 @@ def test_update_duplicate_other_fw(backend_db, frontend_db):
 def test_update_duplicate_same_fw(backend_db, frontend_db):
     # fo is included multiple times in the same fw -> check if update of entry works correctly
     fo, fw = create_fw_with_child_fo()
-    backend_db.add_object(fw)
-    backend_db.add_object(fo)
+    backend_db.insert_multiple_objects(fw, fo)
 
     fo.virtual_file_path[fw.uid].append(f'{fw.uid}|/some/other/path')
     backend_db.add_object(fo)

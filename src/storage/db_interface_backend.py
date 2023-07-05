@@ -1,21 +1,27 @@
 from __future__ import annotations
 
 import logging
+from contextlib import suppress
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from helperFunctions.virtual_file_path import update_virtual_file_path
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError, DbSerializationError, ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
-from storage.entry_conversion import create_analysis_entries, create_file_object_entry, create_firmware_entry, sanitize
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+from storage.entry_conversion import (
+    create_analysis_entries,
+    create_file_object_entry,
+    create_firmware_entry,
+    create_vfp_entries,
+    sanitize,
+)
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, included_files_table, VirtualFilePath
 
 
 class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
-
     # ===== Create / INSERT =====
 
     def add_object(self, fw_object: FileObject):
@@ -23,6 +29,11 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             self.update_object(fw_object)
         else:
             self.insert_object(fw_object)
+
+    def insert_multiple_objects(self, *objects: FileObject):
+        """Convenience method mostly for tests. Careful: order does matter!"""
+        for obj in objects:
+            self.insert_object(obj)
 
     def insert_object(self, fw_object: FileObject):
         if isinstance(fw_object, Firmware):
@@ -35,7 +46,8 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             fo_entry = create_file_object_entry(file_object)
             self._update_parents(file_object.parent_firmware_uids, file_object.parents, fo_entry, session)
             analyses = create_analysis_entries(file_object, fo_entry)
-            session.add_all([fo_entry, *analyses])
+            vfp_entries = create_vfp_entries(file_object)
+            session.add_all([fo_entry, *analyses, *vfp_entries])
 
     def _update_parents(
         self, root_fw_uids: list[str], parent_uids: list[str], fo_entry: FileObjectEntry, session: Session
@@ -107,6 +119,27 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             )
             session.add(analysis)
 
+    def add_vfp(self, parent_uid: str, child_uid: str, paths: list[str]):
+        """Adds a new "virtual file path" for file `child_uid` with path `path` in `parent_uid`"""
+        with self.get_read_write_session() as session:
+            vfp_list = [
+                VirtualFilePath(
+                    parent_uid=parent_uid,
+                    file_uid=child_uid,
+                    file_path=path,
+                )
+                for path in paths
+            ]
+            for vfp in vfp_list:
+                session.merge(vfp)  # use merge in case paths exist already
+
+    def add_child_to_parent(self, parent_uid: str, child_uid: str):
+        with self.get_read_write_session() as session:
+            statement = included_files_table.insert().values(parent_uid=parent_uid, child_uid=child_uid)
+            with suppress(IntegrityError):
+                # entry may already exist, but it is faster trying to create it and failing than checking beforehand
+                session.execute(statement)
+
     # ===== Update / UPDATE =====
 
     def update_object(self, fw_object: FileObject):
@@ -127,14 +160,24 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def update_file_object(self, file_object: FileObject):
         with self.get_read_write_session() as session:
-            entry: FileObjectEntry = session.get(FileObjectEntry, file_object.uid)
+            entry = session.get(FileObjectEntry, file_object.uid)
+            if entry is None:
+                logging.error(f'Trying to update {file_object.uid} but no entry could be found in the DB')
+                return
             entry.file_name = file_object.file_name
             entry.depth = file_object.depth
             entry.size = file_object.size
             entry.comments = file_object.comments
-            entry.virtual_file_paths = update_virtual_file_path(file_object.virtual_file_path, entry.virtual_file_paths)
             entry.is_firmware = isinstance(file_object, Firmware)
             self._update_parents(file_object.parent_firmware_uids, file_object.parents, entry, session)
+            # firmware objects don't have VFPs because they are themselves not contained in another object
+            if not isinstance(file_object, Firmware):
+                self._update_virtual_file_path(file_object, session)
+
+    @staticmethod
+    def _update_virtual_file_path(file_object: FileObject, session: Session):
+        for vfp in create_vfp_entries(file_object):
+            session.merge(vfp)  # session.merge will insert or update (if it is already in the DB)
 
     def update_analysis(self, uid: str, plugin: str, analysis_data: dict):
         with self.get_read_write_session() as session:
