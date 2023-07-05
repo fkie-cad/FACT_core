@@ -22,7 +22,6 @@ import logging
 import os
 import sys
 from pathlib import Path
-from time import sleep
 
 try:
     from fact_base import FactBase
@@ -83,21 +82,11 @@ class FactBackend(FactBase):
         if not self.args.testing:
             complete_shutdown()
 
-    def main(self):
-        self.start()
-
-        while self.run:
-            self.work_load_stat.update(
-                unpacking_workload=self.unpacking_service.get_scheduled_workload(),
-                analysis_workload=self.analysis_service.get_scheduled_workload(),
-            )
-            if self._exception_occurred():
-                break
-            sleep(5)
-            if self.args.testing:
-                break
-
-        self.shutdown()
+    def _update_component_workload(self):
+        self.work_load_stat.update(
+            unpacking_workload=self.unpacking_service.get_scheduled_workload(),
+            analysis_workload=self.analysis_service.get_scheduled_workload(),
+        )
 
     @staticmethod
     def _create_docker_base_dir():

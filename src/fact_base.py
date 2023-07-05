@@ -56,27 +56,34 @@ class FactBase:
             signal.signal(signal.SIGTERM, self.shutdown_listener)
 
     def shutdown_listener(self, signum, _):
-        if not self._is_main_process():
+        if not _is_main_process():
             return  # all subprocesses also inherit this signal handler (which is intentional for a "clean" shutdown)
         logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
         self.run = False
+
+    def start(self):
+        pass
+
+    def _update_component_workload(self):
+        self.work_load_stat.update()
 
     def shutdown(self):
         logging.info(f'Shutting down components of {self.PROGRAM_NAME}')
         self.work_load_stat.shutdown()
 
     def main(self):
+        self.start()
         logging.info(f'Successfully started {self.PROGRAM_NAME}')
+        counter = 0
         while self.run:
-            self.work_load_stat.update()
+            self._update_component_workload()
             sleep(5)
             if self.args.testing:
                 break
+            if not counter % 12:  # only check every minute
+                _check_memory_usage()
+            counter += 1
         self.shutdown()
-
-    @staticmethod
-    def _is_main_process() -> bool:
-        return os.getpid() == os.getpgrp()
 
     @staticmethod
     def do_self_test():
@@ -86,3 +93,17 @@ class FactBase:
                 'Please run `alembic upgrade head` from `src` to update the schema.'
             )
             raise DbInterfaceError('Schema mismatch')
+
+
+def _check_memory_usage():
+    memory_usage = psutil.virtual_memory().percent
+    if memory_usage > 95.0:  # noqa: PLR2004
+        logging.critical(f'System memory is critically low: {memory_usage}%')
+    elif memory_usage > 80.0:  # noqa: PLR2004
+        logging.warning(f'System memory is running low: {memory_usage}%')
+    else:
+        logging.info(f'System memory usage: {memory_usage}%')
+
+
+def _is_main_process() -> bool:
+    return os.getpid() == os.getpgrp()
