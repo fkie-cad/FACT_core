@@ -8,7 +8,7 @@ from helperFunctions.compare_sets import (
 
 
 @pytest.mark.parametrize(
-    'input_list, expected_output',
+    ('input_list', 'expected_output'),
     [
         (
             [[2, 4], [5, 9], [2, 5], [6, 7], [1, 3, 12], [4, 2], [1, 3, 12], [2, 4], [2, 4], [2, 4]],
@@ -30,7 +30,7 @@ def test_substring_is_in_list():
 
 
 @pytest.mark.parametrize(
-    'input_list, expected_output',
+    ('input_list', 'expected_output'),
     [
         ([], []),
         ([1, 2], [1, 2]),
