@@ -98,6 +98,13 @@ def test_convert_str_to_bool(input_str, expected_output):
     assert convert_str_to_bool(input_str) == expected_output
 
 
-def test_str_to_bool_error():
+@pytest.mark.parametrize(
+    'input_',
+    [
+        ('foo',),  # not convertable
+        (None,),  # wrong type
+    ],
+)
+def test_str_to_bool_error(input_):
     with pytest.raises(ValueError):
-        convert_str_to_bool('foo')
+        convert_str_to_bool(input_)
