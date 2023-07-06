@@ -1,7 +1,6 @@
 # pylint: disable=wrong-import-order
 from __future__ import annotations
 
-import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -48,7 +47,7 @@ class BinaryServiceMock:
             return b'binary content 1', 'file_name_1'
         if uid == 'uid2':
             return b'binary content 2', 'file_name_2'
-        assert False, 'if this line reached something went wrong'
+        raise AssertionError('if this line reached something went wrong')
 
 
 @pytest.mark.frontend_config_overwrite(
@@ -66,7 +65,7 @@ class TestInterComTaskCommunication:
 
         assert task.uid == test_fw.uid, 'uid not correct'
         assert task.file_path is not None, 'file_path not set'
-        assert os.path.exists(task.file_path), 'file does not exist'
+        assert Path(task.file_path).exists(), 'file does not exist'
 
     def test_single_file_task(self, intercom_frontend):
         task_listener = InterComBackEndSingleFileTask()
@@ -100,7 +99,7 @@ class TestInterComTaskCommunication:
         assert plugins == {'dummy': 'dummy description'}, 'content not correct'
 
     def test_analysis_plugin_publication_not_available(self, intercom_frontend):
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             intercom_frontend.get_available_analysis_plugins()
 
     def test_raw_download_task(self, monkeypatch, intercom_frontend):

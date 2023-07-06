@@ -9,9 +9,9 @@ from intercom.common_redis_binding import InterComRedisInterface, generate_task_
 
 
 class InterComFrontEndBinding(InterComRedisInterface):
-    '''
+    """
     Internal Communication FrontEnd Binding
-    '''
+    """
 
     def add_analysis_task(self, fw):
         self._add_to_redis_queue('analysis_task', fw, fw.uid)
@@ -34,7 +34,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def get_available_analysis_plugins(self):
         plugin_dict = self.redis.get('analysis_plugins', delete=False)
         if plugin_dict is None:
-            raise Exception('No available plug-ins found. FACT backend might be down!')
+            raise RuntimeError('No available plug-ins found. FACT backend might be down!')
         return plugin_dict
 
     def get_binary_and_filename(self, uid: str) -> tuple[bytes | None, str | None]:
