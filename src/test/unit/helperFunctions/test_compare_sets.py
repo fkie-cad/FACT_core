@@ -1,6 +1,10 @@
 import pytest
 
-from helperFunctions.compare_sets import _remove_duplicates_from_unhashable, substring_is_in_list
+from helperFunctions.compare_sets import (
+    _remove_duplicates_from_unhashable,
+    remove_duplicates_from_list,
+    substring_is_in_list,
+)
 
 
 @pytest.mark.parametrize(
@@ -23,3 +27,16 @@ def test_substring_is_in_list():
     assert substring_is_in_list(super_string, test_list) is True
     unrelated_string = 'foobar'
     assert substring_is_in_list(unrelated_string, test_list) is False
+
+
+@pytest.mark.parametrize(
+    'input_list, expected_output',
+    [
+        ([], []),
+        ([1, 2], [1, 2]),
+        ([1, 1, 1, 2, 2, 3], [1, 2, 3]),
+        ([[1, 2], [3, 4], [1, 2]], [[1, 2], [3, 4]]),  # unhashable
+    ],
+)
+def test_remove_duplicates_from_list(input_list, expected_output):
+    assert sorted(remove_duplicates_from_list(input_list)) == expected_output
