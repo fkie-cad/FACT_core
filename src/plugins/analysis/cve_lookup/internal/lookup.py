@@ -73,6 +73,7 @@ class Lookup:
         Find matching associations based on the provided CPE matches and requested version.
         '''
         association_matches = []
+        # If the requested version is 'ANY' or 'N/A', no associations will be returned.
         if requested_version in ['ANY', 'N/A']:
             return association_matches
         for cpe in cpe_matches:
