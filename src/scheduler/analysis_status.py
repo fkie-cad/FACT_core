@@ -4,9 +4,12 @@ import logging
 from contextlib import contextmanager
 from multiprocessing import Manager
 from time import time
+from typing import TYPE_CHECKING
 
-from objects.file import FileObject
 from objects.firmware import Firmware
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC = 300
 
@@ -51,7 +54,7 @@ class AnalysisStatus:
         for parent in self._find_currently_analyzed_parents(fw_object):
             updated_dict = self.currently_running[parent]
             all_files = updated_dict['files_to_unpack'].union(updated_dict['files_to_analyze'])
-            new_files = set(fw_object.files_included) - all_files
+            new_files = set(fw_object.files_included) - all_files - updated_dict['completed_files']
             updated_dict['total_files_count'] += len(new_files)
             updated_dict['total_files_with_duplicates'] += 1
             updated_dict['files_to_unpack'].update(new_files)
@@ -74,6 +77,7 @@ class AnalysisStatus:
         return {
             'files_to_unpack': set(fw_object.files_included),
             'files_to_analyze': {fw_object.uid},
+            'completed_files': set(),
             'start_time': time(),
             'unpacked_files_count': 1,
             'analyzed_files_count': 0,
@@ -92,6 +96,7 @@ class AnalysisStatus:
                     logging.debug(f'Failed to remove {fw_object.uid} from current analysis of {parent}')
                     continue
                 updated_dict['files_to_analyze'].remove(fw_object.uid)
+                updated_dict['completed_files'].add(fw_object.uid)
                 updated_dict['analyzed_files_count'] += 1
                 if len(updated_dict['files_to_unpack']) == len(updated_dict['files_to_analyze']) == 0:
                     self.recently_finished[parent] = self._init_recently_finished(updated_dict)
@@ -107,7 +112,10 @@ class AnalysisStatus:
         with self._get_lock():
             if fw_object.root_uid not in self.currently_running:
                 return False  # analysis (of all non-duplicates) is already completed
-            return fw_object.uid in self.currently_running[fw_object.root_uid]['files_to_unpack']
+            return (
+                fw_object.uid not in self.currently_running[fw_object.root_uid]['completed_files']
+                and fw_object.uid in self.currently_running[fw_object.root_uid]['files_to_unpack']
+            )
 
     @contextmanager
     def _get_lock(self):

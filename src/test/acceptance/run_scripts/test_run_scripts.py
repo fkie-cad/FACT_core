@@ -46,7 +46,7 @@ def test_start_script_help_and_version(script, expected_str):
 
 
 @pytest.mark.parametrize('script', [update_statistic, init_postgres])
-def test_start_scripts_with_main(script, create_tables):
+def test_start_scripts_with_main(script):
     assert script.main([script.__name__, '-t']) == 0, 'script did not run successfully'
     gc.collect()
 

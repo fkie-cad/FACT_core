@@ -16,10 +16,11 @@ def workload_stat():
 
 @pytest.fixture
 def stats_db():
-    yield StatsDbViewer()
+    return StatsDbViewer()
 
 
-def test_update_workload_statistic(db, workload_stat, stats_db):
+@pytest.mark.usefixtures('database_interfaces')
+def test_update_workload_statistic(workload_stat, stats_db):
     workload_stat.update()
     result = stats_db.get_statistic('test')
     assert result['name'] == 'test', 'name not set'

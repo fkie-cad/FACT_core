@@ -11,7 +11,6 @@ from helperFunctions.data_conversion import (
     convert_uid_list_to_compare_id,
     normalize_compare_id,
 )
-from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
@@ -44,7 +43,9 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def objects_exist(self, compare_id: str) -> bool:
         uid_list = convert_compare_id_to_list(compare_id)
         with self.get_read_only_session() as session:
-            query = select(func.count(FileObjectEntry.uid)).filter(FileObjectEntry.uid.in_(uid_list))
+            query = select(func.count(FileObjectEntry.uid)).filter(  # pylint: disable=not-callable
+                FileObjectEntry.uid.in_(uid_list)
+            )
             return session.execute(query).scalar() == len(uid_list)
 
     @staticmethod
@@ -98,7 +99,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def get_total_number_of_results(self) -> int:
         with self.get_read_only_session() as session:
-            query = select(func.count(ComparisonEntry.comparison_id))
+            query = select(func.count(ComparisonEntry.comparison_id))  # pylint: disable=not-callable
             return session.execute(query).scalar()
 
     def get_ssdeep_hash(self, uid: str) -> str:
@@ -126,7 +127,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def get_vfp_of_included_text_files(self, root_uid: str, blacklist: set[str]) -> dict[str, set[str]]:
         with self.get_read_only_session() as session:
             query = (
-                select(FileObjectEntry.virtual_file_paths, FileObjectEntry.uid)
+                select(FileObjectEntry.uid)
                 .join(fw_files_table, FileObjectEntry.uid == fw_files_table.c.file_uid)
                 .filter(fw_files_table.c.root_uid == root_uid)
                 .filter(FileObjectEntry.uid.not_in(blacklist))
@@ -134,15 +135,20 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 .filter(AnalysisEntry.plugin == 'file_type')
                 .filter(AnalysisEntry.result['mime'] == type_coerce('text/plain', JSONB))
             )
-            return self._transpose_vfp_dict(
-                {uid: vfp_dict[root_uid] for vfp_dict, uid in session.execute(query) if root_uid in vfp_dict}
-            )
+            uid_list = list(session.execute(query).scalars())
+        vfp_data = self.get_vfps_for_uid_list(uid_list, root_uid=root_uid)
+        return self._transpose_vfp_dict(vfp_data)
 
     @staticmethod
-    def _transpose_vfp_dict(list_dict: dict[str, list[str]]) -> dict[str, set[str]]:
-        """transposes results from {uid: [vfps]} to {vfp: {uid}}"""
-        transposed = {}
-        for uid, path_list in list_dict.items():
-            for vfp in path_list:
-                transposed.setdefault(get_top_of_virtual_path(vfp), set()).add(uid)
-        return transposed
+    def _transpose_vfp_dict(vfp_data: dict[str, dict[str, list[str]]]) -> dict[str, set[str]]:
+        """
+        Look for files with the same "virtual file path".
+        input: {uid {parent_uid: [vfp]}} -> output: {vfp: [uid]}
+        """
+        result = {}
+        for uid in vfp_data:
+            vfp_dict = vfp_data.get(uid)
+            for vfp_list in vfp_dict.values():
+                for vfp in vfp_list:
+                    result.setdefault(vfp, set()).add(uid)
+        return result

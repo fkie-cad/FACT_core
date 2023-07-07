@@ -38,21 +38,13 @@ def _get_results_from_parent_fo(parent_results: dict | None, parent_uid: str, th
         return {}
 
     results = {}
-    for file_name in _get_parent_file_names(parent_uid, this_fo):
+    for file_name in this_fo.virtual_file_path.get(parent_uid, []):
+        file_name = file_name.lstrip('/')
         encoded_name = b64encode(file_name.encode()).decode()
         if encoded_name in parent_results['files']:
             results[file_name] = parent_results['files'][encoded_name]
             results[file_name]['parent_uid'] = parent_uid
     return results
-
-
-def _get_parent_file_names(parent_uid, this_fo):
-    return [
-        virtual_file_path.split('|')[-1][1:]
-        for virtual_path_list in this_fo.virtual_file_path.values()
-        for virtual_file_path in virtual_path_list
-        if parent_uid in virtual_file_path
-    ]
 
 
 class PluginRoutes(ComponentBase):

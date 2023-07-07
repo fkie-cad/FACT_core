@@ -104,10 +104,6 @@ name = "cpu_architecture"
 processes = 4
 
 [[backend.plugin]]
-name = "cve_loookup"
-processes = 2
-
-[[backend.plugin]]
 name = "cve_lookup"
 processes = 4
 
