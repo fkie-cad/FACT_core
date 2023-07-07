@@ -1,7 +1,7 @@
-from ..internal.db_setup import DbSetup
+from ..internal.database.db_setup import DbSetup
 from ..internal.helper_functions import CveEntry
-from ..internal.db_connection import DbConnection
-from ..internal.schema import Association, Cve, Cpe
+from ..internal.database.db_connection import DbConnection
+from ..internal.database.schema import Association, Cve, Cpe
 
 
 CVE_ENTRY = CveEntry(

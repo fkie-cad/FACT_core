@@ -3,22 +3,29 @@ import sys
 from pathlib import Path
 
 try:
-    from ..internal.db_connection import DbConnection
-    from ..internal.schema import Association, Cve, Cpe
-    from ..internal.helper_functions import CveEntry, replace_characters_and_wildcards
+    from ..database.db_connection import DbConnection
+    from ..database.schema import Association, Cve, Cpe
 except (ImportError, SystemError):
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    sys.path.append(str(Path(__file__).parent.parent / 'database'))
     from db_connection import DbConnection
     from schema import Association, Cve, Cpe
-    from helper_functions import CveEntry, replace_characters_and_wildcards
+
+try:
+    from ..internal.helper_functions import CveEntry, replace_wildcards
+except (ImportError, SystemError):
+    sys.path.append(str(Path(__file__).parent.parent.parent / 'internal'))
+    from helper_functions import CveEntry, replace_wildcards
 
 CPE_SPLIT_REGEX = re.compile(r'(?<![\\:]):(?!:)|(?<=\\:):')  # don't split on '::' or '\:' but split on '\::'
 
 
 class DbSetup:
+    DB_PATH = str(Path(__file__).parent / 'cve_cpe.db')
+
     def __init__(self, connection: DbConnection):
         self.connection = connection
-        self.session = self.connection.session_maker()
+        self.connection.create_tables()
+        self.session = self.connection.create_session()
 
     def create_cve(self, cve_item: CveEntry) -> Cve:
         '''
@@ -40,7 +47,7 @@ class DbSetup:
         '''
         Create a Cpe object from a CPE ID.
         '''
-        cpe_elements = replace_characters_and_wildcards(CPE_SPLIT_REGEX.split(cpe_id)[2:])
+        cpe_elements = replace_wildcards(CPE_SPLIT_REGEX.split(cpe_id)[2:])
         (
             part,
             vendor,

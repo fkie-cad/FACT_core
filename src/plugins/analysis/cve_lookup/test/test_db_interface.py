@@ -1,8 +1,8 @@
-from ..internal.db_setup import DbSetup
-from ..internal.db_interface import DbInterface
 from ..internal.helper_functions import CveEntry
-from ..internal.db_connection import DbConnection
-from ..internal.schema import Association, Cve, Cpe
+from ..internal.database.db_setup import DbSetup
+from ..internal.database.db_interface import DbInterface
+from ..internal.database.db_connection import DbConnection
+from ..internal.database.schema import Association, Cve, Cpe
 
 CVE_ENTRY = CveEntry(
     cve_id='CVE-2023-1234',
@@ -24,7 +24,6 @@ class TestDbInterface:
     def setup_method(self):
         connection_string = 'sqlite:///:memory:'
         connection = DbConnection(connection_string)
-        connection.create_tables()
         db_setup = DbSetup(connection)
         cve_list = [CVE_ENTRY]
         db_setup.add_cve_items(cve_list)

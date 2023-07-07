@@ -1,9 +1,17 @@
 import pytest
+import tempfile
 from ..code import cve_lookup
 from test.common_helper import TEST_FW
-from ..internal.db_setup import DbSetup
 from ..internal.helper_functions import CveEntry
-from ..internal.db_connection import DbConnection
+from ..internal.database.db_setup import DbSetup
+from ..internal.database.db_connection import DbConnection
+
+# Set the temp path for the DB
+temp_dir = tempfile.TemporaryDirectory()
+db_path = temp_dir.name
+
+# Update the DB_PATH variable
+cve_lookup.DB_PATH = f'{db_path}/test.db'
 
 SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
     'result': {
@@ -27,32 +35,59 @@ SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
     'system_version': '3.7.1_1560435912',
 }
 
-CVE_ENTRY = CveEntry(
+CVE_ENTRY1 = CveEntry(
     cve_id='CVE-2013-0198',
     summary='Dnsmasq before 2.66test2, when used with certain libvirt configurations, replies to queries from prohibited interfaces, which allows remote attackers to cause a denial of service (traffic amplification) via spoofed TCP based DNS queries. NOTE: this vulnerability exists because of an incomplete fix for CVE-2012-3411.',
     impact={'cvssMetricV2': 5.0},
     cpe_entries=[('cpe:2.3:a:thekelleys:dnsmasq:*:*:*:*:*:*:*:*', '', '', '2.65', '')],
 )
 
-# cve_lookup.DB_PATH = ':memory:'
+CVE_ENTRY2 = CveEntry(
+    cve_id='CVE-2017-14493',
+    summary='Stack-based buffer overflow in dnsmasq before 2.78 allows remote attackers to cause a denial of service (crash) or execute arbitrary code via a crafted DHCPv6 request.',
+    impact={'cvssMetricV2': 7.5, 'cvssMetricV30': 9.8},
+    cpe_entries=[
+        ('cpe:2.3:o:canonical:ubuntu_linux:14.04:*:*:*:lts:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:canonical:ubuntu_linux:16.04:*:*:*:lts:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:canonical:ubuntu_linux:17.04:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:debian:debian_linux:7.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:debian:debian_linux:7.1:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:debian:debian_linux:9.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:opensuse:leap:42.2:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:opensuse:leap:42.3:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:redhat:enterprise_linux_desktop:7.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:redhat:enterprise_linux_server:7.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:redhat:enterprise_linux_workstation:7.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:a:thekelleys:dnsmasq:*:*:*:*:*:*:*:*', '', '', '2.77', ''),
+    ],
+)
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=cve_lookup.AnalysisPlugin)
 class TestCveLookup:
-    def setup_method(self):
-        connection_string = 'sqlite:///:memory:'
-        connection = DbConnection(connection_string)
-        connection.create_tables()
-        self.db_setup = DbSetup(connection)
-        cve_list = [CVE_ENTRY]
-        self.db_setup.add_cve_items(cve_list)
-
     def test_process_object(self, analysis_plugin):
+        connection_string = f'sqlite:///{db_path}/test.db'
+        connection = DbConnection(connection_string)
+        db_setup = DbSetup(connection)
+        db_setup.add_cve_items([CVE_ENTRY1, CVE_ENTRY2])
         TEST_FW.processed_analysis['software_components'] = SOFTWARE_COMPONENTS_ANALYSIS_RESULT
         result = analysis_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
         assert 'Dnsmasq 2.40 (CRITICAL)' in result['summary']
         assert 'Dnsmasq 2.40' in result['cve_results']
         assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
+
+    @pytest.mark.parametrize(('cve_score', 'should_be_tagged'), [('9.9', True), ('5.5', False)])
+    def test_add_tags(self, analysis_plugin, cve_score, should_be_tagged):
+        TEST_FW.processed_analysis['cve_lookup'] = {}
+        cve_results = {'component': {'cve_id': {'score2': cve_score, 'score3': 'N/A'}}}
+        analysis_plugin.add_tags(cve_results, TEST_FW)
+        if should_be_tagged:
+            assert 'tags' in TEST_FW.processed_analysis['cve_lookup']
+            tags = TEST_FW.processed_analysis['cve_lookup']['tags']
+            assert 'CVE' in tags
+            assert tags['CVE']['value'] == 'critical CVE'
+        else:
+            assert 'tags' not in TEST_FW.processed_analysis['cve_lookup']
 
     @pytest.mark.parametrize(
         ('cve_results_dict', 'expected_output'),
@@ -73,16 +108,3 @@ class TestCveLookup:
     )
     def test_create_summary(self, cve_results_dict, expected_output, analysis_plugin):
         assert analysis_plugin._create_summary(cve_results_dict) == expected_output  # pylint: disable=protected-access
-
-
-@pytest.mark.parametrize(
-    ('software_name', 'expected_output'),
-    [
-        ('windows 7', ['windows', 'windows_7']),
-        ('Linux Kernel', ['linux', 'linux_kernel', 'kernel']),
-    ],
-)
-def test_generate_search_terms(software_name, expected_output):
-    result = cve_lookup.generate_search_terms(software_name)
-    assert result == expected_output
-    assert result == expected_output

@@ -2,18 +2,20 @@ import sys
 from pathlib import Path
 
 try:
-    from ..internal.db_connection import DbConnection
-    from ..internal.schema import Association, Cve, Cpe
+    from ..database.db_connection import DbConnection
+    from ..database.schema import Association, Cve, Cpe
 except (ImportError, SystemError):
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    sys.path.append(str(Path(__file__).parent.parent / 'database'))
     from db_connection import DbConnection
     from schema import Association, Cve, Cpe
 
 
 class DbInterface:
+    DB_PATH = str(Path(__file__).parent / 'cve_cpe.db')
+
     def __init__(self, connection: DbConnection):
         self.connection = connection
-        self.session = self.connection.session_maker()
+        self.session = self.connection.create_session()
 
     def cpe_matches(self, products: list[str]) -> list[Cpe]:
         '''

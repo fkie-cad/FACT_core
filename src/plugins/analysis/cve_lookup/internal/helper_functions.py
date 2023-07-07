@@ -12,7 +12,7 @@ class CveEntry(NamedTuple):
     cpe_entries: list[tuple[str, str, str, str, str]]
 
 
-def replace_characters_and_wildcards(attributes: list[str]) -> list[str]:
+def replace_wildcards(attributes: list[str]) -> list[str]:
     '''
     Replaces wildcard characters ('*' and '-') with their respective placeholders in the given attributes.
     '''

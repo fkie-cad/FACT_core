@@ -3,9 +3,9 @@ import os
 import logging
 from pathlib import Path
 
-from internal.db_setup import DbSetup
+from internal.database.db_setup import DbSetup
 from internal.data_parsing import parse_data
-from internal.db_connection import DbConnection
+from internal.database.db_connection import DbConnection
 
 try:
     from helperFunctions.install import check_distribution
@@ -30,7 +30,6 @@ class CveLookupInstaller(AbstractPluginInstaller):
         os.chdir('internal')
         cve_list = parse_data()
         connection = DbConnection()
-        connection.create_tables()
         db = DbSetup(connection)
         db.add_cve_items(cve_list)
         os.chdir(self.base_path)

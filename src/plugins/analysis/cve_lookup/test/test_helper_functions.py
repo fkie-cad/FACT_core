@@ -1,11 +1,14 @@
+import pytest
+from ..internal.helper_functions import replace_wildcards
 
-from ..internal.helper_functions import replace_characters_and_wildcards
 
-
-def test_replace_characters_and_wildcards():
-    attributes = ['a', '*', '-', 'b']
-    expected_result = ['a', 'ANY', 'N/A', 'b']
-
-    result = replace_characters_and_wildcards(attributes)
-
-    assert result == expected_result
+@pytest.mark.parametrize(
+    ('attributes', 'expected_result'),
+    [
+        (['*', 'attribute1', 'attribute2'], ['ANY', 'attribute1', 'attribute2']),
+        (['attribute1', '-', 'attribute2'], ['attribute1', 'N/A', 'attribute2']),
+        (['attribute1', 'attribute2'], ['attribute1', 'attribute2']),
+    ],
+)
+def test_replace_wildcards(attributes, expected_result):
+    assert replace_wildcards(attributes) == expected_result
