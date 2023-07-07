@@ -15,14 +15,13 @@ def _get_fo(path):
     fo = FileObject(file_path=os.path.join(_test_init_dir, path))
     fo.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
     fo.root_uid = fo.uid
-    fo.virtual_file_path = {fo.get_root_uid(): [path]}
-
+    fo.virtual_file_path = {'parent_uid': [path]}
     return fo
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginInit:
-    test_file_not_text = FileObject(file_path=f'{_test_init_dir}etc/systemd/system/foobar')
+    test_file_not_text = FileObject(file_path=f'{_test_init_dir}/etc/systemd/system/foobar')
     test_file_not_text.processed_analysis['file_type'] = {'result': {'mime': 'application/zip'}}
 
     test_files = {

@@ -7,7 +7,6 @@ from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 
-from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -71,7 +70,7 @@ def create_test_firmware(
     return fw
 
 
-def create_test_file_object(bin_path='get_files_test/testfile1'):
+def create_test_file_object(bin_path='get_files_test/testfile1', uid=None, analyses=None):
     fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
     processed_analysis = {
         'dummy': {
@@ -85,6 +84,7 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
         'file_type': {
             'result': {
                 'full': 'Not a PE file',
+                'mime': 'test_type',
             },
             'plugin_version': '1.0',
             'analysis_date': '0',
@@ -98,8 +98,11 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
             'analysis_date': '0',
         },
     }
+    if analyses:
+        processed_analysis.update(analyses)
     fo.processed_analysis.update(processed_analysis)
-    fo.virtual_file_path = fo.get_virtual_file_paths()
+    if uid:
+        fo.uid = uid
     return fo
 
 
@@ -108,13 +111,14 @@ TEST_FW_2 = create_test_firmware(
     device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z'
 )
 TEST_TEXT_FILE = create_test_file_object()
+TEST_TEXT_FILE.virtual_file_path = {TEST_FW.uid: [TEST_TEXT_FILE.file_name]}
 TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')
 NICE_LIST_DATA = {
     'uid': TEST_FW.uid,
     'files_included': TEST_FW.files_included,
     'size': TEST_FW.size,
     'mime-type': 'file-type-plugin/not-run-yet',
-    'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths()),
+    'current_virtual_path': [[TEST_FW.uid]],
 }
 COMPARISON_ID = f'{TEST_FW.uid};{TEST_FW_2.uid}'
 
@@ -193,6 +197,9 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
+    def uid_list_exists(self, uid_list):
+        return set()
+
     def all_uids_found_in_database(self, uid_list):
         return True
 
@@ -246,6 +253,16 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
         if compare_id in ['existing_id', 'uid1;uid2', COMPARISON_ID]:
             return True
         return False
+
+    @staticmethod
+    def get_hid_dict(uid_set, root_uid):
+        return {uid: 'hid' for uid in uid_set}
+
+    @staticmethod
+    def get_file_tree_path(uid: str, root_uid=None):
+        if root_uid:
+            return [[root_uid, uid]]
+        return [[uid]]
 
 
 def fake_exit(self, *args):

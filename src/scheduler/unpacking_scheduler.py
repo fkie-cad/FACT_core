@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager, suppress
 from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from tempfile import TemporaryDirectory
@@ -21,6 +22,7 @@ from helperFunctions.process import (
 )
 from objects.file import FileObject
 from objects.firmware import Firmware
+from storage.db_interface_backend import BackendDbInterface
 from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack import Unpacker
 from unpacker.unpack_base import ExtractionError
@@ -38,23 +40,46 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     This scheduler performs unpacking on firmware objects
     '''
 
-    def __init__(self, post_unpack=None, analysis_workload=None, fs_organizer=None, unpacking_locks=None):
+    def __init__(
+        self,
+        post_unpack=None,
+        analysis_workload=None,
+        fs_organizer=None,
+        unpacking_locks=None,
+        db_interface=BackendDbInterface,
+    ):
         self.stop_condition = Value('i', 0)
         self.throttle_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload
         self.in_queue = Queue()
         self.work_load_counter = 25
-        self.manager = Manager()
-        self.workers = self.manager.list()  # type: list[ExtractionContainer]
         self.worker_tmp_dirs = []  # type: list[TemporaryDirectory]
         self.pending_tasks: dict[int, Thread] = {}
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
         self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
+
+        self.manager = None
+        self.workers = None
         self.work_load_process = None
         self.extraction_process = None
+        self.currently_extracted = None
+        self.sync_lock = None
+        self.db_interface = db_interface
+
+    @contextmanager
+    def _sync(self):
+        try:
+            self.sync_lock.acquire()
+            yield
+        finally:
+            self.sync_lock.release()
 
     def start(self):
+        self.manager = Manager()
+        self.workers = self.manager.list()  # type: list[ExtractionContainer]
+        self.currently_extracted = self.manager.dict()  # type: dict[str, dict[str, set]]
+        self.sync_lock = self.manager.Lock()
         self.create_containers()
         self.work_load_process = self.start_work_load_monitor()
         self.extraction_process = self._start_extraction_loop()
@@ -75,7 +100,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.in_queue.close()
         stop_processes(
             [self.work_load_process, self.extraction_process],
-            10,  # give containers enough time to shut down
+            THROTTLE_INTERVAL,
         )
         self.stop_containers()
         self._clean_tmp_dirs()
@@ -122,8 +147,8 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 container = self.get_free_worker()
                 task = self.in_queue.get(timeout=1)
                 task_thread = Thread(
-                    target=self.work_thread,
-                    kwargs=dict(task=task, container=container),
+                    target=self._work_thread_wrapper,
+                    kwargs={'task': task, 'container': container},
                 )
                 task_thread.start()
                 logging.debug(f'Started Worker on {task.uid} ({container.tmp_dir})')
@@ -150,21 +175,85 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 return container
         raise NoFreeWorker()
 
+    def _work_thread_wrapper(self, task: FileObject, container: ExtractionContainer):
+        """
+        Exceptions in Threads will simply disappear when the thread is joined. We wrap everything in a
+        try-except block and log exceptions so that no exception occurs unnoticed.
+        """
+        try:
+            self.work_thread(task, container)
+        except Exception:
+            logging.exception(f'Exception occurred during unpacking of {task.uid}')
+
     def work_thread(self, task: FileObject, container: ExtractionContainer):
+        if isinstance(task, Firmware):
+            self._init_currently_unpacked(task)
+
         with TemporaryDirectory(dir=container.tmp_dir.name) as tmp_dir:
-            extracted_objects = None
             try:
                 extracted_objects = self.unpacker.unpack(task, tmp_dir, container)
-            except ExtractionError:
+            except ExtractionError as error:
                 docker_logs = self._fetch_logs(container)
-                logging.warning(f'Exception happened during extraction of {task.uid}.{docker_logs}')
+                logging.exception(f'Exception happened during extraction of {task.uid}.{docker_logs}: {error}')
                 container.set_exception()
+                extracted_objects = []
 
             sleep(config.backend.unpacking.delay)  # unpacking may be too fast for the FS to keep up
 
+            # each worker needs its own interface because connections are not thread-safe
+            db_interface = self.db_interface()
+            db_interface.add_object(task)  # save FO before submitting to analysis scheduler
             self.post_unpack(task)
-            if extracted_objects:
-                self.schedule_extracted_files(extracted_objects)
+            self._update_currently_unpacked(task, extracted_objects, db_interface)
+            self._schedule_extracted_files(extracted_objects)
+
+    def _update_currently_unpacked(
+        self, task: FileObject, extracted_objects: list[FileObject], db_interface: BackendDbInterface
+    ):
+        with self._sync():
+            currently_unpacked = self.currently_extracted.get(task.root_uid)
+            if currently_unpacked is None:
+                # this file is a duplicate and unpacking of the FW is already finished -> do nothing
+                logging.debug(f'Skipping unpacking/analysis of {task.uid} (already done)')
+                extracted_objects.clear()
+                return
+
+            if task.uid in currently_unpacked['delayed_vfp_update']:
+                for parent_uid, path_list in currently_unpacked['delayed_vfp_update'][task.uid].items():
+                    db_interface.add_vfp(parent_uid, task.uid, path_list)
+                    db_interface.add_child_to_parent(parent_uid=parent_uid, child_uid=task.uid)
+            currently_unpacked['done'].add(task.uid)
+
+            self._update_extracted_objects(currently_unpacked, db_interface, extracted_objects, task)
+            with suppress(KeyError):
+                currently_unpacked['remaining'].remove(task.uid)
+            if not currently_unpacked['remaining']:
+                logging.info(f'Unpacking of firmware {task.root_uid} completed.')
+                self.currently_extracted.pop(task.root_uid)
+            else:
+                self.currently_extracted[task.root_uid] = currently_unpacked  # overwrite object to trigger update
+
+    @staticmethod
+    def _update_extracted_objects(
+        currently_unpacked: dict,
+        db_interface: BackendDbInterface,
+        extracted_objects: list[FileObject],
+        current_fo: FileObject,
+    ):
+        for fo in extracted_objects[:]:
+            path_list = fo.virtual_file_path[current_fo.uid]
+            # 3 cases: unpacking not yet started, unpacking currently in progress, unpacking already done
+            if fo.uid in currently_unpacked['remaining']:
+                # FO is currently being unpacked -> DB entry is not yet created -> delay VFP update
+                extracted_objects.remove(fo)
+                currently_unpacked['delayed_vfp_update'].setdefault(fo.uid, {})[current_fo.uid] = path_list
+            elif fo.uid not in currently_unpacked['done']:  # unpacking of FO not yet started (usually new file)
+                currently_unpacked['remaining'].add(fo.uid)
+            else:  # FO was already unpacked from this FW -> only update VFP and skip unpacking/analysis
+                extracted_objects.remove(fo)
+                db_interface.add_vfp(current_fo.uid, fo.uid, path_list)
+                db_interface.add_child_to_parent(parent_uid=current_fo.uid, child_uid=fo.uid)
+                logging.debug(f'Skipping unpacking/analysis of {fo.uid} (part of {fo.root_uid}).')
 
     @staticmethod
     def _fetch_logs(container: ExtractionContainer) -> str:
@@ -174,7 +263,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             logging.error('Could not fetch unpacking container logs')
             return ''
 
-    def schedule_extracted_files(self, object_list: list[FileObject]):
+    def _schedule_extracted_files(self, object_list: list[FileObject]):
         for item in object_list:
             self._add_object_to_unpack_queue(item)
 
@@ -224,3 +313,10 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         if new_worker_was_started(new_process=list_with_load_process[0], old_process=self.work_load_process):
             self.work_load_process = list_with_load_process.pop()
         return shutdown
+
+    def _init_currently_unpacked(self, fo: Firmware):
+        with self._sync():
+            if fo.uid in self.currently_extracted:
+                logging.warning(f'starting unpacking of {fo.uid} but it is currently also still being unpacked')
+            else:
+                self.currently_extracted[fo.uid] = {'remaining': {fo.uid}, 'done': set(), 'delayed_vfp_update': {}}

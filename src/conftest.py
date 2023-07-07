@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import dataclasses
 import grp
 import logging
 import os
@@ -8,7 +7,7 @@ from tempfile import TemporaryDirectory
 from typing import Type
 
 import pytest
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel, Field
 from pydantic.utils import deep_update
 
 import config
@@ -174,8 +173,7 @@ def patch_config(monkeypatch, common_config, backend_config, frontend_config):
     monkeypatch.setattr('config.load', lambda _=None: logging.warning('Code tried to call `config.load`. Ignoring.'))
 
 
-@dataclass(config=dict(arbitrary_types_allowed=True))
-class AnalysisPluginTestConfig:
+class AnalysisPluginTestConfig(BaseModel):
     """A class configuring the :py:func:`analysis_plugin` fixture."""
 
     #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
@@ -183,7 +181,10 @@ class AnalysisPluginTestConfig:
     #: Whether or not to start the workers (see ``AnalysisPlugin.start``)
     start_processes: bool = False
     #: Keyword arguments to be given to the ``plugin_class`` constructor.
-    init_kwargs: dict = dataclasses.field(default_factory=dict)
+    init_kwargs: dict = Field(default_factory=dict)
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 @pytest.fixture

@@ -27,11 +27,13 @@ def test_create_meta_dict_fw():
 def test_create_meta_dict_fo():
     fo = create_test_file_object()
     fo.parent_firmware_uids = ['parent_uid']
+    vfp = {'parent_uid': ['/some/path']}
+    fo.virtual_file_path = vfp
     meta = create_meta_dict(fo)
 
     # FileObject only fields
     assert meta['firmwares_including_this_file'] == ['parent_uid']
-    assert meta['virtual_file_path'] == {fo.uid: [fo.uid]}
+    assert meta['virtual_file_path'] == vfp
 
     # General Information
     assert meta['number_of_included_files'] == 0

@@ -15,8 +15,6 @@ repos:
 
     -   id: check-yaml
 
-    -   id: double-quote-string-fixer
-
     -   id: fix-encoding-pragma
         args: [--remove]
 
@@ -51,7 +49,7 @@ repos:
     -   id: black
 
 - repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: 'v0.0.267'
+  rev: 'v0.0.275'
   hooks:
     - id: ruff
       args: [ --fix, --exit-non-zero-on-fix ]

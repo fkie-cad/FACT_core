@@ -22,7 +22,6 @@ from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
-from storage.db_interface_base import DbInterfaceError
 from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
 
@@ -92,7 +91,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def __init__(
         self,
-        pre_analysis: Callable[[FileObject], None] = None,
         post_analysis: Callable[[str, str, dict], None] = None,
         db_interface=None,
         unpacking_locks: UnpackingLockManager | None = None,
@@ -111,7 +109,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
         self.fs_organizer = FSOrganizer()
         self.db_backend_service = db_interface if db_interface else BackendDbInterface()
-        self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
 
     def start(self):
@@ -149,7 +146,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         :param fo: The root file that is to be analyzed
         '''
         included_files = self.db_backend_service.get_list_of_all_included_files(fo)
-        self.pre_analysis(fo)
+        self.db_backend_service.update_object(fo)  # metadata of FW could have changed -> update in DB
         self.unpacking_locks.release_unpacking_lock(fo.uid)
         self.status.add_update_to_current_analyses(fo, included_files)
         for child_fo in self.db_backend_service.get_objects_by_uid_list(included_files):
@@ -166,16 +163,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
         :param fo: The firmware that is to be analyzed
         '''
-        # FixMe: remove this when no duplicate files come from unpacking any more
-        with self.scheduling_lock:  # if multiple unpacking threads call this in parallel, this can cause DB errors
-            try:
-                self.pre_analysis(fo)
-            except DbInterfaceError as error:
-                # trying to add an object to the DB could lead to an error if the root FW or the parents are missing
-                # (e.g. because they were recently deleted)
-                logging.error(f'Could not add {fo.uid} to the DB: {error}')
-                return
-
         if self.status.file_should_be_analyzed(fo):
             self.status.add_to_current_analyses(fo)
             self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
