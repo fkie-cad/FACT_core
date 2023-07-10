@@ -24,6 +24,19 @@ class IntercomMock(CommonIntercomMock):
     def add_single_file_task(self, task):
         self.task_list.append(task)
 
+    @staticmethod
+    def get_available_analysis_plugins():
+        plugins = CommonIntercomMock.get_available_analysis_plugins()
+
+        common_fields = ('0.0.', [], [], [], 1)
+        plugins.update(
+            {
+                'failed_analysis': ('plugin description', False, {'default': True}, *common_fields),
+            }
+        )
+
+        return plugins
+
 
 class DbMock(CommonDatabaseMock):
     def get_object(self, uid, analysis_filter=None):
