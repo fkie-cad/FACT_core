@@ -70,7 +70,6 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html">helperFunctions.install module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.merge_generators module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.merge_generators.avg"><code class="docutils literal notranslate"><span class="pre">avg()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.merge_generators.shuffled"><code class="docutils literal notranslate"><span class="pre">shuffled()</span></code></a></li>
 </ul>
 </li>
@@ -121,29 +120,18 @@
   <section id="module-helperFunctions.merge_generators">
 <span id="helperfunctions-merge-generators-module"></span><h1>helperFunctions.merge_generators module<a class="headerlink" href="#module-helperFunctions.merge_generators" title="Permalink to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.merge_generators.avg">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.merge_generators.</span></span><span class="sig-name descname"><span class="pre">avg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.merge_generators.avg" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the average of seq.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>seq</strong> (<em>Sequence</em><em>[</em><em>float</em><em>]</em>) – </p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.merge_generators.shuffled">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.merge_generators.</span></span><span class="sig-name descname"><span class="pre">shuffled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.merge_generators.shuffled" title="Permalink to this definition"></a></dt>
 <dd><p>Copies and shuffles an array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>sequence</strong> – The array to be shuffled</p>
+<dd class="field-odd"><p><strong>sequence</strong> (<em>Sequence</em><em>[</em><em>T</em><em>]</em>) – The array to be shuffled</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A shuffled copy of <cite>sequence</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[T]</p>
 </dd>
 </dl>
 </dd></dl>
