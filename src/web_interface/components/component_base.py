@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from types import MethodType
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, TYPE_CHECKING
 
-from web_interface.frontend_database import FrontendDatabase
+
+if TYPE_CHECKING:
+    from web_interface.frontend_database import FrontendDatabase
+    from collections.abc import Callable
 
 ROUTES_ATTRIBUTE = 'view_routes'
 

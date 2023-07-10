@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from storage.db_interface_stats import Stats
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from storage.db_interface_stats import Stats
 
 
 def build_stats_entry_from_date_query(release_date_stats: list[tuple[int, int, int]]) -> Stats:
@@ -17,7 +20,7 @@ def build_stats_entry_from_date_query(release_date_stats: list[tuple[int, int, i
 def _build_time_dict(release_date_stats: list[tuple[int, int, int]]) -> dict[int, dict[int, int]]:
     result = {}
     for year, month, count in release_date_stats:
-        if year > 1970:
+        if year > 1970:  # noqa: PLR2004
             result.setdefault(year, {})[month] = count
     if result:
         _fill_in_time_gaps(result)

@@ -27,7 +27,7 @@ TEST_TASK = {
 }
 
 
-@pytest.mark.parametrize('input_data, expected', [('', []), ('a,b', ['a', 'b'])])
+@pytest.mark.parametrize(('input_data', 'expected'), [('', []), ('a,b', ['a', 'b'])])
 def test_get_tag_list(input_data, expected):
     assert _get_tag_list(input_data) == expected
 
@@ -66,7 +66,7 @@ class TestTaskConversion(unittest.TestCase):
         assert fw_obj.version == '1.0'
         assert fw_obj.vendor == 'test vendor'
         assert fw_obj.release_date == '01.01.1970'
-        assert len(fw_obj.scheduled_analysis) == 2
+        assert len(fw_obj.scheduled_analysis) == 2  # noqa: PLR2004
         assert 'dummy' in fw_obj.scheduled_analysis
         assert isinstance(fw_obj.tags, dict), 'tag type not correct'
         assert list(fw_obj.tags.keys()) == ['a', 'b'], 'tags not correct'

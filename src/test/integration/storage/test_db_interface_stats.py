@@ -1,11 +1,10 @@
-# pylint: disable=redefined-outer-name
 from math import isclose
 
 import pytest
 
 from storage.db_interface_stats import StatsDbViewer, count_occurrences
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
-from test.common_helper import (  # pylint: disable=wrong-import-order
+from test.common_helper import (
     create_test_file_object,
     create_test_firmware,
     generate_analysis_entry,
@@ -16,11 +15,10 @@ from .helper import create_fw_with_parent_and_child, insert_test_fo, insert_test
 
 @pytest.fixture
 def stats_viewer():
-    viewer = StatsDbViewer()
-    return viewer
+    return StatsDbViewer()
 
 
-def test_update_stats(stats_update_db):  # pylint: disable=unused-argument
+def test_update_stats(stats_update_db):
     with stats_update_db.get_read_only_session() as session:
         assert session.get(StatsEntry, 'foo') is None
 
@@ -42,7 +40,7 @@ def test_update_stats(stats_update_db):  # pylint: disable=unused-argument
         assert entry.data['foo'] == '123'
 
 
-def test_get_stats(stats_update_db, stats_viewer):  # pylint: disable=unused-argument
+def test_get_stats(stats_update_db, stats_viewer):
     assert stats_viewer.get_statistic('foo') is None
 
     stats_update_db.update_statistic('foo', {'foo': 'bar'})
@@ -50,14 +48,14 @@ def test_get_stats(stats_update_db, stats_viewer):  # pylint: disable=unused-arg
     assert stats_viewer.get_statistic('foo') == {'_id': 'foo', 'foo': 'bar'}
 
 
-def test_get_stats_list(stats_update_db, stats_viewer):  # pylint: disable=unused-argument
+def test_get_stats_list(stats_update_db, stats_viewer):
     stats_update_db.update_statistic('foo', {'foo': 'bar'})
     stats_update_db.update_statistic('bar', {'bar': 'foo'})
     stats_update_db.update_statistic('test', {'test': '123'})
 
     result = stats_viewer.get_stats_list('foo', 'bar')
 
-    assert len(result) == 2
+    assert len(result) == 2  # noqa: PLR2004
     expected_results = [
         {'_id': 'foo', 'foo': 'bar'},
         {'_id': 'bar', 'bar': 'foo'},
@@ -78,7 +76,7 @@ def test_get_sum(stats_update_db, backend_db):
     backend_db.add_object(fw2)
 
     result = stats_update_db.get_sum(FileObjectEntry.size, firmware=True)
-    assert result == 100
+    assert result == 100  # noqa: PLR2004
 
 
 def test_get_fw_count(stats_update_db, backend_db):
@@ -94,7 +92,7 @@ def test_get_fw_count(stats_update_db, backend_db):
     fw2.uid = 'fw2'
     backend_db.add_object(fw2)
 
-    assert stats_update_db.get_count(firmware=True) == 2
+    assert stats_update_db.get_count(firmware=True) == 2  # noqa: PLR2004
 
 
 def test_get_fo_count(stats_update_db, backend_db):
@@ -104,7 +102,7 @@ def test_get_fo_count(stats_update_db, backend_db):
     backend_db.add_object(parent_fo)
     assert stats_update_db.get_count(firmware=False) == 1
     backend_db.add_object(child_fo)
-    assert stats_update_db.get_count(firmware=False) == 2
+    assert stats_update_db.get_count(firmware=False) == 2  # noqa: PLR2004
 
 
 def test_get_included_sum(stats_update_db, backend_db):
@@ -115,7 +113,7 @@ def test_get_included_sum(stats_update_db, backend_db):
     backend_db.add_object(child_fo)
 
     result = stats_update_db.get_sum(FileObjectEntry.size, firmware=False)
-    assert result == 200
+    assert result == 200  # noqa: PLR2004
 
 
 def test_filtered_included_sum(stats_update_db, backend_db):
@@ -137,10 +135,19 @@ def test_filtered_included_sum(stats_update_db, backend_db):
     backend_db.add_object(fw2)
     backend_db.add_object(fo2)
 
-    assert stats_update_db.get_sum(FileObjectEntry.size, firmware=False) == 100
-    assert stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=False) == 30
-    assert stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw2.vendor}, firmware=False) == 70
-    assert stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=True) == 1337
+    assert stats_update_db.get_sum(FileObjectEntry.size, firmware=False) == 100  # noqa: PLR2004
+    assert (
+        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=False)
+        == 30  # noqa: PLR2004
+    )
+    assert (
+        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw2.vendor}, firmware=False)
+        == 70  # noqa: PLR2004
+    )
+    assert (
+        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=True)
+        == 1337  # noqa: PLR2004
+    )
 
 
 def test_get_avg(stats_update_db, backend_db):
@@ -154,7 +161,7 @@ def test_get_avg(stats_update_db, backend_db):
     backend_db.add_object(fw2)
 
     result = stats_update_db.get_avg(FileObjectEntry.size, firmware=True)
-    assert round(result) == 50
+    assert round(result) == 50  # noqa: PLR2004
 
 
 def test_count_distinct_values(backend_db, stats_update_db):
@@ -175,7 +182,7 @@ def test_count_distinct_values(backend_db, stats_update_db):
 
 
 @pytest.mark.parametrize(
-    'q_filter, expected_result',
+    ('q_filter', 'expected_result'),
     [
         (None, [('value2', 1), ('value1', 2)]),
         ({'vendor': 'foobar'}, [('value1', 2)]),
@@ -231,7 +238,7 @@ def test_count_values_in_summary(backend_db, stats_update_db):
 
 
 @pytest.mark.parametrize(
-    'q_filter, plugin, expected_result',
+    ('q_filter', 'plugin', 'expected_result'),
     [
         (None, 'foo', [('value2', 1), ('value1', 2)]),
         (None, 'other', []),

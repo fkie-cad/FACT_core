@@ -72,13 +72,15 @@ def header_has_illegal_values(header: DeviceTreeHeader, max_size: int) -> bool:
         header.struct_block_size,
         header.strings_block_size,
     ]
-    return header.version > 20 or any(n > max_size or n > header.size for n in values) or header.size > max_size
+    return (
+        header.version > 20  # noqa: PLR2004
+        or any(n > max_size or n > header.size for n in values)
+        or header.size > max_size
+    )
 
 
 def convert_device_tree_to_str(file_path: str | Path) -> str | None:
-    process = run(
-        f'dtc -I dtb -O dts {file_path}', shell=True, capture_output=True
-    )  # pylint: disable=subprocess-run-check
+    process = run(f'dtc -I dtb -O dts {file_path}', shell=True, capture_output=True)
     if process.returncode != 0:
         logging.warning(
             f'The Device Tree Compiler exited with non-zero return code {process.returncode}: {process.stderr}'

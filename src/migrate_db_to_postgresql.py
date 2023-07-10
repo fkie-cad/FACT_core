@@ -17,11 +17,12 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
+from typing import Optional
 
 try:
     from rich.progress import BarColumn, Progress, TimeElapsedColumn
 except ImportError:
-    print('Error: rich not found. Please install it:\npython3 -m pip install rich')
+    print('Error: rich not found. Please install it:\npython3 -m pip install rich')  # noqa: T201
     sys.exit(1)
 
 PERCENTAGE = '[progress.percentage]{task.percentage:>3.0f}%'
@@ -29,7 +30,7 @@ DESCRIPTION = '[progress.description]{task.description}'
 
 
 class ConnectTo:
-    '''
+    """
     Open a database connection using the interface passed to the constructor. Intended to be used as a context manager.
 
     :param connected_interface: A database interface from the `storage` module (e.g. `FrontEndDbInterface`)
@@ -41,7 +42,7 @@ class ConnectTo:
 
            with ConnectTo(FrontEndDbInterface, self.config) as connection:
                 query = connection.firmwares.find({})
-    '''
+    """
 
     def __init__(self, connected_interface, config: ConfigParser):
         self.interface = connected_interface
@@ -57,11 +58,11 @@ class ConnectTo:
 
 
 class MongoInterface:
-    '''
+    """
     This is the mongo interface base class handling:
     - load config
     - setup connection including authentication
-    '''
+    """
 
     READ_ONLY = False
 
@@ -123,7 +124,7 @@ class MigrationMongoInterface(MongoInterface):
         logging.debug(f'No firmware with UID {uid} found.')
         return None
 
-    def _convert_to_firmware(self, entry: dict, analysis_filter: list[str] = None) -> Firmware:
+    def _convert_to_firmware(self, entry: dict, analysis_filter: Optional[list[str]] = None) -> Firmware:
         firmware = Firmware()
         firmware.uid = entry['_id']
         firmware.size = entry['size']
@@ -194,7 +195,7 @@ class MigrationMongoInterface(MongoInterface):
 
     def _retrieve_binaries(self, sanitized_dict, key):
         tmp_dict = {}
-        for analysis_key in sanitized_dict[key].keys():
+        for analysis_key in sanitized_dict[key]:
             if self.is_not_sanitized(analysis_key, sanitized_dict[key]):
                 tmp_dict[analysis_key] = sanitized_dict[key][analysis_key]
             else:
@@ -218,7 +219,7 @@ class MigrationMongoInterface(MongoInterface):
         return field in ['summary', 'tags'] and not isinstance(analysis_result[field], str)
 
 
-def _fix_illegal_dict(dict_: dict, label=''):  # pylint: disable=too-complex
+def _fix_illegal_dict(dict_: dict, label=''):
     for key, value in dict_.items():
         if isinstance(value, bytes):
             if key == 'entropy_analysis_graph':
@@ -238,14 +239,11 @@ def _fix_illegal_dict(dict_: dict, label=''):  # pylint: disable=too-complex
         elif isinstance(value, list):
             _fix_illegal_list(value, key, label)
         elif isinstance(value, tuple):
-            dict_[key] = value = list(value)
+            dict_[key] = value = list(value)  # noqa: PLW2901
             _fix_illegal_list(value, key, label)
-        elif isinstance(value, str):
-            if '\0' in value:
-                logging.debug(
-                    f'entry ({label}) {key} contains illegal character "\\0": {value[:10]} -> replacing with "?"'
-                )
-                dict_[key] = value.replace('\0', '\\x00')
+        elif isinstance(value, str) and '\0' in value:
+            logging.debug(f'entry ({label}) {key} contains illegal character "\\0": {value[:10]} -> replacing with "?"')
+            dict_[key] = value.replace('\0', '\\x00')
 
 
 def _fix_illegal_list(list_: list, key=None, label=''):
@@ -258,16 +256,15 @@ def _fix_illegal_list(list_: list, key=None, label=''):
         elif isinstance(element, dict):
             _fix_illegal_dict(element, label)
         elif isinstance(element, tuple):
-            list_[index] = element = list(element)
+            list_[index] = element = list(element)  # noqa: PLW2901
             _fix_illegal_list(element, key, label)
         elif isinstance(element, list):
             _fix_illegal_list(element, key, label)
-        elif isinstance(element, str):
-            if '\0' in element:
-                logging.debug(
-                    f'entry ({label}) {key} contains illegal character "\\0": {element[:10]} -> replacing with "?"'
-                )
-                list_[index] = element.replace('\0', '\\x00')
+        elif isinstance(element, str) and '\0' in element:
+            logging.debug(
+                f'entry ({label}) {key} contains illegal character "\\0": {element[:10]} -> replacing with "?"'
+            )
+            list_[index] = element.replace('\0', '\\x00')
 
 
 def _migrate_plugin(plugin_name, processed_analysis):
@@ -302,9 +299,9 @@ def main():
                 migrator = DbMigrator(postgres=postgres, mongo=db, progress=progress)
                 migrated_fw_count = migrator.migrate_fw(query={}, root=True, label='firmwares')
                 if not migrated_fw_count:
-                    print('No firmware to migrate')
+                    print('No firmware to migrate')  # noqa: T201
                 else:
-                    print(f'Successfully migrated {migrated_fw_count} firmware DB entries')
+                    print(f'Successfully migrated {migrated_fw_count} firmware DB entries')  # noqa: T201
             migrate_comparisons(db)
     except errors.ServerSelectionTimeoutError:
         logging.error(
@@ -321,7 +318,9 @@ class DbMigrator:
         self.mongo = mongo
         self.progress = progress
 
-    def migrate_fw(self, query, label: str = None, root=False, root_uid=None, parent_uid=None) -> int:
+    def migrate_fw(  # noqa: PLR0913
+        self, query, label: Optional[str] = None, root=False, root_uid=None, parent_uid=None
+    ) -> int:
         migrated_fw_count = 0
         collection = self.mongo.firmwares if root else self.mongo.file_objects
         total = collection.count_documents(query)
@@ -390,9 +389,9 @@ def migrate_comparisons(mongo: MigrationMongoInterface):
             compare_db.insert_comparison(comparison_id, results)
             count += 1
     if not count:
-        print('No firmware comparison entries to migrate')
+        print('No firmware comparison entries to migrate')  # noqa: T201
     else:
-        print(f'Migrated {count} comparison DB entries')
+        print(f'Migrated {count} comparison DB entries')  # noqa: T201
 
 
 if __name__ == '__main__':

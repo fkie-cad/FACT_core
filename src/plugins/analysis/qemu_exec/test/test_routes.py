@@ -1,4 +1,3 @@
-# pylint: disable=protected-access,wrong-import-order,no-self-use,no-member,attribute-defined-outside-init
 from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
@@ -69,7 +68,7 @@ class TestQemuExecRoutesStatic:
     def test_get_results_for_included(self):
         result = routes.get_analysis_results_for_included_uid('foo', DbInterfaceMock())
         assert result is not None
-        assert result != {}  # pylint: disable=use-implicit-booleaness-not-comparison
+        assert result != {}
         assert 'parent_uid' in result
         assert result['parent_uid'] == {'executable': False}
 

@@ -4,20 +4,22 @@ import logging
 import operator
 import re
 import sys
-from collections import namedtuple
-from collections.abc import Callable
 from itertools import combinations
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, TYPE_CHECKING
 
 from packaging.version import InvalidVersion, Version
 from packaging.version import parse as parse_version
-from pyxdameraulevenshtein import damerau_levenshtein_distance as distance  # pylint: disable=no-name-in-module
+from pyxdameraulevenshtein import damerau_levenshtein_distance as distance
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.tag import TagColor
-from objects.file import FileObject
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
+    from collections.abc import Callable
+    from collections import namedtuple
 
 try:
     from ..internal.database_interface import QUERIES, DatabaseInterface
@@ -55,14 +57,14 @@ class CveDbEntry(NamedTuple):
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     lookup vulnerabilities from CVE feeds using ID from CPE dictionary
-    '''
+    """
 
     NAME = 'cve_lookup'
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
-    DEPENDENCIES = ['software_components']
+    DEPENDENCIES = ['software_components']  # noqa: RUF012
     VERSION = '0.0.5'
     FILE = __file__
 
@@ -102,10 +104,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _entry_has_critical_rating(entry):
-        for key in ['score2', 'score3']:
-            if entry[key] != 'N/A' and float(entry[key]) >= 9.0:
-                return True
-        return False
+        return any(entry[key] != 'N/A' and float(entry[key]) >= 9.0 for key in ['score2', 'score3'])  # noqa: PLR2004
 
     @staticmethod
     def _split_component(component: str) -> tuple[str, str]:
@@ -233,9 +232,9 @@ def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
 
 
 def coerce_version(version: str) -> Version:
-    '''
+    """
     The version may not be PEP 440 compliant -> try to convert it to something that we can use for comparison
-    '''
+    """
     try:
         return parse_version(version)
     except InvalidVersion:
@@ -291,10 +290,7 @@ def word_sequence_is_in_word_list(word_list: list[str], word_sequence: list[str]
 
 
 def remaining_words_present(word_list: list[str], words: list[str]) -> bool:
-    for word1, word2 in zip(word_list[: len(words)], words):
-        if not terms_match(word1, word2):
-            return False
-    return True
+    return all(terms_match(word1, word2) for word1, word2 in zip(word_list[: len(words)], words))
 
 
 def match_cpe(db: DatabaseInterface, product_search_terms: list) -> list[Product]:

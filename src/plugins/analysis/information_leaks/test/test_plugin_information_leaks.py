@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from test.common_helper import MockFileObject  # pylint: disable=wrong-import-order
+from test.common_helper import MockFileObject
 
 from ..code.information_leaks import AnalysisPlugin, _check_file_path, _check_for_directories, _check_for_files
 
@@ -72,5 +72,5 @@ class TestAnalysisPluginInformationLeaks:
 def test_check_file_path():
     # if multiple rules match, only the first should appear in the result
     svn_path = '/home/user/project/.svn/entries'
-    assert _check_for_files(svn_path) and _check_for_directories(svn_path), 'both rules should match'
+    assert _check_for_files(svn_path) and _check_for_directories(svn_path), 'both rules should match'  # noqa: PT018
     assert _check_file_path(svn_path) == {'svn_entries': ['/home/user/project/.svn/entries']}

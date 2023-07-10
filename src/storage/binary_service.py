@@ -12,9 +12,9 @@ from unpacker.tar_repack import TarRepack
 
 
 class BinaryService:
-    '''
+    """
     This is a binary and database backend providing basic return functions
-    '''
+    """
 
     def __init__(self):
         self.fs_organizer = FSOrganizer()

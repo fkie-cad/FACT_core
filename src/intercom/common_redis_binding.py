@@ -11,8 +11,7 @@ from storage.redis_interface import RedisInterface
 
 def generate_task_id(input_data: Any) -> str:
     serialized_data = pickle.dumps(input_data)
-    task_id = f'{get_sha256(serialized_data)}_{time()}'
-    return task_id
+    return f'{get_sha256(serialized_data)}_{time()}'
 
 
 class InterComRedisInterface:
@@ -21,9 +20,9 @@ class InterComRedisInterface:
 
 
 class InterComListener(InterComRedisInterface):
-    '''
+    """
     InterCom Listener Base Class
-    '''
+    """
 
     CONNECTION_TYPE = 'test'  # unique for each listener
 
@@ -31,7 +30,7 @@ class InterComListener(InterComRedisInterface):
         try:
             task_obj = self.redis.queue_get(self.CONNECTION_TYPE)
         except RedisError as exc:
-            logging.error(f'Could not get next task: {str(exc)}', exc_info=True)
+            logging.error(f'Could not get next task: {exc!s}', exc_info=True)
             return None
         if task_obj is not None:
             task, task_id = task_obj
@@ -40,17 +39,17 @@ class InterComListener(InterComRedisInterface):
             return task
         return None
 
-    def post_processing(self, task, task_id):  # pylint: disable=no-self-use,unused-argument
-        '''
+    def post_processing(self, task, task_id):  # noqa: ARG002
+        """
         optional post-processing of a task
-        '''
+        """
         return task
 
 
 class InterComListenerAndResponder(InterComListener):
-    '''
+    """
     CONNECTION_TYPE and OUTGOING_CONNECTION_TYPE must be implemented by the sub_class
-    '''
+    """
 
     CONNECTION_TYPE = 'test'
     OUTGOING_CONNECTION_TYPE = 'test'
@@ -62,8 +61,8 @@ class InterComListenerAndResponder(InterComListener):
         logging.debug(f'response send: {self.OUTGOING_CONNECTION_TYPE} -> {task_id}')
         return task
 
-    def get_response(self, task):  # pylint: disable=no-self-use
-        '''
+    def get_response(self, task):
+        """
         this function must be implemented by the sub_class
-        '''
+        """
         return task

@@ -1,4 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order,unused-argument
 import urllib.parse
 from base64 import standard_b64encode
 
@@ -80,7 +79,7 @@ class TestRestFirmware(RestTestBase):
         rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
         assert rv.json['message'] == 'Input payload validation failed'
         assert 'version' in rv.json['errors']
-        assert '\'version\' is a required property' in rv.json['errors']['version']
+        assert "'version' is a required property" in rv.json['errors']['version']
 
     def test_rest_download_valid(self, backend_db):
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')

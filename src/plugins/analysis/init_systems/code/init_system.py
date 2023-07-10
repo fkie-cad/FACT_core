@@ -8,18 +8,18 @@ FILE_IGNORES = ['README', 'README.md', 'README.txt', 'INSTALL', 'VERSION']
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     This Plugin searches for Init-Scripts and lists the Services or Script-Files
     It displays a short description (if provided) or else the filename
 
     Credits:
     Original version by Stefan Viergutz created during Firmware Bootcamp WT16/17 at University of Bonn
     Refactored and improved by Fraunhofer FKIE
-    '''
+    """
 
     NAME = 'init_systems'
     DESCRIPTION = 'detect and analyze auto start services'
-    DEPENDENCIES = ['file_type']
+    DEPENDENCIES = ['file_type']  # noqa: RUF012
     VERSION = '0.4.2'
     FILE = __file__
 
@@ -126,7 +126,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object):
         if self._is_text_file(file_object) and (file_object.file_name not in FILE_IGNORES):
             file_path = self._get_file_path(file_object)
-            self.content = make_unicode_string(file_object.binary)  # pylint: disable=attribute-defined-outside-init
+            self.content = make_unicode_string(file_object.binary)
             if '/inittab' in file_path:
                 file_object.processed_analysis[self.NAME] = self._get_inittab_config(file_object)
             if 'systemd/system/' in file_path:

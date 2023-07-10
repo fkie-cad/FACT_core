@@ -1,5 +1,3 @@
-# pylint: disable=protected-access,redefined-outer-name,unused-argument,no-self-use
-
 from pathlib import Path
 
 import pytest
@@ -136,7 +134,7 @@ class TestPluginNotRunning:
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=DummyPlugin)
-def test_timeout(analysis_plugin, monkeypatch):
+def test_timeout(analysis_plugin, monkeypatch):  # noqa: ARG001
     analysis_plugin.TIMEOUT = 0
     analysis_plugin.start()
 

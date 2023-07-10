@@ -3,14 +3,12 @@ from time import sleep
 import pytest
 
 from compare.PluginBase import CompareBasePlugin
-from test.common_helper import CommonDatabaseMock, create_test_file_object  # pylint: disable=wrong-import-order
-
-# pylint: disable=unused-argument,protected-access,no-member
+from test.common_helper import CommonDatabaseMock, create_test_file_object
 
 
 @pytest.fixture(autouse=True)
-def no_compare_views(monkeypatch):
-    monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)
+def no_compare_views(monkeypatch):  # noqa: PT004
+    monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)  # noqa: ARG005
 
 
 class MockDbInterface(CommonDatabaseMock):

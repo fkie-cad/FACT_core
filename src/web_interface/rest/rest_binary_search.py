@@ -65,12 +65,12 @@ class RestBinarySearchGet(RestResourceBase):
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @api.doc(responses={200: 'Success', 400: 'Unknown search ID'})
     def get(self, search_id=None):
-        '''
+        """
         Get the results of a previously initiated binary search
         The `search_id` is needed to fetch the corresponding search result
         The result of the search request can only be fetched once
         After this the search needs to be started again.
-        '''
+        """
         with ConnectTo(self.intercom) as intercom:
             result, _ = intercom.get_binary_search_result(search_id)
 

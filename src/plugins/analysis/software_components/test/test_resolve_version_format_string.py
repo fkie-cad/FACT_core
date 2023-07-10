@@ -14,7 +14,7 @@ def test_extract_data_from_ghidra(backend_config):
 
 
 @pytest.mark.parametrize(
-    'test_input, expected_output',
+    ('test_input', 'expected_output'),
     [
         ([], []),
         (['1.2.3.4', 'foobar'], ['1.2.3.4']),

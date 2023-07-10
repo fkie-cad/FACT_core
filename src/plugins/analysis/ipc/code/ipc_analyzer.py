@@ -8,7 +8,10 @@ from docker.types import Mount
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
-from objects.file import FileObject
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 DOCKER_IMAGE = 'ipc'
 
@@ -23,12 +26,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = '0.1.1'
     FILE = __file__
 
-    MIME_WHITELIST = [
+    MIME_WHITELIST = [  # noqa: RUF012
         'application/x-executable',
         'application/x-object',
         'application/x-sharedlib',
     ]
-    DEPENDENCIES = ['file_type']
+    DEPENDENCIES = ['file_type']  # noqa: RUF012
     TIMEOUT = 600  # 10 minutes
 
     def _run_ipc_analyzer_in_docker(self, file_object: FileObject) -> dict:
@@ -49,8 +52,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     Mount(mount, file_object.file_path, type='bind'),
                 ],
             )
-            data = json.loads(output.read_text())
-        return data
+            return json.loads(output.read_text())
 
     def _do_full_analysis(self, file_object: FileObject) -> FileObject:
         output = self._run_ipc_analyzer_in_docker(file_object)
@@ -65,8 +67,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         This function handles only ELF executables. Otherwise, it returns an empty dictionary.
         It calls the ipc docker container.
         """
-        file_object = self._do_full_analysis(file_object)
-        return file_object
+        return self._do_full_analysis(file_object)
 
     @staticmethod
     def _create_summary(output: dict) -> list[str]:

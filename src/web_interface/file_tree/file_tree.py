@@ -152,10 +152,10 @@ def _root_is_virtual(root: list[dict]) -> bool:
 
 
 def remove_virtual_path_from_root(root: list[dict]) -> list[dict]:
-    '''
+    """
     When a file object is the root, the directories that contain the file object need to be removed so that the file
     tree is displayed correctly in the web interface.
-    '''
+    """
     while _root_is_virtual(root):
         root = root[0]['children']
     return root
@@ -190,23 +190,23 @@ class VirtualPathFileTree:
 
     @staticmethod
     def _find_root_uid(parent_uid: str, fo_data: FileTreeData) -> str:
-        '''
+        """
         If we don't have a rood_uid, we must find a root_uid that contains the parent_uid (we can't just take a
         random one because then the files could be missing from the file tree).
-        '''
+        """
         for root_uid, vfp_list in fo_data.virtual_file_path.items():
             if any(parent_uid in vfp for vfp in vfp_list):
                 return root_uid
         return list(fo_data.virtual_file_path)[0]  # safety fallback: this should not occur under normal circumstances
 
     def get_file_tree_nodes(self) -> Iterable[FileTreeNode]:
-        '''
+        """
         Create ``FileTreeNode`` s for the elements of the root's virtual file path. The same file may occur several
         times with different virtual paths. Returns a sequence of nodes, representing the subsequent layer in the
         file tree (which themselves may contain child nodes).
 
         :return: An iterable sequence of nodes of the file tree.
-        '''
+        """
         if self.virtual_file_paths is None:  # firmware objects don't have VPFs
             yield self._get_node_for_real_file()
         else:

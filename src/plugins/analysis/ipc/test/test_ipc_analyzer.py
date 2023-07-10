@@ -34,7 +34,7 @@ EXPECTED_WRITE_RESULT = {
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 @pytest.mark.parametrize(
-    'test_file, expected_result, expected_summary',
+    ('test_file', 'expected_result', 'expected_summary'),
     [
         ('ipc_system_test_bin', EXPECTED_SYSTEM_RESULT, ['system']),
         ('ipc_shared_files_test_bin', EXPECTED_WRITE_RESULT, ['open', 'write']),

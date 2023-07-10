@@ -1,5 +1,3 @@
-# pylint: disable=wrong-import-order,redefined-outer-name,protected-access
-
 from math import isclose
 
 import pytest
@@ -9,10 +7,9 @@ from test.common_helper import create_test_file_object, create_test_firmware, ge
 from test.integration.storage.helper import create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def stats_updater(stats_update_db) -> StatsUpdater:
-    updater = StatsUpdater(stats_db=stats_update_db)
-    return updater
+    return StatsUpdater(stats_db=stats_update_db)
 
 
 def test_get_general_stats(stats_updater, backend_db):
@@ -25,7 +22,7 @@ def test_get_general_stats(stats_updater, backend_db):
     backend_db.add_object(child_fo)
     stats = stats_updater.get_general_stats()
     assert stats['number_of_firmwares'] == 1, 'number of firmwares not correct'
-    assert stats['number_of_unique_files'] == 3, 'number of files not correct'
+    assert stats['number_of_unique_files'] == 3, 'number of files not correct'  # noqa: PLR2004
 
 
 def test_get_mitigation_stats(stats_updater, backend_db):
@@ -114,7 +111,8 @@ def test_file_type_stats(stats_updater, backend_db):
     insert_test_fo(backend_db, 'fo1', parent_fw='fw1', analysis={'file_type': type_analysis_2})
 
     stats = stats_updater.get_file_type_stats()
-    assert 'file_types' in stats and 'firmware_container' in stats
+    assert 'file_types' in stats
+    assert 'firmware_container' in stats
     assert stats['file_types'] == [('file/type2', 1), ('file/type1', 2)]
     assert stats['firmware_container'] == [('fw/image', 2)]
 

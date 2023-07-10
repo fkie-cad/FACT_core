@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import logging
 from operator import or_
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, TYPE_CHECKING
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.sql import Select
 
-from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_base import ReadOnlyDbInterface
 from storage.entry_conversion import analysis_entry_to_dict, file_object_from_entry, firmware_from_entry
@@ -23,6 +21,10 @@ from storage.schema import (
     fw_files_table,
     included_files_table,
 )
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
+    from sqlalchemy.sql import Select
 
 PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
     'crypto_material',
@@ -268,13 +270,13 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         return self.get_all_files_in_fo(fo)
 
     def get_all_files_in_fw(self, fw_uid: str) -> set[str]:
-        '''Get a set of UIDs of all files (recursively) contained in a firmware'''
+        """Get a set of UIDs of all files (recursively) contained in a firmware"""
         with self.get_read_only_session() as session:
             query = select(fw_files_table.c.file_uid).where(fw_files_table.c.root_uid == fw_uid)
             return set(session.execute(query).scalars())
 
     def get_all_files_in_fo(self, fo: FileObject) -> set[str]:
-        '''Get a set of UIDs of all files (recursively) contained in a file'''
+        """Get a set of UIDs of all files (recursively) contained in a file"""
         with self.get_read_only_session() as session:
             return self._get_files_in_files(session, fo.files_included).union({fo.uid, *fo.files_included})
 
@@ -290,11 +292,11 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
     # ===== summary =====
 
     def get_complete_object_including_all_summaries(self, uid: str) -> FileObject:
-        '''
+        """
         input uid
         output:
             like get_object, but includes all summaries and list of all included files set
-        '''
+        """
         fo = self.get_object(uid)
         if fo is None:
             raise Exception(f'UID not found: {uid}')

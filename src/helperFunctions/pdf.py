@@ -13,7 +13,7 @@ from objects.firmware import Firmware
 
 
 def build_pdf_report(firmware: Firmware, folder: Path) -> Path:
-    '''
+    """
     Creates a pdf report for the given firmware by calling the fact_pdf_report docker container.
 
     .. admonition:: About the pdf report
@@ -26,7 +26,7 @@ def build_pdf_report(firmware: Firmware, folder: Path) -> Path:
     :param firmware: The firmware to generate the pdf report for
     :param folder: An empty folder in which to generate the resulting pdf in
     :return: The path to the generated pdf file inside the given folder
-    '''
+    """
     _initialize_subfolder(folder, firmware)
 
     try:
@@ -40,17 +40,15 @@ def build_pdf_report(firmware: Firmware, folder: Path) -> Path:
         )
     except (DockerException, TimeoutError):
         logging.error('Failed to execute pdf generator.')
-        raise RuntimeError('Could not create PDF report')
+        raise RuntimeError('Could not create PDF report')  # noqa: B904
 
     try:
         result.check_returncode()
     except CalledProcessError as err:
         logging.error(f'Failed to execute pdf generator with code {err.returncode}:\n{result.stdout}')
-        raise RuntimeError('Could not create PDF report')
+        raise RuntimeError('Could not create PDF report')  # noqa: B904
 
-    pdf_path = _find_pdf(folder)
-
-    return pdf_path
+    return _find_pdf(folder)
 
 
 def _initialize_subfolder(folder: Path, firmware: Firmware) -> None:

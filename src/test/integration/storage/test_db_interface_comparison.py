@@ -1,4 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,protected-access,wrong-import-order
 from time import time
 
 import pytest
@@ -28,13 +27,13 @@ def test_get_not_existing_result(comparison_db, backend_db):
     assert result is None
 
 
-def test_calculate_comparison_id(comparison_db):  # pylint: disable=unused-argument
+def test_calculate_comparison_id(comparison_db):
     _, _, compare_dict, compare_id = _create_comparison()
     comp_id = comparison_db._calculate_comp_id(compare_dict)
     assert comp_id == compare_id
 
 
-def test_comp_id_incomplete_entries(comparison_db):  # pylint: disable=unused-argument
+def test_comp_id_incomplete_entries(comparison_db):
     compare_dict = {'general': {'stat_1': {'a': None}, 'stat_2': {'b': None}}}
     comp_id = comparison_db._calculate_comp_id(compare_dict)
     assert comp_id == 'a;b'

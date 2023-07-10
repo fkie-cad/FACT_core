@@ -4,7 +4,10 @@ import re
 from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
-from objects.file import FileObject
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 PATH_REGEX = {
     'user_paths': re.compile(rb'/home/[^%\n:) \x00]+'),
@@ -72,9 +75,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
     """
 
     NAME = 'information_leaks'
-    DEPENDENCIES = []
+    DEPENDENCIES = []  # noqa: RUF012
     DESCRIPTION = 'Find leaked information like compilation artifacts'
-    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib', 'text/plain']
+    MIME_WHITELIST = [  # noqa: RUF012
+        'application/x-executable',
+        'application/x-object',
+        'application/x-sharedlib',
+        'text/plain',
+    ]
     VERSION = '0.1.4'
     FILE = __file__
 
@@ -121,9 +129,8 @@ def _check_for_directories(file_path: str) -> dict[str, list[str]]:
     results = {}
     for key_path, artifact in DIRECTORY_DICT.items():
         file_path_list = file_path.split('/')
-        if len(file_path_list) > 1:
-            if file_path_list[-2] == key_path:
-                results.setdefault(artifact, []).append(file_path)
+        if len(file_path_list) > 1 and file_path_list[-2] == key_path:
+            results.setdefault(artifact, []).append(file_path)
     return results
 
 

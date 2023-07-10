@@ -24,14 +24,14 @@ class DbSetup(ReadWriteDbInterface):
             with self.get_read_write_session() as session:
                 session.execute(
                     text(
-                        f'CREATE ROLE {user_name} LOGIN PASSWORD \'{password}\' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE;'
+                        f"CREATE ROLE {user_name} LOGIN PASSWORD '{password}' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE;"  # noqa: E501
                     )
                 )
 
     def user_exists(self, user_name: str) -> bool:
         with self.get_read_only_session() as session:
             return bool(
-                session.execute(text(f'SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = \'{user_name}\'')).scalar()
+                session.execute(text(f"SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = '{user_name}'")).scalar()
             )
 
     def table_exists(self, table_name: str):
@@ -40,7 +40,7 @@ class DbSetup(ReadWriteDbInterface):
 
     def database_exists(self, db_name: str) -> bool:
         with self.get_read_only_session() as session:
-            return bool(session.execute(text(f'SELECT 1 FROM pg_database WHERE datname = \'{db_name}\'')).scalar())
+            return bool(session.execute(text(f"SELECT 1 FROM pg_database WHERE datname = '{db_name}'")).scalar())
 
     def create_database(self, db_name: str):
         if not self.database_exists(db_name):

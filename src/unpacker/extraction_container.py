@@ -1,20 +1,23 @@
 from __future__ import annotations
 
 import logging
-import multiprocessing
 from contextlib import suppress
 from os import getgid, getuid
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import docker
 import requests
 from docker.errors import APIError, DockerException
-from docker.models.containers import Container
 from docker.types import Mount
 from requests.adapters import HTTPAdapter, Retry
 
 import config
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from docker.models.containers import Container
+    from tempfile import TemporaryDirectory
+    import multiprocessing
 
 DOCKER_CLIENT = docker.from_env()
 EXTRACTOR_DOCKER_IMAGE = 'fkiecad/fact_extractor'

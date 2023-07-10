@@ -16,10 +16,10 @@ from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
 
 
-class FactComparisonException(Exception):
+class FactComparisonException(Exception):  # noqa: N818
     def get_message(self):
-        if self.args:  # pylint: disable=using-constant-test
-            return self.args[0]  # pylint: disable=unsubscriptable-object
+        if self.args:
+            return self.args[0]
         return ''
 
 
@@ -43,16 +43,13 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def objects_exist(self, compare_id: str) -> bool:
         uid_list = convert_compare_id_to_list(compare_id)
         with self.get_read_only_session() as session:
-            query = select(func.count(FileObjectEntry.uid)).filter(  # pylint: disable=not-callable
-                FileObjectEntry.uid.in_(uid_list)
-            )
+            query = select(func.count(FileObjectEntry.uid)).filter(FileObjectEntry.uid.in_(uid_list))
             return session.execute(query).scalar() == len(uid_list)
 
     @staticmethod
     def _calculate_comp_id(comparison_result):
         uid_set = {uid for c_dict in comparison_result['general'].values() for uid in c_dict}
-        comp_id = convert_uid_list_to_compare_id(uid_set)
-        return comp_id
+        return convert_uid_list_to_compare_id(uid_set)
 
     def get_comparison_result(self, comparison_id: str) -> dict | None:
         comparison_id = normalize_compare_id(comparison_id)
@@ -99,7 +96,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def get_total_number_of_results(self) -> int:
         with self.get_read_only_session() as session:
-            query = select(func.count(ComparisonEntry.comparison_id))  # pylint: disable=not-callable
+            query = select(func.count(ComparisonEntry.comparison_id))
             return session.execute(query).scalar()
 
     def get_ssdeep_hash(self, uid: str) -> str:

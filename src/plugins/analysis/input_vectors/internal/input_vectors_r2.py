@@ -47,10 +47,7 @@ class RadareAPI:
 
     @staticmethod
     def matches_import(imp, input_class):
-        for element in input_class:
-            if re.match(re.compile(element), imp) is not None:
-                return True
-        return False
+        return any(re.match(re.compile(element), imp) is not None for element in input_class)
 
     def get_interrupts(self, function_list):
         interrupts = []
@@ -106,7 +103,7 @@ class RadareAPI:
 
 
 def get_class_summary(input_vectors):
-    classes = {class_ for class_ in input_vectors}
+    classes = set(input_vectors)
     return list(classes)
 
 
@@ -135,11 +132,11 @@ def get_input_vectors(elf_file):
             },
         }
 
-    print(json.dumps(output, indent=4))
+    print(json.dumps(output, indent=4))  # noqa: T201
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('usage: input_vectors_r2.py PATH_TO_ELF')
+    if len(sys.argv) != 2:  # noqa: PLR2004
+        print('usage: input_vectors_r2.py PATH_TO_ELF')  # noqa: T201
         sys.exit(1)
     get_input_vectors(sys.argv[1])

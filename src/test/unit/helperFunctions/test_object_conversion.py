@@ -1,5 +1,5 @@
 from helperFunctions.object_conversion import create_meta_dict
-from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import create_test_file_object, create_test_firmware
 
 
 def test_create_meta_dict_fw():
@@ -16,12 +16,12 @@ def test_create_meta_dict_fw():
 
     # General information
     assert meta['hid'] == 'test_vendor test_router v. 0.1'
-    assert meta['size'] == 787
+    assert meta['size'] == 787  # noqa: PLR2004
     assert meta['number_of_included_files'] == 0
     assert meta['included_files'] == []
     assert meta['total_files_in_firmware'] == 'unknown'
 
-    assert len(meta.keys()) == 11
+    assert len(meta.keys()) == 11  # noqa: PLR2004
 
 
 def test_create_meta_dict_fo():
@@ -38,4 +38,4 @@ def test_create_meta_dict_fo():
     # General Information
     assert meta['number_of_included_files'] == 0
 
-    assert len(meta.keys()) == 7
+    assert len(meta.keys()) == 7  # noqa: PLR2004

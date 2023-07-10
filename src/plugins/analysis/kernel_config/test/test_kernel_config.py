@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 import glob
 from pathlib import Path
 from subprocess import CompletedProcess
@@ -188,8 +187,8 @@ def test_check_kernel_hardening():
     result = check_kernel_hardening(kernel_config)
     assert isinstance(result, list)
     assert all(isinstance(tup, tuple) for tup in result)
-    assert len(result) > 50
-    assert all(len(tup) == 7 for tup in result), 'all results should have 6 elements'
+    assert len(result) > 50  # noqa: PLR2004
+    assert all(len(tup) == 7 for tup in result), 'all results should have 6 elements'  # noqa: PLR2004
     assert any(len(tup[5]) > 0 for tup in result), 'some "protection against" info shouldn\'t be empty'
 
 

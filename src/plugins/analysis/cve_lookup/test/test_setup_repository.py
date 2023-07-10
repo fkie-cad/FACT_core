@@ -37,14 +37,14 @@ EXPECTED_SUM_OUTPUT = [
     (
         'CVE-2018-20229',
         2018,
-        'GitLab Community and Enterprise Edition before 11.3.14, 11.4.x before 11.4.12, and 11.5.x before 11.5.5 allows Directory Traversal.',
+        'GitLab Community and Enterprise Edition before 11.3.14, 11.4.x before 11.4.12, and 11.5.x before 11.5.5 allows Directory Traversal.',  # noqa: E501
         'N/A',
         'N/A',
     ),
     (
         'CVE-2018-8825',
         2018,
-        'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).',
+        'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).',  # noqa: E501
         'N/A',
         'N/A',
     ),
@@ -363,8 +363,8 @@ EXPECTED_UPDATED_SUMMARY_TABLE = [
     (
         'CVE-2012-0001',
         2012,
-        'The kernel in Microsoft Windows XP SP2, Windows Server 2003 SP2, Windows Vista SP2, Windows Server 2008 SP2, R2, '
-        'and R2 SP1, and Windows 7 Gold and SP1 does not properly load structured exception handling tables, which allows '
+        'The kernel in Microsoft Windows XP SP2, Windows Server 2003 SP2, Windows Vista SP2, Windows Server 2008 SP2, R2, '  # noqa: E501
+        'and R2 SP1, and Windows 7 Gold and SP1 does not properly load structured exception handling tables, which allows '  # noqa: E501
         'context-dependent attackers to bypass the SafeSEH security feature by leveraging a Visual C++ .NET 2003 '
         'application, aka \"Windows Kernel SafeSEH Bypass Vulnerability.\"',
         '9.3',
@@ -373,14 +373,14 @@ EXPECTED_UPDATED_SUMMARY_TABLE = [
     (
         'CVE-2018-7576',
         2018,
-        'Google TensorFlow 1.6.x and earlier is affected by: Null Pointer Dereference. The type of exploitation is: context-dependent.',
+        'Google TensorFlow 1.6.x and earlier is affected by: Null Pointer Dereference. The type of exploitation is: context-dependent.',  # noqa: E501
         'N/A',
         'N/A',
     ),
     (
         'CVE-2018-8825',
         2018,
-        'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).',
+        'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).',  # noqa: E501
         'N/A',
         'N/A',
     ),
@@ -428,7 +428,7 @@ EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT = [
     ),
     CveSummaryEntry(
         'CVE-2018-8825',
-        'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).',
+        'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).',  # noqa: E501
         {},
     ),
 ]
@@ -643,9 +643,9 @@ CPE_TABLE = [
 
 
 @pytest.fixture(autouse=True)
-def setup():
+def setup():  # noqa: PT004
     with suppress(OSError):
-        remove('cve_cpe.db')
+        remove('cve_cpe.db')  # noqa: PTH107
     sr.QUERIES.update(TEST_QUERIES)
     cpe_base = sr.setup_cpe_table(dp.extract_cpe(PATH_TO_TEST + EXTRACT_CPE_XML))
     cve_base, summary_base = dp.extract_cve(PATH_TO_TEST + EXTRACT_CVE_JSON)
@@ -674,13 +674,13 @@ def setup():
     yield
 
     with suppress(OSError):
-        remove(PATH_TO_TEST + 'test_update.db')
-        remove(PATH_TO_TEST + 'test_import.db')
-        remove(PATH_TO_TEST + 'test_output.db')
+        remove(PATH_TO_TEST + 'test_update.db')  # noqa: PTH107
+        remove(PATH_TO_TEST + 'test_import.db')  # noqa: PTH107
+        remove(PATH_TO_TEST + 'test_output.db')  # noqa: PTH107
 
 
-@pytest.fixture(scope='function', autouse=True)
-def patch_download(monkeypatch):
+@pytest.fixture(autouse=True)
+def patch_download(monkeypatch):  # noqa: PT004
     class MockRequests:
         content = b''
 
@@ -734,7 +734,7 @@ def test_update_cpe(monkeypatch):
         actual_cpe_update = sorted(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('cpe_table')))
         assert sorted(EXPECTED_UPDATED_CPE_TABLE) == actual_cpe_update
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
-        with pytest.raises(CveLookupException) as exception:
+        with pytest.raises(CveLookupException) as exception:  # noqa: PT012
             sr.update_cpe('')
             assert 'CPE table does not exist' in exception.message
 
@@ -748,7 +748,7 @@ def test_import_cpe(monkeypatch):
         assert sorted(CPE_TABLE) == sorted(actual_cpe_output)
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
         sr.DATABASE.execute_query(QUERIES['create_cpe_table'].format('cpe_table'))
-        with pytest.raises(CveLookupException) as exception:
+        with pytest.raises(CveLookupException) as exception:  # noqa: PT012
             sr.import_cpe('')
             assert 'CPE table does already exist' in exception.message
 
@@ -759,9 +759,9 @@ def test_get_cpe_content(monkeypatch):
         EXTRACT_CPE_OUTPUT.sort()
         actual_output = sr.get_cpe_content(path=PATH_TO_TEST + EXTRACT_CPE_XML)
         actual_output.sort()
-        assert EXTRACT_CPE_OUTPUT == actual_output
+        assert actual_output == EXTRACT_CPE_OUTPUT
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017, PT011
         sr.get_cpe_content('.')
 
 
@@ -882,7 +882,7 @@ def test_init_cve_feeds_table():
     sr.init_cve_feeds_table(CVE_LIST, 'test_cve')
     assert sr.DATABASE.fetch_one(QUERIES['exist'].format('test_cve'))[0] == 'test_cve'
     db_cve = sorted(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('test_cve')))
-    assert len(db_cve) == 5
+    assert len(db_cve) == 5  # noqa: PLR2004
     assert db_cve == expected
 
 
@@ -916,9 +916,9 @@ def test_get_cve_update_content(monkeypatch):
             assert item.cve_id == expected.cve_id
             assert item.impact == expected.impact
             assert sorted(item.cpe_list) == sorted(expected.cpe_list)
-        assert EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT == summary
+        assert summary == EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017, PT011
         sr.get_cve_update_content('.')
 
 
@@ -933,7 +933,7 @@ def test_update_cve_repository(monkeypatch):
         assert sorted(actual_summary_update) == sorted(EXPECTED_UPDATED_SUMMARY_TABLE)
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
 
-        with pytest.raises(CveLookupException) as exception:
+        with pytest.raises(CveLookupException) as exception:  # noqa: PT012
             sr.update_cve_repository('.')
             assert 'CVE tables do not exist!' in exception.message
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
@@ -966,7 +966,7 @@ def test_import_cve(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    'path, choice, years, expected',
+    ('path', 'choice', 'years', 'expected'),
     [
         ('', sr.Choice('both'), YEARS, ['cpe', 'cve']),
         ('', sr.Choice('cpe'), YEARS, ['cpe']),
@@ -983,7 +983,7 @@ def test_set_repository(monkeypatch, path, choice, years, expected):
 
 
 @pytest.mark.parametrize(
-    'path, choice, expected',
+    ('path', 'choice', 'expected'),
     [
         ('', sr.Choice('both'), ['cpe', 'cve']),
         ('', sr.Choice('cpe'), ['cpe']),
@@ -1000,12 +1000,12 @@ def test_update_repository(monkeypatch, path, choice, expected):
 
 
 @pytest.mark.parametrize(
-    'years, raising',
+    ('years', 'raising'),
     [(YEARTUPLE(2002, 2019), None), (YEARTUPLE(2001, 2019), ValueError), (YEARTUPLE(2018, 2017), ValueError)],
 )
 def test_check_validity_of_arguments(years, raising):
     if raising:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             sr.check_validity_of_arguments(years=years)
     else:
         sr.check_validity_of_arguments(years=years)
@@ -1013,7 +1013,7 @@ def test_check_validity_of_arguments(years, raising):
 
 def test_setup_cve_feeds_table():
     cve_result = sr.setup_cve_feeds_table(CVE_LIST)
-    assert CVE_TABLE == cve_result
+    assert cve_result == CVE_TABLE
 
 
 def test_setup_cve_summary_table():
@@ -1032,7 +1032,7 @@ def test_setup_cve_summary_table():
 def test_setup_cpe_table():
     result = sr.setup_cpe_table(CPE_LIST)
     for entry in result:
-        assert len(entry) == 12
+        assert len(entry) == 12  # noqa: PLR2004
     for actual, expected in zip(result, CPE_TABLE):
         assert actual == expected
 
@@ -1075,6 +1075,6 @@ def test_setup_cpe_entry_with_colons():
         ),
     ]
     for entry in result:
-        assert len(entry) == 12
+        assert len(entry) == 12  # noqa: PLR2004
     for actual, expected in zip(result, expected_result):
         assert actual == expected

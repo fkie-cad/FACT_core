@@ -3,7 +3,7 @@ from urllib.parse import quote
 
 import pytest
 
-from test.common_helper import (  # pylint: disable=wrong-import-order
+from test.common_helper import (
     create_test_file_object,
     create_test_firmware,
     generate_analysis_entry,

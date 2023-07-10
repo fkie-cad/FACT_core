@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 from flask import session
 
 from test.common_helper import TEST_FW, TEST_FW_2
@@ -41,7 +40,7 @@ def test_remove_from_compare_basket(web_frontend):
 def test_remove_all_from_compare_basket(web_frontend):
     with web_frontend.app.test_request_context():
         session['uids_for_comparison'] = [TEST_FW.uid, TEST_FW_2.uid]
-        session.modified = True  # pylint: disable=assigning-non-slot
+        session.modified = True
         assert 'uids_for_comparison' in session
         assert TEST_FW.uid in session['uids_for_comparison']
         assert TEST_FW_2.uid in session['uids_for_comparison']

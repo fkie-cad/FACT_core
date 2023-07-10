@@ -8,8 +8,9 @@ from test.common_helper import TEST_FW
 from ..code import cve_lookup as lookup
 from ..internal.database_interface import DatabaseInterface
 from ..internal.helper_functions import replace_characters_and_wildcards
+import contextlib
 
-# pylint: disable=redefined-outer-name
+
 lookup.MAX_LEVENSHTEIN_DISTANCE = 3
 
 USER_INPUT = {'vendor': 'Microsoft', 'product': 'Windows 7', 'version': '1.2.5'}
@@ -79,14 +80,12 @@ SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
 @pytest.fixture(scope='module', autouse=True)
 def setup() -> None:
     yield None
-    try:
-        remove('test.db')
-    except OSError:
-        pass
+    with contextlib.suppress(OSError):
+        remove('test.db')  # noqa: PTH107
 
 
 @pytest.mark.parametrize(
-    'software_name, expected_output',
+    ('software_name', 'expected_output'),
     [
         ('windows 7', ['windows', 'windows_7']),
         ('Linux Kernel', ['linux', 'linux_kernel', 'kernel']),
@@ -99,7 +98,7 @@ def test_generate_search_terms(software_name, expected_output):
 
 
 @pytest.mark.parametrize(
-    'version, expected_output',
+    ('version', 'expected_output'),
     [
         ('11\\.00\\.00', True),
         ('1\\.0\\.0', True),
@@ -116,7 +115,7 @@ def test_is_valid_dotted_version(version, expected_output):
 
 
 @pytest.mark.parametrize(
-    'target_values, search_word, expected',
+    ('target_values', 'search_word', 'expected'),
     [
         (['1\\.2\\.3', '2\\.2\\.2', '4\\.5\\.6'], '2\\.2\\.2', '1\\.2\\.3'),
         (['1\\.1\\.1', '1\\.2\\.3', '4\\.5\\.6'], '1\\.1\\.1', '1\\.2\\.3'),
@@ -130,11 +129,11 @@ def test_find_next_closest_version(target_values, search_word, expected):
 
 
 def test_find_matching_cpe_product():
-    assert SORT_CPE_MATCHES_OUTPUT == lookup.find_matching_cpe_product(MATCHED_CPE, VERSION_SEARCH_TERM)
+    assert lookup.find_matching_cpe_product(MATCHED_CPE, VERSION_SEARCH_TERM) == SORT_CPE_MATCHES_OUTPUT
 
 
 @pytest.mark.parametrize(
-    'term, expected_output',
+    ('term', 'expected_output'),
     [
         ('mircosoft', True),
         ('microsof', True),
@@ -147,7 +146,7 @@ def test_terms_match(term, expected_output):
 
 
 @pytest.mark.parametrize(
-    'word_list, remaining_words, expected_output',
+    ('word_list', 'remaining_words', 'expected_output'),
     [
         (['aaaa', 'bbbb', 'cccc', 'dddd', 'eeee', 'ffff', 'gggg'], ['cccc', 'dddd', 'eeee'], True),
         (['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True),
@@ -159,7 +158,7 @@ def test_word_is_in_word_list(word_list, remaining_words, expected_output):
 
 
 @pytest.mark.parametrize(
-    'word_list, remaining_words, expected_output',
+    ('word_list', 'remaining_words', 'expected_output'),
     [(['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True), (['abcde', 'ghkl'], ['abcdef', 'ghijklmnop'], False)],
 )
 def test_remaining_words_present(word_list, remaining_words, expected_output):
@@ -167,7 +166,7 @@ def test_remaining_words_present(word_list, remaining_words, expected_output):
 
 
 @pytest.mark.parametrize(
-    'word_list, expected_output',
+    ('word_list', 'expected_output'),
     [
         ('bla bla microsoft windows 8 bla', True),
         ('bla bla microsoft windows', False),
@@ -202,7 +201,7 @@ def test_search_cve_summary(monkeypatch):
         MATCHED_SUMMARY.sort()
         actual_match = list(lookup.search_cve_summary(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
         actual_match.sort()
-        assert MATCHED_SUMMARY == actual_match
+        assert actual_match == MATCHED_SUMMARY
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=lookup.AnalysisPlugin)
@@ -218,7 +217,7 @@ class TestCveLookup:
         finally:
             lookup.MAX_LEVENSHTEIN_DISTANCE = 3
 
-    @pytest.mark.parametrize('cve_score, should_be_tagged', [('9.9', True), ('5.5', False)])
+    @pytest.mark.parametrize(('cve_score', 'should_be_tagged'), [('9.9', True), ('5.5', False)])
     def test_add_tags(self, analysis_plugin, cve_score, should_be_tagged):
         TEST_FW.processed_analysis['cve_lookup'] = {}
         cve_results = {'component': {'cve_id': {'score2': cve_score, 'score3': 'N/A'}}}
@@ -226,12 +225,13 @@ class TestCveLookup:
         if should_be_tagged:
             assert 'tags' in TEST_FW.processed_analysis['cve_lookup']
             tags = TEST_FW.processed_analysis['cve_lookup']['tags']
-            assert 'CVE' in tags and tags['CVE']['value'] == 'critical CVE'
+            assert 'CVE' in tags
+            assert tags['CVE']['value'] == 'critical CVE'
         else:
             assert 'tags' not in TEST_FW.processed_analysis['cve_lookup']
 
     @pytest.mark.parametrize(
-        'cve_results_dict, expected_output',
+        ('cve_results_dict', 'expected_output'),
         [
             ({}, []),
             ({'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}, ['component']),
@@ -248,11 +248,19 @@ class TestCveLookup:
         ],
     )
     def test_create_summary(self, cve_results_dict, expected_output, analysis_plugin):
-        assert analysis_plugin._create_summary(cve_results_dict) == expected_output  # pylint: disable=protected-access
+        assert analysis_plugin._create_summary(cve_results_dict) == expected_output
 
 
 @pytest.mark.parametrize(
-    'cpe_version, cve_version, version_start_including, version_start_excluding, version_end_including, version_end_excluding, expected_output',
+    (
+        'cpe_version',
+        'cve_version',
+        'version_start_including',
+        'version_start_excluding',
+        'version_end_including',
+        'version_end_excluding',
+        'expected_output',
+    ),
     [
         ('1', '1', '', '', '', '', True),
         ('1', '2', '', '', '', '', False),
@@ -293,7 +301,7 @@ class TestCveLookup:
         ('0.9.8f', 'ANY', '', '0.9.8m', '', '0.9.8t', False),
     ],
 )
-def test_versions_match(
+def test_versions_match(  # noqa: PLR0913
     cpe_version: str,
     cve_version: str,
     version_start_including: str,
@@ -318,7 +326,14 @@ def test_versions_match(
 
 
 @pytest.mark.parametrize(
-    'version, version_start_including, version_start_excluding, version_end_including, version_end_excluding, expected_output',
+    (
+        'version',
+        'version_start_including',
+        'version_start_excluding',
+        'version_end_including',
+        'version_end_excluding',
+        'expected_output',
+    ),
     [
         ('1.2', '', '', '', '', '1.2'),
         ('ANY', '', '', '', '', 'ANY'),
@@ -331,7 +346,7 @@ def test_versions_match(
         ('ANY', '', '1.1', '', '1.2', '1.1 < version < 1.2'),
     ],
 )
-def test_build_version_string(
+def test_build_version_string(  # noqa: PLR0913
     version: str,
     version_start_including: str,
     version_start_excluding: str,
@@ -355,7 +370,7 @@ def test_build_version_string(
 
 
 @pytest.mark.parametrize(
-    'input_version, expected_output',
+    ('input_version', 'expected_output'),
     [
         ('1.2', '1.2'),
         ('1.2.3.4.5', '1.2.3.4.5'),
@@ -379,7 +394,7 @@ def test_coerce_version(input_version, expected_output):
 
 
 @pytest.mark.parametrize(
-    'smaller_version, bigger_version',
+    ('smaller_version', 'bigger_version'),
     [
         ('1', '2'),
         ('1.2', '1.3'),

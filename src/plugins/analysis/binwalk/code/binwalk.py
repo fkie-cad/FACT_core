@@ -13,11 +13,10 @@ from analysis.PluginBase import AnalysisBasePlugin
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-
     NAME = 'binwalk'
     DESCRIPTION = 'binwalk signature and entropy analysis'
-    DEPENDENCIES = []
-    MIME_BLACKLIST = ['audio', 'image', 'video']
+    DEPENDENCIES = []  # noqa: RUF012
+    MIME_BLACKLIST = ['audio', 'image', 'video']  # noqa: RUF012
     VERSION = '0.5.5'
     FILE = __file__
 
@@ -59,7 +58,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _extract_description_from_signature_line(separated_by_spaces):
-        return ' '.join(separated_by_spaces[2:]) if len(separated_by_spaces) > 2 else ''
+        return ' '.join(separated_by_spaces[2:]) if len(separated_by_spaces) > 2 else ''  # noqa: PLR2004
 
     @staticmethod
     def _iterate_valid_signature_lines(output_lines):

@@ -4,18 +4,17 @@ from analysis.PluginBase import AnalysisBasePlugin
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     Hardware Analysis Plug-in
-    '''
+    """
 
     NAME = 'hardware_analysis'
     DESCRIPTION = 'Hardware Analysis Plug-in'
-    DEPENDENCIES = ['cpu_architecture', 'elf_analysis', 'kernel_config']
+    DEPENDENCIES = ['cpu_architecture', 'elf_analysis', 'kernel_config']  # noqa: RUF012
     VERSION = '0.2'
     FILE = __file__
 
     def process_object(self, file_object):
-
         # search for important information
         cpu_architecture = self.cpu_architecture_analysis(file_object)
         modinfo = self.get_modinfo(file_object)
