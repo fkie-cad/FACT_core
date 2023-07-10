@@ -21,3 +21,6 @@ werkzeug==2.3.4
 
 # Used for username validation by flask-security
 bleach==5.0.1
+
+# Figuring out if the analysis is outdated
+semver==3.0.1

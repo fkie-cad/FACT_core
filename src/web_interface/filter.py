@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import binascii
+import semver
 import json
 import logging
+import packaging
 import random
 import re
 import zlib
@@ -13,6 +15,7 @@ from operator import itemgetter
 from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
+from typing import Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -439,3 +442,43 @@ def get_searchable_crypto_block(crypto_material: str) -> str:
     """crypto material plugin results contain spaces and line breaks -> get a contiguous block without those"""
     blocks = crypto_material.replace(' ', '').split('\n')
     return sorted(blocks, key=len, reverse=True)[0]
+
+
+def version_is_compatible(version: Union[str, semver.Version], other: Union[str, semver.Version]) -> bool:
+    """A warpper around ``semver.Version.is_compatible`` that allows non semver versions.
+    If only one of :paramref:`version` and :paramref:`other` is semver they are always considered incompatible.
+    So for example '1.1.0' would not be compatible '1.2' even if one might expand '1.2' to '1.2.0'.
+
+    If both versions are not semver they are only compatible if they are equal.
+
+    :param version: The version to check compatiblity for.
+    :param other: The version to compare to.
+
+    :return: If :paramref:`version` is compatible with :paramref:`other`.
+
+    :raises ValueError: If both versions are neither semver nor ``packaging.version.Version`` versions.
+    """
+    version_is_semver = True
+    try:
+        if isinstance(version, str):
+            version = semver.Version.parse(version)
+    except ValueError:
+        version_is_semver = False
+
+    other_is_semver = True
+    try:
+        if isinstance(other, str):
+            other = semver.Version.parse(other)
+    except ValueError:
+        other_is_semver = False
+
+    if version_is_semver ^ other_is_semver:
+        return False
+
+    if not version_is_semver and not other_is_semver:
+        try:
+            return packaging.version.Version(version) == packaging.version.Version(other)
+        except packaging.version.InvalidVersion as invalid_version:
+            raise ValueError from invalid_version
+
+    return version.is_compatible(other)

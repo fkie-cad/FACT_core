@@ -25,22 +25,36 @@
                 <td>{{ analysis_metadata['analysis_date'] | nice_unix_time }}</td>
             </tr>
             {% endif %}
-            {% if analysis_metadata['plugin_version'] %}
-            <tr>
-                <td class="table-head-light">Plugin Version</td>
-                <td>{{ analysis_metadata['plugin_version']}}</td>
-            </tr>
-            {% endif %}
-            {% if analysis_metadata['system_version'] %}
-            <tr>
-                <td class="table-head-light">System Version</td>
-                <td>{{ analysis_metadata['system_version']}}</td>
-            </tr>
-            {% endif %}
-            {% if analysis_result is not none and 'skipped' not in analysis_result %}
-                {% block analysis_result_details %}
 
-                {% endblock %}
+            {% set version_backend = analysis_plugin_dict[selected_analysis][3] %}
+            {% set version_database = analysis_metadata['plugin_version'] %}
+
+            {% if version_database | version_is_compatible(version_backend) %}
+                {% if analysis_metadata['plugin_version'] %}
+                <tr>
+                    <td class="table-head-light">Plugin Version</td>
+                    <td>{{ analysis_metadata['plugin_version']}}</td>
+                </tr>
+                {% endif %}
+                {% if analysis_metadata['system_version'] %}
+                <tr>
+                    <td class="table-head-light">System Version</td>
+                    <td>{{ analysis_metadata['system_version']}}</td>
+                </tr>
+                {% endif %}
+                {% if analysis_result is not none and 'skipped' not in analysis_result %}
+                    {% block analysis_result_details %}
+
+                    {% endblock %}
+                {% endif %}
+            {% else %}
+                <tr>
+                    <td class="table-warning">Analysis outdated</td>
+                    <td>
+                        Plugin version {{ version_backend | string }} is incompatible with {{ version_database | string }}.
+                        Please update the analysis.
+                    </td>
+                </tr>
             {% endif %}
         </tbody>
     </table>
