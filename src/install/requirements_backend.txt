@@ -11,3 +11,6 @@ pyyaml==6.0.1
 flask==2.3.2
 
 git+https://github.com/fkie-cad/common_helper_yara.git
+
+# For plugin definition
+semver==3.0.1

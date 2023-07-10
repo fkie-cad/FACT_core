@@ -3,9 +3,9 @@ from __future__ import annotations
 import abc
 import time
 import typing
+import semver
 
 import pydantic
-from packaging.version import Version
 from pydantic import BaseModel, validator
 
 if typing.TYPE_CHECKING:
@@ -38,6 +38,9 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
     class MetaData(BaseModel):
         """A class containing all metadata that describes the plugin"""
 
+        class Config:
+            arbitrary_types_allowed = True
+
         #: Name of the plugin
         name: str
         #: The plugins description.
@@ -48,7 +51,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         #: The version of the plugin.
         #: MUST adhere to PEP 440.
         #: We suggest using a semver compatible version.
-        version: str
+        version: semver.Version
         #: The version of the backing analysis system.
         #: E.g. for yara plugins this would be the yara version.
         system_version: typing.Optional[str] = None
@@ -62,9 +65,10 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         #: and will be aborted if the timeout is reached.
         timeout: int = 300
 
-        @validator('version')
+        @validator('version', pre=True)
         def _version_validator(cls, value):  # noqa: N805
-            _ = Version(value)
+            if isinstance(value, str):
+                return semver.Version.parse(value)
 
             return value
 
@@ -131,7 +135,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         # FIXME update generic_view/general_information.html when all plugins use the new this class
         return {
             'analysis_date': start_time,
-            'plugin_version': self.metadata.version,
+            'plugin_version': str(self.metadata.version),
             'system_version': self.metadata.system_version,
             'summary': summary,
             'tags': tags_dict,

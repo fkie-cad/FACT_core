@@ -26,7 +26,7 @@ class AnalysisBasePluginAdapterMixin:
 
     @property
     def VERSION(self):  # noqa: N802
-        return self.metadata.version
+        return str(self.metadata.version)
 
     @property
     def RECURSIVE(self):  # noqa: N802
