@@ -1,99 +1,138 @@
 import json
-import logging
 
 from docker.types import Mount
 
-from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
-from storage.fsorganizer import FSOrganizer
 
+from analysis.plugin import AnalysisPluginV0
+from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+
+import pydantic
+from pydantic import Field
+
+from typing import Optional
+from pathlib import Path
+
+import io
+from typing import List
 from ..internal import linters
 
 
-class AnalysisPlugin(AnalysisBasePlugin):
-    """
-    This class implements the FACT wrapper for multiple linters including
-    - shellcheck (shell)
-    - pylint (python)
-    - jshint (javascript)
-    - lua (luacheck)
-    TODO Implement proper view
-    TODO implement additional linters (ruby, perl, php)
-    """
+# All linter methods must return an array of dicts.
+# The elements are dicts and must match the Issue model.
+LINTER_IMPLS = {
+    'javascript': linters.run_eslint,
+    'lua': linters.run_luacheck,
+    'python': linters.run_pylint,
+    'ruby': linters.run_rubocop,
+    'shell': linters.run_shellcheck,
+    'php': linters.run_phpstan,
+}
 
-    NAME = 'source_code_analysis'
-    DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
-    DEPENDENCIES = ['file_type']  # noqa: RUF012
-    VERSION = '0.6'
-    MIME_WHITELIST = ['text/']  # noqa: RUF012
-    # All linter methods must return an array of dicts.
-    # These dicts must at least contain a value for the 'symbol' key.
-    linter_impls = {  # noqa: RUF012
-        'javascript': linters.run_eslint,
-        'lua': linters.run_luacheck,
-        'python': linters.run_pylint,
-        'ruby': linters.run_rubocop,
-        'shell': linters.run_shellcheck,
-        'php': linters.run_phpstan,
-    }
-    FILE = __file__
 
-    def additional_setup(self):
-        self._fs_organizer = FSOrganizer()
+class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+    class Schema(pydantic.BaseModel):
+        class Issue(pydantic.BaseModel):
+            """A linting issue."""
 
-    def process_object(self, file_object):
+            symbol: str = Field(
+                description=(
+                    # fmt: off
+                    "An identifier for the linting type. E.g. 'unused-import' (pylint).\n"
+                    "Note that this field is linter specific."
+                ),
+            )
+            type: str = Field(description="E.g. 'warning' or 'error'")
+            message: str = Field(
+                description=(
+                    # fmt: off
+                    'The human readable description of the issue.\n'
+                    'Note that this field is linter specific.'
+                ),
+            )
+            line: int = Field(description='The line in the file where the issue occurred')
+            column: int = Field(description='The column in the file where the issue occurred')
+
+        language: Optional[str] = Field(description='The language. Is set to None when no language is detected.')
+        linguist: dict = Field(description='The dict output by `linguist --json`.')
+        issues: Optional[List[Issue]] = Field(
+            description=(
+                # fmt: off
+                'A list of issues the linter for ``script_type`` found.\n'
+                'Is set to None if no linter is available.'
+            ),
+        )
+
+    def __init__(self):
+        super().__init__(
+            metadata=AnalysisPluginV0.MetaData(
+                name='source_code_analysis',
+                description='This plugin implements static code analysis for multiple scripting languages',
+                version='0.7.0',
+                Schema=AnalysisPlugin.Schema,
+                mime_whitelist=['text/'],
+            ),
+        )
+
+    def summarize(self, result: Schema) -> list:
+        summary = []
+        if result.language is not None:
+            summary.append(result.language)
+        if result.issues is not None and len(result.issues) > 0:
+            summary.append('has-warnings')
+
+        return summary
+
+    def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
         """
         After only receiving text files thanks to the whitelist, we try to detect the correct scripting language
         and then call a linter if a supported language is detected
         """
-        file_object.processed_analysis[self.NAME] = {}
+        del virtual_file_path, analyses
+        linguist_json = run_linguist(file_handle.name)
 
-        script_type = self._get_script_type(file_object)
-        if script_type is None:
-            file_object.processed_analysis[self.NAME] = {
-                'summary': [],
-                'warning': 'Is not a script or language could not be detected',
-            }
-            return file_object
+        language = linguist_json.get('language')
 
-        script_type = script_type.lower()
+        if language is None:
+            return AnalysisPlugin.Schema(
+                linguist=linguist_json,
+                language=None,
+                issues=None,
+            )
 
-        if script_type not in self.linter_impls:
-            logging.debug(f'[{self.NAME}] {file_object.file_name} ({script_type}) is not a supported script.')
-            file_object.processed_analysis[self.NAME] = {
-                'summary': [],
-                'warning': f'Unsupported script type: {script_type}',
-            }
-            return file_object
+        language = language.lower()
 
-        issues = self.linter_impls[script_type](file_object.file_path)
+        if language not in LINTER_IMPLS:
+            return AnalysisPlugin.Schema(
+                linguist=linguist_json,
+                language=language,
+                issues=None,
+            )
 
-        if len(issues) == 0:
-            file_object.processed_analysis[self.NAME] = {'summary': []}
-        else:
-            file_object.processed_analysis[self.NAME] = {
-                'full': sorted(issues, key=lambda k: k['symbol']),
-                'summary': [f'Warnings in {script_type} script'],
-            }
-        return file_object
+        issues = LINTER_IMPLS[language](file_handle.name)
+        issues = sorted(issues, key=lambda k: k['symbol'])
 
-    def _get_script_type(self, file_object):
-        host_path = self._fs_organizer.generate_path_from_uid(file_object.uid)
-        container_path = f'/repo/{file_object.file_name}'
-        result = run_docker_container(
-            'crazymax/linguist',
-            combine_stderr_stdout=True,
-            timeout=60,
-            command=f'--json {container_path}',
-            mounts=[
-                Mount(container_path, host_path, type='bind'),
-            ],
-            logging_label=self.NAME,
-        )
-        output_json = json.loads(result.stdout)
-
-        file_object.processed_analysis[self.NAME]['linguist'] = ''.join(
-            [f'{k:<10} {v!s:<10}\n' for k, v in output_json[container_path].items()]
+        return AnalysisPlugin.Schema(
+            linguist=linguist_json,
+            language=language,
+            issues=issues,
         )
 
-        return output_json[container_path].get('language')
+
+def run_linguist(file_path: str) -> dict:
+    file_name = Path(file_path).name
+    container_path = f'/repo/{file_name}'
+    result = run_docker_container(
+        'crazymax/linguist',
+        combine_stderr_stdout=True,
+        timeout=60,
+        command=f'--json {container_path}',
+        mounts=[
+            Mount(container_path, file_path, type='bind'),
+        ],
+        logging_label='source_code_analysis',
+    )
+    result.check_returncode()
+    output_json = json.loads(result.stdout)
+
+    return output_json[container_path]
