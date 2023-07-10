@@ -32,7 +32,7 @@ class Cve(Base):
     cpes = relationship(Association, back_populates='cve')
 
     def __repr__(self) -> str:
-        return f'CveEntry({self.cve_id})'
+        return f'Cve({self.cve_id})'
 
 
 class Cpe(Base):
@@ -53,4 +53,4 @@ class Cpe(Base):
     cves = relationship(Association, back_populates='cpe')
 
     def __repr__(self) -> str:
-        return f'CpeEntry({self.cpe_id})'
+        return f'Cpe({self.cpe_id})'
