@@ -14,8 +14,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'Querying the circ.lu hash library to identify known binaries. The library contains file hashes for multiple'
         '*nix distributions and the NIST software reference library.'
     )
-    MIME_BLACKLIST = [*MIME_BLACKLIST_NON_EXECUTABLE, *MIME_BLACKLIST_COMPRESSED]
-    DEPENDENCIES = ['file_hashes']
+    MIME_BLACKLIST = [*MIME_BLACKLIST_NON_EXECUTABLE, *MIME_BLACKLIST_COMPRESSED]  # noqa: RUF012
+    DEPENDENCIES = ['file_hashes']  # noqa: RUF012
     VERSION = '0.1.4'
     FILE = __file__
 
@@ -23,7 +23,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         try:
             sha2_hash = file_object.processed_analysis['file_hashes']['result']['sha256']
         except KeyError:
-            message = 'Lookup needs sha256 hash of file. It\'s missing so sth. seems to be wrong with the hash plugin'
+            message = "Lookup needs sha256 hash of file. It's missing so sth. seems to be wrong with the hash plugin"
             logging.error(message)
             file_object.processed_analysis[self.NAME] = {'failed': message, 'summary': []}
             return file_object

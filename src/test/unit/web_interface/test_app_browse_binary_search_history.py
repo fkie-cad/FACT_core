@@ -5,7 +5,7 @@ from test.common_helper import CommonDatabaseMock
 
 class DbMock(CommonDatabaseMock):
     @staticmethod
-    def search_query_cache(offset=0, limit=0):  # pylint: disable=unused-argument
+    def search_query_cache(offset=0, limit=0):  # noqa: ARG004
         return [('cache_id', 'search_title', ['rule_1', 'rule_2'])]
 
     @staticmethod

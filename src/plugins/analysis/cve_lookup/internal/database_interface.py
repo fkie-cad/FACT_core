@@ -19,7 +19,7 @@ CPE_DB_FIELDS = [
     ('vendor', 'TEXT'),
     ('product', 'TEXT'),
     ('version', 'TEXT'),
-    ('\'update\'', 'TEXT'),
+    ("'update'", 'TEXT'),
     ('edition', 'TEXT'),
     ('language', 'TEXT'),
     ('sw_edition', 'TEXT'),
@@ -37,7 +37,7 @@ CVE_DB_FIELDS = [
     ('vendor', 'TEXT'),
     ('product', 'TEXT'),
     ('version', 'TEXT'),
-    ('\'update\'', 'TEXT'),
+    ("'update'", 'TEXT'),
     ('edition', 'TEXT'),
     ('language', 'TEXT'),
     ('sw_edition', 'TEXT'),
@@ -69,7 +69,7 @@ QUERIES = {
     'version_start_excluding, version_end_including, version_end_excluding FROM cve_table',
     'delete_outdated': 'DELETE FROM {} WHERE cve_id IN (SELECT cve_id FROM {})',
     'drop': 'DROP TABLE IF EXISTS {}',
-    'exist': 'SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'{}\'',
+    'exist': "SELECT name FROM sqlite_master WHERE type='table' AND name='{}'",
     'extract_relevant': 'SELECT * FROM {} AS new WHERE new.year IN (SELECT distinct(year) FROM {})',
     'get_years_from_cve': 'SELECT DISTINCT year FROM cve_table',
     'insert_cpe': TABLE_INSERT_COMMAND.format(get_field_names(CPE_DB_FIELDS), ', '.join(['?'] * len(CPE_DB_FIELDS))),
@@ -83,9 +83,9 @@ QUERIES = {
 
 
 class DatabaseInterface:
-    '''
+    """
     class to provide connections to a sqlite database and allows to operate on it
-    '''
+    """
 
     def __init__(self, db_path: str = DB_PATH):
         self.connection = None

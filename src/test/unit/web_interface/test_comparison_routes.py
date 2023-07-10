@@ -1,4 +1,3 @@
-# pylint: disable=protected-access
 import pytest
 
 from test.common_helper import CommonDatabaseMock
@@ -51,7 +50,7 @@ def test_add_plugin_views():
     result = _add_plugin_views_to_compare_view(compare_view, plugin_views)
 
     for plugin, view in plugin_views:
-        assert f'elif plugin == \'{plugin}\'' in result
+        assert f"elif plugin == '{plugin}'" in result
         assert view.decode() in result
         assert key_index + len(key) <= result.find(view.decode()) < result.find('yyyyy')
 

@@ -1,11 +1,10 @@
-# pylint: disable=redefined-outer-name
 from multiprocessing import Event, Queue, Value
 from typing import List, NamedTuple, Type, TypeVar
 
 import pytest
 from pydantic import BaseModel, Extra
 from pydantic.dataclasses import dataclass
-from pytest import MonkeyPatch
+from pytest import MonkeyPatch  # noqa: PT013
 
 import config
 from scheduler.analysis import AnalysisScheduler
@@ -131,7 +130,7 @@ class MockIntercom:
 
 
 @pytest.fixture(scope='session')
-def _database_interfaces():
+def _database_interfaces():  # noqa: PT005
     """Creates the tables that backend needs.
     This is equivalent to executing ``init_postgres.py``.
     """
@@ -288,20 +287,20 @@ def analysis_finished_counter() -> Value:
 
 
 @pytest.fixture
-def _unpacking_lock_manager() -> UnpackingLockManager:
+def _unpacking_lock_manager() -> UnpackingLockManager:  # noqa: PT005
     _manager = UnpackingLockManager()
     yield _manager
     _manager.shutdown()
 
 
 @pytest.fixture(name='test_config')
-def _scheduler_test_config(request) -> 'SchedulerTestConfig':
+def _scheduler_test_config(request) -> 'SchedulerTestConfig':  # noqa: PT005
     return SchedulerTestConfig.get_instance_from_request(request)
 
 
 @pytest.fixture
-def analysis_scheduler(
-    request,
+def analysis_scheduler(  # noqa: PLR0913
+    request,  # noqa: ARG001
     pre_analysis_queue,
     post_analysis_queue,
     analysis_finished_event,
@@ -424,7 +423,7 @@ def comparison_finished_event(request) -> Event:
 
 
 @pytest.fixture
-def comparison_scheduler(request, comparison_finished_event, test_config) -> ComparisonScheduler:
+def comparison_scheduler(request, comparison_finished_event, test_config) -> ComparisonScheduler:  # noqa: ARG001
     """Returns an instance of :py:class:`~scheduler.comparison_scheduler.ComparisonScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """
@@ -464,7 +463,7 @@ class SchedulerTestConfig:
     #: This is used by the :py:func:`analysis_scheduler`
     backend_db_class: Type
     #: Set the class that is used as :py:class:`~storage.db_interface_comparison.ComparisonDbInterface`.
-    #: This can be either a mocked class or the actual :py:class:`~storage.db_interface_comparison.ComparisonDbInterface`.
+    #: This can be either a mocked class or the actual :py:class:`~storage.db_interface_comparison.ComparisonDbInterface`.  # noqa: E501
     #: This is used by the :py:func:`comparison_scheduler`
     comparison_db_class: Type
     #: Set the class that is used as :py:class:`~storage.fsorganizer.FSOrganizer`.
@@ -491,7 +490,7 @@ class SchedulerTestConfig:
     items_to_unpack: int = 0
 
     @staticmethod
-    def Integration(**kwargs):
+    def Integration(**kwargs):  # noqa: N802
         return SchedulerTestConfig(
             **dict(
                 {
@@ -507,7 +506,7 @@ class SchedulerTestConfig:
         )
 
     @staticmethod
-    def Unit(**kwargs):
+    def Unit(**kwargs):  # noqa: N802
         return SchedulerTestConfig(
             **dict(
                 {
@@ -523,7 +522,7 @@ class SchedulerTestConfig:
         )
 
     @staticmethod
-    def Acceptance(**kwargs):
+    def Acceptance(**kwargs):  # noqa: N802
         return SchedulerTestConfig(
             **dict(
                 {
@@ -545,13 +544,13 @@ class SchedulerTestConfig:
         test_config_dict = merge_markers(request, 'SchedulerTestConfig', dict)
 
         modules = request.module.__name__.split('.')
-        if len(modules) < 2:
+        if len(modules) < 2:  # noqa: PLR2004
             raise err
         test_type = modules[1]
 
         if test_type == 'unit':
             return SchedulerTestConfig.Unit(**test_config_dict)
-        elif test_type == 'acceptance':
+        elif test_type == 'acceptance':  # noqa: RET505
             return SchedulerTestConfig.Acceptance(**test_config_dict)
         elif test_type == 'integration':
             return SchedulerTestConfig.Integration(**test_config_dict)

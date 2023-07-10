@@ -4,9 +4,12 @@ import logging
 from contextlib import contextmanager
 
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
 
 from storage.db_connection import DbConnection, ReadOnlyConnection, ReadWriteConnection
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 class DbInterfaceError(Exception):

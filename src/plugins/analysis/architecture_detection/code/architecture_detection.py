@@ -7,17 +7,17 @@ from ..internal import dt, elf, kconfig, metadata
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     Generically detected target architecture for firmware images.
-    '''
+    """
 
     FILE = __file__
     NAME = 'cpu_architecture'
     DESCRIPTION = 'identify CPU architecture'
     VERSION = '0.4.0'
 
-    DEPENDENCIES = ['file_type', 'kernel_config', 'device_tree']
-    MIME_BLACKLIST = [
+    DEPENDENCIES = ['file_type', 'kernel_config', 'device_tree']  # noqa: RUF012
+    MIME_BLACKLIST = [  # noqa: RUF012
         'application/msword',
         'application/pdf',
         'application/postscript',
@@ -42,10 +42,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 def construct_result(file_object, fs_organizer) -> dict[str, str]:
-    '''
+    """
     Returns a dict where keys are the architecture and values are the means of
     detection
-    '''
+    """
     result = {}
     result.update(dt.construct_result(file_object))
     result.update(kconfig.construct_result(file_object))

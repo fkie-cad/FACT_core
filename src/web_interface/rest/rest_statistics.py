@@ -39,9 +39,9 @@ class RestStatisticsWithoutName(RestResourceBase):
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Unknown stats category'})
     def get(self):
-        '''
+        """
         Get all statistics
-        '''
+        """
         statistics_dict = {}
 
         with get_shared_session(self.db.stats_viewer) as stats_db:
@@ -55,7 +55,7 @@ class RestStatisticsWithoutName(RestResourceBase):
 
 @api.route(
     '/<string:stat_name>',
-    doc={'description': 'Retrieves statistics for a specific category', 'params': {'stat_name': 'Statistic\'s name'}},
+    doc={'description': 'Retrieves statistics for a specific category', 'params': {'stat_name': "Statistic's name"}},
 )
 class RestStatisticsWithName(RestResourceBase):
     URL = '/rest/statistics'
@@ -63,14 +63,14 @@ class RestStatisticsWithName(RestResourceBase):
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Unknown stats category'})
     def get(self, stat_name):
-        '''
+        """
         Get specific statistic
-        '''
+        """
         statistic_dict = {stat_name: self.db.stats_viewer.get_statistic(stat_name)}
         _delete_id_and_check_empty_stat(statistic_dict)
         if stat_name not in STATISTICS:
             return error_message(
-                f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name)
+                f'A statistic with the ID {stat_name} does not exist', self.URL, {'stat_name': stat_name}
             )
 
         return statistic_dict

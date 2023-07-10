@@ -21,7 +21,7 @@ class AnalysisStatus:
 
         self.currently_running = self.manager.dict()
         self.recently_finished = self.manager.dict()
-        self.currently_running_lock = self.manager.Lock()  # pylint: disable=no-member
+        self.currently_running_lock = self.manager.Lock()
 
     def shutdown(self):
         self.manager.shutdown()
@@ -46,11 +46,11 @@ class AnalysisStatus:
                 self._update_current_analysis(fw_object)
 
     def _update_current_analysis(self, fw_object: FileObject):
-        '''
+        """
         new file comes from unpacking:
         - file moved from files_to_unpack to files_to_analyze (could be duplicate!)
         - included files added to files_to_unpack (could also include duplicates!)
-        '''
+        """
         for parent in self._find_currently_analyzed_parents(fw_object):
             updated_dict = self.currently_running[parent]
             all_files = updated_dict['files_to_unpack'].union(updated_dict['files_to_analyze'])

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-# pylint: disable=no-self-use,unused-argument
+
 import os
 from base64 import standard_b64encode
 from contextlib import contextmanager
@@ -14,13 +14,13 @@ from objects.firmware import Firmware
 
 
 def get_test_data_dir():
-    '''
+    """
     Returns the absolute path of the test data directory
-    '''
-    return os.path.join(get_src_dir(), 'test/data')
+    """
+    return os.path.join(get_src_dir(), 'test/data')  # noqa: PTH118
 
 
-def create_test_firmware(
+def create_test_firmware(  # noqa: PLR0913
     device_class='Router',
     device_name='test_router',
     vendor='test_vendor',
@@ -28,7 +28,7 @@ def create_test_firmware(
     all_files_included_set=False,
     version='0.1',
 ):
-    fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
+    fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))  # noqa: PTH118
     fw.device_class = device_class
     fw.device_name = device_name
     fw.vendor = vendor
@@ -71,7 +71,7 @@ def create_test_firmware(
 
 
 def create_test_file_object(bin_path='get_files_test/testfile1', uid=None, analyses=None):
-    fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
+    fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))  # noqa: PTH118
     processed_analysis = {
         'dummy': {
             'summary': ['sum a', 'file exclusive sum b'],
@@ -136,12 +136,12 @@ class MockFileObject:
         self.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
 
 
-class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
+class CommonDatabaseMock:
     fw_uid = TEST_FW.uid
     fo_uid = TEST_TEXT_FILE.uid
     fw2_uid = TEST_FW_2.uid
 
-    def __init__(self, config=None):
+    def __init__(self, config=None):  # noqa: ARG002
         self.tasks = []
         self.locks = []
 
@@ -152,7 +152,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def update_view(self, file_name, content):
         pass
 
-    def get_object(self, uid, analysis_filter=None):
+    def get_object(self, uid, analysis_filter=None):  # noqa: ARG002
         if uid == TEST_FW.uid:
             result = deepcopy(TEST_FW)
             result.processed_analysis = {
@@ -176,7 +176,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
             return result
         return None
 
-    def get_hid(self, uid, root_uid=None):
+    def get_hid(self, uid, root_uid=None):  # noqa: ARG002
         return 'TEST_FW_HID'
 
     def get_device_class_list(self):
@@ -197,13 +197,13 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
-    def uid_list_exists(self, uid_list):
+    def uid_list_exists(self, uid_list):  # noqa: ARG002
         return set()
 
-    def all_uids_found_in_database(self, uid_list):
+    def all_uids_found_in_database(self, uid_list):  # noqa: ARG002
         return True
 
-    def get_data_for_nice_list(self, input_data, root_uid):
+    def get_data_for_nice_list(self, input_data, root_uid):  # noqa: ARG002
         return [NICE_LIST_DATA]
 
     @staticmethod
@@ -214,7 +214,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def create_analysis_structure():
         return ''
 
-    def get_other_versions_of_firmware(self, fo):
+    def get_other_versions_of_firmware(self, fo):  # noqa: ARG002
         return []
 
     def is_firmware(self, uid):
@@ -255,7 +255,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
         return False
 
     @staticmethod
-    def get_hid_dict(uid_set, root_uid):
+    def get_hid_dict(uid_set, root_uid):  # noqa: ARG004
         return {uid: 'hid' for uid in uid_set}
 
     @staticmethod
@@ -265,15 +265,15 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
         return [[uid]]
 
 
-def fake_exit(self, *args):
+def fake_exit(self, *args):  # noqa: ARG001
     pass
 
 
 def get_firmware_for_rest_upload_test():
-    testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')
-    with open(testfile_path, 'rb') as fp:
+    testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')  # noqa: PTH118
+    with open(testfile_path, 'rb') as fp:  # noqa: PTH123
         file_content = fp.read()
-    data = {
+    return {
         'binary': standard_b64encode(file_content).decode(),
         'file_name': 'test.zip',
         'device_name': 'test_device',
@@ -285,7 +285,6 @@ def get_firmware_for_rest_upload_test():
         'tags': '',
         'requested_analysis_systems': ['software_components'],
     }
-    return data
 
 
 def store_binary_on_file_system(tmp_dir: str, test_object: FileObject | Firmware):

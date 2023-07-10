@@ -1,5 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order
-
 import json
 
 from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry

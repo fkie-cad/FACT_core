@@ -9,23 +9,26 @@ import config
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.tag import TagColor
-from objects.file import FileObject
 from plugins.analysis.software_components.bin import OS_LIST
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 from ..internal.resolve_version_format_string import extract_data_from_ghidra
+from typing import TYPE_CHECKING
 
-SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')
+if TYPE_CHECKING:
+    from objects.file import FileObject
+
+SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')  # noqa: PTH118
 
 
 class AnalysisPlugin(YaraBasePlugin):
-    '''
+    """
     This plugin identifies software components
 
     Credits:
     OS Tagging functionality created by Roman Konertz during Firmware Bootcamp WT17/18 at University of Bonn
     Maintained by Fraunhofer FKIE
-    '''
+    """
 
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'

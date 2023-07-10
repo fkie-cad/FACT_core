@@ -16,7 +16,7 @@ from ..code.qemu_exec import AnalysisPlugin
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 
 
-def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface):  # pylint: disable=invalid-name
+def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface):
     results = {}
     with get_shared_session(db_interface) as db:
         this_fo = db.get_object(uid)
@@ -51,7 +51,7 @@ api = Namespace('/plugins/qemu_exec/rest')
 
 @api.hide
 class QemuExecRoutesRest(RestResourceBase):
-    ENDPOINTS = [('/plugins/qemu_exec/rest/<uid>', ['GET'])]
+    ENDPOINTS = [('/plugins/qemu_exec/rest/<uid>', ['GET'])]  # noqa: RUF012
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def get(self, uid):

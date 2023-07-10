@@ -28,11 +28,11 @@ class RestComparePut(RestResourceBase):
     @roles_accepted(*PRIVILEGES['compare'])
     @api.expect(compare_model)
     def put(self):
-        '''
+        """
         Start a comparison
         For this sake a list of uids of the files, which should be compared, is needed
         The `uid_list` must contain uids of already analysed FileObjects or Firmware objects
-        '''
+        """
         data = self.validate_payload_data(compare_model)
         compare_id = normalize_compare_id(';'.join(data['uid_list']))
 
@@ -75,12 +75,12 @@ class RestCompareGet(RestResourceBase):
     @roles_accepted(*PRIVILEGES['compare'])
     @api.doc(responses={200: 'Success', 400: 'Unknown comparison ID'})
     def get(self, compare_id):
-        '''
+        """
         Request results from a comparisons
         The result can be requested by providing a semicolon separated list of uids as compare_id
         The response will contain a json_document with the comparison result, along with the fields status, timestamp,
         request_resource and request as metadata
-        '''
+        """
         try:
             self._validate_compare_id(compare_id)
             compare_id = normalize_compare_id(compare_id)

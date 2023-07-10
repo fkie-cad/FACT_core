@@ -4,12 +4,10 @@ from flask_security.utils import hash_password, verify_password
 
 class UserRoleDbInterface(SQLAlchemyUserDatastore):
     def list_users(self):
-        user_list = self.user_model.query.all()
-        return user_list
+        return self.user_model.query.all()
 
     def list_roles(self):
-        role_list = self.role_model.query.all()
-        return role_list
+        return self.role_model.query.all()
 
     def password_is_correct(self, user_name, password):
         user = self.find_user(email=user_name)
@@ -22,8 +20,8 @@ class UserRoleDbInterface(SQLAlchemyUserDatastore):
 
     def user_exists(self, user_name):
         user = self.find_user(email=user_name)
-        return True if user else False
+        return bool(user)
 
     def role_exists(self, role):
         role = self.find_role(role)
-        return True if role else False
+        return bool(role)

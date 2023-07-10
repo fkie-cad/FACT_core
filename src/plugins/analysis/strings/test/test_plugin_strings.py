@@ -1,4 +1,3 @@
-# pylint: disable=protected-access
 import os
 
 import pytest
@@ -8,7 +7,7 @@ from objects.file import FileObject
 
 from ..code.strings import AnalysisPlugin
 
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
+TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')  # noqa: PTH118
 
 
 @pytest.mark.backend_config_overwrite(
@@ -23,11 +22,11 @@ TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 )
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPlugInPrintableStrings:
-    strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\\string']
-    offsets = [(3, strings[0]), (21, strings[1]), (61, strings[2])]
+    strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\\string']  # noqa: RUF012
+    offsets = [(3, strings[0]), (21, strings[1]), (61, strings[2])]  # noqa: RUF012
 
     def test_process_object(self, analysis_plugin):
-        fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))
+        fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))  # noqa: PTH118
         fo = analysis_plugin.process_object(fo)
         results = fo.processed_analysis[analysis_plugin.NAME]
         for item in self.strings:
@@ -38,7 +37,7 @@ class TestAnalysisPlugInPrintableStrings:
         assert len(results['offsets']) == len(self.offsets), 'number of offsets not correct'
 
     def test_process_object__no_strings(self, analysis_plugin):
-        fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file_no_strings'))
+        fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file_no_strings'))  # noqa: PTH118
         fo = analysis_plugin.process_object(fo)
         results = fo.processed_analysis[analysis_plugin.NAME]
         assert 'strings' in results

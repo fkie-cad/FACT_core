@@ -10,7 +10,7 @@ def test_find_strings(analysis_plugin):
     fo = create_test_file_object()
     fo.processed_analysis['printable_strings'] = {
         'result': {
-            'strings': ['reasonable', 'still_reasonable', 'n123ot\'(§rea\'§&son##+able'],
+            'strings': ['reasonable', 'still_reasonable', "n123ot'(§rea'§&son##+able"],
         },
     }
 
@@ -18,4 +18,4 @@ def test_find_strings(analysis_plugin):
     results = fo.processed_analysis[analysis_plugin.NAME]
 
     assert isinstance(results, dict), 'Result of wrong type'
-    assert results['string_eval'] == ['still_reasonable', 'reasonable', 'n123ot\'(§rea\'§&son##+able']
+    assert results['string_eval'] == ['still_reasonable', 'reasonable', "n123ot'(§rea'§&son##+able"]

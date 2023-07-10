@@ -31,10 +31,10 @@ def test_process_object(analysis_plugin):
 @pytest.mark.parametrize('file', [TEST_EMBEDDED, TEST_IMAGE])
 def test_dump_device_trees(file):
     result = dump_device_trees(file.read_bytes())
-    assert len(result) == 2
+    assert len(result) == 2  # noqa: PLR2004
     for dt_dict in result:
         assert 'foo = "bar";' in dt_dict['device_tree']
-        assert dt_dict['header']['version'] == 17
+        assert dt_dict['header']['version'] == 17  # noqa: PLR2004
         assert dt_dict['model'] in ['DeviceTreeTest-1', 'FooBar 1.0']
 
 

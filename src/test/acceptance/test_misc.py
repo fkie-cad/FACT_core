@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 import json
 import os
 import time
@@ -13,7 +12,7 @@ from test.common_helper import get_test_data_dir
 
 
 @pytest.fixture(autouse=True)
-def _autouse_intercom_backend_binding(intercom_backend_binding):
+def _autouse_intercom_backend_binding(intercom_backend_binding):  # noqa: ARG001
     pass
 
 
@@ -33,8 +32,8 @@ class TestAcceptanceMisc:
         assert b'<h3 class="mb-3">Upload Firmware</h3>' in rv.data, 'upload page not displayed correctly'
 
     def _upload_firmware_put(self, test_client, path, device_name, uid):
-        testfile_path = os.path.join(get_test_data_dir(), path)
-        with open(testfile_path, 'rb') as fp:
+        testfile_path = os.path.join(get_test_data_dir(), path)  # noqa: PTH118
+        with open(testfile_path, 'rb') as fp:  # noqa: PTH123
             data = {
                 'file': fp,
                 'device_name': device_name,
@@ -71,7 +70,7 @@ class TestAcceptanceMisc:
         assert b'backend cpu load' in rv.data
         assert b'test comment' in rv.data
         assert (
-            rv.data.count(f'onclick="location.href=\'/analysis/{test_fw_a.uid}\'"'.encode()) == 2
+            rv.data.count(f'onclick="location.href=\'/analysis/{test_fw_a.uid}\'"'.encode()) == 2  # noqa: PLR2004
         ), 'There should be two analysis links: one for latest comments and one for latest submissions'
 
     def _show_system_monitor(self, test_client):
@@ -99,7 +98,7 @@ class TestAcceptanceMisc:
         items_to_analyze=4 * 2 * 2,
     )
     @pytest.mark.usefixtures('intercom_backend_binding')
-    def test_misc(
+    def test_misc(  # noqa: PLR0913
         self,
         test_client,
         workload_statistic,

@@ -1,5 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order,redefined-outer-name,invalid-name
-
 import magic
 import pytest
 
@@ -48,7 +46,7 @@ def test_get_repacked_binary_and_file_name_invalid_uid(binary_service):
 
 def test_read_partial_binary(binary_service):
     partial_binary = binary_service.read_partial_binary(TEST_FW.uid, 30, 14)
-    assert len(partial_binary) == 14
+    assert len(partial_binary) == 14  # noqa: PLR2004
     assert partial_binary == b'get_files_test', 'invalid result not correct'
 
 

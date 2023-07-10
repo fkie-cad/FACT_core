@@ -45,7 +45,7 @@ class RestBase:
     @staticmethod
     def _wrap_response(api):
         @api.representation('application/json')
-        def output_json(data, code, headers=None):  # pylint: disable=unused-variable
+        def output_json(data, code, headers=None):
             output_data = json.dumps(data, cls=ReportEncoder, sort_keys=True)
             resp = make_response(output_data, code)
             resp.headers.extend(headers if headers else {})

@@ -1,4 +1,3 @@
-# pylint: disable=no-self-use,protected-access,wrong-import-order,attribute-defined-outside-init
 import os
 from itertools import chain
 
@@ -30,9 +29,9 @@ class TestPluginRoutes:
         self.api = Api(self.app)
 
     def test_get_modules_in_path(self):
-        plugin_dir_path = os.path.join(get_src_dir(), 'plugins')
+        plugin_dir_path = os.path.join(get_src_dir(), 'plugins')  # noqa: PTH118
         plugin_folder_modules = _get_modules_in_path(plugin_dir_path)
-        assert len(plugin_folder_modules) >= 3
+        assert len(plugin_folder_modules) >= 3  # noqa: PLR2004
         for category in PLUGIN_CATEGORIES:
             assert category in plugin_folder_modules
 

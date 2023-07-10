@@ -4,7 +4,7 @@ from helperFunctions.virtual_file_path import get_paths_for_all_parents
 
 
 @pytest.mark.parametrize(
-    'vfp_dict, expected',
+    ('vfp_dict', 'expected'),
     [
         ({}, set()),
         ({'parent': ['path1', 'path2']}, {'path1', 'path2'}),

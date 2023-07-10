@@ -16,7 +16,7 @@ class TestAnalysisPluginPasswordFileAnalyzer:
         processed_object = analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[analysis_plugin.NAME]
 
-        assert len(results) == 15
+        assert len(results) == 15  # noqa: PLR2004
         for item in [
             'vboxadd:unix',
             'mongodb:unix',
@@ -47,14 +47,15 @@ class TestAnalysisPluginPasswordFileAnalyzer:
         processed_object = analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[analysis_plugin.NAME]
         assert len(results) == 1
-        assert 'summary' in results and results['summary'] == []
+        assert 'summary' in results
+        assert results['summary'] == []
 
     def test_process_object_password_in_binary_file(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
         processed_object = analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[analysis_plugin.NAME]
 
-        assert len(results) == 4
+        assert len(results) == 4  # noqa: PLR2004
         for item in ['johndoe:unix', 'max:htpasswd']:
             assert item in results
             assert item in results['summary']
@@ -115,7 +116,7 @@ JOHN_SUCCESS_OUTPUT = (
 
 
 @pytest.mark.parametrize(
-    'john_output, expected_result',
+    ('john_output', 'expected_result'),
     [
         ('', []),
         (JOHN_FAIL_OUTPUT, ['0 password hashes cracked, 0 left']),

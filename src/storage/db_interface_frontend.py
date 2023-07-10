@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Optional
 
 from sqlalchemy import Column, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
@@ -48,10 +48,10 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- HID ---
 
     def get_hid(self, uid: str, root_uid: str | None = None) -> str:
-        '''
+        """
         returns a human-readable identifier (hid) for a given uid
         returns an empty string if uid is not in Database
-        '''
+        """
         with self.get_read_only_session() as session:
             fo_entry = session.get(FileObjectEntry, uid)
             if fo_entry is None:
@@ -123,7 +123,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- misc. ---
 
     def get_firmware_attribute_list(self, attribute: Column) -> list[Any]:
-        '''Get all distinct values of an attribute (e.g. all different vendors)'''
+        """Get all distinct values of an attribute (e.g. all different vendors)"""
         with self.get_read_only_session() as session:
             query = select(attribute).filter(attribute.isnot(None)).distinct()
             return sorted(session.execute(query).scalars())
@@ -171,7 +171,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- generic search ---
 
-    def generic_search(
+    def generic_search(  # noqa: PLR0913
         self,
         search_dict: dict,
         skip: int = 0,
@@ -252,7 +252,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         for entry in file_tree_data:
             yield from self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry)
 
-    def generate_file_tree_level(
+    def generate_file_tree_level(  # noqa: PLR0913
         self,
         uid: str,
         root_uid: str,
@@ -308,7 +308,9 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- REST ---
 
-    def rest_get_firmware_uids(self, offset: int, limit: int, query: dict = None, recursive=False, inverted=False):
+    def rest_get_firmware_uids(  # noqa: PLR0913
+        self, offset: int, limit: int, query: Optional[dict] = None, recursive=False, inverted=False
+    ):
         if query is None:
             query = {}
         if recursive:
@@ -355,9 +357,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def find_failed_analyses(self) -> dict[str, list[str]]:
         result = {}
         with self.get_read_only_session() as session:
-            query = select(AnalysisEntry.uid, AnalysisEntry.plugin).filter(
-                AnalysisEntry.result.has_key('failed')  # noqa: W601
-            )
+            query = select(AnalysisEntry.uid, AnalysisEntry.plugin).filter(AnalysisEntry.result.has_key('failed'))
             for fo_uid, plugin in session.execute(query):
                 result.setdefault(plugin, set()).add(fo_uid)
         return result

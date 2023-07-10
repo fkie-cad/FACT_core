@@ -40,7 +40,7 @@ def install_pip():
             raise InstallationError(f'Error in pip installation for python3:\n{cmd_process.stdout}')
 
 
-def main(distribution):  # pylint: disable=too-many-statements
+def main(distribution):
     _update_package_sources(distribution)
     _update_submodules()
 
@@ -87,7 +87,7 @@ def _update_submodules():
         if git_submodule_process.returncode != 0:
             raise InstallationError(f'Failed to update submodules\n{git_submodule_process.stdout}')
     else:
-        logging.warning('FACT is not set up using git. Note that *adding submodules* won\'t work!!')
+        logging.warning("FACT is not set up using git. Note that *adding submodules* won't work!!")
 
 
 def _update_package_sources(distribution):

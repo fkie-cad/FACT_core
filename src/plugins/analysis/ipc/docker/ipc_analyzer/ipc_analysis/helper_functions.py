@@ -1,5 +1,3 @@
-# pylint: disable=import-error,consider-using-f-string,too-complex,too-many-locals
-
 from string import printable
 
 from decompile import decompile_function

@@ -66,7 +66,7 @@ def download_cpe(download_path: str):
 def extract_cpe_data_from_cve(nodes: list[dict]) -> list[tuple[str, str, str, str, str]]:
     cpe_entries = []
     for dicts in nodes:
-        if 'cpe_match' in dicts.keys():
+        if 'cpe_match' in dicts:
             for cpe in dicts['cpe_match']:
                 if 'cpe23Uri' in cpe and cpe['vulnerable']:
                     cpe_entries.append(
@@ -78,7 +78,7 @@ def extract_cpe_data_from_cve(nodes: list[dict]) -> list[tuple[str, str, str, st
                             cpe.get('versionEndExcluding', ''),
                         )
                     )
-        elif 'children' in dicts.keys():
+        elif 'children' in dicts:
             cpe_entries.extend(extract_cpe_data_from_cve(dicts['children']))
     return cpe_entries
 

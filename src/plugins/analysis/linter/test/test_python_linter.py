@@ -41,7 +41,7 @@ def test_do_analysis(monkeypatch):
     )
     result = run_pylint('any/path')
 
-    assert len(result[0].keys()) == 5
+    assert len(result[0].keys()) == 5  # noqa: PLR2004
     assert result[0]['type'] == 'warning'
 
 

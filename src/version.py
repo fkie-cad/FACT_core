@@ -1,4 +1,4 @@
-'''
+"""
     Firmware Analysis and Comparison Tool (FACT)
     Copyright (C) 2015-2023  Fraunhofer FKIE
 
@@ -14,6 +14,6 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 __VERSION__ = '4.2-dev'

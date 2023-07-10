@@ -42,7 +42,6 @@ def create_data_graph_nodes_and_groups(dependency_data: list[DepGraphData], whit
 
 
 def create_data_graph_edges(data_graph: dict):
-
     create_symbolic_link_edges(data_graph)
     elf_analysis_missing_from_files = 0
 
@@ -62,7 +61,7 @@ def create_data_graph_edges(data_graph: dict):
 def create_symbolic_link_edges(data_graph: dict):
     for node in data_graph['nodes']:
         if node['group'] == 'inode/symlink':
-            link_to = Path(node['full_file_type'].split('\'')[1])
+            link_to = Path(node['full_file_type'].split("'")[1])
 
             if not link_to.is_absolute():
                 base = Path(node['label']).parent
