@@ -1,19 +1,17 @@
-import os
+from pathlib import Path
 
 import pytest
-from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
-
 from ..code.software_components import AnalysisPlugin
 
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')  # noqa: PTH118
+YARA_TEST_FILE = str(Path(__file__).parent / 'data' / 'yara_test_file')
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginsSoftwareComponents:
     def test_process_object(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))  # noqa: PTH118
+        test_file = FileObject(file_path=YARA_TEST_FILE)
 
         processed_file = analysis_plugin.process_object(test_file)
         results = processed_file.processed_analysis[analysis_plugin.NAME]
@@ -68,7 +66,7 @@ class TestAnalysisPluginsSoftwareComponents:
         assert analysis_plugin._entry_has_no_trailing_version(' Linux', 'Linux ')
 
     def test_add_os_key_fail(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))  # noqa: PTH118
+        test_file = FileObject(file_path=YARA_TEST_FILE)
         with pytest.raises(KeyError):
             analysis_plugin.add_os_key(test_file)
 
@@ -77,14 +75,14 @@ class TestAnalysisPluginsSoftwareComponents:
         assert 'tags' not in test_file.processed_analysis[analysis_plugin.NAME]
 
     def test_add_os_key_success(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))  # noqa: PTH118
+        test_file = FileObject(file_path=YARA_TEST_FILE)
         test_file.processed_analysis[analysis_plugin.NAME] = {'summary': ['Linux Kernel']}
         analysis_plugin.add_os_key(test_file)
         assert 'tags' in test_file.processed_analysis[analysis_plugin.NAME]
         assert test_file.processed_analysis[analysis_plugin.NAME]['tags']['OS']['value'] == 'Linux Kernel'
 
     def test_update_os_key(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))  # noqa: PTH118
+        test_file = FileObject(file_path=YARA_TEST_FILE)
 
         test_file.processed_analysis[analysis_plugin.NAME] = {
             'summary': ['Linux Kernel'],
