@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import os
 import re
 import string
 
-from common_helper_files import get_dir_of_file
 
 import config
 from analysis.YaraPluginBase import YaraBasePlugin
@@ -18,8 +16,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject
-
-SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')  # noqa: PTH118
 
 
 class AnalysisPlugin(YaraBasePlugin):
