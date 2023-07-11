@@ -35,17 +35,26 @@ class TestAnalysisPluginsSoftwareComponents:
         assert len(results['summary']) == 1, 'Number of summary results not correct'
         assert 'Test Software 0.1.3' in results['summary']
 
-    def check_version(self, analysis_plugin, input_string, version):
-        assert analysis_plugin.get_version(input_string, {}) == version, f'{version} not found correctly'
-
-    def test_get_version(self, analysis_plugin):
-        self.check_version(analysis_plugin, 'Foo 15.14.13', '15.14.13')
-        self.check_version(analysis_plugin, 'Foo 1.0', '1.0')
-        self.check_version(analysis_plugin, 'Foo 1.1.1b', '1.1.1b')
-        self.check_version(analysis_plugin, 'Foo', '')
-        self.check_version(analysis_plugin, 'Foo 01.02.03', '1.2.3')
-        self.check_version(analysis_plugin, 'Foo 00.1.', '0.1')
-        self.check_version(analysis_plugin, '\x001.22.333\x00', '1.22.333')
+    @pytest.mark.parametrize(
+        ('version', 'expected_output', 'meta_dict'),
+        [
+            ('', '', {}),
+            ('Foo 15.14.13', '15.14.13', {}),
+            ('Foo 1.0', '1.0', {}),
+            ('Foo 1.1.1b', '1.1.1b', {}),
+            ('Foo', '', {}),
+            ('Foo 01.02.03', '1.2.3', {}),
+            ('Foo 00.1.', '0.1', {}),
+            ('\x001.22.333\x00', '1.22.333', {}),
+            ('Foo 03.02.01abc', '3.2.1a', {}),
+            ('OpenSSL 1.1.0i', '1.1.0i', {}),
+            ('OpenSSL 0.9.8zh', '0.9.8zh', {'version_regex': '\\d\\.\\d\\.\\d[a-z]{0,2}'}),
+            ('Foo v1.2.3', 'v1.2.3', {'version_regex': 'v?\\d\\.\\d\\.\\d'}),
+            ('Bar a.b', 'a.b', {'version_regex': '[a-z]\\.[a-z]'}),
+        ],
+    )
+    def test_get_version(self, analysis_plugin, version, expected_output, meta_dict):
+        assert analysis_plugin.get_version(version, meta_dict) == expected_output, f'{version} not found correctly'
 
     def test_get_version_from_meta(self, analysis_plugin):
         version = 'v15.14.1a'

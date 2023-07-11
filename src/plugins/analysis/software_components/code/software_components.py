@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import string
 
 from common_helper_files import get_dir_of_file
 
@@ -51,7 +52,7 @@ class AnalysisPlugin(YaraBasePlugin):
         pattern = re.compile(regex)
         version = pattern.search(input_string)
         if version is not None:
-            return self._strip_zeroes(version.group(0))
+            return self._strip_leading_zeroes(version.group(0))
         return ''
 
     @staticmethod
@@ -102,5 +103,18 @@ class AnalysisPlugin(YaraBasePlugin):
         return os_string.strip() == entry.strip()
 
     @staticmethod
-    def _strip_zeroes(version_string: str) -> str:
-        return '.'.join(element.lstrip('0') or '0' for element in version_string.split('.'))
+    def _strip_leading_zeroes(version_string: str) -> str:
+        prefix, suffix = '', ''
+        while version_string and version_string[0] not in string.digits:
+            prefix += version_string[0]
+            version_string = version_string[1:]
+        while version_string and version_string[-1] not in string.digits:
+            suffix = version_string[-1] + suffix
+            version_string = version_string[:-1]
+        elements = []
+        for element in version_string.split('.'):
+            try:
+                elements.append(str(int(element)))
+            except ValueError:
+                elements.append(element)
+        return prefix + '.'.join(elements) + suffix
