@@ -39,17 +39,10 @@ class Cpe(Base):
     __tablename__ = 'cpes'
 
     cpe_id = Column(String(), primary_key=True)
-    part = Column(String())
     vendor = Column(String())
     product = Column(String())
     version = Column(String())
     update = Column(String())
-    edition = Column(String())
-    language = Column(String())
-    sw_edition = Column(String())
-    target_sw = Column(String())
-    target_hw = Column(String())
-    other = Column(String())
     cves = relationship(Association, back_populates='cpe')
 
     def __repr__(self) -> str:

@@ -37,12 +37,12 @@ class Lookup:
         product_name: str,
         requested_version: str,
     ) -> dict:
-        '''
+        """
         Look up vulnerabilities for a given product and requested version.
-        '''
+        """
         vulnerabilities = {}
         product_terms, version = (
-            replace_wildcards(self._generate_search_terms(product_name)),
+            self._generate_search_terms(product_name),
             replace_wildcards([requested_version])[0],
         )
         cpe_matches = self.db_interface.cpe_matches(product_terms)
@@ -61,17 +61,17 @@ class Lookup:
 
     @staticmethod
     def _generate_search_terms(product_name: str) -> list[str]:
-        '''
+        """
         Generate a list of search terms that can be used to search for the product.
-        '''
+        """
         terms = product_name.split(' ')
         product_terms = ['_'.join(terms[i:j]).lower() for i, j in combinations(range(len(terms) + 1), 2)]
         return [term for term in product_terms if len(term) > 1 and not term.isdigit()]
 
     def _find_matching_associations(self, cpe_matches: list[Cpe], requested_version: str) -> list[Association]:
-        '''
+        """
         Find matching associations based on the provided CPE matches and requested version.
-        '''
+        """
         association_matches = []
         # If the requested version is 'ANY' or 'N/A', no associations will be returned.
         if requested_version in ['ANY', 'N/A']:
@@ -85,9 +85,9 @@ class Lookup:
         return association_matches
 
     def _version_in_boundaries(self, associations: list[Association], requested_version: str) -> list[Association]:
-        '''
+        """
         Find and return the CVE and CPE associations where the requested version is within the version boundaries.
-        '''
+        """
         association_matches = []
         if requested_version == 'ANY, N/A':
             return association_matches
@@ -106,9 +106,9 @@ class Lookup:
         return association_matches
 
     def _is_version_in_boundaries(self, association: Association, requested_version: str) -> bool:
-        '''
+        """
         Check if the requested version is within the boundaries of the given CVE and CPE association.
-        '''
+        """
         for version_boundary, comp_operator in [
             (association.version_start_including, operator.le),
             (association.version_start_excluding, operator.lt),
@@ -120,9 +120,9 @@ class Lookup:
         return True
 
     def _compare_version(self, version1: str, version2: str, comp_operator: Callable) -> bool:
-        '''
+        """
         Compare two software versions using the specified comparison operator.
-        '''
+        """
         try:
             return comp_operator(self._coerce_version(version1), self._coerce_version(version2))
         except InvalidVersion as error:
@@ -131,9 +131,9 @@ class Lookup:
 
     @staticmethod
     def _coerce_version(version: str) -> Version:
-        '''
+        """
         The version may not be PEP 440 compliant -> try to convert it to something that we can use for comparison
-        '''
+        """
         try:
             return parse_version(version)
         except InvalidVersion:
@@ -151,9 +151,9 @@ class Lookup:
             return parse_version(re.split(r'[^v.\d]', fixed_version)[0])
 
     def _build_version_string(self, association: Association) -> str:
-        '''
+        """
         Build a version string based on the cpe cve association boundaries.
-        '''
+        """
         if not any(
             [
                 association.version_start_including,

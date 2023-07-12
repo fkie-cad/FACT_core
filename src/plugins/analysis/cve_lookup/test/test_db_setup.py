@@ -4,13 +4,14 @@ from ..internal.database.db_connection import DbConnection
 from ..internal.database.schema import Association, Cve, Cpe
 
 
+CPE_ID = 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
 CVE_ENTRY = CveEntry(
     cve_id='CVE-2023-1234',
     impact={'cvssMetricV2': '5.0', 'cvssMetricV30': '6.0', 'cvssMetricV31': '7.0'},
     summary='This is a test CVE',
     cpe_entries=[
         (
-            'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other',
+            CPE_ID,
             '1.0',
             '2.0',
             '3.0',
@@ -39,23 +40,13 @@ class TestDbSetup:
         assert cve.cvss_v3_score == '7.0'
 
     def test_create_cpe(self):
-        cpe_id = 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
+        cpe_id = CPE_ID
         cpe = self.db_setup.create_cpe(cpe_id)
-        assert (
-            cpe.cpe_id
-            == 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
-        )
-        assert cpe.part == 'o'
+        assert cpe.cpe_id == CPE_ID
         assert cpe.vendor == 'vendor'
         assert cpe.product == 'product'
         assert cpe.version == 'version'
         assert cpe.update == 'update'
-        assert cpe.edition == 'edition'
-        assert cpe.language == 'language'
-        assert cpe.sw_edition == 'sw_edition'
-        assert cpe.target_sw == 'target_sw'
-        assert cpe.target_hw == 'target_hw'
-        assert cpe.other == 'other'
 
     def test_add_cve_items(self):
         cve_list = [CVE_ENTRY]

@@ -28,9 +28,9 @@ class DbSetup:
         self.session = self.connection.create_session()
 
     def create_cve(self, cve_item: CveEntry) -> Cve:
-        '''
+        """
         Create a Cve object from a CveEntry object.
-        '''
+        """
         year = cve_item.cve_id.split('-')[1]
         score_v2 = cve_item.impact.get('cvssMetricV2', 'N/A')
         score_v30 = cve_item.impact.get('cvssMetricV30', 'N/A')
@@ -44,9 +44,9 @@ class DbSetup:
         )
 
     def create_cpe(self, cpe_id: str) -> Cpe:
-        '''
+        """
         Create a Cpe object from a CPE ID.
-        '''
+        """
         cpe_elements = replace_wildcards(CPE_SPLIT_REGEX.split(cpe_id)[2:])
         (
             part,
@@ -63,23 +63,16 @@ class DbSetup:
         ) = cpe_elements
         return Cpe(
             cpe_id=cpe_id,
-            part=part,
             vendor=vendor,
             product=product,
             version=version,
             update=update,
-            edition=edition,
-            language=language,
-            sw_edition=sw_edition,
-            target_sw=target_sw,
-            target_hw=target_hw,
-            other=other,
         )
 
     def add_cve_items(self, cve_list: list[CveEntry]):
-        '''
+        """
         Add CVE items to the database.
-        '''
+        """
         existing_cve_ids = {cve.cve_id for cve in self.session.query(Cve.cve_id).all()}
         existing_cpe_ids = {cpe.cpe_id for cpe in self.session.query(Cpe.cpe_id).all()}
 
