@@ -32,26 +32,26 @@ class TestDbInterface:
     def teardown_method(self):
         self.db_interface.connection.drop_tables()
 
-    def test_cpe_matches(self):
+    def test_match_cpes(self):
         products = ['product', 'product2']
-        result = self.db_interface.cpe_matches(products)
+        result = self.db_interface.match_cpes(products)
         assert isinstance(result, list)
         assert all(isinstance(item, Cpe) for item in result)
         assert len(result) == 1
 
-    def test_associations_lookup(self):
+    def test_get_associations(self):
         cpe_id = 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
-        result = self.db_interface.associations_lookup(cpe_id)
+        result = self.db_interface.get_associations(cpe_id)
         assert isinstance(result, list)
         assert all(isinstance(item, Association) for item in result)
         assert len(result) == 1
 
-    def test_cpe_lookup(self):
+    def test_get_cpe(self):
         cpe_id = 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
-        result = self.db_interface.cpe_lookup(cpe_id)
+        result = self.db_interface.get_cpe(cpe_id)
         assert isinstance(result, Cpe)
 
-    def test_cve_lookup(self):
+    def test_get_cve(self):
         cve_id = 'CVE-2023-1234'
-        result = self.db_interface.cve_lookup(cve_id)
+        result = self.db_interface.get_cve(cve_id)
         assert isinstance(result, Cve)

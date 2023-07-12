@@ -45,13 +45,13 @@ class Lookup:
             self._generate_search_terms(product_name),
             replace_wildcards([requested_version])[0],
         )
-        cpe_matches = self.db_interface.cpe_matches(product_terms)
+        cpe_matches = self.db_interface.match_cpes(product_terms)
         if len(cpe_matches) == 0:
             logging.debug(f'No CPEs were found for product {product_name}')
         else:
             association_matches = self._find_matching_associations(cpe_matches, version)
             for association in association_matches:
-                cve = self.db_interface.cve_lookup(association.cve_id)
+                cve = self.db_interface.get_cve(association.cve_id)
                 vulnerabilities[cve.cve_id] = {
                     'score2': cve.cvss_v2_score,
                     'score3': cve.cvss_v3_score,
@@ -77,7 +77,7 @@ class Lookup:
         if requested_version in ['ANY', 'N/A']:
             return association_matches
         for cpe in cpe_matches:
-            associations = self.db_interface.associations_lookup(cpe.cpe_id)
+            associations = self.db_interface.get_associations(cpe.cpe_id)
             if cpe.version == requested_version:
                 association_matches.extend(associations)
             else:
@@ -162,7 +162,7 @@ class Lookup:
                 association.version_end_excluding,
             ]
         ):
-            cpe = self.db_interface.cpe_lookup(association.cpe_id)
+            cpe = self.db_interface.get_cpe(association.cpe_id)
             return cpe.version
         result = 'version'
         if association.version_start_including:
