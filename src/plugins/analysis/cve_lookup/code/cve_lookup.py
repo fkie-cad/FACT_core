@@ -32,7 +32,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['software_components']
-    VERSION = '0.0.6'
+    VERSION = '0.1.0'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
