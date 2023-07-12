@@ -212,14 +212,18 @@ class InterComBackEndDeleteFile(InterComListenerAndResponder):
     def post_processing(self, task: set[str], task_id):
         # task is a set of UIDs
         uids_in_db = self.db.uid_list_exists(task)
+        deleted = 0
         for uid in task:
             if self.unpacking_locks is not None and self.unpacking_locks.unpacking_lock_is_set(uid):
-                logging.debug(f'file not removed, because it is processed by unpacker: {uid}')
+                logging.debug(f'File not removed, because it is processed by unpacker: {uid}')
             elif uid not in uids_in_db:
-                logging.info(f'removing file: {uid}')
+                deleted += 1
+                logging.debug(f'Removing file: {uid}')
                 self.fs_organizer.delete_file(uid)
             else:
                 logging.warning(f'File not removed, because database entry exists: {uid}')
+        if deleted:
+            logging.info(f'Deleted {deleted} files')
         return task
 
     def get_response(self, task):
