@@ -31,8 +31,7 @@ def download_and_decompress_data() -> bytes:
     """
     response = _retrieve_url(CVE_URL)
     file_path = Path(FILE_NAME)
-    with file_path.open('wb') as f:
-        f.write(response.content)
+    file_path.write_bytes(response.content)
 
     with lzma.open(file_path) as f:
         decompressed_data = f.read()
