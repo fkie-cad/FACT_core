@@ -13,22 +13,22 @@ except (ImportError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from helper_functions import CveEntry
 
-CVE_URL = 'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/download/CVE-all.json.xz'
 FILE_NAME = 'CVE-all.json.xz'
+CVE_URL = f'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/download/{FILE_NAME}'
 
 
 @retry(RequestException, tries=3, delay=5, backoff=2)
 def _retrieve_url(download_url: str) -> Response:
-    '''
+    """
     Retrieve the content of a URL using the requests library.
-    '''
+    """
     return requests.get(download_url, allow_redirects=True)
 
 
 def download_and_decompress_data() -> bytes:
-    '''
+    """
     Downloads data from a URL, saves it to a file, decompresses it, and returns the decompressed data.
-    '''
+    """
     response = _retrieve_url(CVE_URL)
     file_path = Path(FILE_NAME)
     with file_path.open('wb') as f:
@@ -43,9 +43,9 @@ def download_and_decompress_data() -> bytes:
 
 
 def extract_english_summary(descriptions: list) -> str:
-    '''
+    """
     Extracts the English summary from a list of descriptions.
-    '''
+    """
     for description in descriptions:
         if description['lang'] == 'en':
             summary = description['value']
@@ -55,9 +55,9 @@ def extract_english_summary(descriptions: list) -> str:
 
 
 def extract_cve_impact(metrics: dict) -> dict[str, str]:
-    '''
+    """
     Extracts the impact of CVE metrics.
-    '''
+    """
     impact = {}
     for version in [2, 30, 31]:
         cvss_key = f'cvssMetricV{version}'
@@ -71,9 +71,9 @@ def extract_cve_impact(metrics: dict) -> dict[str, str]:
 
 
 def extract_cpe_data(configurations: list) -> list[tuple[str, str, str, str, str]]:
-    '''
+    """
     Extracts CPE data from a list of configurations.
-    '''
+    """
     unique_criteria = {}
     cpe_entries = []
     for configuration in configurations:
@@ -95,9 +95,9 @@ def extract_cpe_data(configurations: list) -> list[tuple[str, str, str, str, str
 
 
 def extract_data_from_cve(cve_item: dict) -> CveEntry:
-    '''
+    """
     Extracts data from a CVE item.
-    '''
+    """
     cve_id = cve_item['id']
     summary = extract_english_summary(cve_item['descriptions'])
     impact = extract_cve_impact(cve_item['metrics'])
@@ -106,9 +106,9 @@ def extract_data_from_cve(cve_item: dict) -> CveEntry:
 
 
 def parse_data() -> list[CveEntry]:
-    '''
+    """
     Parse the data from the JSON file and return a list of CveEntry objects.
-    '''
+    """
     cve_json = json.loads(download_and_decompress_data())
     return [extract_data_from_cve(cve_item) for cve_item in cve_json.get('cve_items', [])]
 
