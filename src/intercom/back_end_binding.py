@@ -60,12 +60,12 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
         self._start_listener(InterComBackEndPeekBinaryTask)
         self._start_listener(InterComBackEndLogsTask)
-        logging.info('InterCom started')
+        logging.info('Intercom online')
 
     def shutdown(self):
         self.stop_condition.value = 1
         stop_processes(self.process_list, config.backend.intercom_poll_delay + 1)
-        logging.info('InterCom down')
+        logging.info('Intercom offline')
 
     def _start_listener(self, listener: type[InterComListener], do_after_function: Callable | None = None, **kwargs):
         process = Process(target=self._backend_worker, args=(listener, do_after_function, kwargs))
