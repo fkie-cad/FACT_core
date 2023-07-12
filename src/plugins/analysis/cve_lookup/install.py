@@ -32,6 +32,7 @@ class CveLookupInstaller(AbstractPluginInstaller):
         os.chdir('internal')
         cve_list = parse_data()
         connection = DbConnection()
+        connection.drop_tables()
         db = DbSetup(connection)
         db.add_cve_items(cve_list)
         os.chdir(self.base_path)
