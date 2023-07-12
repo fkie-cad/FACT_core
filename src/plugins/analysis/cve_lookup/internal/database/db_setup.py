@@ -73,37 +73,34 @@ class DbSetup:
         """
         Add CVE items to the database.
         """
-        existing_cve_ids = {cve.cve_id for cve in self.session.query(Cve.cve_id).all()}
-        existing_cpe_ids = {cpe.cpe_id for cpe in self.session.query(Cpe.cpe_id).all()}
+        existing_cpe_ids = set()
 
         cves = []
         associations = []
         cpes = []
 
         for cve_item in cve_list:
-            if cve_item.cve_id not in existing_cve_ids:
-                cves.append(self.create_cve(cve_item))
-                for cpe_entry in cve_item.cpe_entries:
-                    (
-                        cpe_id,
-                        version_start_including,
-                        version_start_excluding,
-                        version_end_including,
-                        version_end_excluding,
-                    ) = cpe_entry
-                    if cpe_id not in existing_cpe_ids:
-                        cpes.append(self.create_cpe(cpe_id))
-                        existing_cpe_ids.add(cpe_id)
-                    associations.append(
-                        Association(
-                            cve_id=cve_item.cve_id,
-                            cpe_id=cpe_id,
-                            version_start_including=version_start_including,
-                            version_start_excluding=version_start_excluding,
-                            version_end_including=version_end_including,
-                            version_end_excluding=version_end_excluding,
-                        )
+            cves.append(self.create_cve(cve_item))
+            for cpe_entry in cve_item.cpe_entries:
+                (
+                    cpe_id,
+                    version_start_including,
+                    version_start_excluding,
+                    version_end_including,
+                    version_end_excluding,
+                ) = cpe_entry
+                if cpe_id not in existing_cpe_ids:
+                    cpes.append(self.create_cpe(cpe_id))
+                    existing_cpe_ids.add(cpe_id)
+                associations.append(
+                    Association(
+                        cve_id=cve_item.cve_id,
+                        cpe_id=cpe_id,
+                        version_start_including=version_start_including,
+                        version_start_excluding=version_start_excluding,
+                        version_end_including=version_end_including,
+                        version_end_excluding=version_end_excluding,
                     )
-                existing_cve_ids.add(cve_item.cve_id)
+                )
         self.session.bulk_save_objects(cves + associations + cpes)
         self.session.commit()
