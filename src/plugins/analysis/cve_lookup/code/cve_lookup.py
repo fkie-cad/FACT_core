@@ -20,7 +20,6 @@ except ImportError:
     from database.db_connection import DbConnection
 
 DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
-KEYS_TO_IGNORE = ['summary', 'analysis_date', 'plugin_version', 'system_version']
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -42,15 +41,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
         cves = {'cve_results': {}}
         connection = DbConnection(f'sqlite:///{DB_PATH}')
         lookup = Lookup(connection)
-        for key, value in file_object.processed_analysis['software_components'].items():
-            if key not in KEYS_TO_IGNORE:
-                product = value['meta']['software_name']
-                version = value['meta']['version'][0]
-                if product and version:
-                    vulnerabilities = lookup.lookup_vulnerabilities(product, version)
-                    if vulnerabilities:
-                        component = f'{product} {version}'
-                        cves['cve_results'][component] = vulnerabilities
+        for _key, value in file_object.processed_analysis['software_components']['result'].items():
+            product = value['meta']['software_name']
+            version = value['meta']['version'][0]
+            if product and version:
+                vulnerabilities = lookup.lookup_vulnerabilities(product, version)
+                if vulnerabilities:
+                    component = f'{product} {version}'
+                    cves['cve_results'][component] = vulnerabilities
 
         cves['summary'] = self._create_summary(cves['cve_results'])
         file_object.processed_analysis[self.NAME] = cves

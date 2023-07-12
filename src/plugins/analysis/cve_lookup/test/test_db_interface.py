@@ -35,23 +35,20 @@ class TestDbInterface:
     def test_match_cpes(self):
         products = ['product', 'product2']
         result = self.db_interface.match_cpes(products)
-        assert isinstance(result, list)
-        assert all(isinstance(item, Cpe) for item in result)
+        assert isinstance(result, dict)
+        assert all(isinstance(item, Cpe) for item in result.values())
         assert len(result) == 1
 
     def test_get_associations(self):
         cpe_id = 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
-        result = self.db_interface.get_associations(cpe_id)
-        assert isinstance(result, list)
-        assert all(isinstance(item, Association) for item in result)
+        result = self.db_interface.get_associations([cpe_id])
+        assert isinstance(result, dict)
+        assert all(isinstance(item, Association) for items in result.values() for item in items)
         assert len(result) == 1
 
-    def test_get_cpe(self):
-        cpe_id = 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
-        result = self.db_interface.get_cpe(cpe_id)
-        assert isinstance(result, Cpe)
-
-    def test_get_cve(self):
+    def test_get_cves(self):
         cve_id = 'CVE-2023-1234'
-        result = self.db_interface.get_cve(cve_id)
-        assert isinstance(result, Cve)
+        result = self.db_interface.get_cves([cve_id])
+        assert isinstance(result, dict)
+        assert all(isinstance(item, Cve) for item in result.values())
+        assert len(result) == 1

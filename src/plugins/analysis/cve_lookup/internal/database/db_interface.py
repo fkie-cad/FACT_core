@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from collections import defaultdict
 
 try:
     from ..database.db_connection import DbConnection
@@ -19,24 +20,24 @@ class DbInterface:
 
     def match_cpes(self, products: list[str]) -> list[Cpe]:
         """
-        Retrieve a list of Cpe objects that match the given products.
+        Retrieve a dictionary of Cpe objects that match the given products.
         """
-        return self.session.query(Cpe).filter(Cpe.product.in_(products)).all()
+        cpe_matches = self.session.query(Cpe).filter(Cpe.product.in_(products)).all()
+        return {cpe.cpe_id: cpe for cpe in cpe_matches}
 
-    def get_associations(self, cpe_id: str) -> list[Association]:
+    def get_associations(self, cpe_ids: list[str]) -> dict[str, list[Association]]:
         """
-        Retrieve a list of Association objects for the given Cpe ID.
+        Retrieve a dictionary of Association objects for the given Cpe IDs.
         """
-        return self.session.query(Association).filter_by(cpe_id=cpe_id).all()
+        association_dict = defaultdict(list)
+        associations = self.session.query(Association).filter(Association.cpe_id.in_(cpe_ids)).all()
+        for association in associations:
+            association_dict[association.cpe_id].append(association)
+        return dict(association_dict)
 
-    def get_cpe(self, cpe_id: str) -> Cpe:
+    def get_cves(self, cve_ids: list[str]) -> dict[str, Cve]:
         """
-        Retrieve the Cpe object for the given Cpe ID.
+        Retrieve a dictionary of CVE objects for the given CVE IDs.
         """
-        return self.session.query(Cpe).filter_by(cpe_id=cpe_id).first()
-
-    def get_cve(self, cve_id: str) -> Cve:
-        """
-        Retrieve the Cve object for the given Cve ID.
-        """
-        return self.session.query(Cve).filter_by(cve_id=cve_id).first()
+        cves = self.session.query(Cve).filter(Cve.cve_id.in_(cve_ids)).all()
+        return {cve.cve_id: cve for cve in cves}

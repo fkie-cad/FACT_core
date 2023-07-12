@@ -50,13 +50,17 @@ class Lookup:
             logging.debug(f'No CPEs were found for product {product_name}')
         else:
             association_matches = self._find_matching_associations(cpe_matches, version)
+            cve_ids = [association.cve_id for association in association_matches]
+            cves = self.db_interface.get_cves(cve_ids)
             for association in association_matches:
-                cve = self.db_interface.get_cve(association.cve_id)
+                cve = cves.get(association.cve_id)
+                cpe = cpe_matches.get(association.cpe_id)
                 vulnerabilities[cve.cve_id] = {
                     'score2': cve.cvss_v2_score,
                     'score3': cve.cvss_v3_score,
-                    'cpe_version': self._build_version_string(association),
+                    'cpe_version': self._build_version_string(association, cpe),
                 }
+
         return vulnerabilities
 
     @staticmethod
@@ -68,20 +72,23 @@ class Lookup:
         product_terms = ['_'.join(terms[i:j]).lower() for i, j in combinations(range(len(terms) + 1), 2)]
         return [term for term in product_terms if len(term) > 1 and not term.isdigit()]
 
-    def _find_matching_associations(self, cpe_matches: list[Cpe], requested_version: str) -> list[Association]:
+    def _find_matching_associations(self, cpe_matches: dict[str, Cpe], requested_version: str) -> list[Association]:
         """
         Find matching associations based on the provided CPE matches and requested version.
         """
         association_matches = []
-        # If the requested version is 'ANY' or 'N/A', no associations will be returned.
-        if requested_version in ['ANY', 'N/A']:
+        if requested_version in {'ANY', 'N/A'}:
             return association_matches
-        for cpe in cpe_matches:
-            associations = self.db_interface.get_associations(cpe.cpe_id)
+
+        cpe_ids = [cpe.cpe_id for cpe in cpe_matches.values()]
+        associations_dict = self.db_interface.get_associations(cpe_ids)
+
+        for cpe in cpe_matches.values():
+            associations = associations_dict.get(cpe.cpe_id, [])
             if cpe.version == requested_version:
-                association_matches.extend(associations)
+                association_matches += associations
             else:
-                association_matches.extend(self._version_in_boundaries(associations, requested_version))
+                association_matches += self._version_in_boundaries(associations, requested_version)
         return association_matches
 
     def _version_in_boundaries(self, associations: list[Association], requested_version: str) -> list[Association]:
@@ -150,7 +157,7 @@ class Lookup:
             # try to throw away revisions and other stuff at the end as a final measure
             return parse_version(re.split(r'[^v.\d]', fixed_version)[0])
 
-    def _build_version_string(self, association: Association) -> str:
+    def _build_version_string(self, association: Association, cpe: Cpe) -> str:
         """
         Build a version string based on the cpe cve association boundaries.
         """
@@ -162,7 +169,6 @@ class Lookup:
                 association.version_end_excluding,
             ]
         ):
-            cpe = self.db_interface.get_cpe(association.cpe_id)
             return cpe.version
         result = 'version'
         if association.version_start_including:
