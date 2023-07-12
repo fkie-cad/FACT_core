@@ -19,9 +19,6 @@ CVE_URL = f'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/down
 
 @retry(RequestException, tries=3, delay=5, backoff=2)
 def _retrieve_url(download_url: str) -> Response:
-    """
-    Retrieve the content of a URL using the requests library.
-    """
     return requests.get(download_url, allow_redirects=True)
 
 
@@ -42,9 +39,6 @@ def download_and_decompress_data() -> bytes:
 
 
 def extract_english_summary(descriptions: list) -> str:
-    """
-    Extracts the English summary from a list of descriptions.
-    """
     for description in descriptions:
         if description['lang'] == 'en':
             summary = description['value']
@@ -54,9 +48,6 @@ def extract_english_summary(descriptions: list) -> str:
 
 
 def extract_cve_impact(metrics: dict) -> dict[str, str]:
-    """
-    Extracts the impact of CVE metrics.
-    """
     impact = {}
     for version in [2, 30, 31]:
         cvss_key = f'cvssMetricV{version}'
@@ -70,9 +61,6 @@ def extract_cve_impact(metrics: dict) -> dict[str, str]:
 
 
 def extract_cpe_data(configurations: list) -> list[tuple[str, str, str, str, str]]:
-    """
-    Extracts CPE data from a list of configurations.
-    """
     unique_criteria = {}
     cpe_entries = []
     for configuration in configurations:
@@ -94,9 +82,6 @@ def extract_cpe_data(configurations: list) -> list[tuple[str, str, str, str, str
 
 
 def extract_data_from_cve(cve_item: dict) -> CveEntry:
-    """
-    Extracts data from a CVE item.
-    """
     cve_id = cve_item['id']
     summary = extract_english_summary(cve_item['descriptions'])
     impact = extract_cve_impact(cve_item['metrics'])
