@@ -1,25 +1,30 @@
 from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
+from storage.rest_status_interface import RestStatusInterface
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-api = Namespace('rest/status', description='Request FACT\'s system status')
+api = Namespace('rest/status', description="Request FACT's system status")
 
 
 @api.route('')
 class RestStatus(RestResourceBase):
     URL = '/rest/status'
 
+    def __init__(self, *args, **kwargs):
+        self.status_interface = RestStatusInterface()
+        super().__init__(*args, **kwargs)
+
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Error'})
     def get(self):
-        '''
+        """
         Request system status
         Request a json document showing the system state of FACT, similar to the system health page of the GUI
-        '''
+        """
         components = ['frontend', 'database', 'backend']
         status = {}
         for component in components:
@@ -35,6 +40,10 @@ class RestStatus(RestResourceBase):
             'system_status': status,
             'plugins': self._condense_plugin_information(plugins),
         }
+
+        if 'analysis' in status['backend']:
+            analysis_status = self.status_interface.get_analysis_status()
+            status['backend']['analysis'].update(analysis_status)
         return success_message(response, self.URL)
 
     @staticmethod
@@ -43,6 +52,6 @@ class RestStatus(RestResourceBase):
 
         for name, information in plugins.items():
             description, _, _, version, _, _, _, _ = information
-            plugins[name] = dict(description=description, version=version)
+            plugins[name] = {'description': description, 'version': version}
 
         return plugins

@@ -6,6 +6,7 @@ from flask import jsonify, render_template
 
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import ConnectTo, get_shared_session
+from storage.rest_status_interface import RestStatusInterface
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.components.hex_highlighting import preview_data_as_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
@@ -17,6 +18,10 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class AjaxRoutes(ComponentBase):
+    def __init__(self, *args, **kwargs):
+        self.status_interface = RestStatusInterface()
+        super().__init__(*args, **kwargs)
+
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_tree/<uid>/<root_uid>', GET)
     @AppRoute('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', GET)
@@ -87,10 +92,16 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(self.intercom) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
-            return f'<pre class="line_numbering" style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
+            return (
+                '<pre class="line_numbering" style="white-space: pre-wrap">'
+                f'{html.escape(bytes_to_str_filter(binary))}</pre>'
+            )
         if 'image/' in mime_type:
-            div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'
-            return f'{div}<img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" style="max-width:100%"></div>'
+            return (
+                '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; '
+                f'text-align: center"><img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" '
+                'style="max-width:100%"></div>'
+            )
         return None
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -129,4 +140,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/ajax/system_health', GET)
     def get_system_health_update(self):
-        return {'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database')}
+        return {
+            'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database'),
+            'analysisStatus': self.status_interface.get_analysis_status(),
+        }
