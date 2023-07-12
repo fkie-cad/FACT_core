@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
-from objects.file import FileObject
 from helperFunctions.tag import TagColor
 from analysis.PluginBase import AnalysisBasePlugin
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 try:
     from ..internal.lookup import Lookup
@@ -17,12 +21,13 @@ except ImportError:
     from database.db_connection import DbConnection
 
 DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
+SOFTWARE_NAME = re.compile(r'^(.*?)(?:\s+(\S+))?$')
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     lookup vulnerabilities from CVE feeds using ID from CPE dictionary
-    '''
+    """
 
     NAME = 'cve_lookup'
     DESCRIPTION = 'lookup CVE vulnerabilities'
@@ -32,9 +37,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
-        '''
+        """
         Process the given file object and look up vulnerabilities for each software component.
-        '''
+        """
         cves = {'cve_results': {}}
         connection = DbConnection(f'sqlite:///{DB_PATH}')
         lookup = Lookup(connection)
@@ -51,9 +56,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _create_summary(self, cve_results: dict[str, dict[str, dict[str, str]]]) -> list[str]:
-        '''
+        """
         Creates a summary of the CVE results.
-        '''
+        """
         return list(
             {
                 software if not self._software_has_critical_cve(entry) else f'{software} (CRITICAL)'
@@ -62,17 +67,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
         )
 
     def _software_has_critical_cve(self, cve_dict: dict[str, dict[str, str]]) -> bool:
-        '''
+        """
         Check if any entry in the given dictionary of CVEs has a critical rating.
-        '''
+        """
         return any(self._entry_has_critical_rating(entry) for entry in cve_dict.values())
 
     def add_tags(self, cve_results: dict[str, dict[str, dict[str, str]]], file_object: FileObject):
-        '''
+        """
         Adds analysis tags to a file object based on the critical CVE results.
 
         Results structure: {'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}
-        '''
+        """
         for component in cve_results:
             for cve_id in cve_results[component]:
                 entry = cve_results[component][cve_id]
@@ -82,17 +87,19 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _entry_has_critical_rating(entry: dict[str, str]) -> bool:
-        '''
+        """
         Check if the given entry has a critical rating.
-        '''
+        """
         return any(entry[key] != 'N/A' and float(entry[key]) >= 9.0 for key in ['score2', 'score3'])
 
     @staticmethod
     def _split_component(component: str) -> tuple[str, str]:
-        '''
+        """
         Splits a component string into two parts and returns them as a tuple.
-        '''
-        component_parts = component.split()
-        if len(component_parts) == 1:
-            return component_parts[0], 'ANY'
-        return ' '.join(component_parts[:-1]), component_parts[-1]
+        """
+        match = SOFTWARE_NAME.match(component)
+        if match:
+            software_name = match.group(1)
+            version = match.group(2) or 'ANY'
+            return software_name, version
+        raise ValueError('Invalid component format')
