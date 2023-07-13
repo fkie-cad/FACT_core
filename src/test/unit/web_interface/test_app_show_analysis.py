@@ -24,14 +24,11 @@ class IntercomMock(CommonIntercomMock):
     def add_single_file_task(self, task):
         self.task_list.append(task)
 
-    @staticmethod
-    def get_available_analysis_plugins():
-        plugins = CommonIntercomMock.get_available_analysis_plugins()
-
-        common_fields = ('0.0.', [], [], [], 1)
+    def get_available_analysis_plugins(self):
+        plugins = super().get_available_analysis_plugins()
         plugins.update(
             {
-                'failed_analysis': ('plugin description', False, {'default': True}, *common_fields),
+                'failed_analysis': ('plugin description', False, {'default': True}, *self._common_fields),
             }
         )
 
