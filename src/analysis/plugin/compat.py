@@ -38,7 +38,7 @@ class AnalysisBasePluginAdapterMixin:
 
     @property
     def SYSTEM_VERSION(self):  # noqa: N802
-        return self.metadata.version
+        return self.metadata.system_version
 
     @property
     def MIME_BLACKLIST(self):  # noqa: N802
