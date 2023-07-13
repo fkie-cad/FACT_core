@@ -129,10 +129,11 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax/stats/system', GET)
     def get_system_stats(self):
         backend_data = self.db.stats_viewer.get_statistic('backend')
+        analysis_status = self.status_interface.get_analysis_status()
         try:
             return {
                 'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",
-                'number_of_running_analyses': len(backend_data['analysis']['current_analyses']),
+                'number_of_running_analyses': len(analysis_status['current_analyses']),
             }
         except (KeyError, TypeError):
             return {'backend_cpu_percentage': 'n/a', 'number_of_running_analyses': 'n/a'}
