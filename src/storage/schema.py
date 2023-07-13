@@ -27,7 +27,7 @@ UID = VARCHAR(78)
 class AnalysisEntry(Base):
     __tablename__ = 'analysis'
 
-    uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'))
+    uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), index=True)
     plugin = mapped_column(VARCHAR(64), nullable=False)
     plugin_version = mapped_column(VARCHAR(16), nullable=False)
     system_version = mapped_column(VARCHAR)
@@ -47,15 +47,15 @@ class AnalysisEntry(Base):
 included_files_table = Table(
     'included_files',
     Base.metadata,
-    Column('parent_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True),
-    Column('child_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True),
+    Column('parent_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True, index=True),
+    Column('child_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True, index=True),
 )
 
 fw_files_table = Table(
     'fw_files',
     Base.metadata,
-    Column('root_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True),
-    Column('file_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True),
+    Column('root_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True, index=True),
+    Column('file_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True, index=True),
 )
 
 
@@ -178,8 +178,8 @@ class VirtualFilePath(Base):
 
     __tablename__ = 'virtual_file_path'
 
-    parent_uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), nullable=False)
-    file_uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), nullable=False)
+    parent_uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), nullable=False, index=True)
+    file_uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), nullable=False, index=True)
     file_path = mapped_column(VARCHAR, nullable=False)
 
     _file_object = relationship('FileObjectEntry', uselist=False, foreign_keys=[file_uid])
@@ -198,9 +198,7 @@ def delete_file_orphans(session, deleted_object):
     """
     if isinstance(deleted_object, FirmwareEntry):
         session.execute(
-            (
-                delete(FileObjectEntry)
-                .where(~FileObjectEntry.is_firmware, ~FileObjectEntry.root_firmware.any())
-                .execution_options(synchronize_session='fetch')
-            )
+            delete(FileObjectEntry)
+            .where(~FileObjectEntry.is_firmware, ~FileObjectEntry.root_firmware.any())
+            .execution_options(synchronize_session='fetch')
         )
