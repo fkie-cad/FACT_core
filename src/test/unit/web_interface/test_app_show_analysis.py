@@ -16,7 +16,9 @@ from test.unit.conftest import CommonIntercomMock
 
 FAILED_FO = create_test_file_object(
     uid='failed_uid',
-    analyses={'failed_analysis': generate_analysis_entry(analysis_result={'failed': 'reason for fail'})},
+    analyses={
+        'failed_analysis': generate_analysis_entry(plugin_version='0.0', analysis_result={'failed': 'reason for fail'})
+    },
 )
 
 
