@@ -49,8 +49,14 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         # Note that we cannot allow pydantic dataclasses because they lack the `schema` method
         Schema: typing.Type
         #: The version of the plugin.
-        #: MUST adhere to PEP 440.
-        #: We suggest using a semver compatible version.
+        #: It MUST be a `semver <https://semver.org/>`_ version.
+        #: Here is a quick summary how semver relates to plugins.
+        #: * MAJOR: The plugin schema changed.
+        #: * MINOR: The schema din't change but might contain more data.
+        #: * PATCH: A bug was fixed e.g. a crash on some files.
+        #:
+        #: Note that any version change leads to rescheduling the analysis.
+        #: But backwards compatible results will still be shown in the fronfrontend.
         version: semver.Version
         #: The version of the backing analysis system.
         #: E.g. for yara plugins this would be the yara version.
