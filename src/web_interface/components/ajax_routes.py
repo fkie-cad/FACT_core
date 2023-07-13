@@ -6,7 +6,6 @@ from flask import jsonify, render_template
 
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import ConnectTo, get_shared_session
-from storage.rest_status_interface import RestStatusInterface
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.components.hex_highlighting import preview_data_as_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
@@ -18,10 +17,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class AjaxRoutes(ComponentBase):
-    def __init__(self, *args, **kwargs):
-        self.status_interface = RestStatusInterface()
-        super().__init__(*args, **kwargs)
-
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_tree/<uid>/<root_uid>', GET)
     @AppRoute('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', GET)
@@ -129,7 +124,7 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax/stats/system', GET)
     def get_system_stats(self):
         backend_data = self.db.stats_viewer.get_statistic('backend')
-        analysis_status = self.status_interface.get_analysis_status()
+        analysis_status = self.status.get_analysis_status()
         try:
             return {
                 'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",
@@ -143,5 +138,5 @@ class AjaxRoutes(ComponentBase):
     def get_system_health_update(self):
         return {
             'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database'),
-            'analysisStatus': self.status_interface.get_analysis_status(),
+            'analysisStatus': self.status.get_analysis_status(),
         }

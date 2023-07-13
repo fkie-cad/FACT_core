@@ -1,7 +1,6 @@
 from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
-from storage.rest_status_interface import RestStatusInterface
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -13,10 +12,6 @@ api = Namespace('rest/status', description="Request FACT's system status")
 @api.route('')
 class RestStatus(RestResourceBase):
     URL = '/rest/status'
-
-    def __init__(self, *args, **kwargs):
-        self.status_interface = RestStatusInterface()
-        super().__init__(*args, **kwargs)
 
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Error'})
@@ -42,7 +37,7 @@ class RestStatus(RestResourceBase):
         }
 
         if 'analysis' in status['backend']:
-            analysis_status = self.status_interface.get_analysis_status()
+            analysis_status = self.status.get_analysis_status()
             status['backend']['analysis'].update(analysis_status)
         return success_message(response, self.URL)
 

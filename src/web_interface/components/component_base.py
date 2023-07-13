@@ -4,6 +4,7 @@ from collections.abc import Callable
 from types import MethodType
 from typing import Any, NamedTuple
 
+from storage.rest_status_interface import RestStatusInterface
 from web_interface.frontend_database import FrontendDatabase
 
 ROUTES_ATTRIBUTE = 'view_routes'
@@ -43,11 +44,12 @@ class AppRoute:
 
 
 class ComponentBase:
-    def __init__(self, app, db: FrontendDatabase, intercom, api=None):
+    def __init__(self, app, db: FrontendDatabase, intercom, status: RestStatusInterface, api=None):
         self._app = app
         self._api = api
         self.db = db
         self.intercom = intercom
+        self.status = status
 
         self._init_component()
 
