@@ -25,9 +25,9 @@ class RestFileObjectWithoutUid(RestResourceBase):
         },
     )
     def get(self):
-        '''
+        """
         Browse the file database
-        '''
+        """
         try:
             query = get_query(request.args)
             offset, limit = get_paging(request.args)
@@ -35,10 +35,10 @@ class RestFileObjectWithoutUid(RestResourceBase):
             request_data = {k: request.args.get(k) for k in ['query', 'limit', 'offset']}
             return error_message(str(value_error), self.URL, request_data=request_data)
 
-        parameters = dict(offset=offset, limit=limit, query=query)
+        parameters = {'offset': offset, 'limit': limit, 'query': query}
         try:
             uids = self.db.frontend.rest_get_file_object_uids(**parameters)
-            return success_message(dict(uids=uids), self.URL, parameters)
+            return success_message({'uids': uids}, self.URL, parameters)
         except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)
 
@@ -64,19 +64,19 @@ class RestFileObjectWithUid(RestResourceBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
     def get(self, uid):
-        '''
+        """
         Request a specific file
         Get the analysis results of a specific file by providing the corresponding uid
-        '''
+        """
         file_object = self.db.frontend.get_object(uid)
         if not file_object:
-            return error_message(f'No file object with UID {uid} found', self.URL, dict(uid=uid))
+            return error_message(f'No file object with UID {uid} found', self.URL, {'uid': uid})
 
         fitted_file_object = self._fit_file_object(file_object)
-        return success_message(dict(file_object=fitted_file_object), self.URL, request_data=dict(uid=uid))
+        return success_message({'file_object': fitted_file_object}, self.URL, request_data={'uid': uid})
 
     @staticmethod
     def _fit_file_object(file_object):
         meta = create_meta_dict(file_object)
         analysis = file_object.processed_analysis
-        return dict(meta_data=meta, analysis=analysis)
+        return {'meta_data': meta, 'analysis': analysis}

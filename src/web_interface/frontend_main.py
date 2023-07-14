@@ -35,7 +35,7 @@ class WebFrontEnd:
     def _setup_app(self):
         self.app = create_app()
         self.user_db, self.user_datastore = add_flask_security_to_app(self.app)
-        base_args = dict(app=self.app, db=self.db, intercom=self.intercom, status=self.status_interface)
+        base_args = {'app': self.app, 'db': self.db, 'intercom': self.intercom, 'status': self.status_interface}
 
         AjaxRoutes(**base_args)
         AnalysisRoutes(**base_args)

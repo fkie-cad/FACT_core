@@ -1,5 +1,3 @@
-# pylint: disable=wrong-import-order
-
 import urllib.parse
 from base64 import standard_b64encode
 from pathlib import Path

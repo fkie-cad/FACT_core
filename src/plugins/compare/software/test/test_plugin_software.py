@@ -1,11 +1,9 @@
-# pylint: disable=protected-access
 from test.unit.compare.compare_plugin_test_class import ComparePluginTest
 
 from ..code.software import ComparePlugin
 
 
 class TestComparePluginSoftware(ComparePluginTest):
-
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'Software'
     PLUGIN_CLASS = ComparePlugin

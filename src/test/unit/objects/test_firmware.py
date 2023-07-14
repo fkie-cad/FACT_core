@@ -2,10 +2,10 @@ import pytest
 from common_helper_files import get_binary_from_file
 
 from objects.firmware import Firmware
-from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
+from test.common_helper import get_test_data_dir
 
 
-@pytest.mark.parametrize('input_data, expected_count', [(['a'], 1), (['a', 'b', 'a'], 2)])
+@pytest.mark.parametrize(('input_data', 'expected_count'), [(['a'], 1), (['a', 'b', 'a'], 2)])
 def test_add_tag(input_data, expected_count):
     test_object = Firmware()
     for item in input_data:
@@ -15,7 +15,7 @@ def test_add_tag(input_data, expected_count):
     assert len(test_object.tags.keys()) == expected_count
 
 
-@pytest.mark.parametrize('input_data, expected_output', [('complete', ''), ('some_part', 'some_part')])
+@pytest.mark.parametrize(('input_data', 'expected_output'), [('complete', ''), ('some_part', 'some_part')])
 def test_set_part_name(input_data, expected_output):
     test_object = Firmware()
     test_object.set_part_name(input_data)
@@ -31,7 +31,7 @@ def test_create_firmware_container_raw():
 def test_create_firmware_from_file():
     test_object = Firmware(file_path=f'{get_test_data_dir()}/test_data_file.bin')
     assert test_object.device_name is None
-    assert test_object.size == 19
+    assert test_object.size == 19  # noqa: PLR2004
     assert test_object.binary == b'test string in file'
     assert test_object.sha256 == '268d870ffa2b21784e4dc955d8e8b8eb5f3bcddd6720a1e6d31d2cf84bd1bff8'
     assert test_object.file_name == 'test_data_file.bin'
@@ -46,7 +46,7 @@ def test_set_binary():
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [('complete', 'foo test_device v. 1.0'), ('some_part', 'foo test_device - some_part v. 1.0')],
 )
 def test_get_hid(input_data, expected_output):

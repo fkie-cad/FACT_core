@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 import json
 from pathlib import Path
 from time import sleep, time
@@ -30,7 +29,8 @@ class TestRestBinarySearch:
         result = json.loads(rv.data.decode())
         assert 'message' in result
         assert 'Started binary search' in result['message']
-        assert 'request' in result and 'search_id' in result['request']
+        assert 'request' in result
+        assert 'search_id' in result['request']
         return result['request']['search_id']
 
     def _get_binary_search_result(self, test_client, search_id):

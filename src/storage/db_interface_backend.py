@@ -5,9 +5,7 @@ from contextlib import suppress
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
-from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError, DbSerializationError, ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
@@ -19,6 +17,11 @@ from storage.entry_conversion import (
     sanitize,
 )
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, included_files_table, VirtualFilePath
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
+    from sqlalchemy.orm import Session
 
 
 class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
@@ -86,9 +89,9 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 f' it is not JSON-serializable: {uid}\n{analysis_dict}'
             )
         except DbInterfaceError as error:
-            logging.error(f'Could not store analysis result of {plugin} on {uid}: {str(error)}')
+            logging.error(f'Could not store analysis result of {plugin} on {uid}: {error!s}')
         except ValueError as error:
-            logging.error(f'Bad value in analysis result of {plugin} on {uid}: {str(error)}\n{analysis_dict}')
+            logging.error(f'Bad value in analysis result of {plugin} on {uid}: {error!s}\n{analysis_dict}')
             raise
 
     def analysis_exists(self, uid: str, plugin: str) -> bool:

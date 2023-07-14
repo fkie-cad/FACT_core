@@ -42,7 +42,7 @@ def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, l
     return result
 
 
-def _populate_fo_data(
+def _populate_fo_data(  # noqa: PLR0913
     fo_entry: FileObjectEntry,
     file_object: FileObject,
     analysis_filter: list[str] | None = None,
@@ -116,7 +116,7 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
 
 
 def sanitize(analysis_data: dict) -> dict:
-    '''Null bytes are not legal in PostgreSQL JSON columns -> remove them'''
+    """Null bytes are not legal in PostgreSQL JSON columns -> remove them"""
     for key, value in list(analysis_data.items()):
         _sanitize_value(analysis_data, key, value)
         _sanitize_key(analysis_data, key)
@@ -134,7 +134,7 @@ def _sanitize_value(analysis_data: dict, key: str, value):
     elif isinstance(value, bytes):
         logging.warning(
             f'Plugin result contains bytes entry. '
-            f'Plugin results should only contain JSON compatible data structures!:\n\t{repr(value)}'
+            f'Plugin results should only contain JSON compatible data structures!:\n\t{value!r}'
         )
         analysis_data[key] = value.decode(errors='replace')
 

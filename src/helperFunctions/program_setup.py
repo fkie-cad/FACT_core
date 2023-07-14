@@ -1,4 +1,4 @@
-'''
+"""
     Firmware Analysis and Comparison Tool (FACT)
     Copyright (C) 2015-2019  Fraunhofer FKIE
 
@@ -14,7 +14,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 from __future__ import annotations
 
 import argparse
@@ -30,12 +30,12 @@ from version import __VERSION__
 
 
 def setup_argparser(name, description, command_line_options=sys.argv, version=__VERSION__):
-    '''
+    """
     Sets up an ArgumentParser with some default flags and parses
     command_line_options.
 
     :return: The populated namespace from ArgumentParser.parse_args
-    '''
+    """
 
     parser = argparse.ArgumentParser(description=f'{name} - {description}')
     parser.add_argument('-V', '--version', action='version', version=f'{name} {version}')
@@ -51,7 +51,7 @@ def setup_argparser(name, description, command_line_options=sys.argv, version=__
     parser.add_argument(
         '-t', '--testing', default=False, action='store_true', help='shutdown system after one iteration'
     )
-    parser.add_argument('--no-radare', default=False, action='store_true', help='don\'t start radare server')
+    parser.add_argument('--no-radare', default=False, action='store_true', help="don't start radare server")
     return parser.parse_args(command_line_options[1:])
 
 

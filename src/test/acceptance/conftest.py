@@ -9,7 +9,7 @@ from web_interface.frontend_main import WebFrontEnd
 
 
 @pytest.fixture(autouse=True)
-def _autouse_database_interfaces(database_interfaces):
+def _autouse_database_interfaces(database_interfaces):  # noqa: ARG001
     pass
 
 
@@ -46,7 +46,7 @@ class TestFW:
         self.uid = uid
         self.path = path
         self.name = name
-        self.file_name = os.path.basename(self.path)
+        self.file_name = os.path.basename(self.path)  # noqa: PTH119
 
 
 test_fw_a = TestFW(
@@ -72,7 +72,7 @@ test_fw_c = TestFW(
 
 def upload_test_firmware(test_client, test_fw):
     testfile_path = Path(get_test_data_dir()) / test_fw.path
-    with open(str(testfile_path), 'rb') as fp:
+    with open(str(testfile_path), 'rb') as fp:  # noqa: PTH123
         data = {
             'file': (fp, test_fw.file_name),
             'device_name': test_fw.name,

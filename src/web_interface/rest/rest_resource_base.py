@@ -3,9 +3,12 @@ from __future__ import annotations
 from flask import request
 from flask_restx import Model, Resource, marshal
 
-from intercom.front_end_binding import InterComFrontEndBinding
-from storage.rest_status_interface import RestStatusInterface
-from web_interface.frontend_database import FrontendDatabase
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from storage.rest_status_interface import RestStatusInterface
+    from web_interface.frontend_database import FrontendDatabase
+    from intercom.front_end_binding import InterComFrontEndBinding
 
 
 class RestResourceBase(Resource):

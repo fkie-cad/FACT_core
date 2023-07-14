@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 import pytest
 
 from helperFunctions.data_conversion import normalize_compare_id
@@ -59,7 +58,7 @@ class TestAppAjaxRoutes:
         web_frontend.status_interface.set_analysis_status({'current_analyses': {'a': {}, 'b': {}}})
         result = test_client.get('/ajax/stats/system').json
         assert result['backend_cpu_percentage'] == '13.37%'
-        assert result['number_of_running_analyses'] == 2
+        assert result['number_of_running_analyses'] == 2  # noqa: PLR2004
 
     def test_ajax_get_system_stats_error(self, test_client):
         with mock_patch(DbMock, 'get_statistic', lambda *_: {}):

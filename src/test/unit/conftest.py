@@ -1,5 +1,3 @@
-# pylint: disable=no-self-use
-
 from typing import Type
 
 import pytest
@@ -65,7 +63,7 @@ class CommonIntercomMock:
     def add_analysis_task(self, task):
         self.task_list.append(task)
 
-    def add_re_analyze_task(self, task, unpack=True):  # pylint: disable=unused-argument
+    def add_re_analyze_task(self, task, unpack=True):
         self.task_list.append(task)
 
 
@@ -88,7 +86,7 @@ class FrontendDatabaseMock:
 
 
 class _UserDbMock:
-    class session:  # pylint: disable=invalid-name
+    class session:  # noqa: N801
         @staticmethod
         def commit():
             pass
@@ -142,7 +140,7 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
     test_config = merge_markers(request, 'WebInterfaceUnitTestConfig', WebInterfaceUnitTestConfig)
 
     db_mock_instance = test_config.database_mock_class()
-    IntercomMockClass = test_config.intercom_mock_class
+    IntercomMockClass = test_config.intercom_mock_class  # noqa: N806
 
     def _add_flask_security_to_app_mock(app):
         add_flask_security_to_app(app)

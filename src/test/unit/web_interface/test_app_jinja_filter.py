@@ -1,4 +1,3 @@
-# pylint: disable=protected-access,wrong-import-order,attribute-defined-outside-init
 import pytest
 from flask import render_template_string
 

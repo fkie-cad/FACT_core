@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
-'''
+"""
 This script updates the password list
-'''
+"""
 
 import argparse
 import logging
@@ -22,8 +22,12 @@ def _setup_argparser():
     parser = argparse.ArgumentParser(description=f'{PROGRAM_NAME} - {PROGRAM_DESCRIPTION}')
     parser.add_argument('-V', '--version', action='version', version=f'{PROGRAM_NAME} {PROGRAM_VERSION}')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
-    parser.add_argument('-p', '--password_lists_directory', default=os.path.join(THIS_FILE_DIR, 'passwords'))
-    parser.add_argument('-o', '--output_file', default=os.path.join(THIS_FILE_DIR, '../../../..', 'bin/passwords.txt'))
+    parser.add_argument(
+        '-p', '--password_lists_directory', default=os.path.join(THIS_FILE_DIR, 'passwords')  # noqa: PTH118
+    )
+    parser.add_argument(
+        '-o', '--output_file', default=os.path.join(THIS_FILE_DIR, '../../../..', 'bin/passwords.txt')  # noqa: PTH118
+    )
     return parser.parse_args()
 
 

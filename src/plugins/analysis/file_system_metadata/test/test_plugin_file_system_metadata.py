@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-# pylint: disable=no-self-use,protected-access,wrong-import-order
+
 from base64 import b64encode
 from pathlib import Path
 
@@ -44,7 +44,7 @@ class TarMock:
 
 
 class DbMock(CommonDatabaseMock):
-    FILE_TYPE_RESULTS = {
+    FILE_TYPE_RESULTS = {  # noqa: RUF012
         TEST_FW.uid: {'result': {'mime': 'application/octet-stream'}},
         TEST_FW_2.uid: {'result': {'mime': 'filesystem/cramfs'}},
     }
@@ -130,7 +130,7 @@ class TestFileSystemMetadata:
         assert result[testfile_sticky_key][FsKeys.GROUP] == 'root'
         assert result[testfile_sticky_key][FsKeys.UID] == 0
         assert result[testfile_sticky_key][FsKeys.GID] == 0
-        assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842.0
+        assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842.0  # noqa: PLR2004
 
     def test_extract_metadata_from_file_system__unmountable(self, file_system_metadata_plugin):
         fo = FoMock(self.test_file_tar, 'application/x-tar')
@@ -176,7 +176,7 @@ class TestFileSystemMetadata:
         assert result[testfile_sticky_key][FsKeys.GROUP] == 'root'
         assert result[testfile_sticky_key][FsKeys.UID] == 0
         assert result[testfile_sticky_key][FsKeys.GID] == 0
-        assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842
+        assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842  # noqa: PLR2004
 
     def test_extract_metadata_from_tar__packed_tar_gz(self, file_system_metadata_plugin):
         test_file_tar_gz = TEST_DATA_DIR / 'test.tar.gz'
@@ -222,7 +222,7 @@ class TestFileSystemMetadata:
         fo = FoMock(test_file_tar_gz, 'application/gzip')
         file_system_metadata_plugin._extract_metadata_from_tar(fo)
         result = file_system_metadata_plugin.result
-        assert len(result) < 5
+        assert len(result) < 5  # noqa: PLR2004
         assert len(result) > 0
 
     def test_get_extended_file_permissions(self, file_system_metadata_plugin):

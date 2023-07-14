@@ -221,9 +221,9 @@ def setup_cpe_table(cpe_list: list) -> list:
 
 
 class Choice(Enum):
-    cpe = 'cpe'  # pylint: disable=invalid-name
-    cve = 'cve'  # pylint: disable=invalid-name
-    both = 'both'  # pylint: disable=invalid-name
+    cpe = 'cpe'
+    cve = 'cve'
+    both = 'both'
 
     def cpe_was_chosen(self):
         return self.value in [self.cpe.value, self.both.value]
@@ -282,12 +282,12 @@ def setup_argparser():
 
 
 def check_validity_of_arguments(years: namedtuple):
-    if years.start_year < 2002 or years.start_year > CURRENT_YEAR:
-        raise ValueError('Value of \'start_year\' out of bounds. Look at setup_repository.py -h for more information.')
-    if years.end_year < 2002 or years.end_year > CURRENT_YEAR:
-        raise ValueError('Value of \'end_year\' out of bounds. Look at setup_repository.py -h for more information.')
+    if years.start_year < 2002 or years.start_year > CURRENT_YEAR:  # noqa: PLR2004
+        raise ValueError("Value of 'start_year' out of bounds. Look at setup_repository.py -h for more information.")
+    if years.end_year < 2002 or years.end_year > CURRENT_YEAR:  # noqa: PLR2004
+        raise ValueError("Value of 'end_year' out of bounds. Look at setup_repository.py -h for more information.")
     if years.start_year > years.end_year:
-        raise ValueError('Value of \'start_year\' greater than value of \'end_year\'.')
+        raise ValueError("Value of 'start_year' greater than value of 'end_year'.")
 
 
 def main():

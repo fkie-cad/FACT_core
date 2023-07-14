@@ -9,12 +9,12 @@ import yaml
 
 
 def _get_compatible_entry(dts: str) -> str | None:
-    '''
+    """
     Returns the node name of /cpus/cpu*/compatible and its value from a device tree.
     May return None because the spec does not guarantee the existence of this node.
 
     See the DeviceTree spec for more information https://www.devicetree.org/specifications/
-    '''
+    """
 
     # Replace every property that is very long (>256 bytes)
     # This speeds up dtc and should only affect binary data

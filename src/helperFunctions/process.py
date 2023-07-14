@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import os
 import traceback
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from multiprocessing import Pipe, Process
@@ -14,14 +13,18 @@ import psutil
 
 import config
 from helperFunctions.logging import TerminalColors, color_string
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def complete_shutdown(message: str | None = None) -> None:
-    '''
+    """
     Shutdown all FACT processes (of the currently running component) by sending a signal to the process group.
 
     :param message: Optional message to be displayed before the shutdown.
-    '''
+    """
     if message is not None:
         logging.warning(message)
     logging.critical('SHUTTING DOWN SYSTEM')
@@ -57,7 +60,7 @@ def _stop_process_by_pid(pid: int):
 
 
 class ExceptionSafeProcess(Process):
-    '''
+    """
     ExceptionSafeProcess is a subtype of ``multiprocessing.Process`` with added exception handling.
     Opposed to what the name may suggest, the class does not make the process impervious to exceptions.
     Instead, it retrieves the exception of the subprocess and re-raises it. This allows reconstructing what
@@ -67,7 +70,7 @@ class ExceptionSafeProcess(Process):
     (see `Python docs`_).
 
     .. _Python docs: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Process
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -75,37 +78,37 @@ class ExceptionSafeProcess(Process):
         self._exception = None
 
     def run(self):
-        '''
+        """
         Starts the execution of the process. Any exception happening in the process will be reraised and may
         be retrieved by accessing ``ExceptionSafeProcess.exception``.
-        '''
+        """
         try:
             Process.run(self)
             self._send_pipe.send(None)
-        except Exception as exception:  # pylint: disable=broad-except
+        except Exception as exception:
             trace = traceback.format_exc()
             self._send_pipe.send((exception, trace))
             raise exception
 
     @property
     def exception(self) -> tuple[Exception, str] | None:
-        '''
+        """
         The exception that occurred in the process during execution and the respective stack trace.
         Is ``None`` if no exception occurred or the process was no yet executed.
 
         :return: A tuple containing the exception and the stack trace or  ``None``.
-        '''
+        """
         if self._receive_pipe.poll():
             self._exception = self._receive_pipe.recv()
         return self._exception
 
 
 def terminate_process_and_children(process: Process) -> None:
-    '''
+    """
     Terminate a process and all of its child processes.
 
     :param process: The process to be terminated.
-    '''
+    """
     process.terminate()
     _terminate_orphans(process)
     process.join()
@@ -119,7 +122,7 @@ def _terminate_orphans(process):
 
 
 def start_single_worker(process_index: int, label: str, function: Callable) -> ExceptionSafeProcess:
-    '''
+    """
     Starts a new worker process executing ``function`` and returns it. Used for unpacking and analysis workers in the
     FACT backend.
 
@@ -127,11 +130,11 @@ def start_single_worker(process_index: int, label: str, function: Callable) -> E
     :param label: A label used for logging (e.g. `Analysis` or `Unpacking`).
     :param function: The function, that gets executed by the worker process.
     :return: The running process.
-    '''
+    """
     process = ExceptionSafeProcess(
         target=function,
         name=f'{label}-Worker-{process_index}',
-        args=(process_index,) if process_index is not None else tuple(),
+        args=(process_index,) if process_index is not None else (),
     )
     process.start()
     return process
@@ -142,7 +145,7 @@ def check_worker_exceptions(
     worker_label: str,
     worker_function: Callable | None = None,
 ) -> bool:
-    '''
+    """
     Iterate over the `process_list` and check if exceptions occurred. In case of an exception, the process and its
     children will be terminated. If ``throw_exceptions`` in the FACT configuration is set to `false`, the worker
     may be restarted by passing a function (if the value is not set, the worker will not be restarted). In this case,
@@ -154,7 +157,7 @@ def check_worker_exceptions(
     :param worker_function: A function used for restarting the worker (optional).
     :return: ``True`` if an exception occurred in any process and ``throw_exceptions`` in the FACT configuration is
              set to `true` and ``False`` otherwise.
-    '''
+    """
     return_value = False
     for worker_process in process_list:
         if worker_process.exception:
@@ -174,23 +177,23 @@ def check_worker_exceptions(
 
 
 def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: ExceptionSafeProcess) -> bool:
-    '''
+    """
     Check if a worker process was restarted by comparing old and new process.
 
     :param new_process: The new process.
     :param old_process: The old process.
     :return: ``True`` if the processes match and ``False`` otherwise.
-    '''
+    """
     return new_process != old_process
 
 
 def stop_processes(processes: list[Process], timeout: float = 10.0):
-    '''
+    """
     Try to stop processes gracefully in parallel. If a process does not stop until `timeout` is reached, kill it.
 
     :param processes: The list of processes that should be stopped.
     :param timeout: Timeout for joining the process in seconds.
-    '''
+    """
     thread_list = []
     for process in processes:
         thread = Thread(target=stop_process, args=(process, timeout))

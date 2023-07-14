@@ -10,7 +10,7 @@ def test_build_time_dict():
 
 
 @pytest.mark.parametrize(
-    'input_data, expected',
+    ('input_data', 'expected'),
     [
         ({}, {}),
         ({2016: {1: 1, 4: 4}}, {2016: {1: 1, 2: 0, 3: 0, 4: 4}}),

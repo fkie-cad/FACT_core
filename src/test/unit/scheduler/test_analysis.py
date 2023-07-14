@@ -1,4 +1,3 @@
-# pylint: disable=protected-access,invalid-name,wrong-import-order,use-implicit-booleaness-not-comparison,too-many-arguments
 import os
 from multiprocessing import Queue
 from time import sleep
@@ -48,14 +47,14 @@ class TestScheduleInitialAnalysis:
 
     @pytest.mark.SchedulerTestConfig(start_processes=True)
     def test_whole_run_analysis_selected(self, analysis_scheduler, post_analysis_queue):
-        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
+        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))  # noqa: PTH118
         test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
         analysis_scheduler.start_analysis_of_object(test_fw)
         analysis_results = [post_analysis_queue.get(timeout=10) for _ in range(3)]
         analysis_results = [
             {'uid': uid, 'plugin': plugin, 'result': result} for uid, plugin, result in analysis_results
         ]
-        assert len(analysis_results) == 3, 'analysis not done'
+        assert len(analysis_results) == 3, 'analysis not done'  # noqa: PLR2004
         assert analysis_results[0]['plugin'] == 'file_type'
         assert analysis_results[1]['plugin'] == 'dummy_plugin_for_testing_only'
         assert analysis_results[2]['plugin'] == 'file_hashes'
@@ -96,13 +95,13 @@ class TestScheduleInitialAnalysis:
 
     def test_get_plugin_dict_version(self, analysis_scheduler):
         result = analysis_scheduler.get_plugin_dict()
-        assert analysis_scheduler.analysis_plugins['file_type'].VERSION == result['file_type'][3], 'version not correct'
+        assert result['file_type'][3] == analysis_scheduler.analysis_plugins['file_type'].VERSION, 'version not correct'
         assert (
-            analysis_scheduler.analysis_plugins['file_hashes'].VERSION == result['file_hashes'][3]
+            result['file_hashes'][3] == analysis_scheduler.analysis_plugins['file_hashes'].VERSION
         ), 'version not correct'
 
     def test_process_next_analysis_unknown_plugin(self, analysis_scheduler):
-        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
+        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))  # noqa: PTH118
         test_fw.scheduled_analysis = ['unknown_plugin']
 
         with mock_spy(analysis_scheduler, '_start_or_skip_analysis') as spy:
@@ -120,7 +119,7 @@ class TestScheduleInitialAnalysis:
         }
     )
     def test_skip_analysis_because_whitelist(self, analysis_scheduler, post_analysis_queue):
-        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
+        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))  # noqa: PTH118
         test_fw.scheduled_analysis = ['file_hashes']
         test_fw.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
         analysis_scheduler._start_or_skip_analysis('dummy_plugin_for_testing_only', test_fw)
@@ -134,7 +133,7 @@ class TestAnalysisSchedulerBlacklist:
     file_object = MockFileObject()
 
     class PluginMock:
-        DEPENDENCIES = []
+        DEPENDENCIES = []  # noqa: RUF012
 
         def __init__(self, blacklist=None, whitelist=None):
             if blacklist:
@@ -147,7 +146,9 @@ class TestAnalysisSchedulerBlacklist:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(  # noqa: PT008
+            target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None
+        )
         cls.init_patch.start()
         cls.sched = AnalysisScheduler()
         cls.sched.analysis_plugins = {}
@@ -251,7 +252,7 @@ class TestAnalysisSchedulerBlacklist:
 
 class TestAnalysisSkipping:
     class PluginMock:
-        DEPENDENCIES = []
+        DEPENDENCIES = []  # noqa: RUF012
 
         def __init__(self, version, system_version):
             self.VERSION = version
@@ -268,7 +269,9 @@ class TestAnalysisSkipping:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(  # noqa: PT008
+            target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None
+        )
         cls.init_patch.start()
 
         cls.scheduler = AnalysisScheduler()
@@ -295,7 +298,7 @@ class TestAnalysisSkipping:
             (' 1.0', '1.1', '1.1', '1.0', False),  # invalid version string
         ],
     )
-    def test_analysis_is_already_in_db_and_up_to_date(
+    def test_analysis_is_already_in_db_and_up_to_date(  # noqa: PLR0913
         self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output
     ):
         plugin = 'foo'
@@ -338,7 +341,7 @@ class TestAnalysisSkipping:
 
 class TestAnalysisShouldReanalyse:
     class PluginMock:
-        DEPENDENCIES = ['plugin_dep']
+        DEPENDENCIES = ['plugin_dep']  # noqa: RUF012
         NAME = 'plugin_root'
 
         def __init__(self, plugin_version, system_version):
@@ -355,7 +358,9 @@ class TestAnalysisShouldReanalyse:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(  # noqa: PT008
+            target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None
+        )
         cls.init_patch.start()
         cls.scheduler = AnalysisScheduler()
         cls.init_patch.stop()
@@ -381,7 +386,7 @@ class TestAnalysisShouldReanalyse:
             (20, 10, 'foo', '1.0', '1.0', None, False),  # invalid version => not up to date
         ],
     )
-    def test_analysis_is_up_to_date(
+    def test_analysis_is_up_to_date(  # noqa: PLR0913
         self,
         plugin_date,
         dependency_date,
@@ -412,14 +417,14 @@ def test_combined_analysis_workload(monkeypatch):
 
     scheduler.analysis_plugins = {}
     dummy_plugin = scheduler.analysis_plugins['dummy_plugin'] = PluginMock([])
-    dummy_plugin.in_queue = Queue()  # pylint: disable=attribute-defined-outside-init
+    dummy_plugin.in_queue = Queue()
     scheduler.process_queue = Queue()
     try:
         assert scheduler.get_combined_analysis_workload() == 0
         scheduler.process_queue.put({})
         for _ in range(2):
             dummy_plugin.in_queue.put({})
-        assert scheduler.get_combined_analysis_workload() == 3
+        assert scheduler.get_combined_analysis_workload() == 3  # noqa: PLR2004
     finally:
         sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
         scheduler.process_queue.close()

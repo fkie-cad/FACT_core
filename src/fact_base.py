@@ -7,7 +7,7 @@ import config
 
 try:
     import psutil
-    import psycopg2  # pylint: disable=unused-import  # noqa: F401  # new dependency of FACT>=4.0
+    import psycopg2  # noqa: F401
 
     from helperFunctions.program_setup import setup_argparser, setup_logging
     from statistic.work_load import WorkLoadStatistic

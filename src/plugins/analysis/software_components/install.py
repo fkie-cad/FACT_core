@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pylint: disable=duplicate-code,ungrouped-imports
+
 
 import logging
 from pathlib import Path

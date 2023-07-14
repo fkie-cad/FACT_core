@@ -13,10 +13,7 @@ class StatisticRoutes(ComponentBase):
     @AppRoute('/statistic', GET)
     def show_statistics(self):
         filter_query = apply_filters_to_query(request, '{}')
-        if filter_query == {}:
-            stats = self._get_stats_from_db()
-        else:
-            stats = self._get_live_stats(filter_query)
+        stats = self._get_stats_from_db() if filter_query == {} else self._get_live_stats(filter_query)
         with get_shared_session(self.db.frontend) as frontend_db:
             device_classes = frontend_db.get_device_class_list()
             vendors = frontend_db.get_vendor_list()
@@ -38,7 +35,7 @@ class StatisticRoutes(ComponentBase):
 
     def _get_stats_from_db(self):
         with get_shared_session(self.db.stats_viewer) as stats_db:
-            stats_dict = {
+            return {
                 'general_stats': stats_db.get_statistic('general'),
                 'firmware_meta_stats': stats_db.get_statistic('firmware_meta'),
                 'file_type_stats': stats_db.get_statistic('file_type'),
@@ -52,13 +49,12 @@ class StatisticRoutes(ComponentBase):
                 'software_stats': stats_db.get_statistic('software_components'),
                 'elf_executable_stats': stats_db.get_statistic('elf_executable'),
             }
-        return stats_dict
 
     def _get_live_stats(self, filter_query):
         stats_updater = StatsUpdater(stats_db=self.db.stats_updater)
         stats_updater.set_match(filter_query)
         with stats_updater.db.get_read_only_session():
-            stats_dict = {
+            return {
                 'firmware_meta_stats': stats_updater.get_firmware_meta_stats(),
                 'file_type_stats': stats_updater.get_file_type_stats(),
                 'crypto_material_stats': stats_updater.get_crypto_material_stats(),
@@ -72,4 +68,3 @@ class StatisticRoutes(ComponentBase):
                 'software_stats': stats_updater.get_software_components_stats(),
                 'elf_executable_stats': stats_updater.get_executable_stats(),
             }
-        return stats_dict

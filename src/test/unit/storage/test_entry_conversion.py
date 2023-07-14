@@ -4,7 +4,7 @@ from storage.entry_conversion import sanitize
 
 
 @pytest.mark.parametrize(
-    'input_dict, expected',
+    ('input_dict', 'expected'),
     [
         ({}, {}),
         ({'a': 1, 'b': '2'}, {'a': 1, 'b': '2'}),

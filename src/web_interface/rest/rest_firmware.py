@@ -72,20 +72,20 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         },
     )
     def get(self):
-        '''
+        """
         Browse the firmware database
         List all available firmware in the database
-        '''
+        """
         try:
             query, recursive, inverted, offset, limit = self._get_parameters_from_request(request.args)
         except ValueError as value_error:
             request_data = {k: request.args.get(k) for k in ['query', 'limit', 'offset', 'recursive', 'inverted']}
             return error_message(str(value_error), self.URL, request_data=request_data)
 
-        parameters = dict(offset=offset, limit=limit, query=query, recursive=recursive, inverted=inverted)
+        parameters = {'offset': offset, 'limit': limit, 'query': query, 'recursive': recursive, 'inverted': inverted}
         try:
             uids = self.db.frontend.rest_get_firmware_uids(**parameters)
-            return success_message(dict(uids=uids), self.URL, parameters)
+            return success_message({'uids': uids}, self.URL, parameters)
         except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)
 
@@ -104,11 +104,11 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @api.expect(firmware_model)
     def put(self):
-        '''
+        """
         Upload a firmware
         The HTTP body must contain a json document of the structure shown below
         Important: The binary has to be a base64 string representing the raw binary you want to submit
-        '''
+        """
         try:
             data = self.validate_payload_data(firmware_model)
         except MarshallingError as error:
@@ -126,13 +126,13 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         try:
             data['binary'] = standard_b64decode(data['binary'])
         except binascii.Error:
-            return dict(error_message='Could not parse binary (must be valid base64!)')
+            return {'error_message': 'Could not parse binary (must be valid base64!)'}
         firmware_object = convert_analysis_task_to_fw_obj(data)
         with ConnectTo(self.intercom) as intercom:
             intercom.add_analysis_task(firmware_object)
         data.pop('binary')
 
-        return dict(uid=firmware_object.uid)
+        return {'uid': firmware_object.uid}
 
 
 @api.route('/<string:uid>', doc={'description': '', 'params': {'uid': 'Firmware UID'}})
@@ -152,34 +152,34 @@ class RestFirmwareGetWithUid(RestResourceBase):
         },
     )
     def get(self, uid):
-        '''
+        """
         Request a specific firmware
         Get the analysis results of a specific firmware by providing the corresponding uid
-        '''
+        """
         summary = get_boolean_from_request(request.args, 'summary')
         if summary:
             firmware = self.db.frontend.get_complete_object_including_all_summaries(uid)
         else:
             firmware = self.db.frontend.get_object(uid)
         if not firmware or not isinstance(firmware, Firmware):
-            return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
+            return error_message(f'No firmware with UID {uid} found', self.URL, {'uid': uid})
 
         fitted_firmware = self._fit_firmware(firmware)
-        return success_message(dict(firmware=fitted_firmware), self.URL, request_data=dict(uid=uid))
+        return success_message({'firmware': fitted_firmware}, self.URL, request_data={'uid': uid})
 
     @staticmethod
     def _fit_firmware(firmware):
         meta = create_meta_dict(firmware)
         analysis = firmware.processed_analysis
-        return dict(meta_data=meta, analysis=analysis)
+        return {'meta_data': meta, 'analysis': analysis}
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @api.expect(firmware_model)
     def put(self, uid):
-        '''
+        """
         Update existing firmware analysis
         You can use this endpoint to update a firmware analysis which is already existing
-        '''
+        """
         try:
             update = get_update(request.args)
         except ValueError as value_error:
@@ -189,7 +189,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
     def _update_analysis(self, uid, update):
         firmware = self.db.frontend.get_object(uid)
         if not firmware:
-            return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
+            return error_message(f'No firmware with UID {uid} found', self.URL, {'uid': uid})
 
         unpack = 'unpacker' in update
         while 'unpacker' in update:
@@ -201,9 +201,9 @@ class RestFirmwareGetWithUid(RestResourceBase):
             supported_plugins = intercom.get_available_analysis_plugins().keys()
             for item in update:
                 if item not in supported_plugins:
-                    return error_message(f'Unknown analysis system \'{item}\'', self.URL, dict(uid=uid, update=update))
+                    return error_message(f"Unknown analysis system '{item}'", self.URL, {'uid': uid, 'update': update})
             intercom.add_re_analyze_task(firmware, unpack)
 
         if unpack:
             update.append('unpacker')
-        return success_message({}, self.URL, dict(uid=uid, update=update))
+        return success_message({}, self.URL, {'uid': uid, 'update': update})

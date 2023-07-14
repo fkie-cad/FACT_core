@@ -1,4 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order,unused-argument
 import pytest
 
 from objects.firmware import Firmware
@@ -25,7 +24,7 @@ class TestFileAddition:
             processed_container.setdefault(uid, {}).setdefault(plugin, {})
             processed_container[uid][plugin] = analysis_result
 
-        assert len(processed_container) == 4, '4 files should have been analyzed'
+        assert len(processed_container) == 4, '4 files should have been analyzed'  # noqa: PLR2004
         assert all(
             sorted(processed_analysis) == ['file_hashes', 'file_type']
             for processed_analysis in processed_container.values()

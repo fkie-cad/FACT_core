@@ -25,14 +25,12 @@ LIEF_DATA_ENTRIES = (
 TEMPLATE_FILE_PATH = Path(__file__).parent.parent / 'internal/matching_template.json'
 BEHAVIOUR_CLASSES = json.loads(TEMPLATE_FILE_PATH.read_text())
 
-# pylint: disable=c-extension-no-member
-
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     VERSION = '0.3.4'
-    MIME_WHITELIST = [
+    MIME_WHITELIST = [  # noqa: RUF012
         'application/x-executable',
         'application/x-pie-executable',
         'application/x-object',
@@ -60,7 +58,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def _get_tags_from_function_list(functions: list, behaviour_class: str, indicators: list, tags: list):
         for function, indicator in ((f, i) for f in functions for i in indicators):
-            if indicator.lower() in function.lower() and SequenceMatcher(None, indicator, function).ratio() >= 0.85:
+            if (
+                indicator.lower() in function.lower()
+                and SequenceMatcher(None, indicator, function).ratio() >= 0.85  # noqa: PLR2004
+            ):
                 tags.append(behaviour_class)
 
     def _get_tags(self, libraries: list, functions: list) -> list:

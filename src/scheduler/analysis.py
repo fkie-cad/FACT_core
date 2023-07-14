@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
+class AnalysisScheduler:
     """
     The analysis scheduler is responsible for
 
@@ -190,7 +190,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for plugin in discover_analysis_plugins():
             try:
                 self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 logging.error(f'Could not import analysis plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
     def get_plugin_dict(self) -> dict:

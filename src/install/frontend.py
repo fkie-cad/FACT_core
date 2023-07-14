@@ -23,7 +23,7 @@ MIME_ICON_DIR = INSTALL_DIR.parent / 'web_interface' / 'static' / 'file_icons'
 ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/Papirus/24x24')
 
 
-def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
+def execute_commands_and_raise_on_return_code(commands, error=None):
     for command in commands:
         bad_return = error if error else f'execute {command}'
         cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
@@ -31,11 +31,11 @@ def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: 
             raise InstallationError(f'Failed to {bad_return}\n{cmd_process.stdout}')
 
 
-def _create_directory_for_authentication():  # pylint: disable=invalid-name
+def _create_directory_for_authentication():
     logging.info('Creating directory for authentication')
 
     dburi = config.frontend.authentication.user_database
-    # pylint: disable=fixme
+
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
     mkdir_process = subprocess.run(
@@ -96,7 +96,7 @@ def _configure_nginx():
             # copy is better on redhat to respect selinux context
             '(cd ../config && sudo install -m 644 $PWD/nginx.conf /etc/nginx/nginx.conf)',
             '(sudo mkdir /etc/nginx/error || true)',
-            '(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true',
+            '(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true',  # noqa: E501
         ],
         error='configuring nginx',
     )

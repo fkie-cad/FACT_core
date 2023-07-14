@@ -12,7 +12,7 @@ MOCK_RESPONSE = '''/usr/share/nmap/nse_main.lua:88:7-12: (W211) unused variable 
 /usr/share/nmap/nse_main.lua:726:19-22: (W413) variable 'rule' was previously defined as a loop variable on line 724
 /usr/share/nmap/nse_main.lua:881:35-39: (W212) unused argument 'hosts'
 /usr/share/nmap/nse_main.lua:1362:9-17: (W411) variable 'runlevels' was previously defined on line 1336
-'''
+'''  # noqa: E501
 
 
 def test_do_analysis(monkeypatch):
@@ -22,8 +22,8 @@ def test_do_analysis(monkeypatch):
     )
     result = run_luacheck('any/path')
     assert result
-    assert len(result) == 10
-    assert result[0] == {'message': 'unused variable \'select\'', 'line': 88, 'column': 7, 'symbol': 'W211'}
+    assert len(result) == 10  # noqa: PLR2004
+    assert result[0] == {'message': "unused variable 'select'", 'line': 88, 'column': 7, 'symbol': 'W211'}
 
 
 def test_bad_lines(monkeypatch):

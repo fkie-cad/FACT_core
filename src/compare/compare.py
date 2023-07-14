@@ -4,18 +4,21 @@ import logging
 
 from helperFunctions.plugin import discover_compare_plugins
 from helperFunctions.virtual_file_path import get_paths_for_all_parents
-from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.binary_service import BinaryService
-from storage.db_interface_comparison import ComparisonDbInterface
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from storage.db_interface_comparison import ComparisonDbInterface
+    from objects.file import FileObject
 
 
 class Compare:
-    '''
+    """
     This Module compares firmware images
-    '''
+    """
 
-    compare_plugins = {}
+    compare_plugins = {}  # noqa: RUF012
 
     def __init__(self, db_interface: ComparisonDbInterface | None = None):
         self.db_interface = db_interface
@@ -81,7 +84,7 @@ class Compare:
         for plugin in discover_compare_plugins():
             try:
                 self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(db_interface=self.db_interface)
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 logging.error(f'Could not import comparison plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
     def _execute_compare_plugins(self, fo_list):

@@ -9,10 +9,11 @@ from helperFunctions.data_conversion import make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
 from helperFunctions.virtual_file_path import get_some_vfp
+from typing import Optional
 
 
-class FileObject:  # pylint: disable=too-many-instance-attributes
-    '''
+class FileObject:
+    """
     FileObject is the primary data structure in FACT.
     It holds all meta information of a file along with analysis results and some internal values for scheduling.
 
@@ -20,14 +21,14 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
     :param file_name: The file's name.
     :param file_path: The file's path. Either this or `binary` has to be present.
     :param scheduled_analysis: A list of analysis plugins that should be run on this file.
-    '''
+    """
 
     def __init__(
         self,
         binary: bytes | None = None,
         file_name: str | None = None,
         file_path: str | None = None,
-        scheduled_analysis: list[str] = None,
+        scheduled_analysis: Optional[list[str]] = None,
     ):
         self._uid = None
 
@@ -122,12 +123,12 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         self.virtual_file_path = {}
 
     def set_binary(self, binary: bytes) -> None:
-        '''
+        """
         Store the binary representation of the file as byte string.
         Additionally, set binary related metadata (size, hash) and compute uid after that.
 
         :param binary: file in binary representation
-        '''
+        """
         self.binary = make_bytes(binary)
         self.sha256 = get_sha256(self.binary)
         self.size = len(self.binary)
@@ -142,12 +143,12 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
     @property
     def uid(self) -> str:
-        '''
+        """
         Unique identifier of this file.
         Consisting of the file's sha256 hash, and it's length in the form `hash_length`.
 
         :return: uid of this file.
-        '''
+        """
         if self._uid is None and self.binary is not None:
             self._uid = create_uid(self.binary)
         return self._uid
@@ -159,11 +160,11 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         self._uid = new_uid
 
     def get_hid(self) -> str:
-        '''
+        """
         Get a human-readable identifier for the given file.
         This usually is the file name for extracted files.
         :return: String representing a human-readable identifier for this file.
-        '''
+        """
         try:
             return get_some_vfp(self.virtual_file_path)
         except IndexError:
@@ -177,7 +178,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         self.create_binary_from_path()
 
     def add_included_file(self, file_object: FileObject) -> None:
-        '''
+        """
         This functions adds a file to this object's list of included files.
         The function also takes care of a number of fields for the child object:
 
@@ -188,7 +189,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         * `virtual_file_path`: Sets a new virtual_file_path for the child, being <this_files_current_vfp|child_path>.
 
         :param file_object: File that was extracted from the current file
-        '''
+        """
         file_object.parents.append(self.uid)
         file_object.root_uid = self.root_uid
         file_object.depth = self.depth + 1
@@ -196,11 +197,11 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         self.files_included.add(file_object.uid)
 
     def get_virtual_paths_for_all_uids(self) -> list[str]:
-        '''
+        """
         Get all virtual file paths (VFPs) of the file in all firmware containers.
 
         :return: List of virtual paths.
-        '''
+        """
         return [vfp for vfp_list in self.virtual_file_path.values() for vfp in vfp_list]
 
     def __str__(self) -> str:

@@ -9,5 +9,5 @@ def test_import_plugins(monkeypatch):
 
     plugins = sorted(discover_analysis_plugins(), key=lambda k: k.__name__)
     # "plugin_one" and "crashes_during_instantiation"
-    assert len(plugins) == 2, 'wrong number of plugins imported'
+    assert len(plugins) == 2, 'wrong number of plugins imported'  # noqa: PLR2004
     assert plugins[1].__name__ == 'plugins.analysis.plugin_one.code.plugin_one', 'plugin name not correct'
