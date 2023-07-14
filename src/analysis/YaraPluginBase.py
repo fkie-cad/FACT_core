@@ -104,7 +104,7 @@ def _append_match_to_result(match, resulting_matches: dict[str, dict], rule):
     resulting_matches[rule_name]['strings'].append((int(offset, 16), matched_tag, matched_string))
 
 
-def _parse_meta_data(meta_data_string):
+def _parse_meta_data(meta_data_string: str) -> dict[str, str | bool | int]:
     '''
     Will be of form 'item0=lowercaseboolean0,item1="value1",item2=value2,..'
     '''
