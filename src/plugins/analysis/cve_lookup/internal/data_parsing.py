@@ -2,10 +2,9 @@ import sys
 import json
 import lzma
 import requests
-from retry import retry
 from pathlib import Path
 from requests.models import Response
-from requests.exceptions import RequestException
+from requests.adapters import HTTPAdapter, Retry
 
 try:
     from ..internal.helper_functions import CveEntry
@@ -17,9 +16,11 @@ FILE_NAME = 'CVE-all.json.xz'
 CVE_URL = f'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/download/{FILE_NAME}'
 
 
-@retry(RequestException, tries=3, delay=5, backoff=2)
 def _retrieve_url(download_url: str) -> Response:
-    return requests.get(download_url, allow_redirects=True)
+    adapter = HTTPAdapter(max_retries=Retry(total=5, backoff_factor=0.1))
+    with requests.Session() as session:
+        session.mount('http://', adapter)
+        return session.get(download_url)
 
 
 def download_and_decompress_data() -> bytes:
