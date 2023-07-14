@@ -1,4 +1,5 @@
 # pylint: disable=wrong-import-order
+from __future__ import annotations
 
 import logging
 import os
