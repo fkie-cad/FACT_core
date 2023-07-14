@@ -43,24 +43,16 @@ class DbSetup:
             cvss_v3_score=score_v3,
         )
 
-    def create_cpe(self, cpe_id: str) -> Cpe:
+    def create_cpe(self, cpe_id: str):
         """
         Create a Cpe object from a CPE ID.
         """
-        cpe_elements = replace_wildcards(CPE_SPLIT_REGEX.split(cpe_id)[2:])
-        (
-            part,
-            vendor,
-            product,
-            version,
-            update,
-            edition,
-            language,
-            sw_edition,
-            target_sw,
-            target_hw,
-            other,
-        ) = cpe_elements
+        cpe_elements = replace_wildcards(CPE_SPLIT_REGEX.split(cpe_id)[3:])
+        vendor = cpe_elements[0]
+        product = cpe_elements[1]
+        version = cpe_elements[2]
+        update = cpe_elements[3]
+
         return Cpe(
             cpe_id=cpe_id,
             vendor=vendor,
