@@ -98,7 +98,7 @@ class _UserDbMock:
 
 class StatusInterfaceMock:
     def __init__(self):
-        self._status = None
+        self._status = {'current_analyses': {}, 'recently_finished_analyses': {}}
 
     def set_analysis_status(self, status: dict):
         self._status = status

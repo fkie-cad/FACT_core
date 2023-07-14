@@ -15,11 +15,12 @@ from web_interface.components.plugin_routes import (
 
 
 class PluginRoutesMock(PluginRoutes):
-    def __init__(self, app, db=None, intercom=None, api=None):
+    def __init__(self, app, db=None, intercom=None, api=None, status=None):  # noqa: PLR0913
         self._app = app
         self._api = api
         self.db = db
         self.intercom = intercom
+        self.status = status
 
 
 class TestPluginRoutes:
