@@ -63,7 +63,7 @@ def test_get_signature_file_name():
 
 def test_parse_meta_data_error(caplog):
     with caplog.at_level(logging.WARNING):
-        _parse_meta_data('illegal,meta,entry')
+        _parse_meta_data('illegal=meta=entry')
         assert 'Malformed meta' in caplog.messages[0]
 
 
