@@ -159,7 +159,7 @@ It is important to understand that said tags are <strong>separately stored</stro
 <dt class="sig sig-object py" id="objects.firmware.Firmware.device_class">
 <span class="sig-name descname"><span class="pre">device_class</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.device_class" title="Permalink to this definition"></a></dt>
 <dd><p>Device class string identifier.
-Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.
+Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.  # noqa: E501
 FACT requires a user to categorize analyzed firmware images by this attribute.
 While this attribute is <strong>mandatory</strong>, it can be freely defined during upload.</p>
 </dd></dl>
@@ -189,14 +189,14 @@ Can be freely defined during upload.</p>
 <dd><p>Specifies the parts of an embedded system that are contained in this firmware.
 While this meta data string can be freely defined during firmware upload,
 FACT provides a preset of frequently used values: <cite>complete</cite>, <cite>kernel</cite>, <cite>bootloader</cite>, and <cite>root-fs</cite>.</p>
-<p>This attribute is <strong>optional</strong>. The firmware image is assumed to be <cite>complete</cite> if the assigned/default value is an empty string.</p>
+<p>This attribute is <strong>optional</strong>. The firmware image is assumed to be <cite>complete</cite> if the assigned/default value is an empty string.  # noqa: E501</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.release_date">
 <span class="sig-name descname"><span class="pre">release_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.release_date" title="Permalink to this definition"></a></dt>
-<dd><p>Release date string of this firmware version in <a class="reference external" href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> <cite>YYYY-MM-DD</cite> format.</p>
-<p>This attribute is <strong>optional</strong>. The release date is assumed to be the start of UNIX epoch time (<cite>1970-01-01</cite>) if not specificed.</p>
+<dd><p>Release date string of this firmware version in <a class="reference external" href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> <cite>YYYY-MM-DD</cite> format.  # noqa: E501</p>
+<p>This attribute is <strong>optional</strong>. The release date is assumed to be the start of UNIX epoch time (<cite>1970-01-01</cite>) if not specificed.  # noqa: E501</p>
 </dd></dl>
 
 <dl class="py method">
@@ -235,8 +235,8 @@ FACT provides a preset of frequently used values: <cite>complete</cite>, <cite>k
 <dl class="py attribute">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.tags">
 <span class="sig-name descname"><span class="pre">tags</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor" title="helperFunctions.tag.TagColor"><span class="pre">TagColor</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#objects.firmware.Firmware.tags" title="Permalink to this definition"></a></dt>
-<dd><p>User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {‘tag’: <a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor" title="helperFunctions.tag.TagColor"><code class="xref py py-class docutils literal notranslate"><span class="pre">helperFunctions.tag.TagColor</span></code></a>} dictionary.
-It is important to understand that these tags are <strong>separately stored</strong> from the <a class="reference internal" href="objects.file.html#objects.file.FileObject.analysis_tags" title="objects.file.FileObject.analysis_tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">objects.file.FileObject.analysis_tags</span></code></a>, which are propagated by analysis plugins.</p>
+<dd><p>User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {‘tag’: <a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor" title="helperFunctions.tag.TagColor"><code class="xref py py-class docutils literal notranslate"><span class="pre">helperFunctions.tag.TagColor</span></code></a>} dictionary.  # noqa: E501
+It is important to understand that these tags are <strong>separately stored</strong> from the <a class="reference internal" href="objects.file.html#objects.file.FileObject.analysis_tags" title="objects.file.FileObject.analysis_tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">objects.file.FileObject.analysis_tags</span></code></a>, which are propagated by analysis plugins.  # noqa: E501</p>
 <p>This attribute is <strong>optional</strong>, the dict may be empty.</p>
 </dd></dl>
 
