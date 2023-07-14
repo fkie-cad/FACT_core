@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order,protected-access,unused-argument,redefined-outer-name
 import pytest
 
 from compare.compare import Compare
@@ -37,7 +36,7 @@ class MockDbInterface:
         return {}
 
 
-@pytest.fixture()
+@pytest.fixture
 def compare_system():
     return Compare(db_interface=MockDbInterface())
 

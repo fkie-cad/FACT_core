@@ -19,7 +19,7 @@ VULNERABILITIES = vulnerabilities()
 class AnalysisPlugin(YaraBasePlugin):
     NAME = 'known_vulnerabilities'
     DESCRIPTION = 'Rule based detection of known vulnerabilities like Heartbleed'
-    DEPENDENCIES = ['file_hashes', 'software_components']
+    DEPENDENCIES = ['file_hashes', 'software_components']  # noqa: RUF012
     VERSION = '0.2.1'
     FILE = __file__
 

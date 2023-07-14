@@ -6,10 +6,13 @@ from sqlalchemy.orm import sessionmaker
 
 import config
 from storage.schema import Base
+from typing import Optional
 
 
 class DbConnection:
-    def __init__(self, user: str = None, password: str = None, db_name: str | None = None, **kwargs):
+    def __init__(
+        self, user: Optional[str] = None, password: Optional[str] = None, db_name: str | None = None, **kwargs
+    ):
         self.base = Base
 
         address = config.common.postgres.server
@@ -29,7 +32,7 @@ class DbConnection:
         self.engine = create_engine(engine_url, pool_size=100, future=True, **kwargs)
         self.session_maker = sessionmaker(bind=self.engine, future=True)  # future=True => sqlalchemy 2.0 support
 
-    def create_tables(self):  # pylint: disable=no-self-use
+    def create_tables(self):
         raise Exception('Only the admin connection may create tables')
 
 

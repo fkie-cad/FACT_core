@@ -18,7 +18,7 @@ class TestSoftwareSignatureMeta:
 
     def test_check_meta_fields_missing(self):
         missing_fields = self.sigTest.check_meta_fields(TEST_SIGNATURE_PATH)
-        assert len(missing_fields) == 3
+        assert len(missing_fields) == 3  # noqa: PLR2004
         assert all(
             entry in missing_fields
             for entry in ['website in missing_meta_1', 'description in missing_meta_1', 'ALL in missing_meta_2']
@@ -27,7 +27,7 @@ class TestSoftwareSignatureMeta:
 
 class TestAllSoftwareSignaturesMatched:
     def setup_method(self):
-        self.sig_tester = SignatureTestingMatching()  # pylint: disable=attribute-defined-outside-init
+        self.sig_tester = SignatureTestingMatching()
 
     def test_all_signatures_matched(self):
         diff = self.sig_tester.check(SIGNATURE_PATH, TEST_DATA_DIR / 'software_component_test_list.txt')

@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import pytest
 
-from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import create_test_file_object, create_test_firmware
 
 from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child
 
@@ -142,7 +142,7 @@ def test_update_duplicate_same_fw(backend_db, frontend_db):
 
     db_fo = frontend_db.get_object(fo.uid)
     assert list(db_fo.virtual_file_path) == [fw.uid]
-    assert len(db_fo.virtual_file_path[fw.uid]) == 2
+    assert len(db_fo.virtual_file_path[fw.uid]) == 2  # noqa: PLR2004
     assert db_fo.parents == {fw.uid}
 
 

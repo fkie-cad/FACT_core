@@ -1,4 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,unused-argument,wrong-import-order
 from base64 import standard_b64encode
 from multiprocessing import Queue
 

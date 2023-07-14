@@ -1,5 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order
-
 from web_interface.frontend_main import WebFrontEnd
 
 

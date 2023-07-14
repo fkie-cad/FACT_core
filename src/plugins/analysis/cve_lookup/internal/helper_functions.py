@@ -56,8 +56,8 @@ def unescape(string: str) -> str:
     return string.replace('\\', '')
 
 
-class CveLookupException(Exception):
-    def __init__(self, message: str):  # pylint: disable=super-init-not-called
+class CveLookupException(Exception):  # noqa: N818
+    def __init__(self, message: str):
         self.message = message
 
     def __str__(self):

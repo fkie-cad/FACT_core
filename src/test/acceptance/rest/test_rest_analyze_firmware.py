@@ -1,5 +1,3 @@
-# pylint: disable=wrong-import-order
-
 import json
 import urllib.parse
 

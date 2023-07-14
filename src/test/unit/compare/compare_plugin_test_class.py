@@ -1,12 +1,10 @@
-# pylint: disable=attribute-defined-outside-init,not-callable,no-self-use
 import gc
 from configparser import ConfigParser
 
-from test.common_helper import CommonDatabaseMock, create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import CommonDatabaseMock, create_test_firmware
 
 
 class ComparePluginTest:
-
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'base'
     PLUGIN_CLASS = None
@@ -23,15 +21,15 @@ class ComparePluginTest:
         gc.collect()
 
     def setup_plugin(self):
-        '''
+        """
         This function can be overwritten by the test instance.
-        '''
+        """
         return self.PLUGIN_CLASS(config=self.config, view_updater=CommonDatabaseMock())
 
-    def generate_config(self):  # pylint: disable=no-self-use
-        '''
+    def generate_config(self):
+        """
         This function can be overwritten by the test instance if a special config is needed
-        '''
+        """
         return ConfigParser()
 
     def setup_test_fw(self):

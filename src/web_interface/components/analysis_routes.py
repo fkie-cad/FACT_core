@@ -14,7 +14,6 @@ from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import get_template_as_string
-from objects.file import FileObject
 from objects.firmware import Firmware
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
@@ -26,10 +25,16 @@ from web_interface.components.dependency_graph import (
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
 def get_analysis_view(view_name):
-    view_path = os.path.join(get_src_dir(), f'web_interface/templates/analysis_plugins/{view_name}.html')
+    view_path = os.path.join(  # noqa: PTH118
+        get_src_dir(), f'web_interface/templates/analysis_plugins/{view_name}.html'
+    )
     return get_binary_from_file(view_path).decode('utf-8')
 
 
@@ -86,7 +91,7 @@ class AnalysisRoutes(ComponentBase):
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
             known_comparisons=known_comparisons,
             available_plugins=self._get_used_and_unused_plugins(
-                file_obj.processed_analysis, [x for x in analysis_plugins.keys() if x != 'unpacker']
+                file_obj.processed_analysis, [x for x in analysis_plugins if x != 'unpacker']
             ),
         )
 
@@ -143,7 +148,7 @@ class AnalysisRoutes(ComponentBase):
             plugin_dict = intercom.get_available_analysis_plugins()
 
         current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
-        analysis_presets = [current_analysis_preset] + [preset for preset in config.frontend.analysis_preset]
+        analysis_presets = [current_analysis_preset, *list(config.frontend.analysis_preset)]
 
         title = 're-do analysis' if re_do else 'update analysis'
 
@@ -233,10 +238,10 @@ class AnalysisRoutes(ComponentBase):
 
 
 def _add_preset_from_firmware(plugin_dict, fw: Firmware):
-    '''
+    """
     Adds a preset to plugin_dict with all plugins ticked that are processed on the firmware fw.
     Returns the name of the new preset.
-    '''
+    """
     preset_name = fw.uid
 
     previously_processed_plugins = list(fw.processed_analysis.keys())

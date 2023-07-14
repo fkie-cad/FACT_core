@@ -1,4 +1,3 @@
-# pylint: disable=protected-access
 import unittest
 from os import path
 from subprocess import CalledProcessError
@@ -8,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from helperFunctions import yara_binary_search
-from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
+from test.common_helper import get_test_data_dir
 
 TEST_FILE_1 = 'binary_search_test'
 TEST_FILE_2 = 'binary_search_test_2'
@@ -23,12 +22,12 @@ class MockCommonDbInterface:
         return []
 
 
-def mock_check_output(call, *_, shell=True, stderr=None, **__):
+def mock_check_output(call, *_, shell=True, stderr=None, **__):  # noqa: ARG001
     raise CalledProcessError(1, call, b'', stderr)
 
 
 @pytest.mark.backend_config_overwrite(
-    {'firmware_file_storage_directory': path.join(get_test_data_dir(), TEST_FILE_1)},
+    {'firmware_file_storage_directory': path.join(get_test_data_dir(), TEST_FILE_1)},  # noqa: PTH118
 )
 class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
     @mock.patch('helperFunctions.yara_binary_search.DbInterfaceCommon', MockCommonDbInterface)
@@ -54,7 +53,7 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         assert 'There seems to be an error in the rule file' in result
 
     @patch('helperFunctions.yara_binary_search.subprocess.run', side_effect=mock_check_output)
-    def test_get_binary_search_yara_error(self, _):
+    def test_get_binary_search_yara_error(self, _):  # noqa: PT019
         result = self.yara_binary_scanner.get_binary_search_result((self.yara_rule, None))
         assert isinstance(result, str)
         assert 'Error when calling YARA' in result
@@ -70,19 +69,19 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         assert result == {'rule_1': ['match_1', 'match_2'], 'rule_2': ['match_1']}
 
     def test_execute_yara_search(self):
-        test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')
+        test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')  # noqa: PTH118
         result = self.yara_binary_scanner._execute_yara_search(test_rule_path)
         assert 'test_rule' in result
 
     def test_execute_yara_search_for_single_file(self):
-        test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')
+        test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')  # noqa: PTH118
         result = self.yara_binary_scanner._execute_yara_search(
-            test_rule_path, target_path=path.join(get_test_data_dir(), TEST_FILE_1, TEST_FILE_1)
+            test_rule_path, target_path=path.join(get_test_data_dir(), TEST_FILE_1, TEST_FILE_1)  # noqa: PTH118
         )
         assert 'test_rule' in result
 
     def test_get_file_paths_of_files_included_in_fo(self):
         result = self.yara_binary_scanner._get_file_paths_of_files_included_in_fw('single_firmware')
-        assert len(result) == 2
-        assert path.basename(result[0]) == TEST_FILE_2
-        assert path.basename(result[1]) == TEST_FILE_3
+        assert len(result) == 2  # noqa: PLR2004
+        assert path.basename(result[0]) == TEST_FILE_2  # noqa: PTH119
+        assert path.basename(result[1]) == TEST_FILE_3  # noqa: PTH119

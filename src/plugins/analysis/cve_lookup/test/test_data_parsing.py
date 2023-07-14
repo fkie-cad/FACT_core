@@ -144,9 +144,9 @@ SELECT_CVE_URLS_EXPECTED_OUTPUT = ['nvdcve-1.0-2018.json', 'nvdcve-1.0-2019.json
 def setup() -> None:
     yield None
     try:
-        remove(data_parsing.CPE_FILE)
+        remove(data_parsing.CPE_FILE)  # noqa: PTH107
         for file in glob('nvdcve-1.0-*.json'):
-            remove(file)
+            remove(file)  # noqa: PTH107
     except OSError:
         pass
 
@@ -159,23 +159,23 @@ def test_get_cve_links():
     assert expected_links == actual_links
 
 
-@pytest.mark.skip(reason='don\'t download each time')
+@pytest.mark.skip(reason="don't download each time")
 def test_download_cve():
     data_parsing.download_cve(download_path='.', years=DOWNLOAD_DATA_YEAR_INPUT, update=False)
     assert set(DOWNLOAD_CVE_EXPECTED) == set(glob('nvdcve-1.0-*.json'))
     data_parsing.download_cve(download_path='.', years=DOWNLOAD_DATA_YEAR_INPUT, update=True)
-    assert DOWNLOAD_UPDATE_EXPECTED == glob('nvdcve-1.0-modified.json')
+    assert glob('nvdcve-1.0-modified.json') == DOWNLOAD_UPDATE_EXPECTED
 
 
-@pytest.mark.skip(reason='don\'t download each time')
+@pytest.mark.skip(reason="don't download each time")
 def test_download_cpe():
     data_parsing.download_cpe(download_path='.')
     assert Path(data_parsing.CPE_FILE).is_file()
 
 
-@pytest.mark.skip(reason='don\'t download each time')
+@pytest.mark.skip(reason="don't download each time")
 @pytest.mark.parametrize(
-    'url, expected_file',
+    ('url', 'expected_file'),
     [
         ('https://nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml.zip', data_parsing.CPE_FILE),
         ('https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-modified.json.zip', 'nvdcve-1.0-modified.json'),
@@ -189,12 +189,12 @@ def test_iterate_urls(url, expected_file):
 def test_extract_data_from_cve():
     raw_cve_data = data_parsing.json.loads((Path(__file__).parent / 'test_resources/test_cve_extract.json').read_text())
     cve_data, summary_data = data_parsing.extract_data_from_cve(raw_cve_data)
-    assert len(cve_data) == 2
-    assert len(summary_data) == 2
+    assert len(cve_data) == 2  # noqa: PLR2004
+    assert len(summary_data) == 2  # noqa: PLR2004
     assert all(isinstance(entry, CveEntry) for entry in cve_data)
     assert all(isinstance(entry, CveSummaryEntry) for entry in summary_data)
     assert any(entry.cve_id == 'CVE-2018-0010' for entry in cve_data)
-    assert len(cve_data[0].cpe_list) == 14
+    assert len(cve_data[0].cpe_list) == 14  # noqa: PLR2004
     cpe_list = list(zip(*cve_data[0].cpe_list))[0]
     assert all(cpe in cpe_list for cpe in CVE_CPE_LIST)
 
@@ -213,6 +213,6 @@ def test_iterate_nodes():
 
 
 def test_extract_cpe():
-    assert CPE_EXTRACT_LIST == data_parsing.extract_cpe(
-        str(Path(__file__).parent / 'test_resources/test_cpe_extract.xml')
+    assert (
+        data_parsing.extract_cpe(str(Path(__file__).parent / 'test_resources/test_cpe_extract.xml')) == CPE_EXTRACT_LIST
     )

@@ -19,7 +19,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'kernel_config'
     DESCRIPTION = 'Heuristics to find and analyze Linux Kernel configurations via checksec and kconfig-hardened-check'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
-    DEPENDENCIES = ['file_type', 'software_components']
+    DEPENDENCIES = ['file_type', 'software_components']  # noqa: RUF012
     VERSION = '0.3.1'
     FILE = __file__
 

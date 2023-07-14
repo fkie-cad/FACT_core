@@ -21,7 +21,6 @@ class ServiceMock:
 
 
 class CommunicationBackendMock:
-
     counter = Value('i', 0)
 
     def __init__(self):
@@ -29,7 +28,7 @@ class CommunicationBackendMock:
 
     def get_next_task(self):
         self.counter.value += 1
-        return 'test_task' if self.counter.value < 2 else None
+        return 'test_task' if self.counter.value < 2 else None  # noqa: PLR2004
 
     def shutdown(self):
         pass
@@ -39,7 +38,7 @@ class AnalysisServiceMock:
     def update_analysis_of_object_and_children(self, fo):
         pass
 
-    def get_plugin_dict(self):  # pylint: disable=no-self-use
+    def get_plugin_dict(self):
         return {}
 
     def update_analysis_of_single_object(self, fw):
@@ -64,7 +63,7 @@ def get_intercom_for_testing():
 def test_backend_worker(intercom):
     test_queue = Queue()
     service = ServiceMock(test_queue)
-    intercom._start_listener(CommunicationBackendMock, service.add_task)  # pylint: disable=protected-access
+    intercom._start_listener(CommunicationBackendMock, service.add_task)
     result = test_queue.get(timeout=5)
     assert result == 'test_task', 'task not received correctly'
 

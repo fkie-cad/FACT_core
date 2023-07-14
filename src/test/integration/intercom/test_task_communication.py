@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
@@ -26,7 +25,7 @@ from test.common_helper import create_test_firmware
 
 
 class AnalysisServiceMock:
-    def get_plugin_dict(self):  # pylint: disable=no-self-use
+    def get_plugin_dict(self):
         return {'dummy': 'dummy description'}
 
 

@@ -1,5 +1,5 @@
 from helperFunctions.data_conversion import make_bytes
-from test.common_helper import TEST_FW  # pylint: disable=wrong-import-order
+from test.common_helper import TEST_FW
 
 
 class TestAppReAnalyze:

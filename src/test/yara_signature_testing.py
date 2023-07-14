@@ -30,8 +30,8 @@ class SignatureTestingMatching:
 
 
 class SignatureTestingMeta:
-    META_FIELDS = ['software_name', 'open_source', 'website', 'description']
-    missing_meta_fields = []
+    META_FIELDS = ['software_name', 'open_source', 'website', 'description']  # noqa: RUF012
+    missing_meta_fields = []  # noqa: RUF012
 
     def check_meta_fields(self, sig_path: Path):
         for file in sig_path.iterdir():
@@ -47,11 +47,10 @@ class SignatureTestingMeta:
     def _split_rules(raw_rules: str) -> list[str]:
         rule_lines = raw_rules.splitlines()
         rule_start_indices = [i for i in range(len(rule_lines)) if rule_lines[i].startswith('rule ')]
-        rules = [
+        return [
             ''.join(rule_lines[start:end])
             for start, end in zip(rule_start_indices, rule_start_indices[1:] + [len(rule_lines)])
         ]
-        return rules
 
     def check_meta_fields_of_rule(self, rule: str):
         rule_components = [s.strip() for s in rule.split()]

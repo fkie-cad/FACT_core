@@ -8,7 +8,7 @@ from storage.db_interface_view_sync import ViewUpdater
 
 class BasePlugin:
     NAME = 'base'
-    DEPENDENCIES = []
+    DEPENDENCIES = []  # noqa: RUF012
 
     def __init__(self, plugin_path=None, view_updater=None):
         self.view_updater = view_updater if view_updater is not None else ViewUpdater()
@@ -29,5 +29,5 @@ class BasePlugin:
             logging.debug(f'{cls.NAME}: No view available! Generic view will be used.')
             return None
         if len(view_files) > 1:
-            logging.warning(f'{cls.NAME}: Plug-in provides more than one view! \'{view_files[0]}\' is used!')
+            logging.warning(f"{cls.NAME}: Plug-in provides more than one view! '{view_files[0]}' is used!")
         return view_files[0]

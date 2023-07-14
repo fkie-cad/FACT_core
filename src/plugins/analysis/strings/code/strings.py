@@ -9,18 +9,18 @@ from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     Extracts all printable Strings
-    '''
+    """
 
     NAME = 'printable_strings'
-    DEPENDENCIES = []
+    DEPENDENCIES = []  # noqa: RUF012
     MIME_BLACKLIST = MIME_BLACKLIST_COMPRESSED
     DESCRIPTION = 'extracts strings and their offsets from the files consisting of printable characters'
     VERSION = '0.3.4'
     FILE = __file__
 
-    STRING_REGEXES = [
+    STRING_REGEXES = [  # noqa: RUF012
         (b'[\x09-\x0d\x20-\x7e]{$len,}', 'utf-8'),
         (b'(?:[\x09-\x0d\x20-\x7e]\x00){$len,}', 'utf-16'),
     ]
@@ -52,4 +52,4 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_list_of_unique_strings(strings_with_offset: list[tuple[int, str]]) -> list[str]:
-        return sorted(list(set(tuple(zip(*strings_with_offset))[1]))) if strings_with_offset else []
+        return sorted(set(tuple(zip(*strings_with_offset))[1])) if strings_with_offset else []

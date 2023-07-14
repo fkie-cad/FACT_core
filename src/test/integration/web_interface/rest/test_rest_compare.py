@@ -1,5 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order,unused-argument
-
 import pytest
 
 from test.common_helper import create_test_firmware
@@ -35,7 +33,7 @@ class TestRestStartCompare(RestTestBase):
         rv = self.test_client.put('/rest/compare', json={'data': 'invalid data'}, follow_redirects=True)
         assert rv.json['message'] == 'Input payload validation failed'
         assert 'uid_list' in rv.json['errors']
-        assert '\'uid_list\' is a required property' in rv.json['errors']['uid_list']
+        assert "'uid_list' is a required property" in rv.json['errors']['uid_list']
 
     def test_rest_get_compare_valid_not_in_db(self, backend_db):
         test_firmware_1 = create_test_firmware(

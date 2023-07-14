@@ -17,7 +17,7 @@ TEST_QUERIES = {
 
 
 @pytest.fixture(scope='module', autouse=True)
-def setup() -> None:
+def setup() -> None:  # noqa: PT004
     try:
         connection = sqlite3.connect(TEST_DB_PATH)
         cursor = connection.cursor()
@@ -29,7 +29,7 @@ def setup() -> None:
         logging.error(f'[cve_lookup]: could not connect to test database: {type(error).__name__} {error}')
     yield
     with suppress(OSError):
-        remove(TEST_DB_PATH)
+        remove(TEST_DB_PATH)  # noqa: PTH107
 
 
 def test_db_connection():

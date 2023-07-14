@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name,no-self-use,use-implicit-booleaness-not-comparison,attribute-defined-outside-init,wrong-import-order
 from base64 import b64encode
 from unittest import TestCase
 
@@ -77,7 +76,7 @@ class TestFileSystemMetadataRoutesStatic:
 
         assert results is not None
         assert results != {}, 'result should not be empty'
-        assert len(results) == 3, 'wrong number of results'
+        assert len(results) == 3, 'wrong number of results'  # noqa: PLR2004
         assert all(f in results for f in file_names), 'files missing from result'
         assert 'result' in results[file_names[0]], 'analysis result is missing'
         assert results[file_names[0]]['result'] == 'value', 'wrong value of analysis result'
@@ -112,7 +111,7 @@ class TestFileSystemMetadataRoutes:
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
-        app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x  # pylint: disable=no-member
+        app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x
         self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None)
         self.test_client = app.test_client()
 

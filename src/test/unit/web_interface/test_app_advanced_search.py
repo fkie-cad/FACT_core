@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 import pytest
 
 from storage.db_interface_frontend import MetaEntry
@@ -7,14 +6,14 @@ from test.common_helper import TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
 
 class DbMock(CommonDatabaseMock):
     @staticmethod
-    def generic_search(
+    def generic_search(  # noqa: PLR0913
         search_dict: dict,
-        skip: int = 0,
-        limit: int = 0,  # pylint: disable=unused-argument
+        skip: int = 0,  # noqa: ARG004
+        limit: int = 0,  # noqa: ARG004
         only_fo_parent_firmware: bool = False,
-        inverted: bool = False,
+        inverted: bool = False,  # noqa: ARG004
         as_meta: bool = False,
-    ):  # pylint: disable=unused-argument
+    ):
         result = []
         if TEST_FW_2.uid in str(search_dict) or search_dict == {}:
             result.append(TEST_FW_2.uid)
@@ -22,7 +21,7 @@ class DbMock(CommonDatabaseMock):
             if not only_fo_parent_firmware:
                 result.append(TEST_TEXT_FILE.uid)
             else:
-                if TEST_FW_2.uid not in result:
+                if TEST_FW_2.uid not in result:  # noqa: PLR5501
                     result.append(TEST_FW_2.uid)
         if as_meta:
             return [MetaEntry(uid, 'hid', {}, 0) for uid in result]

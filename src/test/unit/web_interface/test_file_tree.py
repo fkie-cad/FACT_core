@@ -12,7 +12,6 @@ from web_interface.file_tree.file_tree import (
 )
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
-# pylint: disable=protected-access
 
 NON_VIRTUAL_TREE_ROOT = {
     'a_attr': {'href': '/analysis/someUID/ro/someUID'},
@@ -33,7 +32,7 @@ MIME_PATH = '/static/file_icons/mimetypes/'
 
 
 @pytest.mark.parametrize(
-    'mime_type, icon',
+    ('mime_type', 'icon'),
     [
         (None, f'{MIME_PATH}unknown.svg'),
         ('application/zip', f'{MIME_PATH}application-zip.svg'),
@@ -56,7 +55,7 @@ def test_get_icon_for_mime(mime_type, icon):
 
 
 @pytest.mark.parametrize(
-    'filename, mime',
+    ('filename', 'mime'),
     [
         ('foo', 'text/plain'),
         ('foo.py', 'text-x-python'),
@@ -107,7 +106,7 @@ class TestFileTree:
         assert list(parent_node.children.keys()) == [child_node_folder_1.get_id()]
         assert child_node_folder_1 in parent_node
         assert child_node_folder_2 in parent_node
-        assert len(parent_node.children[child_node_folder_1.get_id()].get_list_of_child_nodes()) == 2
+        assert len(parent_node.children[child_node_folder_1.get_id()].get_list_of_child_nodes()) == 2  # noqa: PLR2004
         folder_id = child_node_folder_1.get_id()
         assert child_node_file_1 in parent_node.children[folder_id]
         assert child_node_file_2 in parent_node.children[folder_id]
@@ -121,7 +120,7 @@ VIRTUAL_PATH_INPUT = {
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [
         ([], False),
         ([NON_VIRTUAL_TREE_ROOT], False),
@@ -133,7 +132,7 @@ def test_root_is_virtual(input_data, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [
         ([NON_VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),
         ([VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),  # virtual root includes non-virtual root as child
@@ -144,13 +143,20 @@ def test_remove_virtual_path_from_root(input_data, expected_output):
 
 
 class TestVirtualPathFileTree:
-    tree_data = {'uid': 'uid', 'file_name': 'foo.exe', 'size': 1, 'mime': 'footype', 'included_files': set()}
+    tree_data = {  # noqa: RUF012
+        'uid': 'uid',
+        'file_name': 'foo.exe',
+        'size': 1,
+        'mime': 'footype',
+        'included_files': set(),
+    }
 
     def test_multiple_paths(self):
         fo_data = {**self.tree_data, 'virtual_file_path': {'root_uid': ['/dir1/file1', '/dir2/file2']}}
         nodes = self._nodes_by_name(VirtualPathFileTree('root_uid', 'root_uid', FileTreeData(**fo_data)))
-        assert len(nodes) == 2, 'wrong number of nodes created'
-        assert 'dir1' in nodes and 'dir2' in nodes
+        assert len(nodes) == 2, 'wrong number of nodes created'  # noqa: PLR2004
+        assert 'dir1' in nodes
+        assert 'dir2' in nodes
         assert len(nodes['dir1'].children) == 1
         assert nodes['dir1'].get_names_of_children() == ['file1']
 
@@ -161,7 +167,8 @@ class TestVirtualPathFileTree:
         }
         nodes = self._nodes_by_name(VirtualPathFileTree('root_uid', 'parent_1', FileTreeData(**fo_data)))
         assert len(nodes) == 1, 'includes duplicates'
-        assert 'foo' in nodes and 'other' not in nodes
+        assert 'foo' in nodes
+        assert 'other' not in nodes
 
     @staticmethod
     def _nodes_by_name(file_tree: VirtualPathFileTree) -> dict[str, FileTreeNode]:

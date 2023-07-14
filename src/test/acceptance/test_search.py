@@ -1,10 +1,10 @@
 import pytest
 
-from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import create_test_firmware
 
 
 @pytest.fixture(autouse=True)
-def _autouse_intercom_backend_binding(intercom_backend_binding):
+def _autouse_intercom_backend_binding(intercom_backend_binding):  # noqa: ARG001
     pass
 
 

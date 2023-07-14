@@ -2,16 +2,19 @@ from __future__ import annotations
 
 from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest
-from objects.file import FileObject
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
 class ComparePlugin(CompareBasePlugin):
-    '''
+    """
     Compares Software
-    '''
+    """
 
     NAME = 'Software'
-    DEPENDENCIES = ['software_components']
+    DEPENDENCIES = ['software_components']  # noqa: RUF012
     FILE = __file__
 
     def compare_function(self, fo_list):
@@ -24,7 +27,7 @@ class ComparePlugin(CompareBasePlugin):
             'software_in_common': self._get_intersection_of_software(fo_list),
             'exclusive_software': self._get_exclusive_software(fo_list),
         }
-        if len(fo_list) > 2:
+        if len(fo_list) > 2:  # noqa: PLR2004
             compare_result[
                 'software_in_more_than_one_but_not_in_all'
             ] = self._get_software_in_more_than_one_but_not_in_all(fo_list, compare_result)

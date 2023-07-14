@@ -1,4 +1,4 @@
-import ctypes
+import ctypes  # noqa: N999
 import logging
 import os
 from multiprocessing import Array, Manager, Queue, Value
@@ -46,16 +46,16 @@ def sanitize_processed_analysis(processed_analysis_entry: dict) -> dict:
     return processed_analysis_entry
 
 
-class PluginInitException(Exception):
+class PluginInitException(Exception):  # noqa: N818
     def __init__(self, *args, plugin: 'AnalysisBasePlugin'):
         self.plugin: AnalysisBasePlugin = plugin
         super().__init__(*args)
 
 
-class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attributes
-    '''
+class AnalysisBasePlugin(BasePlugin):
+    """
     This is the base plugin. All analysis plugins should be a subclass of this class.
-    '''
+    """
 
     # must be set by the plugin:
     FILE = None
@@ -67,8 +67,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     RECURSIVE = True  # If `True` (default) recursively analyze included files
     TIMEOUT = 300
     SYSTEM_VERSION = None
-    MIME_BLACKLIST = []
-    MIME_WHITELIST = []
+    MIME_BLACKLIST = []  # noqa: RUF012
+    MIME_WHITELIST = []  # noqa: RUF012
 
     ANALYSIS_STATS_LIMIT = 1000
 
@@ -96,20 +96,20 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         return getattr(plugin_config, 'processes', default_process_count)
 
     def additional_setup(self):
-        '''
+        """
         This function can be implemented by the plugin to do initialization
-        '''
+        """
 
     def start(self):
-        '''Starts the plugin workers.'''
+        """Starts the plugin workers."""
         for process_index in range(self.thread_count):
             self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
         logging.debug(f'{self.NAME}: {len(self.workers)} worker threads started')
 
     def shutdown(self):
-        '''
+        """
         This function can be called to shut down all working threads
-        '''
+        """
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
         self.in_queue.close()
@@ -129,7 +129,9 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         try:
             parse_version(version)
         except InvalidVersion:
-            raise PluginInitException(f'{label} "{version}" of plugin {self.NAME} is invalid', plugin=self)
+            raise PluginInitException(  # noqa: B904
+                f'{label} "{version}" of plugin {self.NAME} is invalid', plugin=self
+            )
 
     def add_job(self, fw_object: FileObject):
         if self._dependencies_are_unfulfilled(fw_object):
@@ -147,24 +149,25 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def _analysis_depth_not_reached_yet(self, fo):
         return self.RECURSIVE or fo.depth == 0
 
-    def process_object(self, file_object):  # pylint: disable=no-self-use
-        '''
+    def process_object(self, file_object):
+        """
         This function must be implemented by the plugin
-        '''
+        """
         return file_object
 
     def analyze_file(self, file_object):
         fo = self.process_object(file_object)
-        fo = self._add_plugin_version_and_timestamp_to_analysis_result(fo)
-        return fo
+        return self._add_plugin_version_and_timestamp_to_analysis_result(fo)
 
-    def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):  # pylint: disable=invalid-name
+    def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):
         fo.processed_analysis[self.NAME].update(self.init_dict())
         return fo
 
     # ---- internal functions ----
 
-    def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
+    def add_analysis_tag(  # noqa: PLR0913
+        self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False
+    ):
         new_tag = {
             tag_name: {
                 'value': value,
@@ -204,7 +207,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         process.start()
         process.join(timeout=self.TIMEOUT)
         duration = time() - start
-        if duration > 120:
+        if duration > 120:  # noqa: PLR2004
             logging.info(f'Analysis {self.NAME} on {next_task.uid} is slow: took {duration:.1f} seconds')
         self._update_duration_stats(duration)
 

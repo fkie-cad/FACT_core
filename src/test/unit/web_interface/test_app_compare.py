@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 from flask import session
 
 from test.common_helper import COMPARISON_ID, TEST_FW, TEST_FW_2

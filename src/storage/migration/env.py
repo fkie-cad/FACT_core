@@ -1,4 +1,3 @@
-# pylint: disable=no-member
 from logging.config import fileConfig
 
 from alembic import context

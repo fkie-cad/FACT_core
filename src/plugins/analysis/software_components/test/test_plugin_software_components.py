@@ -7,17 +7,17 @@ from objects.file import FileObject
 
 from ..code.software_components import AnalysisPlugin
 
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
+TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')  # noqa: PTH118
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginsSoftwareComponents:
     def test_process_object(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))  # noqa: PTH118
 
         processed_file = analysis_plugin.process_object(test_file)
         results = processed_file.processed_analysis[analysis_plugin.NAME]
-        assert len(results) == 2, 'incorrect number of software components found'
+        assert len(results) == 2, 'incorrect number of software components found'  # noqa: PLR2004
         assert 'MyTestRule' in results, 'test Rule match not found'
         assert (
             results['MyTestRule']['meta']['software_name'] == 'Test Software'
@@ -54,33 +54,33 @@ class TestAnalysisPluginsSoftwareComponents:
         ), 'version not found correctly'
 
     def test_entry_has_no_trailing_version(self, analysis_plugin):
-        # pylint: disable=protected-access
         assert not analysis_plugin._entry_has_no_trailing_version('Linux', 'Linux 4.15.0-22')
         assert analysis_plugin._entry_has_no_trailing_version('Linux', 'Linux')
         assert analysis_plugin._entry_has_no_trailing_version(' Linux', 'Linux ')
 
     def test_add_os_key_fail(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))  # noqa: PTH118
         with pytest.raises(KeyError):
             analysis_plugin.add_os_key(test_file)
 
-        test_file.processed_analysis[analysis_plugin.NAME] = dict(summary=['OpenSSL'])
+        test_file.processed_analysis[analysis_plugin.NAME] = {'summary': ['OpenSSL']}
         analysis_plugin.add_os_key(test_file)
         assert 'tags' not in test_file.processed_analysis[analysis_plugin.NAME]
 
     def test_add_os_key_success(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
-        test_file.processed_analysis[analysis_plugin.NAME] = dict(summary=['Linux Kernel'])
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))  # noqa: PTH118
+        test_file.processed_analysis[analysis_plugin.NAME] = {'summary': ['Linux Kernel']}
         analysis_plugin.add_os_key(test_file)
         assert 'tags' in test_file.processed_analysis[analysis_plugin.NAME]
         assert test_file.processed_analysis[analysis_plugin.NAME]['tags']['OS']['value'] == 'Linux Kernel'
 
     def test_update_os_key(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))  # noqa: PTH118
 
-        test_file.processed_analysis[analysis_plugin.NAME] = dict(
-            summary=['Linux Kernel'], tags={'OS': {'value': 'Fire OS'}}
-        )
+        test_file.processed_analysis[analysis_plugin.NAME] = {
+            'summary': ['Linux Kernel'],
+            'tags': {'OS': {'value': 'Fire OS'}},
+        }
 
         assert test_file.processed_analysis[analysis_plugin.NAME]['tags']['OS']['value'] == 'Fire OS'
         analysis_plugin.add_os_key(test_file)

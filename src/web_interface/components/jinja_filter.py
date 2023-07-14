@@ -13,15 +13,18 @@ from helperFunctions.database import get_shared_session
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
-from storage.db_interface_frontend import MetaEntry
 from web_interface.filter import elapsed_time, random_collapse_id
-from web_interface.frontend_database import FrontendDatabase
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from web_interface.frontend_database import FrontendDatabase
+    from storage.db_interface_frontend import MetaEntry
 
 
 class FilterClass:
-    '''
+    """
     This is WEB front end main class
-    '''
+    """
 
     def __init__(self, app, program_version, db: FrontendDatabase, **_):
         self._program_version = program_version
@@ -157,7 +160,7 @@ class FilterClass:
 
     def _get_chart_element_count(self):
         limit = config.frontend.max_elements_per_chart
-        if limit > 100:
+        if limit > 100:  # noqa: PLR2004
             logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
             return 100
         return limit
@@ -166,7 +169,7 @@ class FilterClass:
         color_list = get_color_list(1) * len(data)
         return self.data_to_chart_limited(data, limit=0, color_list=color_list)
 
-    def _setup_filters(self):  # pylint: disable=too-many-statements
+    def _setup_filters(self):  # noqa: PLR0915
         self._app.jinja_env.add_extension('jinja2.ext.do')
 
         self._app.jinja_env.filters['all_items_equal'] = lambda data: len({str(value) for value in data.values()}) == 1

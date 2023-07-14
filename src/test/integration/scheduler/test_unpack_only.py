@@ -14,7 +14,7 @@ class TestFileAddition:
 
         processed_container = post_unpack_queue.get(timeout=5)
 
-        assert len(processed_container.files_included) == 3, 'not all included files found'
+        assert len(processed_container.files_included) == 3, 'not all included files found'  # noqa: PLR2004
         included_uids = {
             '289b5a050a83837f192d7129e4c4e02570b94b4924e50159fad5ed1067cfbfeb_20',
             'd558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62',

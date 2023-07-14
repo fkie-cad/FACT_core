@@ -5,7 +5,7 @@ Revises:
 Create Date: 2023-03-23 17:05:22.740165
 
 """
-# pylint: disable=invalid-name,no-member
+
 from alembic import op
 
 # revision identifiers, used by Alembic.

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from objects.file import FileObject
-from objects.firmware import Firmware
 from test.common_helper import create_test_file_object, create_test_firmware
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.firmware import Firmware
+    from objects.file import FileObject
 
 TEST_FO = create_test_file_object()
 TEST_FO_2 = create_test_file_object(bin_path='get_files_test/testfile2')
@@ -40,7 +43,7 @@ def get_fo_with_2_root_fw():
     return fo, parent_1, fw_1, fw_2
 
 
-def insert_test_fw(
+def insert_test_fw(  # noqa: PLR0913
     backend_db,
     uid,
     file_name='test.zip',
@@ -51,7 +54,7 @@ def insert_test_fw(
     release_date='1970-01-01',
     analysis: dict | None = None,
     tags: dict | None = None,
-):  # pylint: disable=too-many-arguments
+):
     test_fw = create_test_firmware(device_class=device_class, vendor=vendor, device_name=device_name, version=version)
     test_fw.uid = uid
     test_fw.file_name = file_name
@@ -64,7 +67,7 @@ def insert_test_fw(
     return test_fw
 
 
-def insert_test_fo(
+def insert_test_fo(  # noqa: PLR0913
     backend_db, uid, file_name='test.zip', size=1, analysis: dict | None = None, parent_fw=None, comments=None
 ):
     test_fo = create_test_file_object()

@@ -7,19 +7,16 @@ import pytest
 from helperFunctions.pdf import _find_pdf, _initialize_subfolder, build_pdf_report
 from test.common_helper import TEST_FW
 
-# pylint: disable=redefined-outer-name
 
-
-@pytest.fixture(scope='function')
+@pytest.fixture
 def common_tmpdir(tmpdir):
-    makedirs(str(Path(str(tmpdir), 'pdf', 'any').parent))
+    makedirs(str(Path(str(tmpdir), 'pdf', 'any').parent))  # noqa: PTH103
     return tmpdir
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def mock_pdf_file(common_tmpdir):
-    pdf_file = Path(str(common_tmpdir), 'pdf', 'any.pdf')
-    return pdf_file
+    return Path(str(common_tmpdir), 'pdf', 'any.pdf')
 
 
 def test_find_pdf_no_folder():
@@ -45,7 +42,7 @@ def test_find_pdf_multiple_pdfs(common_tmpdir, mock_pdf_file):
 
 
 def test_initialize_subfolder(tmpdir):
-    assert list(Path(str(tmpdir)).iterdir()) == list()
+    assert list(Path(str(tmpdir)).iterdir()) == []
 
     _initialize_subfolder(Path(str(tmpdir)), TEST_FW)
 

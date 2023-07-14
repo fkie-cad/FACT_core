@@ -1,4 +1,3 @@
-# pylint: disable=use-implicit-booleaness-not-comparison
 import logging
 from multiprocessing import Manager
 from time import time
@@ -15,7 +14,7 @@ class TestAnalysisStatus:
     def setup_class(cls):
         cls.status = AnalysisStatus()
         cls.manager = Manager()
-        cls.status.currently_running_lock = cls.manager.Lock()  # pylint: disable=no-member
+        cls.status.currently_running_lock = cls.manager.Lock()
 
     @classmethod
     def teardown_class(cls):

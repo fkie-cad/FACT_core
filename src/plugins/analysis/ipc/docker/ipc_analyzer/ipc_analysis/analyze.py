@@ -1,5 +1,3 @@
-# pylint: disable=import-error,no-name-in-module,consider-using-f-string,too-complex,too-many-locals,too-many-return-statements,too-many-branches,too-many-statements
-
 from decompile import decompile_function
 from ghidra.program.model.pcode import HighParam, PcodeOp
 from ghidra.program.model.symbol import RefType

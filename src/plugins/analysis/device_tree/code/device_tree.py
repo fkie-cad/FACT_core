@@ -7,14 +7,14 @@ from ..internal.device_tree_utils import dump_device_trees
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     Device Tree Plug-in
-    '''
+    """
 
     NAME = 'device_tree'
     DESCRIPTION = 'get the device tree in text from the device tree blob'
     VERSION = '1.0.1'
-    MIME_BLACKLIST = [*MIME_BLACKLIST_COMPRESSED, 'audio', 'image', 'video']
+    MIME_BLACKLIST = [*MIME_BLACKLIST_COMPRESSED, 'audio', 'image', 'video']  # noqa: RUF012
     FILE = __file__
 
     def process_object(self, file_object: FileObject):
