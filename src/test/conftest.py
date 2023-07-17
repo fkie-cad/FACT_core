@@ -4,6 +4,7 @@ from typing import List, NamedTuple, Type, TypeVar
 import pytest
 from pydantic import BaseModel, Extra
 from pytest import MonkeyPatch  # noqa: PT013
+from pathlib import Path
 
 import config
 from scheduler.analysis import AnalysisScheduler
@@ -297,6 +298,14 @@ def _scheduler_test_config(request) -> 'SchedulerTestConfig':  # noqa: PT005
     return SchedulerTestConfig.get_instance_from_request(request)
 
 
+def _store_file_if_not_exists(fs_organizer, file_object):
+    path = fs_organizer.generate_path(file_object)
+    if Path(path).exists():
+        return
+
+    fs_organizer.store_file(file_object)
+
+
 @pytest.fixture
 def analysis_scheduler(  # noqa: PLR0913
     request,  # noqa: ARG001
@@ -317,6 +326,16 @@ def analysis_scheduler(  # noqa: PLR0913
             post_analysis=lambda *_: None,
             unpacking_locks=_unpacking_lock_manager,
         )
+
+    fs_organizer = test_config.fs_organizer_class()
+    start_analysis_of_object = _analysis_scheduler.start_analysis_of_object
+
+    # FIXME Remove this. See also the unpacking_scheduler fixture
+    def _start_analysis_of_object_wrapper(file_object):
+        _store_file_if_not_exists(fs_organizer, file_object)
+        start_analysis_of_object(file_object)
+
+    _analysis_scheduler.start_analysis_of_object = _start_analysis_of_object_wrapper
 
     _analysis_scheduler.db_backend_service = test_config.backend_db_class()
 
@@ -392,12 +411,25 @@ def unpacking_scheduler(
         if test_config.pipeline:
             _analysis_scheduler.start_analysis_of_object(fw)
 
+    fs_organizer = test_config.fs_organizer_class()
+
     _unpacking_scheduler = UnpackingScheduler(
         post_unpack=_post_unpack_hook,
-        fs_organizer=test_config.fs_organizer_class(),
+        fs_organizer=fs_organizer,
         unpacking_locks=_unpacking_lock_manager,
         db_interface=test_config.backend_db_class,
     )
+    add_task = _unpacking_scheduler.add_task
+
+    # FIXME Remove this
+    def _add_task_wrapper(fw):
+        # Test often create a FileObject and just set its path.
+        # FACT expects all files to be in the storage.
+        # To work around these contradictions we just store the files here.
+        _store_file_if_not_exists(fs_organizer, fw)
+        add_task(fw)
+
+    _unpacking_scheduler.add_task = _add_task_wrapper
 
     if test_config.start_processes:
         _unpacking_scheduler.start()
