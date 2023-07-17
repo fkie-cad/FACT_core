@@ -3,14 +3,13 @@ import pytest
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
 
-from test.integration.common import MockDbInterface, MockFSOrganizer
+from test.integration.common import MockDbInterface
 
 
 class TestFileAddition:
     @pytest.mark.SchedulerTestConfig(
         pipeline=True,
         backend_db_class=MockDbInterface,
-        fs_organizer_class=MockFSOrganizer,
     )
     def test_unpack_and_analyse(self, analysis_scheduler, unpacking_scheduler, post_analysis_queue):
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')

@@ -24,7 +24,6 @@ from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import clear_test_tables, setup_test_tables
 from test.integration.common import MockDbInterface as BackEndDbInterfaceMock
-from test.integration.common import MockFSOrganizer as FSOrganizerMock
 
 T = TypeVar('T')
 
@@ -322,6 +321,7 @@ def analysis_scheduler(  # noqa: PLR0913
 
     with MonkeyPatch.context() as mkp:
         mkp.setattr('plugins.base.ViewUpdater', test_config.view_updater_class)
+        mkp.setattr('scheduler.analysis.plugin.FSOrganizer', test_config.fs_organizer_class)
         _analysis_scheduler = AnalysisScheduler(
             post_analysis=lambda *_: None,
             unpacking_locks=_unpacking_lock_manager,
@@ -498,7 +498,7 @@ class SchedulerTestConfig(BaseModel):
     comparison_db_class: Type
     #: Set the class that is used as :py:class:`~storage.fsorganizer.FSOrganizer`.
     #: This can be either a mocked class or the actual :py:class:`~storage.fsorganizer.FSOrganizer`.
-    #: This is used by the :py:func:`unpacking_scheduler`
+    #: This is used by the :py:func:`unpacking_scheduler` and the :py:func:`analysis_scheduler`.
     fs_organizer_class: Type
     #: Set the class that is used as :py:class:`~storage.db_interface_view_sync.ViewUpdater`.
     #: If you set this to the actual :py:class:`~storage.db_interface_view_sync.ViewUpdater` note that the fixture
@@ -526,7 +526,7 @@ class SchedulerTestConfig(BaseModel):
                 {
                     'backend_db_class': BackendDbInterface,
                     'comparison_db_class': ComparisonDbInterface,
-                    'fs_organizer_class': FSOrganizerMock,
+                    'fs_organizer_class': FSOrganizer,
                     'view_updater_class': ViewUpdater,
                     'pipeline': False,
                     'start_processes': True,
@@ -542,7 +542,7 @@ class SchedulerTestConfig(BaseModel):
                 {
                     'backend_db_class': BackEndDbInterfaceMock,
                     'comparison_db_class': ComparisonDbInterface,
-                    'fs_organizer_class': FSOrganizerMock,
+                    'fs_organizer_class': FSOrganizer,
                     'view_updater_class': ViewUpdaterMock,
                     'pipeline': False,
                     'start_processes': False,
