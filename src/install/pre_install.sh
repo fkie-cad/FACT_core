@@ -62,6 +62,9 @@ echo \
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
+sudo curl -SL https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
 sudo systemctl enable docker
 
 # add fact-user to docker group
