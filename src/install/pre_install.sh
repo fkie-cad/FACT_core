@@ -7,6 +7,11 @@ cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 
 FACTUSER=$(whoami)
 
+echo "Installing pre-install requirements..."
+sudo apt-get update
+sudo apt-get -y install python3-pip git libffi-dev lsb-release
+
+# distro and codename detection
 DISTRO=$(lsb_release -is)
 if [ "${DISTRO}" = "Linuxmint" ] || [ "${DISTRO}" = "Ubuntu" ]; then
     DISTRO=ubuntu
@@ -15,29 +20,28 @@ elif [ "${DISTRO}" = "Kali" ] || [ "${DISTRO}" = "Debian" ]; then
 fi
 
 CODENAME=$(lsb_release -cs)
-if [ "${CODENAME}" = "vanessa" ]; then
+if [ "${CODENAME}" = "vanessa" ] || [ "${CODENAME}" = "vera" ] || [ "${CODENAME}" = "victoria" ] ; then
     CODENAME=jammy
 elif [ "${CODENAME}" = "ulyana" ] || [ "${CODENAME}" = "ulyssa" ] || [ "${CODENAME}" = "uma" ] || [ "${CODENAME}" = "una" ]; then
     CODENAME=focal
-elif [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ] || [ "${CODENAME}" = "tina" ] || [ "${CODENAME}" = "tricia" ]; then
-    CODENAME=bionic
 elif  [ "${CODENAME}" = "kali-rolling" ]; then
-    CODENAME=buster
+    CODENAME=bookworm
 elif [ -z "${CODENAME}" ]; then
-	echo "Could not get distribution codename. Please make sure that lsb-release is installed."
+	echo "Could not get distribution codename. Please make sure that your distribution is compatible to ubuntu/debian."
 	exit 1
 fi
 
 echo "detected distro ${DISTRO} and codename ${CODENAME}"
 
-echo "Install Pre-Install Requirements"
-sudo apt-get update
-sudo apt-get -y install python3-pip git libffi-dev
+if [ "${CODENAME}" = "bionic" ] || [ "${CODENAME}" = "xenial" ] || [ "${CODENAME}" = "buster" ]; then
+  echo "Warning: your distribution is outdated and the installation may not work as expected. Please upgrade your OS."
+fi
 
+# docker installation (source: https://docs.docker.com/engine/install/{ubuntu|debian})
 echo "Installing Docker"
 
 # uninstall old docker versions
-for i in docker docker-engine docker.io containerd runc; do
+for i in docker.io docker-doc docker-compose podman-docker containerd runc; do
   sudo apt-get remove -y $i || true
 done
 
@@ -45,13 +49,13 @@ done
 sudo apt-get install -y \
     ca-certificates \
     curl \
-    gnupg \
-    lsb-release
+    gnupg
 
 # add Docker's GPG key
-sudo mkdir -p /etc/apt/keyrings
+sudo install -m 0755 -d /etc/apt/keyrings
 echo "curl -fsSL \"https://download.docker.com/linux/${DISTRO}/gpg\""
 curl -fsSL "https://download.docker.com/linux/${DISTRO}/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
 # set up repository
 echo \
@@ -60,7 +64,7 @@ echo \
 
 # Install Docker Engine
 sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 sudo systemctl enable docker
 
@@ -72,13 +76,7 @@ fi
 sudo usermod -aG docker "$FACTUSER"
 
 # Setup npm repository as described in https://github.com/nodesource/distributions/blob/master/README.md#debinstall
-# This is required because the npm version that ships with Ubuntu 18.04 (bionic) is too old.
-if [ "${CODENAME}" = "bionic" ]; then
-  # the latest LTS release is too new for bionic (requires glibc 2.28), the next most recent one is 14
-  curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-else
-  curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-fi
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 
 IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
 SUDO=""
