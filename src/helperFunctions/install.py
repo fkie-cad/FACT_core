@@ -227,7 +227,7 @@ def check_distribution(allow_unsupported=False):
     :return: The codename of the distribution
     '''
     bionic_code_names = ['bionic', 'tara', 'tessa', 'tina', 'disco']
-    debian_code_names = ['buster', 'stretch', 'bullseye', 'kali-rolling']
+    debian_code_names = ['buster', 'stretch', 'bullseye', 'bookworm', 'kali-rolling']
     focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma']
     jammy_code_names = ['jammy', 'vanessa', 'vera']
 
