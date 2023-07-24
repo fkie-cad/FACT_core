@@ -108,7 +108,7 @@ def _install_docker_images(radare):
 
         with OperateInDirectory('radare'):
             docker_compose_process = subprocess.run(
-                'docker-compose build', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+                'docker compose build', shell=True, stdout=PIPE, stderr=STDOUT, text=True
             )
             if docker_compose_process.returncode != 0:
                 raise InstallationError(f'Failed to initialize radare container:\n{docker_compose_process.stdout}')

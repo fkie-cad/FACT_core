@@ -21,6 +21,3 @@ werkzeug==2.2.3
 
 # Used for username validation by flask-security
 bleach==5.0.1
-
-# Used to start radare
-docker-compose==1.29.2
