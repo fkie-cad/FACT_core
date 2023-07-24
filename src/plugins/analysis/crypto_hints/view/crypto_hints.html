@@ -5,61 +5,59 @@
     </table>
     <table class="table table-bordered">
         <colgroup>
-            <col width="50">
-            <col width="150">
-            <col width="600">
+            <col style="width: 50px">
+            <col style="width: 150px">
+            <col style="width: 600px">
         </colgroup>
         <tbody class="table-analysis">
-            {% for key, entry in firmware.processed_analysis[selected_analysis].items() %}
-                {% if key | is_not_mandatory_analysis_entry %}
+            {% for key, entry in analysis_result.items() %}
+                <tr>
+                    {% set row_count = 3 + (1 if entry.meta.date else 0) + (1 if entry.meta.author else 0) %}
+                    <td class="table-head-light" rowspan={{ row_count }}>{{ loop.index - 1 }}</td>
+                    <td class="table-head-light">Matched Rule</td>
+                    <td class="table-head-light">{{ entry['rule'] }} </td>
+                </tr>
+                <tr>
+                    <td> Description</td>
+                    <td> {{ entry['meta']['description'] }} </td>
+                </tr>
+                {% if entry.meta.date %}
                     <tr>
-                        {% set row_count = 3 + (1 if entry.meta.date else 0) + (1 if entry.meta.author else 0) %}
-                        <td class="table-head-light" rowspan={{ row_count }}>{{ loop.index - 1 }}</td>
-                        <td class="table-head-light">Matched Rule</td>
-                        <td class="table-head-light">{{ entry['rule'] }} </td>
-                    </tr>
-                    <tr>
-                        <td> Description</td>
-                        <td> {{ entry['meta']['description'] }} </td>
-                    </tr>
-                    {% if entry.meta.date %}
-                        <tr>
-                            <td>Rule Version</td>
-                            <td>{{ entry['meta']['date'] }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if entry.meta.author %}
-                        <tr>
-                            <td>Rule Author</td>
-                            <td><a href="https://github.com/Yara-Rules/rules/blob/master/crypto/crypto_signatures.yar">
-                                {{ entry['meta']['author'] }}
-                            </a></td>
-                        </tr>
-                    {% endif %}
-                    <tr>
-                        <td>Matches</td>
-                        <td class="p-0 m-0">
-                            <table class="table table-bordered" style="margin:0px;">
-                                <colgroup>
-                                    <col width="75">
-                                    <col width="525">
-                                </colgroup>
-                                <tr>
-                                    <td class="table-head-light">offset</td>
-                                    <td class="table-head-light">name</td>
-                                    <td class="table-head-light" style="width: 90%">matched value</td>
-                                </tr>
-                                {% for offset, name, matched_string in entry['strings'] %}
-                                    <tr>
-                                        <td> 0x{{ '0%x' % offset }} </td>
-                                        <td> {{ name[1:] }} </td>
-                                        <td> {{ matched_string }} </td>
-                                    </tr>
-                                {% endfor %}
-                            </table>
-                        </td>
+                        <td>Rule Version</td>
+                        <td>{{ entry['meta']['date'] }}</td>
                     </tr>
                 {% endif %}
+                {% if entry.meta.author %}
+                    <tr>
+                        <td>Rule Author</td>
+                        <td><a href="https://github.com/Yara-Rules/rules/blob/master/crypto/crypto_signatures.yar">
+                            {{ entry['meta']['author'] }}
+                        </a></td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <td>Matches</td>
+                    <td class="p-0 m-0">
+                        <table class="table table-bordered" style="margin:0px;">
+                            <colgroup>
+                                <col style="width: 75px">
+                                <col style="width: 525px">
+                            </colgroup>
+                            <tr>
+                                <td class="table-head-light">offset</td>
+                                <td class="table-head-light">name</td>
+                                <td class="table-head-light" style="width: 90%">matched value</td>
+                            </tr>
+                            {% for offset, name, matched_string in entry['strings'] %}
+                                <tr>
+                                    <td> 0x{{ '0%x' % offset }} </td>
+                                    <td> {{ name[1:] }} </td>
+                                    <td> {{ matched_string }} </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </td>
+                </tr>
             {% endfor %}
         </tbody>
 {% endblock %}

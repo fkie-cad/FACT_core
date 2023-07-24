@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import logging
 import re
 from base64 import b64decode
 from contextlib import suppress
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Callable, List
 
 from docker.types import Mount
 
@@ -12,8 +13,12 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
-from objects.file import FileObject
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
+    from collections.abc import Callable
 
 JOHN_PATH = Path(__file__).parent.parent / 'bin' / 'john'
 JOHN_POT = Path(__file__).parent.parent / 'bin' / 'john.pot'
@@ -33,15 +38,15 @@ RESULTS_DELIMITER = '=== Results: ==='
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     This plug-in tries to find and crack passwords
-    '''
+    """
 
     NAME = 'users_and_passwords'
-    DEPENDENCIES = []
+    DEPENDENCIES = []  # noqa: RUF012
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DESCRIPTION = 'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
-    VERSION = '0.5.2'
+    VERSION = '0.5.4'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
@@ -53,7 +58,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self.find_password_entries(file_object, MOSQUITTO_REGEXES, generate_mosquitto_entry)
         return file_object
 
-    def find_password_entries(self, file_object: FileObject, regex_list: List[bytes], entry_gen_function: Callable):
+    def find_password_entries(self, file_object: FileObject, regex_list: list[bytes], entry_gen_function: Callable):
         for passwd_regex in regex_list:
             passwd_entries = re.findall(passwd_regex, file_object.binary)
             for entry in passwd_entries:
@@ -103,7 +108,7 @@ def generate_mosquitto_entry(entry: bytes) -> dict:
 
 
 def _is_des_hash(pw_hash: str) -> bool:
-    return len(pw_hash) == 13
+    return len(pw_hash) == 13  # noqa: PLR2004
 
 
 def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -> bool:
@@ -111,7 +116,7 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
         fp.write(passwd_entry)
         fp.seek(0)
         john_process = run_docker_container(
-            'fact/john:alpine-3.14',
+            'fact/john:alpine-3.18',
             command=f'/work/input_file {format_term}',
             mounts=[
                 Mount('/work/input_file', fp.name, type='bind'),
@@ -120,18 +125,21 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
             logging_label='users_and_passwords',
         )
         result_entry['log'] = john_process.stdout
+        if 'No password hashes loaded' in john_process.stdout:
+            result_entry['ERROR'] = 'hash type is not supported'
+            return False
         output = parse_john_output(john_process.stdout)
     if output:
         if any('0 password hashes cracked' in line for line in output):
-            result_entry['ERROR'] = 'hash type is not supported'
+            result_entry['ERROR'] = 'password cracking not successful'
             return False
-        with suppress(KeyError):
+        with suppress(IndexError):
             result_entry['password'] = output[0].split(':')[1]
             return True
     return False
 
 
-def parse_john_output(john_output: str) -> List[str]:
+def parse_john_output(john_output: str) -> list[str]:
     if RESULTS_DELIMITER in john_output:
         start_offset = john_output.find(RESULTS_DELIMITER) + len(RESULTS_DELIMITER) + 1  # +1 is '\n' after delimiter
         return [line for line in john_output[start_offset:].split('\n') if line]
@@ -139,5 +147,5 @@ def parse_john_output(john_output: str) -> List[str]:
 
 
 def _to_str(byte_str: bytes) -> str:
-    '''result entries must be converted from `bytes` to `str` in order to be saved as JSON'''
+    """result entries must be converted from `bytes` to `str` in order to be saved as JSON"""
     return byte_str.decode(errors='replace')

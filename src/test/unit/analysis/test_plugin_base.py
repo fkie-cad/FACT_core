@@ -1,5 +1,3 @@
-# pylint: disable=protected-access,redefined-outer-name,unused-argument,no-self-use
-
 from pathlib import Path
 
 import pytest
@@ -12,18 +10,21 @@ from plugins.analysis.dummy.code.dummy import AnalysisPlugin as DummyPlugin
 PLUGIN_PATH = Path(get_src_dir()) / 'plugins' / 'analysis'
 
 
-@pytest.mark.cfg_defaults(
+@pytest.mark.backend_config_overwrite(
     {
-        'dummy_plugin_for_testing_only': {
-            'threads': '2',
+        'plugin': {
+            'dummy_plugin_for_testing_only': {
+                'name': 'dummy_plugin_for_testing_only',
+                'processes': 2,
+            }
         },
-        'expert-settings': {
-            'block-delay': '0.1',
-        },
+        'block_delay': 0.1,
     }
 )
-@pytest.mark.AnalysisPluginClass.with_args(DummyPlugin)
-@pytest.mark.plugin_start_worker
+@pytest.mark.AnalysisPluginTestConfig(
+    plugin_class=DummyPlugin,
+    start_processes=True,
+)
 class TestPluginBaseCore:
     def test_object_processing_no_children(self, analysis_plugin):
         root_object = FileObject(binary=b'root_file')
@@ -48,7 +49,7 @@ class TestPluginBaseCore:
         assert child_object.uid in root_object.files_included, 'child object not in processed file'
 
 
-@pytest.mark.AnalysisPluginClass.with_args(DummyPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=DummyPlugin)
 class TestPluginBaseAddJob:
     def test_analysis_depth_not_reached_yet(self, analysis_plugin):
         fo = FileObject(binary=b'test', scheduled_analysis=[])
@@ -69,7 +70,7 @@ class TestPluginBaseAddJob:
         analysis_plugin.RECURSIVE = True
         assert analysis_plugin._analysis_depth_not_reached_yet(fo)
 
-    @pytest.mark.plugin_start_worker
+    @pytest.mark.AnalysisPluginTestConfig(start_processes=True)
     def test__add_job__recursive_is_set(self, analysis_plugin):
         fo = FileObject(binary=b'test', scheduled_analysis=[])
         fo.depth = 1
@@ -95,28 +96,34 @@ class TestPluginBaseOffline:
 class TestPluginNotRunning:
     def multithread_config_test(self, multithread_flag, threads_wanted):
         self.p_base = DummyPlugin(no_multithread=multithread_flag)
-        assert self.p_base.thread_count == int(threads_wanted), 'number of threads not correct'
+        assert self.p_base.thread_count == threads_wanted, 'number of threads not correct'
         self.p_base.shutdown()
 
-    @pytest.mark.cfg_defaults(
+    @pytest.mark.backend_config_overwrite(
         {
-            'dummy_plugin_for_testing_only': {
-                'threads': '4',
+            'plugin': {
+                'dummy_plugin_for_testing_only': {
+                    'name': 'dummy_plugin_for_testing_only',
+                    'processes': 4,
+                }
             }
         }
     )
     def test_no_multithread(self):
-        self.multithread_config_test(True, '1')
+        self.multithread_config_test(True, 1)
 
-    @pytest.mark.cfg_defaults(
+    @pytest.mark.backend_config_overwrite(
         {
-            'dummy_plugin_for_testing_only': {
-                'threads': '2',
+            'plugin': {
+                'dummy_plugin_for_testing_only': {
+                    'name': 'dummy_plugin_for_testing_only',
+                    'processes': 2,
+                }
             }
         }
     )
     def test_normal_multithread(self):
-        self.multithread_config_test(False, '2')
+        self.multithread_config_test(False, 2)
 
     def test_init_result_dict(self):
         self.p_base = DummyPlugin()
@@ -126,12 +133,10 @@ class TestPluginNotRunning:
         self.p_base.shutdown()
 
 
-@pytest.mark.AnalysisPluginClass.with_args(DummyPlugin)
-def test_timeout(analysis_plugin, monkeypatch):
-    # See the note in the docs of analysis_pluing fixture for why this is necessary
-    monkeypatch.undo()
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=DummyPlugin)
+def test_timeout(analysis_plugin, monkeypatch):  # noqa: ARG001
     analysis_plugin.TIMEOUT = 0
-    analysis_plugin.start_worker()
+    analysis_plugin.start()
 
     fo_in = FileObject(binary=b'test', scheduled_analysis=[])
     analysis_plugin.add_job(fo_in)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pylint: disable=duplicate-code,ungrouped-imports
+
 import logging
 import urllib.request
 from pathlib import Path
@@ -22,7 +22,7 @@ class QemuExecInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        self._build_docker_image('fact/qemu-exec:alpine-3.14')
+        self._build_docker_image('fact/qemu-exec:alpine-3.18')
 
     def install_files(self):
         with TemporaryDirectory(dir=str(self.base_path)) as tmp_dir:
@@ -53,7 +53,7 @@ class QemuExecInstaller(AbstractPluginInstaller):
             )
             run_cmd_with_logging(f'cp {tmp_dir}/usr/mips-linux-gnu/lib/ld-2.23.so test/data/test_tmp_dir/lib/ld.so.1')
             run_cmd_with_logging(
-                f'mv {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/libc.so.6'
+                f'mv {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/libc.so.6'  # noqa: E501
             )
             run_cmd_with_logging(
                 f'mv {tmp_dir}/usr/mips-linux-gnu/lib/ld-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/ld.so.1'

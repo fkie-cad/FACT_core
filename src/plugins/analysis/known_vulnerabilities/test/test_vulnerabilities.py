@@ -19,7 +19,7 @@ def test_bad_score(score):
         Vulnerability(description='', score=score, reliability='50', short_name='name', rule=DUMMY_RULE, link=None)
 
 
-@pytest.mark.parametrize('description', [None, 12, dict(prefix='any')])
+@pytest.mark.parametrize('description', [None, 12, {'prefix': 'any'}])
 def test_bad_description(description):
     with pytest.raises(BadRuleError):
         Vulnerability(
@@ -27,19 +27,19 @@ def test_bad_description(description):
         )
 
 
-@pytest.mark.parametrize('name', [None, 12, dict()])
+@pytest.mark.parametrize('name', [None, 12, {}])
 def test_bad_name(name):
     with pytest.raises(BadRuleError):
         Vulnerability(description='', score='high', reliability='50', short_name=name, rule=DUMMY_RULE, link=None)
 
 
-@pytest.mark.parametrize('rule', [None, 12, '', dict(a=2)])
+@pytest.mark.parametrize('rule', [None, 12, '', {'a': 2}])
 def test_bad_rule(rule):
     with pytest.raises(BadRuleError):
         Vulnerability(description='', score='high', reliability='50', short_name='name', rule=rule, link=None)
 
 
-@pytest.mark.parametrize('link', [12, dict(a=2)])
+@pytest.mark.parametrize('link', [12, {'a': 2}])
 def test_bad_link(link):
     with pytest.raises(BadRuleError):
         Vulnerability(description='', score='high', reliability='50', short_name='name', rule=DUMMY_RULE, link=link)

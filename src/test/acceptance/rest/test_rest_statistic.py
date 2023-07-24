@@ -1,32 +1,26 @@
-# pylint: disable=wrong-import-order
-
-from time import sleep
+import pytest
 
 from statistic.work_load import WorkLoadStatistic
-from test.acceptance.base import TestAcceptanceBase
 
 
-class TestRestStatistic(TestAcceptanceBase):
-    def setUp(self):
-        super().setUp()
-        self._start_backend()
-        self.workload = WorkLoadStatistic(component='backend')
-        sleep(1)  # wait for systems to start
+@pytest.fixture
+def workload_statistic():
+    _workload_statistic = WorkLoadStatistic(component='backend')
+    yield _workload_statistic
+    _workload_statistic.shutdown()
 
-    def tearDown(self):
-        self.workload.shutdown()
-        self._stop_backend()
-        super().tearDown()
 
-    def test_status(self):
-        self.workload.update(
-            unpacking_workload=self.unpacking_service.get_scheduled_workload(),
-            analysis_workload=self.analysis_service.get_scheduled_workload(),
+class TestRestStatistic:
+    @pytest.mark.usefixtures('intercom_backend_binding')
+    def test_status(self, test_client, workload_statistic, unpacking_scheduler, analysis_scheduler):
+        workload_statistic.update(
+            unpacking_workload=unpacking_scheduler.get_scheduled_workload(),
+            analysis_workload=analysis_scheduler.get_scheduled_workload(),
         )
 
-        rv = self.test_client.get('/rest/status', follow_redirects=True)
+        rv = test_client.get('/rest/status', follow_redirects=True)
 
-        assert rv.status_code == 200
+        assert rv.status_code == 200  # noqa: PLR2004
         assert all(key in rv.json for key in ['system_status', 'plugins'])
         assert 'backend' in rv.json['system_status']
         assert rv.json['system_status']['backend']['status'] == 'online'

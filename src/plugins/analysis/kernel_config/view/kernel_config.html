@@ -2,19 +2,19 @@
 
 {% block analysis_result_details %}
 
-    {% if 'kernel_config' in firmware.processed_analysis[selected_analysis] | sort %}
+    {% if 'kernel_config' in analysis_result | sort %}
         <tr>
             <td>Kernel Config</td>
-            <td><pre class="border rounded p-2 bg-light" style="white-space: pre-wrap; height: 450px; overflow: scroll;"><code>{{ firmware.processed_analysis[selected_analysis]['kernel_config'] | safe }}</code></pre></td>
+            <td><pre class="border rounded p-2 bg-light" style="white-space: pre-wrap; height: 450px; overflow: scroll;"><code>{{ analysis_result['kernel_config'] | safe }}</code></pre></td>
         </tr>
 
         {# checksec kernel check result #}
-        {% if 'checksec' in firmware.processed_analysis[selected_analysis] and firmware.processed_analysis[selected_analysis]['checksec'] != {} %}
+        {% if 'checksec' in analysis_result and analysis_result['checksec'] != {} %}
             <tr>
                 <td>Exploit Mitigations</td>
                 <td style="padding: 0">
                     <table style="width: 100%">
-                        {% for category, checksec_data in firmware.processed_analysis[selected_analysis]['checksec'].items() %}
+                        {% for category, checksec_data in analysis_result['checksec'].items() %}
                             <tr>
                                 <td>{{ category }}</td>
                                 <td style="padding: 0">
@@ -35,7 +35,7 @@
         {% endif %}
 
         {# kconfig-hardened-check result #}
-        {% if 'hardening' in firmware.processed_analysis[selected_analysis] and firmware.processed_analysis[selected_analysis]['hardening'] != [] %}
+        {% if 'hardening' in analysis_result and analysis_result['hardening'] != [] %}
             <tr>
                 <td>Hardening Check</td>
                 <td style="padding: 0">
@@ -47,7 +47,7 @@
                             <td class="table-head-light">Reasoning</td>
                             <td class="table-head-light">Relates to</td>
                         </tr>
-                        {% for option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities in firmware.processed_analysis[selected_analysis]['hardening'] %}
+                        {% for option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities in analysis_result['hardening'] %}
                         {# option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities  #}
                             <tr>
                                 <td>

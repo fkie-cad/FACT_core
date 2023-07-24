@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
-'''
+"""
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2022  Fraunhofer FKIE
+    Copyright (C) 2015-2023  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,10 +15,9 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 from __future__ import annotations
 
-import argparse
 import logging
 import os
 import signal
@@ -28,25 +27,61 @@ from shlex import split
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
+import config
+
 try:
-    import fact_base  # pylint: disable=unused-import  # noqa: F401  # just check if FACT is installed
+    import fact_base  # noqa: F401
 except ImportError:
     sys.exit(1)
 
-from config import cfg
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.program_setup import program_setup
+from helperFunctions.program_setup import setup_argparser, setup_logging
+from typing import TYPE_CHECKING
 
-PROGRAM_NAME = 'FACT Starter'
-PROGRAM_DESCRIPTION = 'This script starts all installed FACT components'
+if TYPE_CHECKING:
+    import argparse
+
+
+class FactStarter:
+    PROGRAM_NAME = 'FACT Starter'
+    PROGRAM_DESCRIPTION = 'This script starts all installed FACT components'
+
+    def __init__(self):
+        self.run = False
+
+    def start(self):
+        self.run = True
+
+        def _handle_sigterm(signum, frame):
+            del signum, frame
+            self.shutdown()
+
+        signal.signal(signal.SIGINT, _handle_sigterm)
+        signal.signal(signal.SIGTERM, _handle_sigterm)
+
+        args = setup_argparser(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+        config.load(args.config_file)
+        setup_logging(args, self.PROGRAM_NAME)
+
+        db_process = _start_component('database', args)
+        frontend_process = _start_component('frontend', args)
+        backend_process = _start_component('backend', args)
+
+        while self.run:
+            sleep(1)
+            if args.testing:
+                break
+
+        _terminate_process(backend_process)
+        _terminate_process(frontend_process)
+        _terminate_process(db_process)
+
+    def shutdown(self):
+        self.run = False
 
 
 def _evaluate_optional_args(args: argparse.Namespace):
     optional_args = ''
-    if args.debug:
-        optional_args += ' -d'
-    if args.silent:
-        optional_args += ' -s'
     if args.testing:
         optional_args += ' -t'
     if args.no_radare:
@@ -61,70 +96,31 @@ def _start_component(component: str, args: argparse.Namespace) -> Popen | None:
         return None
     logging.info(f'starting {component}')
     optional_args = _evaluate_optional_args(args)
-    command = f'{script_path} -l {cfg.logging.logfile} -L {cfg.logging.loglevel} -C {args.config_file} {optional_args}'
+    command = (
+        f'{script_path} '
+        f'-l {getattr(config.common.logging, f"file_{component}")} '
+        f'-L {args.log_level} '
+        f'{optional_args} '
+    )
+
+    if args.config_file is not None:
+        command += f'-C {args.config_file}'
+
     return Popen(split(command))
 
 
-def _terminate_process(process: Popen):
+def _terminate_process(process: Popen | None):
     if process is not None:
         try:
             os.kill(process.pid, signal.SIGUSR1)
             process.wait(timeout=60)
         except TimeoutExpired:
-            logging.error('component did not stop in time -> kill')
             process.kill()
         except ProcessLookupError:
             pass
 
 
-def shutdown(*_):
-    logging.info('shutting down...')
-    fact.run = False
-
-
-def _process_is_running(process: Popen) -> bool:
-    try:
-        os.kill(process.pid, 0)
-        if process.poll() is not None:
-            return False
-        return True
-    except ProcessLookupError:
-        return False
-
-
-signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
-
-
-class FactStarter:
-    run = False
-
-    def main(self):
-        self.run = True
-        args = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-        db_process = _start_component('db', args)
-        sleep(2)
-        frontend_process = _start_component('frontend', args)
-        backend_process = _start_component('backend', args)
-        sleep(2)
-        if backend_process is not None and not _process_is_running(backend_process):
-            logging.critical('Backend did not start. Shutting down...')
-            self.run = False
-
-        while self.run:
-            sleep(1)
-            if args.testing:
-                break
-
-        logging.debug('shutdown backend')
-        _terminate_process(backend_process)
-        logging.debug('shutdown frontend')
-        _terminate_process(frontend_process)
-        logging.debug('shutdown db')
-        _terminate_process(db_process)
-
-
 if __name__ == '__main__':
-    fact = FactStarter()
-    fact.main()
-    sys.exit(0)
+    starter = FactStarter()
+    starter.start()
+    sys.exit()

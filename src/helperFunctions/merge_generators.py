@@ -1,33 +1,21 @@
+from __future__ import annotations
+
 from random import sample, seed
-from typing import Sequence, TypeVar
+from typing import TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 seed()
-T = TypeVar('T')  # pylint: disable=invalid-name
+
+T = TypeVar('T')
 
 
-def _add_nested_list_to_dict(input_list, input_dict):
-    for item in input_list:
-        if item[0][0] in input_dict.keys():
-            input_dict[item[0][0]] += item[1]
-        else:
-            input_dict[item[0][0]] = item[1]
-    return input_dict
-
-
-def avg(seq: Sequence[float]) -> float:
-    '''
-    Returns the average of seq.
-    '''
-    if len(seq) == 0:
-        return 0
-    return sum(seq) / len(seq)
-
-
-def shuffled(sequence):
-    '''
+def shuffled(sequence: Sequence[T]) -> list[T]:
+    """
     Copies and shuffles an array.
 
     :param sequence: The array to be shuffled
     :return: A shuffled copy of `sequence`
-    '''
+    """
     return sample(sequence, len(sequence))

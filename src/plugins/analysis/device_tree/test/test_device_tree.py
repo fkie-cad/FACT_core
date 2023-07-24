@@ -15,10 +15,9 @@ TEST_FP = TEST_DATA / 'false_positive.rnd'
 TEST_BROKEN = TEST_DATA / 'broken.dtb'
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 def test_process_object(analysis_plugin):
     test_object = FileObject()
-    test_object.processed_analysis['file_type'] = {'mime': 'linux/device-tree'}
     test_object.binary = TEST_FILE.read_bytes()
     test_object.file_path = str(TEST_FILE)
     processed_object = analysis_plugin.process_object(test_object)
@@ -32,10 +31,10 @@ def test_process_object(analysis_plugin):
 @pytest.mark.parametrize('file', [TEST_EMBEDDED, TEST_IMAGE])
 def test_dump_device_trees(file):
     result = dump_device_trees(file.read_bytes())
-    assert len(result) == 2
+    assert len(result) == 2  # noqa: PLR2004
     for dt_dict in result:
         assert 'foo = "bar";' in dt_dict['device_tree']
-        assert dt_dict['header']['version'] == 17
+        assert dt_dict['header']['version'] == 17  # noqa: PLR2004
         assert dt_dict['model'] in ['DeviceTreeTest-1', 'FooBar 1.0']
 
 

@@ -1,16 +1,16 @@
+from __future__ import annotations
+
+import logging
 from datetime import datetime
 from time import time
-from typing import List, Optional, Set
 
 from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
-
-META_KEYS = {'tags', 'summary', 'analysis_date', 'plugin_version', 'system_version', 'file_system_flag'}
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
 
 
-def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: Optional[List[str]] = None) -> Firmware:
+def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
     firmware = Firmware()
     _populate_fo_data(fw_entry.root_object, firmware, analysis_filter)
     firmware.device_name = fw_entry.device_name
@@ -25,26 +25,35 @@ def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: Optional[List[
 
 def file_object_from_entry(
     fo_entry: FileObjectEntry,
-    analysis_filter: Optional[List[str]] = None,
-    included_files: Optional[Set[str]] = None,
-    parents: Optional[Set[str]] = None,
+    analysis_filter: list[str] | None = None,
+    included_files: set[str] | None = None,
+    parents: set[str] | None = None,
+    virtual_file_paths: dict[str, list[str]] | None = None,
 ) -> FileObject:
     file_object = FileObject()
-    _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents)
+    _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents, virtual_file_paths)
     return file_object
 
 
-def _populate_fo_data(
+def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, list[str]]:
+    result = {}
+    for vfp_entry in vfp_list or []:
+        result.setdefault(vfp_entry.parent_uid, []).append(vfp_entry.file_path)
+    return result
+
+
+def _populate_fo_data(  # noqa: PLR0913
     fo_entry: FileObjectEntry,
     file_object: FileObject,
-    analysis_filter: Optional[List[str]] = None,
-    included_files: Optional[Set[str]] = None,
-    parents: Optional[Set[str]] = None,
+    analysis_filter: list[str] | None = None,
+    included_files: set[str] | None = None,
+    parents: set[str] | None = None,
+    virtual_file_paths: dict[str, list[str]] | None = None,
 ):
     file_object.uid = fo_entry.uid
     file_object.size = fo_entry.size
     file_object.file_name = fo_entry.file_name
-    file_object.virtual_file_path = fo_entry.virtual_file_paths
+    file_object.virtual_file_path = virtual_file_paths or {}
     file_object.processed_analysis = {
         analysis_entry.plugin: analysis_entry_to_dict(analysis_entry)
         for analysis_entry in fo_entry.analyses
@@ -76,13 +85,20 @@ def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> Firm
     )
 
 
-def get_analysis_without_meta(analysis_data: dict) -> dict:
-    analysis_without_meta = {key: value for key, value in analysis_data.items() if key not in META_KEYS}
-    sanitize(analysis_without_meta)
-    return analysis_without_meta
+def create_vfp_entries(file_object: FileObject) -> list[VirtualFilePath]:
+    return [
+        VirtualFilePath(
+            parent_uid=parent_uid,
+            file_uid=file_object.uid,
+            file_path=path,
+        )
+        for parent_uid, path_list in file_object.virtual_file_path.items()
+        for path in path_list
+    ]
 
 
 def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
+    sanitize(file_object.virtual_file_path)
     return FileObjectEntry(
         uid=file_object.uid,
         sha256=file_object.sha256,
@@ -93,27 +109,43 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
         depth=file_object.depth,
         size=file_object.size,
         comments=file_object.comments,
-        virtual_file_paths=file_object.virtual_file_path,
         is_firmware=isinstance(file_object, Firmware),
         firmware=None,
         analyses=[],
     )
 
 
-def sanitize(analysis_data: dict):
-    '''Null bytes are not legal in PostgreSQL JSON columns -> remove them'''
+def sanitize(analysis_data: dict) -> dict:
+    """Null bytes are not legal in PostgreSQL JSON columns -> remove them"""
     for key, value in list(analysis_data.items()):
         _sanitize_value(analysis_data, key, value)
         _sanitize_key(analysis_data, key)
+
+    return analysis_data
 
 
 def _sanitize_value(analysis_data: dict, key: str, value):
     if isinstance(value, dict):
         sanitize(value)
-    elif isinstance(value, str) and '\0' in value:
-        analysis_data[key] = value.replace('\0', '')
+    elif isinstance(value, str):
+        analysis_data[key] = _sanitize_string(value)
     elif isinstance(value, list):
         _sanitize_list(value)
+    elif isinstance(value, bytes):
+        logging.warning(
+            f'Plugin result contains bytes entry. '
+            f'Plugin results should only contain JSON compatible data structures!:\n\t{value!r}'
+        )
+        analysis_data[key] = value.decode(errors='replace')
+
+
+def _sanitize_string(string: str) -> str:
+    string = string.replace('\0', '')
+    try:
+        string.encode()
+    except UnicodeEncodeError:
+        string = string.encode(errors='replace').decode()
+    return string
 
 
 def _sanitize_key(analysis_data: dict, key: str):
@@ -125,12 +157,12 @@ def _sanitize_list(value: list) -> list:
     for index, element in enumerate(value):
         if isinstance(element, dict):
             sanitize(element)
-        elif isinstance(element, str) and '\0' in element:
-            value[index] = element.replace('\0', '')
+        elif isinstance(element, str):
+            value[index] = _sanitize_string(element)
     return value
 
 
-def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry) -> List[AnalysisEntry]:
+def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry) -> list[AnalysisEntry]:
     return [
         AnalysisEntry(
             uid=file_object.uid,
@@ -140,7 +172,7 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
             analysis_date=analysis_data.get('analysis_date'),
             summary=_sanitize_list(analysis_data.get('summary', [])),
             tags=analysis_data.get('tags'),
-            result=get_analysis_without_meta(analysis_data),
+            result=sanitize(analysis_data.get('result', {})),
             file_object=fo_backref,
         )
         for plugin_name, analysis_data in file_object.processed_analysis.items()
@@ -154,5 +186,5 @@ def analysis_entry_to_dict(entry: AnalysisEntry) -> dict:
         'system_version': entry.system_version,
         'summary': entry.summary or [],
         'tags': entry.tags or {},
-        **(entry.result or {}),
+        'result': entry.result or {},
     }

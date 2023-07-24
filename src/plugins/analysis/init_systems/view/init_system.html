@@ -2,27 +2,25 @@
 
 {% block analysis_result_details %}
 
-    {% if firmware.processed_analysis[selected_analysis]['init_type'] %}
+    {% if analysis_result['init_type'] %}
         <tr>
             <td class="table-head-light">Init system</td>
-            <td class="table-head-light">{{ firmware.processed_analysis[selected_analysis]['init_type'][0]}}</td>
+            <td class="table-head-light">{{ analysis_result['init_type'][0]}}</td>
         </tr>
     {% endif %}
-    {% if firmware.processed_analysis[selected_analysis]['description'] %}
+    {% if analysis_result['description'] %}
         <tr>
             <td>Description</td>
-            <td>{{ firmware.processed_analysis[selected_analysis]['description'][0]}}</td>
+            <td>{{ analysis_result['description'][0]}}</td>
         </tr>
     {% endif %}
-    {% for key, value in firmware.processed_analysis[selected_analysis].items()|sort %}
-        {% if key | is_not_mandatory_analysis_entry(['init_type', 'description']) %}
-            <tr>
-                <td>{{ key }}</td>
-                <td>
-                    <pre class="border rounded p-2 bg-light" style="white-space: pre-wrap;"><code>{{ value }}</code></pre>
-                </td>
-            </tr>
-        {% endif %}
+    {% for key, value in analysis_result.items() | sort %}
+        <tr>
+            <td>{{ key }}</td>
+            <td>
+                <pre class="border rounded p-2 bg-light" style="white-space: pre-wrap;"><code>{{ value }}</code></pre>
+            </td>
+        </tr>
     {% endfor %}
 
 {% endblock %}

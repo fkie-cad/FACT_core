@@ -9,13 +9,13 @@ from ..code.information_leaks import AnalysisPlugin, _check_file_path, _check_fo
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginInformationLeaks:
     def test_find_path(self, analysis_plugin):
         fo = MockFileObject()
         fo.binary = (TEST_DATA_DIR / 'path_test_file').read_bytes()
         fo.processed_analysis[analysis_plugin.NAME] = {}
-        fo.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
+        fo.processed_analysis['file_type'] = {'result': {'mime': 'application/x-executable'}}
         fo.virtual_file_path = {}
         analysis_plugin.process_object(fo)
 
@@ -34,17 +34,11 @@ class TestAnalysisPluginInformationLeaks:
         assert fo.processed_analysis[analysis_plugin.NAME]['root_path'] == ['/root/user_name/this_directory']
 
         assert 'summary' in fo.processed_analysis[analysis_plugin.NAME]
-        assert fo.processed_analysis[analysis_plugin.NAME]['summary'] == [
-            '/home/multiple',
-            '/home/user/test/urandom',
-            '/home/user/urandom',
-            '/root/user_name/this_directory',
-            '/var/www/tmp/me_',
-        ]
+        assert sorted(fo.processed_analysis[analysis_plugin.NAME]['summary']) == ['root_path', 'user_paths', 'www_path']
 
     def test_find_artifacts(self, analysis_plugin):
         fo = MockFileObject()
-        fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
+        fo.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
         fo.virtual_file_path = {
             1: [
                 'some_uid|/home/user/project/.git/config',
@@ -78,5 +72,5 @@ class TestAnalysisPluginInformationLeaks:
 def test_check_file_path():
     # if multiple rules match, only the first should appear in the result
     svn_path = '/home/user/project/.svn/entries'
-    assert _check_for_files(svn_path) and _check_for_directories(svn_path), 'both rules should match'
+    assert _check_for_files(svn_path) and _check_for_directories(svn_path), 'both rules should match'  # noqa: PT018
     assert _check_file_path(svn_path) == {'svn_entries': ['/home/user/project/.svn/entries']}

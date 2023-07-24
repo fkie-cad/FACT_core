@@ -1,11 +1,11 @@
-import json
+from __future__ import annotations
+
 import logging
 import pickle
 import sys
 from base64 import b64encode
 from configparser import ConfigParser
 from pathlib import Path
-from typing import List, Optional, Union
 
 import gridfs
 from pymongo import MongoClient, errors
@@ -17,11 +17,12 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
+from typing import Optional
 
 try:
     from rich.progress import BarColumn, Progress, TimeElapsedColumn
 except ImportError:
-    print('Error: rich not found. Please install it:\npython3 -m pip install rich')
+    print('Error: rich not found. Please install it:\npython3 -m pip install rich')  # noqa: T201
     sys.exit(1)
 
 PERCENTAGE = '[progress.percentage]{task.percentage:>3.0f}%'
@@ -29,7 +30,7 @@ DESCRIPTION = '[progress.description]{task.description}'
 
 
 class ConnectTo:
-    '''
+    """
     Open a database connection using the interface passed to the constructor. Intended to be used as a context manager.
 
     :param connected_interface: A database interface from the `storage` module (e.g. `FrontEndDbInterface`)
@@ -41,7 +42,7 @@ class ConnectTo:
 
            with ConnectTo(FrontEndDbInterface, self.config) as connection:
                 query = connection.firmwares.find({})
-    '''
+    """
 
     def __init__(self, connected_interface, config: ConfigParser):
         self.interface = connected_interface
@@ -57,11 +58,11 @@ class ConnectTo:
 
 
 class MongoInterface:
-    '''
+    """
     This is the mongo interface base class handling:
     - load config
     - setup connection including authentication
-    '''
+    """
 
     READ_ONLY = False
 
@@ -116,14 +117,14 @@ class MigrationMongoInterface(MongoInterface):
             fo = self.get_firmware(uid, analysis_filter=analysis_filter)
         return fo
 
-    def get_firmware(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[Firmware]:
+    def get_firmware(self, uid: str, analysis_filter: list[str] | None = None) -> Firmware | None:
         firmware_entry = self.firmwares.find_one(uid)
         if firmware_entry:
             return self._convert_to_firmware(firmware_entry, analysis_filter=analysis_filter)
         logging.debug(f'No firmware with UID {uid} found.')
         return None
 
-    def _convert_to_firmware(self, entry: dict, analysis_filter: List[str] = None) -> Firmware:
+    def _convert_to_firmware(self, entry: dict, analysis_filter: Optional[list[str]] = None) -> Firmware:
         firmware = Firmware()
         firmware.uid = entry['_id']
         firmware.size = entry['size']
@@ -144,14 +145,14 @@ class MigrationMongoInterface(MongoInterface):
         firmware.comments = entry.get('comments', [])
         return firmware
 
-    def get_file_object(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[FileObject]:
+    def get_file_object(self, uid: str, analysis_filter: list[str] | None = None) -> FileObject | None:
         file_entry = self.file_objects.find_one(uid)
         if file_entry:
             return self._convert_to_file_object(file_entry, analysis_filter=analysis_filter)
         logging.debug(f'No FileObject with UID {uid} found.')
         return None
 
-    def _convert_to_file_object(self, entry: dict, analysis_filter: Optional[List[str]] = None) -> FileObject:
+    def _convert_to_file_object(self, entry: dict, analysis_filter: list[str] | None = None) -> FileObject:
         file_object = FileObject()
         file_object.uid = entry['_id']
         file_object.size = entry['size']
@@ -167,7 +168,7 @@ class MigrationMongoInterface(MongoInterface):
         file_object.comments = entry.get('comments', [])
         return file_object
 
-    def retrieve_analysis(self, sanitized_dict: dict, analysis_filter: Optional[List[str]] = None) -> dict:
+    def retrieve_analysis(self, sanitized_dict: dict, analysis_filter: list[str] | None = None) -> dict:
         """
         retrieves analysis including sanitized entries
         :param sanitized_dict: processed analysis dictionary including references to sanitized entries
@@ -194,16 +195,20 @@ class MigrationMongoInterface(MongoInterface):
 
     def _retrieve_binaries(self, sanitized_dict, key):
         tmp_dict = {}
-        for analysis_key in sanitized_dict[key].keys():
+        for analysis_key in sanitized_dict[key]:
             if self.is_not_sanitized(analysis_key, sanitized_dict[key]):
                 tmp_dict[analysis_key] = sanitized_dict[key][analysis_key]
             else:
                 logging.debug(f'Retrieving {analysis_key}')
                 tmp = self.sanitize_fs.get_last_version(sanitized_dict[key][analysis_key])
                 if tmp is not None:
-                    report = pickle.loads(tmp.read())
+                    try:
+                        report = pickle.loads(tmp.read())
+                    except ModuleNotFoundError:  # sanitized result contains pickled class that cannot be loaded
+                        logging.error(f'Could not load sanitized dict: {sanitized_dict[key][analysis_key]}')
+                        report = {}
                 else:
-                    logging.error(f'sanitized file not found: {sanitized_dict[key][analysis_key]}')
+                    logging.error(f'Sanitized file not found: {sanitized_dict[key][analysis_key]}')
                     report = {}
                 tmp_dict[analysis_key] = report
         return tmp_dict
@@ -214,7 +219,7 @@ class MigrationMongoInterface(MongoInterface):
         return field in ['summary', 'tags'] and not isinstance(analysis_result[field], str)
 
 
-def _fix_illegal_dict(dict_: dict, label=''):  # pylint: disable=too-complex
+def _fix_illegal_dict(dict_: dict, label=''):
     for key, value in dict_.items():
         if isinstance(value, bytes):
             if key == 'entropy_analysis_graph':
@@ -233,12 +238,12 @@ def _fix_illegal_dict(dict_: dict, label=''):  # pylint: disable=too-complex
             _fix_illegal_dict(value, label)
         elif isinstance(value, list):
             _fix_illegal_list(value, key, label)
-        elif isinstance(value, str):
-            if '\0' in value:
-                logging.debug(
-                    f'entry ({label}) {key} contains illegal character "\\0": {value[:10]} -> replacing with "?"'
-                )
-                dict_[key] = value.replace('\0', '\\x00')
+        elif isinstance(value, tuple):
+            dict_[key] = value = list(value)  # noqa: PLW2901
+            _fix_illegal_list(value, key, label)
+        elif isinstance(value, str) and '\0' in value:
+            logging.debug(f'entry ({label}) {key} contains illegal character "\\0": {value[:10]} -> replacing with "?"')
+            dict_[key] = value.replace('\0', '\\x00')
 
 
 def _fix_illegal_list(list_: list, key=None, label=''):
@@ -250,14 +255,16 @@ def _fix_illegal_list(list_: list, key=None, label=''):
             list_[index] = element.decode()
         elif isinstance(element, dict):
             _fix_illegal_dict(element, label)
+        elif isinstance(element, tuple):
+            list_[index] = element = list(element)  # noqa: PLW2901
+            _fix_illegal_list(element, key, label)
         elif isinstance(element, list):
             _fix_illegal_list(element, key, label)
-        elif isinstance(element, str):
-            if '\0' in element:
-                logging.debug(
-                    f'entry ({label}) {key} contains illegal character "\\0": {element[:10]} -> replacing with "?"'
-                )
-                list_[index] = element.replace('\0', '\\x00')
+        elif isinstance(element, str) and '\0' in element:
+            logging.debug(
+                f'entry ({label}) {key} contains illegal character "\\0": {element[:10]} -> replacing with "?"'
+            )
+            list_[index] = element.replace('\0', '\\x00')
 
 
 def _migrate_plugin(plugin_name, processed_analysis):
@@ -292,9 +299,9 @@ def main():
                 migrator = DbMigrator(postgres=postgres, mongo=db, progress=progress)
                 migrated_fw_count = migrator.migrate_fw(query={}, root=True, label='firmwares')
                 if not migrated_fw_count:
-                    print('No firmware to migrate')
+                    print('No firmware to migrate')  # noqa: T201
                 else:
-                    print(f'Successfully migrated {migrated_fw_count} firmware DB entries')
+                    print(f'Successfully migrated {migrated_fw_count} firmware DB entries')  # noqa: T201
             migrate_comparisons(db)
     except errors.ServerSelectionTimeoutError:
         logging.error(
@@ -311,7 +318,9 @@ class DbMigrator:
         self.mongo = mongo
         self.progress = progress
 
-    def migrate_fw(self, query, label: str = None, root=False, root_uid=None, parent_uid=None) -> int:
+    def migrate_fw(  # noqa: PLR0913
+        self, query, label: Optional[str] = None, root=False, root_uid=None, parent_uid=None
+    ) -> int:
         migrated_fw_count = 0
         collection = self.mongo.firmwares if root else self.mongo.file_objects
         total = collection.count_documents(query)
@@ -345,24 +354,26 @@ class DbMigrator:
         self.progress.remove_task(task)
         return migrated_fw_count
 
-    def _migrate_single_object(self, firmware_object: Union[Firmware, FileObject], parent_uid: str, root_uid: str):
+    def _migrate_single_object(self, firmware_object: Firmware | FileObject, parent_uid: str, root_uid: str):
         firmware_object.parents = [parent_uid]
         firmware_object.parent_firmware_uids = [root_uid]
-        for plugin, plugin_data in firmware_object.processed_analysis.items():
-            _fix_illegal_dict(plugin_data, plugin)
-            _check_for_missing_fields(plugin, plugin_data)
-            _migrate_plugin(plugin, plugin_data)
+        processed_analysis = firmware_object.processed_analysis
+        firmware_object.processed_analysis = {}
         try:
             self.postgres.insert_object(firmware_object)
         except StatementError:
             logging.error(f'Firmware contains errors: {firmware_object}')
             raise
-        except KeyError:
-            logging.error(
-                f'fields missing from analysis data: \n' f'{json.dumps(firmware_object.processed_analysis, indent=2)}',
-                exc_info=True,
-            )
-            raise
+        for plugin, plugin_data in processed_analysis.items():
+            try:
+                _fix_illegal_dict(plugin_data, plugin)
+                _check_for_missing_fields(plugin, plugin_data)
+                _migrate_plugin(plugin, plugin_data)
+                self.postgres.insert_analysis(firmware_object.uid, plugin, plugin_data)
+            except StatementError:
+                logging.error(
+                    f'Analysis {plugin} of file {firmware_object.uid} contains errors: {plugin_data} -> skipping'
+                )
 
 
 def migrate_comparisons(mongo: MigrationMongoInterface):
@@ -378,9 +389,9 @@ def migrate_comparisons(mongo: MigrationMongoInterface):
             compare_db.insert_comparison(comparison_id, results)
             count += 1
     if not count:
-        print('No firmware comparison entries to migrate')
+        print('No firmware comparison entries to migrate')  # noqa: T201
     else:
-        print(f'Migrated {count} comparison DB entries')
+        print(f'Migrated {count} comparison DB entries')  # noqa: T201
 
 
 if __name__ == '__main__':

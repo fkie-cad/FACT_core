@@ -2,25 +2,24 @@ import re
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.data_conversion import make_unicode_string
-from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from objects.file import FileObject
 
 FILE_IGNORES = ['README', 'README.md', 'README.txt', 'INSTALL', 'VERSION']
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     This Plugin searches for Init-Scripts and lists the Services or Script-Files
     It displays a short description (if provided) or else the filename
 
     Credits:
     Original version by Stefan Viergutz created during Firmware Bootcamp WT16/17 at University of Bonn
     Refactored and improved by Fraunhofer FKIE
-    '''
+    """
 
     NAME = 'init_systems'
     DESCRIPTION = 'detect and analyze auto start services'
-    DEPENDENCIES = ['file_type']
+    DEPENDENCIES = ['file_type']  # noqa: RUF012
     VERSION = '0.4.2'
     FILE = __file__
 
@@ -29,12 +28,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _is_text_file(file_object):
-        return file_object.processed_analysis['file_type']['mime'] in ['text/plain']
+        return file_object.processed_analysis['file_type']['result']['mime'] in ['text/plain']
 
     @staticmethod
     def _get_file_path(file_object: FileObject):
-        root_uid = file_object.root_uid or list(file_object.parent_firmware_uids)[0]
-        return get_top_of_virtual_path(file_object.virtual_file_path[root_uid][0])
+        return list(file_object.virtual_file_path.values())[0][0]
 
     def _get_systemd_config(self, file_object):
         result = {}
@@ -128,7 +126,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object):
         if self._is_text_file(file_object) and (file_object.file_name not in FILE_IGNORES):
             file_path = self._get_file_path(file_object)
-            self.content = make_unicode_string(file_object.binary)  # pylint: disable=attribute-defined-outside-init
+            self.content = make_unicode_string(file_object.binary)
             if '/inittab' in file_path:
                 file_object.processed_analysis[self.NAME] = self._get_inittab_config(file_object)
             if 'systemd/system/' in file_path:

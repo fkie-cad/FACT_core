@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import stat
@@ -6,39 +8,45 @@ import zlib
 from base64 import b64encode
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, NamedTuple, Tuple
+from typing import NamedTuple, TYPE_CHECKING
 
 from docker.types import Mount
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
-from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
-from objects.file import FileObject
 from storage.db_interface_common import DbInterfaceCommon
 
+if TYPE_CHECKING:
+    from objects.file import FileObject
+
 DOCKER_IMAGE = 'fact/fs_metadata:latest'
-StatResult = NamedTuple(
-    'StatEntry', [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
-)
+
+
+class StatResult(NamedTuple):
+    uid: int
+    gid: int
+    mode: int
+    a_time: float
+    c_time: float
+    m_time: float
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-
     NAME = 'file_system_metadata'
-    DEPENDENCIES = ['file_type']
+    DEPENDENCIES = ['file_type']  # noqa: RUF012
     DESCRIPTION = 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
     VERSION = '0.2.1'
     TIMEOUT = 600
     FILE = __file__
 
-    ARCHIVE_MIME_TYPES = [
+    ARCHIVE_MIME_TYPES = [  # noqa: RUF012
         'application/gzip',
         'application/x-bzip2',
         'application/x-tar',
     ]
-    FS_MIME_TYPES = [
+    FS_MIME_TYPES = [  # noqa: RUF012
         'filesystem/btrfs',
         'filesystem/cramfs',
         'filesystem/dosmbr',
@@ -79,18 +87,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return self.parent_fo_has_fs_metadata_analysis_results(file_object)
 
     def parent_fo_has_fs_metadata_analysis_results(self, file_object: FileObject):
-        for parent_uid in get_parent_uids_from_virtual_path(file_object):
+        for parent_uid in file_object.parents:
             analysis_entry = self.db.get_analysis(parent_uid, 'file_type')
-            if analysis_entry is not None:
-                if self._has_correct_type(analysis_entry['mime']):
-                    return True
+            if analysis_entry is not None and self._has_correct_type(analysis_entry['result']['mime']):
+                return True
         return False
 
     def _has_correct_type(self, mime_type: str) -> bool:
         return mime_type in self.ARCHIVE_MIME_TYPES + self.FS_MIME_TYPES
 
     def _extract_metadata(self, file_object: FileObject):
-        file_type = file_object.processed_analysis['file_type']['mime']
+        file_type = file_object.processed_analysis['file_type']['result']['mime']
         if file_type in self.FS_MIME_TYPES:
             self._extract_metadata_from_file_system(file_object)
         elif file_type in self.ARCHIVE_MIME_TYPES:
@@ -100,7 +107,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self._add_tag(file_object, self.result)
 
     def _extract_metadata_from_file_system(self, file_object: FileObject):
-        with TemporaryDirectory(dir=cfg.data_storage.docker_mount_base_dir) as tmp_dir:
+        with TemporaryDirectory(dir=config.backend.docker_mount_base_dir) as tmp_dir:
             input_file = Path(tmp_dir) / 'input.img'
             input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
             output = self._mount_in_docker(tmp_dir)
@@ -126,7 +133,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return result.stdout
 
-    def _analyze_metadata_of_mounted_dir(self, docker_results: Tuple[str, str, dict]):
+    def _analyze_metadata_of_mounted_dir(self, docker_results: tuple[str, str, dict]):
         for file_name, file_path, file_stats in docker_results:
             self._enter_results_for_mounted_file(file_name, file_path, StatResult(**file_stats))
 
@@ -174,8 +181,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         )
 
     @staticmethod
-    def _get_extended_file_permissions(file_mode: str) -> List[bool]:
-        extended_file_permission_bits = f'{int(file_mode[-4]):03b}' if len(file_mode) > 3 else '000'
+    def _get_extended_file_permissions(file_mode: str) -> list[bool]:
+        extended_file_permission_bits = f'{int(file_mode[-4]):03b}' if len(file_mode) > 3 else '000'  # noqa: PLR2004
         return [b == '1' for b in extended_file_permission_bits]
 
     @staticmethod

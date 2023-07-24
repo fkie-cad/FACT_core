@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 from pathlib import Path
 
 import pytest
@@ -7,23 +6,27 @@ from objects.file import FileObject
 
 from ..internal import dt, elf, kconfig, metadata
 
-with open(Path(__file__).parent / 'data/dt.dts') as dt_file:
+with open(Path(__file__).parent / 'data/dt.dts') as dt_file:  # noqa: PTH123
     dts = dt_file.read()
 
 _mock_device_tree_analysis = {
     'device_tree': {
-        'device_trees': [
-            {
-                'device_tree': dts,
-            },
-        ]
+        'result': {
+            'device_trees': [
+                {
+                    'device_tree': dts,
+                },
+            ]
+        }
     }
 }
 
 
 _mock_kernel_config_analysis_mips = {
     'kernel_config': {
-        'kernel_config': 'CONFIG_CPU_MIPS32_R2=y\n',
+        'result': {
+            'kernel_config': 'CONFIG_CPU_MIPS32_R2=y\n',
+        }
     }
 }
 
@@ -78,7 +81,7 @@ def test_elf_construct_result():
 
     mock_fs_organizer.generate_path = lambda _: arm64_exe_path
     result = elf.construct_result(fo, mock_fs_organizer)
-    for key in result:
+    for key in result:  # noqa: B007
         # TODO Make the plugin work with arm64
         assert True
 
@@ -89,7 +92,7 @@ def test_elf_construct_result():
 
 
 @pytest.mark.parametrize(
-    'architecture, bitness, endianness, full_file_type',
+    ('architecture', 'bitness', 'endianness', 'full_file_type'),
     [
         (
             'x86',
@@ -166,14 +169,14 @@ def test_elf_construct_result():
             '32-bit',
             'big endian',
             'ELF 32-bit MSB executable, SPARC32PLUS, V8+ Required, total store ordering, version 1 (SYSV), dynamically'
-            ' linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.18, BuildID[sha1]=c4191615108b0bfd45d5be2d7d016e08ad9145bf, stripped',
+            ' linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.18, BuildID[sha1]=c4191615108b0bfd45d5be2d7d016e08ad9145bf, stripped',  # noqa: E501
         ),
         (
             'SPARC',
             '64-bit',
             'big endian',
             'ELF 64-bit MSB shared object, SPARC V9, relaxed memory ordering, version 1 (SYSV), dynamically linked, in'
-            'terpreter /lib64/ld-linux.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=cca3aeb88f01cf7b49779fb2b58673c586aa9219, stripped',
+            'terpreter /lib64/ld-linux.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=cca3aeb88f01cf7b49779fb2b58673c586aa9219, stripped',  # noqa: E501
         ),
         (
             'SuperH',
@@ -219,20 +222,20 @@ def test_elf_construct_result():
             'ESP',
             '32-bit',
             'little endian',
-            'ELF 32-bit LSB executable, Tensilica Xtensa, version 1 (SYSV), statically linked, with debug_info, not stripped',
+            'ELF 32-bit LSB executable, Tensilica Xtensa, version 1 (SYSV), statically linked, with debug_info, not stripped',  # noqa: E501
         ),
         (
             'Tilera',
             '32-bit',
             'little endian',
-            'ELF 32-bit LSB executable, Tilera TILE-Gx, version 1 (SYSV), dynamically linked, interpreter /lib32/ld.so.1, '
+            'ELF 32-bit LSB executable, Tilera TILE-Gx, version 1 (SYSV), dynamically linked, interpreter /lib32/ld.so.1, '  # noqa: E501
             'for GNU/Linux 2.6.32, stripped',
         ),
     ],
 )
 def test_metadatadetector_get_device_architecture(architecture, bitness, endianness, full_file_type):
     fo = FileObject()
-    fo.processed_analysis['file_type'] = {'mime': 'x-executable', 'full': full_file_type}
+    fo.processed_analysis['file_type'] = {'result': {'mime': 'x-executable', 'full': full_file_type}}
 
     result = metadata.construct_result(fo)
     assert (

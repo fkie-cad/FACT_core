@@ -5,14 +5,11 @@
     <td class="table-head-light"><b>Architecture</b></td>
     <td class="table-head-light"><b>Means of Detection</b></td>
 </tr>
-    {% set analysis = firmware.processed_analysis[selected_analysis] %}
-        {# old results do not have the "architectures" key #}
-        {% for result, method in analysis.get("architectures", analysis).items() %}
-            {% if result | is_not_mandatory_analysis_entry %}
-                <tr>
-                    <td>{{ result }}</td>
-                    <td>{{ method }}</td>
-                </tr>
-            {% endif %}
-        {% endfor %}
+    {# old results do not have the "architectures" key #}
+    {% for result, method in analysis_result.get("architectures", analysis_result).items() %}
+        <tr>
+            <td>{{ result }}</td>
+            <td>{{ method }}</td>
+        </tr>
+    {% endfor %}
 {% endblock %}

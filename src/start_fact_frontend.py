@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
-'''
+"""
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2022  Fraunhofer FKIE
+    Copyright (C) 2015-2023  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import logging
 import pickle
@@ -32,19 +32,20 @@ except (ImportError, ModuleNotFoundError):
 
 from helperFunctions.fileSystem import get_config_dir, get_src_dir
 from helperFunctions.install import run_cmd_with_logging
+from typing import Optional
 
 COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 
 
 class UwsgiServer:
-    def __init__(self, config_path: str = None):
+    def __init__(self, config_path: Optional[str] = None):
         self.config_path = config_path
         self.process = None
 
     def start(self):
         config_parameter = f' --pyargv {self.config_path}' if self.config_path else ''
         command = f'uwsgi --thunder-lock --ini  {get_config_dir()}/uwsgi_config.ini{config_parameter}'
-        self.process = Popen(split(command), cwd=get_src_dir())  # pylint: disable=consider-using-with
+        self.process = Popen(split(command), cwd=get_src_dir())
 
     def shutdown(self):
         if self.process:

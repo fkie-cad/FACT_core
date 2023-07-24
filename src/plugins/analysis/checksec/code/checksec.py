@@ -14,8 +14,8 @@ SHELL_SCRIPT = Path(get_src_dir()) / 'bin' / 'checksec'
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'exploit_mitigations'
     DESCRIPTION = 'analyses ELF binaries within a firmware for present exploit mitigation techniques'
-    DEPENDENCIES = ['file_type']
-    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+    DEPENDENCIES = ['file_type']  # noqa: RUF012
+    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']  # noqa: RUF012
     VERSION = '0.1.6'
     FILE = __file__
 
@@ -25,8 +25,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         try:
-            if re.search(r'.*elf.*', file_object.processed_analysis['file_type']['full'].lower()) is not None:
-
+            if re.search(r'.*elf.*', file_object.processed_analysis['file_type']['result']['full'].lower()) is not None:
                 mitigation_dict, mitigation_dict_summary = check_mitigations(file_object.file_path)
                 file_object.processed_analysis[self.NAME] = mitigation_dict
                 file_object.processed_analysis[self.NAME]['summary'] = list(mitigation_dict_summary.keys())

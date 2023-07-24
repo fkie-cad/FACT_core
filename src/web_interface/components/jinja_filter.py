@@ -1,27 +1,30 @@
+from __future__ import annotations
+
 import json
 import logging
-from typing import List, Optional
 
 from common_helper_filter.time import time_format
 from flask import render_template
 
+import config
 import web_interface.filter as flt
-from config import cfg
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
-from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
-from storage.db_interface_frontend import MetaEntry
 from web_interface.filter import elapsed_time, random_collapse_id
-from web_interface.frontend_database import FrontendDatabase
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from web_interface.frontend_database import FrontendDatabase
+    from storage.db_interface_frontend import MetaEntry
 
 
 class FilterClass:
-    '''
+    """
     This is WEB front end main class
-    '''
+    """
 
     def __init__(self, app, program_version, db: FrontendDatabase, **_):
         self._program_version = program_version
@@ -86,14 +89,13 @@ class FilterClass:
             filename_only=filename_only,
         )
 
-    def _nice_virtual_path_list(self, virtual_path_list: List[str]) -> List[str]:
+    def _nice_virtual_path_list(self, virtual_path_list: list[list[str]], root_uid: str | None = None) -> list[str]:
+        root_uid = none_to_none(root_uid)
         path_list = []
-        for virtual_path in virtual_path_list:
-            uid_list = split_virtual_path(virtual_path)
-            components = [
-                self._virtual_path_element_to_span(hid, uid, root_uid=uid_list[0])
-                for hid, uid in zip(split_virtual_path(self._filter_replace_uid_with_hid(virtual_path)), uid_list)
-            ]
+        all_uids = {uid for uid_list in virtual_path_list for uid in uid_list}
+        hid_dict = self.db.frontend.get_hid_dict(all_uids, root_uid=root_uid)
+        for uid_list in virtual_path_list:
+            components = [self._virtual_path_element_to_span(hid_dict[uid], uid, root_uid=root_uid) for uid in uid_list]
             path_list.append(' '.join(components))
         return path_list
 
@@ -115,21 +117,22 @@ class FilterClass:
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware: MetaEntry, root_uid: str, other_versions, selected_analysis):
+    def _render_general_information_table(
+        firmware: MetaEntry, root_uid: str, other_versions, selected_analysis, file_tree_paths
+    ):
         return render_template(
             'generic_view/general_information.html',
             firmware=firmware,
             root_uid=root_uid,
             other_versions=other_versions,
             selected_analysis=selected_analysis,
+            file_tree_paths=file_tree_paths,
         )
 
     @staticmethod
     def _split_user_and_password_type_entry(result: dict):
         new_result = {}
         for key, value in result.items():
-            if not flt.is_not_mandatory_analysis_entry(key):
-                continue
             if ':' in key:
                 *user_elements, password_type = key.split(':')
                 user = ':'.join(user_elements)
@@ -140,9 +143,9 @@ class FilterClass:
         return new_result
 
     def check_auth(self, _):
-        return cfg.expert_settings.authentication
+        return config.frontend.authentication.enabled
 
-    def data_to_chart_limited(self, data, limit: Optional[int] = None, color_list=None):
+    def data_to_chart_limited(self, data, limit: int | None = None, color_list=None):
         limit = self._get_chart_element_count() if limit is None else limit
         try:
             label_list, value_list = (list(d) for d in zip(*data))
@@ -156,8 +159,8 @@ class FilterClass:
         }
 
     def _get_chart_element_count(self):
-        limit = cfg.statistics.max_elements_per_chart
-        if limit > 100:
+        limit = config.frontend.max_elements_per_chart
+        if limit > 100:  # noqa: PLR2004
             logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
             return 100
         return limit
@@ -166,7 +169,7 @@ class FilterClass:
         color_list = get_color_list(1) * len(data)
         return self.data_to_chart_limited(data, limit=0, color_list=color_list)
 
-    def _setup_filters(self):  # pylint: disable=too-many-statements
+    def _setup_filters(self):  # noqa: PLR0915
         self._app.jinja_env.add_extension('jinja2.ext.do')
 
         self._app.jinja_env.filters['all_items_equal'] = lambda data: len({str(value) for value in data.values()}) == 1
@@ -191,7 +194,6 @@ class FilterClass:
         self._app.jinja_env.filters['hide_dts_binary_data'] = flt.hide_dts_binary_data
         self._app.jinja_env.filters['infection_color'] = flt.infection_color
         self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
-        self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_mandatory_analysis_entry
         self._app.jinja_env.filters['json_dumps'] = json.dumps
         self._app.jinja_env.filters['link_cve'] = flt.replace_cve_with_link
         self._app.jinja_env.filters['link_cwe'] = flt.replace_cwe_with_link

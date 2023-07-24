@@ -1,7 +1,5 @@
 import json
 import logging
-import sys
-from pathlib import Path
 
 from docker.types import Mount
 
@@ -9,15 +7,11 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
 from storage.fsorganizer import FSOrganizer
 
-try:
-    from internal import linters
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent))
-    from internal import linters
+from ..internal import linters
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     This class implements the FACT wrapper for multiple linters including
     - shellcheck (shell)
     - pylint (python)
@@ -25,16 +19,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
     - lua (luacheck)
     TODO Implement proper view
     TODO implement additional linters (ruby, perl, php)
-    '''
+    """
 
     NAME = 'source_code_analysis'
     DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
-    DEPENDENCIES = ['file_type']
+    DEPENDENCIES = ['file_type']  # noqa: RUF012
     VERSION = '0.6'
-    MIME_WHITELIST = ['text/']
+    MIME_WHITELIST = ['text/']  # noqa: RUF012
     # All linter methods must return an array of dicts.
     # These dicts must at least contain a value for the 'symbol' key.
-    linter_impls = {
+    linter_impls = {  # noqa: RUF012
         'javascript': linters.run_eslint,
         'lua': linters.run_luacheck,
         'python': linters.run_pylint,
@@ -48,10 +42,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self._fs_organizer = FSOrganizer()
 
     def process_object(self, file_object):
-        '''
+        """
         After only receiving text files thanks to the whitelist, we try to detect the correct scripting language
         and then call a linter if a supported language is detected
-        '''
+        """
         script_type = self._get_script_type(file_object)
         if script_type is None:
             file_object.processed_analysis[self.NAME] = {
@@ -98,10 +92,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         # FIXME plugins should not set the output for other plugins
         # But due to performance reasons we don't want the filetype plugin to run linguist
-        file_object.processed_analysis['file_type']['linguist'] = ''.join(
-            [f'{k:<10} {str(v):<10}\n' for k, v in output_json[container_path].items()]
+        file_object.processed_analysis['file_type']['result']['linguist'] = ''.join(
+            [f'{k:<10} {v!s:<10}\n' for k, v in output_json[container_path].items()]
         )
 
-        script_type = output_json[container_path].get('language')
-
-        return script_type
+        return output_json[container_path].get('language')

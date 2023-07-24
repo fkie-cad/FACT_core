@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import string
-from typing import List, Optional, Tuple
 
 from more_itertools import chunked
 
@@ -31,7 +32,7 @@ def preview_data_as_hex(data: bytes, chunk_size: int = 16, offset: int = 0):
     return '\n'.join(output)
 
 
-def _get_hex_and_str_preview(line: List[int]) -> Tuple[str, str]:
+def _get_hex_and_str_preview(line: list[int]) -> tuple[str, str]:
     hex_content, str_preview = '', ''
     last_highlighting_class = None
     for char in line:
@@ -52,15 +53,15 @@ def _get_hex_and_str_preview(line: List[int]) -> Tuple[str, str]:
     return hex_content, str_preview
 
 
-def _span_should_close(last_class: Optional[str], current_class: Optional[str]) -> bool:
+def _span_should_close(last_class: str | None, current_class: str | None) -> bool:
     return last_class is not None and current_class != last_class
 
 
-def _span_should_open(last_class: Optional[str], current_class: Optional[str]) -> bool:
+def _span_should_open(last_class: str | None, current_class: str | None) -> bool:
     return current_class is not None and current_class != last_class
 
 
-def _get_highlighting_class(char: int) -> Optional[str]:
+def _get_highlighting_class(char: int) -> str | None:
     for char_range, highlighting_class in HIGHLIGHTING_CLASSES:
         if char in char_range:
             return highlighting_class

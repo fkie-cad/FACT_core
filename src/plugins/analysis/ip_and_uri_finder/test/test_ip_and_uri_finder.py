@@ -1,4 +1,6 @@
-# pylint: disable=protected-access
+from __future__ import annotations
+
+
 import tempfile
 from collections import namedtuple
 
@@ -17,9 +19,7 @@ class MockReader:
     def __init__(self):
         pass
 
-    def city(
-        self, address
-    ):  # pylint: disable=too-complex,inconsistent-return-statements,no-self-use,too-many-return-statements
+    def city(self, address):  # noqa: C901, PLR0911
         if address == '128.101.101.101':
             return MockResponse(location=MockLocation(latitude=44.9759, longitude=-93.2166))
         if address == '1.2.3.4':
@@ -40,19 +40,20 @@ class MockReader:
             raise AddressNotFoundError('')
         if address == 'aaa':
             raise ValueError()
+        return None
 
 
 @pytest.fixture
 def ip_and_uri_finder_plugin(analysis_plugin):
     analysis_plugin.reader = MockReader()
-    yield analysis_plugin
+    return analysis_plugin
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginIpAndUriFinder:
     def test_process_object_ips(self, ip_and_uri_finder_plugin):
         with tempfile.NamedTemporaryFile() as tmp:
-            with open(tmp.name, 'w') as fp:
+            with open(tmp.name, 'w') as fp:  # noqa: PTH123
                 fp.write(
                     '1.2.3.4 abc 1.1.1.1234 abc 3. 3. 3. 3 abc 1255.255.255.255 1234:1234:abcd:abcd:1234:1234:abcd:abc'
                     'd xyz 2001:db8::8d3:: xyz 2001:db8:0:0:8d3::'
@@ -61,24 +62,20 @@ class TestAnalysisPluginIpAndUriFinder:
             processed_object = ip_and_uri_finder_plugin.process_object(tmp_fo)
             results = processed_object.processed_analysis[ip_and_uri_finder_plugin.NAME]
         assert results['uris'] == []
-        assert set(
-            [
-                ('1.2.3.4', '47.913, -122.3042'),
-                ('1.1.1.123', '-37.7, 145.1833'),
-            ]
-        ) == set(results['ips_v4'])
+        assert {
+            ('1.2.3.4', '47.913, -122.3042'),
+            ('1.1.1.123', '-37.7, 145.1833'),
+        } == set(results['ips_v4'])
         assert len(
             [
                 ('1.2.3.4', '47.913, -122.3042'),
                 ('1.1.1.123', '-37.7, 145.1833'),
             ]
         ) == len(results['ips_v4'])
-        assert set(
-            [
-                ('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'),
-                ('2001:db8:0:0:8d3::', '3.1, 3.1'),
-            ]
-        ) == set(results['ips_v6'])
+        assert {
+            ('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'),
+            ('2001:db8:0:0:8d3::', '3.1, 3.1'),
+        } == set(results['ips_v6'])
         assert len(
             [
                 ('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'),
@@ -88,7 +85,7 @@ class TestAnalysisPluginIpAndUriFinder:
 
     def test_process_object_uris(self, ip_and_uri_finder_plugin):
         with tempfile.NamedTemporaryFile() as tmp:
-            with open(tmp.name, 'w') as fp:
+            with open(tmp.name, 'w') as fp:  # noqa: PTH123
                 fp.write(
                     'http://www.google.de https://www.test.de/test/?x=y&1=2 ftp://ftp.is.co.za/rfc/rfc1808.txt '
                     'telnet://192.0.2.16:80/'
@@ -96,14 +93,12 @@ class TestAnalysisPluginIpAndUriFinder:
             tmp_fo = FileObject(file_path=tmp.name)
             processed_object = ip_and_uri_finder_plugin.process_object(tmp_fo)
             results = processed_object.processed_analysis[ip_and_uri_finder_plugin.NAME]
-        assert set(
-            [
-                'http://www.google.de',
-                'https://www.test.de/test/',
-                'ftp://ftp.is.co.za/rfc/rfc1808.txt',
-                'telnet://192.0.2.16:80/',
-            ]
-        ) == set(results['uris'])
+        assert {
+            'http://www.google.de',
+            'https://www.test.de/test/',
+            'ftp://ftp.is.co.za/rfc/rfc1808.txt',
+            'telnet://192.0.2.16:80/',
+        } == set(results['uris'])
         assert len(
             [
                 'http://www.google.de',
@@ -120,7 +115,7 @@ class TestAnalysisPluginIpAndUriFinder:
             'uris': 'http://www.google.de',
         }
         results = ip_and_uri_finder_plugin.add_geo_uri_to_ip(test_data)
-        assert 'http://www.google.de' == results['uris']
+        assert results['uris'] == 'http://www.google.de'
         assert [('128.101.101.101', '44.9759, -93.2166'), ('255.255.255.255', '0.0, 0.0')] == results['ips_v4']
         assert [('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')] == results['ips_v6']
 
@@ -130,7 +125,7 @@ class TestAnalysisPluginIpAndUriFinder:
 
         with pytest.raises(AddressNotFoundError):
             ip_and_uri_finder_plugin.find_geo_location('1.1.2.345')
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             ip_and_uri_finder_plugin.find_geo_location('aaa')
 
     def test_link_ips_with_geo_location(self, ip_and_uri_finder_plugin):

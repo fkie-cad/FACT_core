@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
-'''
+"""
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2022 Fraunhofer FKIE
+    Copyright (C) 2015-2023 Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import argparse
 import logging

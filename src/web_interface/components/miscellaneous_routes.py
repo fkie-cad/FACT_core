@@ -1,18 +1,22 @@
+from __future__ import annotations
+
 from pathlib import Path
 from time import time
-from typing import Dict, Sized
 
 from flask import redirect, render_template, request, url_for
 from flask_security import login_required
 
-from config import cfg
+import config
 from helperFunctions.database import ConnectTo, get_shared_session
-from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.web_interface import format_time
 from statistic.update import StatsUpdater
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Sized
 
 
 class MiscellaneousRoutes(ComponentBase):
@@ -24,12 +28,12 @@ class MiscellaneousRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/', GET)
     def show_home(self):
-        latest_count = cfg.database.number_of_latest_firmwares_to_display
+        latest_count = config.frontend.number_of_latest_firmwares_to_display
         with get_shared_session(self.db.frontend) as frontend_db:
             latest_firmware_submissions = frontend_db.get_last_added_firmwares(latest_count)
             latest_comments = frontend_db.get_latest_comments(latest_count)
         latest_comparison_results = self.db.comparison.page_comparison_results(limit=10)
-        ajax_stats_reload_time = cfg.database.ajax_stats_reload_time
+        ajax_stats_reload_time = config.frontend.ajax_stats_reload_time
         general_stats = self.stats_updater.get_general_stats()
 
         return render_template(
@@ -42,7 +46,7 @@ class MiscellaneousRoutes(ComponentBase):
         )
 
     @AppRoute('/about', GET)
-    def show_about(self):  # pylint: disable=no-self-use
+    def show_about(self):
         return render_template('about.html')
 
     @roles_accepted(*PRIVILEGES['comment'])
@@ -94,7 +98,7 @@ class MiscellaneousRoutes(ComponentBase):
         }
 
     @staticmethod
-    def _count_values(dictionary: Dict[str, Sized]) -> int:
+    def _count_values(dictionary: dict[str, Sized]) -> int:
         return sum(len(e) for e in dictionary.values())
 
     def _find_failed_analyses(self):
@@ -115,7 +119,7 @@ class MiscellaneousRoutes(ComponentBase):
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
 
     def _get_frontend_logs(self):
-        frontend_logs = Path(get_log_file_for_component('frontend'))
+        frontend_logs = Path(config.frontend.logging.file_frontend)
         if frontend_logs.is_file():
             return frontend_logs.read_text().splitlines()[-100:]
         return []

@@ -1,5 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order,redefined-outer-name,invalid-name
-
 import magic
 import pytest
 
@@ -10,15 +8,14 @@ TEST_FW = create_test_firmware()
 
 
 @pytest.fixture
-def binary_service(db, cfg_tuple):
-    cfg, _ = cfg_tuple
-    _init_test_data(cfg.data_storage.firmware_file_storage_directory, db)
-    yield BinaryService()
+def binary_service(backend_db, backend_config):
+    _init_test_data(backend_config.firmware_file_storage_directory, backend_db)
+    return BinaryService()
 
 
-def _init_test_data(tmp_dir: str, db):
-    db.backend.add_object(TEST_FW)
-    store_binary_on_file_system(tmp_dir, TEST_FW)
+def _init_test_data(dest_dir, backend_db):
+    backend_db.add_object(TEST_FW)
+    store_binary_on_file_system(dest_dir, TEST_FW)
 
 
 def test_get_binary_and_file_name(binary_service):
@@ -49,7 +46,7 @@ def test_get_repacked_binary_and_file_name_invalid_uid(binary_service):
 
 def test_read_partial_binary(binary_service):
     partial_binary = binary_service.read_partial_binary(TEST_FW.uid, 30, 14)
-    assert len(partial_binary) == 14
+    assert len(partial_binary) == 14  # noqa: PLR2004
     assert partial_binary == b'get_files_test', 'invalid result not correct'
 
 

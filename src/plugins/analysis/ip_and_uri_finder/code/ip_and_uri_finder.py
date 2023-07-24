@@ -19,8 +19,8 @@ IP_V6_BLACKLIST = [r'^[0-9A-Za-z]::$', r'^::[0-9A-Za-z]$', r'^[0-9A-Za-z]::[0-9A
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'ip_and_uri_finder'
-    DEPENDENCIES = []
-    MIME_WHITELIST = [
+    DEPENDENCIES = []  # noqa: RUF012
+    MIME_WHITELIST = [  # noqa: RUF012
         'text/plain',
         'application/octet-stream',
         'application/x-executable',
@@ -64,7 +64,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def find_geo_location(self, ip_address):
         response = self.reader.city(ip_address)
-        return f'{response.location.latitude}, {response.location.longitude}'  # pylint: disable=no-member
+        return f'{response.location.latitude}, {response.location.longitude}'
 
     def link_ips_with_geo_location(self, ip_addresses):
         linked_ip_geo_list = []
@@ -78,7 +78,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 ValueError,
                 InvalidDatabaseError,
             ) as exception:
-                logging.debug(f'Error during {self.NAME} analysis: {str(exception)}', exc_info=True)
+                logging.debug(f'Error during {self.NAME} analysis: {exception!s}', exc_info=True)
                 ip_tuple = ip, ''
             linked_ip_geo_list.append(ip_tuple)
         return linked_ip_geo_list

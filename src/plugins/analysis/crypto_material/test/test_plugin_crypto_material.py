@@ -7,11 +7,11 @@ from objects.file import FileObject
 
 from ..code.crypto_material import AnalysisPlugin
 
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
+TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')  # noqa: PTH118
 
 
 def _rule_match(analysis_plugin, filename, expected_rule_name, expected_number_of_rules=1):
-    path = os.path.join(TEST_DATA_DIR, filename)
+    path = os.path.join(TEST_DATA_DIR, filename)  # noqa: PTH118
     test_file = FileObject(file_path=path)
     analysis_plugin.process_object(test_file)
     number_of_rules = len(test_file.processed_analysis[analysis_plugin.NAME]) - 1
@@ -24,9 +24,8 @@ def _rule_match(analysis_plugin, filename, expected_rule_name, expected_number_o
         ), f'Expected rule {expected_rule_name} missing'
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestCryptoMaterial:
-    # pylint:disable=no-self-use
     def test_gnupg(self, analysis_plugin):
         _rule_match(
             analysis_plugin,
@@ -44,16 +43,16 @@ class TestCryptoMaterial:
     def test_ssh_private_encrypted(self, analysis_plugin):
         _rule_match(analysis_plugin, 'id_rsa_encrypted', 'SshEncryptedRsaPrivateKeyBlock', expected_number_of_rules=2)
 
-    def test_PKCS8(self, analysis_plugin):
+    def test_PKCS8(self, analysis_plugin):  # noqa: N802
         _rule_match(analysis_plugin, 'pkcs', 'Pkcs8PrivateKey', expected_number_of_rules=2)
 
-    def test_PKCS12(self, analysis_plugin):
+    def test_PKCS12(self, analysis_plugin):  # noqa: N802
         _rule_match(analysis_plugin, 'pkcs12', 'Pkcs12Certificate')
 
-    def test_SSL_key(self, analysis_plugin):
+    def test_SSL_key(self, analysis_plugin):  # noqa: N802
         _rule_match(analysis_plugin, 'ssl.key', 'SSLPrivateKey', expected_number_of_rules=2)
 
-    def test_SSL_cert(self, analysis_plugin):
+    def test_SSL_cert(self, analysis_plugin):  # noqa: N802
         _rule_match(analysis_plugin, 'ssl.crt', 'SSLCertificate')
 
     def test_generic_public_key(self, analysis_plugin):

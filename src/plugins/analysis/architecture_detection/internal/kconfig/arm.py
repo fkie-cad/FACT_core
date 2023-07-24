@@ -43,7 +43,7 @@ _armv7_multi = [
 # menu 'ARMv8.x architectural features'
 _armv8_1 = [
     'ARM64_HW_AFDBM',
-    'ARM64_PAN' 'ARM64_LSE_ATOMICS',
+    'ARM64_PANARM64_LSE_ATOMICS',
     'ARM64_USE_LSE_ATOMICS',
     'ARM64_VHE',
 ]

@@ -1,12 +1,12 @@
 import pytest
 
-from test.common_helper import create_test_file_object  # pylint: disable=wrong-import-order
+from test.common_helper import create_test_file_object
 
 from ..code.interesting_uris import AnalysisPlugin
 
 
 @pytest.mark.parametrize(
-    'input_list, blacklist, expected_output',
+    ('input_list', 'blacklist', 'expected_output'),
     [
         ([], ['abc', 'def'], []),
         (['abcd', 'bcde'], [], ['abcd', 'bcde']),
@@ -19,7 +19,7 @@ def test_blacklist_ip_and_uris(input_list, blacklist, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_list, whitelist, expected_output',
+    ('input_list', 'whitelist', 'expected_output'),
     [
         ([], ['abc', 'def'], []),
         (['abcd', 'bcde'], [], []),
@@ -32,7 +32,7 @@ def test_white_ip_and_uris(input_list, whitelist, expected_output):
     assert sorted(AnalysisPlugin.whitelist_ip_and_uris(whitelist, input_list)) == expected_output
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginInterestingUris:
     def test_process_object(self, analysis_plugin):
         fo = create_test_file_object()

@@ -1,9 +1,14 @@
+import ctypes  # noqa: N999
 import logging
-from multiprocessing import Manager, Queue, Value
+import os
+from multiprocessing import Array, Manager, Queue, Value
 from queue import Empty
 from time import time
 
-from config import cfg
+from packaging.version import InvalidVersion
+from packaging.version import parse as parse_version
+
+import config
 from helperFunctions.process import (
     ExceptionSafeProcess,
     check_worker_exceptions,
@@ -15,17 +20,42 @@ from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.base import BasePlugin
 
+META_KEYS = {
+    'tags',
+    'summary',
+    'analysis_date',
+    'plugin_version',
+    'system_version',
+    'file_system_flag',
+    'result',
+}
 
-class PluginInitException(Exception):
-    def __init__(self, *args, plugin=None):
-        self.plugin = plugin
+
+def sanitize_processed_analysis(processed_analysis_entry: dict) -> dict:
+    # Old analysis plugins (before analysis.PluginV0) could write anything they want to processed_analysis.
+    # We put everything the plugin wrote into a separate dict so that it matches the behavior of analysis.PluginV0
+    result = {}
+    for key in list(processed_analysis_entry):
+        if key in META_KEYS:
+            continue
+
+        result[key] = processed_analysis_entry.pop(key)
+
+    processed_analysis_entry['result'] = result
+
+    return processed_analysis_entry
+
+
+class PluginInitException(Exception):  # noqa: N818
+    def __init__(self, *args, plugin: 'AnalysisBasePlugin'):
+        self.plugin: AnalysisBasePlugin = plugin
         super().__init__(*args)
 
 
-class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attributes
-    '''
+class AnalysisBasePlugin(BasePlugin):
+    """
     This is the base plugin. All analysis plugins should be a subclass of this class.
-    '''
+    """
 
     # must be set by the plugin:
     FILE = None
@@ -37,8 +67,10 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     RECURSIVE = True  # If `True` (default) recursively analyze included files
     TIMEOUT = 300
     SYSTEM_VERSION = None
-    MIME_BLACKLIST = []
-    MIME_WHITELIST = []
+    MIME_BLACKLIST = []  # noqa: RUF012
+    MIME_WHITELIST = []  # noqa: RUF012
+
+    ANALYSIS_STATS_LIMIT = 1000
 
     def __init__(self, no_multithread=False, view_updater=None):
         super().__init__(plugin_path=self.FILE, view_updater=view_updater)
@@ -50,23 +82,56 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.workers = []
         self.thread_count = 1 if no_multithread else self._get_thread_count()
         self.active = [Value('i', 0) for _ in range(self.thread_count)]
-        self.start_worker()
+        self.manager = Manager()
+        self.analysis_stats = Array(ctypes.c_float, self.ANALYSIS_STATS_LIMIT)
+        self.analysis_stats_count = Value('i', 0)
+        self.analysis_stats_index = Value('i', 0)
 
     def _get_thread_count(self):
         """
         Get the thread count from the config. If there is no configuration for this plugin use the default value.
         """
-        return int(getattr(cfg, self.NAME, {}).get('threads', cfg.plugin_defaults.threads))
+        default_process_count = config.backend.plugin_defaults.processes
+        plugin_config = config.backend.plugin.get(self.NAME, None)
+        return getattr(plugin_config, 'processes', default_process_count)
 
     def additional_setup(self):
-        '''
+        """
         This function can be implemented by the plugin to do initialization
-        '''
+        """
+
+    def start(self):
+        """Starts the plugin workers."""
+        for process_index in range(self.thread_count):
+            self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
+        logging.debug(f'{self.NAME}: {len(self.workers)} worker threads started')
+
+    def shutdown(self):
+        """
+        This function can be called to shut down all working threads
+        """
+        logging.debug('Shutting down...')
+        self.stop_condition.value = 1
+        self.in_queue.close()
+        stop_processes(self.workers, timeout=10.0)  # give running analyses some time to finish
+        self.out_queue.close()
+        self.manager.shutdown()
 
     def _check_plugin_attributes(self):
         for attribute in ['FILE', 'NAME', 'VERSION']:
             if getattr(self, attribute, None) is None:
-                raise PluginInitException(f'Plugin {self.NAME} is missing {attribute} in configuration')
+                raise PluginInitException(f'Plugin {self.NAME} is missing {attribute} in configuration', plugin=self)
+        self._check_version(self.VERSION)
+        if self.SYSTEM_VERSION:
+            self._check_version(self.SYSTEM_VERSION, label='System version')
+
+    def _check_version(self, version: str, label: str = 'Version'):
+        try:
+            parse_version(version)
+        except InvalidVersion:
+            raise PluginInitException(  # noqa: B904
+                f'{label} "{version}" of plugin {self.NAME} is invalid', plugin=self
+            )
 
     def add_job(self, fw_object: FileObject):
         if self._dependencies_are_unfulfilled(fw_object):
@@ -84,57 +149,47 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def _analysis_depth_not_reached_yet(self, fo):
         return self.RECURSIVE or fo.depth == 0
 
-    def process_object(self, file_object):  # pylint: disable=no-self-use
-        '''
+    def process_object(self, file_object):
+        """
         This function must be implemented by the plugin
-        '''
+        """
         return file_object
 
     def analyze_file(self, file_object):
         fo = self.process_object(file_object)
-        fo = self._add_plugin_version_and_timestamp_to_analysis_result(fo)
-        return fo
+        return self._add_plugin_version_and_timestamp_to_analysis_result(fo)
 
-    def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):  # pylint: disable=invalid-name
+    def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):
         fo.processed_analysis[self.NAME].update(self.init_dict())
         return fo
 
-    def shutdown(self):
-        '''
-        This function can be called to shut down all working threads
-        '''
-        logging.debug('Shutting down...')
-        self.stop_condition.value = 1
-        stop_processes(self.workers)
-        self.in_queue.close()
-        self.out_queue.close()
-
     # ---- internal functions ----
 
-    def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
+    def add_analysis_tag(  # noqa: PLR0913
+        self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False
+    ):
         new_tag = {
             tag_name: {
                 'value': value,
                 'color': color,
                 'propagate': propagate,
             },
-            'root_uid': file_object.get_root_uid(),
+            'root_uid': file_object.root_uid,
         }
         if 'tags' not in file_object.processed_analysis[self.NAME]:
             file_object.processed_analysis[self.NAME]['tags'] = new_tag
         else:
             file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
 
-    def init_dict(self):
-        result_update = {'analysis_date': time(), 'plugin_version': self.VERSION}
+    def init_dict(self) -> dict:
+        result_update = {
+            'analysis_date': time(),
+            'plugin_version': self.VERSION,
+            'result': {},
+        }
         if self.SYSTEM_VERSION:
             result_update.update({'system_version': self.SYSTEM_VERSION})
         return result_update
-
-    def start_worker(self):
-        for process_index in range(self.thread_count):
-            self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
-        logging.debug(f'{self.NAME}: {len(self.workers)} worker threads started')
 
     def process_next_object(self, task, result):
         task.processed_analysis.update({self.NAME: {}})
@@ -145,30 +200,51 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def timeout_happened(process):
         return process.is_alive()
 
-    def worker_processing_with_timeout(self, worker_id, next_task):
-        manager = Manager()
-        result = manager.list()
+    def worker_processing_with_timeout(self, worker_id, next_task: FileObject):
+        result = self.manager.list()
         process = ExceptionSafeProcess(target=self.process_next_object, args=(next_task, result))
+        start = time()
         process.start()
         process.join(timeout=self.TIMEOUT)
+        duration = time() - start
+        if duration > 120:  # noqa: PLR2004
+            logging.info(f'Analysis {self.NAME} on {next_task.uid} is slow: took {duration:.1f} seconds')
+        self._update_duration_stats(duration)
+
         if self.timeout_happened(process):
-            self._handle_failed_analysis(next_task, process, worker_id, 'Timeout')
+            result_fo = self._handle_failed_analysis(next_task, process, worker_id, 'Timeout')
         elif process.exception:
-            self._handle_failed_analysis(next_task, process, worker_id, 'Exception')
+            result_fo = self._handle_failed_analysis(next_task, process, worker_id, 'Exception')
         else:
-            self.out_queue.put(result.pop())
+            result_fo = result.pop()
             logging.debug(f'Worker {worker_id}: Finished {self.NAME} analysis on {next_task.uid}')
+
+        processed_analysis_entry = result_fo.processed_analysis.pop(self.NAME)
+        result_fo.processed_analysis[self.NAME] = sanitize_processed_analysis(processed_analysis_entry)
+        self.out_queue.put(result_fo)
+
+    def _update_duration_stats(self, duration):
+        with self.analysis_stats.get_lock():
+            self.analysis_stats[self.analysis_stats_index.value] = duration
+        self.analysis_stats_index.value += 1
+        if self.analysis_stats_index.value >= self.ANALYSIS_STATS_LIMIT:
+            # if the stats array is full, overwrite the oldest result
+            self.analysis_stats_index.value = 0
+        if self.analysis_stats_count.value < self.ANALYSIS_STATS_LIMIT:
+            self.analysis_stats_count.value += 1
 
     def _handle_failed_analysis(self, fw_object, process, worker_id, cause: str):
         terminate_process_and_children(process)
         fw_object.analysis_exception = (self.NAME, f'{cause} occurred during analysis')
         logging.error(f'Worker {worker_id}: {cause} during analysis {self.NAME} on {fw_object.uid}')
-        self.out_queue.put(fw_object)
+
+        return fw_object
 
     def worker(self, worker_id):
+        logging.debug(f'started {self.NAME} worker {worker_id} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             try:
-                next_task = self.in_queue.get(timeout=float(cfg.expert_settings.block_delay))
+                next_task = self.in_queue.get(timeout=float(config.backend.block_delay))
                 logging.debug(f'Worker {worker_id}: Begin {self.NAME} analysis on {next_task.uid}')
             except Empty:
                 self.active[worker_id].value = 0

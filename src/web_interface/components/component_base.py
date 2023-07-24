@@ -1,7 +1,12 @@
-from types import MethodType
-from typing import Any, Callable, NamedTuple, Tuple
+from __future__ import annotations
 
-from web_interface.frontend_database import FrontendDatabase
+from types import MethodType
+from typing import Any, NamedTuple, TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from web_interface.frontend_database import FrontendDatabase
+    from collections.abc import Callable
 
 ROUTES_ATTRIBUTE = 'view_routes'
 
@@ -11,7 +16,7 @@ POST = 'POST'
 
 class Route(NamedTuple):
     rule: str
-    methods: Tuple[str, ...]
+    methods: tuple[str, ...]
 
 
 class AppRoute:

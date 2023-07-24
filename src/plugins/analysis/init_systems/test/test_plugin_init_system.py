@@ -1,4 +1,3 @@
-# pylint: disable=protected-access,no-member
 import os
 from copy import deepcopy
 
@@ -8,24 +7,23 @@ from common_helper_files import get_dir_of_file
 from objects.file import FileObject
 from plugins.analysis.init_systems.code.init_system import AnalysisPlugin
 
-_test_init_dir = os.path.join(get_dir_of_file(__file__), 'data')
+_test_init_dir = os.path.join(get_dir_of_file(__file__), 'data')  # noqa: PTH118
 
 
 def _get_fo(path):
-    fo = FileObject(file_path=os.path.join(_test_init_dir, path))
-    fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
+    fo = FileObject(file_path=os.path.join(_test_init_dir, path))  # noqa: PTH118
+    fo.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
     fo.root_uid = fo.uid
-    fo.virtual_file_path = {fo.get_root_uid(): [path]}
-
+    fo.virtual_file_path = {'parent_uid': [path]}
     return fo
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginInit:
-    test_file_not_text = FileObject(file_path=f'{_test_init_dir}etc/systemd/system/foobar')
-    test_file_not_text.processed_analysis['file_type'] = {'mime': 'application/zip'}
+    test_file_not_text = FileObject(file_path=f'{_test_init_dir}/etc/systemd/system/foobar')
+    test_file_not_text.processed_analysis['file_type'] = {'result': {'mime': 'application/zip'}}  # noqa: RUF012
 
-    test_files = {
+    test_files = {  # noqa: RUF012
         'systemd': 'etc/systemd/system/foobar',
         'inittab': 'etc/inittab',
         'rclocal': 'etc/rc.local',
@@ -38,7 +36,7 @@ class TestAnalysisPluginInit:
         'README': 'etc/init.d/README',
         'initscript': 'etc/initscript',
     }
-    test_fos = {f'test_file_{test_file}': _get_fo(path) for test_file, path in test_files.items()}
+    test_fos = {f'test_file_{test_file}': _get_fo(path) for test_file, path in test_files.items()}  # noqa: RUF012
 
     def test_root_uid_is_none(self, analysis_plugin):
         fo = deepcopy(self.test_fos['test_file_initd'])
@@ -64,7 +62,7 @@ class TestAnalysisPluginInit:
         result = processed_file.processed_analysis[analysis_plugin.NAME]
 
         assert (
-            '/usr/bin/foo              # ein Programm\n/usr/local/bin/bar.sh     # ein Shellskript\n/etc/init.d/foobar start  # ein Dienst\nexit 0'
+            '/usr/bin/foo              # ein Programm\n/usr/local/bin/bar.sh     # ein Shellskript\n/etc/init.d/foobar start  # ein Dienst\nexit 0'  # noqa: SIM300, E501
             == result['script']
         ), 'record not found'
         assert '#!/bin/sh -e' not in result['script'], 'Comments should not be listed'
@@ -91,7 +89,7 @@ class TestAnalysisPluginInit:
         processed_file = analysis_plugin.process_object(self.test_fos['test_file_upstart'])
         result = processed_file.processed_analysis[analysis_plugin.NAME]
 
-        assert '    echo "[`date`] baz starting..." >> /var/log/baz.log' == result['pre-start'], 'record not found'
+        assert result['pre-start'] == '    echo "[`date`] baz starting..." >> /var/log/baz.log', 'record not found'
         assert '/bin/baz.sh -runonce \\\n-silent' in result['exec'], 'record not found'
         assert 'script' not in result['script'], 'script should not be listed'
         assert ['"Simple Baz application"'] == result['description'], 'description missing'
@@ -102,7 +100,7 @@ class TestAnalysisPluginInit:
         processed_file = analysis_plugin.process_object(self.test_fos['test_file_runit'])
         result = processed_file.processed_analysis[analysis_plugin.NAME]
 
-        assert 'sv -w7 check postgresql\nexec 2>&1 myprocess \\\nlast line' == result['script'], 'record not found'
+        assert result['script'] == 'sv -w7 check postgresql\nexec 2>&1 myprocess \\\nlast line', 'record not found'
         assert 'exec 2>&1 myprocess \\\nlast line' in result['script'], 'record not found'
         assert '#!/bin/sh -e' not in result['script'], 'should not be listed'
         assert ['RunIt'] == result['init_type'], 'init type missing'
@@ -126,7 +124,7 @@ class TestAnalysisPluginInit:
 
         assert ['"Example initscript"'] == result['description'], 'description missing'
         assert (
-            'if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then\n    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script\nfi'
+            'if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then\n    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script\nfi'  # noqa: E501
             in result['script']
         ), 'record not found'
         assert ['SysVInit'] == result['init_type'], 'init type missing'

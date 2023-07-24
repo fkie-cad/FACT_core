@@ -1,9 +1,7 @@
-# pylint: disable=protected-access,wrong-import-order,no-self-use,no-member,attribute-defined-outside-init
 from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
-from config import configparser_cfg
 from test.common_helper import create_test_file_object, create_test_firmware
 
 from ..code.qemu_exec import AnalysisPlugin
@@ -42,7 +40,7 @@ class DbInterfaceMock:
 
         self.fo = create_test_file_object()
         self.fo.uid = 'foo'
-        self.fo.virtual_file_path['parent_uid'] = ['parent_uid|/some_file']
+        self.fo.parents = ['parent_uid']
 
     def get_object(self, uid):
         if uid == 'parent_uid':
@@ -70,7 +68,7 @@ class TestQemuExecRoutesStatic:
     def test_get_results_for_included(self):
         result = routes.get_analysis_results_for_included_uid('foo', DbInterfaceMock())
         assert result is not None
-        assert result != {}  # pylint: disable=use-implicit-booleaness-not-comparison
+        assert result != {}
         assert 'parent_uid' in result
         assert result['parent_uid'] == {'executable': False}
 
@@ -132,7 +130,7 @@ class TestFileSystemMetadataRoutesRest:
             routes.QemuExecRoutesRest,
             endpoint,
             methods=methods,
-            resource_class_kwargs={'config': configparser_cfg, 'db': DbMock},
+            resource_class_kwargs={'db': DbMock},
         )
         self.test_client = app.test_client()
 

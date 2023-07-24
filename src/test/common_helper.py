@@ -1,13 +1,12 @@
-# pylint: disable=no-self-use,unused-argument
-import grp
+from __future__ import annotations
+
+
 import os
 from base64 import standard_b64encode
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
-from typing import List, Optional, Union
 
-from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -15,13 +14,13 @@ from objects.firmware import Firmware
 
 
 def get_test_data_dir():
-    '''
+    """
     Returns the absolute path of the test data directory
-    '''
-    return os.path.join(get_src_dir(), 'test/data')
+    """
+    return os.path.join(get_src_dir(), 'test/data')  # noqa: PTH118
 
 
-def create_test_firmware(
+def create_test_firmware(  # noqa: PLR0913
     device_class='Router',
     device_name='test_router',
     vendor='test_vendor',
@@ -29,7 +28,7 @@ def create_test_firmware(
     all_files_included_set=False,
     version='0.1',
 ):
-    fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
+    fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))  # noqa: PTH118
     fw.device_class = device_class
     fw.device_name = device_name
     fw.vendor = vendor
@@ -40,14 +39,24 @@ def create_test_firmware(
     processed_analysis = {
         'dummy': {
             'summary': ['sum a', 'fw exclusive sum a'],
-            'content': 'abcd',
+            'result': {
+                'content': 'abcd',
+            },
             'plugin_version': '0',
             'analysis_date': 0.0,
         },
-        'unpacker': {'plugin_used': 'used_unpack_plugin', 'plugin_version': '1.0', 'analysis_date': 0.0},
+        'unpacker': {
+            'result': {
+                'plugin_used': 'used_unpack_plugin',
+            },
+            'plugin_version': '1.0',
+            'analysis_date': 0.0,
+        },
         'file_type': {
-            'mime': 'test_type',
-            'full': 'Not a PE file',
+            'result': {
+                'mime': 'test_type',
+                'full': 'Not a PE file',
+            },
             'summary': ['a summary'],
             'plugin_version': '1.0',
             'analysis_date': 0.0,
@@ -61,25 +70,39 @@ def create_test_firmware(
     return fw
 
 
-def create_test_file_object(bin_path='get_files_test/testfile1'):
-    fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
+def create_test_file_object(bin_path='get_files_test/testfile1', uid=None, analyses=None):
+    fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))  # noqa: PTH118
     processed_analysis = {
         'dummy': {
             'summary': ['sum a', 'file exclusive sum b'],
-            'content': 'file abcd',
+            'result': {
+                'content': 'file abcd',
+            },
             'plugin_version': '0',
             'analysis_date': '0',
         },
-        'file_type': {'full': 'Not a PE file', 'plugin_version': '1.0', 'analysis_date': '0'},
+        'file_type': {
+            'result': {
+                'full': 'Not a PE file',
+                'mime': 'test_type',
+            },
+            'plugin_version': '1.0',
+            'analysis_date': '0',
+        },
         'unpacker': {
-            'file_system_flag': False,
-            'plugin_used': 'unpacker_name',
+            'result': {
+                'file_system_flag': False,
+                'plugin_used': 'unpacker_name',
+            },
             'plugin_version': '1.0',
             'analysis_date': '0',
         },
     }
+    if analyses:
+        processed_analysis.update(analyses)
     fo.processed_analysis.update(processed_analysis)
-    fo.virtual_file_path = fo.get_virtual_file_paths()
+    if uid:
+        fo.uid = uid
     return fo
 
 
@@ -88,13 +111,14 @@ TEST_FW_2 = create_test_firmware(
     device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z'
 )
 TEST_TEXT_FILE = create_test_file_object()
+TEST_TEXT_FILE.virtual_file_path = {TEST_FW.uid: [TEST_TEXT_FILE.file_name]}
 TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')
 NICE_LIST_DATA = {
     'uid': TEST_FW.uid,
     'files_included': TEST_FW.files_included,
     'size': TEST_FW.size,
     'mime-type': 'file-type-plugin/not-run-yet',
-    'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths()),
+    'current_virtual_path': [[TEST_FW.uid]],
 }
 COMPARISON_ID = f'{TEST_FW.uid};{TEST_FW_2.uid}'
 
@@ -109,73 +133,15 @@ class MockFileObject:
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
+        self.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
 
 
-class CommonIntercomMock:
-    tasks = []
-
-    def __init__(self, *_, **__):
-        pass
-
-    @staticmethod
-    def get_available_analysis_plugins():
-        common_fields = ('0.0.', [], [], [], 1)
-        return {
-            'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
-            'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
-            'file_type': ('file_type plugin', False, {'default': False}, *common_fields),
-            'unpacker': ('Additional information provided by the unpacker', True, False),
-        }
-
-    def shutdown(self):
-        pass
-
-    @staticmethod
-    def peek_in_binary(*_):
-        return b'foobar'
-
-    @staticmethod
-    def get_binary_and_filename(uid):
-        if uid == TEST_FW.uid:
-            return TEST_FW.binary, TEST_FW.file_name
-        if uid == TEST_TEXT_FILE.uid:
-            return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
-        return None
-
-    @staticmethod
-    def get_repacked_binary_and_file_name(uid):
-        if uid == TEST_FW.uid:
-            return TEST_FW.binary, f'{TEST_FW.file_name}.tar.gz'
-        return None, None
-
-    @staticmethod
-    def add_binary_search_request(*_):
-        return 'binary_search_id'
-
-    @staticmethod
-    def get_binary_search_result(uid):
-        if uid == 'binary_search_id':
-            return {'test_rule': ['test_uid']}, b'some yara rule'
-        return None, None
-
-    def add_compare_task(self, compare_id, force=False):
-        self.tasks.append((compare_id, force))
-
-    def add_analysis_task(self, task):
-        self.tasks.append(task)
-
-    def add_re_analyze_task(self, task, unpack=True):  # pylint: disable=unused-argument
-        self.tasks.append(task)
-
-
-class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
+class CommonDatabaseMock:
     fw_uid = TEST_FW.uid
     fo_uid = TEST_TEXT_FILE.uid
     fw2_uid = TEST_FW_2.uid
 
-    def __init__(self, config=None):
+    def __init__(self, config=None):  # noqa: ARG002
         self.tasks = []
         self.locks = []
 
@@ -186,31 +152,31 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def update_view(self, file_name, content):
         pass
 
-    def get_object(self, uid, analysis_filter=None):
+    def get_object(self, uid, analysis_filter=None):  # noqa: ARG002
         if uid == TEST_FW.uid:
             result = deepcopy(TEST_FW)
             result.processed_analysis = {
-                'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
-                'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result',
+                'file_type': {'result': {'mime': 'application/octet-stream', 'full': 'test text'}},
+                'mandatory_plugin': {'result': 'mandatory result'},
+                'optional_plugin': {'result': 'optional result'},
             }
             return result
         if uid == TEST_TEXT_FILE.uid:
             result = deepcopy(TEST_TEXT_FILE)
-            result.processed_analysis = {'file_type': {'mime': 'text/plain', 'full': 'plain text'}}
+            result.processed_analysis = {'file_type': {'result': {'mime': 'text/plain', 'full': 'plain text'}}}
             return result
         if uid == self.fw2_uid:
             result = deepcopy(TEST_FW_2)
             result.processed_analysis = {
-                'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
-                'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result',
+                'file_type': {'result': {'mime': 'filesystem/cramfs', 'full': 'test text'}},
+                'mandatory_plugin': {'result': 'mandatory result'},
+                'optional_plugin': {'result': 'optional result'},
             }
             result.release_date = '2000-01-01'
             return result
         return None
 
-    def get_hid(self, uid, root_uid=None):
+    def get_hid(self, uid, root_uid=None):  # noqa: ARG002
         return 'TEST_FW_HID'
 
     def get_device_class_list(self):
@@ -231,10 +197,13 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
-    def all_uids_found_in_database(self, uid_list):
+    def uid_list_exists(self, uid_list):  # noqa: ARG002
+        return set()
+
+    def all_uids_found_in_database(self, uid_list):  # noqa: ARG002
         return True
 
-    def get_data_for_nice_list(self, input_data, root_uid):
+    def get_data_for_nice_list(self, input_data, root_uid):  # noqa: ARG002
         return [NICE_LIST_DATA]
 
     @staticmethod
@@ -245,7 +214,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def create_analysis_structure():
         return ''
 
-    def get_other_versions_of_firmware(self, fo):
+    def get_other_versions_of_firmware(self, fo):  # noqa: ARG002
         return []
 
     def is_firmware(self, uid):
@@ -285,16 +254,26 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
             return True
         return False
 
+    @staticmethod
+    def get_hid_dict(uid_set, root_uid):  # noqa: ARG004
+        return {uid: 'hid' for uid in uid_set}
 
-def fake_exit(self, *args):
+    @staticmethod
+    def get_file_tree_path(uid: str, root_uid=None):
+        if root_uid:
+            return [[root_uid, uid]]
+        return [[uid]]
+
+
+def fake_exit(self, *args):  # noqa: ARG001
     pass
 
 
 def get_firmware_for_rest_upload_test():
-    testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')
-    with open(testfile_path, 'rb') as fp:
+    testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')  # noqa: PTH118
+    with open(testfile_path, 'rb') as fp:  # noqa: PTH123
         file_content = fp.read()
-    data = {
+    return {
         'binary': standard_b64encode(file_content).decode(),
         'file_name': 'test.zip',
         'device_name': 'test_device',
@@ -306,10 +285,9 @@ def get_firmware_for_rest_upload_test():
         'tags': '',
         'requested_analysis_systems': ['software_components'],
     }
-    return data
 
 
-def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Firmware]):
+def store_binary_on_file_system(tmp_dir: str, test_object: FileObject | Firmware):
     binary_dir = Path(tmp_dir) / test_object.uid[:2]
     binary_dir.mkdir(parents=True)
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
@@ -327,27 +305,14 @@ def clear_test_tables(db_setup):
 def generate_analysis_entry(
     plugin_version: str = '1.0',
     analysis_date: float = 0.0,
-    summary: Optional[List[str]] = None,
-    tags: Optional[dict] = None,
-    analysis_result: Optional[dict] = None,
+    summary: list[str] | None = None,
+    tags: dict | None = None,
+    analysis_result: dict | None = None,
 ):
     return {
         'plugin_version': plugin_version,
         'analysis_date': analysis_date,
         'summary': summary or [],
         'tags': tags or {},
-        **(analysis_result or {}),
+        'result': analysis_result or {},
     }
-
-
-def create_docker_mount_base_dir() -> Path:
-    docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
-    try:
-        docker_mount_base_dir.mkdir(0o770)
-    except FileExistsError:
-        pass
-    else:
-        docker_gid = grp.getgrnam('docker').gr_gid
-        os.chown(docker_mount_base_dir, -1, docker_gid)
-
-    return docker_mount_base_dir

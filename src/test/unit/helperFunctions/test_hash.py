@@ -1,5 +1,3 @@
-# pylint: disable=wrong-import-order
-
 import os
 from pathlib import Path
 
@@ -34,16 +32,16 @@ def test_get_ssdeep():
 
 def test_imphash():
     fo = create_test_file_object(bin_path=str(Path(get_test_data_dir(), 'test_executable')))
-    fo.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
+    fo.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
     imphash = get_imphash(fo)
     assert isinstance(imphash, str), 'imphash should be a string'
-    assert len(imphash) == 32, 'imphash does not seem to be an md5'
+    assert len(imphash) == 32, 'imphash does not seem to be an md5'  # noqa: PLR2004
 
 
 def test_imphash_bad_file():
     fo = create_test_file_object()
-    fo.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
-    assert not get_imphash(fo)
+    fo.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
+    assert get_imphash(fo) is None
 
 
 def test_normalize_items_from_strings():
@@ -68,7 +66,7 @@ def test_normalize_items_empty_list():
 
 
 def print_foo():
-    print('foo', end='')
+    print('foo', end='')  # noqa: T201
 
 
 def test_suppress_stdout(capsys):

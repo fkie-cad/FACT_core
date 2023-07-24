@@ -32,7 +32,7 @@
         {% for feature in result['general'] | sort %}
             {% if feature != 'hid' %}
                 <tr>
-                    <td width="150px"> {{ feature | replace_underscore }} </td>
+                    <td style="width: 150px"> {{ feature | replace_underscore }} </td>
                     {% if result['general'][feature] | all_items_equal %}
                         <td colspan="{{ uid_list | length }}" class="text-center text-success">
                             {% if feature == "size"%}

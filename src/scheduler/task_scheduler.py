@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import logging
 from copy import copy
 from time import time
-from typing import List, Set, Union
 
 from helperFunctions.merge_generators import shuffled
-from objects.file import FileObject
-from objects.firmware import Firmware
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.firmware import Firmware
+    from objects.file import FileObject
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
 
@@ -20,7 +24,7 @@ class AnalysisTaskScheduler:
             scheduled_analysis + MANDATORY_PLUGINS if mandatory else scheduled_analysis
         )
 
-    def _smart_shuffle(self, plugin_list: List[str]) -> List[str]:
+    def _smart_shuffle(self, plugin_list: list[str]) -> list[str]:
         scheduled_plugins = []
         remaining_plugins = set(plugin_list)
 
@@ -41,8 +45,8 @@ class AnalysisTaskScheduler:
         return scheduled_plugins
 
     def _get_plugins_with_met_dependencies(
-        self, remaining_plugins: Set[str], scheduled_plugins: List[str]
-    ) -> List[str]:
+        self, remaining_plugins: set[str], scheduled_plugins: list[str]
+    ) -> list[str]:
         met_dependencies = scheduled_plugins
         return [
             plugin
@@ -50,7 +54,7 @@ class AnalysisTaskScheduler:
             if all(dependency in met_dependencies for dependency in self.plugins[plugin].DEPENDENCIES)
         ]
 
-    def _add_dependencies_recursively(self, scheduled_analyses: List[str]) -> List[str]:
+    def _add_dependencies_recursively(self, scheduled_analyses: list[str]) -> list[str]:
         scheduled_analyses_set = set(scheduled_analyses)
         while True:
             new_dependencies = self.get_cumulative_remaining_dependencies(scheduled_analyses_set)
@@ -59,12 +63,12 @@ class AnalysisTaskScheduler:
             scheduled_analyses_set.update(new_dependencies)
         return list(scheduled_analyses_set)
 
-    def get_cumulative_remaining_dependencies(self, scheduled_analyses: Set[str]) -> Set[str]:
+    def get_cumulative_remaining_dependencies(self, scheduled_analyses: set[str]) -> set[str]:
         return {
             dependency for plugin in scheduled_analyses for dependency in self.plugins[plugin].DEPENDENCIES
         }.difference(scheduled_analyses)
 
-    def reschedule_failed_analysis_task(self, fw_object: Union[Firmware, FileObject]):
+    def reschedule_failed_analysis_task(self, fw_object: Firmware | FileObject):
         failed_plugin, cause = fw_object.analysis_exception
         fw_object.processed_analysis[failed_plugin] = self._get_failed_analysis_result(cause, failed_plugin)
         for plugin in fw_object.scheduled_analysis[:]:
@@ -80,7 +84,7 @@ class AnalysisTaskScheduler:
 
     def _get_failed_analysis_result(self, cause: str, plugin: str) -> dict:
         return {
-            'failed': cause,
+            'result': {'failed': cause},
             'plugin_version': self.plugins[plugin].VERSION,
             'analysis_date': time(),
         }

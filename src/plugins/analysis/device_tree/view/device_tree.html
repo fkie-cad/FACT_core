@@ -42,18 +42,18 @@
 {% block analysis_result_details %}
 
 {# Don't break on legacy result #}
-{% if "device_tree" in firmware.processed_analysis[selected_analysis] %}
+{% if "device_tree" in analysis_result %}
     <tr class="table-warning">
         <td> Deprecation Warning </td>
         <td> Analysis version is deprecated, please update the analysis </td>
     </tr>
     <tr>
         <td> Device Tree </td>
-        {{ device_tree_table_cell(firmware.processed_analysis[selected_analysis].device_tree, "1") }}
+        {{ device_tree_table_cell(analysis_result.device_tree, "1") }}
     </tr>
 {% endif %}
 
-{% for dt_dict in firmware.processed_analysis[selected_analysis].get("device_trees", []) %}
+{% for dt_dict in analysis_result.get("device_trees", []) %}
     <tr data-toggle="collapse" data-target="#collapse-{{ dt_dict.offset }}">
         <td class="clickable" colspan=2>
             <i class="fas fa-angle-down"></i>

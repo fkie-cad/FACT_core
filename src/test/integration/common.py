@@ -7,18 +7,26 @@ class MockFSOrganizer:
         self._data_folder = TemporaryDirectory()
 
     def store_file(self, file_object):
-        Path(self._data_folder.name, file_object.uid).write_bytes(file_object.binary)
+        destination_path = Path(self.generate_path_from_uid(file_object.uid))
+        destination_path.write_bytes(file_object.binary)
+        file_object.file_path = str(destination_path)
 
     def delete_file(self, uid):
         file_path = Path(self._data_folder.name, uid)
         if file_path.is_file():
             file_path.unlink()
 
-    def generate_path(self, uid):
-        return str(Path(self._data_folder.name, uid))
+    def generate_path(self, file_object):
+        return self.generate_path_from_uid(file_object.uid)
+
+    def generate_path_from_uid(self, uid):
+        return str(Path(self._data_folder.name) / uid)
+
+    def shutdown(self):
+        self._data_folder.cleanup()
 
     def __del__(self):
-        self._data_folder.cleanup()
+        self.shutdown()
 
 
 class MockDbInterface:
@@ -29,6 +37,9 @@ class MockDbInterface:
         self._objects[fo_fw.uid] = fo_fw
 
     def get_analysis(self, *_):
+        pass
+
+    def add_analysis(self, *_):
         pass
 
     def get_specific_fields_of_db_entry(self, uid, field_dict):

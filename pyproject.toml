@@ -1,7 +1,7 @@
 [tool.black]
 line-length = 120
 skip-string-normalization = true
-target-version = ['py37']
+target-version = ['py38']
 
 [tool.pylint.main]
 init-hook = 'import sys; sys.path.append("./src")'
@@ -33,10 +33,63 @@ max-public-methods = 40
 [tool.pylint.imports]
 known-third-party = ["enchant", "docker"]
 
-[tool.isort]
-line_length=120
-default_section = "THIRDPARTY"
-known_first_party = ["analysis", "compare", "helperFunctions", "install", "intercom", "objects", "plugins", "scheduler",
-    "statistic", "storage", "test", "unpacker", "version", "web_interface"]
-known_third_party = "docker"
-profile = "black"
+[tool.pytest.ini_options]
+addopts = "-v"
+testpaths = [
+    "src/test",
+    "src/plugins/**/test",
+]
+markers = [
+    "AnalysisPluginTestConfig: Configure the analysis_plugin fixture",
+    "SchedulerTestConfig: Configure the analysis_scheduler, comparison_scheduler and unpacking_scheduler",
+    "WebInterfaceUnitTestConfig: Configure the web_interface fixture",
+    "backend_config_overwrite: Overwrite defaults for the testing backend config",
+    "common_config_overwrite: Overwrite defaults for the testing common config",
+    "frontend_config_overwrite: Overwrite defaults for the testing frontend config",
+]
+
+[tool.ruff]
+select = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH",
+    "PTH", "PLR", "PLW", "ARG", "ERA", "RUF", "Q"]
+ignore = [
+    "A003",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    # pydantic only supports these from python>=3.9
+    "UP006",
+    "UP007",
+]
+fixable = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH",
+    "PTH", "PLR", "PLW", "ARG", "ERA", "RUF", "Q"]
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".venv",
+    "bin",
+    "node_modules",
+    "docker",  # ingore plugins/*/*/docker/scripts/* jython ghidra scripts
+    "venv",
+]
+line-length = 120
+target-version = "py38"
+
+[tool.ruff.per-file-ignores]
+"test*.py" = ["ARG002"]
+"conftest.py" = ["ARG002"]
+
+[tool.ruff.isort]
+known-first-party = ["analysis", "compare", "helperFunctions", "install", "intercom", "objects", "plugins", "scheduler",
+    "statistic", "storage", "test", "unpacker", "version", "web_interface", "config"]
+known-third-party = ["docker"]
+
+[tool.ruff.mccabe]
+max-complexity = 10
+
+[tool.ruff.flake8-pytest-style]
+fixture-parentheses = false
+
+[tool.ruff.flake8-quotes]
+inline-quotes = "single"
+multiline-quotes = "single"
+docstring-quotes = "double"

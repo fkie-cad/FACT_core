@@ -25,7 +25,6 @@ def _mips_flags_to_str(flags):
 def _get_mips_isa(elffile):
     assert elffile['e_machine'] == 'EM_MIPS'
     # TODO implement parsing abiflags section
-    # sec = elffile.get_section_by_name('.MIPS.abiflags')
     header = elffile.header
     flags = header['e_flags']
 
@@ -55,7 +54,7 @@ def _get_arm_isa(elffile):
 
 def construct_result(file_object, fs_organizer):
     result = {}
-    with open(fs_organizer.generate_path(file_object), 'rb') as fp:
+    with open(fs_organizer.generate_path(file_object), 'rb') as fp:  # noqa: PTH123
         try:
             elffile = ELFFile(fp)
         except ELFError:

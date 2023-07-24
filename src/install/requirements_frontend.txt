@@ -2,9 +2,10 @@ bcrypt==4.0.1
 email-validator==1.3.0
 flask-login==0.6.2
 flask-paginate==2022.1.8
-flask-security-too==5.0.2
-flask==2.2.2
-flask_restx==1.0.3
+flask-security-too==5.2.0
+flask-wtf==1.1.1
+flask==2.3.2
+flask_restx==1.1.0
 flask_sqlalchemy==3.0.2
 itsdangerous==2.1.2
 matplotlib==3.5.3
@@ -16,7 +17,7 @@ uwsgi==2.0.21
 virtualenv
 
 # must be below dependent packages (flask, flask-login, flask-restx)
-werkzeug==2.2.2
+werkzeug==2.3.4
 
 # Used for username validation by flask-security
 bleach==5.0.1

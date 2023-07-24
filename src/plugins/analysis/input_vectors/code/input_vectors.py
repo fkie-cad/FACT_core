@@ -7,8 +7,8 @@ from docker.errors import DockerException
 from docker.types import Mount
 from requests.exceptions import ReadTimeout
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg
 from helperFunctions.docker import run_docker_container
 from objects.file import FileObject
 
@@ -18,23 +18,23 @@ CONTAINER_TARGET_PATH = '/tmp/input'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     This plugin determines possible input vectors of Linux ELF executables.
     Examples are:
     - network
     - stdin
     - kernel via syscalls
-    '''
+    """
 
     NAME = 'input_vectors'
     DESCRIPTION = 'Determines possible input vectors of an ELF executable like stdin, network, or syscalls.'
-    DEPENDENCIES = ['file_type']
+    DEPENDENCIES = ['file_type']  # noqa: RUF012
     VERSION = '0.1.2'
-    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']  # noqa: RUF012
     FILE = __file__
 
     def process_object(self, file_object: FileObject):
-        with TemporaryDirectory(prefix=self.NAME, dir=cfg.data_storage.docker_mount_base_dir) as tmp_dir:
+        with TemporaryDirectory(prefix=self.NAME, dir=config.backend.docker_mount_base_dir) as tmp_dir:
             file_path = Path(tmp_dir) / file_object.file_name
             file_path.write_bytes(file_object.binary)
             try:

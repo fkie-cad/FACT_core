@@ -1,10 +1,8 @@
-# pylint: disable=no-self-use
-
 from __future__ import annotations
 
 import logging
 from contextlib import suppress
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from flask import redirect, render_template, render_template_string, request, session, url_for
 
@@ -79,7 +77,7 @@ class CompareRoutes(ComponentBase):
     @AppRoute('/compare', GET)
     def start_compare(self):
         uid_dict = get_comparison_uid_dict_from_session()
-        if len(uid_dict) < 2:
+        if len(uid_dict) < 2:  # noqa: PLR2004
             return render_template('compare/error.html', error='No UIDs found for comparison')
 
         comparison_id = convert_uid_list_to_compare_id(list(uid_dict))
@@ -110,7 +108,7 @@ class CompareRoutes(ComponentBase):
             page, per_page = extract_pagination_from_request(request)[0:2]
             try:
                 compare_list = comparison_db.page_comparison_results(skip=per_page * (page - 1), limit=per_page)
-            except Exception as exception:  # pylint: disable=broad-except
+            except Exception as exception:
                 error_message = f'Could not query database: {type(exception)}'
                 logging.error(error_message, exc_info=True)
                 return render_template('error.html', message=error_message)
@@ -132,7 +130,7 @@ class CompareRoutes(ComponentBase):
     def add_to_compare_basket(self, uid, root_uid=None):
         compare_uid_list = get_comparison_uid_dict_from_session()
         compare_uid_list[uid] = root_uid
-        session.modified = True  # pylint: disable=assigning-non-slot
+        session.modified = True
         return redirect(url_for('show_analysis', uid=uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
@@ -142,7 +140,7 @@ class CompareRoutes(ComponentBase):
         compare_uid_list = get_comparison_uid_dict_from_session()
         if compare_uid in compare_uid_list:
             session['uids_for_comparison'].pop(compare_uid)
-            session.modified = True  # pylint: disable=assigning-non-slot
+            session.modified = True
         return redirect(url_for('show_analysis', uid=analysis_uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
@@ -151,20 +149,20 @@ class CompareRoutes(ComponentBase):
     def remove_all_from_compare_basket(self, analysis_uid, root_uid=None):
         compare_uid_list = get_comparison_uid_dict_from_session()
         compare_uid_list.clear()
-        session.modified = True  # pylint: disable=assigning-non-slot
+        session.modified = True
         return redirect(url_for('show_analysis', uid=analysis_uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/comparison/text_files', GET)
     def start_text_file_comparison(self):
         uids_dict = get_comparison_uid_dict_from_session()
-        if len(uids_dict) != 2:
+        if len(uids_dict) != 2:  # noqa: PLR2004
             return render_template(
-                'compare/error.html', error=f'Can\'t compare {len(uids_dict)} files. You must select exactly 2 files.'
+                'compare/error.html', error=f"Can't compare {len(uids_dict)} files. You must select exactly 2 files."
             )
         (uid_1, root_uid_1), (uid_2, root_uid_2) = list(uids_dict.items())
         uids_dict.clear()
-        session.modified = True  # pylint: disable=assigning-non-slot
+        session.modified = True
         return redirect(
             url_for('compare_text_files', uid_1=uid_1, uid_2=uid_2, root_uid_1=root_uid_1, root_uid_2=root_uid_2)
         )
@@ -187,7 +185,7 @@ class CompareRoutes(ComponentBase):
         if any(not f.mime.startswith('text') for f in diff_files):
             return render_template(
                 'compare/error.html',
-                error=f'Can\'t compare non-text mimetypes. ({diff_files[0].mime} vs {diff_files[1].mime})',
+                error=f"Can't compare non-text mimetypes. ({diff_files[0].mime} vs {diff_files[1].mime})",
             )
 
         with ConnectTo(self.intercom) as intercom:
@@ -199,13 +197,13 @@ class CompareRoutes(ComponentBase):
             'compare/text_files.html', diffstr=diff_str, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid
         )
 
-    def _get_data_for_file_diff(self, uid: str, root_uid: Optional[str]) -> FileDiffData:
+    def _get_data_for_file_diff(self, uid: str, root_uid: str | None) -> FileDiffData:
         with get_shared_session(self.db.frontend) as frontend_db:
             fo = frontend_db.get_object(uid)
             if root_uid in [None, 'None']:
-                root_uid = fo.get_root_uid()
+                root_uid = frontend_db.get_root_uid(fo.uid)
             fw_hid = frontend_db.get_object(root_uid).get_hid()
-        mime = fo.processed_analysis.get('file_type', {}).get('mime')
+        mime = fo.processed_analysis.get('file_type', {}).get('result', {}).get('mime')
         return FileDiffData(uid, mime, fw_hid)
 
 
@@ -222,8 +220,8 @@ def _add_plugin_views_to_compare_view(compare_view, plugin_views):
     else:
         insertion_index += len(key)
         for plugin, view in plugin_views:
-            if_case = f'{{% elif plugin == \'{plugin}\' %}}'
-            view = f'{if_case}\n{view.decode()}'
+            if_case = f"{{% elif plugin == '{plugin}' %}}"
+            view = f'{if_case}\n{view.decode()}'  # noqa: PLW2901
             compare_view = _insert_plugin_into_view_at_index(view, compare_view, insertion_index)
     return compare_view
 
@@ -234,7 +232,7 @@ def _insert_plugin_into_view_at_index(plugin, view, index):
     return view[:index] + plugin + view[index:]
 
 
-def get_comparison_uid_dict_from_session():  # pylint: disable=invalid-name
+def get_comparison_uid_dict_from_session():
     # session['uids_for_comparison'] is a dictionary where keys are FileObject-
     # uids and values are the root FirmwareObject of the corresponding key
     if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], dict):

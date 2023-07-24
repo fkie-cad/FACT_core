@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import binascii
 import json
 import logging
@@ -8,9 +10,9 @@ from base64 import b64decode, standard_b64encode
 from collections import defaultdict
 from datetime import timedelta
 from operator import itemgetter
+from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import Dict, List, Match, Optional, Tuple, Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -23,7 +25,7 @@ from web_interface.security.authentication import user_has_privilege
 from web_interface.security.privileges import PRIVILEGES
 
 
-def generic_nice_representation(i):  # pylint: disable=too-many-return-statements
+def generic_nice_representation(i):  # noqa: PLR0911
     if isinstance(i, struct_time):
         return strftime('%Y-%m-%d - %H:%M:%S', i)
     if isinstance(i, list):
@@ -139,10 +141,10 @@ def get_all_uids_in_string(string):
 
 
 def _get_sorted_list(input_data):
-    '''
+    """
     returns a sorted list if input data is a set or list
     returns input_data unchanged if it is whether a list nor a set
-    '''
+    """
     if isinstance(input_data, set):
         input_data = list(input_data)
     if isinstance(input_data, list):
@@ -154,10 +156,10 @@ def _get_sorted_list(input_data):
 
 
 def nice_unix_time(unix_time_stamp):
-    '''
+    """
     input unix_time_stamp
     output string 'YYYY-MM-DD HH:MM:SS'
-    '''
+    """
     if isinstance(unix_time_stamp, (float, int)):
         tmp = localtime(unix_time_stamp)
         return strftime('%Y-%m-%d %H:%M:%S', tmp)
@@ -165,20 +167,20 @@ def nice_unix_time(unix_time_stamp):
 
 
 def infection_color(input_data):
-    '''
+    """
     sets color to green if zero or clean
     else sets color to red
-    '''
+    """
     return text_highlighter(input_data, green=['clean', 0], red=['*'])
 
 
 def text_highlighter(input_data, green=None, red=None):
-    '''
+    """
     sets color to green if input found in green
     sets color to red if input found in red
     else do not set color
     special character * for all inputs available
-    '''
+    """
     if red is None:
         red = ['offline']
     if green is None:
@@ -222,14 +224,14 @@ def sort_comments(comment_list):
     return comment_list
 
 
-def data_to_chart_with_value_percentage_pairs(data, limit=10):  # pylint: disable=invalid-name
+def data_to_chart_with_value_percentage_pairs(data, limit=10):
     try:
         label_list, value_list, percentage_list, *links = (list(d) for d in zip(*data))
     except ValueError:
         return None
     label_list, value_list = set_limit_for_data_to_chart(label_list, limit, value_list)
     color_list = get_alternating_color_list(len(value_list), limit=limit)
-    result = {
+    return {
         'labels': label_list,
         'datasets': [
             {
@@ -241,7 +243,6 @@ def data_to_chart_with_value_percentage_pairs(data, limit=10):  # pylint: disabl
             }
         ],
     }
-    return result
 
 
 def set_limit_for_data_to_chart(label_list, limit, value_list):
@@ -259,9 +260,9 @@ def get_canvas_height(dataset, maximum=11, bar_height=5):
 
 
 def comment_out_regex_meta_chars(input_data):
-    '''
+    """
     comments out chars used by regular expressions in the input string
-    '''
+    """
     meta_chars = ['^', '$', '.', '[', ']', '|', '(', ')', '?', '*', '+', '{', '}']
     for char in meta_chars:
         if char in input_data:
@@ -331,7 +332,7 @@ def sort_roles_by_number_of_privileges(roles, privileges=None):
     return sorted(roles, key=lambda role: len(inverted_privileges[role]))
 
 
-def filter_format_string_list_with_offset(offset_tuples):  # pylint: disable=invalid-name
+def filter_format_string_list_with_offset(offset_tuples):
     max_offset_len = len(str(max(list(zip(*offset_tuples))[0]))) if offset_tuples else 0
     lines = [f'{offset: >{max_offset_len}}: {repr(string)[1:-1]}' for offset, string in sorted(offset_tuples)]
     return '\n'.join(lines)
@@ -344,18 +345,12 @@ def decompress(string: str) -> str:
         return string
 
 
-def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
+def get_unique_keys_from_list_of_dicts(list_of_dicts: list[dict]):
     unique_keys = set()
     for dictionary in list_of_dicts:
         for key in dictionary:
             unique_keys.add(key)
     return unique_keys
-
-
-def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List[str]] = None) -> bool:
-    return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags'] and (
-        additional_entries is None or item not in additional_entries
-    )
 
 
 def random_collapse_id():
@@ -379,7 +374,7 @@ def format_duration(duration: float) -> str:
     return str(timedelta(seconds=duration))
 
 
-def render_query_title(query_title: Union[None, str, dict]):
+def render_query_title(query_title: None | str | dict):
     if query_title is None:
         return None
     if isinstance(query_title, dict):
@@ -403,12 +398,12 @@ def _link_to_cwe(match: Match) -> str:
     return f'<a href="https://cwe.mitre.org/data/definitions/{match.group(1)}.html">{match.group(0)}</a>'
 
 
-def sort_cve_results(cve_result: Dict[str, Dict[str, str]]) -> List[Tuple[str, Dict[str, str]]]:
+def sort_cve_results(cve_result: dict[str, dict[str, str]]) -> list[tuple[str, dict[str, str]]]:
     return sorted(cve_result.items(), key=lambda item: item[1]['score2'], reverse=True)
 
 
-def linter_reformat_issues(issues) -> Dict[str, List[Dict[str, str]]]:
-    reformatted = defaultdict(lambda: [], {})
+def linter_reformat_issues(issues) -> dict[str, list[dict[str, str]]]:
+    reformatted = defaultdict(list, {})
     for issue in issues:
         symbol = issue['symbol']
         content = {'line': issue['line'], 'column': issue['column'], 'message': issue['message']}
@@ -423,6 +418,6 @@ def hide_dts_binary_data(device_tree: str) -> str:
 
 
 def get_searchable_crypto_block(crypto_material: str) -> str:
-    '''crypto material plugin results contain spaces and line breaks -> get a contiguous block without those'''
+    """crypto material plugin results contain spaces and line breaks -> get a contiguous block without those"""
     blocks = crypto_material.replace(' ', '').split('\n')
     return sorted(blocks, key=len, reverse=True)[0]

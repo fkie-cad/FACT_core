@@ -1,5 +1,4 @@
-import logging
-from typing import Set
+from __future__ import annotations
 
 from sqlalchemy import (
     BigInteger,
@@ -12,12 +11,12 @@ from sqlalchemy import (
     LargeBinary,
     PrimaryKeyConstraint,
     Table,
+    delete,
     event,
-    select,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import Session, backref, declarative_base, relationship
+from sqlalchemy.orm import Session, backref, declarative_base, mapped_column, relationship
 
 Base = declarative_base()
 UID = VARCHAR(78)
@@ -28,14 +27,14 @@ UID = VARCHAR(78)
 class AnalysisEntry(Base):
     __tablename__ = 'analysis'
 
-    uid = Column(UID, ForeignKey('file_object.uid'))
-    plugin = Column(VARCHAR(64), nullable=False)
-    plugin_version = Column(VARCHAR(16), nullable=False)
-    system_version = Column(VARCHAR)
-    analysis_date = Column(Float, nullable=False)
-    summary = Column(ARRAY(VARCHAR, dimensions=1), default=[])
-    tags = Column(MutableDict.as_mutable(JSONB))
-    result = Column(MutableDict.as_mutable(JSONB), default={})
+    uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), index=True)
+    plugin = mapped_column(VARCHAR(64), nullable=False)
+    plugin_version = mapped_column(VARCHAR(16), nullable=False)
+    system_version = mapped_column(VARCHAR)
+    analysis_date = mapped_column(Float, nullable=False)
+    summary = mapped_column(ARRAY(VARCHAR, dimensions=1), default=[])
+    tags = mapped_column(MutableDict.as_mutable(JSONB))
+    result = mapped_column(MutableDict.as_mutable(JSONB), default={})
 
     file_object = relationship('FileObjectEntry', back_populates='analyses')
 
@@ -48,39 +47,43 @@ class AnalysisEntry(Base):
 included_files_table = Table(
     'included_files',
     Base.metadata,
-    Column('parent_uid', UID, ForeignKey('file_object.uid'), primary_key=True),
-    Column('child_uid', UID, ForeignKey('file_object.uid'), primary_key=True),
+    Column('parent_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True, index=True),
+    Column('child_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True, index=True),
 )
 
 fw_files_table = Table(
     'fw_files',
     Base.metadata,
-    Column('root_uid', UID, ForeignKey('file_object.uid'), primary_key=True),
-    Column('file_uid', UID, ForeignKey('file_object.uid'), primary_key=True),
+    Column('root_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True, index=True),
+    Column('file_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True, index=True),
 )
 
 
 comparisons_table = Table(
     'compared_files',
     Base.metadata,
-    Column('comparison_id', VARCHAR, ForeignKey('comparison.comparison_id'), primary_key=True),
-    Column('file_uid', UID, ForeignKey('file_object.uid'), primary_key=True),
+    Column('comparison_id', VARCHAR, ForeignKey('comparison.comparison_id', ondelete='CASCADE'), primary_key=True),
+    Column('file_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True),
 )
 
 
 class FileObjectEntry(Base):
     __tablename__ = 'file_object'
 
-    uid = Column(UID, primary_key=True)
-    sha256 = Column(CHAR(64), nullable=False)
-    file_name = Column(VARCHAR, nullable=False)
-    depth = Column(Integer, nullable=False)
-    size = Column(BigInteger, nullable=False)
-    comments = Column(MutableList.as_mutable(JSONB))
-    virtual_file_paths = Column(MutableDict.as_mutable(JSONB))
-    is_firmware = Column(Boolean, nullable=False)
+    uid = mapped_column(UID, primary_key=True)
+    sha256 = mapped_column(CHAR(64), nullable=False)
+    file_name = mapped_column(VARCHAR, nullable=False)
+    depth = mapped_column(Integer, nullable=False)
+    size = mapped_column(BigInteger, nullable=False)
+    comments = mapped_column(MutableList.as_mutable(JSONB))
+    is_firmware = mapped_column(Boolean, nullable=False)
 
-    firmware = relationship('FirmwareEntry', back_populates='root_object', uselist=False, cascade='all, delete')  # 1:1
+    firmware = relationship(  # 1:1
+        'FirmwareEntry',
+        back_populates='root_object',
+        uselist=False,
+        cascade='all, delete',
+    )
     parent_files = relationship(  # n:n
         'FileObjectEntry',
         secondary=included_files_table,
@@ -114,10 +117,10 @@ class FileObjectEntry(Base):
         backref=backref('file_objects'),
     )
 
-    def get_included_uids(self) -> Set[str]:
+    def get_included_uids(self) -> set[str]:
         return {child.uid for child in self.included_files}
 
-    def get_parent_uids(self) -> Set[str]:
+    def get_parent_uids(self) -> set[str]:
         return {parent.uid for parent in self.parent_files}
 
     def __repr__(self) -> str:
@@ -127,15 +130,15 @@ class FileObjectEntry(Base):
 class FirmwareEntry(Base):
     __tablename__ = 'firmware'
 
-    uid = Column(UID, ForeignKey('file_object.uid'), primary_key=True)
-    submission_date = Column(Float, nullable=False)
-    release_date = Column(Date, nullable=False)
-    version = Column(VARCHAR, nullable=False)
-    vendor = Column(VARCHAR, nullable=False)
-    device_name = Column(VARCHAR, nullable=False)
-    device_class = Column(VARCHAR, nullable=False)
-    device_part = Column(VARCHAR, nullable=False)
-    firmware_tags = Column(ARRAY(VARCHAR, dimensions=1))  # list of strings
+    uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True)
+    submission_date = mapped_column(Float, nullable=False)
+    release_date = mapped_column(Date, nullable=False)
+    version = mapped_column(VARCHAR, nullable=False)
+    vendor = mapped_column(VARCHAR, nullable=False)
+    device_name = mapped_column(VARCHAR, nullable=False)
+    device_class = mapped_column(VARCHAR, nullable=False)
+    device_part = mapped_column(VARCHAR, nullable=False)
+    firmware_tags = mapped_column(ARRAY(VARCHAR, dimensions=1))  # list of strings
 
     root_object = relationship('FileObjectEntry', back_populates='firmware')
 
@@ -143,43 +146,59 @@ class FirmwareEntry(Base):
 class ComparisonEntry(Base):
     __tablename__ = 'comparison'
 
-    comparison_id = Column(VARCHAR, primary_key=True)
-    submission_date = Column(Float, nullable=False)
-    data = Column(MutableDict.as_mutable(JSONB))
+    comparison_id = mapped_column(VARCHAR, primary_key=True)
+    submission_date = mapped_column(Float, nullable=False)
+    data = mapped_column(MutableDict.as_mutable(JSONB))
 
 
 class StatsEntry(Base):
     __tablename__ = 'stats'
 
-    name = Column(VARCHAR, primary_key=True)
-    data = Column(MutableDict.as_mutable(JSONB), nullable=False)
+    name = mapped_column(VARCHAR, primary_key=True)
+    data = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
 
 
 class SearchCacheEntry(Base):
     __tablename__ = 'search_cache'
 
-    uid = Column(UID, primary_key=True)
-    query = Column(VARCHAR, nullable=False)  # the query that searches for the files that the YARA rule matched
-    yara_rule = Column(VARCHAR, nullable=False)
+    uid = mapped_column(UID, primary_key=True)
+    query = mapped_column(VARCHAR, nullable=False)  # the query that searches for the files that the YARA rule matched
+    yara_rule = mapped_column(VARCHAR, nullable=False)
 
 
 class WebInterfaceTemplateEntry(Base):
     __tablename__ = 'templates'
 
-    plugin = Column(VARCHAR, primary_key=True)
-    template = Column(LargeBinary, nullable=False)
+    plugin = mapped_column(VARCHAR, primary_key=True)
+    template = mapped_column(LargeBinary, nullable=False)
+
+
+class VirtualFilePath(Base):
+    """Represents a file path `file_path` of file `file_object` extracted from `_parent_object`"""
+
+    __tablename__ = 'virtual_file_path'
+
+    parent_uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), nullable=False, index=True)
+    file_uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), nullable=False, index=True)
+    file_path = mapped_column(VARCHAR, nullable=False)
+
+    _file_object = relationship('FileObjectEntry', uselist=False, foreign_keys=[file_uid])
+    # for cascade deletion:
+    _parent_object = relationship('FileObjectEntry', uselist=False, foreign_keys=[parent_uid])
+
+    # unique constraint: each combination of parent + child + path should be unique
+    __table_args__ = (PrimaryKeyConstraint('parent_uid', 'file_uid', 'file_path', name='_vfp_primary_key'),)
 
 
 @event.listens_for(Session, 'persistent_to_deleted')
 def delete_file_orphans(session, deleted_object):
     """
-    Delete file_object DB entry if there are no parents left (i.e. when the last
-    parent is deleted). Regular postgres cascade delete operation would delete the
-    entry if any parent was removed, and we don't want that, obviously. Instead,
-    we need this event, that is triggered each time an object from the DB is deleted.
+    If a firmware is deleted, delete all "orphaned" files: files that do not belong to any firmware anymore (and also
+    are not a firmware themselves).
     """
-    if isinstance(deleted_object, FileObjectEntry):
-        query = select(FileObjectEntry).filter(~FileObjectEntry.parent_files.any(), ~FileObjectEntry.is_firmware)
-        for item in session.execute(query).scalars():
-            logging.debug(f'deletion of {deleted_object} triggers deletion of {item} (cascade)')
-            session.delete(item)
+    if isinstance(deleted_object, FirmwareEntry):
+        session.execute(
+            delete(FileObjectEntry)
+            .where(~FileObjectEntry.is_firmware, ~FileObjectEntry.root_firmware.any())
+            .execution_options(synchronize_session='fetch')
+        )

@@ -1,11 +1,12 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order,unused-argument
-
 import json
+
+import pytest
 
 from storage.db_interface_stats import StatsUpdateDbInterface
 from test.integration.web_interface.rest.base import RestTestBase
 
 
+@pytest.mark.usefixtures('database_interfaces')
 class TestRestStatistics(RestTestBase):
     def setup(self):
         super().setup()
@@ -21,7 +22,7 @@ class TestRestStatistics(RestTestBase):
             'known_vulnerabilities', {'known_vulnerabilities': [['BackDoor_String', 1]]}
         )
 
-    def test_rest_request_all_statistics(self, db):
+    def test_rest_request_all_statistics(self):
         st = self.test_client.get('/rest/statistics', follow_redirects=True)
         st_dict = json.loads(st.data)
 
@@ -35,7 +36,7 @@ class TestRestStatistics(RestTestBase):
         assert b'exploit_mitigations' in st.data
         assert not st_dict['exploit_mitigations']
 
-    def test_rest_request_single_statistic(self, db):
+    def test_rest_request_single_statistic(self):
         st = self.test_client.get('/rest/statistics/file_type', follow_redirects=True)
         st_dict = json.loads(st.data)
 
@@ -44,11 +45,11 @@ class TestRestStatistics(RestTestBase):
         assert 'firmware_container' in st_dict['file_type']
         assert b'known_vulnerabilities' not in st.data
 
-    def test_rest_request_non_existent_statistic(self, db):
+    def test_rest_request_non_existent_statistic(self):
         st = self.test_client.get('/rest/statistics/non_existent_stat', follow_redirects=True)
 
         assert b'A statistic with the ID non_existent_stat does not exist' in st.data
 
-    def test_rest_request_invalid_data(self, db):
+    def test_rest_request_invalid_data(self):
         st = self.test_client.get('/rest/statistics/', follow_redirects=True)
         assert b'404 Not Found' in st.data

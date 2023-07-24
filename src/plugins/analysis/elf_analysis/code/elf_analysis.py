@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import re
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import List, Optional
 
 import lief
 
@@ -24,16 +25,12 @@ LIEF_DATA_ENTRIES = (
 TEMPLATE_FILE_PATH = Path(__file__).parent.parent / 'internal/matching_template.json'
 BEHAVIOUR_CLASSES = json.loads(TEMPLATE_FILE_PATH.read_text())
 
-# pylint: disable=c-extension-no-member
-
 
 class AnalysisPlugin(AnalysisBasePlugin):
-
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
-    DEPENDENCIES = ['file_type']
-    VERSION = '0.3.3'
-    MIME_WHITELIST = [
+    VERSION = '0.3.4'
+    MIME_WHITELIST = [  # noqa: RUF012
         'application/x-executable',
         'application/x-pie-executable',
         'application/x-object',
@@ -61,7 +58,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def _get_tags_from_function_list(functions: list, behaviour_class: str, indicators: list, tags: list):
         for function, indicator in ((f, i) for f in functions for i in indicators):
-            if indicator.lower() in function.lower() and SequenceMatcher(None, indicator, function).ratio() >= 0.85:
+            if (
+                indicator.lower() in function.lower()
+                and SequenceMatcher(None, indicator, function).ratio() >= 0.85  # noqa: PLR2004
+            ):
                 tags.append(behaviour_class)
 
     def _get_tags(self, libraries: list, functions: list) -> list:
@@ -151,7 +151,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     entry[key] = hex(entry[key])
 
     @staticmethod
-    def filter_modinfo(binary) -> Optional[List[str]]:
+    def filter_modinfo(binary) -> list[str] | None:
         # getting the information from the *.ko files .modinfo section
         modinfo = None
         for section in binary.sections:

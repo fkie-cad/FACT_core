@@ -1,18 +1,19 @@
+from __future__ import annotations  # noqa: N999
+
 import json
 import logging
 import re
 import subprocess
 from pathlib import Path
-from typing import Dict
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
 
 
 class YaraBasePlugin(AnalysisBasePlugin):
-    '''
+    """
     This should be the base for all YARA based analysis plugins
-    '''
+    """
 
     NAME = 'Yara_Base_Plugin'
     DESCRIPTION = 'this is a Yara plugin'
@@ -20,15 +21,17 @@ class YaraBasePlugin(AnalysisBasePlugin):
     FILE = None
 
     def __init__(self, view_updater=None):
-        '''
+        """
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
-        '''
+        """
         self.signature_path = self._get_signature_file(self.FILE) if self.FILE else None
         if self.signature_path and not Path(self.signature_path).exists():
-            logging.error(f'Signature file {self.signature_path} not found. Did you run "compile_yara_signatures.py"?')
-            raise PluginInitException(plugin=self)
-        self.SYSTEM_VERSION = self.get_yara_system_version()  # pylint: disable=invalid-name
+            raise PluginInitException(
+                f'Signature file {self.signature_path} not found. Did you run "compile_yara_signatures.py"?',
+                plugin=self,
+            )
+        self.SYSTEM_VERSION = self.get_yara_system_version()
         super().__init__(view_updater=view_updater)
 
     def get_yara_system_version(self):
@@ -36,7 +39,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
             yara_version = process.stdout.readline().decode().strip()
 
         access_time = int(Path(self.signature_path).stat().st_mtime)
-        return f'{yara_version}_{access_time}'
+        return f'{yara_version}-{access_time}'
 
     def process_object(self, file_object):
         if self.signature_path is not None:
@@ -90,11 +93,11 @@ def _split_output_in_rules_and_matches(output):
     return match_blocks, rules
 
 
-def _append_match_to_result(match, resulting_matches: Dict[str, dict], rule):
+def _append_match_to_result(match, resulting_matches: dict[str, dict], rule):
     rule_name, meta_string, _, _ = rule
     _, offset, matched_tag, matched_string = match
     resulting_matches.setdefault(
-        rule_name, dict(rule=rule_name, matches=True, strings=[], meta=_parse_meta_data(meta_string))
+        rule_name, {'rule': rule_name, 'matches': True, 'strings': [], 'meta': _parse_meta_data(meta_string)}
     )
     resulting_matches[rule_name]['strings'].append((int(offset, 16), matched_tag, matched_string))
 
@@ -110,5 +113,5 @@ def _parse_meta_data(meta_data_string):
             value = json.loads(value) if value in ['true', 'false'] else value.strip('"')
             meta_data[key] = value
         else:
-            logging.warning(f'Malformed meta string \'{meta_data_string}\'')
+            logging.warning(f"Malformed meta string '{meta_data_string}'")
     return meta_data

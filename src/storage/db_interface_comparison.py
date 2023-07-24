@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from time import time
-from typing import List, Optional, Tuple
 
 from sqlalchemy import func, select, type_coerce
 from sqlalchemy.dialects.postgresql import JSONB
@@ -12,16 +11,15 @@ from helperFunctions.data_conversion import (
     convert_uid_list_to_compare_id,
     normalize_compare_id,
 )
-from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
 
 
-class FactComparisonException(Exception):
+class FactComparisonException(Exception):  # noqa: N818
     def get_message(self):
-        if self.args:  # pylint: disable=using-constant-test
-            return self.args[0]  # pylint: disable=unsubscriptable-object
+        if self.args:
+            return self.args[0]
         return ''
 
 
@@ -51,10 +49,9 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     @staticmethod
     def _calculate_comp_id(comparison_result):
         uid_set = {uid for c_dict in comparison_result['general'].values() for uid in c_dict}
-        comp_id = convert_uid_list_to_compare_id(uid_set)
-        return comp_id
+        return convert_uid_list_to_compare_id(uid_set)
 
-    def get_comparison_result(self, comparison_id: str) -> Optional[dict]:
+    def get_comparison_result(self, comparison_id: str) -> dict | None:
         comparison_id = normalize_compare_id(comparison_id)
         if not self.comparison_exists(comparison_id):
             logging.debug(f'Compare result not found in db: {comparison_id}')
@@ -88,7 +85,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             )
             session.add(comparison_entry)
 
-    def page_comparison_results(self, skip=0, limit=0) -> List[Tuple[str, str, float]]:
+    def page_comparison_results(self, skip=0, limit=0) -> list[tuple[str, str, float]]:
         with self.get_read_only_session() as session:
             query = select(ComparisonEntry).order_by(ComparisonEntry.submission_date.desc())
             query = self._apply_offset_and_limit(query, skip, limit)
@@ -114,7 +111,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 return 0.0
             return analysis.result['entropy']
 
-    def get_exclusive_files(self, compare_id: str, root_uid: str) -> List[str]:
+    def get_exclusive_files(self, compare_id: str, root_uid: str) -> list[str]:
         if compare_id is None or root_uid is None:
             return []
         try:
@@ -127,7 +124,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def get_vfp_of_included_text_files(self, root_uid: str, blacklist: set[str]) -> dict[str, set[str]]:
         with self.get_read_only_session() as session:
             query = (
-                select(FileObjectEntry.virtual_file_paths, FileObjectEntry.uid)
+                select(FileObjectEntry.uid)
                 .join(fw_files_table, FileObjectEntry.uid == fw_files_table.c.file_uid)
                 .filter(fw_files_table.c.root_uid == root_uid)
                 .filter(FileObjectEntry.uid.not_in(blacklist))
@@ -135,15 +132,20 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 .filter(AnalysisEntry.plugin == 'file_type')
                 .filter(AnalysisEntry.result['mime'] == type_coerce('text/plain', JSONB))
             )
-            return self._transpose_vfp_dict(
-                {uid: vfp_dict[root_uid] for vfp_dict, uid in session.execute(query) if root_uid in vfp_dict}
-            )
+            uid_list = list(session.execute(query).scalars())
+        vfp_data = self.get_vfps_for_uid_list(uid_list, root_uid=root_uid)
+        return self._transpose_vfp_dict(vfp_data)
 
     @staticmethod
-    def _transpose_vfp_dict(list_dict: dict[str, list[str]]) -> dict[str, set[str]]:
-        """transposes results from {uid: [vfps]} to {vfp: {uid}}"""
-        transposed = {}
-        for uid, path_list in list_dict.items():
-            for vfp in path_list:
-                transposed.setdefault(get_top_of_virtual_path(vfp), set()).add(uid)
-        return transposed
+    def _transpose_vfp_dict(vfp_data: dict[str, dict[str, list[str]]]) -> dict[str, set[str]]:
+        """
+        Look for files with the same "virtual file path".
+        input: {uid {parent_uid: [vfp]}} -> output: {vfp: [uid]}
+        """
+        result = {}
+        for uid in vfp_data:
+            vfp_dict = vfp_data.get(uid)
+            for vfp_list in vfp_dict.values():
+                for vfp in vfp_list:
+                    result.setdefault(vfp, set()).add(uid)
+        return result

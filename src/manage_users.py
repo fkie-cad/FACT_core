@@ -10,7 +10,6 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 
 import config
-from config import configparser_cfg
 from helperFunctions.fileSystem import get_config_dir
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
@@ -57,7 +56,7 @@ class Actions:
 
     @staticmethod
     def help():
-        print(
+        print(  # noqa: T201
             '\nOne of the following actions can be chosen:\n'
             '\n\t[add_role_to_user]\tadd existing role to an existing user'
             '\n\t[create_role]\t\tcreate new role'
@@ -93,7 +92,7 @@ class Actions:
         while True:
             password = getpass.getpass('password: ')
             if not password_is_legal(password):
-                print('Password is not legal. Please choose another password.')
+                print('Password is not legal. Please choose another password.')  # noqa: T201
                 continue
             break
         with self.app.app_context():
@@ -171,14 +170,14 @@ class Actions:
             user = self.store.find_user(email=user)
 
         apikey = user.api_key
-        print(f'key: {apikey}')
+        print(f'key: {apikey}')  # noqa: T201
 
     def list_all_users(self):
         user_list = self.store.list_users()
         for user in user_list:
             user_roles = ', '.join([role.name for role in user.roles])
-            print(f'\n\t{user.email} ({user_roles})')
-        print()
+            print(f'\n\t{user.email} ({user_roles})')  # noqa: T201
+        print()  # noqa: T201
 
     @staticmethod
     def exit():
@@ -196,9 +195,9 @@ def initialise_roles(app, interface, db):
                 db.session.commit()
 
 
-def prompt_loop(app, store, db, session):  # pylint: disable=too-complex
-    print(FACT_ASCII_ART)
-    print('\nWelcome to the FACT User Management (FACTUM)\n')
+def prompt_loop(app, store, db, session):
+    print(FACT_ASCII_ART)  # noqa: T201
+    print('\nWelcome to the FACT User Management (FACTUM)\n')  # noqa: T201
     initialise_roles(app, store, db)
     actions = Actions(session, app, store, db)
 
@@ -217,25 +216,25 @@ def prompt_loop(app, store, db, session):  # pylint: disable=too-complex
             acting_function()
 
         except KeyboardInterrupt:
-            print('returning to action selection')
+            print('returning to action selection')  # noqa: T201
         except AssertionError as assertion_error:
-            print(f'error: {assertion_error}')
+            print(f'error: {assertion_error}')  # noqa: T201
         except EOFError:
             break
 
-    print('\nQuitting ..')
+    print('\nQuitting ..')  # noqa: T201
 
 
 def start_user_management(app, store, db, session):
-    # We expect flask-security to be initialized
-    db.create_all()
-    prompt_loop(app, store, db, session)
+    with app.app_context():
+        db.create_all()
+        prompt_loop(app, store, db, session)
 
 
 def main():
     args = setup_argparse()
-    config.load(Path(args.config_file).name)
-    app = create_app(configparser_cfg)
+    config.load(Path(args.config_file))
+    app = create_app()
     user_db, user_datastore = add_flask_security_to_app(app)
 
     start_user_management(app, user_datastore, user_db, PromptSession())

@@ -21,7 +21,7 @@
                 <h3 class="card-title">License Information</h3>
                 <h6 class="card-subtitle mb-2 text-muted">
                     Firmware Analysis and Comparison Tool (FACT)<br />
-                    Copyright (C) 2015-2022  Fraunhofer FKIE
+                    Copyright (C) 2015-2023  Fraunhofer FKIE
                 </h6>
                 <p class="card-text">
                     This program is free software: you can redistribute it and/or modify
@@ -54,27 +54,80 @@
 
 <div class="row justify-content-center">
     <div class="col-xl-8 col-lg-12" style="width:100%;column-count:2;column-rule:grey 1px dotted;column-gap:50px">
-        <h4>FACT 4.1-dev</h4>
+
+        <h4>FACT 4.2-dev</h4>
         <ul>
-            <li>New or Improved Analysis
+            <li>ToDo</li>
+        </ul>
+
+        <h4>FACT 4.1 (2023-04-05)</h4>
+        <ul>
+            <li>Major Performance Improvements: 🎉
                 <ul>
-                    <li>Added new plugin for IPC (inter-process communication) analysis.</li>
-                    <li>Improved password cracking of the "users_and_passwords" plugin.</li>
-                    <li>Removed the "malware_scanner" plugin.</li>
-                    <li>Improved "architecture_detection" plugin with new and more precise detection methods.</li>
+                    <li>Significantly sped up unpacking.
+                        <ul>
+                            <li>Reduced unpacking overhead which should result in a speedup especially for small files.</li>
+                            <li>Unpacking can be several times faster for large firmware containers including many small files.</li>
+                        </ul>
+                    </li>
+                    <li>Significantly improved scaling of analysis scheduling.
+                        <ul>
+                            <li>Depending on the core count of the system and the selected plugins, the analysis can be several times quicker.</li>
+                        </ul>
+                    </li>
+                    <li>Significantly sped up firmware deletion (also used in "redo analysis").
+                        <ul>
+                            <li>
+                                <i class="fas fa-exclamation-triangle" style="color: red;"></i>
+                                A database migration with alembic is necessary (see instructions when starting FACT for the first time after an update).
+                            </li>
+                        </ul>
+                    </li>
                 </ul>
             </li>
-            <li>
-                <i class="fas fa-exclamation-triangle" style="color: red;"></i>
-                Changed how the configuration is propagated through FACT and added validation.
-                Config handling in external plugins may need to be adjusted accordingly.
+            <li>Analysis Plugin Changes:
+                <ul>
+                    <li>Added new plugin for IPC (inter-process communication) analysis on ELF files.</li>
+                    <li>Improved "information_leaks" plugin (less false negatives, added detection for SVN artifacts and improved summary)</li>
+                    <li>Improved password cracking of the "users_and_passwords" plugin.</li>
+                    <li>Improved "architecture_detection" plugin with new and more precise detection methods.</li>
+                    <li>Improved resolution of version format strings in the "software_components" plugin.</li>
+                    <li>Removed the "malware_scanner" (OMS) plugin.</li>
+                </ul>
             </li>
-            <li>Added new config option to adjust the default number of workers for each analysis plugin.</li>
-            <li>Added new functionality to the "File Coverage" comparison plugin to find changed configuration files.</li>
-            <li>Significantly sped up the file diff feature and changed it so that the page can be reloaded.</li>
-            <li>Added a search option to the file tree.</li>
-            <li>Bug fixes.</li>
+            <li>Comparison Changes:
+                <ul>
+                    <li>Better text file comparison (significantly faster and can be reloaded now).</li>
+                    <li>Added a feature for finding changed configuration files to the "file_coverage" plugin.</li>
+                </ul>
+            </li>
+            <li>Web GUI Changes:
+                <ul>
+                    <li>"Update analysis" now supports changing metadata.</li>
+                    <li>Added summaries for included files (in addition to firmware containers).</li>
+                    <li>Summaries now load on demand (for faster page loading and less stress on the database).</li>
+                    <li>Added live runtime stats for analysis plugins to the plugin "cards" on the "system health" page.</li>
+                    <li>Added indicator to signify that unpacking is halted to the "system health" page.</li>
+                    <li>Improved "advanced search" (now "not equal" operator and more examples).</li>
+                    <li>Added search feature to the file tree on the analysis page.</li>
+                    <li>New icons for the file tree which support many more MIME types.</li>
+                </ul>
+            </li>
+            <li>Backend Changes:
+                <ul>
+                    <li>
+                        <i class="fas fa-exclamation-triangle" style="color: red;"></i>
+                        Changed how the configuration is propagated through FACT and added validation.
+                        Config handling in external plugins may need to be adjusted accordingly.
+                    </li>
+                    <li>Added new config option to adjust the default number of workers for each analysis plugin.</li>
+                    <li>Log files for backend, frontend and database can now be configured individually.</li>
+                    <li>Added optional authentication option for Redis.</li>
+                </ul>
+            </li>
+            <li>Improved the documentation and fixed many bugs.</li>
         </ul>
+
         <h4>FACT 4.0 (2022-07-21)</h4>
         <ul>
             <li>

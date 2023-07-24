@@ -30,7 +30,7 @@
             <h6 class="card-subtitle mb-2" id="{{ component }}-status">
                 unknown
             </h6>
-            <table class="table table-borderless mb-0">
+            <table class="table table-borderless table-sm mb-0">
                 <tr>
                     {{ icon_tooltip_desk('linux', 'Operating system', icon_class='fab') }}
                     <td id="{{ component }}-os"></td>
@@ -58,7 +58,13 @@
                 {% if component == "backend" %}
                     <tr>
                         {{ icon_tooltip_desk('box-open', 'Pending items for extraction') }}
-                        <td colspan="5" id="backend-unpacking-queue"></td>
+                        <td colspan="4" id="backend-unpacking-queue"></td>
+                        <td class="text-danger text-center" id="backend-unpacking-throttle-indicator" data-toggle="tooltip" data-placement="bottom"
+                            title="Pause indicates that unpacking is halted until analysis queue is under throttle limit again."></td>
+                    </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('microscope', 'Pending items for analysis') }}
+                        <td colspan="5" id="backend-analysis-queue"></td>
                     </tr>
                 {% endif %}
             </table>
@@ -76,14 +82,21 @@
                 <tr>
                     {{ icon_tooltip_desk('align-justify', 'Concurrent threads') }}
                     <td style="width: 46px;">{{ threads }}</td>
+
                     <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Currently processing">
                         <i class="fas fa-cog" style="color: darkgrey" id="{{ plugin_name }}-active-indicator"></i>
                     </td>
                     <td style="width: 46px;" id="{{ plugin_name }}-active"></td>
-                    <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Pending tasks">
+
+                    <td style="width: 20px;" data-toggle="tooltip" data-placement="bottom" title="Pending tasks">
                         <i class="fas fa-sign-in-alt" style="color: darkgrey" id="{{ plugin_name }}-queue-indicator"></i>
                     </td>
                     <td id="{{ plugin_name }}-queue"></td>
+
+                    <td style="width: 20px;" data-toggle="tooltip" data-placement="bottom" title="Finished tasks ready for collection">
+                        <i class="fas fa-sign-out-alt" style="color: darkgrey" id="{{ plugin_name }}-out-queue-indicator"></i>
+                    </td>
+                    <td id="{{ plugin_name }}-out-queue"></td>
                 </tr>
             </table>
 
@@ -91,7 +104,7 @@
                 <span class="card-text">
                     {{ description }}
                 </span>
-                <table class="table table-borderless mb-0">
+                <table class="table table-borderless mb-0 table-sm">
                     <tr>
                         {{ icon_tooltip_desk('project-diagram', 'Plugin dependencies') }}
                         <td>{{ dependencies | list_group_collapse | safe}}</td>
@@ -104,6 +117,11 @@
                         {{ icon_tooltip_desk('flag', 'Whitelisted file types', icon_class='far') }}
                         <td>{{ whitelist | list_group_collapse | safe }}</td>
                     </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('chart-bar', 'Analysis stats', icon_class='far') }}
+                        <td id="{{ plugin_name }}-stats"></td>
+                    </tr>
+
                 </table>
             </div>
 
@@ -130,45 +148,13 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center" style="width: 100%">
                 <h5 class="card-title">Currently analyzed firmware</h5>
-                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#currentAnalysesLegend" style="margin-top: -15px; margin-right: -5px">
-                    <i class="fa fa-question-circle" aria-hidden="true"></i>
-                </button>
             </div>
             <div id="current-analyses">
                 <!-- Filled with JavaScript -->
             </div>
-        </div>
-    </div>
-</div>
-
-
-
-<div class="modal" id="currentAnalysesLegend"  tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fa fa-question-circle" aria-hidden="true"></i> Currently Analyzed Firmware</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="progress mt-2" style="height: 20px; padding-bottom: 0;">
-                    <div class="justify-content-center d-flex w-100">analyzed files / total files (elapsed time)</div>
-                </div>
-                <div class="progress mt-2" style="height: 20px; padding-bottom: 0;">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated text-center" role="progressbar" style="width: 40%">
-                        Analysis Progress
-                    </div>
-                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning text-center" role="progressbar" style="width: 40%">
-                        Unpacking Progress
-                    </div>
-                </div>
-                <div class="progress mt-2" style="height: 20px;">
-                    <div class="progress-bar progress-bar-striped bg-success text-center" role="progressbar" style="width: 100%">
-                        Finished Analysis
-                    </div>
-                </div>
+            <div class="form-check mt-2 mb-0">
+                <input class="form-check-input" type="checkbox" value="" id="ca-show-details">
+                <label class="form-check-label" for="ca-show-details">Show details</label>
             </div>
         </div>
     </div>

@@ -1,7 +1,6 @@
-# pylint: disable=protected-access
+import pytest
 
 from test.common_helper import CommonDatabaseMock
-from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.compare_routes import (
     CompareRoutes,
     _add_plugin_views_to_compare_view,
@@ -18,19 +17,16 @@ class TemplateDbMock(CommonDatabaseMock):
         return None
 
 
-class TestAppComparisonBasket(WebInterfaceTest):
-    def setup_class(self, *_, **__):
-        super().setup_class(db_mock=TemplateDbMock)
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=TemplateDbMock)
+def test_get_compare_plugin_views(web_frontend):
+    compare_result = {'plugins': {}}
+    result = CompareRoutes._get_compare_plugin_views(web_frontend, compare_result)
+    assert result == ([], [])
 
-    def test_get_compare_plugin_views(self):
-        compare_result = {'plugins': {}}
-        result = CompareRoutes._get_compare_plugin_views(self.frontend, compare_result)
-        assert result == ([], [])
-
-        compare_result = {'plugins': {'plugin_1': None, 'plugin_2': None}}
-        plugin_views, plugins_without_view = CompareRoutes._get_compare_plugin_views(self.frontend, compare_result)
-        assert plugin_views == [('plugin_1', b'<plugin 1 view>')]
-        assert plugins_without_view == ['plugin_2']
+    compare_result = {'plugins': {'plugin_1': None, 'plugin_2': None}}
+    plugin_views, plugins_without_view = CompareRoutes._get_compare_plugin_views(web_frontend, compare_result)
+    assert plugin_views == [('plugin_1', b'<plugin 1 view>')]
+    assert plugins_without_view == ['plugin_2']
 
 
 def test_get_compare_view():
@@ -54,7 +50,7 @@ def test_add_plugin_views():
     result = _add_plugin_views_to_compare_view(compare_view, plugin_views)
 
     for plugin, view in plugin_views:
-        assert f'elif plugin == \'{plugin}\'' in result
+        assert f"elif plugin == '{plugin}'" in result
         assert view.decode() in result
         assert key_index + len(key) <= result.find(view.decode()) < result.find('yyyyy')
 

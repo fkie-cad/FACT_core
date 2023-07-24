@@ -1,6 +1,6 @@
 # @category IPC
 
-# pylint: disable=import-error,undefined-variable,consider-using-f-string,too-many-instance-attributes
+
 # flake8: noqa
 
 import json
@@ -79,8 +79,8 @@ class GhidraAnalysis:
         decompiler = DecompInterface()
         options = DecompileOptions()
         decompiler.setOptions(options)
-        decompiler.toggleCCode(True)
         decompiler.toggleSyntaxTree(True)
+        decompiler.toggleCCode(False)
         decompiler.setSimplificationStyle('decompile')
         decompiler.openProgram(current_program)
         return decompiler

@@ -1,5 +1,4 @@
 import json
-import sys
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -7,17 +6,12 @@ from tempfile import TemporaryDirectory
 from docker.errors import DockerException
 from docker.types import Mount
 
+import config
 from analysis.YaraPluginBase import YaraBasePlugin
-from config import cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 
-try:
-    from ..internal.rulebook import evaluate, vulnerabilities
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from rulebook import evaluate, vulnerabilities
-
+from ..internal.rulebook import evaluate, vulnerabilities
 
 VULNERABILITIES = vulnerabilities()
 
@@ -25,7 +19,7 @@ VULNERABILITIES = vulnerabilities()
 class AnalysisPlugin(YaraBasePlugin):
     NAME = 'known_vulnerabilities'
     DESCRIPTION = 'Rule based detection of known vulnerabilities like Heartbleed'
-    DEPENDENCIES = ['file_hashes', 'software_components']
+    DEPENDENCIES = ['file_hashes', 'software_components']  # noqa: RUF012
     VERSION = '0.2.1'
     FILE = __file__
 
@@ -39,7 +33,7 @@ class AnalysisPlugin(YaraBasePlugin):
         matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
 
         # CVE-2021-45608 NetUSB
-        if 'NetUSB' in file_object.processed_analysis.get('software_components', {}):
+        if 'NetUSB' in file_object.processed_analysis.get('software_components', {}).get('result', {}):
             matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
 
         for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
@@ -93,7 +87,7 @@ class AnalysisPlugin(YaraBasePlugin):
         return matched_vulnerabilities
 
     def _check_netusb_vulnerability(self, input_file_data: bytes):
-        with TemporaryDirectory(prefix='known_vulns_', dir=cfg.data_storage.docker_mount_base_dir) as tmp_dir:
+        with TemporaryDirectory(prefix='known_vulns_', dir=config.backend.docker_mount_base_dir) as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
             ghidra_input_file = tmp_dir_path / 'ghidra_input'
             ghidra_input_file.write_bytes(input_file_data)
@@ -112,14 +106,14 @@ class AnalysisPlugin(YaraBasePlugin):
                 return [
                     (
                         'CVE-2021-45608',
-                        dict(
-                            description='CVE-2021-45608: vulnerability in KCodes NetUSB kernel module',
-                            score='high' if ghidra_results['is_vulnerable'] is True else 'none',
-                            reliability=90,
-                            link='https://nvd.nist.gov/vuln/detail/CVE-2021-45608',
-                            short_name='CVE-2021-45608',
-                            additional_data=ghidra_results,
-                        ),
+                        {
+                            'description': 'CVE-2021-45608: vulnerability in KCodes NetUSB kernel module',
+                            'score': 'high' if ghidra_results['is_vulnerable'] is True else 'none',
+                            'reliability': 90,
+                            'link': 'https://nvd.nist.gov/vuln/detail/CVE-2021-45608',
+                            'short_name': 'CVE-2021-45608',
+                            'additional_data': ghidra_results,
+                        },
                     )
                 ]
             except (json.JSONDecodeError, FileNotFoundError):

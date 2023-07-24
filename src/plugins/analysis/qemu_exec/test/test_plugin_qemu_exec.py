@@ -1,4 +1,3 @@
-# pylint: disable=protected-access, no-self-use,wrong-import-order,invalid-name,unused-argument,redefined-outer-name
 import os
 from base64 import b64decode, b64encode
 from pathlib import Path
@@ -45,7 +44,7 @@ class MockUnpacker:
 
 
 @pytest.fixture
-def execute_shell_fails(monkeypatch):
+def execute_shell_fails(monkeypatch):  # noqa: PT004
     monkeypatch.setattr(qemu_exec, 'subprocess.run', CompletedProcess('DONT_CARE', 1))
 
 
@@ -68,7 +67,7 @@ class ContainerMock:
 
 
 class DockerClientMock:
-    class containers:
+    class containers:  # noqa: N801
         @staticmethod
         def run(_, command, **___):
             if 'file-with-error' in command:
@@ -79,12 +78,14 @@ class DockerClientMock:
 
 
 @pytest.fixture
-def execute_docker_error(monkeypatch):
+def execute_docker_error(monkeypatch):  # noqa: PT004
     monkeypatch.setattr('docker.client.from_env', DockerClientMock)
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
-@pytest.mark.plugin_init_kwargs(unpacker=MockUnpacker())
+@pytest.mark.AnalysisPluginTestConfig(
+    plugin_class=AnalysisPlugin,
+    init_kwargs={'unpacker': MockUnpacker()},
+)
 class TestPluginQemuExec:
     def test_has_relevant_type(self, analysis_plugin):
         assert analysis_plugin._has_relevant_type(None) is False
@@ -97,7 +98,7 @@ class TestPluginQemuExec:
         analysis_plugin.root_path = tmp_dir.name
         analysis_plugin.unpacker.set_tmp_dir(tmp_dir)
         result = sorted(analysis_plugin._find_relevant_files(Path(tmp_dir.name)))
-        assert len(result) == 4
+        assert len(result) == 4  # noqa: PLR2004
 
         path_list, mime_types = list(zip(*result))
         for path in ['/lib/ld.so.1', '/lib/libc.so.6', '/test_mips_static', '/usr/bin/test_mips']:
@@ -153,7 +154,7 @@ class TestPluginQemuExec:
         analysis_plugin.process_object(test_fw)
         result = test_fw.processed_analysis[analysis_plugin.NAME]
         assert 'files' in result
-        assert len(result['files']) == 4
+        assert len(result['files']) == 4  # noqa: PLR2004
         assert any(result['files'][uid]['executable'] for uid in result['files'])
 
     @pytest.mark.timeout(15)
@@ -165,7 +166,7 @@ class TestPluginQemuExec:
         analysis_plugin.process_object(test_fw)
         result = test_fw.processed_analysis[analysis_plugin.NAME]
         assert 'files' in result
-        assert len(result['files']) == 3
+        assert len(result['files']) == 3  # noqa: PLR2004
         assert result['files'][test_file_uid]['executable'] is True
 
     @pytest.mark.timeout(10)
@@ -178,7 +179,7 @@ class TestPluginQemuExec:
         assert 'files' in result
         assert any(result['files'][uid]['executable'] for uid in result['files']) is False
         assert all(
-            '/lib/ld.so.1\': No such file or directory' in result['files'][uid]['results']['mips'][option]['stderr']
+            "/lib/ld.so.1': No such file or directory" in result['files'][uid]['results']['mips'][option]['stderr']
             for uid in result['files']
             for option in result['files'][uid]['results']['mips']
             if option != 'strace'
@@ -212,7 +213,7 @@ class TestPluginQemuExec:
     @pytest.mark.timeout(10)
     def test_process_object__included_binary(self, analysis_plugin):
         test_fw = create_test_firmware()
-        test_fw.processed_analysis['file_type']['mime'] = analysis_plugin.FILE_TYPES[0]
+        test_fw.processed_analysis['file_type']['result']['mime'] = analysis_plugin.FILE_TYPES[0]
 
         analysis_plugin.process_object(test_fw)
         assert analysis_plugin.NAME in test_fw.processed_analysis
@@ -259,19 +260,19 @@ def test_get_docker_output__wrong_arch():
     assert all(b'Invalid ELF image' in b64decode(result_dict['stderr']) for result_dict in result.values())
 
 
-def test_get_docker_output__timeout(execute_docker_error):
+def test_get_docker_output__timeout(execute_docker_error):  # noqa: ARG001
     result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
     assert 'error' in result
     assert result['error'] == 'timeout'
 
 
-def test_get_docker_output__error(execute_docker_error):
+def test_get_docker_output__error(execute_docker_error):  # noqa: ARG001
     result = qemu_exec.get_docker_output('mips', '/file-with-error', TEST_DATA_DIR)
     assert 'error' in result
     assert result['error'] == 'process error'
 
 
-def test_get_docker_output__json_error(execute_docker_error):
+def test_get_docker_output__json_error(execute_docker_error):  # noqa: ARG001
     result = qemu_exec.get_docker_output('mips', '/json-error', TEST_DATA_DIR)
     assert 'error' in result
     assert result['error'] == 'could not decode result'
@@ -293,7 +294,7 @@ def test_process_qemu_job():
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [
         ({}, []),
         ({'foo': {EXECUTABLE: False}}, []),
@@ -306,7 +307,7 @@ def test_get_summary(input_data, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [
         ({}, False),
         ({'arch': {}}, False),
@@ -321,15 +322,15 @@ def test_valid_execution_in_results(input_data, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [
         ({}, False),
-        (dict(return_code='0', stdout='', stderr=''), False),
-        (dict(return_code='1', stdout='', stderr=''), False),
-        (dict(return_code='0', stdout='something', stderr=''), True),
-        (dict(return_code='1', stdout='something', stderr=''), True),
-        (dict(return_code='0', stdout='something', stderr='error'), True),
-        (dict(return_code='1', stdout='something', stderr='error'), False),
+        ({'return_code': '0', 'stdout': '', 'stderr': ''}, False),
+        ({'return_code': '1', 'stdout': '', 'stderr': ''}, False),
+        ({'return_code': '0', 'stdout': 'something', 'stderr': ''}, True),
+        ({'return_code': '1', 'stdout': 'something', 'stderr': ''}, True),
+        ({'return_code': '0', 'stdout': 'something', 'stderr': 'error'}, True),
+        ({'return_code': '1', 'stdout': 'something', 'stderr': 'error'}, False),
     ],
 )
 def test_output_without_error_exists(input_data, expected_output):
@@ -345,12 +346,12 @@ def test_merge_similar_entries():
         'option_5': {'a': 'x', 'b': 'x', 'c': 'x'},
     }
     qemu_exec.merge_identical_results(test_dict)
-    assert len(test_dict) == 3
+    assert len(test_dict) == 3  # noqa: PLR2004
     assert any(all(option in k for option in ['option_1', 'option_2', 'option_5']) for k in test_dict)
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [
         ({'parameter': {'std_out': 'foo Invalid ELF bar'}}, True),
         ({'parameter': {'std_out': 'no errors'}}, False),
@@ -361,7 +362,7 @@ def test_result_contains_qemu_errors(input_data, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [
         ('Unknown syscall 4001 qemu: Unsupported syscall: 4001\n', True),
         ('foobar', False),
@@ -384,7 +385,7 @@ def test_replace_empty_strings():
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [
         ({'parameter': {'output': 0}}, '0'),
         ({'parameter': {'output': b64encode(b'').decode()}}, ''),
@@ -473,5 +474,5 @@ class MockFSOrganizer:
     @staticmethod
     def generate_path(fo):
         if fo.uid != 'foo':
-            return os.path.join(get_test_data_dir(), 'container/test.zip')
+            return os.path.join(get_test_data_dir(), 'container/test.zip')  # noqa: PTH118
         return None

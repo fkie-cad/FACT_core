@@ -5,10 +5,10 @@ from objects.file import FileObject
 from ..code.cwe_checker import AnalysisPlugin
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestCweCheckerFunctions:
     def test_parse_cwe_checker_output(self, analysis_plugin):
-        test_data = """[
+        test_data = '''[
             {
                 "name": "CWE676",
                 "version": "0.1",
@@ -29,7 +29,7 @@ class TestCweCheckerFunctions:
                 ],
                 "description": "(Use of Potentially Dangerous Function) FUN_00102ef0 (00103042) -> strlen"
             }
-        ]"""
+        ]'''
         result = analysis_plugin._parse_cwe_checker_output(test_data)
         assert isinstance(result, dict)
         assert len(result.keys()) == 1
@@ -42,5 +42,5 @@ class TestCweCheckerFunctions:
             'interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, '
             'BuildID[sha1]=8e756708f62592be105b5e8b423080d38ddc8391, stripped'
         )
-        fo.processed_analysis = {'file_type': {'full': test_data}}
+        fo.processed_analysis = {'file_type': {'result': {'full': test_data}}}
         assert analysis_plugin._is_supported_arch(fo)

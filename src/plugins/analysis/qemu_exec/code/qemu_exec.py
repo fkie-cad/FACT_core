@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import binascii
 import itertools
 import logging
@@ -9,7 +11,6 @@ from json import JSONDecodeError, loads
 from multiprocessing import Manager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Dict, List, Optional, Tuple, Union
 
 from common_helper_files import get_binary_from_file, safe_rglob
 from docker.errors import DockerException
@@ -17,35 +18,37 @@ from docker.types import Mount
 from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg, configparser_cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
-from objects.file import FileObject
 from storage.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 TIMEOUT_IN_SECONDS = 15
 EXECUTABLE = 'executable'
 EMPTY = '(no parameter)'
-DOCKER_IMAGE = 'fact/qemu-exec:alpine-3.14'
+DOCKER_IMAGE = 'fact/qemu-exec:alpine-3.18'
 QEMU_ERRORS = ['Unsupported syscall', 'Invalid ELF', 'uncaught target signal']
 CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, worker_id=None):
-        super().__init__(worker_id=worker_id)
+    def __init__(self):
         self.fs_organizer = FSOrganizer()
 
-    def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
+    def unpack_fo(self, file_object: FileObject) -> TemporaryDirectory | None:
         file_path = file_object.file_path if file_object.file_path else self._get_path_from_fo(file_object)
         if not file_path or not Path(file_path).is_file():
             logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
-        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=cfg.data_storage.docker_mount_base_dir)
+        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=config.backend.docker_mount_base_dir)
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
@@ -54,17 +57,16 @@ class Unpacker(UnpackBase):
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
     VERSION = '0.5.2'
-    DEPENDENCIES = ['file_type']
+    DEPENDENCIES = ['file_type']  # noqa: RUF012
     FILE = __file__
 
-    FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
+    FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']  # noqa: RUF012
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 
-    arch_to_bin_dict = OrderedDict(
+    arch_to_bin_dict = OrderedDict(  # noqa: RUF012
         [
             ('aarch64', ['aarch64']),
             ('ARM', ['aarch64', 'arm', 'armeb']),
@@ -83,7 +85,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     root_path = None
 
     def __init__(self, *args, unpacker=None, **kwargs):
-        self.unpacker = Unpacker(configparser_cfg) if unpacker is None else unpacker
+        self.unpacker = Unpacker() if unpacker is None else unpacker
         super().__init__(*args, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
@@ -91,7 +93,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {}
         file_object.processed_analysis[self.NAME]['summary'] = []
 
-        if file_object.processed_analysis['file_type']['mime'] in self.FILE_TYPES:
+        if file_object.processed_analysis['file_type']['result']['mime'] in self.FILE_TYPES:
             return self._process_included_binary(file_object)
         return self._process_container(file_object)
 
@@ -151,14 +153,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
         executor.shutdown(wait=False)
         self._enter_results(dict(results_dict), file_object)
         self._add_tag(file_object)
+        manager.shutdown()
 
     def _run_analysis_jobs(
         self,
         executor: ThreadPoolExecutor,
-        file_list: List[Tuple[str, str]],
+        file_list: list[tuple[str, str]],
         file_object: FileObject,
         results_dict: dict,
-    ) -> List[Future]:
+    ) -> list[Future]:
         jobs = []
         for file_path, full_type in file_list:
             uid = self._get_uid(file_path, self.root_path)
@@ -228,7 +231,7 @@ def _valid_execution_in_results(results: dict):
     )
 
 
-def _output_without_error_exists(docker_output: Dict[str, str]) -> bool:
+def _output_without_error_exists(docker_output: dict[str, str]) -> bool:
     try:
         return docker_output['stdout'] != '' and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
     except KeyError:
@@ -246,7 +249,7 @@ def check_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) 
 
 
 def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict:
-    '''
+    """
     :return: in the case of no error, the output will have the form
     {
         'parameter 1': {'stdout': <b64_str>, 'stderr': <b64_str>, 'return_code': <int>},
@@ -255,7 +258,7 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
         'strace': {'stdout': <b64_str>, 'stderr': <b64_str>, 'return_code': <int>},
     }
     in case of an error, there will be an entry 'error' instead of the entries stdout/stderr/return_code
-    '''
+    """
     command = f'{arch_suffix} {file_path}'
     try:
         result = run_docker_container(
@@ -277,14 +280,14 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
         return {'error': 'could not decode result'}
 
 
-def process_docker_output(docker_output: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+def process_docker_output(docker_output: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
     process_strace_output(docker_output)
     replace_empty_strings(docker_output)
     merge_identical_results(docker_output)
     return docker_output
 
 
-def decode_output_values(result_dict: Dict[str, Dict[str, Union[str, int]]]) -> Dict[str, Dict[str, str]]:
+def decode_output_values(result_dict: dict[str, dict[str, str | int]]) -> dict[str, dict[str, str]]:
     result = {}
     for parameter in result_dict:
         for key, value in result_dict[parameter].items():
@@ -313,7 +316,7 @@ def process_strace_output(docker_output: dict):
     )
 
 
-def result_contains_qemu_errors(docker_output: Dict[str, Dict[str, str]]) -> bool:
+def result_contains_qemu_errors(docker_output: dict[str, dict[str, str]]) -> bool:
     return any(
         contains_docker_error(value) for parameter in docker_output for value in docker_output[parameter].values()
     )
@@ -323,19 +326,19 @@ def contains_docker_error(docker_output: str) -> bool:
     return any(error in docker_output for error in QEMU_ERRORS)
 
 
-def replace_empty_strings(docker_output: Dict[str, object]):
+def replace_empty_strings(docker_output: dict[str, object]):
     for key in list(docker_output):
         if key == ' ':
             docker_output[EMPTY] = docker_output.pop(key)
 
 
-def merge_identical_results(results: Dict[str, Dict[str, str]]):
-    '''
+def merge_identical_results(results: dict[str, dict[str, str]]):
+    """
     if the results for different parameters (e.g. '-h' and '--help') are identical, merge them
     example input:  {'-h':         {'stdout': 'foo', 'stderr': '', 'return_code': 0},
                      '--help':     {'stdout': 'foo', 'stderr': '', 'return_code': 0}}
     example output: {'-h, --help': {'stdout': 'foo', 'stderr': '', 'return_code': 0}}
-    '''
+    """
     for parameter_1, parameter_2 in itertools.combinations(results, 2):
         if results[parameter_1] == results[parameter_2]:
             combined_key = f'{parameter_1}, {parameter_2}'

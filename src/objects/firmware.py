@@ -1,12 +1,12 @@
-from typing import Dict, Optional
+from __future__ import annotations
 
 from helperFunctions.hash import get_md5
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 
 
-class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
-    '''
+class Firmware(FileObject):
+    """
     Uploaded firmware image representation.
 
     In FACT, we represent an uploaded firmware image as specialized :class:`~objects.file.FileObject` with supplementary meta data.
@@ -46,7 +46,7 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
 
     Additionally, each Firmware can hold user-defined tags that may be used in advanced queries to categorize and filter all firmwares present in the database.
     It is important to understand that said tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
-    '''
+    """  # noqa: E501
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -55,85 +55,81 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         #: Can be freely defined during upload.
         #:
         #: This attribute is **mandatory** and shall never be `None`.
-        self.device_name: Optional[str] = None
+        self.device_name: str | None = None
 
         #: Firmware version string identifier.
         #: Can be freely defined during upload.
         #:
         #: This attribute is **mandatory** and shall never be `None`.
-        self.version: Optional[str] = None
+        self.version: str | None = None
 
         #: Device class string identifier.
-        #: Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.
+        #: Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.  # noqa: E501
         #: FACT requires a user to categorize analyzed firmware images by this attribute.
         #: While this attribute is **mandatory**, it can be freely defined during upload.
-        self.device_class: Optional[str] = None
+        self.device_class: str | None = None
 
         #: Device vendor string identifier.
         #:
         #: This attribute is **mandatory** and shall never be `None`.
-        self.vendor: Optional[str] = None
+        self.vendor: str | None = None
 
         #: Specifies the parts of an embedded system that are contained in this firmware.
         #: While this meta data string can be freely defined during firmware upload,
         #: FACT provides a preset of frequently used values: `complete`, `kernel`, `bootloader`, and `root-fs`.
         #:
-        #: This attribute is **optional**. The firmware image is assumed to be `complete` if the assigned/default value is an empty string.
+        #: This attribute is **optional**. The firmware image is assumed to be `complete` if the assigned/default value is an empty string.  # noqa: E501
         self.part: str = ''
 
-        #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ `YYYY-MM-DD` format.
+        #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ `YYYY-MM-DD` format.  # noqa: E501
         #:
-        #: This attribute is **optional**. The release date is assumed to be the start of UNIX epoch time (`1970-01-01`) if not specificed.
-        self.release_date: Optional[str] = None
+        #: This attribute is **optional**. The release date is assumed to be the start of UNIX epoch time (`1970-01-01`) if not specificed.  # noqa: E501
+        self.release_date: str | None = None
 
-        #: User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {'tag': :class:`helperFunctions.tag.TagColor`} dictionary.
-        #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
+        #: User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {'tag': :class:`helperFunctions.tag.TagColor`} dictionary.  # noqa: E501
+        #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.  # noqa: E501
         #:
         #: This attribute is **optional**, the dict may be empty.
-        self.tags: Dict[str, TagColor] = {}
+        self.tags: dict[str, TagColor] = {}
 
-        self._update_root_id_and_virtual_path()
+        self.root_uid = self.uid
 
     def set_part_name(self, part: str):
-        '''
+        """
         Setter for `self.part_name`.
 
         :param part: part identifier, defaults to `complete` if empty string is passed.
         :type part: str
-        '''
+        """
         if part == 'complete':
             self.part = ''
         else:
             self.part = part
 
     def set_binary(self, binary: bytes):
-        '''
+        """
         See :meth:`objects.file.FileObject.set_binary`.
 
         :param binary: binary data of the file object
         :type binary: bytes
-        '''
+        """
         super().set_binary(binary)
-        self._update_root_id_and_virtual_path()
+        self.root_uid = self.uid
         self.md5 = get_md5(binary)
 
-    def _update_root_id_and_virtual_path(self):
-        self.root_uid = self.uid
-        self.virtual_file_path = {self.uid: [self.uid]}
-
     def set_tag(self, tag: str):
-        '''
+        """
         Set a user-defined tag in the color gray.
 
         :param tag: Tag identifier
         :type tag: str
-        '''
+        """
         self.tags[tag] = TagColor.GRAY
 
-    def get_hid(self, root_uid: Optional[str] = None) -> str:
-        '''
+    def get_hid(self) -> str:
+        """
         See :meth:`objects.file.FileObject.get_hid`.
-        '''
+        """
         part = f' - {self.part}' if self.part else ''
         return f'{self.vendor} {self.device_name}{part} v. {self.version}'
 

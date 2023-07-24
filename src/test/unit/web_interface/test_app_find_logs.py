@@ -1,11 +1,9 @@
-# pylint: disable=wrong-import-order
 from pathlib import Path
 
 import pytest
 
 import helperFunctions.fileSystem
-from test.common_helper import CommonIntercomMock
-from test.unit.web_interface.base import WebInterfaceTest
+from test.unit.conftest import CommonIntercomMock
 
 
 class MockIntercom(CommonIntercomMock):
@@ -14,29 +12,23 @@ class MockIntercom(CommonIntercomMock):
         return ['String1', 'String2', 'String3']
 
 
-class TestShowLogs(WebInterfaceTest):
-    @classmethod
-    def setup_class(cls, *_, **__):
-        super().setup_class(intercom_mock=MockIntercom)
-
-    @pytest.mark.cfg_defaults(
+@pytest.mark.WebInterfaceUnitTestConfig(intercom_mock_class=MockIntercom)
+class TestShowLogs:
+    @pytest.mark.frontend_config_overwrite(
         {
             'logging': {
-                'logfile': 'NonExistentFile',
+                'file_backend': 'NonExistentFile',
             }
         }
     )
-    def test_backend_available(self):
-        rv = self.test_client.get('/admin/logs')
+    def test_backend_available(self, test_client):
+        rv = test_client.get('/admin/logs')
+
         assert b'String1' in rv.data
 
-    @pytest.mark.cfg_defaults(
-        {
-            'logging': {
-                'logfile': str(Path(helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs'),
-            }
-        }
+    @pytest.mark.common_config_overwrite(
+        {'logging': {'file_frontend': str(Path(helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs_frontend')}}
     )
-    def test_frontend_logs(self):
-        rv = self.test_client.get('/admin/logs')
+    def test_frontend_logs(self, test_client):
+        rv = test_client.get('/admin/logs')
         assert b'Frontend_test' in rv.data

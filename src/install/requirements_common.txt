@@ -1,7 +1,8 @@
 # General build stuff
 testresources==2.0.1
 
-setuptools
+# FixMe: remove pinned version as soon as installation of ssdeep works again
+setuptools<66
 
 # General python dependencies
 appdirs==1.4.4
@@ -15,16 +16,18 @@ pytest-timeout==2.1.0
 pytest==7.2.0
 python-magic==0.4.27
 python-tlsh==4.5.0
-redis==4.3.4
-requests==2.28.1
+redis==4.5.4
+requests==2.31.0
 rich==12.6.0
-sqlalchemy==1.4.43
+sqlalchemy==2.0.15
 ssdeep==3.4
 xmltodict==0.13.0
 yara-python==4.2.3
 
 # Config validation
 pydantic==1.10.2
+# Config parsing
+toml==0.10.2
 
 git+https://github.com/fkie-cad/fact_helper_file.git
 
@@ -32,3 +35,6 @@ git+https://github.com/fkie-cad/fact_helper_file.git
 git+https://github.com/fkie-cad/common_helper_files.git
 git+https://github.com/fkie-cad/common_helper_filter.git
 git+https://github.com/mass-project/common_helper_encoder.git
+
+# database migration
+alembic==1.10.2

@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
-'''
+"""
     FACT Installer
-    Copyright (C) 2015-2022  Fraunhofer FKIE
+    Copyright (C) 2015-2023  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import argparse
 import logging
@@ -87,33 +87,29 @@ def _setup_argparser():
         '--log_level',
         help='define the log level',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
-        default='WARNING',
+        default='INFO',
     )
-    logging_options.add_argument('-d', '--debug', action='store_true', help='print debug messages', default=False)
     return parser.parse_args()
 
 
-def _get_console_output_level(debug_flag):
-    if debug_flag:
-        return logging.DEBUG
-    return logging.INFO
-
-
-def _setup_logging(log_level, log_file, debug_flag=False):
+def _setup_logging(args):
     try:
-        log_level = getattr(logging, log_level, None)
         log_format = logging.Formatter(
             fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
         )
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
-        create_dir_for_file(log_file, dir_description='logging directory')
-        file_log = logging.FileHandler(log_file)
-        file_log.setLevel(log_level)
+
+        create_dir_for_file(args.log_file, dir_description='logging directory')
+
+        file_log = logging.FileHandler(args.log_file)
+        file_log.setLevel(args.log_level)
         file_log.setFormatter(log_format)
+
         console_log = logging.StreamHandler()
-        console_log.setLevel(_get_console_output_level(debug_flag))
+        console_log.setLevel(args.log_level)
         console_log.setFormatter(log_format)
+
         logger.addHandler(file_log)
         logger.addHandler(console_log)
     except (KeyError, TypeError, ValueError) as exception:
@@ -122,9 +118,9 @@ def _setup_logging(log_level, log_file, debug_flag=False):
 
 
 def create_dir_for_file(file_path: str, dir_description='directory'):
-    '''
+    """
     Creates the directory of the file_path.
-    '''
+    """
     try:
         Path(file_path).absolute().parent.mkdir(parents=True, exist_ok=True)
     except OSError:
@@ -141,7 +137,7 @@ def welcome():
 
 
 def check_python_version():
-    if sys.version_info.major != 3 or sys.version_info.minor < 6:
+    if sys.version_info.major != 3 or sys.version_info.minor < 6:  # noqa: PLR2004
         logging.critical(f'Incompatible Python version! You need at least version 3.6! Your Version: {sys.version}')
         sys.exit(1)
 
@@ -164,7 +160,7 @@ def install():
     config.load()
     check_python_version()
     args = _setup_argparser()
-    _setup_logging(args.log_level, args.log_file, debug_flag=args.debug)
+    _setup_logging(args)
     welcome()
     none_chosen = not (args.frontend or args.db or args.backend or args.common)
     # TODO maybe replace this with an cli argument

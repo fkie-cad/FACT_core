@@ -3,14 +3,14 @@ from pathlib import Path
 import pytest
 
 from objects.file import FileObject
-from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
+from test.common_helper import get_test_data_dir
 
 from ..code.hardware_analysis import AnalysisPlugin
 
 TEST_DATA = Path(get_test_data_dir())
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestHardwareAnalysis:
     def test_cpu_architecture_found(self, analysis_plugin):
         test_object = FileObject()
@@ -21,7 +21,6 @@ class TestHardwareAnalysis:
         assert analysis_plugin.make_summary(result, None, None) == ['ARM']
 
     def test_cpu_architecture_not_found(self, analysis_plugin):
-
         test_object = FileObject()
         test_object.processed_analysis['cpu_architecture'] = {'summary': []}
         result = analysis_plugin.cpu_architecture_analysis(test_object)
@@ -30,11 +29,12 @@ class TestHardwareAnalysis:
         assert analysis_plugin.make_summary(result, None, None) == []
 
     def test_kernel_config_found(self, analysis_plugin):
-
         test_object = FileObject()
 
         test_object.processed_analysis['kernel_config'] = {
-            'kernel_config': 'This is a test\n#This is not important\nThis is important'
+            'result': {
+                'kernel_config': 'This is a test\n#This is not important\nThis is important',
+            }
         }
         result = analysis_plugin.filter_kernel_config(test_object)
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import string
 import subprocess
@@ -5,24 +7,22 @@ from base64 import b64encode
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 from tempfile import TemporaryDirectory
-from typing import List
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
-from config import cfg
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-
     NAME = 'binwalk'
     DESCRIPTION = 'binwalk signature and entropy analysis'
-    DEPENDENCIES = []
-    MIME_BLACKLIST = ['audio', 'image', 'video']
+    DEPENDENCIES = []  # noqa: RUF012
+    MIME_BLACKLIST = ['audio', 'image', 'video']  # noqa: RUF012
     VERSION = '0.5.5'
     FILE = __file__
 
     def process_object(self, file_object):
         result = {}
-        with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=cfg.data_storage.temp_dir_path) as tmp_dir:
+        with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=config.backend.temp_dir_path) as tmp_dir:
             cmd_process = subprocess.run(
                 f'(cd {tmp_dir} && xvfb-run -a binwalk -BEJ {file_object.file_path})',
                 shell=True,
@@ -43,7 +43,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME] = result
         return file_object
 
-    def _extract_summary(self, binwalk_output: str) -> List[str]:
+    def _extract_summary(self, binwalk_output: str) -> list[str]:
         summary = []
         for line in self._iterate_valid_signature_lines(binwalk_output.splitlines()):
             signature_description = self._extract_description_from_signature_line(line.split())
@@ -58,7 +58,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _extract_description_from_signature_line(separated_by_spaces):
-        return ' '.join(separated_by_spaces[2:]) if len(separated_by_spaces) > 2 else ''
+        return ' '.join(separated_by_spaces[2:]) if len(separated_by_spaces) > 2 else ''  # noqa: PLR2004
 
     @staticmethod
     def _iterate_valid_signature_lines(output_lines):

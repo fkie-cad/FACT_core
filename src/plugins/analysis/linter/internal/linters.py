@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import subprocess
 from pathlib import Path
 from subprocess import PIPE, STDOUT
-from typing import List, Tuple
 
 from docker.types import Mount
 
@@ -28,7 +29,9 @@ def run_eslint(file_path):
     issues = []
     # As we only ever analyse one file use output_json[0]
     for msg in output_json[0]['messages']:
-        issues.append(dict(line=msg['line'], column=msg['column'], message=msg['message'], symbol=msg['ruleId']))
+        issues.append(
+            {'line': msg['line'], 'column': msg['column'], 'message': msg['message'], 'symbol': msg['ruleId']}
+        )
 
     return issues
 
@@ -43,7 +46,7 @@ def run_shellcheck(file_path):
         text=True,
     )
 
-    if shellcheck_process.returncode == 2:
+    if shellcheck_process.returncode == 2:  # noqa: PLR2004
         logging.debug(f'Failed to execute shellcheck:\n{shellcheck_process.stdout}')
         return []
 
@@ -86,10 +89,10 @@ def run_luacheck(file_path):
 
 
 def _luacheck_parse_linter_output(output):
-    '''
+    """
     https://luacheck.readthedocs.io/en/stable/warnings.html
     ignore_cases = ['(W611)', '(W612)', '(W613)', '(W614)', '(W621)', '(W631)']
-    '''
+    """
     issues = []
     for line in output.splitlines():
         try:
@@ -117,7 +120,7 @@ def _luacheck_split_issue_line(line):
     return split_by_colon[1], split_by_colon[2], ':'.join(split_by_colon[3:]).strip()
 
 
-def _separate_message_and_code(message_string: str) -> Tuple[str, str]:
+def _separate_message_and_code(message_string: str) -> tuple[str, str]:
     return message_string[1:5], message_string[6:].strip()
 
 
@@ -149,7 +152,7 @@ def _pylint_extract_relevant_warnings(pylint_json):
     return issues
 
 
-def run_rubocop(file_path: str) -> List[dict]:
+def run_rubocop(file_path: str) -> list[dict]:
     container_path = '/input'
     process = run_docker_container(
         'pipelinecomponents/rubocop:latest',

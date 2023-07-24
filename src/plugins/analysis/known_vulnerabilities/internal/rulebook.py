@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 RELATIONS = {
-    'exists': lambda x, y: True,
+    'exists': lambda x, y: True,  # noqa: ARG005
     'equals': lambda x, y: x == y,
     'is': lambda x, y: x is y,
     'gt': lambda x, y: x > y,
@@ -17,7 +17,7 @@ class BadRuleError(ValueError):
 
 
 class Vulnerability:
-    def __init__(self, rule, description, reliability, score, link, short_name):
+    def __init__(self, rule, description, reliability, score, link, short_name):  # noqa: PLR0913
         try:
             self.reliability = str(int(reliability))
             self.score = score
@@ -28,7 +28,7 @@ class Vulnerability:
 
             self._make_type_assertions(link, rule)
         except (ValueError, TypeError) as exception:
-            raise BadRuleError(str(exception))
+            raise BadRuleError(str(exception))  # noqa: B904
 
     def _make_type_assertions(self, link, rule):
         for type_assertion, error_message in [
@@ -46,13 +46,13 @@ class Vulnerability:
                 raise ValueError(error_message)
 
     def get_dict(self):
-        return dict(
-            description=self.description,
-            score=self.score,
-            reliability=self.reliability,
-            link=self.link,
-            short_name=self.short_name,
-        )
+        return {
+            'description': self.description,
+            'score': self.score,
+            'reliability': self.reliability,
+            'link': self.link,
+            'short_name': self.short_name,
+        }
 
 
 class SingleRule:
@@ -129,8 +129,7 @@ def _evaluate_sub_path_rule(analysis, rule):
 
 
 def _apply_relation(relation, value, comparison):
-    result = RELATIONS[relation](value, comparison)
-    return result
+    return RELATIONS[relation](value, comparison)
 
 
 def _get_value(analysis, value_path):
@@ -155,7 +154,7 @@ def _get_dotted_path_from_dictionary(dictionary, dotted_path):
 
 def vulnerabilities():
     heartbleed_rule = SingleRule(
-        value_path=['software_components.OpenSSL.meta.version'],
+        value_path=['software_components.result.OpenSSL.meta.version'],
         relation='intersection',
         comparison=[f'1.0.1{minor}' for minor in 'abcde'],
     )
@@ -169,7 +168,7 @@ def vulnerabilities():
     )
 
     netgear_cgi_rule = SingleRule(
-        value_path=['file_hashes.sha256'],
+        value_path=['file_hashes.result.sha256'],
         relation='equals',
         comparison='7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a',
     )

@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name,unused-argument,protected-access,wrong-import-order
 from pathlib import Path
 
 import pytest
@@ -11,12 +10,12 @@ from ..code.source_code_analysis import AnalysisPlugin
 PYLINT_TEST_FILE = Path(__file__).parent / 'data' / 'linter_test_file'
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def test_object():
     return create_test_file_object()
 
 
-@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestSourceCodeAnalysis:
     def test_process_object_not_supported(self, analysis_plugin, test_object, monkeypatch):
         monkeypatch.setattr(
@@ -38,12 +37,13 @@ class TestSourceCodeAnalysis:
         assert result['full'][0]['symbol'] == 'unused-import'
 
     def test_process_object_no_issues(self, analysis_plugin, test_object, monkeypatch):
-        test_object.processed_analysis['file_type'] = {'full': 'anything containing python'}
+        test_object.processed_analysis['file_type'] = {'result': {'full': 'anything containing python'}}
         monkeypatch.setattr(
             'storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_object.file_path
         )
         monkeypatch.setattr(
-            'plugins.analysis.linter.code.source_code_analysis.linters.run_pylint', lambda self, file_path: []
+            'plugins.analysis.linter.code.source_code_analysis.linters.run_pylint',
+            lambda self, file_path: [],  # noqa: ARG005
         )
         analysis_plugin.process_object(test_object)
         result = test_object.processed_analysis[analysis_plugin.NAME]

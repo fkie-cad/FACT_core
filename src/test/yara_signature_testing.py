@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List
 
 from common_helper_yara import compile_rules, get_all_matched_strings, scan
 
@@ -29,8 +30,8 @@ class SignatureTestingMatching:
 
 
 class SignatureTestingMeta:
-    META_FIELDS = ['software_name', 'open_source', 'website', 'description']
-    missing_meta_fields = []
+    META_FIELDS = ['software_name', 'open_source', 'website', 'description']  # noqa: RUF012
+    missing_meta_fields = []  # noqa: RUF012
 
     def check_meta_fields(self, sig_path: Path):
         for file in sig_path.iterdir():
@@ -43,14 +44,13 @@ class SignatureTestingMeta:
             self.check_meta_fields_of_rule(rule)
 
     @staticmethod
-    def _split_rules(raw_rules: str) -> List[str]:
+    def _split_rules(raw_rules: str) -> list[str]:
         rule_lines = raw_rules.splitlines()
         rule_start_indices = [i for i in range(len(rule_lines)) if rule_lines[i].startswith('rule ')]
-        rules = [
+        return [
             ''.join(rule_lines[start:end])
             for start, end in zip(rule_start_indices, rule_start_indices[1:] + [len(rule_lines)])
         ]
-        return rules
 
     def check_meta_fields_of_rule(self, rule: str):
         rule_components = [s.strip() for s in rule.split()]

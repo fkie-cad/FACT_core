@@ -1,7 +1,7 @@
-import logging
-from typing import Optional
+from __future__ import annotations
 
-from config import configparser_cfg
+import logging
+
 from intercom.front_end_binding import InterComFrontEndBinding
 from version import __VERSION__
 from web_interface.app import create_app
@@ -21,7 +21,7 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd:
-    def __init__(self, db: Optional[FrontendDatabase] = None, intercom=None):
+    def __init__(self, db: FrontendDatabase | None = None, intercom=None):
         self.program_version = __VERSION__
 
         self.intercom = InterComFrontEndBinding if intercom is None else intercom
@@ -31,9 +31,9 @@ class WebFrontEnd:
         logging.info('Web front end online')
 
     def _setup_app(self):
-        self.app = create_app(configparser_cfg)
+        self.app = create_app()
         self.user_db, self.user_datastore = add_flask_security_to_app(self.app)
-        base_args = dict(app=self.app, db=self.db, intercom=self.intercom)
+        base_args = {'app': self.app, 'db': self.db, 'intercom': self.intercom}
 
         AjaxRoutes(**base_args)
         AnalysisRoutes(**base_args)

@@ -4,7 +4,6 @@ from common_helper_encoder import ReportEncoder
 from flask import make_response
 from flask_restx import Api
 
-from config import configparser_cfg
 from web_interface.rest.rest_binary import api as binary_api
 from web_interface.rest.rest_binary_search import api as binary_search_api
 from web_interface.rest.rest_compare import api as compare_api
@@ -38,7 +37,7 @@ class RestBase:
             missing_analyses_api,
         ]:
             for _, _, _, kwargs in api.resources:
-                kwargs['resource_class_kwargs'] = {'config': configparser_cfg, 'db': db, 'intercom': intercom}
+                kwargs['resource_class_kwargs'] = {'db': db, 'intercom': intercom}
             self.api.add_namespace(api)
 
         self._wrap_response(self.api)
@@ -46,7 +45,7 @@ class RestBase:
     @staticmethod
     def _wrap_response(api):
         @api.representation('application/json')
-        def output_json(data, code, headers=None):  # pylint: disable=unused-variable
+        def output_json(data, code, headers=None):
             output_data = json.dumps(data, cls=ReportEncoder, sort_keys=True)
             resp = make_response(output_data, code)
             resp.headers.extend(headers if headers else {})

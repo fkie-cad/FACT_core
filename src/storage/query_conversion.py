@@ -1,20 +1,24 @@
+from __future__ import annotations
+
 from json import dumps
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Optional, TYPE_CHECKING
 
 from sqlalchemy import func, or_, select, type_coerce
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql import Select
 
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+
+if TYPE_CHECKING:
+    from sqlalchemy.sql import Select
 
 FIRMWARE_ORDER = FirmwareEntry.vendor.asc(), FirmwareEntry.device_name.asc()
 
 
-class QueryConversionException(Exception):
+class QueryConversionException(Exception):  # noqa: N818
     def get_message(self):
-        if self.args:  # pylint: disable=using-constant-test
-            return self.args[0]  # pylint: disable=unsubscriptable-object
+        if self.args:
+            return self.args[0]
         return ''
 
 
@@ -40,25 +44,22 @@ def query_parent_firmware(search_dict: dict, inverted: bool, count: bool = False
     )
     query = build_query_from_dict(search_dict, query=base_query)
 
-    if inverted:
-        query_filter = FirmwareEntry.uid.notin_(query)
-    else:
-        query_filter = FirmwareEntry.uid.in_(query)
+    query_filter = FirmwareEntry.uid.notin_(query) if inverted else FirmwareEntry.uid.in_(query)
 
     if count:
         return select(func.count(FirmwareEntry.uid)).filter(query_filter)
     return select(FirmwareEntry).filter(query_filter).order_by(*FIRMWARE_ORDER)
 
 
-def build_query_from_dict(
+def build_query_from_dict(  # noqa: C901, PLR0912
     query_dict: dict,
-    query: Optional[Select] = None,  # pylint: disable=too-complex, too-many-branches
+    query: Select | None = None,
     fw_only: bool = False,
     or_query: bool = False,
 ) -> Select:
-    '''
+    """
     Builds an ``sqlalchemy.orm.Query`` object from a query in dict form.
-    '''
+    """
     if query is None:
         query = select(FileObjectEntry) if not fw_only else select(FirmwareEntry)
     filters = []
@@ -99,29 +100,28 @@ def build_query_from_dict(
         for key, value in file_search_dict.items():
             filters.append(_dict_key_to_filter(_get_column(key, FileObjectEntry), key, value))
 
-    if or_query:
-        query = query.filter(or_(*filters))
-    else:
-        query = query.filter(*filters)
+    query = query.filter(or_(*filters)) if or_query else query.filter(*filters)
 
     return query.distinct()
 
 
-def get_search_keys_from_dict(query_dict: dict, table, blacklist: List[str] = None) -> Dict[str, Any]:
+def get_search_keys_from_dict(query_dict: dict, table, blacklist: Optional[list[str]] = None) -> dict[str, Any]:
     return {key: value for key, value in query_dict.items() if key not in (blacklist or []) and hasattr(table, key)}
 
 
-def _dict_key_to_filter(column, key: str, value: Any):  # pylint: disable=too-complex,too-many-return-statements
+def _dict_key_to_filter(column, key: str, value: Any):  # noqa: PLR0911
     if not isinstance(value, dict):
         return column == value
     if '$exists' in value:
-        return column.has_key(key.split('.')[-1])  # noqa: W601
+        return column.has_key(key.split('.')[-1])
     if '$regex' in value:
         return column.op('~')(value['$regex'])
     if '$like' in value:  # match substring ignoring case
         return column.ilike(f'%{value["$like"]}%')
     if '$in' in value:  # filter by list
         return column.in_(value['$in'])
+    if '$ne' in value:  # not equal
+        return column != value['$ne']
     if '$lt' in value:  # less than
         return column < value['$lt']
     if '$gt' in value:  # greater than
@@ -131,7 +131,7 @@ def _dict_key_to_filter(column, key: str, value: Any):  # pylint: disable=too-co
     raise QueryConversionException(f'Search options currently unsupported: {value}')
 
 
-def _get_column(key: str, table: Union[Type[FirmwareEntry], Type[FileObjectEntry], Type[AnalysisEntry]]):
+def _get_column(key: str, table: type[FirmwareEntry] | type[FileObjectEntry] | type[AnalysisEntry]):
     column = getattr(table, key)
     if key == 'release_date':  # special case: Date column -> convert to string
         return func.to_char(column, 'YYYY-MM-DD')

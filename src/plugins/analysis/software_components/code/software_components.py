@@ -1,36 +1,31 @@
-import os
+from __future__ import annotations
+
 import re
-import sys
-from pathlib import Path
-from typing import List
+import string
 
-from common_helper_files import get_dir_of_file
 
+import config
 from analysis.YaraPluginBase import YaraBasePlugin
-from config import cfg
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.tag import TagColor
-from objects.file import FileObject
 from plugins.analysis.software_components.bin import OS_LIST
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
-try:
-    from ..internal.resolve_version_format_string import extract_data_from_ghidra
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from resolve_version_format_string import extract_data_from_ghidra
+from ..internal.resolve_version_format_string import extract_data_from_ghidra
+from typing import TYPE_CHECKING
 
-SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
 class AnalysisPlugin(YaraBasePlugin):
-    '''
+    """
     This plugin identifies software components
 
     Credits:
     OS Tagging functionality created by Roman Konertz during Firmware Bootcamp WT17/18 at University of Bonn
     Maintained by Fraunhofer FKIE
-    '''
+    """
 
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'
@@ -56,11 +51,11 @@ class AnalysisPlugin(YaraBasePlugin):
         pattern = re.compile(regex)
         version = pattern.search(input_string)
         if version is not None:
-            return self._strip_zeroes(version.group(0))
+            return self._strip_leading_zeroes(version.group(0))
         return ''
 
     @staticmethod
-    def _get_summary(results: dict) -> List[str]:
+    def _get_summary(results: dict) -> list[str]:
         summary = set()
         for key, result in results.items():
             if key != 'summary':
@@ -85,7 +80,7 @@ class AnalysisPlugin(YaraBasePlugin):
             key_strings = [s for _, _, s in result['strings'] if '%s' in s]
             if key_strings:
                 versions.update(
-                    extract_data_from_ghidra(file_object.binary, key_strings, cfg.data_storage.docker_mount_base_dir)
+                    extract_data_from_ghidra(file_object.binary, key_strings, config.backend.docker_mount_base_dir)
                 )
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')
@@ -107,5 +102,18 @@ class AnalysisPlugin(YaraBasePlugin):
         return os_string.strip() == entry.strip()
 
     @staticmethod
-    def _strip_zeroes(version_string: str) -> str:
-        return '.'.join(element.lstrip('0') or '0' for element in version_string.split('.'))
+    def _strip_leading_zeroes(version_string: str) -> str:
+        prefix, suffix = '', ''
+        while version_string and version_string[0] not in string.digits:
+            prefix += version_string[0]
+            version_string = version_string[1:]
+        while version_string and version_string[-1] not in string.digits:
+            suffix = version_string[-1] + suffix
+            version_string = version_string[:-1]
+        elements = []
+        for element in version_string.split('.'):
+            try:
+                elements.append(str(int(element)))
+            except ValueError:
+                elements.append(element)
+        return prefix + '.'.join(elements) + suffix
