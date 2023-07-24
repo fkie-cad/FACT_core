@@ -1,4 +1,4 @@
-FROM fkiecad/ghidra_headless_base:10.2.2 as runtime
+FROM fkiecad/ghidra_headless_base:10.2.3 as runtime
 
 WORKDIR /ipc
 
