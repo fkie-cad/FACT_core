@@ -14,6 +14,8 @@ jobs:
       matrix:
         os: [ focal, jammy, bullseye, bookworm ]
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
+    env:
+      DEBIAN_FRONTEND: noninteractive
     timeout-minutes: 45
     steps:
       - name: Add Masks
