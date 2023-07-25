@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.rest_status_interface import RestStatusInterface
+from storage.redis_status_interface import RedisStatusInterface
 from version import __VERSION__
 from web_interface.app import create_app
 from web_interface.components.ajax_routes import AjaxRoutes
@@ -27,7 +27,7 @@ class WebFrontEnd:
 
         self.intercom = InterComFrontEndBinding if intercom is None else intercom
         self.db = FrontendDatabase() if db is None else db
-        self.status_interface = RestStatusInterface() if status_interface is None else status_interface
+        self.status_interface = RedisStatusInterface() if status_interface is None else status_interface
 
         self._setup_app()
         logging.info('Web front end online')

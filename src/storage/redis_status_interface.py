@@ -5,7 +5,7 @@ from storage.redis_interface import RedisInterface
 ANALYSIS_STATUS_REDIS_KEY = '__fact_analysis_status__'
 
 
-class RestStatusInterface:
+class RedisStatusInterface:
     def __init__(self):
         self.redis = RedisInterface()
 

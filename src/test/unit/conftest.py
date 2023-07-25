@@ -116,8 +116,8 @@ class WebInterfaceUnitTestConfig(BaseModel):
     database_mock_class: Type = CommonDatabaseMock
     #: A class mocking :py:class:`~intercom.front_end_binding.InterComFrontEndBinding`
     intercom_mock_class: Type[CommonIntercomMock] = CommonIntercomMock
-    #: A class mocking :py:class:`~intercom.front_end_binding.InterComFrontEndBinding`
-    redis_mock_class: Type[StatusInterfaceMock] = StatusInterfaceMock
+    #: A class mocking :py:class:`~storage.redis_status_interface.RedisStatusInterface`
+    status_mock_class: Type[StatusInterfaceMock] = StatusInterfaceMock
 
 
 @pytest.fixture
@@ -153,7 +153,7 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
     frontend = WebFrontEnd(
         db=FrontendDatabaseMock(db_mock_instance),
         intercom=IntercomMockClass,
-        status_interface=test_config.redis_mock_class(),
+        status_interface=test_config.status_mock_class(),
     )
     frontend.app.config['TESTING'] = True
 

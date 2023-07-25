@@ -476,7 +476,7 @@ class AnalysisScheduler:
 
         :return: Dictionary containing current workload statistics
         """
-        # FixMe: move system status from DB to Redis
+        # FixMe: move rest of system status from DB to Redis (CPU, RAM, queues, etc.)
         workload = {
             'analysis_main_scheduler': self.process_queue.qsize(),
             'plugins': {},

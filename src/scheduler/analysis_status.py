@@ -11,7 +11,7 @@ from typing import Dict, Set, TYPE_CHECKING
 
 from helperFunctions.process import stop_process
 from objects.firmware import Firmware
-from storage.rest_status_interface import RestStatusInterface
+from storage.redis_status_interface import RedisStatusInterface
 import contextlib
 
 if TYPE_CHECKING:
@@ -92,7 +92,7 @@ class AnalysisStatusWorker:
         self._worker_process = None
         self.queue = Queue()
         self._running = Value('i', 0)
-        self.redis = RestStatusInterface()
+        self.redis = RedisStatusInterface()
 
     def start(self):
         self._running.value = 1
@@ -152,9 +152,9 @@ class AnalysisStatusWorker:
 
     def _add_included_file(self, uid: str, root_uid: str, included_files: set[str]):
         """
-        new file comes from unpacking:
-        - file moved from files_to_unpack to files_to_analyze (could be duplicate!)
-        - included files added to files_to_unpack (could also include duplicates!)
+        An included file of a FW comes from unpacking. There are two things that need to be updated:
+        - move the file from files_to_unpack to files_to_analyze (could be a duplicate, i.e. was already moved)
+        - included files of the file need to be added to files_to_unpack (could also include duplicates)
         """
         if root_uid not in self.currently_running:
             return

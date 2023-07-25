@@ -6,7 +6,7 @@ from flask_restx import Model, Resource, marshal
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from storage.rest_status_interface import RestStatusInterface
+    from storage.redis_status_interface import RedisStatusInterface
     from web_interface.frontend_database import FrontendDatabase
     from intercom.front_end_binding import InterComFrontEndBinding
 
@@ -16,7 +16,7 @@ class RestResourceBase(Resource):
         super().__init__(*args, **kwargs)
         self.db: FrontendDatabase = kwargs.get('db', None)
         self.intercom: type[InterComFrontEndBinding] = kwargs.get('intercom', None)
-        self.status: RestStatusInterface = kwargs.get('status', None)
+        self.status: RedisStatusInterface = kwargs.get('status', None)
 
     @staticmethod
     def validate_payload_data(model: Model) -> dict:
