@@ -19,7 +19,7 @@ repos:
         args: [--remove]
 
     -   id: file-contents-sorter
-        files: src/unpacker/passwords|.gitignore|_list.txt
+        files: src/unpacker/passwords|_list.txt
 
     -   id: forbid-new-submodules
 

@@ -8,6 +8,7 @@ from subprocess import PIPE, STDOUT
 import config
 from helperFunctions.install import (
     InstallationError,
+    is_virtualenv,
     OperateInDirectory,
     apt_install_packages,
     dnf_install_packages,
@@ -108,7 +109,7 @@ def _install_docker_images(radare):
 
         with OperateInDirectory('radare'):
             docker_compose_process = subprocess.run(
-                'docker-compose build', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+                'docker compose build', shell=True, stdout=PIPE, stderr=STDOUT, text=True
             )
             if docker_compose_process.returncode != 0:
                 raise InstallationError(f'Failed to initialize radare container:\n{docker_compose_process.stdout}')
@@ -145,7 +146,9 @@ def main(skip_docker, radare, nginx, distribution):
 
     # flask-security is not maintained anymore and replaced by flask-security-too.
     # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
-    run_cmd_with_logging('sudo -EH pip3 uninstall -y flask-security')
+    pip = 'pip' if is_virtualenv() else 'sudo -EH pip3'
+    run_cmd_with_logging(f'{pip} uninstall -y flask-security')
+
     install_pip_packages(PIP_DEPENDENCIES)
 
     # npm does not allow us to install packages to a specific directory
