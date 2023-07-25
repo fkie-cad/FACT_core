@@ -16,7 +16,7 @@ jobs:
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
     env:
       DEBIAN_FRONTEND: noninteractive
-    timeout-minutes: 45
+    timeout-minutes: 35
     steps:
       - name: Add Masks
         run: |
