@@ -1,5 +1,3 @@
-# pylint: disable=redefined-outer-name,unused-argument
-
 import os
 from pathlib import Path
 
@@ -17,18 +15,20 @@ from test.common_helper import get_test_data_dir
 TEST_DATA_DIR = Path(get_test_data_dir())
 
 
-@pytest.fixture()
-def restore_cwd():
-    current_cwd = os.getcwd()
+@pytest.fixture
+def restore_cwd():  # noqa: PT004
+    current_cwd = os.getcwd()  # noqa: PTH109
     yield
     os.chdir(current_cwd)
 
 
-@pytest.mark.parametrize('working_directory', [os.getcwd(), '/'])
-def test_get_src_dir_cwd(restore_cwd, working_directory):
+@pytest.mark.parametrize('working_directory', [os.getcwd(), '/'])  # noqa: PTH109
+def test_get_src_dir_cwd(restore_cwd, working_directory):  # noqa: ARG001
     real_src_dir = get_src_dir()
     os.chdir(working_directory)
-    assert os.path.exists(f'{real_src_dir}/helperFunctions/fileSystem.py'), 'fileSystem.py found in correct place'
+    assert os.path.exists(  # noqa: PTH110
+        f'{real_src_dir}/helperFunctions/fileSystem.py'
+    ), 'fileSystem.py found in correct place'
     assert get_src_dir() == real_src_dir, 'same source dir before and after chdir'
 
 
@@ -40,7 +40,7 @@ def test_get_template_dir():
 
 
 @pytest.mark.parametrize(
-    'base, offset, result, message',
+    ('base', 'offset', 'result', 'message'),
     [
         (Path('/foo/bar/com'), Path('/foo/'), '/bar/com', 'simple case with /'),
         (Path('/foo/bar/com'), Path('/foo'), '/bar/com', 'simple case without /'),
@@ -62,4 +62,4 @@ def test_file_is_zero_broken_link():
 
 
 def test_get_config_dir():
-    assert os.path.exists(f'{get_config_dir()}/fact-core-config.toml'), 'main config file not found'
+    assert os.path.exists(f'{get_config_dir()}/fact-core-config.toml'), 'main config file not found'  # noqa: PTH110

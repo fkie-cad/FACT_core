@@ -9,8 +9,8 @@ from storage.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
 from storage.db_interface_view_sync import ViewReader
 
 
-class FrontendDatabase:  # pylint: disable=too-many-instance-attributes
-    def __init__(  # pylint: disable=too-many-arguments
+class FrontendDatabase:
+    def __init__(  # noqa: PLR0913
         self,
         frontend: type[FrontEndDbInterface] | None = None,
         editing: type[FrontendEditingDbInterface] | None = None,

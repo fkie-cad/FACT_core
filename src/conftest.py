@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import dataclasses
 import grp
 import logging
 import os
@@ -8,7 +7,7 @@ from tempfile import TemporaryDirectory
 from typing import Type
 
 import pytest
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel, Field
 from pydantic.utils import deep_update
 
 import config
@@ -18,17 +17,17 @@ from test.conftest import merge_markers
 
 
 @pytest.fixture
-def _docker_mount_base_dir() -> str:
+def _docker_mount_base_dir() -> str:  # noqa: PT005
     docker_gid = grp.getgrnam('docker').gr_gid
 
     with TemporaryDirectory(prefix='fact-docker-mount-base-dir') as tmp_dir:
         os.chown(tmp_dir, -1, docker_gid)
-        os.chmod(tmp_dir, 0o770)
+        os.chmod(tmp_dir, 0o770)  # noqa: PTH101
         yield tmp_dir
 
 
 @pytest.fixture
-def _firmware_file_storage_directory() -> str:
+def _firmware_file_storage_directory() -> str:  # noqa: PT005
     with TemporaryDirectory(prefix='fact-firmware-file-storage-directory') as tmp_dir:
         yield tmp_dir
 
@@ -152,7 +151,7 @@ def frontend_config(request, common_config) -> config.Frontend:
 
 
 @pytest.fixture(autouse=True)
-def patch_config(monkeypatch, common_config, backend_config, frontend_config):
+def patch_config(monkeypatch, common_config, backend_config, frontend_config):  # noqa: PT004
     """This fixture will replace :py:data`config.common`, :py:data:`config.backend` and :py:data:`config.frontend`
     with the default test config.
 
@@ -174,8 +173,7 @@ def patch_config(monkeypatch, common_config, backend_config, frontend_config):
     monkeypatch.setattr('config.load', lambda _=None: logging.warning('Code tried to call `config.load`. Ignoring.'))
 
 
-@dataclass(config=dict(arbitrary_types_allowed=True))
-class AnalysisPluginTestConfig:
+class AnalysisPluginTestConfig(BaseModel):
     """A class configuring the :py:func:`analysis_plugin` fixture."""
 
     #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
@@ -183,11 +181,14 @@ class AnalysisPluginTestConfig:
     #: Whether or not to start the workers (see ``AnalysisPlugin.start``)
     start_processes: bool = False
     #: Keyword arguments to be given to the ``plugin_class`` constructor.
-    init_kwargs: dict = dataclasses.field(default_factory=dict)
+    init_kwargs: dict = Field(default_factory=dict)
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 @pytest.fixture
-def analysis_plugin(request, monkeypatch, patch_config):
+def analysis_plugin(request, monkeypatch, patch_config):  # noqa: ARG001
     """Returns an instance of an AnalysisPlugin.
     This fixture can be configured by the supplying an instance of ``AnalysisPluginTestConfig`` as marker of the same
     name.
@@ -228,7 +229,7 @@ def analysis_plugin(request, monkeypatch, patch_config):
     """
     test_config = merge_markers(request, 'AnalysisPluginTestConfig', AnalysisPluginTestConfig)
 
-    PluginClass = test_config.plugin_class
+    PluginClass = test_config.plugin_class  # noqa: N806
 
     plugin_instance = PluginClass(
         view_updater=CommonDatabaseMock(),

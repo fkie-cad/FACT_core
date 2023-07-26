@@ -12,7 +12,7 @@ def test_no_rule_file(test_client):
     result = test_client.post('/rest/binary_search', json={}).json
     assert 'Input payload validation failed' in result['message']
     assert 'errors' in result
-    assert '\'rule_file\' is a required property' in result['errors']['rule_file']
+    assert "'rule_file' is a required property" in result['errors']['rule_file']
 
 
 def test_wrong_rule_file_format(test_client):

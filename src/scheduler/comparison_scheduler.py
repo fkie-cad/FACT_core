@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 from multiprocessing import Queue, Value
@@ -12,11 +14,11 @@ from storage.db_interface_comparison import ComparisonDbInterface
 
 
 class ComparisonScheduler:
-    '''
+    """
     This module handles all request regarding comparisons
-    '''
+    """
 
-    def __init__(self, db_interface=None, admin_db_interface=None, testing=False, callback=None):
+    def __init__(self, db_interface=None, admin_db_interface=None, callback=None):
         self.db_interface = db_interface if db_interface else ComparisonDbInterface()
         self.db_admin_interface = admin_db_interface or AdminDbInterface()
         self.stop_condition = Value('i', 1)
@@ -70,7 +72,7 @@ class ComparisonScheduler:
             self.db_interface.add_comparison_result(
                 self.comparison_module.compare(convert_compare_id_to_list(comparison_id))
             )
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             logging.error(f'Fatal error in comparison process for {comparison_id}', exc_info=True)
 
     @staticmethod

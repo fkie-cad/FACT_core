@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Sized
 from pathlib import Path
 from time import time
 
@@ -14,6 +13,10 @@ from statistic.update import StatsUpdater
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Sized
 
 
 class MiscellaneousRoutes(ComponentBase):
@@ -43,7 +46,7 @@ class MiscellaneousRoutes(ComponentBase):
         )
 
     @AppRoute('/about', GET)
-    def show_about(self):  # pylint: disable=no-self-use
+    def show_about(self):
         return render_template('about.html')
 
     @roles_accepted(*PRIVILEGES['comment'])

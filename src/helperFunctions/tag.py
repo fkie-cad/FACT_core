@@ -1,7 +1,7 @@
 class TagColor:
-    '''
+    """
     A class containing the different colors the tags may have. `TagColor.ALL` contains a list of all colors.
-    '''
+    """
 
     GRAY = 'secondary'
     BLUE = 'primary'
@@ -11,4 +11,4 @@ class TagColor:
     RED = 'danger'
     LIGHT = 'light'
     DARK = 'dark'
-    ALL = [GRAY, BLUE, GREEN, LIGHT_BLUE, ORANGE, RED, LIGHT, DARK]
+    ALL = [GRAY, BLUE, GREEN, LIGHT_BLUE, ORANGE, RED, LIGHT, DARK]  # noqa: RUF012

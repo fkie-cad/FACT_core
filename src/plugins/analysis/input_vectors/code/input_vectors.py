@@ -18,19 +18,19 @@ CONTAINER_TARGET_PATH = '/tmp/input'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
+    """
     This plugin determines possible input vectors of Linux ELF executables.
     Examples are:
     - network
     - stdin
     - kernel via syscalls
-    '''
+    """
 
     NAME = 'input_vectors'
     DESCRIPTION = 'Determines possible input vectors of an ELF executable like stdin, network, or syscalls.'
-    DEPENDENCIES = ['file_type']
+    DEPENDENCIES = ['file_type']  # noqa: RUF012
     VERSION = '0.1.2'
-    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']  # noqa: RUF012
     FILE = __file__
 
     def process_object(self, file_object: FileObject):

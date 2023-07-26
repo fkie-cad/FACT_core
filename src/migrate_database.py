@@ -35,7 +35,7 @@ def upgrade(cur):
     cur.execute('DROP TABLE "user"')
     cur.execute('ALTER TABLE "user_tmp" RENAME TO "user"')
 
-    print('Successfully upgraded the database')
+    print('Successfully upgraded the database')  # noqa: T201
 
 
 def downgrade(cur):
@@ -60,7 +60,7 @@ def downgrade(cur):
     cur.execute('DROP TABLE "user"')
     cur.execute('ALTER TABLE "user_tmp" RENAME TO "user"')
 
-    print('Successfully downgraded the database')
+    print('Successfully downgraded the database')  # noqa: T201
 
 
 def main():

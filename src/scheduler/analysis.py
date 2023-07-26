@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Lock, Queue, Value
 from queue import Empty
@@ -12,23 +11,26 @@ from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
 import config
-from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
-from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
-from storage.db_interface_base import DbInterfaceError
 from storage.fsorganizer import FSOrganizer
-from storage.unpacking_locks import UnpackingLockManager
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from storage.unpacking_locks import UnpackingLockManager
+    from objects.file import FileObject
+    from analysis.PluginBase import AnalysisBasePlugin
+    from collections.abc import Callable
 
 
-class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
-    '''
+class AnalysisScheduler:
+    """
     The analysis scheduler is responsible for
 
     * initializing analysis plugins
@@ -88,12 +90,11 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     :param post_analysis: A database callback to execute after running an analysis task.
     :param db_interface: An object reference to an instance of BackEndDbInterface.
     :param unpacking_locks: An instance of UnpackingLockManager.
-    '''
+    """
 
     def __init__(
         self,
-        pre_analysis: Callable[[FileObject], None] = None,
-        post_analysis: Callable[[str, str, dict], None] = None,
+        post_analysis: Optional[Callable[[str, str, dict], None]] = None,
         db_interface=None,
         unpacking_locks: UnpackingLockManager | None = None,
     ):
@@ -111,7 +112,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
         self.fs_organizer = FSOrganizer()
         self.db_backend_service = db_interface if db_interface else BackendDbInterface()
-        self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
 
     def start(self):
@@ -122,10 +122,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         logging.info(f'Plugins available: {self._get_list_of_available_plugins()}')
 
     def shutdown(self):
-        '''
+        """
         Shutdown the runner process, the result collector and all plugin processes. A multiprocessing.Value is set to
         notify all attached processes of the impending shutdown. Afterwards queues are closed once it's safe.
-        '''
+        """
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
         futures = []
@@ -142,14 +142,14 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         logging.info('Analysis System offline')
 
     def update_analysis_of_object_and_children(self, fo: FileObject):
-        '''
+        """
         This function is used to analyze an object and all its recursively included objects without repeating the
         extraction process. Scheduled analyses are propagated to the included objects.
 
         :param fo: The root file that is to be analyzed
-        '''
+        """
         included_files = self.db_backend_service.get_list_of_all_included_files(fo)
-        self.pre_analysis(fo)
+        self.db_backend_service.update_object(fo)  # metadata of FW could have changed -> update in DB
         self.unpacking_locks.release_unpacking_lock(fo.uid)
         self.status.add_update_to_current_analyses(fo, included_files)
         for child_fo in self.db_backend_service.get_objects_by_uid_list(included_files):
@@ -160,22 +160,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self._check_further_process_or_complete(fo)
 
     def start_analysis_of_object(self, fo: FileObject):
-        '''
+        """
         This function is used to start analysis of a firmware object. The function registers the firmware with the
         status module such that the progress of the firmware and its included files is tracked.
 
         :param fo: The firmware that is to be analyzed
-        '''
-        # FixMe: remove this when no duplicate files come from unpacking any more
-        with self.scheduling_lock:  # if multiple unpacking threads call this in parallel, this can cause DB errors
-            try:
-                self.pre_analysis(fo)
-            except DbInterfaceError as error:
-                # trying to add an object to the DB could lead to an error if the root FW or the parents are missing
-                # (e.g. because they were recently deleted)
-                logging.error(f'Could not add {fo.uid} to the DB: {error}')
-                return
-
+        """
         if self.status.file_should_be_analyzed(fo):
             self.status.add_to_current_analyses(fo)
             self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
@@ -184,12 +174,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             logging.info(f'Skipping analysis of {fo.uid} (duplicate file)')
 
     def update_analysis_of_single_object(self, fo: FileObject):
-        '''
+        """
         This function is used to add analysis tasks for a single file. This function has no side effects so the object
         is simply iterated until all scheduled analyses are processed or skipped.
 
         :param fo: The file that is to be analyzed
-        '''
+        """
         self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis)
         self._check_further_process_or_complete(fo)
 
@@ -202,11 +192,11 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for plugin in discover_analysis_plugins():
             try:
                 self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 logging.error(f'Could not import analysis plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
     def get_plugin_dict(self) -> dict:
-        '''
+        """
         Get information regarding all loaded plugins in form of a dictionary with the following form:
 
         .. code-block:: python
@@ -228,7 +218,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         in the analysis selection.
 
         :return: dict with information regarding all loaded plugins
-        '''
+        """
         plugin_list = self._get_list_of_available_plugins()
         plugin_list = self._remove_unwanted_plugins(plugin_list)
         plugin_sets = config.backend.analysis_preset
@@ -240,7 +230,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set].plugins
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
             try:
-                thread_count = getattr(config.backend.plugin[plugin], 'processes')
+                thread_count = config.backend.plugin[plugin].processes
             except (AttributeError, KeyError):
                 thread_count = config.backend.plugin_defaults.processes
             # TODO this should not be a tuple but rather a dictionary/class
@@ -284,7 +274,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.unpacking_locks.release_unpacking_lock(fw_object.uid)
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
-            logging.error(f'Plugin \'{analysis_to_do}\' not available')
+            logging.error(f"Plugin '{analysis_to_do}' not available")
             self._check_further_process_or_complete(fw_object)
         else:
             self._start_or_skip_analysis(analysis_to_do, fw_object)
@@ -468,7 +458,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return self.process_queue.qsize() + sum(plugin.in_queue.qsize() for plugin in self.analysis_plugins.values())
 
     def get_scheduled_workload(self) -> dict:
-        '''
+        """
         Get the current workload of this scheduler. The workload is represented through
         - the general in-queue,
         - the currently running analyses in each plugin and the plugin in-queues,
@@ -487,7 +477,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             }
 
         :return: Dictionary containing current workload statistics
-        '''
+        """
         self.status.clear_recently_finished()
         workload = {
             'analysis_main_scheduler': self.process_queue.qsize(),
@@ -512,12 +502,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return list_of_plugins
 
     def check_exceptions(self) -> bool:
-        '''
+        """
         Iterate all attached processes and see if an exception occurred in any. Depending on configuration, plugin
         exceptions are not registered as they are restarted after an exception occurs.
 
         :return: Boolean value stating if any attached process ran into an exception
-        '''
+        """
         for _, plugin in self.analysis_plugins.items():
             if plugin.check_exceptions():
                 return True

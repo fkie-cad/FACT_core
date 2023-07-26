@@ -4,8 +4,10 @@ import re
 from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.virtual_file_path import get_top_of_virtual_path
-from objects.file import FileObject
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 PATH_REGEX = {
     'user_paths': re.compile(rb'/home/[^%\n:) \x00]+'),
@@ -73,9 +75,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
     """
 
     NAME = 'information_leaks'
-    DEPENDENCIES = []
+    DEPENDENCIES = []  # noqa: RUF012
     DESCRIPTION = 'Find leaked information like compilation artifacts'
-    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib', 'text/plain']
+    MIME_WHITELIST = [  # noqa: RUF012
+        'application/x-executable',
+        'application/x-object',
+        'application/x-sharedlib',
+        'text/plain',
+    ]
     VERSION = '0.1.4'
     FILE = __file__
 
@@ -91,11 +98,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):
+        # FixMe: after removal of duplicate unpacking/analysis, all VFPs will only be found after analysis update
         for virtual_path_list in file_object.virtual_file_path.values():
             for virtual_path in virtual_path_list:
-                file_object.processed_analysis[self.NAME].update(
-                    _check_file_path(get_top_of_virtual_path(virtual_path))
-                )
+                file_object.processed_analysis[self.NAME].update(_check_file_path(virtual_path))
 
 
 def _check_file_path(file_path: str) -> dict[str, list[str]]:
@@ -123,9 +129,8 @@ def _check_for_directories(file_path: str) -> dict[str, list[str]]:
     results = {}
     for key_path, artifact in DIRECTORY_DICT.items():
         file_path_list = file_path.split('/')
-        if len(file_path_list) > 1:
-            if file_path_list[-2] == key_path:
-                results.setdefault(artifact, []).append(file_path)
+        if len(file_path_list) > 1 and file_path_list[-2] == key_path:
+            results.setdefault(artifact, []).append(file_path)
     return results
 
 

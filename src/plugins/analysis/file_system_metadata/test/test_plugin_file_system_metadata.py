@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-# pylint: disable=no-self-use,protected-access,wrong-import-order
+
 from base64 import b64encode
 from pathlib import Path
 
@@ -19,10 +19,11 @@ class FoMock:
     def __init__(self, file_path: Path | None, file_type: str | None, parent_fo_type=''):
         self.file_path = file_path
         self.processed_analysis = {'file_type': {'result': {'mime': file_type}}, PLUGIN_NAME: {}}
-        self.virtual_file_path = {}
         self.file_name = 'test'
         self.binary = file_path.read_bytes() if file_path is not None else None
         self.uid = 'deadbeef_123'
+        self.root_uid = 'root_uid'
+        self.parents = []
         if parent_fo_type:
             self.temporary_data = {'parent_fo_type': parent_fo_type}
 
@@ -43,7 +44,7 @@ class TarMock:
 
 
 class DbMock(CommonDatabaseMock):
-    FILE_TYPE_RESULTS = {
+    FILE_TYPE_RESULTS = {  # noqa: RUF012
         TEST_FW.uid: {'result': {'mime': 'application/octet-stream'}},
         TEST_FW_2.uid: {'result': {'mime': 'filesystem/cramfs'}},
     }
@@ -129,7 +130,7 @@ class TestFileSystemMetadata:
         assert result[testfile_sticky_key][FsKeys.GROUP] == 'root'
         assert result[testfile_sticky_key][FsKeys.UID] == 0
         assert result[testfile_sticky_key][FsKeys.GID] == 0
-        assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842.0
+        assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842.0  # noqa: PLR2004
 
     def test_extract_metadata_from_file_system__unmountable(self, file_system_metadata_plugin):
         fo = FoMock(self.test_file_tar, 'application/x-tar')
@@ -175,7 +176,7 @@ class TestFileSystemMetadata:
         assert result[testfile_sticky_key][FsKeys.GROUP] == 'root'
         assert result[testfile_sticky_key][FsKeys.UID] == 0
         assert result[testfile_sticky_key][FsKeys.GID] == 0
-        assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842
+        assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842  # noqa: PLR2004
 
     def test_extract_metadata_from_tar__packed_tar_gz(self, file_system_metadata_plugin):
         test_file_tar_gz = TEST_DATA_DIR / 'test.tar.gz'
@@ -221,7 +222,7 @@ class TestFileSystemMetadata:
         fo = FoMock(test_file_tar_gz, 'application/gzip')
         file_system_metadata_plugin._extract_metadata_from_tar(fo)
         result = file_system_metadata_plugin.result
-        assert len(result) < 5
+        assert len(result) < 5  # noqa: PLR2004
         assert len(result) > 0
 
     def test_get_extended_file_permissions(self, file_system_metadata_plugin):
@@ -246,11 +247,11 @@ class TestFileSystemMetadata:
     def test_no_temporary_data(self, file_system_metadata_plugin):
         fo = FoMock(None, None)
 
-        fo.virtual_file_path['some_uid'] = [f'|some_uid|{TEST_FW.uid}|/some_file']
+        fo.parents = [TEST_FW.uid]
         # mime-type in mocked db is 'application/octet-stream' so the result should be false
         assert file_system_metadata_plugin._parent_has_file_system_metadata(fo) is False
 
-        fo.virtual_file_path['some_uid'] = [f'|some_uid|{TEST_FW_2.uid}|/some_file']
+        fo.parents = [TEST_FW_2.uid]
         # mime-type in mocked db is 'filesystem/cramfs' so the result should be true
         assert file_system_metadata_plugin._parent_has_file_system_metadata(fo) is True
 

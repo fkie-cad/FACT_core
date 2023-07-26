@@ -51,8 +51,8 @@ BLACKLIST = [
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'interesting_uris'
-    DEPENDENCIES = ['ip_and_uri_finder']
-    MIME_WHITELIST = [
+    DEPENDENCIES = ['ip_and_uri_finder']  # noqa: RUF012
+    MIME_WHITELIST = [  # noqa: RUF012
         'text/plain',
         'application/octet-stream',
         'application/x-executable',

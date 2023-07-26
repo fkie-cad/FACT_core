@@ -1,4 +1,3 @@
-# pylint: disable=use-implicit-booleaness-not-comparison
 import logging
 from multiprocessing import Manager
 from time import time
@@ -15,7 +14,7 @@ class TestAnalysisStatus:
     def setup_class(cls):
         cls.status = AnalysisStatus()
         cls.manager = Manager()
-        cls.status.currently_running_lock = cls.manager.Lock()  # pylint: disable=no-member
+        cls.status.currently_running_lock = cls.manager.Lock()
 
     @classmethod
     def teardown_class(cls):
@@ -31,15 +30,17 @@ class TestAnalysisStatus:
         result = self.status.currently_running[fw.uid]
         assert result['files_to_unpack'] == {'foo', 'bar'}
         assert result['files_to_analyze'] == {fw.uid}
+        assert result['completed_files'] == set()
         assert result['unpacked_files_count'] == 1
         assert result['analyzed_files_count'] == 0
-        assert result['total_files_count'] == 3
+        assert result['total_files_count'] == 3  # noqa: PLR2004
 
     def test_add_file_to_current_analyses(self):
         self.status.currently_running = {
             'parent_uid': {
                 'files_to_unpack': {'foo'},
                 'files_to_analyze': {'bar'},
+                'completed_files': set(),
                 'total_files_count': 2,
                 'unpacked_files_count': 1,
                 'total_files_with_duplicates': 2,
@@ -54,15 +55,16 @@ class TestAnalysisStatus:
         result = self.status.currently_running['parent_uid']
         assert sorted(result['files_to_unpack']) == ['new']
         assert sorted(result['files_to_analyze']) == ['bar', 'foo']
-        assert result['unpacked_files_count'] == 2
-        assert result['total_files_count'] == 3
-        assert result['total_files_with_duplicates'] == 3
+        assert result['unpacked_files_count'] == 2  # noqa: PLR2004
+        assert result['total_files_count'] == 3  # noqa: PLR2004
+        assert result['total_files_with_duplicates'] == 3  # noqa: PLR2004
 
     def test_add_duplicate_file_to_current_analyses(self):
         self.status.currently_running = {
             'parent_uid': {
                 'files_to_unpack': {'foo'},
                 'files_to_analyze': {'duplicate'},
+                'completed_files': set(),
                 'total_files_count': 2,
                 'unpacked_files_count': 3,
                 'total_files_with_duplicates': 2,
@@ -75,22 +77,27 @@ class TestAnalysisStatus:
         self.status.add_to_current_analyses(fo)
         assert sorted(self.status.currently_running['parent_uid']['files_to_unpack']) == []
         assert sorted(self.status.currently_running['parent_uid']['files_to_analyze']) == ['duplicate', 'foo']
-        assert self.status.currently_running['parent_uid']['total_files_count'] == 2
+        assert self.status.currently_running['parent_uid']['total_files_count'] == 2  # noqa: PLR2004
 
     def test_remove_partial_from_current_analyses(self):
         self.status.currently_running = {
-            'parent_uid': {'files_to_unpack': [], 'files_to_analyze': ['foo', 'bar'], 'analyzed_files_count': 0}
+            'parent_uid': {
+                'files_to_unpack': set(),
+                'files_to_analyze': {'foo', 'bar'},
+                'completed_files': set(),
+                'analyzed_files_count': 0,
+            }
         }
         fo = FileObject(binary=b'foo')
         fo.root_uid = 'parent_uid'
         fo.uid = 'foo'
         self.status.remove_from_current_analyses(fo)
         assert 'parent_uid' in self.status.currently_running
-        assert self.status.currently_running['parent_uid']['files_to_analyze'] == ['bar']
+        assert self.status.currently_running['parent_uid']['files_to_analyze'] == {'bar'}
         assert self.status.currently_running['parent_uid']['analyzed_files_count'] == 1
 
     def test_remove_but_not_found(self, caplog):
-        self.status.currently_running = {'parent_uid': {'files_to_analyze': ['bar'], 'analyzed_files_count': 1}}
+        self.status.currently_running = {'parent_uid': {'files_to_analyze': {'bar'}, 'analyzed_files_count': 1}}
         fo = FileObject(binary=b'foo')
         fo.root_uid = 'parent_uid'
         fo.uid = 'foo'
@@ -101,8 +108,9 @@ class TestAnalysisStatus:
     def test_remove_fully_from_current_analyses(self):
         self.status.currently_running = {
             'parent_uid': {
-                'files_to_unpack': [],
-                'files_to_analyze': ['foo'],
+                'files_to_unpack': set(),
+                'files_to_analyze': {'foo'},
+                'completed_files': set(),
                 'analyzed_files_count': 1,
                 'start_time': 0,
                 'total_files_count': 2,
@@ -116,11 +124,16 @@ class TestAnalysisStatus:
         self.status.remove_from_current_analyses(fo)
         assert self.status.currently_running == {}
         assert 'parent_uid' in self.status.recently_finished
-        assert self.status.recently_finished['parent_uid']['total_files_count'] == 2
+        assert self.status.recently_finished['parent_uid']['total_files_count'] == 2  # noqa: PLR2004
 
     def test_remove_but_still_unpacking(self):
         self.status.currently_running = {
-            'parent_uid': {'files_to_unpack': ['bar'], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1}
+            'parent_uid': {
+                'files_to_unpack': {'bar'},
+                'files_to_analyze': {'foo'},
+                'completed_files': set(),
+                'analyzed_files_count': 1,
+            }
         }
         fo = FileObject(binary=b'foo')
         fo.root_uid = 'parent_uid'
@@ -128,14 +141,30 @@ class TestAnalysisStatus:
         self.status.remove_from_current_analyses(fo)
         result = self.status.currently_running
         assert 'parent_uid' in result
-        assert result['parent_uid']['files_to_analyze'] == []
-        assert result['parent_uid']['files_to_unpack'] == ['bar']
-        assert result['parent_uid']['analyzed_files_count'] == 2
+        assert result['parent_uid']['files_to_analyze'] == set()
+        assert result['parent_uid']['files_to_unpack'] == {'bar'}
+        assert result['parent_uid']['analyzed_files_count'] == 2  # noqa: PLR2004
 
     @pytest.mark.parametrize(
-        'time_finished_delay, expected_result', [(0, True), (RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC + 1, False)]
+        ('time_finished_delay', 'expected_result'), [(0, True), (RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC + 1, False)]
     )
     def test_clear_recently_finished(self, time_finished_delay, expected_result):
         self.status.recently_finished = {'foo': {'time_finished': time() - time_finished_delay}}
         self.status.clear_recently_finished()
         assert bool('foo' in self.status.recently_finished) == expected_result
+
+    @pytest.mark.parametrize(
+        ('currently_running', 'expected'),
+        [
+            ({}, False),
+            ({'root_uid': {'files_to_unpack': {'foo'}, 'completed_files': set()}}, True),
+            ({'root_uid': {'files_to_unpack': set(), 'completed_files': set()}}, False),
+            ({'root_uid': {'files_to_unpack': set(), 'completed_files': {'foo'}}}, False),
+        ],
+    )
+    def test_file_should_be_analyzed(self, currently_running, expected):
+        self.status.currently_running = currently_running
+        fo = FileObject(binary=b'foo')
+        fo.root_uid = 'root_uid'
+        fo.uid = 'foo'
+        assert self.status.file_should_be_analyzed(fo) == expected

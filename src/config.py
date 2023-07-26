@@ -8,7 +8,7 @@ import toml
 from pydantic import BaseModel, Extra, validator
 from werkzeug.local import LocalProxy
 
-# pylint: disable=invalid-name
+
 _backend = None
 #: Proxy to an instance of :py:class:`Backend`
 #: May only be used in parts of the code that are backend code.
@@ -66,7 +66,6 @@ class Common(BaseModel):
         password: Optional[str]
 
     class Logging(BaseModel):
-        # pylint:disable=no-self-argument
         Config = _PydanticConfigExtraForbid
 
         file_backend: str = '/tmp/fact_backend.log'
@@ -75,7 +74,7 @@ class Common(BaseModel):
         level: str = 'WARNING'
 
         @validator('level')
-        def _validate_level(cls, value):
+        def _validate_level(cls, value):  # noqa: N805
             if isinstance(logging.getLevelName(value), str):
                 raise ValueError(f'The "loglevel" {value} is not a valid loglevel.')
 
@@ -121,7 +120,6 @@ class Frontend(Common):
 
 
 class Backend(Common):
-    # pylint:disable=no-self-argument
     Config = _PydanticConfigExtraForbid
 
     class Unpacking(BaseModel):
@@ -161,14 +159,13 @@ class Backend(Common):
     plugin: Dict[str, Backend.Plugin]
 
     @validator('temp_dir_path')
-    def _validate_temp_dir_path(cls, value):
+    def _validate_temp_dir_path(cls, value):  # noqa: N805
         if not Path(value).exists():
             raise ValueError('The "temp-dir-path" does not exist.')
         return value
 
 
 def load(path: str | None = None):
-    # pylint: disable=global-statement
     """Load the config file located at ``path``.
     The file must be a toml file and is read into instances of :py:class:`~config.Backend`,
     :py:class:`~config.Frontend` and :py:class:`~config.Common`.
@@ -188,7 +185,7 @@ def load(path: str | None = None):
     if path is None:
         path = Path(__file__).parent / 'config/fact-core-config.toml'
 
-    with open(path, encoding='utf8') as f:
+    with open(path, encoding='utf8') as f:  # noqa: PTH123
         cfg = toml.load(f)
 
     _replace_hyphens_with_underscores(cfg)
@@ -216,15 +213,15 @@ def load(path: str | None = None):
     if 'common' not in cfg:
         raise ValueError('The common section MUST be specified')
 
-    global _common
+    global _common  # noqa: PLW0603
     if 'common' in cfg:
         _common = Common(**common_dict)
 
-    global _backend
+    global _backend  # noqa: PLW0603
     if 'backend' in cfg:
         _backend = Backend(**backend_dict, **common_dict)
 
-    global _frontend
+    global _frontend  # noqa: PLW0603
     if 'frontend' in cfg:
         _frontend = Frontend(**frontend_dict, **common_dict)
 

@@ -27,4 +27,5 @@ class TestAppMissingAnalyses:
         assert 'Missing Analyses: 2' in content
         assert 'Failed Analyses: 2' in content
         assert 'parent_uid' in content
-        assert 'child_uid1' in content and 'child_uid2' in content
+        assert 'child_uid1' in content
+        assert 'child_uid2' in content

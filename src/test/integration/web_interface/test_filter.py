@@ -1,5 +1,3 @@
-# pylint: disable=redefined-outer-name,wrong-import-order
-
 from unittest import mock
 
 import pytest
@@ -8,12 +6,12 @@ from web_interface.filter import list_group_collapse, render_analysis_tags, rend
 from web_interface.frontend_main import WebFrontEnd
 
 
-@pytest.fixture()
+@pytest.fixture
 def frontend():
     return WebFrontEnd()
 
 
-@mock.patch('intercom.front_end_binding.InterComFrontEndBinding', lambda **_: None)
+@mock.patch('intercom.front_end_binding.InterComFrontEndBinding', lambda **_: None)  # noqa: PT008
 def test_list_group_collapse(frontend):
     with frontend.app.app_context():
         collapsed_list_group = list_group_collapse(['a', 'b'])
@@ -25,7 +23,7 @@ def test_list_group_collapse(frontend):
 
 
 @pytest.mark.parametrize(
-    'tag_dict, output',
+    ('tag_dict', 'output'),
     [
         ({'a': 'danger'}, '<span class="badge badge-danger mr-2" style="font-size: 14px;" > a</span>'),
         (

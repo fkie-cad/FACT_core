@@ -16,7 +16,7 @@ class TestAnalysisPluginPasswordFileAnalyzer:
         processed_object = analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[analysis_plugin.NAME]
 
-        assert len(results) == 15
+        assert len(results) == 15  # noqa: PLR2004
         for item in [
             'vboxadd:unix',
             'mongodb:unix',
@@ -47,14 +47,15 @@ class TestAnalysisPluginPasswordFileAnalyzer:
         processed_object = analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[analysis_plugin.NAME]
         assert len(results) == 1
-        assert 'summary' in results and results['summary'] == []
+        assert 'summary' in results
+        assert results['summary'] == []
 
     def test_process_object_password_in_binary_file(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
         processed_object = analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[analysis_plugin.NAME]
 
-        assert len(results) == 4
+        assert len(results) == 4  # noqa: PLR2004
         for item in ['johndoe:unix', 'max:htpasswd']:
             assert item in results
             assert item in results['summary']
@@ -73,13 +74,19 @@ class TestAnalysisPluginPasswordFileAnalyzer:
 
 
 def test_crack_hash_failure():
-    passwd_entry = [
-        b'user',
-        b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==',
-    ]
+    passwd_entry = [b'user', b'BfKEUi/mdF1D2']
     result_entry = {}
     assert crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False
     assert 'ERROR' in result_entry
+    assert result_entry['ERROR'] == 'password cracking not successful'
+
+
+def test_hash_unsupported():
+    passwd_entry = [b'user', b'foobar']
+    result_entry = {}
+    assert crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False
+    assert 'ERROR' in result_entry
+    assert result_entry['ERROR'] == 'hash type is not supported'
 
 
 def test_crack_hash_success():
@@ -109,7 +116,7 @@ JOHN_SUCCESS_OUTPUT = (
 
 
 @pytest.mark.parametrize(
-    'john_output, expected_result',
+    ('john_output', 'expected_result'),
     [
         ('', []),
         (JOHN_FAIL_OUTPUT, ['0 password hashes cracked, 0 left']),

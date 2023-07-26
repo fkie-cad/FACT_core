@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name,wrong-import-order
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -15,14 +14,12 @@ EXTRACTION_DIR = TEST_DATA_DIR / 'files'
 
 @pytest.fixture
 def unpacker():
-    _unpacker = Unpacker(unpacking_locks=UnpackingLockManager())
-    yield _unpacker
+    return Unpacker(unpacking_locks=UnpackingLockManager())
 
 
 @pytest.fixture
 def test_fo():
-    _test_fo = create_test_file_object()
-    yield _test_fo
+    return create_test_file_object()
 
 
 @pytest.mark.backend_config_overwrite(
@@ -38,8 +35,9 @@ class TestUnpackerCore:
         file_paths = [EXTRACTION_DIR / 'zero_byte', EXTRACTION_DIR / 'get_files_test' / 'testfile2']
         file_objects = unpacker.generate_objects_and_store_files(file_paths, EXTRACTION_DIR, test_fo)
         assert len(file_objects) == 1, 'number of objects not correct'
-        assert file_objects[0].file_name == 'testfile2', 'wrong object created'
-        assert f'|{test_fo.uid}|/get_files_test/testfile2' in file_objects[0].virtual_file_path[test_fo.uid]
+        child_fo = file_objects[0]
+        assert child_fo.file_name == 'testfile2', 'wrong object created'
+        assert '/get_files_test/testfile2' in child_fo.virtual_file_path[test_fo.uid]
 
     def test_remove_duplicates_child_equals_parent(self, unpacker, test_fo):
         file_paths = [EXTRACTION_DIR / 'get_files_test' / 'testfile1']
@@ -63,7 +61,6 @@ class TestUnpackerCore:
     }
 )
 class TestUnpackerCoreMain:
-
     test_file_path = str(TEST_DATA_DIR / 'container/test.zip')
 
     def main_unpack_check(self, unpacker, test_object, number_unpacked_files, first_unpacker):

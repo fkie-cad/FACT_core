@@ -1,7 +1,7 @@
 import pytest
 
 from objects.file import FileObject
-from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
+from test.common_helper import get_test_data_dir
 
 from ..code.file_type import AnalysisPlugin
 

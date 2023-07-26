@@ -3,27 +3,29 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from flask import Request
 from markupsafe import escape
-from werkzeug.datastructures import FileStorage
 
 import config
 from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
+
+if TYPE_CHECKING:
+    from flask import Request
+    from werkzeug.datastructures import FileStorage
 
 OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
 
 
 def create_analysis_task(request: Request) -> dict[str, Any]:
-    '''
+    """
     Create an analysis task from the data stored in the flask request object.
 
     :param request: The flask request object.
     :return: A dict containing the analysis task data.
-    '''
+    """
     task = _get_meta_from_request(request)
     if request.files['file']:
         task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request)
@@ -34,14 +36,14 @@ def create_analysis_task(request: Request) -> dict[str, Any]:
     return task
 
 
-def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes]:  # pylint: disable=invalid-name
-    '''
+def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes]:
+    """
     Retrieves the file name and content from the flask request object.
 
     :param request: The flask request object.
     :param config: The FACT configuration.
     :return: A Tuple containing the file name and the file content.
-    '''
+    """
     try:
         file_name = escape(request.files['file'].filename)
     except AttributeError:
@@ -51,13 +53,13 @@ def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes]
 
 
 def create_re_analyze_task(request: Request, uid: str) -> dict[str, Any]:
-    '''
+    """
     Create an analysis task for a file that is already in the database.
 
     :param request: The flask request object.
     :param uid: The unique identifier of the firmware.
     :return: A dict containing the analysis task data.
-    '''
+    """
     task = _get_meta_from_request(request)
     task['uid'] = uid
     if not task['release_date']:
@@ -78,13 +80,13 @@ def _get_meta_from_request(request: Request):
     }
     _get_meta_from_dropdowns(meta, request)
 
-    if 'file_name' in request.form.keys():
+    if 'file_name' in request.form:
         meta['file_name'] = escape(request.form['file_name'])
     return meta
 
 
 def _get_meta_from_dropdowns(meta, request: Request):
-    for item in meta.keys():
+    for item in meta:
         if not meta[item] and item in DROPDOWN_FIELDS:
             dd = request.form[f'{item}_dropdown']
             if dd != 'new entry':
@@ -98,20 +100,20 @@ def _get_tag_list(tag_string: str | None) -> list[str]:
 
 
 def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Firmware | None = None) -> Firmware:
-    '''
+    """
     Convert an analysis task to a firmware object.
 
     :param analysis_task: The analysis task data.
     :param base_fw: The existing `Firmware` object in case of analysis update.
     :return: A `Firmware` object based on the analysis task data.
-    '''
+    """
     fw = base_fw or Firmware()
     fw.scheduled_analysis = analysis_task['requested_analysis_systems']
-    if 'binary' in analysis_task.keys():
+    if 'binary' in analysis_task:
         fw.set_binary(analysis_task['binary'])
         fw.file_name = analysis_task['file_name']
     else:
-        if 'file_name' in analysis_task.keys():
+        if 'file_name' in analysis_task:
             fw.file_name = analysis_task['file_name']
         fw.uid = analysis_task['uid']
     fw.device_name = analysis_task['device_name']
@@ -127,28 +129,27 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Firmware | Non
 
 
 def _get_uid_of_analysis_task(analysis_task: dict) -> str | None:
-    '''
+    """
     Creates a UID (unique identifier) for an analysis task. The UID is generated based on the binary stored in the
     analysis task dict. The return value may be `None` if no binary is contained in the analysis task dict.
 
     :param analysis_task: The analysis task data.
     :return: A UID based on the binary contained in the analysis task or `None` if there is no binary.
-    '''
+    """
     if analysis_task['binary']:
-        uid = create_uid(analysis_task['binary'])
-        return uid
+        return create_uid(analysis_task['binary'])
     return None
 
 
 def _get_uploaded_file_binary(request_file: FileStorage) -> bytes | None:
-    '''
+    """
     Retrieves the binary from the request file storage and returns it as byte string. May return `None` if no
     binary was found or an exception occurred.
 
     :param request_file: A file contained in the flask request object.
     :param config: The FACT configuration.
     :return: The binary as byte string or `None` if no binary was found.
-    '''
+    """
     if not request_file:
         return None
     with TemporaryDirectory(prefix='fact_upload_', dir=config.common.temp_dir_path) as tmp_dir:
@@ -162,13 +163,13 @@ def _get_uploaded_file_binary(request_file: FileStorage) -> bytes | None:
 
 
 def check_for_errors(analysis_task: dict) -> dict[str, str]:
-    '''
+    """
     Check an analysis task for missing fields and return a dict with error messages (that are intended to be displayed
     in the webinterface).
 
     :param analysis_task: The analysis task data.
     :return: A dictionary containing error messages in the form `{task_key: error_message}`.
-    '''
+    """
     return {
         key: f'''Please specify the {key.replace('_', ' ')}'''
         for key in analysis_task

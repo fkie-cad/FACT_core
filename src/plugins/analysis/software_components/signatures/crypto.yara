@@ -5,6 +5,7 @@ rule OpenSSL
 		open_source = true
 		website = "https://www.openssl.org"
 		description ="SSL library"
+		version_regex = "\\d\\.\\d\\.\\d[a-z]{0,2}"
     strings:
         $a = /OpenSSL( \d+\.\d+\.\d+[a-z]?)?/ nocase ascii wide
     condition:

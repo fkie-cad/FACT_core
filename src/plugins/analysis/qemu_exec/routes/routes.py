@@ -4,7 +4,6 @@ from flask import render_template_string
 from flask_restx import Namespace
 
 from helperFunctions.database import get_shared_session
-from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.rest.helper import error_message, success_message
@@ -17,12 +16,12 @@ from ..code.qemu_exec import AnalysisPlugin
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 
 
-def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface):  # pylint: disable=invalid-name
+def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface):
     results = {}
     with get_shared_session(db_interface) as db:
         this_fo = db.get_object(uid)
         if this_fo is not None:
-            for parent_uid in get_parent_uids_from_virtual_path(this_fo):
+            for parent_uid in this_fo.parents:
                 parent_results = _get_results_from_parent_fo(db.get_analysis(parent_uid, AnalysisPlugin.NAME), uid)
                 if parent_results:
                     results[parent_uid] = parent_results
@@ -52,7 +51,7 @@ api = Namespace('/plugins/qemu_exec/rest')
 
 @api.hide
 class QemuExecRoutesRest(RestResourceBase):
-    ENDPOINTS = [('/plugins/qemu_exec/rest/<uid>', ['GET'])]
+    ENDPOINTS = [('/plugins/qemu_exec/rest/<uid>', ['GET'])]  # noqa: RUF012
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def get(self, uid):

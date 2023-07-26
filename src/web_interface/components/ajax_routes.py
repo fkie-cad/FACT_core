@@ -87,10 +87,10 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(self.intercom) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
-            return f'<pre class="line_numbering" style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
+            return f'<pre class="line_numbering" style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'  # noqa: E501
         if 'image/' in mime_type:
-            div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'
-            return f'{div}<img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" style="max-width:100%"></div>'
+            div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'  # noqa: E501
+            return f'{div}<img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" style="max-width:100%"></div>'  # noqa: E501
         return None
 
     @roles_accepted(*PRIVILEGES['view_analysis'])

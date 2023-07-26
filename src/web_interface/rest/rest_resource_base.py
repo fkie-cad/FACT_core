@@ -3,8 +3,11 @@ from __future__ import annotations
 from flask import request
 from flask_restx import Model, Resource, marshal
 
-from intercom.front_end_binding import InterComFrontEndBinding
-from web_interface.frontend_database import FrontendDatabase
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from web_interface.frontend_database import FrontendDatabase
+    from intercom.front_end_binding import InterComFrontEndBinding
 
 
 class RestResourceBase(Resource):

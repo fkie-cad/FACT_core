@@ -14,7 +14,6 @@ from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import get_template_as_string
-from objects.file import FileObject
 from objects.firmware import Firmware
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
@@ -26,10 +25,16 @@ from web_interface.components.dependency_graph import (
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
 def get_analysis_view(view_name):
-    view_path = os.path.join(get_src_dir(), f'web_interface/templates/analysis_plugins/{view_name}.html')
+    view_path = os.path.join(  # noqa: PTH118
+        get_src_dir(), f'web_interface/templates/analysis_plugins/{view_name}.html'
+    )
     return get_binary_from_file(view_path).decode('utf-8')
 
 
@@ -60,6 +65,11 @@ class AnalysisRoutes(ComponentBase):
                 root_uid = file_obj.uid
                 other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
             included_fo_analysis_complete = not frontend_db.all_uids_found_in_database(list(file_obj.files_included))
+            file_tree_paths = (
+                frontend_db.get_file_tree_path(uid, root_uid=none_to_none(root_uid))
+                if not isinstance(file_obj, Firmware)
+                else [[file_obj.uid]]
+            )
         with ConnectTo(self.intercom) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
 
@@ -69,6 +79,7 @@ class AnalysisRoutes(ComponentBase):
             self._get_correct_template(selected_analysis, file_obj),
             uid=uid,
             firmware=file_obj,
+            file_tree_paths=file_tree_paths,
             analysis_result=analysis.get('result', {}),
             analysis_metadata={k: v for k, v in analysis.items() if k != 'result'},
             selected_analysis=selected_analysis,
@@ -80,7 +91,7 @@ class AnalysisRoutes(ComponentBase):
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
             known_comparisons=known_comparisons,
             available_plugins=self._get_used_and_unused_plugins(
-                file_obj.processed_analysis, [x for x in analysis_plugins.keys() if x != 'unpacker']
+                file_obj.processed_analysis, [x for x in analysis_plugins if x != 'unpacker']
             ),
         )
 
@@ -137,7 +148,7 @@ class AnalysisRoutes(ComponentBase):
             plugin_dict = intercom.get_available_analysis_plugins()
 
         current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
-        analysis_presets = [current_analysis_preset] + [preset for preset in config.frontend.analysis_preset]
+        analysis_presets = [current_analysis_preset, *list(config.frontend.analysis_preset)]
 
         title = 're-do analysis' if re_do else 'update analysis'
 
@@ -167,8 +178,11 @@ class AnalysisRoutes(ComponentBase):
 
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
         if re_do:
+            with ConnectTo(self.intercom) as intercom:
+                analysis_task['binary'], _ = intercom.get_binary_and_filename(uid)
             base_fw = None
             self.db.admin.delete_firmware(uid, delete_root_file=False)
+            # FixMe? do we need to wait for cascade/event listener to finish?
         else:
             base_fw = self.db.frontend.get_object(uid)
             base_fw.force_update = force_reanalysis
@@ -178,17 +192,17 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/re-do_analysis/<uid>', GET, POST)
-    def redo_analysis(self, uid):
+    def redo_analysis(self, uid: str):
         if request.method == POST:
             return self.post_update_analysis(uid, re_do=True)
         return self.get_update_analysis(uid, re_do=True)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/dependency-graph/<uid>/<root_uid>', GET)
-    def show_elf_dependency_graph(self, uid, root_uid):
+    def show_elf_dependency_graph(self, uid: str, root_uid: str):
         with get_shared_session(self.db.frontend) as frontend_db:
             if root_uid in [None, 'None']:
-                root_uid = frontend_db.get_object(uid).get_root_uid()
+                root_uid = frontend_db.get_root_uid(uid)
             data = frontend_db.get_data_for_dependency_graph(uid)
 
         whitelist = [
@@ -197,11 +211,8 @@ class AnalysisRoutes(ComponentBase):
             'application/x-sharedlib',
             'inode/symlink',
         ]
-
-        data_graph_part = create_data_graph_nodes_and_groups(data, uid, root_uid, whitelist)
-
+        data_graph_part = create_data_graph_nodes_and_groups(data, whitelist)
         colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
-
         if not data_graph_part['nodes']:
             flash(
                 'Error: Graph could not be rendered. '
@@ -211,13 +222,12 @@ class AnalysisRoutes(ComponentBase):
             return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
 
         data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data_graph_part)
-
         if elf_analysis_missing_from_files > 0:
             flash(
                 f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning'
             )
 
-        # TODO: Add a loading icon?
+        # FixMe: Add a loading icon?
         return render_template(
             'dependency_graph.html',
             **{key: json.dumps(data_graph[key]) for key in ['nodes', 'edges', 'groups']},
@@ -228,10 +238,10 @@ class AnalysisRoutes(ComponentBase):
 
 
 def _add_preset_from_firmware(plugin_dict, fw: Firmware):
-    '''
+    """
     Adds a preset to plugin_dict with all plugins ticked that are processed on the firmware fw.
     Returns the name of the new preset.
-    '''
+    """
     preset_name = fw.uid
 
     previously_processed_plugins = list(fw.processed_analysis.keys())

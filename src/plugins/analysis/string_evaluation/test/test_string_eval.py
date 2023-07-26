@@ -93,7 +93,7 @@ class TestStringEval(unittest.TestCase):
     def test_add_length_score(self):
         input_data = 'four'
         result = _add_length_score(input_data, 0)
-        assert result == 2, 'Parameter not detected'
+        assert result == 2, 'Parameter not detected'  # noqa: PLR2004
 
     def test_add_path_score(self):
         input_true = 'path: /home/user'

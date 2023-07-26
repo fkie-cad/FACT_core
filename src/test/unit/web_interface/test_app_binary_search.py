@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 from io import BytesIO
 
 import pytest

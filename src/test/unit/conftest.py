@@ -1,8 +1,7 @@
-# pylint: disable=no-self-use
 from typing import Type
 
 import pytest
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 
 from test.common_helper import TEST_FW, TEST_TEXT_FILE, CommonDatabaseMock
 from test.conftest import merge_markers
@@ -64,7 +63,7 @@ class CommonIntercomMock:
     def add_analysis_task(self, task):
         self.task_list.append(task)
 
-    def add_re_analyze_task(self, task, unpack=True):  # pylint: disable=unused-argument
+    def add_re_analyze_task(self, task, unpack=True):
         self.task_list.append(task)
 
 
@@ -87,7 +86,7 @@ class FrontendDatabaseMock:
 
 
 class _UserDbMock:
-    class session:  # pylint: disable=invalid-name
+    class session:  # noqa: N801
         @staticmethod
         def commit():
             pass
@@ -97,8 +96,7 @@ class _UserDbMock:
             pass
 
 
-@dataclass
-class WebInterfaceUnitTestConfig:
+class WebInterfaceUnitTestConfig(BaseModel):
     """A class configuring the :py:func:`web_frontend` fixture."""
 
     #: A class that can be instanced to mock every ``@property`` of
@@ -113,7 +111,7 @@ class WebInterfaceUnitTestConfig:
 def intercom_task_list() -> list:
     """A fixture used to add tasks in the :py:class:`CommonIntercomMock`.
     It can be used to inspect what tasks where added"""
-    yield []
+    return []
 
 
 @pytest.fixture
@@ -129,7 +127,7 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
     test_config = merge_markers(request, 'WebInterfaceUnitTestConfig', WebInterfaceUnitTestConfig)
 
     db_mock_instance = test_config.database_mock_class()
-    IntercomMockClass = test_config.intercom_mock_class
+    IntercomMockClass = test_config.intercom_mock_class  # noqa: N806
 
     def _add_flask_security_to_app_mock(app):
         add_flask_security_to_app(app)
@@ -143,10 +141,10 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
 
     frontend.app.config['TESTING'] = True
 
-    yield frontend
+    return frontend
 
 
 @pytest.fixture
 def test_client(web_frontend):
     """Shorthand for ``web_frontend.app.test_client``"""
-    yield web_frontend.app.test_client()
+    return web_frontend.app.test_client()

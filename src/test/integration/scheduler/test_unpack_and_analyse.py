@@ -1,57 +1,31 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order,unused-argument
-import gc
-from multiprocessing import Queue
+import pytest
 
 from objects.firmware import Firmware
-from scheduler.analysis import AnalysisScheduler
-from scheduler.unpacking_scheduler import UnpackingScheduler
-from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
+
 from test.integration.common import MockDbInterface, MockFSOrganizer
 
 
 class TestFileAddition:
-    def setup(self):
-        self._tmp_queue = Queue()
-
-        self.unpacking_lock_manager = UnpackingLockManager()
-        self._analysis_scheduler = AnalysisScheduler(
-            pre_analysis=lambda *_: None,
-            post_analysis=self._dummy_callback,
-            db_interface=MockDbInterface(None),
-            unpacking_locks=self.unpacking_lock_manager,
-        )
-        self._analysis_scheduler.start()
-        self._unpack_scheduler = UnpackingScheduler(
-            post_unpack=self._analysis_scheduler.start_analysis_of_object,
-            fs_organizer=MockFSOrganizer(),
-            unpacking_locks=self.unpacking_lock_manager,
-        )
-        self._unpack_scheduler.start()
-
-    def teardown(self):
-        self._unpack_scheduler.shutdown()
-        self.unpacking_lock_manager.shutdown()
-        self._analysis_scheduler.shutdown()
-        self._tmp_queue.close()
-        gc.collect()
-
-    def test_unpack_and_analyse(self, db):
+    @pytest.mark.SchedulerTestConfig(
+        pipeline=True,
+        backend_db_class=MockDbInterface,
+        fs_organizer_class=MockFSOrganizer,
+    )
+    def test_unpack_and_analyse(self, analysis_scheduler, unpacking_scheduler, post_analysis_queue):
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
+        test_fw.release_date = '1970-01-01'
 
-        self._unpack_scheduler.add_task(test_fw)
+        unpacking_scheduler.add_task(test_fw)
 
         processed_container = {}
         for _ in range(4 * 2):  # container with 3 included files times 2 mandatory plugins run
-            uid, plugin, analysis_result = self._tmp_queue.get(timeout=10)
+            uid, plugin, analysis_result = post_analysis_queue.get(timeout=3)
             processed_container.setdefault(uid, {}).setdefault(plugin, {})
             processed_container[uid][plugin] = analysis_result
 
-        assert len(processed_container) == 4, '4 files should have been analyzed'
+        assert len(processed_container) == 4, '4 files should have been analyzed'  # noqa: PLR2004
         assert all(
             sorted(processed_analysis) == ['file_hashes', 'file_type']
             for processed_analysis in processed_container.values()
         ), 'at least one analysis not done'
-
-    def _dummy_callback(self, uid, plugin, analysis_result):
-        self._tmp_queue.put((uid, plugin, analysis_result))

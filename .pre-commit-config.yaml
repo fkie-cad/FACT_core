@@ -15,13 +15,11 @@ repos:
 
     -   id: check-yaml
 
-    -   id: double-quote-string-fixer
-
     -   id: fix-encoding-pragma
         args: [--remove]
 
     -   id: file-contents-sorter
-        files: src/unpacker/passwords|.gitignore|_list.txt
+        files: src/unpacker/passwords|_list.txt
 
     -   id: forbid-new-submodules
 
@@ -51,7 +49,7 @@ repos:
     -   id: black
 
 - repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: 'v0.0.267'
+  rev: 'v0.0.275'
   hooks:
     - id: ruff
       args: [ --fix, --exit-non-zero-on-fix ]

@@ -7,8 +7,6 @@ from flask import render_template_string
 from flask_restx import Namespace
 
 from helperFunctions.database import get_shared_session
-from objects.file import FileObject
-from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
@@ -16,13 +14,16 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 from ..code.file_system_metadata import AnalysisPlugin
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from storage.db_interface_frontend import FrontEndDbInterface
+    from objects.file import FileObject
 
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 
 
-def get_analysis_results_for_included_uid(
-    uid: str, db_interface: FrontEndDbInterface
-) -> dict:  # pylint: disable=invalid-name
+def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface) -> dict:
     results = {}
     with get_shared_session(db_interface) as db:
         this_fo = db.get_object(uid)
@@ -38,21 +39,13 @@ def _get_results_from_parent_fo(parent_results: dict | None, parent_uid: str, th
         return {}
 
     results = {}
-    for file_name in _get_parent_file_names(parent_uid, this_fo):
+    for file_name in this_fo.virtual_file_path.get(parent_uid, []):
+        file_name = file_name.lstrip('/')  # noqa: PLW2901
         encoded_name = b64encode(file_name.encode()).decode()
         if encoded_name in parent_results['files']:
             results[file_name] = parent_results['files'][encoded_name]
             results[file_name]['parent_uid'] = parent_uid
     return results
-
-
-def _get_parent_file_names(parent_uid, this_fo):
-    return [
-        virtual_file_path.split('|')[-1][1:]
-        for virtual_path_list in this_fo.virtual_file_path.values()
-        for virtual_file_path in virtual_path_list
-        if parent_uid in virtual_file_path
-    ]
 
 
 class PluginRoutes(ComponentBase):
@@ -77,7 +70,7 @@ api = Namespace('/plugins/file_system_metadata/rest')
 
 @api.hide
 class FSMetadataRoutesRest(RestResourceBase):
-    ENDPOINTS = [('/plugins/file_system_metadata/rest/<uid>', ['GET'])]
+    ENDPOINTS = [('/plugins/file_system_metadata/rest/<uid>', ['GET'])]  # noqa: RUF012
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def get(self, uid):

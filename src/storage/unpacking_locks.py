@@ -1,5 +1,6 @@
 import logging
 from multiprocessing import Manager
+import contextlib
 
 
 class UnpackingLockManager:
@@ -18,7 +19,5 @@ class UnpackingLockManager:
         return uid in self.unpacking_locks
 
     def release_unpacking_lock(self, uid: str):
-        try:
+        with contextlib.suppress(KeyError):
             self.unpacking_locks.pop(uid)
-        except KeyError:
-            pass
