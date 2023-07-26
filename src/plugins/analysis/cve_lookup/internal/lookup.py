@@ -8,6 +8,7 @@ from itertools import combinations
 from packaging.version import parse as parse_version
 from packaging.version import InvalidVersion, Version
 
+from .busybox_cve_filter import filter_busybox_cves
 from .database.db_interface import DbInterface
 from .helper_functions import replace_wildcards
 from typing import TYPE_CHECKING
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from .database.db_connection import DbConnection
     from .database.schema import Association, Cpe
     from collections.abc import Callable
+    from objects.file import FileObject
 
 VALID_VERSION_REGEX = re.compile(r'v?(\d+!)?\d+(\.\d+)*([.-]?(a(lpha)?|b(eta)?|c|dev|post|pre(view)?|r|rc)?\d+)?')
 
@@ -23,7 +25,8 @@ VALID_VERSION_REGEX = re.compile(r'v?(\d+!)?\d+(\.\d+)*([.-]?(a(lpha)?|b(eta)?|c
 class Lookup:
     DB_PATH = str(Path(__file__).parent / 'database/cve_cpe.db')
 
-    def __init__(self, connection: DbConnection):
+    def __init__(self, file_object: FileObject, connection: DbConnection):
+        self.file_object = file_object
         self.db_interface = DbInterface(connection)
 
     def lookup_vulnerabilities(
@@ -46,6 +49,8 @@ class Lookup:
             association_matches = self._find_matching_associations(cpe_matches, version)
             cve_ids = [association.cve_id for association in association_matches]
             cves = self.db_interface.get_cves(cve_ids)
+            if 'busybox' in product_terms:
+                cves = filter_busybox_cves(self.file_object, cves)
             for association in association_matches:
                 cve = cves.get(association.cve_id)
                 cpe = cpe_matches.get(association.cpe_id)
