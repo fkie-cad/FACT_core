@@ -1,58 +1,17 @@
-from os import remove
-
 import pytest
-from packaging.version import parse as parse_version
-
+import tempfile
+from ..code import cve_lookup
 from test.common_helper import TEST_FW
+from ..internal.helper_functions import CveEntry
+from ..internal.database.db_setup import DbSetup
+from ..internal.database.db_connection import DbConnection
 
-from ..code import cve_lookup as lookup
-from ..internal.database_interface import DatabaseInterface
-from ..internal.helper_functions import replace_characters_and_wildcards
-import contextlib
+# Set the temp path for the DB
+temp_dir = tempfile.TemporaryDirectory()
+db_path = temp_dir.name
 
-
-lookup.MAX_LEVENSHTEIN_DISTANCE = 3
-
-USER_INPUT = {'vendor': 'Microsoft', 'product': 'Windows 7', 'version': '1.2.5'}
-
-MATCHED_CPE = [
-    lookup.Product('microsoft', 'windows_8', '1\\.2\\.5'),
-    lookup.Product('microsoft', 'windows_7', '1\\.3\\.1'),
-    lookup.Product('mircosof', 'windows_7', '0\\.7'),
-]
-MATCHED_CVE = ['CVE-1234-0010', 'CVE-1234-0011']
-CPE_CVE_OUTPUT = [
-    ('CVE-1234-0008', 'microsoft', 'server_2013', '2013', '10.0', '7.0', '1.2', '', '3.4', ''),
-    ('CVE-1234-0009', 'mircosof', 'windows_7', '0\\.7', '10.0', '7.0', '1.2', '', '3.4', ''),
-    ('CVE-1234-0010', 'microsoft', 'windows_8', '1\\.2\\.5', '10.0', '7.0', '1.2', '', '3.4', ''),
-    ('CVE-1234-0011', 'microsoft', 'windows_8', 'ANY', '10.0', '7.0', '1.2', '', '3.4', ''),
-    ('CVE-1234-0012', 'linux', 'linux_kernel', '2\\.2.\\3', '10.0', '7.0', '1.2', '', '3.4', ''),
-]
-
-MATCHED_SUMMARY = ['CVE-1234-0005', 'CVE-1234-0006', 'CVE-1234-0007']
-SUMMARY_OUTPUT = [
-    ('CVE-1234-0001', 'Attacker gains remote access', '5.0', '7.0'),
-    ('CVE-1234-0002', 'Attacker gains remote access to microsoft windows', '5.0', '7.0'),
-    ('CVE-1234-0003', 'Attacker gains remote access to microsoft server 2018', '5.0', '7.0'),
-    ('CVE-1234-0004', 'Attacker gains remote access to microsoft windows 2018', '5.0', '7.0'),
-    ('CVE-1234-0005', 'Attacker gains remote access to microsoft windows 8', '5.0', '7.0'),
-    ('CVE-1234-0006', 'Attacker gains remote access to microsoft windows 7', '5.0', '7.0'),
-    ('CVE-1234-0007', 'Attacker gains remote access to microsoft corporation windows 7', '5.0', '7.0'),
-]
-
-PRODUCT_SEARCH_TERMS = ['windows', 'windows_7']
-VERSION_SEARCH_TERM = '1\\.2\\.5'
-CPE_DATABASE_OUTPUT = [
-    ('microsoft', 'server_2013', '2013'),
-    ('mircosof', 'windows_7', '0\\.7'),
-    ('microsoft', 'windows_8', '1\\.2\\.5'),
-    ('microsoft', 'windows_7', '1\\.3\\.1'),
-    ('linux', 'linux_kernel', '2\\.2.\\3'),
-]
-
-SUMMARY_INPUT = ''
-
-SORT_CPE_MATCHES_OUTPUT = lookup.Product('microsoft', 'windows_8', '1\\.2\\.5')
+# Update the DB_PATH variable
+cve_lookup.DB_PATH = f'{db_path}/test.db'
 
 SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
     'result': {
@@ -76,146 +35,46 @@ SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
     'system_version': '3.7.1_1560435912',
 }
 
+CVE_ENTRY1 = CveEntry(
+    cve_id='CVE-2013-0198',
+    summary='Dnsmasq before 2.66test2, when used with certain libvirt configurations, replies to queries from prohibited interfaces, which allows remote attackers to cause a denial of service (traffic amplification) via spoofed TCP based DNS queries. NOTE: this vulnerability exists because of an incomplete fix for CVE-2012-3411.',  # noqa: E501
+    impact={'cvssMetricV2': 5.0},
+    cpe_entries=[('cpe:2.3:a:thekelleys:dnsmasq:*:*:*:*:*:*:*:*', '', '', '2.65', '')],
+)
 
-@pytest.fixture(scope='module', autouse=True)
-def setup() -> None:
-    yield None
-    with contextlib.suppress(OSError):
-        remove('test.db')  # noqa: PTH107
-
-
-@pytest.mark.parametrize(
-    ('software_name', 'expected_output'),
-    [
-        ('windows 7', ['windows', 'windows_7']),
-        ('Linux Kernel', ['linux', 'linux_kernel', 'kernel']),
+CVE_ENTRY2 = CveEntry(
+    cve_id='CVE-2017-14493',
+    summary='Stack-based buffer overflow in dnsmasq before 2.78 allows remote attackers to cause a denial of service (crash) or execute arbitrary code via a crafted DHCPv6 request.',  # noqa: E501
+    impact={'cvssMetricV2': 7.5, 'cvssMetricV30': 9.8},
+    cpe_entries=[
+        ('cpe:2.3:o:canonical:ubuntu_linux:14.04:*:*:*:lts:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:canonical:ubuntu_linux:16.04:*:*:*:lts:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:canonical:ubuntu_linux:17.04:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:debian:debian_linux:7.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:debian:debian_linux:7.1:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:debian:debian_linux:9.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:opensuse:leap:42.2:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:opensuse:leap:42.3:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:redhat:enterprise_linux_desktop:7.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:redhat:enterprise_linux_server:7.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:o:redhat:enterprise_linux_workstation:7.0:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:a:thekelleys:dnsmasq:*:*:*:*:*:*:*:*', '', '', '2.77', ''),
     ],
 )
-def test_generate_search_terms(software_name, expected_output):
-    result = lookup.generate_search_terms(software_name)
-    assert result == expected_output
-    assert replace_characters_and_wildcards(result) == expected_output
 
 
-@pytest.mark.parametrize(
-    ('version', 'expected_output'),
-    [
-        ('11\\.00\\.00', True),
-        ('1\\.0\\.0', True),
-        ('1\\.0', True),
-        ('1', False),
-        ('\\.1\\.0', False),
-        ('1\\.0\\.', False),
-        ('1\\.\\.0', False),
-        ('\\.1\\.0\\.', False),
-    ],
-)
-def test_is_valid_dotted_version(version, expected_output):
-    assert lookup.is_valid_dotted_version(version) == expected_output
-
-
-@pytest.mark.parametrize(
-    ('target_values', 'search_word', 'expected'),
-    [
-        (['1\\.2\\.3', '2\\.2\\.2', '4\\.5\\.6'], '2\\.2\\.2', '1\\.2\\.3'),
-        (['1\\.1\\.1', '1\\.2\\.3', '4\\.5\\.6'], '1\\.1\\.1', '1\\.2\\.3'),
-        (['1\\.2\\.3', '4\\.5\\.6', '7\\.8\\.9'], '7\\.8\\.9', '4\\.5\\.6'),
-    ],
-)
-def test_find_next_closest_version(target_values, search_word, expected):
-    assert (
-        lookup.find_next_closest_version(sorted_version_list=target_values, requested_version=search_word) == expected
-    )
-
-
-def test_find_matching_cpe_product():
-    assert lookup.find_matching_cpe_product(MATCHED_CPE, VERSION_SEARCH_TERM) == SORT_CPE_MATCHES_OUTPUT
-
-
-@pytest.mark.parametrize(
-    ('term', 'expected_output'),
-    [
-        ('mircosoft', True),
-        ('microsof', True),
-        ('microso', True),
-        ('ircosof', False),
-    ],
-)
-def test_terms_match(term, expected_output):
-    assert lookup.terms_match(term, 'microsoft') == expected_output
-
-
-@pytest.mark.parametrize(
-    ('word_list', 'remaining_words', 'expected_output'),
-    [
-        (['aaaa', 'bbbb', 'cccc', 'dddd', 'eeee', 'ffff', 'gggg'], ['cccc', 'dddd', 'eeee'], True),
-        (['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True),
-        (['abcde', 'ghkl'], ['abcdef', 'ghijklmnop'], False),
-    ],
-)
-def test_word_is_in_word_list(word_list, remaining_words, expected_output):
-    assert lookup.word_sequence_is_in_word_list(word_list, remaining_words) == expected_output
-
-
-@pytest.mark.parametrize(
-    ('word_list', 'remaining_words', 'expected_output'),
-    [(['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True), (['abcde', 'ghkl'], ['abcdef', 'ghijklmnop'], False)],
-)
-def test_remaining_words_present(word_list, remaining_words, expected_output):
-    assert lookup.remaining_words_present(word_list, remaining_words) == expected_output
-
-
-@pytest.mark.parametrize(
-    ('word_list', 'expected_output'),
-    [
-        ('bla bla microsoft windows 8 bla', True),
-        ('bla bla microsoft windows', False),
-        ('bla bla mirosoft windos 7 bla', True),
-        ('bla bla microsoft corporation windows 8 bla', True),
-        ('bla bla microsoft corporation corp inc windows 8 bla', False),
-        ('bla bla microsoft windows 8', True),
-        ('bla bla microsoft windows home 8 bla', False),
-    ],
-)
-def test_product_is_mentioned(word_list, expected_output):
-    assert lookup.product_is_mentioned_in_summary(SORT_CPE_MATCHES_OUTPUT, word_list) == expected_output
-
-
-def test_match_cpe(monkeypatch):
-    with monkeypatch.context() as monkey:
-        monkey.setattr(DatabaseInterface, 'fetch_multiple', lambda *_, **__: CPE_DATABASE_OUTPUT)
-        actual_match = list(lookup.match_cpe(DatabaseInterface, PRODUCT_SEARCH_TERMS))
-        assert all(entry in actual_match for entry in MATCHED_CPE)
-
-
-def test_search_cve(monkeypatch):
-    with monkeypatch.context() as monkey:
-        monkey.setattr(DatabaseInterface, 'fetch_multiple', lambda *_, **__: CPE_CVE_OUTPUT)
-        actual_match = list(lookup.search_cve(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
-        assert sorted(MATCHED_CVE) == sorted(actual_match)
-
-
-def test_search_cve_summary(monkeypatch):
-    with monkeypatch.context() as monkey:
-        monkey.setattr(DatabaseInterface, 'fetch_multiple', lambda *_, **__: SUMMARY_OUTPUT)
-        MATCHED_SUMMARY.sort()
-        actual_match = list(lookup.search_cve_summary(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
-        actual_match.sort()
-        assert actual_match == MATCHED_SUMMARY
-
-
-@pytest.mark.AnalysisPluginTestConfig(plugin_class=lookup.AnalysisPlugin)
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=cve_lookup.AnalysisPlugin)
 class TestCveLookup:
     def test_process_object(self, analysis_plugin):
+        connection_string = f'sqlite:///{db_path}/test.db'
+        connection = DbConnection(connection_string)
+        db_setup = DbSetup(connection)
+        db_setup.add_cve_items([CVE_ENTRY1, CVE_ENTRY2])
         TEST_FW.processed_analysis['software_components'] = SOFTWARE_COMPONENTS_ANALYSIS_RESULT
-        lookup.MAX_LEVENSHTEIN_DISTANCE = 0
-        try:
-            result = analysis_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
-            assert 'Dnsmasq 2.40 (CRITICAL)' in result['summary']
-            assert 'Dnsmasq 2.40' in result['cve_results']
-            assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
-        finally:
-            lookup.MAX_LEVENSHTEIN_DISTANCE = 3
+        result = analysis_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
+        assert 'Dnsmasq 2.40 (CRITICAL)' in result['summary']
+        assert 'Dnsmasq 2.40' in result['cve_results']
+        assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
 
     @pytest.mark.parametrize(('cve_score', 'should_be_tagged'), [('9.9', True), ('5.5', False)])
     def test_add_tags(self, analysis_plugin, cve_score, should_be_tagged):
@@ -249,162 +108,3 @@ class TestCveLookup:
     )
     def test_create_summary(self, cve_results_dict, expected_output, analysis_plugin):
         assert analysis_plugin._create_summary(cve_results_dict) == expected_output
-
-
-@pytest.mark.parametrize(
-    (
-        'cpe_version',
-        'cve_version',
-        'version_start_including',
-        'version_start_excluding',
-        'version_end_including',
-        'version_end_excluding',
-        'expected_output',
-    ),
-    [
-        ('1', '1', '', '', '', '', True),
-        ('1', '2', '', '', '', '', False),
-        ('1.2.3', '1.2.3', '', '', '', '', True),
-        ('1.2.3', '1.8.3', '', '', '', '', False),
-        ('v1.2a', 'v1.2a', '', '', '', '', True),
-        ('v1.2a', 'v1.2b', '', '', '', '', False),
-        ('1', 'ANY', '', '', '', '', True),
-        ('1', 'N/A', '', '', '', '', True),
-        ('1.2', 'ANY', '1.1', '', '', '', True),
-        ('1.2', 'ANY', '1.2', '', '', '', True),
-        ('1.1', 'ANY', '1.2', '', '', '', False),
-        ('1.2', 'ANY', '', '1.1', '', '', True),
-        ('1.2', 'ANY', '', '1.2', '', '', False),
-        ('1.1', 'ANY', '', '1.2', '', '', False),
-        ('1.2', 'ANY', '', '', '1.1', '', False),
-        ('1.2', 'ANY', '', '', '1.2', '', True),
-        ('1.1', 'ANY', '', '', '1.2', '', True),
-        ('1.2', 'ANY', '', '', '', '1.1', False),
-        ('1.2', 'ANY', '', '', '', '1.2', False),
-        ('1.1', 'ANY', '', '', '', '1.2', True),
-        ('1.0', 'ANY', '', '1.1', '', '1.3', False),
-        ('1.1', 'ANY', '', '1.1', '', '1.3', False),
-        ('1.2', 'ANY', '', '1.1', '', '1.3', True),
-        ('1.3', 'ANY', '', '1.1', '', '1.3', False),
-        ('1.4', 'ANY', '', '1.1', '', '1.3', False),
-        ('1.0', 'ANY', '1.1', '', '1.3', '', False),
-        ('1.1', 'ANY', '1.1', '', '1.3', '', True),
-        ('1.2', 'ANY', '1.1', '', '1.3', '', True),
-        ('1.3', 'ANY', '1.1', '', '1.3', '', True),
-        ('1.4', 'ANY', '1.1', '', '1.3', '', False),
-        ('$%&fööbar,.-', '1.2.3', '', '', '', '', False),
-        ('v1.1a', 'ANY', 'v1.1a', '', 'v1.1a', '', True),
-        ('v1.1b', 'ANY', '', 'v1.1a', '', 'v1.1c', True),
-        ('v1.1a', 'ANY', '', 'v1.1b', '', 'v1.1c', False),
-        ('1.1-r2345', 'ANY', '', '1.1-r1234', '', '1.1-r3456', True),
-        ('0.9.8m', 'ANY', '', '0.9.8f', '', '0.9.8t', True),
-        ('0.9.8f', 'ANY', '', '0.9.8m', '', '0.9.8t', False),
-    ],
-)
-def test_versions_match(  # noqa: PLR0913
-    cpe_version: str,
-    cve_version: str,
-    version_start_including: str,
-    version_start_excluding: str,
-    version_end_including: str,
-    version_end_excluding: str,
-    expected_output: bool,
-):
-    cve_entry = lookup.CveDbEntry(
-        None,
-        None,
-        None,
-        cve_version,
-        None,
-        None,
-        version_start_including,
-        version_start_excluding,
-        version_end_including,
-        version_end_excluding,
-    )
-    assert lookup.versions_match(cpe_version, cve_entry) == expected_output
-
-
-@pytest.mark.parametrize(
-    (
-        'version',
-        'version_start_including',
-        'version_start_excluding',
-        'version_end_including',
-        'version_end_excluding',
-        'expected_output',
-    ),
-    [
-        ('1.2', '', '', '', '', '1.2'),
-        ('ANY', '', '', '', '', 'ANY'),
-        ('N/A', '', '', '', '', 'N/A'),
-        ('ANY', '1.2', '', '', '', '1.2 ≤ version'),
-        ('ANY', '', '1.2', '', '', '1.2 < version'),
-        ('ANY', '', '', '1.2', '', 'version ≤ 1.2'),
-        ('ANY', '', '', '', '1.2', 'version < 1.2'),
-        ('ANY', '1.1', '', '1.2', '', '1.1 ≤ version ≤ 1.2'),
-        ('ANY', '', '1.1', '', '1.2', '1.1 < version < 1.2'),
-    ],
-)
-def test_build_version_string(  # noqa: PLR0913
-    version: str,
-    version_start_including: str,
-    version_start_excluding: str,
-    version_end_including: str,
-    version_end_excluding: str,
-    expected_output: str,
-):
-    cve_entry = lookup.CveDbEntry(
-        None,
-        None,
-        None,
-        version,
-        None,
-        None,
-        version_start_including,
-        version_start_excluding,
-        version_end_including,
-        version_end_excluding,
-    )
-    assert lookup.build_version_string(cve_entry) == expected_output
-
-
-@pytest.mark.parametrize(
-    ('input_version', 'expected_output'),
-    [
-        ('1.2', '1.2'),
-        ('1.2.3.4.5', '1.2.3.4.5'),
-        ('2022.01.07', '2022.1.7'),
-        ('1.2_1', '1.2-1'),
-        ('1.2alpha2', '1.2-a2'),
-        ('1.2_pre3', '1.2rc3'),
-        ('1.2_3.4', '1.2-3+4'),
-        ('1.2-beta3_post4.dev5', '1.2.b3.r4.dev5'),  # combined suffix segments
-        ('1.2-1Ubuntu1', '1.2-1+ubuntu1'),
-        ('1.0.1g', '1.0.1+g'),  # OpenSSL
-        # actual versions from Ubuntu sources
-        ('30~pre9-5ubuntu2', '30rc9+5ubuntu2'),
-        ('5.1.1alpha+20110809-3', '5.1.1a0+20110809.3'),
-        ('1.5.0-1~webupd8~precise', '1.5.0-1+webupd8.precise'),
-        ('1:1.2.3.4.dfsg-3ubuntu4', '1!1.2.3.4+dfsg.3ubuntu4'),  # epoch (:/!) at the start
-    ],
-)
-def test_coerce_version(input_version, expected_output):
-    assert lookup.coerce_version(input_version) == parse_version(expected_output)
-
-
-@pytest.mark.parametrize(
-    ('smaller_version', 'bigger_version'),
-    [
-        ('1', '2'),
-        ('1.2', '1.3'),
-        ('1.2', '1.03'),
-        ('1.2a', '1.2'),
-        ('1.2-rc3', '1.2'),
-        ('1.2', '1.2-1'),
-        ('0.9.8zf', '0.9.8zg'),  # OpenSSL
-        ('1.2-1ubuntu1', '1.2-1ubuntu2'),  # Ubuntu
-    ],
-)
-def test_version_comparison(smaller_version, bigger_version):
-    assert lookup.coerce_version(smaller_version) < lookup.coerce_version(bigger_version)

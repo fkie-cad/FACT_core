@@ -1,121 +1,93 @@
 from __future__ import annotations
 
 import json
-import sys
-from datetime import datetime
-from io import BytesIO
-from pathlib import Path
-from xml.etree.ElementTree import ParseError, parse
-from zipfile import BadZipFile, ZipFile
-
+import lzma
 import requests
-from requests.exceptions import RequestException
-from retry import retry
+from requests.adapters import HTTPAdapter, Retry
+from typing import TYPE_CHECKING
 
-try:
-    from ..internal.helper_functions import CveEntry, CveLookupException, CveSummaryEntry
-except (ImportError, SystemError):
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from helper_functions import CveEntry, CveLookupException, CveSummaryEntry
+if TYPE_CHECKING:
+    from requests.models import Response
 
-CPE_FILE = 'official-cpe-dictionary_v2.3.xml'
-CPE_URL = f'https://nvd.nist.gov/feeds/xml/cpe/dictionary/{CPE_FILE}.zip'
-CVE_URL = 'https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-{}.json.zip'
+from ..internal.helper_functions import CveEntry
+
+FILE_NAME = 'CVE-all.json.xz'
+CVE_URL = f'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/download/{FILE_NAME}'
 
 
-def get_cve_links(url: str, selected_years: list[int] | None = None) -> list[str]:
-    if selected_years is None:
-        selected_years = range(2002, datetime.today().year + 1)
-    return [url.format(year) for year in selected_years]
+def _retrieve_url(download_url: str) -> Response:
+    adapter = HTTPAdapter(max_retries=Retry(total=5, backoff_factor=0.1))
+    with requests.Session() as session:
+        session.mount('http://', adapter)
+        return session.get(download_url)
 
 
-def process_url(download_url: str, path: str):
-    try:
-        request = _retrieve_url(download_url)
-        zipped_data = ZipFile(BytesIO(request.content))
-    except RequestException as exception:
-        raise CveLookupException(f'URL {download_url} not found. URL might have changed.') from exception
-    except BadZipFile as exception:
-        raise CveLookupException(f'Could not retrieve file from URL {download_url} (bad zip file)') from exception
-
-    zipped_data.extractall(path)
+def download_and_decompress_data() -> bytes:
+    """
+    Downloads data from a URL, saves it to a file, decompresses it, and returns the decompressed data.
+    """
+    response = _retrieve_url(CVE_URL)
+    return lzma.decompress(response.content)
 
 
-@retry(RequestException, tries=3, delay=5, backoff=2)
-def _retrieve_url(download_url):
-    return requests.get(download_url, allow_redirects=True)
+def extract_english_summary(descriptions: list) -> str:
+    for description in descriptions:
+        if description['lang'] == 'en':
+            summary = description['value']
+            if not summary.startswith('** REJECT **'):
+                return summary
+    return ''
 
 
-def download_cve(download_path: str, years: list[int] | None = None, update: bool = False):
-    if update:
-        process_url(CVE_URL.format('modified'), download_path)
-    else:
-        all_cve_urls = get_cve_links(CVE_URL, years)
-        if not all_cve_urls:
-            raise CveLookupException('Error: No CVE links found')
-        for url in all_cve_urls:
-            process_url(url, download_path)
-
-
-def download_cpe(download_path: str):
-    if not CPE_URL:
-        raise CveLookupException('Error: No CPE URL provided. Check metadata.json if required URL is set.')
-    process_url(CPE_URL, download_path)
-
-
-def extract_cpe_data_from_cve(nodes: list[dict]) -> list[tuple[str, str, str, str, str]]:
-    cpe_entries = []
-    for dicts in nodes:
-        if 'cpe_match' in dicts:
-            for cpe in dicts['cpe_match']:
-                if 'cpe23Uri' in cpe and cpe['vulnerable']:
-                    cpe_entries.append(
-                        (
-                            cpe['cpe23Uri'],
-                            cpe.get('versionStartIncluding', ''),
-                            cpe.get('versionStartExcluding', ''),
-                            cpe.get('versionEndIncluding', ''),
-                            cpe.get('versionEndExcluding', ''),
-                        )
-                    )
-        elif 'children' in dicts:
-            cpe_entries.extend(extract_cpe_data_from_cve(dicts['children']))
-    return cpe_entries
-
-
-def extract_cve_impact(entry: dict) -> dict:
-    if not entry:
-        return {}
+def extract_cve_impact(metrics: dict) -> dict[str, str]:
     impact = {}
-    for version in [2, 3]:
-        metric_key = f'baseMetricV{version}'
-        cvss_key = f'cvssV{version}'
-        if metric_key in entry and cvss_key in entry[metric_key]:
-            impact[cvss_key] = entry[metric_key][cvss_key]['baseScore']
+    for version in [2, 30, 31]:
+        cvss_key = f'cvssMetricV{version}'
+        if cvss_key in metrics:
+            for entry in metrics[cvss_key]:
+                if entry['type'] == 'Primary':
+                    impact.setdefault(cvss_key, entry['cvssData']['baseScore'])
+                elif cvss_key not in impact:
+                    impact[cvss_key] = entry['cvssData']['baseScore']
     return impact
 
 
-def extract_data_from_cve(root: dict) -> tuple[list[CveEntry], list[CveSummaryEntry]]:
-    cve_list, summary_list = [], []
-    for feed in root['CVE_Items']:
-        cve_id = feed['cve']['CVE_data_meta']['ID']
-        summary = feed['cve']['description']['description_data'][0]['value']
-        impact = extract_cve_impact(feed['impact']) if 'impact' in feed else {}
-        if feed['configurations']['nodes']:
-            cpe_entries = list(set(extract_cpe_data_from_cve(feed['configurations']['nodes'])))
-            cve_list.append(CveEntry(cve_id=cve_id, impact=impact, cpe_list=cpe_entries))
-        elif not summary.startswith('** REJECT **'):
-            summary_list.append(CveSummaryEntry(cve_id=cve_id, summary=summary, impact=impact))
-    return cve_list, summary_list
+def extract_cpe_data(configurations: list) -> list[tuple[str, str, str, str, str]]:
+    unique_criteria = {}
+    cpe_entries = []
+    for configuration in configurations:
+        for node in configuration['nodes']:
+            if 'cpeMatch' in node:
+                for cpe in node['cpeMatch']:
+                    if 'criteria' in cpe and cpe['vulnerable'] and cpe['criteria'] not in unique_criteria:
+                        cpe_entries.append(
+                            (
+                                cpe['criteria'],
+                                cpe.get('versionStartIncluding', ''),
+                                cpe.get('versionStartExcluding', ''),
+                                cpe.get('versionEndIncluding', ''),
+                                cpe.get('versionEndExcluding', ''),
+                            )
+                        )
+                        unique_criteria[cpe['criteria']] = True
+    return cpe_entries
 
 
-def extract_cve(cve_file: str) -> tuple[list[CveEntry], list[CveSummaryEntry]]:
-    return extract_data_from_cve(json.loads(Path(cve_file).read_text()))
+def extract_data_from_cve(cve_item: dict) -> CveEntry:
+    cve_id = cve_item['id']
+    summary = extract_english_summary(cve_item['descriptions'])
+    impact = extract_cve_impact(cve_item['metrics'])
+    cpe_entries = extract_cpe_data(cve_item.get('configurations', []))
+    return CveEntry(cve_id=cve_id, summary=summary, impact=impact, cpe_entries=cpe_entries)
 
 
-def extract_cpe(file: str) -> list:
-    try:
-        tree = parse(file)
-    except ParseError as error:
-        raise CveLookupException(f'could not extract CPE file: {file}') from error
-    return [item.attrib['name'] for entry in tree.getroot() for item in entry if 'cpe23-item' in item.tag]
+def parse_data() -> list[CveEntry]:
+    """
+    Parse the data from the JSON file and return a list of CveEntry objects.
+    """
+    cve_json = json.loads(download_and_decompress_data())
+    return [extract_data_from_cve(cve_item) for cve_item in cve_json.get('cve_items', [])]
+
+
+if __name__ == '__main__':
+    parse_data()
