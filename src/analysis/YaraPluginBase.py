@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-import json
 import logging
 import re
 import subprocess
 from pathlib import Path
+
+import yaml
+from yaml.parser import ParserError
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
@@ -102,16 +104,14 @@ def _append_match_to_result(match, resulting_matches: dict[str, dict], rule):
     resulting_matches[rule_name]['strings'].append((int(offset, 16), matched_tag, matched_string))
 
 
-def _parse_meta_data(meta_data_string):
+def _parse_meta_data(meta_data_string: str) -> dict[str, str | bool | int]:
     '''
     Will be of form 'item0=lowercaseboolean0,item1="value1",item2=value2,..'
     '''
-    meta_data = {}
-    for item in meta_data_string.split(','):
-        if '=' in item:
-            key, value = item.split('=', maxsplit=1)
-            value = json.loads(value) if value in ['true', 'false'] else value.strip('"')
-            meta_data[key] = value
-        else:
-            logging.warning(f'Malformed meta string \'{meta_data_string}\'')
-    return meta_data
+    try:
+        meta_data = yaml.safe_load(f'{{{meta_data_string.replace("=", ": ")}}}')
+        assert isinstance(meta_data, dict)
+        return meta_data
+    except (ParserError, AssertionError):
+        logging.warning(f"Malformed meta string '{meta_data_string}'")
+        return {}

@@ -4,6 +4,7 @@ MarkupSafe==2.1.1
 networkx==2.6.3
 Pillow==9.3.0
 pyopenssl==22.1.0
+pyyaml==6.0.1
 
 # FIXME This is only needed by the compare/file_header plugin
 #       See Issue #832
