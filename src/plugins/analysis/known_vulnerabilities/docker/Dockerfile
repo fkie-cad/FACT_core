@@ -1,4 +1,4 @@
-FROM fkiecad/ghidra_headless_base:10.1.2
+FROM fkiecad/ghidra_headless_base:10.2.3
 
 
 VOLUME ["/work"]

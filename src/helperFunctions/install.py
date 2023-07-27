@@ -225,7 +225,7 @@ def check_distribution(allow_unsupported=False):
     """
     bionic_code_names = ['bionic', 'tara', 'tessa', 'tina', 'disco']
     debian_code_names = ['buster', 'stretch', 'bullseye', 'bookworm', 'kali-rolling']
-    focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma']
+    focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma', 'una']
     jammy_code_names = ['jammy', 'vanessa', 'vera']
 
     codename = distro.codename().lower()
