@@ -1,3 +1,3 @@
-from .scheduler import AnalysisScheduler  # noqa: F401
+from .scheduler import AnalysisScheduler
 
-ALL = ['AnalysisScheduler']
+__all__ = ['AnalysisScheduler']
