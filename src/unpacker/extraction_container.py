@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import multiprocessing
 from contextlib import suppress
+from http import HTTPStatus
 from os import getgid, getuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -12,7 +13,7 @@ import requests
 from docker.errors import APIError, DockerException
 from docker.models.containers import Container
 from docker.types import Mount
-from requests.adapters import HTTPAdapter, Retry
+from requests.adapters import HTTPAdapter, Response, Retry
 
 from config import cfg
 
@@ -27,7 +28,7 @@ class ExtractionContainer:
         self.port = cfg.unpack.base_port + id_
         self.container_id = None
         self.exception = value
-        self._adapter = HTTPAdapter(max_retries=Retry(total=5, backoff_factor=0.1))
+        self._adapter = HTTPAdapter(max_retries=Retry(total=3, backoff_factor=0.1))
 
     def start(self):
         if self.container_id is not None:
@@ -108,8 +109,20 @@ class ExtractionContainer:
         container = self._get_container()
         return container.logs().decode(errors='replace')
 
-    def start_unpacking(self, tmp_dir: str, timeout: int | None = None):
+    def start_unpacking(self, tmp_dir: str, timeout: int | None = None) -> Response:
+        response = self._check_connection()
+        if response.status_code != HTTPStatus.OK:
+            return response
         url = f'http://localhost:{self.port}/start/{Path(tmp_dir).name}'
+        return requests.get(url, timeout=timeout)
+
+    def _check_connection(self) -> Response:
+        """
+        Try to access the /status endpoint of the container to make sure the container is ready.
+        The `self._adapter` includes a retry in order to wait if the connection cannot be established directly.
+        We can't retry on the actual /start endpoint (or else we would start unpacking multiple times).
+        """
+        url = f'http://localhost:{self.port}/status'
         with requests.Session() as session:
             session.mount('http://', self._adapter)
-            return session.get(url, timeout=timeout)
+            return session.get(url, timeout=5)
