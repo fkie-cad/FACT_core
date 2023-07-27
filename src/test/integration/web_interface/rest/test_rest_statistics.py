@@ -1,5 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order,unused-argument
-
 import json
 
 import pytest

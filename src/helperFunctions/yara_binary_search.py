@@ -14,13 +14,13 @@ from storage.fsorganizer import FSOrganizer
 
 
 class YaraBinarySearchScanner:
-    '''
+    """
     This class provides functionality to scan files in the database for yara patterns. The public method allows to
     either match a given set of patterns on all files in the database or focus only on files included in a single
     firmware.
 
     :param config: The FACT configuration.
-    '''
+    """
 
     def __init__(self):
         self.matches = []
@@ -29,13 +29,13 @@ class YaraBinarySearchScanner:
         self.fs_organizer = FSOrganizer()
 
     def _execute_yara_search(self, rule_file_path: str, target_path: str | None = None) -> str:
-        '''
+        """
         Scans the (whole) db directory with the provided rule file and returns the (raw) results.
         Yara-python cannot be used, because it (currently) supports single-file scanning only.
 
         :param rule_file_path: The file path to the yara rule file.
         :return: The output from the yara scan.
-        '''
+        """
         compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b'YARA') else ''
         command = f'yara -r {compiled_flag} {rule_file_path} {target_path or self.db_path}'
         yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
@@ -51,15 +51,15 @@ class YaraBinarySearchScanner:
 
     @staticmethod
     def _parse_raw_result(raw_result: str) -> dict[str, list[str]]:
-        '''
+        """
         :param raw_result: raw yara scan result
         :return: dict of matching rules with lists of matched UIDs as values
-        '''
+        """
         results = {}
         for line in raw_result.split('\n'):
             if line and 'warning' not in line:
                 rule, match = line.split(' ')
-                results.setdefault(rule, []).append(basename(match))
+                results.setdefault(rule, []).append(basename(match))  # noqa: PTH119
         return results
 
     @staticmethod
@@ -68,13 +68,13 @@ class YaraBinarySearchScanner:
             result_dict[key] = sorted(set(result_dict[key]))
 
     def get_binary_search_result(self, task: tuple[bytes, str | None]) -> dict[str, list[str]] | str:
-        '''
+        """
         Perform a yara search on the files in the database.
 
         :param task: A tuple containing the yara_rules (byte string with the contents of the yara rule file) and
             optionally a firmware uid if only the contents of a single firmware are to be scanned.
         :return: dict of matching rules with lists of (unique) matched UIDs as values or an error message.
-        '''
+        """
         with NamedTemporaryFile() as temp_rule_file:
             yara_rules, firmware_uid = task
             try:
@@ -103,22 +103,22 @@ class YaraBinarySearchScanner:
 
 
 def is_valid_yara_rule_file(yara_rules: str | bytes) -> bool:
-    '''
+    """
     Check if ``yara_rules`` is a valid set of yara rules.
 
     :param: A string containing yara rules.
     :return: ``True`` if the rules are valid and ``False`` otherwise.
-    '''
+    """
     return get_yara_error(yara_rules) is None
 
 
 def get_yara_error(rules_file: str | bytes) -> Exception | None:
-    '''
+    """
     Get the exception that is caused by trying to compile ``rules_file`` with yara or ``None`` if there is none.
 
     :param rules_file: A string containing yara rules.
     :result: The exception if compiling the rules causes an exception or ``None`` otherwise.
-    '''
+    """
     try:
         if isinstance(rules_file, bytes):
             rules_file = rules_file.decode()

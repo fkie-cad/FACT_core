@@ -40,7 +40,7 @@ def _import_plugins(plugin_type):
         try:
             loader.exec_module(plugin_module)
             plugins.append(plugin_module)
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             sys.modules.pop(spec.name)
             # This exception could be caused by upgrading dependencies to incompatible versions. Another cause could
             # be missing dependencies. So if anything goes wrong we want to inform the user about it

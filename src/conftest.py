@@ -17,17 +17,17 @@ from test.conftest import merge_markers
 
 
 @pytest.fixture
-def _docker_mount_base_dir() -> str:
+def _docker_mount_base_dir() -> str:  # noqa: PT005
     docker_gid = grp.getgrnam('docker').gr_gid
 
     with TemporaryDirectory(prefix='fact-docker-mount-base-dir') as tmp_dir:
         os.chown(tmp_dir, -1, docker_gid)
-        os.chmod(tmp_dir, 0o770)
+        os.chmod(tmp_dir, 0o770)  # noqa: PTH101
         yield tmp_dir
 
 
 @pytest.fixture
-def _firmware_file_storage_directory() -> str:
+def _firmware_file_storage_directory() -> str:  # noqa: PT005
     with TemporaryDirectory(prefix='fact-firmware-file-storage-directory') as tmp_dir:
         yield tmp_dir
 
@@ -151,7 +151,7 @@ def frontend_config(request, common_config) -> config.Frontend:
 
 
 @pytest.fixture(autouse=True)
-def patch_config(monkeypatch, common_config, backend_config, frontend_config):
+def patch_config(monkeypatch, common_config, backend_config, frontend_config):  # noqa: PT004
     """This fixture will replace :py:data`config.common`, :py:data:`config.backend` and :py:data:`config.frontend`
     with the default test config.
 
@@ -188,7 +188,7 @@ class AnalysisPluginTestConfig(BaseModel):
 
 
 @pytest.fixture
-def analysis_plugin(request, monkeypatch, patch_config):
+def analysis_plugin(request, monkeypatch, patch_config):  # noqa: ARG001
     """Returns an instance of an AnalysisPlugin.
     This fixture can be configured by the supplying an instance of ``AnalysisPluginTestConfig`` as marker of the same
     name.
@@ -229,7 +229,7 @@ def analysis_plugin(request, monkeypatch, patch_config):
     """
     test_config = merge_markers(request, 'AnalysisPluginTestConfig', AnalysisPluginTestConfig)
 
-    PluginClass = test_config.plugin_class
+    PluginClass = test_config.plugin_class  # noqa: N806
 
     plugin_instance = PluginClass(
         view_updater=CommonDatabaseMock(),

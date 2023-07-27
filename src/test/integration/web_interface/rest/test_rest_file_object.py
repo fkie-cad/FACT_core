@@ -1,4 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,unused-argument
 import pytest
 
 from test.common_helper import create_test_file_object

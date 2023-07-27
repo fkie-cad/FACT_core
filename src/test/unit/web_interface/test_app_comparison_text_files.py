@@ -11,7 +11,7 @@ class MockInterCom(CommonIntercomMock):
     def get_file_diff(uid_pair: tuple[str, str]) -> str | None:
         if TEST_TEXT_FILE.uid in uid_pair:
             return f'file diff {TEST_TEXT_FILE.file_name}'
-        assert False, 'if this point was reached, something went wrong'
+        raise AssertionError('if this point was reached, something went wrong')
 
 
 class DbMock(CommonDatabaseMock):
@@ -24,7 +24,7 @@ class DbMock(CommonDatabaseMock):
             return create_test_firmware(device_name='fw1')
         if uid == 'file_2_root_uid':
             return create_test_firmware(device_name='fw2')
-        assert False, 'if this point was reached, something went wrong'
+        raise AssertionError('if this point was reached, something went wrong')
 
 
 @pytest.mark.WebInterfaceUnitTestConfig(

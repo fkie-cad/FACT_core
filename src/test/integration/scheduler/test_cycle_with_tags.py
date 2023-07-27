@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order,too-many-instance-attributes,attribute-defined-outside-init
 import pytest
 
 from objects.firmware import Firmware
@@ -13,9 +12,7 @@ class TestTagPropagation:
         items_to_analyze=15,
         pipeline=True,
     )
-    def test_run_analysis_with_tag(
-        self, analysis_finished_event, unpacking_scheduler, backend_db, analysis_scheduler
-    ):  # pylint: disable=unused-argument
+    def test_run_analysis_with_tag(self, analysis_finished_event, unpacking_scheduler, backend_db, analysis_scheduler):
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/with_key.7z')
         test_fw.version, test_fw.vendor, test_fw.device_name, test_fw.device_class = ['foo'] * 4
         test_fw.release_date = '2017-01-01'

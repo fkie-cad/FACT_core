@@ -5,12 +5,12 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 
 
 def convert_to_jstree_node(node: FileTreeNode):
-    '''
+    """
     converts a file tree node to a json dict that can be rendered by jstree
 
     :param node: the file tree node
     :return: a json-compatible dict containing the jstree data
-    '''
+    """
     if node.virtual:
         jstree_node = _get_directory_jstree_node(node)
     elif node.not_analyzed:

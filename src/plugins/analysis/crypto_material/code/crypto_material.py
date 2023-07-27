@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
-from typing import NamedTuple
+from typing import NamedTuple, TYPE_CHECKING
 
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.tag import TagColor
 
 from ..internal.key_parser import read_asn1_key, read_pkcs_cert, read_ssl_cert
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class Match(NamedTuple):
@@ -17,17 +19,17 @@ class Match(NamedTuple):
 
 
 class AnalysisPlugin(YaraBasePlugin):
-    '''
+    """
     Searches for known Crypto material (e.g., public and private keys)
-    '''
+    """
 
     NAME = 'crypto_material'
     DESCRIPTION = 'detects crypto material like SSH keys and SSL certificates'
     VERSION = '0.5.2'
-    MIME_BLACKLIST = ['filesystem']
+    MIME_BLACKLIST = ['filesystem']  # noqa: RUF012
     FILE = __file__
 
-    STARTEND = [
+    STARTEND = [  # noqa: RUF012
         'PgpPublicKeyBlock',
         'PgpPrivateKeyBlock',
         'PgpPublicKeyBlock_GnuPG',
@@ -36,7 +38,7 @@ class AnalysisPlugin(YaraBasePlugin):
         'SshEncryptedRsaPrivateKeyBlock',
         'SSLPrivateKey',
     ]
-    STARTONLY = ['SshRsaPublicKeyBlock']
+    STARTONLY = ['SshRsaPublicKeyBlock']  # noqa: RUF012
     PKCS8 = 'Pkcs8PrivateKey'
     PKCS12 = 'Pkcs12Certificate'
     SSLCERT = 'SSLCertificate'

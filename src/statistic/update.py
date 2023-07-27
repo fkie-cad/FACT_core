@@ -11,9 +11,9 @@ from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
 
 class StatsUpdater:
-    '''
+    """
     This class handles statistic generation
-    '''
+    """
 
     def __init__(self, stats_db: StatsUpdateDbInterface | None = None):
         self.db = stats_db if stats_db else StatsUpdateDbInterface()
@@ -66,7 +66,7 @@ class StatsUpdater:
     @staticmethod
     def _filter_results(stats: Stats) -> Stats:
         blacklist = ['not available', 'clean']
-        return [item for item in stats if not item[0] in blacklist]
+        return [item for item in stats if item[0] not in blacklist]
 
     def get_exploit_mitigations_stats(self) -> dict[str, RelativeStats]:
         result = self.db.count_values_in_summary(plugin='exploit_mitigations', q_filter=self.match)

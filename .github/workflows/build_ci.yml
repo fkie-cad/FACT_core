@@ -12,9 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ focal, jammy, bullseye ]
+        os: [ focal, jammy, bullseye, bookworm ]
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
-    timeout-minutes: 45
+    timeout-minutes: 35
     steps:
       - name: Add Masks
         run: |

@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 RELATIONS = {
-    'exists': lambda x, y: True,
+    'exists': lambda x, y: True,  # noqa: ARG005
     'equals': lambda x, y: x == y,
     'is': lambda x, y: x is y,
     'gt': lambda x, y: x > y,
@@ -17,7 +17,7 @@ class BadRuleError(ValueError):
 
 
 class Vulnerability:
-    def __init__(self, rule, description, reliability, score, link, short_name):
+    def __init__(self, rule, description, reliability, score, link, short_name):  # noqa: PLR0913
         try:
             self.reliability = str(int(reliability))
             self.score = score
@@ -28,7 +28,7 @@ class Vulnerability:
 
             self._make_type_assertions(link, rule)
         except (ValueError, TypeError) as exception:
-            raise BadRuleError(str(exception))
+            raise BadRuleError(str(exception))  # noqa: B904
 
     def _make_type_assertions(self, link, rule):
         for type_assertion, error_message in [
@@ -129,8 +129,7 @@ def _evaluate_sub_path_rule(analysis, rule):
 
 
 def _apply_relation(relation, value, comparison):
-    result = RELATIONS[relation](value, comparison)
-    return result
+    return RELATIONS[relation](value, comparison)
 
 
 def _get_value(analysis, value_path):

@@ -78,7 +78,7 @@ class UserManagementRoutes(ComponentBase):
     def _change_user_password(self, user_id):
         new_password = request.form['admin_change_password']
         retype_password = request.form['admin_confirm_password']
-        if not new_password == retype_password:
+        if new_password != retype_password:
             flash('Error: passwords do not match', 'danger')
         elif not password_is_legal(new_password):
             flash('Error: password is not legal. Please choose another password.', 'danger')

@@ -1,5 +1,3 @@
-# pylint: disable=import-error,consider-using-f-string,undefined-variable
-# pylint: disable=unspecified-encoding
 # flake8: noqa
 
 import json

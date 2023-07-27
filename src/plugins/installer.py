@@ -19,11 +19,10 @@ class AbstractPluginInstaller:
 
     :param distribution: The distribution on which the installer is executed. See :py:func:`~helperFunctions.install.check_distribution`
     :param skip_docker: Whether or not to do anything docker related.
-    """
+    """  # noqa: E501
 
     # Even if some functions don't need self we want to have them nicely
     # grouped in this class
-    # pylint:disable=no-self-use
 
     _skip_docker_env = os.getenv('FACT_INSTALLER_SKIP_DOCKER') is not None
     #: The base directory of the plugin
@@ -37,7 +36,7 @@ class AbstractPluginInstaller:
 
     def install(self):
         """Completely install the plugin."""
-        cwd = os.getcwd()
+        cwd = os.getcwd()  # noqa: PTH109
         os.chdir(self.base_path)
         self.install_system_packages()
         self.install_pip_packages()
@@ -59,14 +58,14 @@ class AbstractPluginInstaller:
         os.chdir(cwd)
 
     def install_docker_images(self):
-        '''
+        """
         Build/Pull docker images
-        '''
+        """
 
     def install_system_packages(self):
-        '''
+        """
         Install packages with apt/dnf
-        '''
+        """
         build_pkg_path = Path('./apt-pkgs-build.txt' if self.distribution != 'fedora' else './dnf-pkgs-build.txt')
         runtime_pkg_path = Path('./apt-pkgs-runtime.txt' if self.distribution != 'fedora' else './dnf-pkgs-runtime.txt')
 
@@ -81,28 +80,28 @@ class AbstractPluginInstaller:
         run_cmd_with_logging(f'sudo {pgk_mgr_cmd} {pkgs_to_install}')
 
     def install_pip_packages(self):
-        '''
+        """
         Install packages with pip
-        '''
+        """
         requirements_path = self.base_path / 'requirements.txt'
         if requirements_path.exists():
             install_pip_packages(requirements_path)
 
     def install_other_packages(self):
-        '''
+        """
         Install packages with package managers other than pip/dnf/apt.
-        '''
+        """
 
     def install_files(self):
-        '''
+        """
         Download and install files.
-        '''
+        """
 
     def build(self):
-        '''
+        """
         Build and install projects that can't be installed through a package
         manager
-        '''
+        """
 
     def _build_docker_image(self, tag: str, dockerfile_path: Path | None = None):
         if not dockerfile_path:

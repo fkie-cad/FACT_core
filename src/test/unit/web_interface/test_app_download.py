@@ -1,6 +1,6 @@
 import pytest
 
-from test.common_helper import TEST_FW, CommonDatabaseMock  # pylint: disable=wrong-import-order
+from test.common_helper import TEST_FW, CommonDatabaseMock
 
 
 def test_app_download_raw_invalid(test_client):
@@ -14,7 +14,7 @@ def test_app_download_raw_error(test_client):
 
 
 class DbMock(CommonDatabaseMock):
-    def get_analysis(self, uid, plugin):  # pylint: disable=unused-argument
+    def get_analysis(self, uid, plugin):
         return {'mime': 'application/x-foobar'}
 
 

@@ -31,12 +31,12 @@ def test_run_command_append_output():
 
 
 def test_operate_in_directory():
-    '''
+    """
     TempDir structure:
       ├ file1
       └ folder
         └ file2
-    '''
+    """
     with TemporaryDirectory('fact_test') as tmp_dir:
         tmp_path = Path(tmp_dir)
         folder = tmp_path / 'folder'
@@ -45,17 +45,20 @@ def test_operate_in_directory():
         file1.touch()
         file2 = folder / 'file2'
         file2.touch()
-        assert not (Path(file1.name).is_file() or Path(file2.name).is_file() or Path(folder.name).is_dir())
+        assert not Path(file1.name).is_file() or Path(file2.name).is_file()
+        assert not Path(folder.name).is_dir()
 
-        current_dir = os.getcwd()
+        current_dir = os.getcwd()  # noqa: PTH109
         with OperateInDirectory(tmp_dir):
             assert Path(file1.name).is_file()
-            assert current_dir != os.getcwd()
-        assert current_dir == os.getcwd()
+            assert current_dir != os.getcwd()  # noqa: PTH109
+        assert current_dir == os.getcwd()  # noqa: PTH109
 
         with OperateInDirectory(folder, remove=True):
             assert Path(file2.name).is_file()
-        assert file1.is_file() and not file2.is_file() and not folder.is_dir()
+        assert file1.is_file()
+        assert not file2.is_file()
+        assert not folder.is_dir()
 
 
 def test_read_package_list_from_file():

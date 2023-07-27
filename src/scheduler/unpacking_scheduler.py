@@ -20,27 +20,30 @@ from helperFunctions.process import (
     new_worker_was_started,
     stop_processes,
 )
-from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
 from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack import Unpacker
 from unpacker.unpack_base import ExtractionError
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
-class NoFreeWorker(RuntimeError):
+class NoFreeWorker(RuntimeError):  # noqa: N818
     pass
 
 
 THROTTLE_INTERVAL = 2
 
 
-class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
-    '''
+class UnpackingScheduler:
+    """
     This scheduler performs unpacking on firmware objects
-    '''
+    """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         post_unpack=None,
         analysis_workload=None,
@@ -91,9 +94,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         return extraction_loop_process
 
     def shutdown(self):
-        '''
+        """
         shutdown the scheduler
-        '''
+        """
         logging.debug('Shutting down unpacking scheduler')
         self.stop_condition.value = 1
         self.in_queue.close()
@@ -116,9 +119,9 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     # ---- internal functions ----
 
     def add_task(self, fw: Firmware):
-        '''
+        """
         schedule a firmware_object for unpacking
-        '''
+        """
         fw.root_uid = fw.uid  # make sure the root_uid is set correctly for unpacking and analysis scheduling
         self.in_queue.put(fw)
 
@@ -127,9 +130,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     def create_containers(self):
         for id_ in range(config.backend.unpacking.processes):
-            tmp_dir = TemporaryDirectory(  # pylint: disable=consider-using-with
-                dir=config.backend.docker_mount_base_dir
-            )
+            tmp_dir = TemporaryDirectory(dir=config.backend.docker_mount_base_dir)
             container = ExtractionContainer(id_=id_, tmp_dir=tmp_dir, value=self.manager.Value('i', 0))
             container.start()
             self.workers.append(container)
@@ -288,7 +289,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             workload = self._get_combined_analysis_workload()
             unpack_queue_size = self.in_queue.qsize()
 
-            if self.work_load_counter >= 25:
+            if self.work_load_counter >= 25:  # noqa: PLR2004
                 self.work_load_counter = 0
                 log_function = logging.info
             else:

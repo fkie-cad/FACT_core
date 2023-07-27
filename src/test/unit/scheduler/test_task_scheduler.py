@@ -1,4 +1,3 @@
-# pylint: disable=protected-access,invalid-name,use-implicit-booleaness-not-comparison,attribute-defined-outside-init
 import pytest
 
 from objects.firmware import Firmware
@@ -34,7 +33,7 @@ class TestAnalysisScheduling:
         }
 
     @pytest.mark.parametrize(
-        'input_data, expected_output',
+        ('input_data', 'expected_output'),
         [
             (set(), set()),
             ({'p1'}, {'p2', 'p3'}),
@@ -48,7 +47,7 @@ class TestAnalysisScheduling:
         assert result == expected_output
 
     @pytest.mark.parametrize(
-        'input_data, expected_output',
+        ('input_data', 'expected_output'),
         [
             ([], set()),
             (['p3'], {'p3'}),
@@ -62,7 +61,7 @@ class TestAnalysisScheduling:
         assert set(result) == expected_output
 
     @pytest.mark.parametrize(
-        'remaining, scheduled, expected_output',
+        ('remaining', 'scheduled', 'expected_output'),
         [
             ({}, [], []),
             ({'no_deps', 'foo', 'bar'}, [], ['no_deps']),
@@ -75,7 +74,7 @@ class TestAnalysisScheduling:
         assert self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled) == expected_output
 
     @pytest.mark.parametrize(
-        'remaining, scheduled, expected_output',
+        ('remaining', 'scheduled', 'expected_output'),
         [
             ({'bar'}, ['no_deps', 'foo'], {'bar'}),
             ({'foo', 'bar'}, ['no_deps', 'foo'], {'foo', 'bar'}),
@@ -108,7 +107,7 @@ class TestAnalysisScheduling:
     def test_smart_shuffle__impossible_dependency(self):
         self._add_plugins()
         self.scheduler.plugins['impossible'] = self.PluginMock(dependencies=['impossible to meet'])
-        result = self.scheduler._smart_shuffle(self.plugin_list + ['impossible'])
+        result = self.scheduler._smart_shuffle([*self.plugin_list, 'impossible'])
         assert 'impossible' not in result
         assert result == ['bar', 'foo', 'no_deps']
 

@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name,wrong-import-order
 import os
 
 import pytest
@@ -8,7 +7,7 @@ from intercom.common_redis_binding import InterComListener
 from storage.redis_interface import REDIS_MAX_VALUE_SIZE
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def listener():
     generic_listener = InterComListener()
     try:

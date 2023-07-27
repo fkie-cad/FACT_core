@@ -12,7 +12,9 @@ from storage.db_setup import DbSetup
 from storage.migration import alembic_table_exists, create_alembic_table, set_alembic_revision
 
 
-def execute_psql_command(psql_command: str, host, port=5432, user=os.getenv('PGUSER', default='postgres')) -> bytes:
+def execute_psql_command(
+    psql_command: str, host, port=5432, user=os.getenv('PGUSER', default='postgres')  # noqa: B008
+) -> bytes:
     # This is only used to create the fact_admin user.
     # In order to create this user we have to have access to the default admin user (postgres).
     # By default this user does not have a password and "Peer authentication" is used to login to this user.

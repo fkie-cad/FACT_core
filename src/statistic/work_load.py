@@ -1,6 +1,6 @@
-'''
+"""
 generate workload statistics
-'''
+"""
 import logging
 import os
 import sys
@@ -52,7 +52,7 @@ class WorkLoadStatistic:
         except Exception:
             cpu_percentage = 'unknown'
 
-        result = {
+        return {
             'cpu_cores': psutil.cpu_count(logical=False),
             'virtual_cpu_cores': psutil.cpu_count(),
             'cpu_percentage': cpu_percentage,
@@ -64,7 +64,6 @@ class WorkLoadStatistic:
             'disk_used': disk_usage.used,
             'disk_percent': disk_usage.percent,
         }
-        return result
 
     @staticmethod
     def _get_platform_information():

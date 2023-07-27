@@ -9,11 +9,11 @@ from storage.fsorganizer import FSOrganizer
 
 @pytest.fixture
 def fsorganizer():
-    yield FSOrganizer()
+    return FSOrganizer()
 
 
 def _check_file_presence_and_content(file_path, file_binary):
-    assert os.path.exists(file_path), 'file exists'
+    assert os.path.exists(file_path), 'file exists'  # noqa: PTH110
     assert get_binary_from_file(file_path) == file_binary, 'correct content'
 
 
@@ -43,4 +43,4 @@ def test_store_and_delete_file(fsorganizer):
     ), 'wrong file path set in file object'
 
     fsorganizer.delete_file(file_object.uid)
-    assert not os.path.exists(file_object.file_path), 'file not deleted'
+    assert not os.path.exists(file_object.file_path), 'file not deleted'  # noqa: PTH110

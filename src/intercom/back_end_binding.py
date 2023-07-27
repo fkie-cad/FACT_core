@@ -3,7 +3,6 @@ from __future__ import annotations
 import difflib
 import logging
 import os
-from collections.abc import Callable
 from multiprocessing import Process, Value
 from pathlib import Path
 from time import sleep
@@ -12,25 +11,29 @@ import config
 from helperFunctions.process import stop_processes
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_redis_binding import InterComListener, InterComListenerAndResponder, InterComRedisInterface
-from objects.firmware import Firmware
 from storage.binary_service import BinaryService
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
-from storage.unpacking_locks import UnpackingLockManager
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from storage.unpacking_locks import UnpackingLockManager
+    from objects.firmware import Firmware
+    from collections.abc import Callable
 
 
-class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
-    '''
+class InterComBackEndBinding:
+    """
     Internal Communication Backend Binding
-    '''
+    """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         analysis_service=None,
         compare_service=None,
         unpacking_service=None,
         unpacking_locks=None,
-        testing=False,
+        testing=False,  # noqa: ARG002
     ):
         self.analysis_service = analysis_service
         self.compare_service = compare_service
@@ -101,7 +104,7 @@ class InterComBackEndAnalysisTask(InterComListener):
         super().__init__()
         self.fs_organizer = FSOrganizer()
 
-    def post_processing(self, task, task_id):
+    def post_processing(self, task, task_id):  # noqa: ARG002
         self.fs_organizer.store_file(task)
         return task
 
@@ -113,7 +116,7 @@ class InterComBackEndReAnalyzeTask(InterComListener):
         super().__init__()
         self.fs_organizer = FSOrganizer()
 
-    def post_processing(self, task: Firmware, task_id):
+    def post_processing(self, task: Firmware, task_id):  # noqa: ARG002
         task.file_path = self.fs_organizer.generate_path(task)
         task.create_binary_from_path()
         return task
@@ -209,7 +212,7 @@ class InterComBackEndDeleteFile(InterComListenerAndResponder):
         self.db = db_interface
         self.unpacking_locks: UnpackingLockManager = unpacking_locks
 
-    def post_processing(self, task: set[str], task_id):
+    def post_processing(self, task: set[str], task_id):  # noqa: ARG002
         # task is a set of UIDs
         uids_in_db = self.db.uid_list_exists(task)
         deleted = 0
@@ -226,7 +229,7 @@ class InterComBackEndDeleteFile(InterComListenerAndResponder):
             logging.info(f'Deleted {deleted} files')
         return task
 
-    def get_response(self, task):
+    def get_response(self, task):  # noqa: ARG002
         return True  # we only want to know when the deletion is completed and not actually return something
 
 
@@ -234,7 +237,7 @@ class InterComBackEndLogsTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'logs_task'
     OUTGOING_CONNECTION_TYPE = 'logs_task_resp'
 
-    def get_response(self, task):
+    def get_response(self, task):  # noqa: ARG002
         backend_logs = Path(config.backend.logging.file_backend)
         if backend_logs.is_file():
             return backend_logs.read_text().splitlines()[-100:]

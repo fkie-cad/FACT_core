@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-'''
+"""
     FACT Installer
     Copyright (C) 2015-2023  Fraunhofer FKIE
 
@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 
 import argparse
 import logging
@@ -118,9 +118,9 @@ def _setup_logging(args):
 
 
 def create_dir_for_file(file_path: str, dir_description='directory'):
-    '''
+    """
     Creates the directory of the file_path.
-    '''
+    """
     try:
         Path(file_path).absolute().parent.mkdir(parents=True, exist_ok=True)
     except OSError:
@@ -137,7 +137,7 @@ def welcome():
 
 
 def check_python_version():
-    if sys.version_info.major != 3 or sys.version_info.minor < 6:
+    if sys.version_info.major != 3 or sys.version_info.minor < 6:  # noqa: PLR2004
         logging.critical(f'Incompatible Python version! You need at least version 3.6! Your Version: {sys.version}')
         sys.exit(1)
 

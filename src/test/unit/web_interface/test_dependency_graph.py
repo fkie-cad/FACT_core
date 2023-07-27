@@ -27,7 +27,7 @@ entry_3 = DepGraphData(
     'file three',
     ['/sbin/file_three'],
     'inode/symlink',
-    'symbolic link to \'../bin/file_two\'',
+    "symbolic link to '../bin/file_two'",
 )
 
 FILE_THREE_RESULT = {
@@ -36,7 +36,7 @@ FILE_THREE_RESULT = {
     'entity': '0987654',
     'id': '/sbin/file_three',
     'group': 'inode/symlink',
-    'full_file_type': 'symbolic link to \'../bin/file_two\'',
+    'full_file_type': "symbolic link to '../bin/file_two'",
     'linked_libraries': [],
 }
 FILE_TWO_RESULT = {
@@ -81,7 +81,7 @@ WHITELIST = ['application/x-executable', 'application/x-sharedlib', 'inode/symli
 
 
 @pytest.mark.parametrize(
-    'list_of_objects, expected_result',
+    ('list_of_objects', 'expected_result'),
     [
         ([entry_1, entry_2], GRAPH_PART),
         ([entry_1, entry_2, entry_3], GRAPH_PART_SYMLINK),
@@ -92,13 +92,11 @@ def test_create_graph_nodes_and_groups(list_of_objects, expected_result):
 
 
 @pytest.mark.parametrize(
-    'graph_part, expected_graph, expected_missing_analysis',
+    ('graph_part', 'expected_graph', 'expected_missing_analysis'),
     [
         (GRAPH_PART, GRAPH_RES, 1),
         (GRAPH_PART_SYMLINK, GRAPH_RES_SYMLINK, 2),
     ],
 )
-def test_create_graph_edges(
-    graph_part, expected_graph, expected_missing_analysis
-):  # pylint: disable=too-many-function-args
+def test_create_graph_edges(graph_part, expected_graph, expected_missing_analysis):
     assert create_data_graph_edges(graph_part) == (expected_graph, expected_missing_analysis)

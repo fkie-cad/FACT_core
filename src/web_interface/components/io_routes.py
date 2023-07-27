@@ -19,7 +19,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class IORoutes(ComponentBase):
-
     # ---- upload
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
@@ -49,7 +48,7 @@ class IORoutes(ComponentBase):
             device_classes=device_class_list,
             vendors=vendor_list,
             error=error,
-            analysis_presets=[preset for preset in config.frontend.analysis_preset],
+            analysis_presets=list(config.frontend.analysis_preset),
             device_names=json.dumps(device_name_dict, sort_keys=True),
             analysis_plugin_dict=analysis_plugins,
             plugin_set='default',
@@ -71,10 +70,7 @@ class IORoutes(ComponentBase):
         if not self.db.frontend.exists(uid):
             return render_template('uid_not_found.html', uid=uid)
         with ConnectTo(self.intercom) as sc:
-            if packed:
-                result = sc.get_repacked_binary_and_file_name(uid)
-            else:
-                result = sc.get_binary_and_filename(uid)
+            result = sc.get_repacked_binary_and_file_name(uid) if packed else sc.get_binary_and_filename(uid)
         if result is None:
             return render_template('error.html', message='timeout')
         binary, file_name = result
@@ -114,7 +110,7 @@ class IORoutes(ComponentBase):
         try:
             host = config.frontend.radare2_url
             response = requests.post(f'{host}/v1/retrieve', data=binary, verify=False)
-            if response.status_code != 200:
+            if response.status_code != 200:  # noqa: PLR2004
                 raise TimeoutError(response.text)
             target_link = f"{host}{response.json()['endpoint']}m/"
             sleep(1)

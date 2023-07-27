@@ -16,7 +16,7 @@ superuser = MockUser(name='t_superuser', password='test', key='k2GKnNaA5UlENStVI
 
 
 @pytest.fixture(autouse=True)
-def _autouse_intercom_backend_binding(intercom_backend_binding):
+def _autouse_intercom_backend_binding(intercom_backend_binding):  # noqa: ARG001
     pass
 
 
@@ -66,11 +66,11 @@ class TestAcceptanceAuthentication:
 
     @pytest.mark.skip(reason='See docstring of test_login')
     def test_login(self):
-        '''
+        """
         As of now, not working in tests. Can not yet determine the reason. Maybe bad creation of request.
         Does not apply to production code though.
         Writing tests for this is postponed for now.
-        '''
+        """
 
     def test_all_endpoints_need_authentication(self, web_frontend, test_client):
         fails = []

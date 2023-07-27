@@ -40,7 +40,7 @@ MOCK_RESPONSE = '''
     "inspected_file_count": 1
   }
 }
-'''
+'''  # noqa: E501
 
 
 def test_do_analysis(monkeypatch):
@@ -58,9 +58,9 @@ def test_do_analysis_unmocked():
     hello_world_ruby = Path(__file__).parent / 'data/hello_world_ruby'
     result = run_rubocop(str(hello_world_ruby))
 
-    assert len(result) == 2
+    assert len(result) == 2  # noqa: PLR2004
 
     hello_world_dot_ruby = Path(__file__).parent / 'data/hello_world.ruby'
     result = run_rubocop(str(hello_world_dot_ruby))
 
-    assert len(result) == 2
+    assert len(result) == 2  # noqa: PLR2004

@@ -9,17 +9,20 @@ import config
 from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_list
 from helperFunctions.data_conversion import convert_uid_list_to_compare_id
-from objects.file import FileObject
 from objects.firmware import Firmware
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
 class ComparePlugin(CompareBasePlugin):
-    '''
+    """
     Compares file coverage
-    '''
+    """
 
     NAME = 'File_Coverage'
-    DEPENDENCIES = []
+    DEPENDENCIES = []  # noqa: RUF012
     FILE = __file__
 
     def __init__(self, *args, **kwargs):
@@ -41,7 +44,7 @@ class ComparePlugin(CompareBasePlugin):
         similar_files, similarity = self._get_similar_files(fo_list, compare_result['exclusive_files'])
         compare_result['similar_files'] = self.combine_similarity_results(similar_files, fo_list, similarity)
 
-        if len(fo_list) == 2 and all(isinstance(fo, Firmware) for fo in fo_list):
+        if len(fo_list) == 2 and all(isinstance(fo, Firmware) for fo in fo_list):  # noqa: PLR2004
             compare_result['changed_text_files'] = self._find_changed_text_files(
                 fo_list, compare_result['files_in_common']['all']
             )
@@ -66,7 +69,7 @@ class ComparePlugin(CompareBasePlugin):
         return [set(file_object.list_of_all_included_files) for file_object in fo_list]
 
     def _handle_partially_common_files(self, compare_result, fo_list):
-        if len(fo_list) > 2:
+        if len(fo_list) > 2:  # noqa: PLR2004
             compare_result['files_in_more_than_one_but_not_in_all'] = self._get_files_in_more_than_one_but_not_in_all(
                 fo_list, compare_result
             )
@@ -159,7 +162,7 @@ class ComparePlugin(CompareBasePlugin):
             self._evaluate_entropy_for_list_of_uids(files_in_all['all'], non_zero_files, 'all')
 
         if not_in_all:
-            for firmware_uid in not_in_all.keys():
+            for firmware_uid in not_in_all:
                 self._evaluate_entropy_for_list_of_uids(not_in_all[firmware_uid], non_zero_files, firmware_uid)
 
         return non_zero_files
@@ -167,7 +170,7 @@ class ComparePlugin(CompareBasePlugin):
     def _evaluate_entropy_for_list_of_uids(self, list_of_uids, new_result, firmware_uid):
         non_zero_file_ids = []
         for uid in list_of_uids:
-            if self.database.get_entropy(uid) > 0.1:
+            if self.database.get_entropy(uid) > 0.1:  # noqa: PLR2004
                 non_zero_file_ids.append(uid)
         if non_zero_file_ids:
             new_result[firmware_uid] = non_zero_file_ids

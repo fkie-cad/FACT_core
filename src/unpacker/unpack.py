@@ -12,10 +12,13 @@ from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from storage.fsorganizer import FSOrganizer
-from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack_base import ExtractionError, UnpackBase
 
 from analysis.PluginBase import sanitize_processed_analysis
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from unpacker.extraction_container import ExtractionContainer
 
 
 class Unpacker(UnpackBase):
@@ -26,9 +29,9 @@ class Unpacker(UnpackBase):
     def unpack(
         self, current_fo: FileObject, tmp_dir: str, container: ExtractionContainer | None = None
     ) -> list[FileObject]:
-        '''
+        """
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
-        '''
+        """
         if current_fo.depth >= config.backend.unpacking.max_depth:
             logging.warning(
                 f'{current_fo.uid} is not extracted since depth limit ({config.backend.unpacking.max_depth}) is reached'
@@ -56,7 +59,7 @@ class Unpacker(UnpackBase):
         )
         return extracted_file_objects
 
-    def _store_unpacking_error_skip_info(self, file_object: FileObject, error: Exception = None):
+    def _store_unpacking_error_skip_info(self, file_object: FileObject, error: Optional[Exception] = None):
         file_object.processed_analysis['unpacker'] = self._init_skipped_analysis(
             'Unpacking stopped because extractor raised a exception (possible timeout)',
             'extractor error',

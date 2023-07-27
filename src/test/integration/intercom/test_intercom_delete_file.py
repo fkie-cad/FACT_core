@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name,wrong-import-order
 import logging
 
 import pytest
@@ -16,7 +15,7 @@ class UnpackingLockMock:
         return False
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_listener():
     listener = InterComBackEndDeleteFile(unpacking_locks=UnpackingLockMock(), db_interface=CommonDatabaseMock())
     listener.fs_organizer = MockFSOrganizer()

@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name,wrong-import-order
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -15,14 +14,12 @@ EXTRACTION_DIR = TEST_DATA_DIR / 'files'
 
 @pytest.fixture
 def unpacker():
-    _unpacker = Unpacker(unpacking_locks=UnpackingLockManager())
-    yield _unpacker
+    return Unpacker(unpacking_locks=UnpackingLockManager())
 
 
 @pytest.fixture
 def test_fo():
-    _test_fo = create_test_file_object()
-    yield _test_fo
+    return create_test_file_object()
 
 
 @pytest.mark.backend_config_overwrite(
@@ -64,7 +61,6 @@ class TestUnpackerCore:
     }
 )
 class TestUnpackerCoreMain:
-
     test_file_path = str(TEST_DATA_DIR / 'container/test.zip')
 
     def main_unpack_check(self, unpacker, test_object, number_unpacked_files, first_unpacker):

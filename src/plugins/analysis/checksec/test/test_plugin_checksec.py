@@ -48,7 +48,7 @@ def test_check_mitigations(analysis_plugin):
 
 
 @pytest.mark.parametrize(
-    'file_path, check, expected_result, expected_summary',
+    ('file_path', 'check', 'expected_result', 'expected_summary'),
     [
         (FILE_PATH_EXE, check_pie, {'PIE': 'enabled'}, 'PIE enabled'),
         (FILE_PATH_OBJECT, check_pie, {'PIE': 'REL'}, 'PIE/REL present'),
