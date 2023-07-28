@@ -64,6 +64,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">conftest</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.CommonIntercomMock"><code class="docutils literal notranslate"><span class="pre">CommonIntercomMock</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.FrontendDatabaseMock"><code class="docutils literal notranslate"><span class="pre">FrontendDatabaseMock</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.StatusInterfaceMock"><code class="docutils literal notranslate"><span class="pre">StatusInterfaceMock</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.WebInterfaceUnitTestConfig"><code class="docutils literal notranslate"><span class="pre">WebInterfaceUnitTestConfig</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.intercom_task_list"><code class="docutils literal notranslate"><span class="pre">intercom_task_list()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#test.unit.conftest.test_client"><code class="docutils literal notranslate"><span class="pre">test_client()</span></code></a></li>
@@ -183,6 +184,27 @@
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="test.unit.conftest.StatusInterfaceMock">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">StatusInterfaceMock</span></span><a class="headerlink" href="#test.unit.conftest.StatusInterfaceMock" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.StatusInterfaceMock.get_analysis_status">
+<span class="sig-name descname"><span class="pre">get_analysis_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.StatusInterfaceMock.get_analysis_status" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="test.unit.conftest.StatusInterfaceMock.set_analysis_status">
+<span class="sig-name descname"><span class="pre">set_analysis_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.StatusInterfaceMock.set_analysis_status" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>status</strong> (<em>dict</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="test.unit.conftest.WebInterfaceUnitTestConfig">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">test.unit.conftest.</span></span><span class="sig-name descname"><span class="pre">WebInterfaceUnitTestConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#test.unit.conftest.WebInterfaceUnitTestConfig" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
@@ -212,6 +234,13 @@ See also: The documentation of <a class="reference internal" href="#test.unit.co
 <span class="sig-name descname"><span class="pre">intercom_mock_class</span></span><a class="headerlink" href="#test.unit.conftest.WebInterfaceUnitTestConfig.intercom_mock_class" title="Permalink to this definition"></a></dt>
 <dd><p>A class mocking <code class="xref py py-class docutils literal notranslate"><span class="pre">InterComFrontEndBinding</span></code></p>
 <p>alias of <a class="reference internal" href="#test.unit.conftest.CommonIntercomMock" title="test.unit.conftest.CommonIntercomMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommonIntercomMock</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="test.unit.conftest.WebInterfaceUnitTestConfig.status_mock_class">
+<span class="sig-name descname"><span class="pre">status_mock_class</span></span><a class="headerlink" href="#test.unit.conftest.WebInterfaceUnitTestConfig.status_mock_class" title="Permalink to this definition"></a></dt>
+<dd><p>A class mocking <code class="xref py py-class docutils literal notranslate"><span class="pre">RedisStatusInterface</span></code></p>
+<p>alias of <a class="reference internal" href="#test.unit.conftest.StatusInterfaceMock" title="test.unit.conftest.StatusInterfaceMock"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusInterfaceMock</span></code></a></p>
 </dd></dl>
 
 </dd></dl>
