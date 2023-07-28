@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 import logging
 import operator
-from pathlib import Path
 from itertools import combinations
 from packaging.version import parse as parse_version
 from packaging.version import InvalidVersion, Version
@@ -23,8 +22,6 @@ VALID_VERSION_REGEX = re.compile(r'v?(\d+!)?\d+(\.\d+)*([.-]?(a(lpha)?|b(eta)?|c
 
 
 class Lookup:
-    DB_PATH = str(Path(__file__).parent / 'database/cve_cpe.db')
-
     def __init__(self, file_object: FileObject, connection: DbConnection):
         self.file_object = file_object
         self.db_interface = DbInterface(connection)

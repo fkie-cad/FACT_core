@@ -5,8 +5,16 @@ from pathlib import Path
 from .database.schema import Cve
 from objects.file import FileObject
 
-GROUP_1 = None
-GROUP_2 = None
+BASE_DIR = Path(__file__).parent
+GROUP_1_PATH = BASE_DIR / 'group_1.txt'
+GROUP_2_PATH = BASE_DIR / 'group_2.txt'
+
+with GROUP_1_PATH.open('r') as f1, GROUP_2_PATH.open('r') as f2:
+    GROUP_1 = f1.read().splitlines()
+    GROUP_2 = f2.read().splitlines()
+
+PATTERNS_1 = [re.compile(fr'(?:\")(?:{re.escape(word)})(?:\-|\")') for word in GROUP_1]
+PATTERNS_2 = [re.compile(fr'(?:\b|\_)(?:{re.escape(word)})(?:\b|-)') for word in GROUP_2]
 
 
 def filter_busybox_cves(file_object: FileObject, cves: dict[str, Cve]) -> dict[str, Cve]:
@@ -14,17 +22,14 @@ def filter_busybox_cves(file_object: FileObject, cves: dict[str, Cve]) -> dict[s
     Filters the BusyBox CVEs based on the components present in the binary file and the specified version.
     """
     components = get_busybox_components(file_object)
-    return filter_cves_by_component(cves, components)
+    return filter_cves_by_component(file_object, cves, components)
 
 
 def get_busybox_components(file_object: FileObject) -> list[str]:
     """
     Extracts the BusyBox components from the binary file.
     """
-    file_path = Path(file_object.file_path)
-    with file_path.open(mode='rb') as f:
-        data = f.read()
-
+    data = Path(file_object.file_path).read_bytes()
     start_index = data.index(b'\x5b\x00\x5b\x5b\x00')
     end_index = data.index(b'\x00\x00', start_index + 5)
     extracted_bytes = data[start_index : end_index + 2]
@@ -32,22 +37,19 @@ def get_busybox_components(file_object: FileObject) -> list[str]:
     return [word.decode('ascii') for word in split_bytes if word]
 
 
-def filter_cves_by_component(cves: dict[str, Cve], components: list[str]) -> dict[str, Cve]:
+def filter_cves_by_component(file_object: FileObject, cves: dict[str, Cve], components: list[str]) -> dict[str, Cve]:
     """
     Filters CVEs based on the components present in the BusyBox binary file.
     """
     filtered_cves = {}
     for cve_id, cve in cves.items():
         matched_words = get_matched_words(cve.summary)
-        if matched_words:
-            if any(word in components for word in matched_words):
-                filtered_cves[cve_id] = cve
-        else:
+        if not matched_words or any(word in components for word in matched_words):
             filtered_cves[cve_id] = cve
 
     num_deleted = len(cves) - len(filtered_cves)
     if num_deleted > 0:
-        logging.info(f'Deleted {num_deleted} CVEs with components not found in this BusyBox binary')
+        logging.debug(f'{file_object}: Deleted {num_deleted} CVEs with components not found in this BusyBox binary')
 
     return filtered_cves
 
@@ -56,18 +58,10 @@ def get_matched_words(cve_data: str) -> list[str]:
     """
     Gets the matched words in the provided CVE description.
     """
-    global GROUP_1, GROUP_2
+    matched_words = []
+    for pattern in PATTERNS_1 + PATTERNS_2:
+        match = pattern.search(cve_data)
+        if match:
+            matched_words.append(match.group())
 
-    if GROUP_1 is None or GROUP_2 is None:
-        group_1_path = Path(__file__).parent / 'group_1.txt'
-        group_2_path = Path(__file__).parent / 'group_2.txt'
-        with group_1_path.open('r') as f1, group_2_path.open('r') as f2:
-            GROUP_1 = f1.read().splitlines()
-            GROUP_2 = f2.read().splitlines()
-
-    pattern_1 = r'(?:\")(?:\-|\")'
-    pattern_2 = r'(?:\b|\(|\"|\_)(?:{})(?:\b|\)|-)'
-
-    return [word for word in GROUP_1 if re.search(pattern_1.format(word), cve_data)] + [
-        word for word in GROUP_2 if re.search(pattern_2.format(word), cve_data)
-    ]
+    return matched_words
