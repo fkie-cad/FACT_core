@@ -226,7 +226,7 @@ class InterComBackEndDeleteFile(InterComListenerAndResponder):
             else:
                 logging.warning(f'File not removed, because database entry exists: {uid}')
         if deleted:
-            logging.info(f'Deleted {deleted} files')
+            logging.info(f'Deleted {deleted} file(s)')
         return task
 
     def get_response(self, task):  # noqa: ARG002
