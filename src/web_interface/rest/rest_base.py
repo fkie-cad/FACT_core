@@ -15,7 +15,7 @@ from web_interface.rest.rest_status import api as status_api
 
 
 class RestBase:
-    def __init__(self, app=None, db=None, intercom=None):
+    def __init__(self, app=None, db=None, intercom=None, status=None):
         self.api = Api(
             app,
             doc='/doc/',
@@ -37,7 +37,7 @@ class RestBase:
             missing_analyses_api,
         ]:
             for _, _, _, kwargs in api.resources:
-                kwargs['resource_class_kwargs'] = {'db': db, 'intercom': intercom}
+                kwargs['resource_class_kwargs'] = {'db': db, 'intercom': intercom, 'status': status}
             self.api.add_namespace(api)
 
         self._wrap_response(self.api)

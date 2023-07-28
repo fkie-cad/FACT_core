@@ -27,7 +27,7 @@ class PluginRoutes(ComponentBase):
     def _import_module_routes(self, plugin, plugin_type):
         module = importlib.import_module(f'plugins.{plugin_type}.{plugin}.{ROUTES_MODULE_NAME}.{ROUTES_MODULE_NAME}')
         if hasattr(module, 'PluginRoutes'):
-            module.PluginRoutes(self._app, db=self.db, intercom=self.intercom)
+            module.PluginRoutes(self._app, db=self.db, intercom=self.intercom, status=self.status)
         for rest_class in [
             element
             for element in [getattr(module, attribute) for attribute in dir(module)]

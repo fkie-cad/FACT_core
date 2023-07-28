@@ -5,6 +5,7 @@ from typing import Any, NamedTuple, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
+    from storage.redis_status_interface import RedisStatusInterface
     from web_interface.frontend_database import FrontendDatabase
     from collections.abc import Callable
 
@@ -45,11 +46,12 @@ class AppRoute:
 
 
 class ComponentBase:
-    def __init__(self, app, db: FrontendDatabase, intercom, api=None):
+    def __init__(self, app, db: FrontendDatabase, intercom, status: RedisStatusInterface, api=None):  # noqa: PLR0913
         self._app = app
         self._api = api
         self.db = db
         self.intercom = intercom
+        self.status = status
 
         self._init_component()
 

@@ -115,6 +115,7 @@ class AnalysisScheduler:
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
 
     def start(self):
+        self.status.start()
         self._start_runner_processes()
         self._start_result_collector()
         self._start_plugins()
@@ -151,7 +152,7 @@ class AnalysisScheduler:
         included_files = self.db_backend_service.get_list_of_all_included_files(fo)
         self.db_backend_service.update_object(fo)  # metadata of FW could have changed -> update in DB
         self.unpacking_locks.release_unpacking_lock(fo.uid)
-        self.status.add_update_to_current_analyses(fo, included_files)
+        self.status.add_update(fo, included_files)
         for child_fo in self.db_backend_service.get_objects_by_uid_list(included_files):
             child_fo.root_uid = fo.uid  # set correct root_uid so that "current analysis stats" work correctly
             child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
@@ -166,12 +167,9 @@ class AnalysisScheduler:
 
         :param fo: The firmware that is to be analyzed
         """
-        if self.status.file_should_be_analyzed(fo):
-            self.status.add_to_current_analyses(fo)
-            self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
-            self._check_further_process_or_complete(fo)
-        else:
-            logging.info(f'Skipping analysis of {fo.uid} (duplicate file)')
+        self.status.add_object(fo)
+        self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
+        self._check_further_process_or_complete(fo)
 
     def update_analysis_of_single_object(self, fo: FileObject):
         """
@@ -288,7 +286,7 @@ class AnalysisScheduler:
                 file_object.scheduled_analysis
             ):
                 self._add_completed_analysis_results_to_file_object(analysis_to_do, file_object)
-            self.status.update_post_analysis(file_object, analysis_to_do)
+            self.status.add_analysis(file_object, analysis_to_do)
             self._check_further_process_or_complete(file_object)
         elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(
             analysis_to_do, file_object
@@ -296,7 +294,7 @@ class AnalysisScheduler:
             logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (blacklisted file type)')
             analysis_result = self._get_skipped_analysis_result(analysis_to_do)
             file_object.processed_analysis[analysis_to_do] = analysis_result
-            self.status.update_post_analysis(file_object, analysis_to_do)
+            self.status.add_analysis(file_object, analysis_to_do)
             self.post_analysis(file_object.uid, analysis_to_do, analysis_result)
             self._check_further_process_or_complete(file_object)
         else:
@@ -441,14 +439,14 @@ class AnalysisScheduler:
         if plugin_name in fo.processed_analysis:
             if fo.analysis_exception:
                 self.task_scheduler.reschedule_failed_analysis_task(fo)
-            self.status.update_post_analysis(fo, plugin_name)
+            self.status.add_analysis(fo, plugin_name)
             self.post_analysis(fo.uid, plugin_name, fo.processed_analysis[plugin_name])
         self._check_further_process_or_complete(fo)
 
     def _check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
             logging.info(f'Analysis Completed:\n{fw_object}')
-            self.status.remove_from_current_analyses(fw_object)
+            self.status.remove_object(fw_object)
         else:
             self.process_queue.put(fw_object)
 
@@ -478,12 +476,10 @@ class AnalysisScheduler:
 
         :return: Dictionary containing current workload statistics
         """
-        self.status.clear_recently_finished()
+        # FixMe: move rest of system status from DB to Redis (CPU, RAM, queues, etc.)
         workload = {
             'analysis_main_scheduler': self.process_queue.qsize(),
             'plugins': {},
-            'current_analyses': self.status.get_current_analyses_stats(),
-            'recently_finished_analyses': dict(self.status.recently_finished),
         }
         for plugin_name, plugin in self.analysis_plugins.items():
             workload['plugins'][plugin_name] = {

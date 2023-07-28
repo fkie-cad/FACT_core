@@ -15,7 +15,7 @@ async function updateSystemHealth() {
     getSystemHealthData().then(data => data.systemHealth.map(entry => {
         const statusElement = document.getElementById(`${entry._id}-status`);
         statusElement.innerText = entry.status;
-        if (entry.status == "offline") {
+        if (entry.status === "offline") {
             statusElement.classList.add('text-danger');
             statusElement.classList.remove('text-success');
             return;
@@ -28,7 +28,7 @@ async function updateSystemHealth() {
         document.getElementById(`${entry._id}-cpu`).innerText = `${entry.system.cpu_cores} cores (${entry.system.virtual_cpu_cores} threads) @ ${entry.system.cpu_percentage}%`;
         updateProgressBarElement(`${entry._id}-memory`, entry.system.memory_percent, entry.system.memory_used, entry.system.memory_total);
         updateProgressBarElement(`${entry._id}-disk`, entry.system.disk_percent, entry.system.disk_used, entry.system.disk_total);
-        if (entry._id == "backend") {
+        if (entry._id === "backend") {
             const queueElement = document.getElementById("backend-unpacking-queue");
             if (entry.unpacking.unpacking_queue > 500) {
                 queueElement.classList.add("text-warning");
@@ -53,7 +53,7 @@ async function updateSystemHealth() {
                     updatePluginCard(pluginName, pluginData);
                 }
             });
-            updateCurrentAnalyses(entry.analysis);
+            updateCurrentAnalyses(data.analysisStatus);
         }
     }));
 }

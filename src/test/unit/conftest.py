@@ -96,6 +96,17 @@ class _UserDbMock:
             pass
 
 
+class StatusInterfaceMock:
+    def __init__(self):
+        self._status = {'current_analyses': {}, 'recently_finished_analyses': {}}
+
+    def set_analysis_status(self, status: dict):
+        self._status = status
+
+    def get_analysis_status(self):
+        return self._status
+
+
 class WebInterfaceUnitTestConfig(BaseModel):
     """A class configuring the :py:func:`web_frontend` fixture."""
 
@@ -105,6 +116,8 @@ class WebInterfaceUnitTestConfig(BaseModel):
     database_mock_class: Type = CommonDatabaseMock
     #: A class mocking :py:class:`~intercom.front_end_binding.InterComFrontEndBinding`
     intercom_mock_class: Type[CommonIntercomMock] = CommonIntercomMock
+    #: A class mocking :py:class:`~storage.redis_status_interface.RedisStatusInterface`
+    status_mock_class: Type[StatusInterfaceMock] = StatusInterfaceMock
 
 
 @pytest.fixture
@@ -137,8 +150,11 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
 
     monkeypatch.setattr(IntercomMockClass, 'task_list', intercom_task_list)
     # Note: The intercom argument is only the class. It gets instanced when intercom access in needed by `ConnectTo`.
-    frontend = WebFrontEnd(db=FrontendDatabaseMock(db_mock_instance), intercom=IntercomMockClass)
-
+    frontend = WebFrontEnd(
+        db=FrontendDatabaseMock(db_mock_instance),
+        intercom=IntercomMockClass,
+        status_interface=test_config.status_mock_class(),
+    )
     frontend.app.config['TESTING'] = True
 
     return frontend
