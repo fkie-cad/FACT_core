@@ -35,6 +35,10 @@ class RestStatus(RestResourceBase):
             'system_status': status,
             'plugins': self._condense_plugin_information(plugins),
         }
+
+        if 'analysis' in status['backend']:
+            analysis_status = self.status.get_analysis_status()
+            status['backend']['analysis'].update(analysis_status)
         return success_message(response, self.URL)
 
     @staticmethod

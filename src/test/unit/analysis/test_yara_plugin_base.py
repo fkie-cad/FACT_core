@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import logging
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -59,8 +62,39 @@ def test_get_signature_file_name():
 
 def test_parse_meta_data_error(caplog):
     with caplog.at_level(logging.WARNING):
-        _parse_meta_data('illegal,meta,entry')
+        _parse_meta_data('illegal=meta=entry')
         assert 'Malformed meta' in caplog.messages[0]
+
+
+YARA_RULE_META_REGEX = re.compile(r'rule (\w+)\W*?meta:([\w\W]+?)strings:')
+
+
+def _find_rule_files() -> list[Path]:
+    signature_files = []
+    for dir_ in Path(get_src_dir()).glob('plugins/*/*/signatures'):
+        for file in dir_.iterdir():
+            if any(file.name.endswith(suffix) for suffix in ('yara', 'yar')) and file.name != '00_meta_filter.yara':
+                signature_files.append(file)
+    return signature_files
+
+
+@pytest.mark.parametrize('signature_file', _find_rule_files())
+def test_rule_metadata_can_be_parsed(caplog, signature_file):
+    rules = YARA_RULE_META_REGEX.findall(signature_file.read_text())
+    assert rules, f'no rules found in {signature_file}'
+
+    for rule_name, meta_data in rules:
+        if rule_name == 'SHORT_NAME_OF_SOFTWARE':  # ignore demo rule
+            continue
+        yara_output_form = ','.join(
+            meta_data.replace('    ', '').replace('\t', '').replace(' = ', '=').splitlines()
+        ).strip(',')
+        with caplog.at_level(logging.WARNING):
+            output = _parse_meta_data(yara_output_form)
+            assert all(
+                'Malformed meta' not in m for m in caplog.messages
+            ), f'meta of rule {rule_name} cannot be parsed: {caplog.messages[-1]}'
+            assert any(key in output for key in ('description', 'desc', 'author')), f'wrong output: {output}'
 
 
 def test_split_output_uneven():

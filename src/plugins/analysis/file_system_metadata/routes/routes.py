@@ -49,9 +49,6 @@ def _get_results_from_parent_fo(parent_results: dict | None, parent_uid: str, th
 
 
 class PluginRoutes(ComponentBase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def _init_component(self):
         self._app.add_url_rule(
             '/plugins/file_system_metadata/ajax/<uid>',

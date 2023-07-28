@@ -87,10 +87,16 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(self.intercom) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
-            return f'<pre class="line_numbering" style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'  # noqa: E501
+            return (
+                '<pre class="line_numbering" style="white-space: pre-wrap">'
+                f'{html.escape(bytes_to_str_filter(binary))}</pre>'
+            )
         if 'image/' in mime_type:
-            div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'  # noqa: E501
-            return f'{div}<img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" style="max-width:100%"></div>'  # noqa: E501
+            return (
+                '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; '
+                f'text-align: center"><img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" '
+                'style="max-width:100%"></div>'
+            )
         return None
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -118,10 +124,11 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax/stats/system', GET)
     def get_system_stats(self):
         backend_data = self.db.stats_viewer.get_statistic('backend')
+        analysis_status = self.status.get_analysis_status()
         try:
             return {
                 'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",
-                'number_of_running_analyses': len(backend_data['analysis']['current_analyses']),
+                'number_of_running_analyses': len(analysis_status['current_analyses']),
             }
         except (KeyError, TypeError):
             return {'backend_cpu_percentage': 'n/a', 'number_of_running_analyses': 'n/a'}
@@ -129,4 +136,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/ajax/system_health', GET)
     def get_system_health_update(self):
-        return {'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database')}
+        return {
+            'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database'),
+            'analysisStatus': self.status.get_analysis_status(),
+        }
