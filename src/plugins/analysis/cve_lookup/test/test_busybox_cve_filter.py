@@ -1,17 +1,19 @@
 import pytest
-from pathlib import Path
 
 from objects.file import FileObject
 from ..internal.database.schema import Cve
-from ..internal.busybox_cve_filter import filter_busybox_cves
-
-TEST_DIR = Path(__file__).parent / 'data'
+from ..internal.busybox_cve_filter import filter_cves_by_component
 
 
 @pytest.fixture(
     params=[
         (
-            'busybox_1.32.0_x86_small',
+            [
+                'gzip',
+                'hush',
+                'netstat',
+                'unlzma',
+            ],
             {
                 'CVE-2021-42385': Cve(
                     cve_id='CVE-2021-42385',
@@ -101,7 +103,13 @@ TEST_DIR = Path(__file__).parent / 'data'
             ['CVE-2021-28831', 'CVE-2021-42376', 'CVE-2022-28391', 'CVE-2021-42374'],
         ),
         (
-            'busybox_1.32.0_x86_full',
+            [
+                'awk',
+                'gzip',
+                'hush',
+                'netstat',
+                'unlzma',
+            ],
             {
                 'CVE-2021-42385': Cve(
                     cve_id='CVE-2021-42385',
@@ -204,7 +212,7 @@ TEST_DIR = Path(__file__).parent / 'data'
             ],
         ),
         (
-            'busybox_1.35.0_x86_small',
+            [],
             {
                 'CVE-2022-28391': Cve(
                     cve_id='CVE-2022-28391',
@@ -224,7 +232,10 @@ TEST_DIR = Path(__file__).parent / 'data'
             [],
         ),
         (
-            'busybox_1.35.0_x86_full',
+            [
+                'awk',
+                'netstat',
+            ],
             {
                 'CVE-2022-28391': Cve(
                     cve_id='CVE-2022-28391',
@@ -246,14 +257,14 @@ TEST_DIR = Path(__file__).parent / 'data'
     ]
 )
 def busybox_sample(request):
-    test_file, cves, expected_cve_ids = request.param
-    test_object = FileObject(file_path=str((TEST_DIR / test_file).resolve()))
-    return test_object, cves, expected_cve_ids
+    components, cves, expected_cve_ids = request.param
+    test_object = FileObject()
+    return test_object, components, cves, expected_cve_ids
 
 
-def test_filter_busybox_cves(busybox_sample):
-    test_object, cves, expected_cve_ids = busybox_sample
-    filtered_cves = filter_busybox_cves(test_object, cves)
+def test_filter_cves_by_component(busybox_sample):
+    test_object, components, cves, expected_cve_ids = busybox_sample
+    filtered_cves = filter_cves_by_component(test_object, cves, components)
     assert len(filtered_cves) == len(expected_cve_ids)
     for cve_id in filtered_cves:
         assert cve_id in expected_cve_ids
