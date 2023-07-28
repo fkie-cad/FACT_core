@@ -53,12 +53,13 @@ class Lookup:
                 cves = filter_busybox_cves(self.file_object, cves)
             for association in association_matches:
                 cve = cves.get(association.cve_id)
-                cpe = cpe_matches.get(association.cpe_id)
-                vulnerabilities[cve.cve_id] = {
-                    'score2': cve.cvss_v2_score,
-                    'score3': cve.cvss_v3_score,
-                    'cpe_version': self._build_version_string(association, cpe),
-                }
+                if cve:
+                    cpe = cpe_matches.get(association.cpe_id)
+                    vulnerabilities[cve.cve_id] = {
+                        'score2': cve.cvss_v2_score,
+                        'score3': cve.cvss_v3_score,
+                        'cpe_version': self._build_version_string(association, cpe),
+                    }
 
         return vulnerabilities
 

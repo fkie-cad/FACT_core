@@ -9,7 +9,7 @@ GROUP_1 = None
 GROUP_2 = None
 
 
-def filter_busybox_cves(file_object: FileObject, cves: list[Cve]) -> list[Cve]:
+def filter_busybox_cves(file_object: FileObject, cves: dict[str, Cve]) -> dict[str, Cve]:
     """
     Filters the BusyBox CVEs based on the components present in the binary file and the specified version.
     """
@@ -32,18 +32,18 @@ def get_busybox_components(file_object: FileObject) -> list[str]:
     return [word.decode('ascii') for word in split_bytes if word]
 
 
-def filter_cves_by_component(cves: list[Cve], components: list[str]) -> list[Cve]:
+def filter_cves_by_component(cves: dict[str, Cve], components: list[str]) -> dict[str, Cve]:
     """
     Filters CVEs based on the components present in the BusyBox binary file.
     """
-    filtered_cves = []
-    for cve in cves:
+    filtered_cves = {}
+    for cve_id, cve in cves.items():
         matched_words = get_matched_words(cve.summary)
         if matched_words:
             if any(word in components for word in matched_words):
-                filtered_cves.append(cve)
+                filtered_cves[cve_id] = cve
         else:
-            filtered_cves.append(cve)
+            filtered_cves[cve_id] = cve
 
     num_deleted = len(cves) - len(filtered_cves)
     if num_deleted > 0:
