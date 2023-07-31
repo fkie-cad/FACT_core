@@ -362,6 +362,7 @@ class AnalysisScheduler:
 
                 if _dependencies_are_unfulfilled(plugin, file_object):
                     logging.error(f'{file_object.uid}: dependencies of plugin {plugin.metadata.name} not fulfilled')
+                    self._check_further_process_or_complete(file_object)
                     return
 
                 runner.queue_analysis(file_object)
