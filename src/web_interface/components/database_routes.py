@@ -7,13 +7,13 @@ from flask import redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
 from helperFunctions.data_conversion import make_unicode_string
-from helperFunctions.database import ConnectTo, get_shared_session
+from helperFunctions.database import get_shared_session
 from helperFunctions.task_conversion import get_file_name_and_binary_from_request
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
 from storage.query_conversion import QueryConversionException
-from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from web_interface.components.component_base import AppRoute, ComponentBase, GET, POST
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -207,8 +207,7 @@ class DatabaseRoutes(ComponentBase):
                 error = f'Error: Firmware with UID {firmware_uid!r} not found in database'
             elif yara_rule_file is not None:
                 if is_valid_yara_rule_file(yara_rule_file):
-                    with ConnectTo(self.intercom) as connection:
-                        request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
+                    request_id = self.intercom.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(
                         url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware)
                     )
@@ -236,8 +235,7 @@ class DatabaseRoutes(ComponentBase):
         firmware_dict, error, yara_rules = None, None, None
         if request.args.get('request_id'):
             request_id = request.args.get('request_id')
-            with ConnectTo(self.intercom) as connection:
-                result, yara_rules = connection.get_binary_search_result(request_id)
+            result, yara_rules = self.intercom.get_binary_search_result(request_id)
             if isinstance(result, str):
                 error = result
             elif result is not None:

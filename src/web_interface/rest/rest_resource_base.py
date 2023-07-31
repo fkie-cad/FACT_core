@@ -15,7 +15,7 @@ class RestResourceBase(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db: FrontendDatabase = kwargs.get('db', None)
-        self.intercom: type[InterComFrontEndBinding] = kwargs.get('intercom', None)
+        self.intercom: InterComFrontEndBinding = kwargs.get('intercom', None)
         self.status: RedisStatusInterface = kwargs.get('status', None)
 
     @staticmethod

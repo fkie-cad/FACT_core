@@ -1,8 +1,8 @@
 from flask import request
-from flask_restx import Namespace, fields
+from flask_restx import fields, Namespace
 
 from helperFunctions.data_conversion import convert_compare_id_to_list, normalize_compare_id
-from helperFunctions.database import ConnectTo, get_shared_session
+from helperFunctions.database import get_shared_session
 from helperFunctions.uid import is_uid
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
@@ -56,8 +56,7 @@ class RestComparePut(RestResourceBase):
                     return_code=404,
                 )
 
-        with ConnectTo(self.intercom) as intercom:
-            intercom.add_compare_task(compare_id, force=data['redo'])
+        self.intercom.add_compare_task(compare_id, force=data['redo'])
         return success_message(
             {'message': 'Compare started. Please use GET to get the results.'},
             self.URL,
