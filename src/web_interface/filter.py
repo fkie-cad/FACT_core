@@ -4,7 +4,7 @@ import binascii
 import semver
 import json
 import logging
-import packaging
+import packaging.version
 import random
 import re
 import zlib
@@ -426,10 +426,17 @@ def get_searchable_crypto_block(crypto_material: str) -> str:
     return sorted(blocks, key=len, reverse=True)[0]
 
 
-def version_is_compatible(version: Union[str, semver.Version], other: Union[str, semver.Version]) -> bool:
+def version_is_compatible(
+    version: Union[str, semver.Version],
+    other: Union[str, semver.Version],
+    forgiving: bool = False,
+) -> bool:
     """A warpper around ``semver.Version.is_compatible`` that allows non semver versions.
-    If only one of :paramref:`version` and :paramref:`other` is semver they are always considered incompatible.
-    So for example '1.1.0' would not be compatible '1.2' even if one might expand '1.2' to '1.2.0'.
+    If :paramref:`forgiving` is True non semver versions will try to be coerced to semver versions.
+    If this does not succeed or :paramref:`forgiving` is False then any semver version will
+    be considered incompatible to any other non semver version.
+    So for example '1.1.0' would not be compatible '1.2' if forgiving is False.
+    Otherwise it would be coerced from '1.2' to '1.2.0'.
 
     If both versions are not semver they are only compatible if they are equal.
 
@@ -445,14 +452,16 @@ def version_is_compatible(version: Union[str, semver.Version], other: Union[str,
         if isinstance(version, str):
             version = semver.Version.parse(version)
     except ValueError:
-        version_is_semver = False
+        version_is_semver = forgiving
+        version = _coerce_version(version)
 
     other_is_semver = True
     try:
         if isinstance(other, str):
             other = semver.Version.parse(other)
     except ValueError:
-        other_is_semver = False
+        other_is_semver = forgiving
+        other = _coerce_version(other)
 
     if version_is_semver ^ other_is_semver:
         return False
@@ -464,3 +473,14 @@ def version_is_compatible(version: Union[str, semver.Version], other: Union[str,
             raise ValueError from invalid_version
 
     return version.is_compatible(other)
+
+
+def _coerce_version(version: str) -> semver.Version:
+    coerced = packaging.version.Version(version)
+    return semver.Version(
+        major=coerced.major,
+        minor=coerced.minor,
+        patch=coerced.micro,
+        prerelease=coerced.pre,
+        build=None,
+    )
