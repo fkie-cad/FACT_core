@@ -6,8 +6,6 @@ from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 class AnalysisBasePluginAdapterMixin:
     """A mixin that makes AnalysisPluginV0 compatible to AnalysisBasePlugin"""
 
-    # pylint: disable=invalid-name
-
     def start(self):
         # This is a no-op
         pass

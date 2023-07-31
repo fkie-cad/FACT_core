@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
+class AnalysisScheduler:
     """
     The analysis scheduler is responsible for
 
@@ -215,7 +215,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
         for plugin_module in discover_analysis_plugins():
             try:
-                # pylint:disable=invalid-name
                 PluginClass = plugin_module.AnalysisPlugin  # noqa: N806
                 if issubclass(PluginClass, AnalysisPluginV0):
                     plugin: AnalysisPluginV0 = PluginClass()
@@ -225,7 +224,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 elif issubclass(PluginClass, AnalysisBasePlugin):
                     self.analysis_plugins[PluginClass.NAME] = PluginClass()
                     schemata[PluginClass.NAME] = dict
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 logging.error(f'Could not import analysis plugin {plugin_module.AnalysisPlugin.NAME}', exc_info=True)
 
         for plugin in self.analysis_plugins.values():

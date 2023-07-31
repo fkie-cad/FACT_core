@@ -21,7 +21,6 @@ from storage.fsorganizer import FSOrganizer
 
 
 class PluginRunner:
-    # pylint:disable=too-many-instance-attributes
     class Config(BaseModel):
         """A class containing all parameters of the runner"""
 
@@ -141,8 +140,6 @@ class PluginRunner:
 class Worker(mp.Process):
     """A process that executes a plugin in a child process."""
 
-    # pylint: disable=too-many-arguments
-
     # The amount of time in seconds that a worker has to complete when it shall terminate.
     # We cannot rely on the plugins timeout as this might be too large.
     SIGTERM_TIMEOUT = 5
@@ -185,7 +182,6 @@ class Worker(mp.Process):
     def is_working(self):
         return self._is_working.value != 0
 
-    # pylint:disable=too-complex
     def run(self):  # noqa: C901, PLR0915
         run = True
         recv_conn, send_conn = mp.Pipe(duplex=False)
@@ -246,7 +242,7 @@ class Worker(mp.Process):
             except Worker.TimeoutError as err:
                 logging.warning(f'{self} timed out after {err.timeout} seconds.')
                 entry['timeout'] = (self._plugin.metadata.name, 'Analysis timed out')
-            except Exception as exc:  # pylint: disable=broad-except
+            except Exception as exc:
                 # As tracebacks can't be pickled we just print the __exception_str__ that we set in the child
                 logging.error(f'{self} got a exception during analysis:\n {exc}', exc_info=False)
                 logging.error(exc.__exception_str__)
@@ -270,7 +266,7 @@ class Worker(mp.Process):
         """
         try:
             result = plugin.get_analysis(io.FileIO(task.path), task.virtual_file_path, task.dependencies)
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:
             result = exc
             result.__exception_str__ = traceback.format_exc()
 
