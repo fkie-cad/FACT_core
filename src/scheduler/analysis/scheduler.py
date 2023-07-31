@@ -511,11 +511,7 @@ class AnalysisScheduler:
                     out_queue = plugin.out_queue
 
                 try:
-                    if isinstance(plugin, AnalysisPluginV0):
-                        fw, entry = out_queue.get_nowait()
-                        runner.write_result_in_file_object(entry, fw)
-                    elif isinstance(plugin, AnalysisBasePlugin):
-                        fw = out_queue.get_nowait()
+                    fw = out_queue.get_nowait()
                 except (Empty, ValueError):
                     pass
                 else:
