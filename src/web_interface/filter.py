@@ -399,12 +399,18 @@ def _link_to_cwe(match: Match) -> str:
 
 
 def sort_cve_results(cve_result: dict[str, dict[str, str]]) -> list[tuple[str, dict[str, str]]]:
-    # sort using the CVSS v2 score as primary and v3 score as secondary key
-    return sorted(
-        cve_result.items(),
-        key=lambda item: tuple(_cve_score_to_float(item[1].get(key, 0.0)) for key in ['score2', 'score3']),
-        reverse=True,
-    )
+    return sorted(cve_result.items(), key=_cve_sort_key)
+
+
+def _cve_sort_key(item: tuple[str, dict[str, str]]) -> tuple[float, float, str]:
+    """
+    primary sorting key: -max(v2 score, v3 score)
+    secondary sorting key: -min(v2 score, v3 score)
+    tertiary sorting key: CVE ID
+    use negative values so that highest scores come first, and we can also sort by CVE ID
+    """
+    v2_score, v3_score = (_cve_score_to_float(item[1].get(key, 0.0)) for key in ['score2', 'score3'])
+    return -max(v2_score, v3_score), -min(v2_score, v3_score), item[0]
 
 
 def _cve_score_to_float(score: float | str) -> float:
