@@ -1,5 +1,5 @@
+from __future__ import annotations
 import pytest
-
 from objects.file import FileObject
 from ..internal.database.schema import Cve
 from ..internal.busybox_cve_filter import filter_cves_by_component
