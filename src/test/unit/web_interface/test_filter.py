@@ -392,11 +392,19 @@ def test_replace_cwe_with_link(input_string, expected_result):
     ('input_dict', 'expected_result'),
     [
         ({}, []),
-        (  # primary key sorting
+        (  # primary key max(v2, v3) sorting
             {
-                'cve_id1': {'score2': '1.3', 'score3': 'N/A'},
-                'cve_id2': {'score2': '10.0', 'score3': 'N/A'},
-                'cve_id3': {'score2': '2.6', 'score3': 'N/A'},
+                'cve_id1': {'score2': '6.0', 'score3': '2.0'},
+                'cve_id2': {'score2': '4.0', 'score3': '3.0'},
+                'cve_id3': {'score2': '1.0', 'score3': '5.0'},
+            },
+            ['cve_id1', 'cve_id3', 'cve_id2'],
+        ),
+        (  # numerical sorting
+            {
+                'cve_id1': {'score2': '1.3', 'score3': '0.0'},
+                'cve_id2': {'score2': '10.0', 'score3': '0.0'},
+                'cve_id3': {'score2': '2.6', 'score3': '0.0'},
             },
             ['cve_id2', 'cve_id3', 'cve_id1'],
         ),
@@ -404,18 +412,24 @@ def test_replace_cwe_with_link(input_string, expected_result):
             {
                 'cve_id1': {'score2': '5.0', 'score3': '2.0'},
                 'cve_id2': {'score2': '5.0', 'score3': '3.0'},
-                'cve_id3': {'score2': '4.0', 'score3': '4.0'},
+                'cve_id3': {'score2': '5.0', 'score3': '4.0'},
             },
-            ['cve_id2', 'cve_id1', 'cve_id3'],
+            ['cve_id3', 'cve_id2', 'cve_id1'],
         ),
         (  # N/A entries
             {
-                'cve_id1': {'score2': '2.0', 'score3': '1.0'},
-                'cve_id2': {'score2': 'N/A', 'score3': '2.0'},
-                'cve_id3': {'score2': '3.0', 'score3': 'N/A'},
-                'cve_id4': {'score2': '1.0', 'score3': '3.0'},
+                'cve_id1': {'score2': 'N/A', 'score3': '4.0'},
+                'cve_id2': {'score2': '3.0', 'score3': 'N/A'},
             },
-            ['cve_id3', 'cve_id1', 'cve_id4', 'cve_id2'],
+            ['cve_id1', 'cve_id2'],
+        ),
+        (  # missing entries
+            {
+                'cve_id1': {'score3': '1.0'},
+                'cve_id2': {'score2': '2.0'},
+                'cve_id3': {},
+            },
+            ['cve_id2', 'cve_id1', 'cve_id3'],
         ),
     ],
 )
