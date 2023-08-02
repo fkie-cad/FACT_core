@@ -94,3 +94,24 @@ fixture-parentheses = false
 inline-quotes = "single"
 multiline-quotes = "single"
 docstring-quotes = "double"
+
+[tool.mypy]
+check_untyped_defs = true
+enable_error_code = "ignore-without-code"
+exclude = [
+    "bin/",
+    "docker/",
+    "install/venv",
+]
+follow_imports = "silent"
+ignore_missing_imports = true
+install_types = true
+no_error_summary = true
+non_interactive = true
+pretty = true
+show_error_codes = true
+show_error_context = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_ignores = true
