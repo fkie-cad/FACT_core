@@ -399,7 +399,19 @@ def _link_to_cwe(match: Match) -> str:
 
 
 def sort_cve_results(cve_result: dict[str, dict[str, str]]) -> list[tuple[str, dict[str, str]]]:
-    return sorted(cve_result.items(), key=lambda item: item[1]['score2'], reverse=True)
+    # sort using the CVSS v2 score as primary and v3 score as secondary key
+    return sorted(
+        cve_result.items(),
+        key=lambda item: tuple(_cve_score_to_float(item[1].get(key, 0.0)) for key in ['score2', 'score3']),
+        reverse=True,
+    )
+
+
+def _cve_score_to_float(score: float | str) -> float:
+    try:
+        return float(score)
+    except ValueError:  # "N/A" entries
+        return 0.0
 
 
 def linter_reformat_issues(issues) -> dict[str, list[dict[str, str]]]:

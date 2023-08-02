@@ -383,27 +383,37 @@ def test_replace_cwe_with_link(input_string, expected_result):
 @pytest.mark.parametrize(
     ('input_dict', 'expected_result'),
     [
-        ({}, {}),
-        (
+        ({}, []),
+        (  # primary key sorting
             {
-                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
-                'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
-                'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
+                'cve_id1': {'score2': '1.3', 'score3': 'N/A'},
+                'cve_id2': {'score2': '10.0', 'score3': 'N/A'},
+                'cve_id3': {'score2': '2.6', 'score3': 'N/A'},
             },
+            ['cve_id2', 'cve_id3', 'cve_id1'],
+        ),
+        (  # secondary key sorting
             {
-                'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
-                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
-                'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
+                'cve_id1': {'score2': '5.0', 'score3': '2.0'},
+                'cve_id2': {'score2': '5.0', 'score3': '3.0'},
+                'cve_id3': {'score2': '4.0', 'score3': '4.0'},
             },
+            ['cve_id2', 'cve_id1', 'cve_id3'],
+        ),
+        (  # N/A entries
+            {
+                'cve_id1': {'score2': '2.0', 'score3': '1.0'},
+                'cve_id2': {'score2': 'N/A', 'score3': '2.0'},
+                'cve_id3': {'score2': '3.0', 'score3': 'N/A'},
+                'cve_id4': {'score2': '1.0', 'score3': '3.0'},
+            },
+            ['cve_id3', 'cve_id1', 'cve_id4', 'cve_id2'],
         ),
     ],
 )
 def test_sort_cve_result(input_dict, expected_result):
     result = dict(flt.sort_cve_results(input_dict))
-    assert result == expected_result
-
-    for item1, item2 in zip(result, expected_result):
-        assert item1 == item2
+    assert list(result) == expected_result
 
 
 @pytest.mark.parametrize(
