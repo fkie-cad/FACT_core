@@ -1,4 +1,3 @@
-from __future__ import annotations
 import pytest
 from objects.file import FileObject
 from ..internal.database.schema import Cve

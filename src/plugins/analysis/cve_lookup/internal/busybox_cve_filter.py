@@ -1,6 +1,7 @@
 import re
 import logging
 from pathlib import Path
+from typing import Dict
 
 from .database.schema import Cve
 from objects.file import FileObject
@@ -17,7 +18,7 @@ PATTERNS_1 = [re.compile(fr'(?:\")(?:{re.escape(word)})(?:\-|\")') for word in G
 PATTERNS_2 = [re.compile(fr'(?:\b|\_)(?:{re.escape(word)})(?:\b|-)') for word in GROUP_2]
 
 
-def filter_busybox_cves(file_object: FileObject, cves: dict[str, Cve]) -> dict[str, Cve]:
+def filter_busybox_cves(file_object: FileObject, cves: Dict[str, Cve]) -> dict[str, Cve]:
     """
     Filters the BusyBox CVEs based on the components present in the binary file and the specified version.
     """
@@ -37,7 +38,7 @@ def get_busybox_components(file_object: FileObject) -> list[str]:
     return [word.decode('ascii') for word in split_bytes if word]
 
 
-def filter_cves_by_component(file_object: FileObject, cves: dict[str, Cve], components: list[str]) -> dict[str, Cve]:
+def filter_cves_by_component(file_object: FileObject, cves: Dict[str, Cve], components: list[str]) -> dict[str, Cve]:
     """
     Filters CVEs based on the components present in the BusyBox binary file.
     """
