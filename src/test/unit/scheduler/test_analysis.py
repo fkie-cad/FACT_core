@@ -318,6 +318,7 @@ class TestAnalysisSkipping:
             'plugin': plugin,
             'plugin_version': analysis_plugin_version,
             'system_version': analysis_system_version,
+            'result': {},
         }
         self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
         self.scheduler.analysis_plugins[plugin] = self.PluginMock(
@@ -328,12 +329,16 @@ class TestAnalysisSkipping:
     @pytest.mark.parametrize(
         'db_entry',
         [
-            {'plugin': 'plugin', 'plugin_version': '0'},  # 'system_version' missing
+            {
+                'plugin': 'plugin',
+                'plugin_version': '1.0',
+                'result': {},
+            },  # 'system_version' missing
             {
                 'plugin': 'plugin',
                 'result': {'failed': 'reason'},
-                'plugin_version': '0',
-                'system_version': '0',
+                'plugin_version': '1.0',
+                'system_version': '1.0',
             },  # failed
         ],
     )

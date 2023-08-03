@@ -388,7 +388,7 @@ class AnalysisScheduler:
 
     def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, uid: str) -> bool:
         db_entry = self.db_backend_service.get_analysis(uid, analysis_to_do)
-        if db_entry is None or 'failed' in db_entry:
+        if db_entry is None or 'failed' in db_entry['result']:
             return False
         if db_entry['plugin_version'] is None:
             logging.error(f'Plugin Version missing: UID: {uid}, Plugin: {analysis_to_do}')
