@@ -57,6 +57,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
@@ -99,16 +100,42 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="scheduler.analysis.html">scheduler.analysis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.check_exceptions"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.check_exceptions()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.get_combined_analysis_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_combined_analysis_workload()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.get_plugin_dict"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_plugin_dict()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.get_scheduled_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_scheduled_workload()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.shutdown"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.shutdown()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.start"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.start_analysis_of_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start_analysis_of_object()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.update_analysis_of_object_and_children"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_object_and_children()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.update_analysis_of_single_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_single_object()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="scheduler.analysis.plugin.html">scheduler.analysis.plugin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner"><code class="docutils literal notranslate"><span class="pre">PluginRunner</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Config"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Task"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Task</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.get_active_worker_count"><code class="docutils literal notranslate"><span class="pre">PluginRunner.get_active_worker_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.get_queue_len"><code class="docutils literal notranslate"><span class="pre">PluginRunner.get_queue_len()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.out_queue"><code class="docutils literal notranslate"><span class="pre">PluginRunner.out_queue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.queue_analysis"><code class="docutils literal notranslate"><span class="pre">PluginRunner.queue_analysis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.shutdown"><code class="docutils literal notranslate"><span class="pre">PluginRunner.shutdown()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.start"><code class="docutils literal notranslate"><span class="pre">PluginRunner.start()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker"><code class="docutils literal notranslate"><span class="pre">Worker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.Config"><code class="docutils literal notranslate"><span class="pre">Worker.Config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.CrashedError"><code class="docutils literal notranslate"><span class="pre">Worker.CrashedError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.SIGTERM_TIMEOUT"><code class="docutils literal notranslate"><span class="pre">Worker.SIGTERM_TIMEOUT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.TimeoutError"><code class="docutils literal notranslate"><span class="pre">Worker.TimeoutError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.is_working"><code class="docutils literal notranslate"><span class="pre">Worker.is_working()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.run"><code class="docutils literal notranslate"><span class="pre">Worker.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="scheduler.analysis.scheduler.html">scheduler.analysis.scheduler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.check_exceptions"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.check_exceptions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.get_combined_analysis_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_combined_analysis_workload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.get_plugin_dict"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_plugin_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.get_scheduled_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_scheduled_workload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.shutdown"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.shutdown()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.start"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.start_analysis_of_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start_analysis_of_object()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.update_analysis_of_object_and_children"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_object_and_children()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.update_analysis_of_single_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_single_object()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

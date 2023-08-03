@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>web_interface &mdash; FACT  documentation</title>
+  <title>analysis &mdash; FACT  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -20,8 +20,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="web_interface.rest" href="web_interface.rest.html" />
-    <link rel="prev" title="scheduler.analysis.scheduler" href="scheduler.analysis.scheduler.html" /> 
+    <link rel="next" title="analysis.plugin" href="analysis.plugin.html" />
+    <link rel="prev" title="Upgrading FACT from 3 to 4" href="../migration.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -57,7 +57,10 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="analysis.html">analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="analysis.plugin.html">analysis.plugin</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
@@ -65,10 +68,7 @@
 <li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduler.html">scheduler</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">web_interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="web_interface.rest.html">web_interface.rest</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="web_interface.html">web_interface</a></li>
 </ul>
 
         </div>
@@ -85,9 +85,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">web_interface</li>
+      <li class="breadcrumb-item active">analysis</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/modules/web_interface.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/analysis.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -95,19 +95,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="web-interface">
-<h1>web_interface<a class="headerlink" href="#web-interface" title="Permalink to this heading"></a></h1>
+  <section id="analysis">
+<h1>analysis<a class="headerlink" href="#analysis" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="web_interface.rest.html">web_interface.rest</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="web_interface.rest.helper.html">web_interface.rest.helper module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="web_interface.rest.helper.html#web_interface.rest.helper.error_message"><code class="docutils literal notranslate"><span class="pre">error_message()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="web_interface.rest.helper.html#web_interface.rest.helper.get_boolean_from_request"><code class="docutils literal notranslate"><span class="pre">get_boolean_from_request()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="web_interface.rest.helper.html#web_interface.rest.helper.get_current_gmt"><code class="docutils literal notranslate"><span class="pre">get_current_gmt()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="web_interface.rest.helper.html#web_interface.rest.helper.get_paging"><code class="docutils literal notranslate"><span class="pre">get_paging()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="web_interface.rest.helper.html#web_interface.rest.helper.get_query"><code class="docutils literal notranslate"><span class="pre">get_query()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="web_interface.rest.helper.html#web_interface.rest.helper.get_update"><code class="docutils literal notranslate"><span class="pre">get_update()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="web_interface.rest.helper.html#web_interface.rest.helper.success_message"><code class="docutils literal notranslate"><span class="pre">success_message()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.plugin.html">analysis.plugin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="analysis.plugin.plugin.html">analysis.plugin.plugin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.AnalysisPluginV0"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginV0</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.AnalysisPluginV0.MetaData"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginV0.MetaData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.AnalysisPluginV0.Schema"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginV0.Schema</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.AnalysisPluginV0.analyze"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginV0.analyze()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.AnalysisPluginV0.get_analysis"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginV0.get_analysis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.AnalysisPluginV0.get_tags"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginV0.get_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.AnalysisPluginV0.summarize"><code class="docutils literal notranslate"><span class="pre">AnalysisPluginV0.summarize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.Tag"><code class="docutils literal notranslate"><span class="pre">Tag</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.Tag.color"><code class="docutils literal notranslate"><span class="pre">Tag.color</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.Tag.name"><code class="docutils literal notranslate"><span class="pre">Tag.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.Tag.propagate"><code class="docutils literal notranslate"><span class="pre">Tag.propagate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="analysis.plugin.plugin.html#analysis.plugin.plugin.Tag.value"><code class="docutils literal notranslate"><span class="pre">Tag.value</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -120,8 +129,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="scheduler.analysis.scheduler.html" class="btn btn-neutral float-left" title="scheduler.analysis.scheduler" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="web_interface.rest.html" class="btn btn-neutral float-right" title="web_interface.rest" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../migration.html" class="btn btn-neutral float-left" title="Upgrading FACT from 3 to 4" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="analysis.plugin.html" class="btn btn-neutral float-right" title="analysis.plugin" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

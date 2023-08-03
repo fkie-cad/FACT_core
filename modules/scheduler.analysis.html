@@ -20,7 +20,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="web_interface" href="web_interface.html" />
+    <link rel="next" title="scheduler.analysis.plugin" href="scheduler.analysis.plugin.html" />
     <link rel="prev" title="scheduler" href="scheduler.html" /> 
 </head>
 
@@ -57,6 +57,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="conftest.html">conftest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="test.html">test</a></li>
@@ -65,18 +66,8 @@
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">plugins</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="scheduler.html">scheduler</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">scheduler.analysis</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.check_exceptions"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.check_exceptions()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.get_combined_analysis_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_combined_analysis_workload()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.get_plugin_dict"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_plugin_dict()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.get_scheduled_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_scheduled_workload()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.shutdown"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.shutdown()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.start"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.start_analysis_of_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start_analysis_of_object()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.update_analysis_of_object_and_children"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_object_and_children()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scheduler.analysis.AnalysisScheduler.update_analysis_of_single_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_single_object()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html">scheduler.analysis.plugin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html">scheduler.analysis.scheduler</a></li>
 </ul>
 </li>
 </ul>
@@ -109,203 +100,64 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-scheduler.analysis">
-<span id="scheduler-analysis"></span><h1>scheduler.analysis<a class="headerlink" href="#module-scheduler.analysis" title="Permalink to this heading"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scheduler.analysis.</span></span><span class="sig-name descname"><span class="pre">AnalysisScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">post_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_interface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unpacking_locks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>The analysis scheduler is responsible for</p>
-<ul class="simple">
-<li><p>initializing analysis plugins</p></li>
-<li><p>scheduling tasks based on user decision and built-in dependencies</p></li>
-<li><p>deciding if tasks should run or may be skipped</p></li>
-<li><p>running the tasks</p></li>
-<li><p>and storing the new results of analysis tasks in the database</p></li>
+  <section id="scheduler-analysis">
+<h1>scheduler.analysis<a class="headerlink" href="#scheduler-analysis" title="Permalink to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="scheduler.analysis.plugin.html">scheduler.analysis.plugin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner"><code class="docutils literal notranslate"><span class="pre">PluginRunner</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Config"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Config</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Config.process_count"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Config.process_count</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Config.timeout"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Config.timeout</span></code></a></li>
 </ul>
-<p>Plugin initialization is mostly handled by the plugins, the scheduler only provides an attachment point and offers
-a single point of reference for introspection and runtime information.</p>
-<p>The scheduler offers three entry points:</p>
-<ol class="arabic simple">
-<li><p>Start the analysis of a file object (start_analysis_of_object)</p></li>
-<li><p>Start the analysis of a file object without context (update_analysis_of_single_object)</p></li>
-<li><p>Start an update of a firmware file and all it’s children (update_analysis_of_object_and_children)</p></li>
-</ol>
-<p>Entry point 1. is used by the unpacking scheduler and is trigger for each file object after the unpacking has been
-processed. Entry points 2. and 3. are independent of the unpacking process and can be triggered by the user using
-the Web-UI or REST-API. 2. is used to update analyses for a single file. 3. is used to update analyses for all files
-contained inside a given firmware. The difference between 1. and 2. is that the single file update (2.) will not be
-considered in the current analysis introspection.</p>
-<p>Scheduling of tasks is made with the following considerations:</p>
-<ul class="simple">
-<li><p>New objects need a set of mandatory plugins (e.g. file type and hashes), as these results are used in further
-processing stages</p></li>
-<li><p>Plugins can have dependencies, these have to be present before the depending plugin can be run</p></li>
-<li><p>The order of execution is shuffled (dependency preserving) to balance execution of the plugins</p></li>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Task"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Task</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Task.Config"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Task.Config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Task.dependencies"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Task.dependencies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Task.path"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Task.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Task.scheduler_state"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Task.scheduler_state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.Task.virtual_file_path"><code class="docutils literal notranslate"><span class="pre">PluginRunner.Task.virtual_file_path</span></code></a></li>
 </ul>
-<p>After scheduling, for each task a set of checks is run to decide if a task might be skipped: class:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─┬──────────────┐ No                                   ┌────────┐
-│0│Plugin exists?├──────────────────────────────────────►        │
-└─┴───┬──────────┘                                      │  Skip  │
-      │ Yes                                     ┌───────►        ◄───┐
-┌─┬───▼─────────────┐ Yes                       │       └────────┘   │
-│1│Is forced update?├───────────────────────────┼─────┐              │
-└─┴───┬─────────────┘                           │     │              │
-      │ No                                      │     │              │
-┌─┬───▼────────────────────────────────┐ Yes    │     │              │
-│2│Analysis present, version unchanged?├────────┘     │              │
-└─┴───┬────────────────────────────────┘              │ ┌─────────┐  │
-      │ No                                            └─►         │  │
-┌─┬───▼────────────────────────────┐ No                 │  Start  │  │
-│3│Analysis is black / whitelisted?├────────────────────►         │  │
-└─┴───┬────────────────────────────┘                    └─────────┘  │
-      │ Yes                                                          │
-      └──────────────────────────────────────────────────────────────┘
-</pre></div>
-</div>
-<p>Running the analysis tasks is achieved through (multiprocessing.Queue)s. Each plugin has an in-queue, triggered
-by the scheduler using the <cite>add_job</cite> function, and an out-queue that is processed by the result collector. The
-actual analysis process is out of scope. Database interaction happens before (pre_analysis) and after
-(post_analysis) the running of a task, to store intermediate results for live updates, and final results.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pre_analysis</strong> – A database callback to execute before running an analysis task.</p></li>
-<li><p><strong>post_analysis</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>[</em><em>str</em><em>, </em><em>str</em><em>, </em><em>dict</em><em>]</em><em>, </em><em>None</em><em>]</em><em>]</em>) – A database callback to execute after running an analysis task.</p></li>
-<li><p><strong>db_interface</strong> – An object reference to an instance of BackEndDbInterface.</p></li>
-<li><p><strong>unpacking_locks</strong> (<em>UnpackingLockManager</em><em> | </em><em>None</em>) – An instance of UnpackingLockManager.</p></li>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.get_active_worker_count"><code class="docutils literal notranslate"><span class="pre">PluginRunner.get_active_worker_count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.get_queue_len"><code class="docutils literal notranslate"><span class="pre">PluginRunner.get_queue_len()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.out_queue"><code class="docutils literal notranslate"><span class="pre">PluginRunner.out_queue</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.queue_analysis"><code class="docutils literal notranslate"><span class="pre">PluginRunner.queue_analysis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.shutdown"><code class="docutils literal notranslate"><span class="pre">PluginRunner.shutdown()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.start"><code class="docutils literal notranslate"><span class="pre">PluginRunner.start()</span></code></a></li>
 </ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.check_exceptions">
-<span class="sig-name descname"><span class="pre">check_exceptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.check_exceptions" title="Permalink to this definition"></a></dt>
-<dd><p>Iterate all attached processes and see if an exception occurred in any. Depending on configuration, plugin
-exceptions are not registered as they are restarted after an exception occurs.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Boolean value stating if any attached process ran into an exception</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.get_combined_analysis_workload">
-<span class="sig-name descname"><span class="pre">get_combined_analysis_workload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.get_combined_analysis_workload" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.get_plugin_dict">
-<span class="sig-name descname"><span class="pre">get_plugin_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.get_plugin_dict" title="Permalink to this definition"></a></dt>
-<dd><p>Get information regarding all loaded plugins in form of a dictionary with the following form:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="n">NAME</span><span class="p">:</span> <span class="p">(</span>
-        <span class="nb">str</span><span class="p">:</span> <span class="n">DESCRIPTION</span><span class="p">,</span>
-        <span class="nb">bool</span><span class="p">:</span> <span class="n">mandatory</span><span class="p">,</span>
-        <span class="nb">dict</span><span class="p">:</span> <span class="n">plugin_sets</span><span class="p">,</span>
-        <span class="nb">str</span><span class="p">:</span> <span class="n">VERSION</span><span class="p">,</span>
-        <span class="nb">list</span><span class="p">:</span> <span class="n">DEPENDENCIES</span><span class="p">,</span>
-        <span class="nb">list</span><span class="p">:</span> <span class="n">MIME_BLACKLIST</span><span class="p">,</span>
-        <span class="nb">list</span><span class="p">:</span> <span class="n">MIME_WHITELIST</span><span class="p">,</span>
-        <span class="nb">str</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">threads</span>
-    <span class="p">)</span>
-<span class="p">}</span>
-</pre></div>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker"><code class="docutils literal notranslate"><span class="pre">Worker</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.Config"><code class="docutils literal notranslate"><span class="pre">Worker.Config</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.Config.timeout"><code class="docutils literal notranslate"><span class="pre">Worker.Config.timeout</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.CrashedError"><code class="docutils literal notranslate"><span class="pre">Worker.CrashedError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.SIGTERM_TIMEOUT"><code class="docutils literal notranslate"><span class="pre">Worker.SIGTERM_TIMEOUT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.TimeoutError"><code class="docutils literal notranslate"><span class="pre">Worker.TimeoutError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.is_working"><code class="docutils literal notranslate"><span class="pre">Worker.is_working()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.run"><code class="docutils literal notranslate"><span class="pre">Worker.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler.analysis.scheduler.html">scheduler.analysis.scheduler</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.check_exceptions"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.check_exceptions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.get_combined_analysis_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_combined_analysis_workload()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.get_plugin_dict"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_plugin_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.get_scheduled_workload"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.get_scheduled_workload()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.shutdown"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.shutdown()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.start"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.start_analysis_of_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.start_analysis_of_object()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.update_analysis_of_object_and_children"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_object_and_children()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.update_analysis_of_single_object"><code class="docutils literal notranslate"><span class="pre">AnalysisScheduler.update_analysis_of_single_object()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 </div>
-<p>Mandatory plugins are not shown in the analysis selection but always executed. Default plugins are pre-selected
-in the analysis selection.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict with information regarding all loaded plugins</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.get_scheduled_workload">
-<span class="sig-name descname"><span class="pre">get_scheduled_workload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.get_scheduled_workload" title="Permalink to this definition"></a></dt>
-<dd><p>Get the current workload of this scheduler. The workload is represented through
-- the general in-queue,
-- the currently running analyses in each plugin and the plugin in-queues,
-- the progress for each currently analyzed firmware and
-- recently finished analyses.</p>
-<blockquote>
-<div><p>The result has the form:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s1">&#39;analysis_main_scheduler&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(),</span>
-    <span class="s1">&#39;plugins&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(),</span>
-    <span class="s1">&#39;current_analyses&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(),</span>
-    <span class="s1">&#39;recently_finished_analyses&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(),</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary containing current workload statistics</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.shutdown">
-<span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.shutdown" title="Permalink to this definition"></a></dt>
-<dd><p>Shutdown the runner process, the result collector and all plugin processes. A multiprocessing.Value is set to
-notify all attached processes of the impending shutdown. Afterwards queues are closed once it’s safe.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.start">
-<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.start" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.start_analysis_of_object">
-<span class="sig-name descname"><span class="pre">start_analysis_of_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.start_analysis_of_object" title="Permalink to this definition"></a></dt>
-<dd><p>This function is used to start analysis of a firmware object. The function registers the firmware with the
-status module such that the progress of the firmware and its included files is tracked.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The firmware that is to be analyzed</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.update_analysis_of_object_and_children">
-<span class="sig-name descname"><span class="pre">update_analysis_of_object_and_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.update_analysis_of_object_and_children" title="Permalink to this definition"></a></dt>
-<dd><p>This function is used to analyze an object and all its recursively included objects without repeating the
-extraction process. Scheduled analyses are propagated to the included objects.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The root file that is to be analyzed</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.update_analysis_of_single_object">
-<span class="sig-name descname"><span class="pre">update_analysis_of_single_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.update_analysis_of_single_object" title="Permalink to this definition"></a></dt>
-<dd><p>This function is used to add analysis tasks for a single file. This function has no side effects so the object
-is simply iterated until all scheduled analyses are processed or skipped.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>fo</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The file that is to be analyzed</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 
 
@@ -313,7 +165,7 @@ is simply iterated until all scheduled analyses are processed or skipped.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="scheduler.html" class="btn btn-neutral float-left" title="scheduler" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="web_interface.html" class="btn btn-neutral float-right" title="web_interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="scheduler.analysis.plugin.html" class="btn btn-neutral float-right" title="scheduler.analysis.plugin" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
