@@ -137,6 +137,9 @@ class Worker(mp.Process):
         def __init__(self, timeout: float):
             self.timeout = timeout
 
+    class CrashedError(Exception):
+        pass
+
     class Config(BaseModel):
         """A class containing all parameters of the worker"""
 
@@ -171,7 +174,7 @@ class Worker(mp.Process):
     def is_working(self):
         return self._is_working.value != 0
 
-    def run(self):  # noqa: C901, PLR0915
+    def run(self):  # noqa: C901, PLR0912, PLR0915
         run = True
         recv_conn, send_conn = mp.Pipe(duplex=False)
 
@@ -212,7 +215,11 @@ class Worker(mp.Process):
                 child_process.start()
                 child_process.join(timeout=self._worker_config.timeout)
                 if not recv_conn.poll():
-                    raise Worker.TimeoutError(self._worker_config.timeout)
+                    if child_process.is_alive():
+                        raise Worker.TimeoutError(self._worker_config.timeout)
+                    else:  # noqa: RET506
+                        # The child is dead but didn't give us any result so it crashed
+                        raise Worker.CrashedError()
 
                 result = recv_conn.recv()
 
@@ -231,6 +238,9 @@ class Worker(mp.Process):
             except Worker.TimeoutError as err:
                 logging.warning(f'{self} timed out after {err.timeout} seconds.')
                 entry['timeout'] = (self._plugin.metadata.name, 'Analysis timed out')
+            except Worker.CrashedError:
+                logging.warning(f'{self} crashed.')
+                entry['exception'] = (self._plugin.metadata.name, 'Analysis crashed')
             except Exception as exc:
                 # As tracebacks can't be pickled we just print the __exception_str__ that we set in the child
                 logging.error(f'{self} got a exception during analysis:\n {exc}', exc_info=False)
