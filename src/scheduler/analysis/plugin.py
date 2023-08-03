@@ -179,7 +179,7 @@ class Worker(mp.Process):
 
         def _handle_sigterm(signum, frame):
             del signum, frame
-            logging.critical(f'{self} received SIGTERM. Shutting down.')
+            logging.info(f'{self} received SIGTERM. Shutting down.')
             nonlocal run
             run = False
 
