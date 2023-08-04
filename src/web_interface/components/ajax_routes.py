@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import html
+import logging
 
-from flask import jsonify, render_template
+from flask import jsonify, render_template, Response
 
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
@@ -14,6 +15,10 @@ from web_interface.file_tree.jstree_conversion import convert_to_jstree_node
 from web_interface.filter import bytes_to_str_filter, encode_base64_filter
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from helperFunctions.uid import UID
 
 
 class AjaxRoutes(ComponentBase):
@@ -32,15 +37,18 @@ class AjaxRoutes(ComponentBase):
             return self.db.comparison.get_exclusive_files(compare_id, root_uid)
         return None
 
-    def _generate_file_tree(self, root_uid: str | None, uid: str, whitelist: list[str]) -> FileTreeNode:
+    def _generate_file_tree(self, root_uid: UID | None, uid: UID, whitelist: list[UID]) -> FileTreeNode:
         if root_uid is None:
             # parent FW set should never be empty (if it were empty, the file would not belong to any FW)
             root_uid = list(self.db.frontend.get_parent_fw(uid)).pop()
         root = FileTreeNode(None)
         with get_shared_session(self.db.frontend) as frontend_db:
+            fo = frontend_db.get_object(uid)
+            if fo is None:
+                logging.error(f'Could not create file tree for {uid}: object not found')
             child_uids = [
                 child_uid
-                for child_uid in frontend_db.get_object(uid).files_included
+                for child_uid in (fo.files_included if fo else set())
                 if whitelist is None or child_uid in whitelist
             ]
             for node in frontend_db.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, uid, whitelist):
@@ -49,7 +57,7 @@ class AjaxRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_root/<uid>/<root_uid>', GET)
-    def ajax_get_tree_root(self, uid, root_uid):
+    def ajax_get_tree_root(self, uid: UID, root_uid: UID) -> Response:
         root = []
         with get_shared_session(self.db.frontend) as frontend_db:
             for node in frontend_db.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
@@ -61,6 +69,9 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/compare/ajax_common_files/<compare_id>/<feature_id>/', GET)
     def ajax_get_common_files_for_compare(self, compare_id, feature_id):
         result = self.db.comparison.get_comparison_result(compare_id)
+        if result is None:
+            logging.error(f'Could not find comparison with ID {compare_id}')
+            return ''
         feature, matching_uid = feature_id.split('___')
         uid_list = result['plugins']['File_Coverage'][feature][matching_uid]
         return self._get_nice_uid_list_html(uid_list, root_uid=self._get_root_uid(matching_uid, compare_id))
@@ -121,6 +132,9 @@ class AjaxRoutes(ComponentBase):
     def ajax_get_summary(self, uid, selected_analysis):
         with get_shared_session(self.db.frontend) as frontend_db:
             firmware = frontend_db.get_object(uid, analysis_filter=selected_analysis)
+            if firmware is None:
+                logging.error(f'Could not get summary for {uid}: object not found')
+                return ''
             summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis)
         return render_template(
             'summary.html',
@@ -136,7 +150,7 @@ class AjaxRoutes(ComponentBase):
         analysis_status = self.status.get_analysis_status()
         try:
             return {
-                'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",
+                'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",  # type: ignore[index]
                 'number_of_running_analyses': len(analysis_status['current_analyses']),
             }
         except (KeyError, TypeError):
