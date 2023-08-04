@@ -9,7 +9,7 @@ from common_helper_files import get_binary_from_file
 from helperFunctions.data_conversion import make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid, UID
-from helperFunctions.virtual_file_path import get_some_vfp
+from helperFunctions.virtual_file_path import get_some_vfp, VfpDict, VFP
 
 
 class FileObject:
@@ -39,12 +39,12 @@ class FileObject:
         #: The list of all recursively included files in this file.
         #: That means files are included that are themselves included in files contained in this file, and so on.
         #: This value is not set by default as it's expensive to aggregate and takes up a lot of memory.
-        self.list_of_all_included_files: list[UID] | None = None
+        self.list_of_all_included_files: set[UID] | None = None
 
         #: List of parent uids.
         #: A parent in this context is the direct predecessor in a firmware tree.
         #: Not necessarily it's root.
-        self.parents: list[UID] = []
+        self.parents: set[UID] = set()
 
         #: UID of root (i.e. firmware) object for the given file.
         #: Useful to associate results of children with firmware.
@@ -116,11 +116,11 @@ class FileObject:
         self.file_path = file_path
         self.create_binary_from_path()
 
-        #: The "virtual file path" (vfp) is not an actual path in the file system but rather a file path inside the
+        #: The "virtual file path" (VFP) is not an actual path in the file system but rather a file path inside the
         #: parent object (e.g. file system or archive) where the file was unpacked from (e.g. `"/etc/hosts"`).
         #: Files (especially symlinks) can have multiple paths inside a single parent object.
-        #: The vfp is a dict with the parent object UIDs as keys and a list of paths (strings) as values.
-        self.virtual_file_path: dict[str, list[str]] = {}
+        #: The VFP dict is a dict with parent object UIDs as keys and a list of paths (strings) as values.
+        self.virtual_file_path: VfpDict = {}
 
     def set_binary(self, binary: bytes) -> None:
         """
@@ -142,15 +142,19 @@ class FileObject:
                 self.file_name = make_unicode_string(Path(self.file_path).name)
 
     @property
-    def uid(self) -> UID | None:
+    def uid(self) -> UID:
         """
         Unique identifier of this file.
         Consisting of the file's sha256 hash, and it's length in the form `hash_length`.
 
         :return: uid of this file.
         """
-        if self._uid is None and self.binary is not None:
-            self._uid = create_uid(self.binary)
+        if self._uid is None:
+            if self.binary is not None:
+                self._uid = create_uid(self.binary)
+            else:
+                logging.warning(f'Accessing FO with uninitialized UID: {self}')
+                return 'uninitialized'
         return self._uid
 
     @uid.setter
@@ -192,15 +196,15 @@ class FileObject:
         """
         if self.uid is None or file_object.uid is None:
             raise ValueError(f'UID should never be None while adding file {file_object} to {self}')
-        file_object.parents.append(self.uid)
+        file_object.parents.add(self.uid)
         file_object.root_uid = self.root_uid
         file_object.depth = self.depth + 1
         file_object.scheduled_analysis = self.scheduled_analysis
         self.files_included.add(file_object.uid)
 
-    def get_virtual_paths_for_all_uids(self) -> list[str]:
+    def get_virtual_paths_for_all_uids(self) -> list[VFP]:
         """
-        Get all virtual file paths (VFPs) of the file in all firmware containers.
+        Get all virtual file paths (VFPs) of the file for all parent objects (containers, file systems, etc.).
 
         :return: List of virtual paths.
         """
