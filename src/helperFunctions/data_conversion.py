@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, AnyStr, TypeVar, TYPE_CHECKING
+from typing import Any, AnyStr, TYPE_CHECKING
+
 
 if TYPE_CHECKING:
+    from helperFunctions.types import VT, KT
     from collections.abc import Iterable
-
-_KT = TypeVar('_KT', str, tuple, bytes)  # Key type
-_VT = TypeVar('_VT')  # Value type
 
 
 def make_bytes(data: AnyStr | list[int]) -> bytes:
@@ -67,7 +66,7 @@ def normalize_compare_id(compare_id: str) -> str:
     return convert_uid_list_to_compare_id(uids)
 
 
-def get_value_of_first_key(input_dict: dict[_KT, _VT]) -> _VT | None:
+def get_value_of_first_key(input_dict: dict[KT, VT]) -> VT | None:
     """
     Get the value of the first key in a dictionary. If the dict is empty, return `None`.
 

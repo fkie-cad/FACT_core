@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import importlib
+from importlib.util import spec_from_loader, module_from_spec
 import logging
 import sys
 from importlib.machinery import SourceFileLoader
@@ -33,8 +33,11 @@ def _import_plugins(plugin_type):
         module_name = str(plugin_file).replace('/', '.')[len(src_dir + '/') : -len('.py')]
 
         loader = SourceFileLoader(module_name, str(plugin_file))
-        spec = importlib.util.spec_from_loader(loader.name, loader)
-        plugin_module = importlib.util.module_from_spec(spec)
+        spec = spec_from_loader(loader.name, loader)
+        if spec is None:
+            logging.error(f'Could not import plugin {module_name}: could not create spec from loader')
+            continue
+        plugin_module = module_from_spec(spec)
 
         sys.modules[spec.name] = plugin_module
         try:

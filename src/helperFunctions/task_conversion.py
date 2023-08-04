@@ -36,12 +36,11 @@ def create_analysis_task(request: Request) -> dict[str, Any]:
     return task
 
 
-def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes]:
+def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes | None]:
     """
     Retrieves the file name and content from the flask request object.
 
     :param request: The flask request object.
-    :param config: The FACT configuration.
     :return: A Tuple containing the file name and the file content.
     """
     try:
