@@ -3,6 +3,10 @@ from __future__ import annotations
 from helperFunctions.hash import get_md5
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from helperFunctions.uid import UID
 
 
 class Firmware(FileObject):
@@ -64,7 +68,8 @@ class Firmware(FileObject):
         self.version: str | None = None
 
         #: Device class string identifier.
-        #: Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.  # noqa: E501
+        #: Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers,
+        #: and a plethora of other classes.
         #: FACT requires a user to categorize analyzed firmware images by this attribute.
         #: While this attribute is **mandatory**, it can be freely defined during upload.
         self.device_class: str | None = None
@@ -78,21 +83,26 @@ class Firmware(FileObject):
         #: While this meta data string can be freely defined during firmware upload,
         #: FACT provides a preset of frequently used values: `complete`, `kernel`, `bootloader`, and `root-fs`.
         #:
-        #: This attribute is **optional**. The firmware image is assumed to be `complete` if the assigned/default value is an empty string.  # noqa: E501
+        #: This attribute is **optional**. The firmware image is assumed to be `complete` if the assigned/default value
+        #: is an empty string.
         self.part: str = ''
 
-        #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ `YYYY-MM-DD` format.  # noqa: E501
+        #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_
+        #: `YYYY-MM-DD` format.
         #:
-        #: This attribute is **optional**. The release date is assumed to be the start of UNIX epoch time (`1970-01-01`) if not specificed.  # noqa: E501
+        #: This attribute is **optional**. The release date is assumed to be the start of UNIX epoch time (`1970-01-01`)
+        #: if not specified.
         self.release_date: str | None = None
 
-        #: User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {'tag': :class:`helperFunctions.tag.TagColor`} dictionary.  # noqa: E501
-        #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.  # noqa: E501
+        #: User-defined firmware tags for advanced grouping and filtering of firmware images, saved as
+        #: {'tag': :class:`helperFunctions.tag.TagColor`} dictionary.
+        #: It is important to understand that these tags are **separately stored** from the
+        #: :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
         #:
         #: This attribute is **optional**, the dict may be empty.
-        self.tags: dict[str, TagColor] = {}
+        self.tags: dict[str, str] = {}
 
-        self.root_uid = self.uid
+        self.root_uid: UID | None = self.uid
 
     def set_part_name(self, part: str):
         """

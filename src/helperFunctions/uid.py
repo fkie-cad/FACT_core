@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import re
-from typing import AnyStr
+from typing import AnyStr, TypeAlias
 
 from helperFunctions.data_conversion import make_bytes
 from helperFunctions.hash import get_sha256
 
 UID_REGEX = re.compile(r'[a-f0-9]{64}_[0-9]+')
 
+UID: TypeAlias = str
 
-def create_uid(input_data: bytes) -> str:
+
+def create_uid(input_data: bytes) -> UID:
     """
     generate a UID (unique identifier) SHA256_SIZE for a byte string containing data (e.g. a binary)
 
