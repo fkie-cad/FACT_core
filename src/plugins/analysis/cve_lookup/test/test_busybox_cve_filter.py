@@ -257,7 +257,7 @@ from ..internal.busybox_cve_filter import filter_cves_by_component
 )
 def busybox_sample(request):
     components, cves, expected_cve_ids = request.param
-    test_object = FileObject()
+    test_object = FileObject(binary=b'foobar')
     return test_object, components, cves, expected_cve_ids
 
 
