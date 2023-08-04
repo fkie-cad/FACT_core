@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -13,6 +14,7 @@ import config
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.pdf import build_pdf_report
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
+from objects.firmware import Firmware
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -127,10 +129,15 @@ class IORoutes(ComponentBase):
                 return render_template('uid_not_found.html', uid=uid)
 
             firmware = frontend_db.get_complete_object_including_all_summaries(uid)
+            if not isinstance(firmware, Firmware):
+                return render_template('error.html', message='Can only create PDF report for Firmware')
 
         try:
             with TemporaryDirectory(dir=config.frontend.docker_mount_base_dir) as folder:
                 pdf_path = build_pdf_report(firmware, Path(folder))
+                if pdf_path is None:
+                    logging.error('PDF report file was not found')
+                    return render_template('error.html', message='Could not create PDF report')
                 binary = pdf_path.read_bytes()
         except RuntimeError as error:
             return render_template('error.html', message=str(error))

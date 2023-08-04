@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import ContextManager, Generic, TypeVar
+from typing import Generic, TypeVar, Iterator
 
-DatabaseInterface = TypeVar('DatabaseInterface')
+from storage.db_interface_base import ReadOnlyDbInterface
+
+DatabaseInterface = TypeVar('DatabaseInterface', bound=ReadOnlyDbInterface)
 
 
 # FIXME this class does nothing and can be removed
@@ -23,7 +25,7 @@ class ConnectTo(Generic[DatabaseInterface]):
 
     def __init__(self, connected_interface: type[DatabaseInterface]):
         self.interface = connected_interface
-        self.connection = None
+        self.connection: DatabaseInterface | None = None
 
     def __enter__(self) -> DatabaseInterface:
         self.connection = self.interface()
@@ -34,6 +36,6 @@ class ConnectTo(Generic[DatabaseInterface]):
 
 
 @contextmanager
-def get_shared_session(database: DatabaseInterface) -> ContextManager[DatabaseInterface]:
+def get_shared_session(database: DatabaseInterface) -> Iterator[DatabaseInterface]:
     with database.get_read_only_session():
         yield database
