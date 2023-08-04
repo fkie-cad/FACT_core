@@ -6,19 +6,22 @@ from sqlalchemy.orm import sessionmaker
 
 import config
 from storage.schema import Base
-from typing import Optional
 
 
 class DbConnection:
     def __init__(
-        self, user: Optional[str] = None, password: Optional[str] = None, db_name: str | None = None, **kwargs
+        self,
+        user: str | None = None,
+        password: str | None = None,
+        db_name: str | None = None,
+        **kwargs,
     ):
         self.base = Base
 
         address = config.common.postgres.server
         port = config.common.postgres.port
-        user = getattr(config.common.postgres, user)
-        password = getattr(config.common.postgres, password)
+        user = getattr(config.common.postgres, user) if user else None
+        password = getattr(config.common.postgres, password) if password else None
 
         database = db_name if db_name else config.common.postgres.database
         engine_url = URL.create(

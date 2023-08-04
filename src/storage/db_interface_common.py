@@ -21,8 +21,10 @@ from storage.schema import (
     fw_files_table,
     included_files_table,
 )
+from helperFunctions.uid import UID
 
 if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VfpDict
     from objects.file import FileObject
     from sqlalchemy.sql import Select
 
@@ -34,27 +36,27 @@ PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible 
     'software_components',
     'users_and_passwords',
 ]
-Summary = Dict[str, List[str]]
+Summary = Dict[str, List[UID]]
 
 
 class DbInterfaceCommon(ReadOnlyDbInterface):
-    def exists(self, uid: str) -> bool:
+    def exists(self, uid: UID) -> bool:
         with self.get_read_only_session() as session:
             query = select(FileObjectEntry.uid).filter(FileObjectEntry.uid == uid)
             return bool(session.execute(query).scalar())
 
-    def uid_list_exists(self, uid_list: list[str] | set[str]) -> set:
+    def uid_list_exists(self, uid_list: list[UID] | set[UID]) -> set:
         """Check for a list of UIDs if DB entries exist. Returns a set of UIDs with existing DB entries."""
         with self.get_read_only_session() as session:
             query = select(FileObjectEntry.uid).filter(FileObjectEntry.uid.in_(uid_list))
             return set(session.execute(query).scalars())
 
-    def is_firmware(self, uid: str) -> bool:
+    def is_firmware(self, uid: UID) -> bool:
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry.uid).filter(FirmwareEntry.uid == uid)
             return bool(session.execute(query).scalar())
 
-    def all_uids_found_in_database(self, uid_list: list[str]) -> bool:
+    def all_uids_found_in_database(self, uid_list: list[UID]) -> bool:
         if not uid_list:
             return True
         with self.get_read_only_session() as session:
@@ -63,14 +65,14 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== Read / SELECT =====
 
-    def get_object(self, uid: str, analysis_filter: list[str] | None = None) -> FileObject | Firmware | None:
+    def get_object(self, uid: UID, analysis_filter: list[str] | None = None) -> FileObject | Firmware | None:
         if self.is_firmware(uid):
             return self.get_firmware(uid, analysis_filter=analysis_filter)
         return self.get_file_object(uid, analysis_filter=analysis_filter)
 
-    def get_firmware(self, uid: str, analysis_filter: list[str] | None = None) -> Firmware | None:
+    def get_firmware(self, uid: UID, analysis_filter: list[str] | None = None) -> Firmware | None:
         with self.get_read_only_session() as session:
-            fw_entry = session.get(FirmwareEntry, uid)
+            fw_entry: FirmwareEntry | None = session.get(FirmwareEntry, uid)
             if fw_entry is None:
                 return None
             return self._firmware_from_entry(fw_entry, analysis_filter=analysis_filter)
@@ -80,16 +82,16 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         firmware.analysis_tags = self._collect_analysis_tags_from_children(firmware.uid)
         return firmware
 
-    def get_file_object(self, uid: str, analysis_filter: list[str] | None = None) -> FileObject | None:
+    def get_file_object(self, uid: UID, analysis_filter: list[str] | None = None) -> FileObject | None:
         with self.get_read_only_session() as session:
-            fo_entry = session.get(FileObjectEntry, uid)
+            fo_entry: FileObjectEntry | None = session.get(FileObjectEntry, uid)
             if fo_entry is None:
                 return None
             vfp_dict = self.get_vfps(uid)
             return file_object_from_entry(fo_entry, analysis_filter=analysis_filter, virtual_file_paths=vfp_dict)
 
     def get_objects_by_uid_list(
-        self, uid_list: list[str] | set[str], analysis_filter: list[str] | None = None
+        self, uid_list: list[UID] | set[UID], analysis_filter: list[str] | None = None
     ) -> list[FileObject]:
         with self.get_read_only_session() as session:
             parents_table = aliased(included_files_table, name='parents')
@@ -119,9 +121,9 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             ]
             fw_query = select(FirmwareEntry).filter(FirmwareEntry.uid.in_(uid_list))
             firmware = [self._firmware_from_entry(fw_entry) for fw_entry in session.execute(fw_query).scalars()]
-            return file_objects + firmware
+            return [*file_objects, *firmware]
 
-    def _get_analysis_entry(self, uid: str, plugin: str) -> AnalysisEntry | None:
+    def _get_analysis_entry(self, uid: UID, plugin: str) -> AnalysisEntry | None:
         with self.get_read_only_session() as session:
             try:
                 query = select(AnalysisEntry).filter_by(uid=uid, plugin=plugin)
@@ -129,13 +131,13 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             except NoResultFound:
                 return None
 
-    def get_analysis(self, uid: str, plugin: str) -> dict | None:
+    def get_analysis(self, uid: UID, plugin: str) -> dict | None:
         entry = self._get_analysis_entry(uid, plugin)
         if entry is None:
             return None
         return analysis_entry_to_dict(entry)
 
-    def get_vfps(self, uid: str, parent_uid: str | None = None, root_uid: str | None = None) -> dict[str, list[str]]:
+    def get_vfps(self, uid: UID, parent_uid: UID | None = None, root_uid: UID | None = None) -> VfpDict:
         """
         Get all virtual file paths of file with UID `uid` in all parent files. If `parent_uid` is set, returns only the
         paths in this parent file. If `root_uid` is set, return only the paths inside the firmware with UID root_uid.
@@ -150,14 +152,12 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                 query = query.outerjoin(fw_files_table, fw_files_table.c.file_uid == VirtualFilePath.parent_uid).filter(
                     or_(fw_files_table.c.root_uid == root_uid, VirtualFilePath.parent_uid == root_uid)
                 )
-            result = {}
+            result: VfpDict = {}
             for parent, path in session.execute(query) or []:
                 result.setdefault(parent, []).append(path)
             return result
 
-    def get_vfps_for_uid_list(
-        self, uid_list: list[str] | set[str], root_uid: str | None = None
-    ) -> dict[str, dict[str, list[str]]]:
+    def get_vfps_for_uid_list(self, uid_list: list[UID] | set[UID], root_uid: UID | None = None) -> dict[UID, VfpDict]:
         """
         Gets all virtual file paths (see `get_vfps()`) for a list of UIDs. Returns a dictionary with key=uid and
         value=vfp_dict for that file (vfp_dict is the same as the output of `get_vfps()` for that file). If `root_uid`
@@ -175,18 +175,18 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                         VirtualFilePath.parent_uid == root_uid,  # or parent == root (no entry in fw_files_table then)
                     )
                 )
-            result = {}
+            result: dict[UID, VfpDict] = {}
             for vfp in session.execute(query).scalars() or []:  # type: VirtualFilePath
                 result.setdefault(vfp.file_uid, {}).setdefault(vfp.parent_uid, []).append(vfp.file_path)
             return result
 
-    def get_vfps_in_parent(self, parent_uid: str) -> dict[str, list[str]]:
+    def get_vfps_in_parent(self, parent_uid: str) -> VfpDict:
         """Get all virtual file paths (see `get_vfps()`) for files inside a container with UID `parent_uid`."""
         with self.get_read_only_session() as session:
             query = select(VirtualFilePath.file_uid, VirtualFilePath.file_path).filter(
                 VirtualFilePath.parent_uid == parent_uid
             )
-            result = {}
+            result: VfpDict = {}
             for uid, path in session.execute(query):
                 result.setdefault(uid, []).append(path)
             return result
@@ -195,8 +195,8 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         return self.get_file_tree_path_for_uid_list([uid], root_uid=root_uid).get(uid, [])
 
     def get_file_tree_path_for_uid_list(
-        self, uid_list: list[str], root_uid: str | None = None
-    ) -> dict[str, list[list[str]]]:
+        self, uid_list: list[UID], root_uid: UID | None = None
+    ) -> dict[UID, list[list[UID]]]:
         """
         Generate all file paths for a list of UIDs `uid_list`. A path is a list of UIDs representing the path from root
         (firmware) to the file in the file tree (with root having index 0 and so on).
@@ -230,7 +230,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return path_dict
 
     @staticmethod
-    def _remove_paths_lacking_root_uid(path_dict: dict[str, list[list[str]]], root_uid: str):
+    def _remove_paths_lacking_root_uid(path_dict: dict[UID, list[list[UID]]], root_uid: UID):
         # remove the paths that don't start with root_uid
         for path_list in path_dict.values():
             for uid_list in path_list[:]:
@@ -242,14 +242,14 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                 path_dict.pop(uid)
 
     def _convert_tuples_to_path(
-        self, parent_child_pairs: Iterable[tuple[str, str]], uid_list: list[str]
-    ) -> dict[str, list[list[str]]]:
-        child_to_parents = {}
+        self, parent_child_pairs: Iterable[tuple[UID, UID]], uid_list: list[UID]
+    ) -> dict[UID, list[list[UID]]]:
+        child_to_parents: dict[UID, set[UID]] = {}
         for parent, child in parent_child_pairs:
             child_to_parents.setdefault(child, set()).add(parent)
         return {uid: self._generate_file_tree_path(uid, child_to_parents) for uid in uid_list}
 
-    def _generate_file_tree_path(self, uid: str, child_to_parents: dict[str, set[str]]) -> list[list[str]]:
+    def _generate_file_tree_path(self, uid: UID, child_to_parents: dict[UID, set[UID]]) -> list[list[UID]]:
         """
         Combines all child-parent relations in the `child_to_parents` dict into a list of paths (as uid list) from `uid`
         to roots (FW uids) through the file tree.
@@ -264,23 +264,23 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== included files. =====
 
-    def get_list_of_all_included_files(self, fo: FileObject) -> set[str]:
+    def get_list_of_all_included_files(self, fo: FileObject) -> set[UID]:
         if isinstance(fo, Firmware):
             return self.get_all_files_in_fw(fo.uid)
         return self.get_all_files_in_fo(fo)
 
-    def get_all_files_in_fw(self, fw_uid: str) -> set[str]:
+    def get_all_files_in_fw(self, fw_uid: UID) -> set[UID]:
         """Get a set of UIDs of all files (recursively) contained in a firmware"""
         with self.get_read_only_session() as session:
             query = select(fw_files_table.c.file_uid).where(fw_files_table.c.root_uid == fw_uid)
             return set(session.execute(query).scalars())
 
-    def get_all_files_in_fo(self, fo: FileObject) -> set[str]:
+    def get_all_files_in_fo(self, fo: FileObject) -> set[UID]:
         """Get a set of UIDs of all files (recursively) contained in a file"""
         with self.get_read_only_session() as session:
             return self._get_files_in_files(session, fo.files_included).union({fo.uid, *fo.files_included})
 
-    def _get_files_in_files(self, session, uid_set: set[str], recursive: bool = True) -> set[str]:
+    def _get_files_in_files(self, session, uid_set: set[UID], recursive: bool = True) -> set[UID]:
         if not uid_set:
             return set()
         query = select(FileObjectEntry).filter(FileObjectEntry.uid.in_(uid_set))
@@ -291,7 +291,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== summary =====
 
-    def get_complete_object_including_all_summaries(self, uid: str) -> FileObject:
+    def get_complete_object_including_all_summaries(self, uid: UID) -> FileObject:
         """
         input uid
         output:
@@ -317,12 +317,12 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             included_files = self.get_all_files_in_fw(fo.uid).union({fo.uid})
         return self._collect_summary_for_uid_list(included_files, selected_analysis)
 
-    def _collect_summary_for_uid_list(self, uid_list: set[str] | list[str], plugin: str) -> Summary:
+    def _collect_summary_for_uid_list(self, uid_list: set[UID] | list[UID], plugin: str) -> Summary:
         with self.get_read_only_session() as session:
             query = select(AnalysisEntry.uid, AnalysisEntry.summary).filter(
                 AnalysisEntry.plugin == plugin, AnalysisEntry.uid.in_(uid_list)
             )
-            summary = {}
+            summary: Summary = {}
             for uid, summary_list in session.execute(query):  # type: str, list[str]
                 for item in set(summary_list or []):
                     summary.setdefault(item, []).append(uid)
@@ -330,8 +330,8 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== tags =====
 
-    def _collect_analysis_tags_from_children(self, uid: str) -> dict:
-        unique_tags = {}
+    def _collect_analysis_tags_from_children(self, uid: UID) -> dict:
+        unique_tags: dict[str, dict] = {}
         with self.get_read_only_session() as session:
             query = (
                 select(FileObjectEntry.uid, AnalysisEntry.plugin, AnalysisEntry.tags)

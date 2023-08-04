@@ -8,6 +8,10 @@ from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VfpDict
 
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
@@ -35,8 +39,8 @@ def file_object_from_entry(
     return file_object
 
 
-def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, list[str]]:
-    result = {}
+def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> VfpDict:
+    result: VfpDict = {}
     for vfp_entry in vfp_list or []:
         result.setdefault(vfp_entry.parent_uid, []).append(vfp_entry.file_path)
     return result
@@ -71,6 +75,9 @@ def _collect_analysis_tags(analysis_dict: dict) -> dict:
 
 
 def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> FirmwareEntry:
+    if firmware.release_date is None:
+        logging.warning(f'Trying to create a DB entry for FW with uninitialized date {Firmware}')
+        firmware.release_date = '1970-01-01'
     return FirmwareEntry(
         uid=firmware.uid,
         submission_date=time(),

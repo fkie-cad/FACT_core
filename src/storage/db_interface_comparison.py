@@ -14,13 +14,11 @@ from helperFunctions.data_conversion import (
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
+from typing import TYPE_CHECKING
 
-
-class FactComparisonException(Exception):  # noqa: N818
-    def get_message(self):
-        if self.args:
-            return self.args[0]
-        return ''
+if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VfpDict
+    from helperFunctions.uid import UID
 
 
 class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
@@ -111,13 +109,13 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 return 0.0
             return analysis.result['entropy']
 
-    def get_exclusive_files(self, compare_id: str, root_uid: str) -> list[str]:
+    def get_exclusive_files(self, compare_id: UID | None, root_uid: UID | None) -> list[UID]:
         if compare_id is None or root_uid is None:
             return []
         try:
             result = self.get_comparison_result(compare_id)
-            exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]
-        except (KeyError, FactComparisonException):
+            exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]  # type: ignore[index]
+        except (KeyError, TypeError):
             exclusive_files = []
         return exclusive_files
 
@@ -137,14 +135,13 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         return self._transpose_vfp_dict(vfp_data)
 
     @staticmethod
-    def _transpose_vfp_dict(vfp_data: dict[str, dict[str, list[str]]]) -> dict[str, set[str]]:
+    def _transpose_vfp_dict(vfp_data: dict[str, VfpDict]) -> dict[str, set[UID]]:
         """
-        Look for files with the same "virtual file path".
-        input: {uid {parent_uid: [vfp]}} -> output: {vfp: [uid]}
+        Look for files with the same "virtual file path" (vfp).
+        input: {uid1: {parent_uid: [vfp1, ...]}, ...} -> output: {vfp1: {uid1, ...}, ...}
         """
-        result = {}
-        for uid in vfp_data:
-            vfp_dict = vfp_data.get(uid)
+        result: dict[str, set[UID]] = {}
+        for uid, vfp_dict in vfp_data.items():
             for vfp_list in vfp_dict.values():
                 for vfp in vfp_list:
                     result.setdefault(vfp, set()).add(uid)

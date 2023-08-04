@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import re
-from typing import Any, NamedTuple, Optional
+from typing import Any, NamedTuple, Optional, TYPE_CHECKING, Iterator, Container
 
 from sqlalchemy import Column, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
 
-from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_some_vfp
 from objects.firmware import Firmware
@@ -24,11 +23,14 @@ from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree import FileTreeData, VirtualPathFileTree
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
+if TYPE_CHECKING:
+    from helperFunctions.uid import UID
+
 RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
 
 
 class MetaEntry(NamedTuple):
-    uid: str
+    uid: UID
     hid: str
     tags: dict
     submission_date: int
@@ -47,7 +49,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- HID ---
 
-    def get_hid(self, uid: str, root_uid: str | None = None) -> str:
+    def get_hid(self, uid: UID, root_uid: str | None = None) -> str:
         """
         returns a human-readable identifier (hid) for a given uid
         returns an empty string if uid is not in Database
@@ -72,7 +74,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- "nice list" ---
 
-    def get_data_for_nice_list(self, uid_list: list[str], root_uid: str | None) -> list[dict]:
+    def get_data_for_nice_list(self, uid_list: list[UID], root_uid: UID | None) -> list[dict]:
         with self.get_read_only_session() as session:
             mime_dict = self._get_mime_types_for_uid_list(session, uid_list)
             query = select(FileObjectEntry.uid, FileObjectEntry.size, FileObjectEntry.file_name).filter(
@@ -92,8 +94,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
             self._replace_uids_in_nice_list(nice_list_data, root_uid)
             return nice_list_data
 
-    def _replace_uids_in_nice_list(self, nice_list_data: list[dict], root_uid: str):
-        uids_in_vfp = set()
+    def _replace_uids_in_nice_list(self, nice_list_data: list[dict], root_uid: UID | None):
+        uids_in_vfp: set[UID] = set()
         for item in nice_list_data:
             uids_in_vfp.update(uid for uid_list in item['current_virtual_path'] for uid in uid_list)
         hid_dict = self.get_hid_dict(uids_in_vfp, root_uid)
@@ -102,20 +104,18 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 vfp = [hid_dict.get(uid, uid) for uid in uid_list]
                 item['current_virtual_path'][index] = ' | '.join(vfp)
 
-    def get_hid_dict(self, uid_set: set[str], root_uid: str) -> dict[str, str]:
+    def get_hid_dict(self, uid_set: set[UID], root_uid: UID | None) -> dict[UID, str]:
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry).filter(FirmwareEntry.uid.in_(uid_set))
             hid_dict = {fw_entry.uid: self._get_hid_firmware(fw_entry) for fw_entry in session.execute(query).scalars()}
+        # for the remaining UIDs (mostly FOs) use a VFP as HID
         vfp_data = self.get_vfps_for_uid_list(uid_set - set(hid_dict), root_uid=root_uid)
         for uid, vfp_dict in vfp_data.items():
-            hid_dict[uid] = get_some_vfp(vfp_dict)
+            hid_dict[uid] = get_some_vfp(vfp_dict) or uid  # vfp_dict should not be empty but use UID as fallback
         return hid_dict
 
     @staticmethod
-    def _get_current_vfp(vfp: dict[str, list[str]]) -> list[str]:
-        return get_value_of_first_key(vfp)
-
-    def get_file_name(self, uid: str) -> str:
+    def get_file_name(self, uid: UID) -> str:
         with self.get_read_only_session() as session:
             entry = session.get(FileObjectEntry, uid)
             return entry.file_name if entry is not None else 'unknown'
@@ -139,17 +139,17 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = select(func.unnest(FirmwareEntry.firmware_tags)).distinct()
             return sorted(session.execute(query).scalars())
 
-    def get_device_name_dict(self):
-        device_name_dict = {}
+    def get_device_name_dict(self) -> dict[str, dict[str, list[str]]]:
+        device_name_dict: dict[str, dict[str, list[str]]] = {}
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry.device_class, FirmwareEntry.vendor, FirmwareEntry.device_name)
-            for device_class, vendor, device_name in session.execute(query):
+            for device_class, vendor, device_name in session.execute(query):  # type: str, str, str
                 device_name_dict.setdefault(device_class, {}).setdefault(vendor, []).append(device_name)
         return device_name_dict
 
-    def get_other_versions_of_firmware(self, firmware: Firmware) -> list[tuple[str, str]]:
+    def get_other_versions_of_firmware(self, firmware: Firmware) -> list[tuple[UID, str]]:
         if not isinstance(firmware, Firmware):
-            return []
+            return []  # type: ignore[unreachable]
         with self.get_read_only_session() as session:
             query = (
                 select(FirmwareEntry.uid, FirmwareEntry.version)
@@ -174,8 +174,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def generic_search(  # noqa: PLR0913
         self,
         search_dict: dict,
-        skip: int = 0,
-        limit: int = 0,
+        skip: int | None = None,
+        limit: int | None = None,
         only_fo_parent_firmware: bool = False,
         inverted: bool = False,
         as_meta: bool = False,
@@ -259,7 +259,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         parent_uid: str | None = None,
         whitelist: list[str] | None = None,
         data: FileTreeData | None = None,
-    ):
+    ) -> Iterator[FileTreeNode]:
         if data is None:
             data = self.get_file_tree_data([uid])[0]
         try:
@@ -296,7 +296,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return dict(iter(session.execute(type_query)))
 
     @staticmethod
-    def _get_included_files_for_uid_list(session, uid_list: list[str]) -> dict[str, list[str]]:
+    def _get_included_files_for_uid_list(session, uid_list: list[str]) -> dict[str, set[str]]:
         included_query = (
             # aggregation `array_agg()` converts multiple rows to an array
             select(FileObjectEntry.uid, func.array_agg(included_files_table.c.child_uid))
@@ -304,13 +304,13 @@ class FrontEndDbInterface(DbInterfaceCommon):
             .join(included_files_table, included_files_table.c.parent_uid == FileObjectEntry.uid)
             .group_by(FileObjectEntry)
         )
-        return dict(iter(session.execute(included_query)))
+        return {uid: set(included_files) for uid, included_files in session.execute(included_query)}
 
     # --- REST ---
 
     def rest_get_firmware_uids(  # noqa: PLR0913
         self, offset: int, limit: int, query: Optional[dict] = None, recursive=False, inverted=False
-    ):
+    ) -> list[UID]:
         if query is None:
             query = {}
         if recursive:
@@ -321,7 +321,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             db_query = db_query.order_by(FirmwareEntry.uid.asc())
             return list(session.execute(db_query).scalars())
 
-    def rest_get_file_object_uids(self, offset: int | None, limit: int | None, query=None) -> list[str]:
+    def rest_get_file_object_uids(self, offset: int | None, limit: int | None, query=None) -> list[UID]:
         if query:
             return self.generic_search(query, skip=offset, limit=limit)
         with self.get_read_only_session() as session:
@@ -331,9 +331,9 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- missing/failed analyses ---
 
-    def find_missing_analyses(self) -> dict[str, set[str]]:
+    def find_missing_analyses(self) -> dict[UID, set[UID]]:
         # FixMe? Query could probably be accomplished more efficiently with left outer join
-        missing_analyses = {}
+        missing_analyses: dict[UID, set[UID]] = {}
         with self.get_read_only_session() as session:
             fw_query = self._query_all_plugins_of_object(FileObjectEntry.is_firmware.is_(True))
             for fw_uid, fw_plugin_list in session.execute(fw_query):
@@ -354,8 +354,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
             .group_by(AnalysisEntry.uid)
         )
 
-    def find_failed_analyses(self) -> dict[str, list[str]]:
-        result = {}
+    def find_failed_analyses(self) -> dict[str, set[UID]]:
+        result: dict[str, set[UID]] = {}
         with self.get_read_only_session() as session:
             query = select(AnalysisEntry.uid, AnalysisEntry.plugin).filter(AnalysisEntry.result.has_key('failed'))
             for fo_uid, plugin in session.execute(query):
@@ -366,7 +366,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def get_query_from_cache(self, query_id: str) -> CachedQuery | None:
         with self.get_read_only_session() as session:
-            entry: SearchCacheEntry = session.get(SearchCacheEntry, query_id)
+            entry: SearchCacheEntry | None = session.get(SearchCacheEntry, query_id)
             if entry is None:
                 return None
             return CachedQuery(query=entry.query, yara_rule=entry.yara_rule)
@@ -376,7 +376,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = select(func.count(SearchCacheEntry.uid))
             return session.execute(query).scalar()
 
-    def search_query_cache(self, offset: int, limit: int):
+    def search_query_cache(self, offset: int, limit: int) -> list[tuple[UID, str, list[str]]]:
         with self.get_read_only_session() as session:
             query = select(SearchCacheEntry).offset(offset).limit(limit)
             return [
@@ -405,12 +405,12 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 .filter(AnalysisEntry.plugin == 'file_type')
             )
             return [
-                DepGraphData(uid_, file_name, vfp_dict.get(uid_), mime, full_type, libraries_by_uid.get(uid_))
+                DepGraphData(uid_, file_name, vfp_dict.get(uid_, []), mime, full_type, libraries_by_uid.get(uid_))
                 for uid_, file_name, mime, full_type in session.execute(query)
             ]
 
     @staticmethod
-    def _get_elf_analysis_libraries(session, uid_list: list[str]) -> dict[str, list[str] | None]:
+    def _get_elf_analysis_libraries(session, uid_list: Container[UID]) -> dict[UID, list[str]]:
         elf_analysis_query = (
             select(FileObjectEntry.uid, AnalysisEntry.result)
             .filter(FileObjectEntry.uid.in_(uid_list))
@@ -423,7 +423,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             if elf_analysis_result is not None
         }
 
-    def get_root_uid(self, uid: str) -> str:
+    def get_root_uid(self, uid: UID) -> UID:
         with self.get_read_only_session() as session:
             query = select(fw_files_table.c.root_uid).filter(
                 or_(

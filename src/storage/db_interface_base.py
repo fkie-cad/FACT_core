@@ -23,14 +23,14 @@ class DbSerializationError(DbInterfaceError):
 class ReadOnlyDbInterface:
     def __init__(self, connection: DbConnection | None = None):
         self.connection = connection or ReadOnlyConnection()
-        self.ro_session = None
+        self.ro_session: Session | None = None
 
     @contextmanager
     def get_read_only_session(self) -> Session:
         if self.ro_session is not None:
             yield self.ro_session
             return
-        self.ro_session: Session = self.connection.session_maker()
+        self.ro_session = self.connection.session_maker()
         try:
             yield self.ro_session
         except SQLAlchemyError as err:
