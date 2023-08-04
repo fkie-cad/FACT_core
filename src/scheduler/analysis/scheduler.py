@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Lock, Queue, Value
 from queue import Empty
-from time import sleep, time
+from time import sleep
 
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
 import config
+from analysis.PluginBase import AnalysisBasePlugin
+from analysis.plugin import AnalysisPluginV0
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
@@ -20,12 +23,15 @@ from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
 from storage.fsorganizer import FSOrganizer
+from pathlib import Path
+
+from .plugin import PluginRunner, Worker
+from storage.db_interface_view_sync import ViewUpdater
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from storage.unpacking_locks import UnpackingLockManager
     from objects.file import FileObject
-    from analysis.PluginBase import AnalysisBasePlugin
     from collections.abc import Callable
 
 
@@ -99,6 +105,8 @@ class AnalysisScheduler:
         unpacking_locks: UnpackingLockManager | None = None,
     ):
         self.analysis_plugins = {}
+        self._plugin_runners = {}
+
         self._load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
@@ -132,6 +140,16 @@ class AnalysisScheduler:
         futures = []
         # first shut down scheduling, then analysis plugins and lastly the result collector
         stop_processes(self.schedule_processes, config.backend.block_delay + 1)
+
+        for runner in self._plugin_runners.values():
+            runner.shutdown()
+
+        for runner in self._plugin_runners.values():
+            for worker in runner._workers:
+                if not worker.is_alive():
+                    continue
+                worker.join(Worker.SIGTERM_TIMEOUT + 1)
+
         with ThreadPoolExecutor() as pool:
             for plugin in self.analysis_plugins.values():
                 futures.append(pool.submit(plugin.shutdown))
@@ -186,12 +204,48 @@ class AnalysisScheduler:
 
     # ---- plugin initialization ----
 
+    def _remove_example_plugins(self):
+        plugins = ['dummy_plugin_for_testing_only', 'ExamplePlugin']
+        for plugin in plugins:
+            self._plugin_runners.pop(plugin, None)
+            self.analysis_plugins.pop(plugin, None)
+
     def _load_plugins(self):
-        for plugin in discover_analysis_plugins():
+        schemata = {}
+
+        for plugin_module in discover_analysis_plugins():
             try:
-                self.analysis_plugins[plugin.AnalysisPlugin.NAME] = plugin.AnalysisPlugin()
+                PluginClass = plugin_module.AnalysisPlugin  # noqa: N806
+                if issubclass(PluginClass, AnalysisPluginV0):
+                    plugin: AnalysisPluginV0 = PluginClass()
+                    self.analysis_plugins[plugin.metadata.name] = plugin
+                    schemata[plugin.metadata.name] = PluginClass.Schema
+                    _sync_view(plugin_module, plugin.metadata.name)
+                elif issubclass(PluginClass, AnalysisBasePlugin):
+                    self.analysis_plugins[PluginClass.NAME] = PluginClass()
+                    schemata[PluginClass.NAME] = dict
             except Exception:
-                logging.error(f'Could not import analysis plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
+                logging.error(f'Could not import analysis plugin {plugin_module.AnalysisPlugin.NAME}', exc_info=True)
+
+        for plugin in self.analysis_plugins.values():
+            if not isinstance(plugin, AnalysisPluginV0):
+                continue
+
+            try:
+                process_count = config.backend.plugin[plugin.metadata.name].processes
+            except (AttributeError, KeyError):
+                process_count = config.backend.plugin_defaults.processes
+
+            runner_config = PluginRunner.Config(
+                process_count=process_count,
+                timeout=plugin.metadata.timeout,
+            )
+            runner = PluginRunner(plugin, runner_config, schemata)
+            self._plugin_runners[plugin.metadata.name] = runner
+
+        # FIXME: This is a hack and should be remove once we have unified fixtures for the scheduler
+        if not os.getenv('PYTEST_CURRENT_TEST'):
+            self._remove_example_plugins()
 
     def get_plugin_dict(self) -> dict:
         """
@@ -218,7 +272,6 @@ class AnalysisScheduler:
         :return: dict with information regarding all loaded plugins
         """
         plugin_list = self._get_list_of_available_plugins()
-        plugin_list = self._remove_unwanted_plugins(plugin_list)
         plugin_sets = config.backend.analysis_preset
         result = {}
         for plugin in plugin_list:
@@ -248,6 +301,9 @@ class AnalysisScheduler:
     def _start_plugins(self):
         for plugin in self.analysis_plugins.values():
             plugin.start()
+
+        for runner in self._plugin_runners.values():
+            runner.start()
 
     # ---- task runner functions ----
 
@@ -300,7 +356,18 @@ class AnalysisScheduler:
         else:
             if file_object.binary is None:
                 self._set_binary(file_object)
-            self.analysis_plugins[analysis_to_do].add_job(file_object)
+            plugin = self.analysis_plugins[analysis_to_do]
+            if isinstance(plugin, AnalysisPluginV0):
+                runner = self._plugin_runners[plugin.metadata.name]
+
+                if _dependencies_are_unfulfilled(plugin, file_object):
+                    logging.error(f'{file_object.uid}: dependencies of plugin {plugin.metadata.name} not fulfilled')
+                    self._check_further_process_or_complete(file_object)
+                    return
+
+                runner.queue_analysis(file_object)
+            elif isinstance(plugin, AnalysisBasePlugin):
+                plugin.add_job(file_object)
 
     def _set_binary(self, file_object: FileObject):
         # the file_object.binary may be missing in case of an update
@@ -321,7 +388,7 @@ class AnalysisScheduler:
 
     def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, uid: str) -> bool:
         db_entry = self.db_backend_service.get_analysis(uid, analysis_to_do)
-        if db_entry is None or 'failed' in db_entry:
+        if db_entry is None or 'failed' in db_entry['result']:
             return False
         if db_entry['plugin_version'] is None:
             logging.error(f'Plugin Version missing: UID: {uid}, Plugin: {analysis_to_do}')
@@ -329,7 +396,11 @@ class AnalysisScheduler:
         return self._analysis_is_up_to_date(db_entry, self.analysis_plugins[analysis_to_do], uid)
 
     def _analysis_is_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
-        current_system_version = getattr(analysis_plugin, 'SYSTEM_VERSION', None)
+        try:
+            current_system_version = analysis_plugin.SYSTEM_VERSION
+        except AttributeError:
+            current_system_version = None
+
         try:
             if self._current_version_is_newer(analysis_plugin.VERSION, current_system_version, db_entry):
                 return False
@@ -368,7 +439,7 @@ class AnalysisScheduler:
     def _get_skipped_analysis_result(self, analysis_to_do: str) -> dict:
         return {
             'summary': [],
-            'analysis_date': time(),
+            'analysis_date': time.time(),
             'plugin_version': self.analysis_plugins[analysis_to_do].VERSION,
             'result': {
                 'skipped': 'blacklisted file type',
@@ -407,8 +478,16 @@ class AnalysisScheduler:
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> tuple[list, list]:
-        blacklist = getattr(self.analysis_plugins[analysis_plugin], 'MIME_BLACKLIST', [])
-        whitelist = getattr(self.analysis_plugins[analysis_plugin], 'MIME_WHITELIST', [])
+        try:
+            blacklist = self.analysis_plugins[analysis_plugin].MIME_BLACKLIST
+        except AttributeError:
+            blacklist = []
+
+        try:
+            whitelist = self.analysis_plugins[analysis_plugin].MIME_WHITELIST
+        except AttributeError:
+            whitelist = []
+
         return blacklist, whitelist
 
     # ---- result collector functions ----
@@ -421,17 +500,24 @@ class AnalysisScheduler:
             process.start()
 
     def _result_collector(self):
+        # Collects the results form plugins and writes them in FileObject.processed_analysis
         logging.debug(f'Started analysis result collector (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
+                if isinstance(plugin, AnalysisPluginV0):
+                    runner = self._plugin_runners[plugin.metadata.name]
+                    out_queue = runner.out_queue
+                elif isinstance(plugin, AnalysisBasePlugin):
+                    out_queue = plugin.out_queue
+
                 try:
-                    result = plugin.out_queue.get_nowait()
+                    fw = out_queue.get_nowait()
                 except (Empty, ValueError):
                     pass
                 else:
                     nop = False
-                    self._handle_collected_result(result, plugin_name)
+                    self._handle_collected_result(fw, plugin_name)
             if nop:
                 sleep(config.backend.block_delay)
 
@@ -453,7 +539,11 @@ class AnalysisScheduler:
     # ---- miscellaneous functions ----
 
     def get_combined_analysis_workload(self):
-        return self.process_queue.qsize() + sum(plugin.in_queue.qsize() for plugin in self.analysis_plugins.values())
+        plugin_queues = [
+            plugin.in_queue for plugin in self.analysis_plugins.values() if isinstance(plugin, AnalysisBasePlugin)
+        ]
+        runner_queue_sum = sum([runner.get_queue_len() for runner in self._plugin_runners.values()])
+        return self.process_queue.qsize() + sum(queue.qsize() for queue in plugin_queues) + runner_queue_sum
 
     def get_scheduled_workload(self) -> dict:
         """
@@ -482,20 +572,22 @@ class AnalysisScheduler:
             'plugins': {},
         }
         for plugin_name, plugin in self.analysis_plugins.items():
-            workload['plugins'][plugin_name] = {
-                'queue': plugin.in_queue.qsize(),
-                'out_queue': plugin.out_queue.qsize(),
-                'active': (sum(plugin.active[i].value for i in range(plugin.thread_count))),
-                'stats': get_plugin_stats(plugin),
-            }
+            if isinstance(plugin, AnalysisPluginV0):
+                runner = self._plugin_runners[plugin_name]
+                workload['plugins'][plugin_name] = {
+                    'queue': runner.get_queue_len(),
+                    'out_queue': runner.out_queue.qsize(),
+                    'active': runner.get_active_worker_count(),
+                    'stats': get_plugin_stats(runner.stats, runner.stats_count),
+                }
+            elif isinstance(plugin, AnalysisBasePlugin):
+                workload['plugins'][plugin_name] = {
+                    'queue': plugin.in_queue.qsize(),
+                    'out_queue': plugin.out_queue.qsize(),
+                    'active': (sum(plugin.active[i].value for i in range(plugin.thread_count))),
+                    'stats': get_plugin_stats(plugin.analysis_stats, plugin.analysis_stats_count),
+                }
         return workload
-
-    @staticmethod
-    def _remove_unwanted_plugins(list_of_plugins):
-        defaults = ['dummy_plugin_for_testing_only']
-        for plugin in defaults:
-            list_of_plugins.remove(plugin)
-        return list_of_plugins
 
     def check_exceptions(self) -> bool:
         """
@@ -505,6 +597,8 @@ class AnalysisScheduler:
         :return: Boolean value stating if any attached process ran into an exception
         """
         for _, plugin in self.analysis_plugins.items():
+            if isinstance(plugin, AnalysisPluginV0):
+                continue
             if plugin.check_exceptions():
                 return True
         return check_worker_exceptions(self.schedule_processes + self.result_collector_processes, 'Scheduler')
@@ -514,3 +608,38 @@ def _fix_system_version(system_version: str | None) -> str:
     # the system version is optional -> return '0' if it is '' or None
     # YARA plugins used an invalid system version x.y_z (may still be in DB) -> replace all underscores with dashes
     return system_version.replace('_', '-') if system_version else '0'
+
+
+def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObject):
+    # FIXME plugins can be in processed_analysis and could still be skipped, etc. -> need a way to verify that
+    # FIXME the analysis ran successfully
+    return any(dep not in fw_object.processed_analysis for dep in plugin.metadata.dependencies)
+
+
+def _sync_view(plugin_module, plugin_name):
+    view_path = _get_view_path(plugin_module, plugin_name)
+
+    if view_path is None:
+        return
+
+    _view_updater = ViewUpdater()
+
+    _view_updater.update_view(
+        plugin_name,
+        view_path.read_bytes(),
+    )
+
+
+def _get_view_path(plugin_module, plugin_name) -> Path | None:
+    views_dir = Path(plugin_module.__file__).parent.parent / 'view'
+    view_files = list(views_dir.iterdir()) if views_dir.is_dir() else []
+
+    if len(view_files) == 0:
+        logging.debug(f'{plugin_name}: No view available! Generic view will be used.')
+        return None
+
+    if len(view_files) > 1:
+        raise RuntimeError(f'{plugin_name}: Plug-in provides more than one view!')
+
+    assert len(view_files) == 1
+    return view_files[0]

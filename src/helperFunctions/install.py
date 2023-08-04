@@ -201,7 +201,7 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool =
     """
     Runs `cmd` with subprocess.run, logs the command it executes and logs
     stderr on non-zero returncode.
-    All keyword arguments are execpt `raise_error` passed to subprocess.run.
+    All keyword arguments are except `raise_error` passed to subprocess.run.
 
     :param shell: execute the command through the shell.
     :param raise_error: Whether or not an error should be raised when `cmd` fails
@@ -227,7 +227,7 @@ def check_distribution(allow_unsupported=False):
     bionic_code_names = ['bionic', 'tara', 'tessa', 'tina', 'disco']
     debian_code_names = ['buster', 'stretch', 'bullseye', 'bookworm', 'kali-rolling']
     focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma', 'una']
-    jammy_code_names = ['jammy', 'vanessa', 'vera']
+    jammy_code_names = ['jammy', 'vanessa', 'vera', 'victoria']
 
     codename = distro.codename().lower()
     if codename in bionic_code_names:
@@ -245,13 +245,15 @@ def check_distribution(allow_unsupported=False):
     if distro.id() == 'fedora':
         logging.debug('Fedora detected')
         return 'fedora'
-    msg = f'Your Distribution ({distro.id()} {distro.version()}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'  # noqa: E501
+    msg = (
+        f'Your Distribution ({distro.id()} {distro.version()}) is not supported. '
+        'FACT Installer requires Ubuntu 20.04/22.04, Debian 11/12 or compatible!'
+    )
     if allow_unsupported:
         logging.info(msg)
         return None
-    else:  # noqa: RET505
-        logging.critical(msg)
-        sys.exit(1)
+    logging.critical(msg)
+    sys.exit(1)
 
 
 def install_pip_packages(package_file: Path):
@@ -272,7 +274,8 @@ def install_pip_packages(package_file: Path):
             # don't fail if a package is already installed using apt and can't be upgraded
             if error.stdout is not None and 'distutils installed' in error.stdout:
                 logging.warning(
-                    f'Pip package {package} is already installed with distutils. This may Cause problems:\n{error.stdout}'  # noqa: E501
+                    f'Pip package {package} is already installed with distutils. '
+                    f'This may Cause problems:\n{error.stdout}'
                 )
                 continue
             logging.error(f'Pip package {package} could not be installed:\n{error.stderr or error.stdout}')

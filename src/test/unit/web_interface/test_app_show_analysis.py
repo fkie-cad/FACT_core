@@ -16,13 +16,25 @@ from test.unit.conftest import CommonIntercomMock
 
 FAILED_FO = create_test_file_object(
     uid='failed_uid',
-    analyses={'failed_analysis': generate_analysis_entry(analysis_result={'failed': 'reason for fail'})},
+    analyses={
+        'failed_analysis': generate_analysis_entry(plugin_version='0.0', analysis_result={'failed': 'reason for fail'})
+    },
 )
 
 
 class IntercomMock(CommonIntercomMock):
     def add_single_file_task(self, task):
         self.task_list.append(task)
+
+    def get_available_analysis_plugins(self):
+        plugins = super().get_available_analysis_plugins()
+        plugins.update(
+            {
+                'failed_analysis': ('plugin description', False, {'default': True}, *self._common_fields),
+            }
+        )
+
+        return plugins
 
 
 class DbMock(CommonDatabaseMock):

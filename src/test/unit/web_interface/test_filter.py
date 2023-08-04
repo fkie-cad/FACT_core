@@ -67,11 +67,14 @@ def test_handle_uids():
 
 
 def check_nice_list_output(input_data):
+    expected = (
+        '<ul class="list-group list-group-flush">\n'
+        '\t<li class="list-group-item">a</li>\n'
+        '\t<li class="list-group-item">b</li>\n'
+        '</ul>\n'
+    )
     result = flt.list_group(input_data)
-    assert (
-        result
-        == '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">a</li>\n\t<li class="list-group-item">b</li>\n</ul>\n'  # noqa: E501
-    ), 'output not correct'
+    assert result == expected, 'output not correct'
 
 
 def test_nice_list_set():
@@ -197,7 +200,10 @@ def test_nice_number(input_data, expected):
         (1234, '1,234'),
         (
             [1, 3],
-            '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">1</li>\n\t<li class="list-group-item">3</li>\n</ul>\n',  # noqa: E501
+            '<ul class="list-group list-group-flush">\n'
+            '\t<li class="list-group-item">1</li>\n'
+            '\t<li class="list-group-item">3</li>\n'
+            '</ul>\n',
         ),
         ({'a': 1}, 'a: 1<br />'),
         (gmtime(0), '1970-01-01 - 00:00:00'),
@@ -357,7 +363,8 @@ def test_remaining_time(time_diff, expected_result):
         ('CVE-1-2', '<a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a>'),
         (
             'a CVE-1-2 b CVE-3-4 c',
-            'a <a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a> b <a href="https://nvd.nist.gov/vuln/detail/CVE-3-4">CVE-3-4</a> c',  # noqa: E501
+            'a <a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a> b '
+            '<a href="https://nvd.nist.gov/vuln/detail/CVE-3-4">CVE-3-4</a> c',
         ),
     ],
 )
@@ -372,7 +379,8 @@ def test_replace_cve_with_link(input_string, expected_result):
         ('CWE-123', '<a href="https://cwe.mitre.org/data/definitions/123.html">CWE-123</a>'),
         (
             'a CWE-1 b CWE-1234 c',
-            'a <a href="https://cwe.mitre.org/data/definitions/1.html">CWE-1</a> b <a href="https://cwe.mitre.org/data/definitions/1234.html">CWE-1234</a> c',  # noqa: E501
+            'a <a href="https://cwe.mitre.org/data/definitions/1.html">CWE-1</a> b '
+            '<a href="https://cwe.mitre.org/data/definitions/1234.html">CWE-1234</a> c',
         ),
     ],
 )
@@ -383,27 +391,51 @@ def test_replace_cwe_with_link(input_string, expected_result):
 @pytest.mark.parametrize(
     ('input_dict', 'expected_result'),
     [
-        ({}, {}),
-        (
+        ({}, []),
+        (  # primary key max(v2, v3) sorting
             {
-                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
-                'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
-                'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
+                'cve_id1': {'score2': '6.0', 'score3': '2.0'},
+                'cve_id2': {'score2': '4.0', 'score3': '3.0'},
+                'cve_id3': {'score2': '1.0', 'score3': '5.0'},
             },
+            ['cve_id1', 'cve_id3', 'cve_id2'],
+        ),
+        (  # numerical sorting
             {
-                'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
-                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
-                'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
+                'cve_id1': {'score2': '1.3', 'score3': '0.0'},
+                'cve_id2': {'score2': '10.0', 'score3': '0.0'},
+                'cve_id3': {'score2': '2.6', 'score3': '0.0'},
             },
+            ['cve_id2', 'cve_id3', 'cve_id1'],
+        ),
+        (  # secondary key sorting
+            {
+                'cve_id1': {'score2': '5.0', 'score3': '2.0'},
+                'cve_id2': {'score2': '5.0', 'score3': '3.0'},
+                'cve_id3': {'score2': '5.0', 'score3': '4.0'},
+            },
+            ['cve_id3', 'cve_id2', 'cve_id1'],
+        ),
+        (  # N/A entries
+            {
+                'cve_id1': {'score2': 'N/A', 'score3': '4.0'},
+                'cve_id2': {'score2': '3.0', 'score3': 'N/A'},
+            },
+            ['cve_id1', 'cve_id2'],
+        ),
+        (  # missing entries
+            {
+                'cve_id1': {'score3': '1.0'},
+                'cve_id2': {'score2': '2.0'},
+                'cve_id3': {},
+            },
+            ['cve_id2', 'cve_id1', 'cve_id3'],
         ),
     ],
 )
 def test_sort_cve_result(input_dict, expected_result):
     result = dict(flt.sort_cve_results(input_dict))
-    assert result == expected_result
-
-    for item1, item2 in zip(result, expected_result):
-        assert item1 == item2
+    assert list(result) == expected_result
 
 
 @pytest.mark.parametrize(

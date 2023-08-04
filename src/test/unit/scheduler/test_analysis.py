@@ -5,8 +5,10 @@ from unittest import mock
 
 import pytest
 
+from analysis.PluginBase import AnalysisBasePlugin
 from objects.firmware import Firmware
-from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
+from scheduler.analysis import AnalysisScheduler
+from scheduler.task_scheduler import MANDATORY_PLUGINS
 from test.common_helper import MockFileObject, get_test_data_dir
 from test.mock import mock_patch, mock_spy
 
@@ -66,7 +68,17 @@ class TestScheduleInitialAnalysis:
 
         assert 'file_hashes' in result, 'file hashes plugin not found'
         assert 'file_type' in result, 'file type plugin not found'
+
+    def test_remove_example_plugins(self, analysis_scheduler):
+        # Reloading plugins will discard the already started processes
+        analysis_scheduler.shutdown()
+        analysis_scheduler._load_plugins()
+        analysis_scheduler._remove_example_plugins()
+
+        result = analysis_scheduler.get_plugin_dict()
+
         assert 'dummy_plugin_for_testing_only' not in result, 'dummy plug-in not removed'
+        assert 'ExamplePlugin' not in result, 'ExamplePlugin plug-in not removed'
 
     def test_get_plugin_dict_description(self, analysis_scheduler):
         result = analysis_scheduler.get_plugin_dict()
@@ -306,6 +318,7 @@ class TestAnalysisSkipping:
             'plugin': plugin,
             'plugin_version': analysis_plugin_version,
             'system_version': analysis_system_version,
+            'result': {},
         }
         self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
         self.scheduler.analysis_plugins[plugin] = self.PluginMock(
@@ -316,12 +329,16 @@ class TestAnalysisSkipping:
     @pytest.mark.parametrize(
         'db_entry',
         [
-            {'plugin': 'plugin', 'plugin_version': '0'},  # 'system_version' missing
+            {
+                'plugin': 'plugin',
+                'plugin_version': '1.0',
+                'result': {},
+            },  # 'system_version' missing
             {
                 'plugin': 'plugin',
                 'result': {'failed': 'reason'},
-                'plugin_version': '0',
-                'system_version': '0',
+                'plugin_version': '1.0',
+                'system_version': '1.0',
             },  # failed
         ],
     )
@@ -406,7 +423,7 @@ class TestAnalysisShouldReanalyse:
         assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, plugin, 'uid') == expected_result
 
 
-class PluginMock:
+class PluginMock(AnalysisBasePlugin):
     def __init__(self, dependencies):
         self.DEPENDENCIES = dependencies
 
@@ -416,6 +433,7 @@ def test_combined_analysis_workload(monkeypatch):
     scheduler = AnalysisScheduler()
 
     scheduler.analysis_plugins = {}
+    scheduler._plugin_runners = {}
     dummy_plugin = scheduler.analysis_plugins['dummy_plugin'] = PluginMock([])
     dummy_plugin.in_queue = Queue()
     scheduler.process_queue = Queue()

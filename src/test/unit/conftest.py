@@ -11,18 +11,17 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 class CommonIntercomMock:
     task_list = None
+    _common_fields = ('0.0', [], [], [], 1)
 
     def __init__(self, *_, **__):
         pass
 
-    @staticmethod
-    def get_available_analysis_plugins():
-        common_fields = ('0.0.', [], [], [], 1)
+    def get_available_analysis_plugins(self):
         return {
-            'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
-            'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
-            'file_type': ('file_type plugin', False, {'default': False}, *common_fields),
+            'default_plugin': ('default plugin description', False, {'default': True}, *self._common_fields),
+            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *self._common_fields),
+            'optional_plugin': ('optional plugin description', False, {'default': False}, *self._common_fields),
+            'file_type': ('file_type plugin', False, {'default': False}, *self._common_fields),
             'unpacker': ('Additional information provided by the unpacker', True, False),
         }
 
