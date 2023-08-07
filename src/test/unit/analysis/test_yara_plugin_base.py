@@ -87,7 +87,7 @@ def test_rule_metadata_can_be_parsed(caplog, signature_file):
         if rule_name == 'SHORT_NAME_OF_SOFTWARE':  # ignore demo rule
             continue
         yara_output_form = ','.join(
-            meta_data.replace('    ', '').replace('\t', '').replace(' = ', '=').splitlines()
+            meta_data.replace('    ', '').replace('\t', '').replace(' = ', '=').replace("'", "\\'").splitlines()
         ).strip(',')
         with caplog.at_level(logging.WARNING):
             output = _parse_meta_data(yara_output_form)

@@ -106,9 +106,11 @@ def _append_match_to_result(match, resulting_matches: dict[str, dict], rule):
 
 def _parse_meta_data(meta_data_string: str) -> dict[str, str | bool | int]:
     '''
-    Will be of form 'item0=lowercaseboolean0,item1="value1",item2=value2,..'
+    Will be of form 'item0=lowercaseboolean0,item1="str1",item2=int2,...'
     '''
     try:
+        # YARA insert backslashes before single quotes in the meta output and the YAML parser doesn't like that
+        meta_data_string = meta_data_string.replace(r"\'", "'")
         meta_data = yaml.safe_load(f'{{{meta_data_string.replace("=", ": ")}}}')
         assert isinstance(meta_data, dict)
         return meta_data
