@@ -65,7 +65,6 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.data_conversion.html">helperFunctions.data_conversion module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.database module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.database.ConnectTo"><code class="docutils literal notranslate"><span class="pre">ConnectTo</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.database.get_shared_session"><code class="docutils literal notranslate"><span class="pre">get_shared_session()</span></code></a></li>
 </ul>
 </li>
@@ -121,24 +120,6 @@
              
   <section id="module-helperFunctions.database">
 <span id="helperfunctions-database-module"></span><h1>helperFunctions.database module<a class="headerlink" href="#module-helperFunctions.database" title="Permalink to this heading"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="helperFunctions.database.ConnectTo">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.database.</span></span><span class="sig-name descname"><span class="pre">ConnectTo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connected_interface</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.ConnectTo" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">DatabaseInterface</span></code>]</p>
-<p>Open a database connection using the interface passed to the constructor. Intended to be used as a context manager.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>connected_interface</strong> – A database interface from the <cite>storage</cite> module (e.g. <cite>FrontEndDbInterface</cite>)</p>
-</dd>
-<dt class="field-even">Example<span class="colon">:</span></dt>
-<dd class="field-even"><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">ConnectTo</span><span class="p">(</span><span class="n">FrontEndDbInterface</span><span class="p">)</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
-     <span class="n">query</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">firmwares</span><span class="o">.</span><span class="n">find</span><span class="p">({})</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.database.get_shared_session">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.database.</span></span><span class="sig-name descname"><span class="pre">get_shared_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.get_shared_session" title="Permalink to this definition"></a></dt>
