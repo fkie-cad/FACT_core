@@ -3,7 +3,6 @@ from typing import List, NamedTuple, Type, TypeVar
 
 import pytest
 from pydantic import BaseModel, Extra
-from pytest import MonkeyPatch  # noqa: PT013
 from pathlib import Path
 
 import config
@@ -314,18 +313,19 @@ def analysis_scheduler(  # noqa: PLR0913
     analysis_finished_counter,
     _unpacking_lock_manager,
     test_config,
+    monkeypatch,
 ) -> AnalysisScheduler:
     """Returns an instance of :py:class:`~scheduler.analysis.AnalysisScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """
 
-    with MonkeyPatch.context() as mkp:
-        mkp.setattr('plugins.base.ViewUpdater', test_config.view_updater_class)
-        mkp.setattr('scheduler.analysis.plugin.FSOrganizer', test_config.fs_organizer_class)
-        _analysis_scheduler = AnalysisScheduler(
-            post_analysis=lambda *_: None,
-            unpacking_locks=_unpacking_lock_manager,
-        )
+    monkeypatch.setattr('plugins.base.ViewUpdater', test_config.view_updater_class)
+    monkeypatch.setattr('scheduler.analysis.scheduler.ViewUpdater', test_config.view_updater_class)
+    monkeypatch.setattr('scheduler.analysis.plugin.FSOrganizer', test_config.fs_organizer_class)
+    _analysis_scheduler = AnalysisScheduler(
+        post_analysis=lambda *_: None,
+        unpacking_locks=_unpacking_lock_manager,
+    )
 
     fs_organizer = test_config.fs_organizer_class()
     start_analysis_of_object = _analysis_scheduler.start_analysis_of_object
