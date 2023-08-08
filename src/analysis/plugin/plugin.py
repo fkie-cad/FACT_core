@@ -6,7 +6,7 @@ import typing
 import semver
 
 import pydantic
-from pydantic import BaseModel, validator
+from pydantic import field_validator, ConfigDict, BaseModel
 
 if typing.TYPE_CHECKING:
     import io
@@ -38,8 +38,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
     class MetaData(BaseModel):
         """A class containing all metadata that describes the plugin"""
 
-        class Config:
-            arbitrary_types_allowed = True
+        model_config = ConfigDict(arbitrary_types_allowed=True)
 
         #: Name of the plugin
         name: str
@@ -71,8 +70,9 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         #: and will be aborted if the timeout is reached.
         timeout: int = 300
 
-        @validator('version', pre=True)
-        def _version_validator(cls, value):  # noqa: N805
+        @field_validator('version', mode='before')
+        @classmethod
+        def _version_validator(cls, value):
             if isinstance(value, str):
                 return semver.Version.parse(value)
 
