@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, NamedTuple, Optional
+from typing import Iterable, NamedTuple, TYPE_CHECKING
 
 from web_interface.file_tree.file_tree_node import FileTreeNode
+
+if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VfpDict, VFP
+    from helperFunctions.uid import UID
 
 WEB_BASE_PATH = Path(__file__).parent.parent
 ICON_URL_BASE = 'static/file_icons'
@@ -104,8 +108,8 @@ class FileTreeData(NamedTuple):
     uid: str
     file_name: str
     size: int
-    virtual_file_path: dict[str, list[str]]
-    mime: str
+    virtual_file_path: VfpDict | None  # is None for firmwares (all other files should get a VFP dict during unpacking)
+    mime: str | None  # is None if the analysis did not run (successfully) for this file
     included_files: set[str]
 
 
@@ -145,6 +149,7 @@ def get_icon_for_mime(mime_type: str | None) -> str:
 
 
 def _root_is_virtual(root: list[dict]) -> bool:
+    # checks if the root node of the tree is "virtual" (a directory) or an actual file (FileObject)
     try:
         return root[0]['a_attr'] == {'href': '#'}
     except (KeyError, IndexError):
@@ -178,26 +183,28 @@ class VirtualPathFileTree:
     :param whitelist: A whitelist of file names needed to display partial trees in comparisons.
     '''
 
-    def __init__(self, root_uid: str, parent_uid: str, fo_data: FileTreeData, whitelist: list[str] | None = None):
-        self.uid = fo_data.uid
-        self.root_uid = root_uid if root_uid else self._find_root_uid(parent_uid, fo_data)
-        self.parent_uid = parent_uid
+    def __init__(
+        self, root_uid: UID, parent_uid: UID | None, fo_data: FileTreeData, whitelist: list[str] | None = None
+    ):
         self.fo_data: FileTreeData = fo_data
+        self.root_uid = root_uid if root_uid else self._find_root_uid(parent_uid)
         self.whitelist = whitelist
-        self.virtual_file_paths: Optional[list[str]] = (
-            fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None
+        self.virtual_file_paths: list[VFP] | None = (
+            fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None  # type: ignore[arg-type]
         )
 
-    @staticmethod
-    def _find_root_uid(parent_uid: str, fo_data: FileTreeData) -> str:
+    def _find_root_uid(self, parent_uid: UID | None) -> str:
         """
         If we don't have a rood_uid, we must find a root_uid that contains the parent_uid (we can't just take a
-        random one because then the files could be missing from the file tree).
+        random one because then files could be missing from the file tree).
         """
-        for root_uid, vfp_list in fo_data.virtual_file_path.items():
-            if any(parent_uid in vfp for vfp in vfp_list):
+        if self.fo_data.virtual_file_path is None:
+            # virtual_file_path is None for FWs but root_uid should always be set in this case
+            raise ValueError('File tree: Cannot determine root UID without VFP data')
+        for root_uid, vfp_list in self.fo_data.virtual_file_path.items():
+            if parent_uid and any(parent_uid in vfp for vfp in vfp_list):
                 return root_uid
-        return list(fo_data.virtual_file_path)[0]  # safety fallback: this should not occur under normal circumstances
+        return list(self.fo_data.virtual_file_path)[0]  # safety fallback: some parent (may occur if parent UID is None)
 
     def get_file_tree_nodes(self) -> Iterable[FileTreeNode]:
         """
@@ -207,7 +214,7 @@ class VirtualPathFileTree:
 
         :return: An iterable sequence of nodes of the file tree.
         """
-        if self.virtual_file_paths is None:  # firmware objects don't have VPFs
+        if self.virtual_file_paths is None:  # firmware objects don't have VFPs
             yield self._get_node_for_real_file()
         else:
             for path in self.virtual_file_paths:
@@ -226,7 +233,7 @@ class VirtualPathFileTree:
 
     def _get_node_for_real_file(self, virtual_path: str | None = None) -> FileTreeNode:
         return FileTreeNode(
-            self.uid,
+            self.fo_data.uid,
             self.root_uid,
             virtual=False,
             name=virtual_path or self.fo_data.file_name,
