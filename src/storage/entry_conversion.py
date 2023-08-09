@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
-    firmware = Firmware()
+    firmware = Firmware(uid=fw_entry.uid)
     _populate_fo_data(fw_entry.root_object, firmware, analysis_filter)
     firmware.device_name = fw_entry.device_name
     firmware.device_class = fw_entry.device_class
@@ -34,7 +34,7 @@ def file_object_from_entry(
     parents: set[str] | None = None,
     virtual_file_paths: dict[str, list[str]] | None = None,
 ) -> FileObject:
-    file_object = FileObject()
+    file_object = FileObject(uid=fo_entry.uid)
     _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents, virtual_file_paths)
     return file_object
 
@@ -54,7 +54,6 @@ def _populate_fo_data(  # noqa: PLR0913
     parents: set[str] | None = None,
     virtual_file_paths: dict[str, list[str]] | None = None,
 ):
-    file_object.uid = fo_entry.uid
     file_object.size = fo_entry.size
     file_object.file_name = fo_entry.file_name
     file_object.virtual_file_path = virtual_file_paths or {}

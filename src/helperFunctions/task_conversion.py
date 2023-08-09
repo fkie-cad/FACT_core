@@ -106,15 +106,11 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Firmware | Non
     :param base_fw: The existing `Firmware` object in case of analysis update.
     :return: A `Firmware` object based on the analysis task data.
     """
-    fw = base_fw or Firmware()
+    fw = base_fw or Firmware(uid=analysis_task.get('uid'))
     fw.scheduled_analysis = analysis_task['requested_analysis_systems']
-    if 'binary' in analysis_task:
-        fw.set_binary(analysis_task['binary'])
-        fw.file_name = analysis_task['file_name']
-    else:
-        if 'file_name' in analysis_task:
-            fw.file_name = analysis_task['file_name']
-        fw.uid = analysis_task['uid']
+    if (binary := analysis_task.get('binary')) is not None:
+        fw.set_binary(binary)
+    fw.file_name = analysis_task.get('file_name')
     fw.device_name = analysis_task['device_name']
     fw.set_part_name(analysis_task['device_part'])
     fw.version = analysis_task['version']
