@@ -24,8 +24,7 @@ from web_interface.security.authentication import add_flask_security_to_app
 class WebFrontEnd:
     def __init__(self, db: FrontendDatabase | None = None, intercom=None, status_interface=None):
         self.program_version = __VERSION__
-
-        self.intercom = InterComFrontEndBinding if intercom is None else intercom
+        self.intercom = InterComFrontEndBinding() if intercom is None else intercom()
         self.db = FrontendDatabase() if db is None else db
         self.status_interface = RedisStatusInterface() if status_interface is None else status_interface
 

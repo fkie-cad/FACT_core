@@ -92,7 +92,7 @@ class PluginRunner:
 
     def get_active_worker_count(self) -> int:
         """Returns the amount of workers that currently analyze a file"""
-        return sum([worker.is_alive() for worker in self._workers])
+        return sum([worker.is_working() for worker in self._workers])
 
     def start(self):
         for worker in self._workers:

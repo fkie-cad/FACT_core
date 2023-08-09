@@ -6,8 +6,8 @@ import logging
 from flask import jsonify, render_template, Response
 
 from helperFunctions.data_conversion import none_to_none
-from helperFunctions.database import ConnectTo, get_shared_session
-from web_interface.components.component_base import GET, AppRoute, ComponentBase
+from helperFunctions.database import get_shared_session
+from web_interface.components.component_base import AppRoute, ComponentBase, GET
 from web_interface.components.hex_highlighting import preview_data_as_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
 from web_interface.file_tree.file_tree_node import FileTreeNode
@@ -95,8 +95,7 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_get_binary/<mime_type>/<uid>', GET)
     def ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
-        with ConnectTo(self.intercom) as sc:
-            binary = sc.get_binary_and_filename(uid)[0]
+        binary = self.intercom.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
             return (
                 '<pre class="line_numbering" style="white-space: pre-wrap">'
@@ -113,8 +112,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_hex_preview/<string:uid>/<int:offset>/<int:length>', GET)
     def ajax_get_hex_preview(self, uid: str, offset: int, length: int) -> str:
-        with ConnectTo(self.intercom) as sc:
-            partial_binary = sc.peek_in_binary(uid, offset, length)
+        partial_binary = self.intercom.peek_in_binary(uid, offset, length)
         hex_dump = preview_data_as_hex(partial_binary, offset=offset)
         return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'
 

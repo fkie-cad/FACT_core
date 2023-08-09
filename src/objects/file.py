@@ -213,7 +213,7 @@ class FileObject:
 
     def __str__(self) -> str:
         return (
-            f'UID: {self.uid}\n'
+            f'UID: {self._uid}\n'
             f' Processed analysis: {list(self.processed_analysis.keys())}\n'
             f' Files included: {self.files_included}'
         )

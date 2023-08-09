@@ -3,6 +3,7 @@ from __future__ import annotations
 import grp
 import logging
 import os
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Type, Union
 
@@ -18,12 +19,12 @@ from test.conftest import merge_markers
 
 
 @pytest.fixture
-def _docker_mount_base_dir() -> str:  # noqa: PT005
+def docker_mount_base_dir() -> str:
     docker_gid = grp.getgrnam('docker').gr_gid
 
     with TemporaryDirectory(prefix='fact-docker-mount-base-dir') as tmp_dir:
         os.chown(tmp_dir, -1, docker_gid)
-        os.chmod(tmp_dir, 0o770)  # noqa: PTH101
+        Path(tmp_dir).chmod(0o770)
         yield tmp_dir
 
 
@@ -34,7 +35,7 @@ def _firmware_file_storage_directory() -> str:  # noqa: PT005
 
 
 @pytest.fixture
-def common_config(request, _docker_mount_base_dir) -> config.Common:
+def common_config(request, docker_mount_base_dir) -> config.Common:
     overwrite_config = merge_markers(request, 'common_config_overwrite', dict)
 
     if 'docker_mount_base_dir' in overwrite_config:
@@ -43,7 +44,7 @@ def common_config(request, _docker_mount_base_dir) -> config.Common:
     config.load()
     test_config = {
         'temp_dir_path': '/tmp',
-        'docker_mount_base_dir': _docker_mount_base_dir,
+        'docker_mount_base_dir': docker_mount_base_dir,
         'redis': dict(
             {
                 'fact_db': config.common.redis.test_db,
@@ -118,7 +119,7 @@ def backend_config(request, common_config, _firmware_file_storage_directory) -> 
         },
         'plugin': {
             'cpu_architecture': {'name': 'cpu_architecture', 'processes': 4},
-            'cve_loookup': {'name': 'cve_loookup', 'processes': 2},
+            'cve_lookup': {'name': 'cve_lookup', 'processes': 2},
         },
     }
 
@@ -156,7 +157,7 @@ def patch_config(monkeypatch, common_config, backend_config, frontend_config):  
     """This fixture will replace :py:data`config.common`, :py:data:`config.backend` and :py:data:`config.frontend`
     with the default test config.
 
-    Defaults in the test config can be ovewritten with the markers ``backend_config_overwrite``,
+    Defaults in the test config can be overwritten with the markers ``backend_config_overwrite``,
     ``frontend_config_overwrite`` and ``common_config_overwrite``.
     These three markers accept a single argument of the type ``dict``.
     When using ``backend_config_overwrite`` the dictionary has to contain valid keyword arguments for
@@ -191,7 +192,7 @@ class AnalysisPluginTestConfig(BaseModel):
 
 
 @pytest.fixture
-def analysis_plugin(request, monkeypatch, patch_config):  # noqa: ARG001
+def analysis_plugin(request, patch_config):  # noqa: ARG001
     """Returns an instance of an AnalysisPlugin.
     This fixture can be configured by the supplying an instance of ``AnalysisPluginTestConfig`` as marker of the same
     name.
@@ -244,6 +245,7 @@ def analysis_plugin(request, monkeypatch, patch_config):  # noqa: ARG001
         ), 'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
 
         yield PluginClass()
+
     elif issubclass(PluginClass, AnalysisBasePlugin):
         plugin_instance = PluginClass(
             view_updater=CommonDatabaseMock(),

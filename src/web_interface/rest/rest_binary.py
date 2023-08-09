@@ -3,7 +3,6 @@ from base64 import standard_b64encode
 from flask import request
 from flask_restx import Namespace
 
-from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_sha256
 from web_interface.rest.helper import error_message, get_boolean_from_request, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
@@ -50,11 +49,10 @@ class RestBinary(RestResourceBase):
         except ValueError as value_error:
             return error_message(str(value_error), self.URL, request_data={'uid': uid, 'tar': request.args.get('tar')})
 
-        with ConnectTo(self.intercom) as intercom:
-            if not tar_flag:
-                binary, file_name = intercom.get_binary_and_filename(uid)
-            else:
-                binary, file_name = intercom.get_repacked_binary_and_file_name(uid)
+        if not tar_flag:
+            binary, file_name = self.intercom.get_binary_and_filename(uid)
+        else:
+            binary, file_name = self.intercom.get_repacked_binary_and_file_name(uid)
 
         response = {'binary': standard_b64encode(binary).decode(), 'file_name': file_name, 'SHA256': get_sha256(binary)}
         return success_message(response, self.URL, request_data={'uid': uid, 'tar': tar_flag})

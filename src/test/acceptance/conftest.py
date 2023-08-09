@@ -1,9 +1,9 @@
-import os
 from pathlib import Path
 
 import pytest
 
 from intercom.back_end_binding import InterComBackEndBinding
+from intercom.front_end_binding import InterComFrontEndBinding
 from test.common_helper import get_test_data_dir
 from web_interface.frontend_main import WebFrontEnd
 
@@ -41,12 +41,17 @@ def intercom_backend_binding(_unpacking_lock_manager, analysis_scheduler, compar
     _intercom_backend_binding.shutdown()
 
 
+@pytest.fixture
+def intercom_frontend():
+    return InterComFrontEndBinding()
+
+
 class TestFW:
     def __init__(self, uid, path, name):
         self.uid = uid
         self.path = path
         self.name = name
-        self.file_name = os.path.basename(self.path)  # noqa: PTH119
+        self.file_name = Path(self.path).name
 
 
 test_fw_a = TestFW(
@@ -72,7 +77,7 @@ test_fw_c = TestFW(
 
 def upload_test_firmware(test_client, test_fw):
     testfile_path = Path(get_test_data_dir()) / test_fw.path
-    with open(str(testfile_path), 'rb') as fp:  # noqa: PTH123
+    with testfile_path.open('rb') as fp:
         data = {
             'file': (fp, test_fw.file_name),
             'device_name': test_fw.name,

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
 from common_helper_files import get_binary_from_file
 from flask import flash, redirect, render_template, render_template_string, request, url_for
@@ -10,13 +11,13 @@ from flask_login.utils import current_user
 
 import config
 from helperFunctions.data_conversion import none_to_none
-from helperFunctions.database import ConnectTo, get_shared_session
+from helperFunctions.database import get_shared_session
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import get_template_as_string
 from objects.firmware import Firmware
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
-from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from web_interface.components.component_base import AppRoute, ComponentBase, GET, POST
 from web_interface.components.dependency_graph import (
     create_data_graph_edges,
     create_data_graph_nodes_and_groups,
@@ -25,7 +26,6 @@ from web_interface.components.dependency_graph import (
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject
@@ -70,8 +70,7 @@ class AnalysisRoutes(ComponentBase):
                 if not isinstance(file_obj, Firmware)
                 else [[file_obj.uid]]
             )
-        with ConnectTo(self.intercom) as sc:
-            analysis_plugins = sc.get_available_analysis_plugins()
+        analysis_plugins = self.intercom.get_available_analysis_plugins()
 
         analysis = file_obj.processed_analysis.get(selected_analysis, {})
 
@@ -111,8 +110,7 @@ class AnalysisRoutes(ComponentBase):
         file_object = self.db.frontend.get_object(uid)
         file_object.scheduled_analysis = request.form.getlist('analysis_systems')
         file_object.force_update = request.form.get('force_update') == 'true'
-        with ConnectTo(self.intercom) as intercom:
-            intercom.add_single_file_task(file_object)
+        self.intercom.add_single_file_task(file_object)
         return redirect(
             url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis)
         )
@@ -144,8 +142,7 @@ class AnalysisRoutes(ComponentBase):
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
 
-        with ConnectTo(self.intercom) as intercom:
-            plugin_dict = intercom.get_available_analysis_plugins()
+        plugin_dict = self.intercom.get_available_analysis_plugins()
 
         current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
         analysis_presets = [current_analysis_preset, *list(config.frontend.analysis_preset)]
@@ -178,8 +175,7 @@ class AnalysisRoutes(ComponentBase):
 
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
         if re_do:
-            with ConnectTo(self.intercom) as intercom:
-                analysis_task['binary'], _ = intercom.get_binary_and_filename(uid)
+            analysis_task['binary'], _ = self.intercom.get_binary_and_filename(uid)
             base_fw = None
             self.db.admin.delete_firmware(uid, delete_root_file=False)
             # FixMe? do we need to wait for cascade/event listener to finish?
@@ -187,8 +183,7 @@ class AnalysisRoutes(ComponentBase):
             base_fw = self.db.frontend.get_object(uid)
             base_fw.force_update = force_reanalysis
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
-        with ConnectTo(self.intercom) as sc:
-            sc.add_re_analyze_task(fw, unpack=re_do)
+        self.intercom.add_re_analyze_task(fw, unpack=re_do)
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/re-do_analysis/<uid>', GET, POST)
