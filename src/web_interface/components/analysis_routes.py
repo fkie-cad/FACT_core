@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from contextlib import suppress
 from typing import TYPE_CHECKING
@@ -28,6 +29,7 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 if TYPE_CHECKING:
+    from helperFunctions.uid import UID
     from objects.file import FileObject
 
 
@@ -108,8 +110,10 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', POST)
     def start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None):
         file_object = self.db.frontend.get_object(uid)
+        if file_object is None:
+            return render_template('uid_not_found.html', uid=uid)
         file_object.scheduled_analysis = request.form.getlist('analysis_systems')
-        file_object.force_update = request.form.get('force_update') == 'true'
+        file_object.temporary_data['force_update'] = request.form.get('force_update') == 'true'
         self.intercom.add_single_file_task(file_object)
         return redirect(
             url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis)
@@ -135,7 +139,7 @@ class AnalysisRoutes(ComponentBase):
     def get_update_analysis(self, uid, re_do=False, error=None):
         with get_shared_session(self.db.frontend) as frontend_db:
             old_firmware = frontend_db.get_object(uid=uid)
-            if old_firmware is None:
+            if old_firmware is None or not isinstance(old_firmware, Firmware):
                 return render_template('uid_not_found.html', uid=uid)
 
             device_class_list = frontend_db.get_device_class_list()
@@ -167,23 +171,41 @@ class AnalysisRoutes(ComponentBase):
     def post_update_analysis(self, uid, re_do=False):
         analysis_task = create_re_analyze_task(request, uid=uid)
         force_reanalysis = request.form.get('force_reanalysis') == 'true'
-        error = check_for_errors(analysis_task)
-        if error:
+        if error := check_for_errors(analysis_task):
             return self.get_update_analysis(uid=uid, re_do=re_do, error=error)
-        self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
+        try:
+            self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
+        except RuntimeError as exception:
+            logging.error(str(exception))
+            flash(f'Error: {exception}', 'danger')
+            return self.get_update_analysis(uid=uid, re_do=re_do)
         return render_template('upload/upload_successful.html', uid=uid)
 
-    def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
+    def _schedule_re_analysis_task(self, uid: UID, analysis_task: dict, re_do: bool, force_reanalysis: bool):
         if re_do:
-            analysis_task['binary'], _ = self.intercom.get_binary_and_filename(uid)
+            analysis_task['binary'] = self._get_binary(uid)
             base_fw = None
             self.db.admin.delete_firmware(uid, delete_root_file=False)
-            # FixMe? do we need to wait for cascade/event listener to finish?
         else:
-            base_fw = self.db.frontend.get_object(uid)
-            base_fw.force_update = force_reanalysis
+            base_fw = self._get_base_fw(uid)
+            base_fw.temporary_data['force_update'] = force_reanalysis
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         self.intercom.add_re_analyze_task(fw, unpack=re_do)
+
+    def _get_base_fw(self, uid: UID) -> Firmware:
+        base_fw = self.db.frontend.get_object(uid)
+        if isinstance(base_fw, Firmware):
+            return base_fw
+        raise RuntimeError(f'Firmware with UID "{uid}" not found in the database')
+
+    def _get_binary(self, uid: UID) -> bytes:
+        response = self.intercom.get_binary_and_filename(uid)
+        if not response:
+            raise RuntimeError('Timeout when loading binary from backend')
+        binary, _ = response
+        if not binary:
+            raise RuntimeError('Binary not found')
+        return binary
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/re-do_analysis/<uid>', GET, POST)

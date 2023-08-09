@@ -88,7 +88,7 @@ class InterComBackEndBinding:
 
 
 class InterComBackEndAnalysisPlugInsPublisher(InterComRedisInterface):
-    def __init__(self, analysis_service=None):
+    def __init__(self, analysis_service):
         super().__init__()
         self.publish_available_analysis_plugins(analysis_service)
 
@@ -197,10 +197,14 @@ class InterComBackEndBinarySearchTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'binary_search_task'
     OUTGOING_CONNECTION_TYPE = 'binary_search_task_resp'
 
-    def get_response(self, task):
+    def get_response(
+        self, task: tuple[bytes, str | None]
+    ) -> tuple[dict[str, list[str]] | str, tuple[bytes, str | None]]:
+        # Task is a tuple (yara_rules, search_id)
         yara_binary_searcher = YaraBinarySearchScanner()
-        uid_list = yara_binary_searcher.get_binary_search_result(task)
-        return uid_list, task
+        # search_result is a string if an error occurred and a dict otherwise
+        search_result = yara_binary_searcher.get_binary_search_result(task)
+        return search_result, task
 
 
 class InterComBackEndDeleteFile(InterComListenerAndResponder):
@@ -233,7 +237,7 @@ class InterComBackEndLogsTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'logs_task'
     OUTGOING_CONNECTION_TYPE = 'logs_task_resp'
 
-    def get_response(self, task):  # noqa: ARG002
+    def get_response(self, task) -> list[str]:  # noqa: ARG002
         backend_logs = Path(config.backend.logging.file_backend)
         if backend_logs.is_file():
             return backend_logs.read_text().splitlines()[-100:]

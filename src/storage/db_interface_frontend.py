@@ -114,7 +114,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
             hid_dict[uid] = get_some_vfp(vfp_dict) or uid  # vfp_dict should not be empty but use UID as fallback
         return hid_dict
 
-    @staticmethod
     def get_file_name(self, uid: UID) -> str:
         with self.get_read_only_session() as session:
             entry = session.get(FileObjectEntry, uid)

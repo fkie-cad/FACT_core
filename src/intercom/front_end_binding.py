@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import logging
 from time import sleep, time
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import config
 from intercom.common_redis_binding import InterComRedisInterface, generate_task_id
+
+if TYPE_CHECKING:
+    from helperFunctions.uid import UID
 
 
 class InterComFrontEndBinding(InterComRedisInterface):
@@ -31,44 +34,48 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def delete_file(self, uid_list: set[str]):
         self._add_to_redis_queue('file_delete_task', uid_list)
 
-    def get_available_analysis_plugins(self):
+    def get_available_analysis_plugins(
+        self,
+    ) -> dict[str, tuple[str, bool, dict, str, list[str], list[str], list[str], str]]:
         plugin_dict = self.redis.get('analysis_plugins', delete=False)
         if plugin_dict is None:
             raise RuntimeError('No available plug-ins found. FACT backend might be down!')
         return plugin_dict
 
-    def get_binary_and_filename(self, uid: str) -> tuple[bytes | None, str | None]:
+    def get_binary_and_filename(self, uid: str) -> tuple[bytes | None, str | None] | None:
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
 
     def get_file_diff(self, uid_pair: tuple[str, str]) -> str | None:
         return self._request_response_listener(uid_pair, 'file_diff_task', 'file_diff_task_resp')
 
-    def peek_in_binary(self, uid: str, offset: int, length: int) -> bytes:
+    def peek_in_binary(self, uid: str, offset: int, length: int) -> bytes | None:
         return self._request_response_listener((uid, offset, length), 'binary_peek_task', 'binary_peek_task_resp')
 
-    def get_repacked_binary_and_file_name(self, uid: str):
+    def get_repacked_binary_and_file_name(self, uid: UID) -> tuple[bytes | None, str | None] | None:
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
 
-    def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: str | None = None):
+    def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: str | None = None) -> str:
         request_id = generate_task_id(yara_rule_binary)
         self._add_to_redis_queue('binary_search_task', (yara_rule_binary, firmware_uid), request_id)
         return request_id
 
-    def get_binary_search_result(self, request_id):
+    def get_binary_search_result(
+        self, request_id: str
+    ) -> tuple[dict[str, list[UID]] | str | None, tuple[bytes, str] | None]:
         result = self._response_listener('binary_search_task_resp', request_id, timeout=time() + 10)
         return result if result is not None else (None, None)
 
-    def get_backend_logs(self):
+    def get_backend_logs(self) -> list[str] | None:
         return self._request_response_listener(None, 'logs_task', 'logs_task_resp')
 
-    def _request_response_listener(self, input_data, request_connection, response_connection):
+    def _request_response_listener(self, input_data, request_connection, response_connection) -> Any | None:
         request_id = generate_task_id(input_data)
         self._add_to_redis_queue(request_connection, input_data, request_id)
         logging.debug(f'Request sent: {request_connection} -> {request_id}')
         return self._response_listener(response_connection, request_id)
 
-    def _response_listener(self, response_connection, request_id, timeout=None):
-        output_data = None
+    def _response_listener(self, response_connection, request_id, timeout=None) -> Any | None:
+        output_data: Any | None = None
         if timeout is None:
             timeout = time() + int(config.frontend.communication_timeout)
         while timeout > time():

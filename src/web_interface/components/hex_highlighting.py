@@ -41,7 +41,7 @@ def _get_hex_and_str_preview(line: list[int]) -> tuple[str, str]:
             hex_content += CLOSING_SPAN
             str_preview += CLOSING_SPAN
         if _span_should_open(last_highlighting_class, highlighting_class):
-            span = f'{_get_html_span(highlighting_class)}'
+            span = f'{_get_html_span(highlighting_class)}'  # type: ignore[arg-type]
             hex_content += span
             str_preview += span
         hex_content += f' {_chr_to_hex(char)}'
