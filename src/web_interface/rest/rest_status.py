@@ -26,15 +26,15 @@ class RestStatus(RestResourceBase):
 
         plugins = self.intercom.get_available_analysis_plugins()
 
-        if not any(bool(status[component]) for component in components):
-            return error_message('Cannot get FACT component status: Database may be down', self.URL, return_code=404)
+        if not any(value is not None for value in status.values()):
+            return error_message('Cannot get FACT component status: Intercom may be down', self.URL, return_code=404)
 
         response = {
             'system_status': status,
             'plugins': self._condense_plugin_information(plugins),
         }
 
-        if 'analysis' in status['backend']:
+        if status['backend'] is not None and 'analysis' in status['backend']:
             analysis_status = self.status.get_analysis_status()
             status['backend']['analysis'].update(analysis_status)
         return success_message(response, self.URL)

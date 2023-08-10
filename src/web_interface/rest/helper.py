@@ -63,11 +63,13 @@ def error_message(
     """
     if not isinstance(error, str):
         raise TypeError('error must be of type str')
-    message = {'error_message': error}
+    message = {
+        'error_message': error,
+        'timestamp': get_current_gmt(),
+        'request_resource': targeted_url,
+        'status': 1,
+    }
 
-    message['timestamp'] = get_current_gmt()
-    message['request_resource'] = targeted_url
-    message['status'] = 1
     if request_data:
         message['request'] = request_data
     return message, return_code

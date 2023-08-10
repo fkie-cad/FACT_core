@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import binascii
 import logging
 from base64 import standard_b64decode
@@ -21,6 +23,10 @@ from web_interface.rest.helper import (
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
 
@@ -156,7 +162,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
         """
         summary = get_boolean_from_request(request.args, 'summary')
         if summary:
-            firmware = self.db.frontend.get_complete_object_including_all_summaries(uid)
+            firmware: FileObject | None = self.db.frontend.get_complete_object_including_all_summaries(uid)
         else:
             firmware = self.db.frontend.get_object(uid)
         if not firmware or not isinstance(firmware, Firmware):

@@ -37,7 +37,7 @@ class RestFileObjectWithoutUid(RestResourceBase):
 
         parameters = {'offset': offset, 'limit': limit, 'query': query}
         try:
-            uids = self.db.frontend.rest_get_file_object_uids(**parameters)
+            uids = self.db.frontend.rest_get_file_object_uids(offset, limit, query)
             return success_message({'uids': uids}, self.URL, parameters)
         except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)
