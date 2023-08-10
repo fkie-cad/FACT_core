@@ -29,7 +29,7 @@
             {% set version_backend = analysis_plugin_dict[selected_analysis][3] %}
             {% set version_database = analysis_metadata['plugin_version'] %}
 
-            {% if version_database | version_is_compatible(version_backend, True) %}
+            {% if selected_analysis == 'unpacker' or version_database | version_is_compatible(version_backend, True) %}
                 {% if analysis_metadata['plugin_version'] %}
                 <tr>
                     <td class="table-head-light">Plugin Version</td>
