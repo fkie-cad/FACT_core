@@ -14,6 +14,10 @@ TmpFile: TypeAlias = _TemporaryFileWrapper
 MpValue: TypeAlias = Synchronized
 MpArray: TypeAlias = SynchronizedArray
 
+# comparison ID: Represents one comparison between two or more firmwares.
+# Consists of UIDs with semicolons in-between (e.g. "uid1;uid2;...")
+CompId: TypeAlias = str
+
 
 class AnalysisPluginInfo(NamedTuple):
     description: str
