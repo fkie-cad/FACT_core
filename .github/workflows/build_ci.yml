@@ -16,8 +16,8 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          echo "github.ref: ${GITHUB_REF}, name: ${GITHUB_REF_NAME}, base: ${GITHUB_BASE_REF}"
-          if [ "${GITHUB_REF}" = "refs/heads/master" ] || [ "${GITHUB_REF_NAME}" = "master" ]; then
+          echo "github.ref: ${GITHUB_REF}, name: ${GITHUB_REF_NAME}, event: ${GITHUB_EVENT_NAME}"
+          if [ "${GITHUB_EVENT_NAME}" = "schedule" ]; then
             # scheduled build -> use master & stable branch
             export TARGET='["refs/heads/master","refs/heads/stable"]'
           else
