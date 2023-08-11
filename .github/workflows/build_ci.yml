@@ -6,6 +6,8 @@ on:
   schedule:
     - cron: "0 3 * * *"
   workflow_dispatch:
+env:
+  MY_ENV_VAR: ${{ github.ref == 'refs/heads/master' && '[ \'refs/heads/master\', \'refs/heads/stable\' ]' || '[ ${{ github.ref }} ]' }}
 
 jobs:
   build-ci:
@@ -13,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ focal, jammy, bullseye, bookworm ]
-        target: ${{ github.ref == 'refs/heads/master' && toJSON('[ \'refs/heads/master\', \'refs/heads/stable\' ]') || toJSON('[' + github.ref + ']') }}
+        target: ${{ toJSON(MY_ENV_VAR) }}
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
     timeout-minutes: 35
     steps:
