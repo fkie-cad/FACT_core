@@ -15,6 +15,7 @@ from storage.redis_status_interface import RedisStatusInterface
 import contextlib
 
 if TYPE_CHECKING:
+    from helperFunctions.types import MpValue
     from objects.file import FileObject
 
 UPDATE_INTERVAL = 4.5  # a bit less than the update interval on the system health page, FixMe: -> configuration
@@ -90,8 +91,8 @@ class AnalysisStatusWorker:
         self.recently_finished = {}
         self.currently_running: Dict[str, FwAnalysisStatus] = {}
         self._worker_process = None
-        self.queue = Queue()
-        self._running = Value('i', 0)
+        self.queue: Queue[tuple] = Queue()
+        self._running: MpValue = Value('i', 0)  # type: ignore[assignment]
         self.redis = RedisStatusInterface()
 
     def start(self):
@@ -106,7 +107,7 @@ class AnalysisStatusWorker:
 
     def _worker_loop(self):
         logging.debug(f'starting analysis status worker (pid: {os.getpid()})')
-        next_update_time = 0
+        next_update_time: float = 0.0
         while self._running.value:
             with contextlib.suppress(Empty):
                 self._update_status()
