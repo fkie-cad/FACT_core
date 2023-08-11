@@ -6,10 +6,12 @@ from helperFunctions.plugin import discover_compare_plugins
 from helperFunctions.virtual_file_path import get_paths_for_all_parents
 from objects.firmware import Firmware
 from storage.binary_service import BinaryService
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+from storage.db_interface_comparison import ComparisonDbInterface
 
 if TYPE_CHECKING:
-    from storage.db_interface_comparison import ComparisonDbInterface
+    from helperFunctions.uid import UID
+    from compare.PluginBase import CompareBasePlugin
     from objects.file import FileObject
 
 
@@ -18,11 +20,10 @@ class Compare:
     This Module compares firmware images
     """
 
-    compare_plugins = {}  # noqa: RUF012
-
     def __init__(self, db_interface: ComparisonDbInterface | None = None):
-        self.db_interface = db_interface
-        self._setup_plugins()
+        self.db_interface: ComparisonDbInterface = db_interface or ComparisonDbInterface()
+        self.compare_plugins: dict[str, CompareBasePlugin] = {}
+        self._load_plugins()
         logging.info(f'Plugins available: {self.compare_plugins.keys()}')
 
     def compare(self, uid_list):
@@ -37,14 +38,14 @@ class Compare:
 
         return self.compare_objects(fo_list)
 
-    def compare_objects(self, fo_list):
+    def compare_objects(self, fo_list: list[FileObject]) -> dict[str, dict[str, dict[str, Any]]]:
         return {
             'general': self._create_general_section_dict(fo_list),
             'plugins': self._execute_compare_plugins(fo_list),
         }
 
-    def _create_general_section_dict(self, object_list):
-        general = {}
+    def _create_general_section_dict(self, object_list) -> dict[str, dict[UID, Any]]:
+        general: dict[str, dict[UID, Any]] = {}
         vfp_data = self._get_vfp_data(object_list)
         for fo in object_list:
             if isinstance(fo, Firmware):
@@ -71,21 +72,17 @@ class Compare:
         # firmware objects don't have "virtual file paths" (because they are themselves not included in another file)
         for fo in object_list:
             if isinstance(fo, Firmware):
-                vfp_data[fo.uid] = [fo.file_name]
+                vfp_data[fo.uid] = [fo.file_name or 'unknown']  # file_name should always be initialized here
         return vfp_data
 
     # --- plug-in system ---
 
-    def _setup_plugins(self):
-        self.compare_plugins = {}
-        self._init_plugins()
-
-    def _init_plugins(self):
+    def _load_plugins(self):
         for plugin in discover_compare_plugins():
             try:
                 self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(db_interface=self.db_interface)
             except Exception:
-                logging.error(f'Could not import comparison plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
+                logging.error(f'Could not initialize comparison plugin {plugin.__name__}', exc_info=True)
 
-    def _execute_compare_plugins(self, fo_list):
+    def _execute_compare_plugins(self, fo_list: list[FileObject]) -> dict[str, dict]:
         return {name: plugin.compare(fo_list) for name, plugin in self.compare_plugins.items()}
