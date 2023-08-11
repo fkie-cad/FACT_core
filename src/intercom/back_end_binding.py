@@ -17,6 +17,7 @@ from storage.fsorganizer import FSOrganizer
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from helperFunctions.types import MpValue
     from storage.unpacking_locks import UnpackingLockManager
     from objects.firmware import Firmware
     from collections.abc import Callable
@@ -41,7 +42,7 @@ class InterComBackEndBinding:
         self.unpacking_locks = unpacking_locks
         self.poll_delay = config.backend.intercom_poll_delay
 
-        self.stop_condition = Value('i', 0)
+        self.stop_condition: MpValue[int] = Value('i', 0)  # type: ignore[assignment]
         self.process_list = []
 
     def start(self):
@@ -158,7 +159,7 @@ class InterComBackEndFileDiffTask(InterComListenerAndResponder):
         uid1, uid2 = task
         content_1, name_1 = self.binary_service.get_binary_and_file_name(uid1)
         content_2, name_2 = self.binary_service.get_binary_and_file_name(uid2)
-        if any(e is None for e in [content_1, content_2, name_1, name_2]):
+        if content_1 is None or content_2 is None or name_1 is None or name_2 is None:
             return None
         diff_lines = difflib.unified_diff(
             content_1.decode(errors='replace').splitlines(keepends=True),
