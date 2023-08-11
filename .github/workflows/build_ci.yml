@@ -7,7 +7,7 @@ on:
     - cron: "0 3 * * *"
   workflow_dispatch:
 env:
-  MY_ENV_VAR: ${{ github.ref == 'refs/heads/master' && '[ \'refs/heads/master\', \'refs/heads/stable\' ]' || '[ ${{ github.ref }} ]' }}
+  MY_ENV_VAR: ${{ github.ref == 'refs/heads/master' && '[ \\'refs/heads/master\\', \\'refs/heads/stable\\' ]' || '[ ${{ github.ref }} ]' }}
 
 jobs:
   build-ci:
