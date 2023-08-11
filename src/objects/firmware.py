@@ -6,7 +6,7 @@ from objects.file import FileObject
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from helperFunctions.uid import UID
+    from helperFunctions.types import UID
 
 
 class Firmware(FileObject):

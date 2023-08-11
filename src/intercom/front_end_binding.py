@@ -8,7 +8,7 @@ import config
 from intercom.common_redis_binding import InterComRedisInterface, generate_task_id
 
 if TYPE_CHECKING:
-    from helperFunctions.uid import UID
+    from helperFunctions.types import UID
 
 
 class InterComFrontEndBinding(InterComRedisInterface):

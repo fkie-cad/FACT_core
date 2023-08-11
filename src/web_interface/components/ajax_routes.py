@@ -18,7 +18,7 @@ from web_interface.security.privileges import PRIVILEGES
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from helperFunctions.uid import UID
+    from helperFunctions.types import UID
 
 
 class AjaxRoutes(ComponentBase):

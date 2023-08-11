@@ -7,7 +7,7 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 
 if TYPE_CHECKING:
     from helperFunctions.virtual_file_path import VfpDict, VFP
-    from helperFunctions.uid import UID
+    from helperFunctions.types import UID
 
 WEB_BASE_PATH = Path(__file__).parent.parent
 ICON_URL_BASE = 'static/file_icons'

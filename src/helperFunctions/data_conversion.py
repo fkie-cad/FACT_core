@@ -3,9 +3,8 @@ from __future__ import annotations
 import datetime
 from typing import Any, AnyStr, TYPE_CHECKING
 
-
 if TYPE_CHECKING:
-    from helperFunctions.types import VT, KT
+    from helperFunctions.types import VT, KT, CompId, UID
     from collections.abc import Iterable
 
 
@@ -34,9 +33,9 @@ def make_unicode_string(code: Any) -> str:
     return code.__str__()
 
 
-def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
+def convert_uid_list_to_compare_id(uid_list: Iterable[UID]) -> CompId:
     """
-    Convert a list of UIDs to a compare ID (which is a unique string consisting of UIDs separated by semi-colons, used
+    Convert a list of UIDs to a compare ID (which is a unique string consisting of UIDs separated by semicolons, used
     to identify a FACT `Firmware` or `FileObject` comparison).
 
     :param uid_list: A list of `FileObject` or `Firmware` UIDs.
@@ -45,7 +44,7 @@ def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
     return ';'.join(sorted(uid_list))
 
 
-def convert_compare_id_to_list(compare_id: str) -> list[str]:
+def convert_compare_id_to_list(compare_id: CompId) -> list[UID]:
     """
     Convert a compare ID back to a list of UIDs.
 
@@ -55,7 +54,7 @@ def convert_compare_id_to_list(compare_id: str) -> list[str]:
     return compare_id.split(';')
 
 
-def normalize_compare_id(compare_id: str) -> str:
+def normalize_compare_id(compare_id: CompId) -> CompId:
     """
     Sort the UIDs in a compare ID (so that it is unique) and return it.
 

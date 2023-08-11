@@ -21,7 +21,7 @@ from storage.schema import (
     fw_files_table,
     included_files_table,
 )
-from helperFunctions.uid import UID
+from helperFunctions.types import UID
 
 if TYPE_CHECKING:
     from helperFunctions.virtual_file_path import VfpDict

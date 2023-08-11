@@ -20,7 +20,7 @@ from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, includ
 from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
-    from helperFunctions.uid import UID
+    from helperFunctions.types import UID
     from objects.file import FileObject
     from sqlalchemy.orm import Session
 
