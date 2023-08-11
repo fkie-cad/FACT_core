@@ -6,16 +6,31 @@ on:
   schedule:
     - cron: "0 3 * * *"
   workflow_dispatch:
-env:
-  TARGET: ${{ github.ref == 'refs/heads/master' && '[ "refs/heads/master", "refs/heads/stable" ]' || '[ "${{ github.ref }}" ]' }}
 
 jobs:
+  generate-matrix:
+    name: Generate matrix for build
+    runs-on: ubuntu-latest
+    outputs:
+      target: ${{ steps.set-matrix.outputs.target }}
+    steps:
+      - id: set-matrix
+        run: |
+          if [ $GITHUB_BASE_REF ]; then
+            # Pull Request -> only use that branch
+            export TARGET="[\"${GITHUB_REF}\"]"
+          else
+            # scheduled build -> use master & stable branch
+            export TARGET='["refs/heads/master","refs/heads/stable"]'
+          fi
+          echo "target=${TARGET}" | tee -a $GITHUB_OUTPUT
   build-ci:
+    needs: generate-matrix
     strategy:
       fail-fast: false
       matrix:
         os: [ focal, jammy, bullseye, bookworm ]
-        target: ${{ toJSON(env.TARGET) }}
+        target: ${{ fromJson(needs.generate-matrix.outputs.target) }}
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
     timeout-minutes: 35
     steps:
