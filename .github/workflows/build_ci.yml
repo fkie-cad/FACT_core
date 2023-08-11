@@ -16,12 +16,13 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          if [ $GITHUB_BASE_REF ]; then
-            # Pull Request -> only use that branch
-            export TARGET="[\"${GITHUB_REF}\"]"
-          else
+          echo "github.ref: ${GITHUB_REF}, name: ${GITHUB_REF_NAME}, base: ${GITHUB_BASE_REF}"
+          if [ "${GITHUB_REF}" = "refs/heads/master" ] || [ "${GITHUB_REF_NAME}" = "master" ]; then
             # scheduled build -> use master & stable branch
             export TARGET='["refs/heads/master","refs/heads/stable"]'
+          else
+            # Pull Request -> only use that branch
+            export TARGET="[\"${GITHUB_REF}\"]"
           fi
           echo "target=${TARGET}" | tee -a $GITHUB_OUTPUT
   build-ci:
