@@ -165,7 +165,7 @@ class Backend(Common):
         return value
 
 
-def load(path: str | None = None):
+def load(path: Path | str | None = None):
     """Load the config file located at ``path``.
     The file must be a toml file and is read into instances of :py:class:`~config.Backend`,
     :py:class:`~config.Frontend` and :py:class:`~config.Common`.
@@ -185,7 +185,7 @@ def load(path: str | None = None):
     if path is None:
         path = Path(__file__).parent / 'config/fact-core-config.toml'
 
-    with open(path, encoding='utf8') as f:  # noqa: PTH123
+    with Path(path).open(encoding='utf8') as f:
         cfg = toml.load(f)
 
     _replace_hyphens_with_underscores(cfg)
