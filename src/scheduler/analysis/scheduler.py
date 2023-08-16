@@ -424,9 +424,13 @@ class AnalysisScheduler:
         return plugin_version_is_newer or system_version_is_newer
 
     def _dependencies_are_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
+        """
+        If there is dependency result that is newer than this analysis, it may be different from the dependency result
+        that was the basis of this analysis, and therefore this analysis should run again.
+        """
         for dependency in analysis_plugin.DEPENDENCIES:
             dependency_entry = self.db_backend_service.get_analysis(uid, dependency)
-            if db_entry['analysis_date'] < dependency_entry['analysis_date']:
+            if dependency_entry is None or db_entry['analysis_date'] < dependency_entry['analysis_date']:
                 return False
         return True
 
