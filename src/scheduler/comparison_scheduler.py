@@ -30,14 +30,15 @@ class ComparisonScheduler:
     def start(self):
         self.stop_condition.value = 0
         self.worker = start_single_worker(0, 'Comparison', self._comparison_scheduler_worker)
+        logging.info('Comparison scheduler online')
 
     def shutdown(self):
-        logging.debug('Shutting down...')
+        logging.debug('Shutting down comparison scheduler')
         if self.stop_condition.value == 0:
             self.stop_condition.value = 1
             self.worker.join()
         self.in_queue.close()
-        logging.info('Comparison Scheduler offline')
+        logging.info('Comparison scheduler offline')
 
     def add_task(self, comparison_task):
         comparison_id, redo = comparison_task
@@ -52,7 +53,7 @@ class ComparisonScheduler:
         comparisons_done = set()
         while self.stop_condition.value == 0:
             self._compare_single_run(comparisons_done)
-        logging.debug('Comparison thread terminated normally')
+        logging.debug(f'Stopped comparison worker {worker_id}')
 
     def _compare_single_run(self, comparisons_done):
         try:

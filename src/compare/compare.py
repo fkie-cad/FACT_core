@@ -23,10 +23,10 @@ class Compare:
     def __init__(self, db_interface: ComparisonDbInterface | None = None):
         self.db_interface = db_interface
         self._setup_plugins()
-        logging.info(f'Plugins available: {self.compare_plugins.keys()}')
+        logging.info(f'Comparison plugins available: {", ".join(self.compare_plugins)}')
 
     def compare(self, uid_list):
-        logging.info(f'Compare in progress: {uid_list}')
+        logging.info(f'Comparison in progress: {uid_list}')
         binary_service = BinaryService()
 
         fo_list = []

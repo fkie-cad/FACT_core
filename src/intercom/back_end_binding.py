@@ -63,12 +63,12 @@ class InterComBackEndBinding:
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
         self._start_listener(InterComBackEndPeekBinaryTask)
         self._start_listener(InterComBackEndLogsTask)
-        logging.info('InterCom started')
+        logging.info('Intercom online')
 
     def shutdown(self):
         self.stop_condition.value = 1
         stop_processes(self.process_list, config.backend.intercom_poll_delay + 1)
-        logging.info('InterCom down')
+        logging.info('Intercom offline')
 
     def _start_listener(self, listener: type[InterComListener], do_after_function: Callable | None = None, **kwargs):
         process = Process(target=self._backend_worker, args=(listener, do_after_function, kwargs))
@@ -215,14 +215,18 @@ class InterComBackEndDeleteFile(InterComListenerAndResponder):
     def post_processing(self, task: set[str], task_id):  # noqa: ARG002
         # task is a set of UIDs
         uids_in_db = self.db.uid_list_exists(task)
+        deleted = 0
         for uid in task:
             if self.unpacking_locks is not None and self.unpacking_locks.unpacking_lock_is_set(uid):
-                logging.debug(f'file not removed, because it is processed by unpacker: {uid}')
+                logging.debug(f'File not removed, because it is processed by unpacker: {uid}')
             elif uid not in uids_in_db:
-                logging.info(f'removing file: {uid}')
+                deleted += 1
+                logging.debug(f'Removing file: {uid}')
                 self.fs_organizer.delete_file(uid)
             else:
                 logging.warning(f'File not removed, because database entry exists: {uid}')
+        if deleted:
+            logging.info(f'Deleted {deleted} file(s)')
         return task
 
     def get_response(self, task):  # noqa: ARG002
