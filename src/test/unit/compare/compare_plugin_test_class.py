@@ -1,18 +1,21 @@
+from __future__ import annotations
+
 import gc
 from configparser import ConfigParser
+from typing import Type, TYPE_CHECKING
 
 from test.common_helper import CommonDatabaseMock, create_test_firmware
+
+if TYPE_CHECKING:
+    from compare.PluginBase import CompareBasePlugin
 
 
 class ComparePluginTest:
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'base'
-    PLUGIN_CLASS = None
+    PLUGIN_CLASS: Type[CompareBasePlugin] | None = None
 
     def setup(self):
-        self.config = self.generate_config()
-        self.config.add_section('expert-settings')
-        self.config.set('expert-settings', 'ssdeep-ignore', '80')
         self.compare_plugins = {}
         self.c_plugin = self.setup_plugin()
         self.setup_test_fw()
@@ -24,7 +27,12 @@ class ComparePluginTest:
         """
         This function can be overwritten by the test instance.
         """
-        return self.PLUGIN_CLASS(config=self.config, view_updater=CommonDatabaseMock())
+        assert self.PLUGIN_CLASS is not None, f'PLUGIN_CLASS should be set by {self.__class__}'
+        db_mock = CommonDatabaseMock()
+        return self.PLUGIN_CLASS(
+            db_interface=db_mock,
+            view_updater=db_mock,
+        )
 
     def generate_config(self):
         """

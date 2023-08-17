@@ -52,7 +52,7 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         self.fw_one.list_of_all_included_files.append('foo')
         self.fw_two.list_of_all_included_files.append('foo')
         fo_list = [self.fw_one, self.fw_two, self.fw_three]
-        tmp_result_dict = {'files_in_common': {}, 'exclusive_files': {}}
+        tmp_result_dict: dict[str, dict] = {'files_in_common': {}, 'exclusive_files': {}}
         tmp_result_dict['files_in_common']['all'] = set()
         for fo in fo_list:
             tmp_result_dict['exclusive_files'][fo.uid] = fo.uid
