@@ -11,9 +11,9 @@ from helperFunctions.data_conversion import (
     convert_uid_list_to_compare_id,
     normalize_compare_id,
 )
-from helperFunctions.database import ConnectTo, get_shared_session
+from helperFunctions.database import get_shared_session
 from helperFunctions.web_interface import get_template_as_string
-from web_interface.components.component_base import GET, AppRoute, ComponentBase
+from web_interface.components.component_base import AppRoute, ComponentBase, GET
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -91,8 +91,7 @@ class CompareRoutes(ComponentBase):
             if not redo and comparison_db.comparison_exists(comparison_id):
                 return redirect(url_for('show_compare_result', compare_id=comparison_id))
 
-        with ConnectTo(self.intercom) as sc:
-            sc.add_compare_task(comparison_id, force=redo)
+        self.intercom.add_compare_task(comparison_id, force=redo)
         return render_template('compare/wait.html', compare_id=comparison_id)
 
     @staticmethod
@@ -188,8 +187,7 @@ class CompareRoutes(ComponentBase):
                 error=f"Can't compare non-text mimetypes. ({diff_files[0].mime} vs {diff_files[1].mime})",
             )
 
-        with ConnectTo(self.intercom) as intercom:
-            diff_str = intercom.get_file_diff((uid_1, uid_2))
+        diff_str = self.intercom.get_file_diff((uid_1, uid_2))
         if diff_str is None:
             return render_template('compare/error.html', error='File(s) not found.')
 

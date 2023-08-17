@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import binascii
+import semver
 import json
 import logging
+import packaging.version
 import random
 import re
 import zlib
@@ -13,6 +15,7 @@ from operator import itemgetter
 from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
+from typing import Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -399,7 +402,25 @@ def _link_to_cwe(match: Match) -> str:
 
 
 def sort_cve_results(cve_result: dict[str, dict[str, str]]) -> list[tuple[str, dict[str, str]]]:
-    return sorted(cve_result.items(), key=lambda item: item[1]['score2'], reverse=True)
+    return sorted(cve_result.items(), key=_cve_sort_key)
+
+
+def _cve_sort_key(item: tuple[str, dict[str, str]]) -> tuple[float, float, str]:
+    """
+    primary sorting key: -max(v2 score, v3 score)
+    secondary sorting key: -min(v2 score, v3 score)
+    tertiary sorting key: CVE ID
+    use negative values so that highest scores come first, and we can also sort by CVE ID
+    """
+    v2_score, v3_score = (_cve_score_to_float(item[1].get(key, 0.0)) for key in ['score2', 'score3'])
+    return -max(v2_score, v3_score), -min(v2_score, v3_score), item[0]
+
+
+def _cve_score_to_float(score: float | str) -> float:
+    try:
+        return float(score)
+    except ValueError:  # "N/A" entries
+        return 0.0
 
 
 def linter_reformat_issues(issues) -> dict[str, list[dict[str, str]]]:
@@ -421,3 +442,63 @@ def get_searchable_crypto_block(crypto_material: str) -> str:
     """crypto material plugin results contain spaces and line breaks -> get a contiguous block without those"""
     blocks = crypto_material.replace(' ', '').split('\n')
     return sorted(blocks, key=len, reverse=True)[0]
+
+
+def version_is_compatible(
+    version: Union[str, semver.Version],
+    other: Union[str, semver.Version],
+    forgiving: bool = False,
+) -> bool:
+    """A warpper around ``semver.Version.is_compatible`` that allows non semver versions.
+    If :paramref:`forgiving` is True non semver versions will try to be coerced to semver versions.
+    If this does not succeed or :paramref:`forgiving` is False then any semver version will
+    be considered incompatible to any other non semver version.
+    So for example '1.1.0' would not be compatible '1.2' if forgiving is False.
+    Otherwise it would be coerced from '1.2' to '1.2.0'.
+
+    If both versions are not semver they are only compatible if they are equal.
+
+    :param version: The version to check compatiblity for.
+    :param other: The version to compare to.
+
+    :return: If :paramref:`version` is compatible with :paramref:`other`.
+
+    :raises ValueError: If both versions are neither semver nor ``packaging.version.Version`` versions.
+    """
+    version_is_semver = True
+    try:
+        if isinstance(version, str):
+            version = semver.Version.parse(version)
+    except ValueError:
+        version_is_semver = forgiving
+        version = _coerce_version(version)
+
+    other_is_semver = True
+    try:
+        if isinstance(other, str):
+            other = semver.Version.parse(other)
+    except ValueError:
+        other_is_semver = forgiving
+        other = _coerce_version(other)
+
+    if version_is_semver ^ other_is_semver:
+        return False
+
+    if not version_is_semver and not other_is_semver:
+        try:
+            return packaging.version.Version(version) == packaging.version.Version(other)
+        except packaging.version.InvalidVersion as invalid_version:
+            raise ValueError from invalid_version
+
+    return version.is_compatible(other)
+
+
+def _coerce_version(version: str) -> semver.Version:
+    coerced = packaging.version.Version(version)
+    return semver.Version(
+        major=coerced.major,
+        minor=coerced.minor,
+        patch=coerced.micro,
+        prerelease=coerced.pre,
+        build=None,
+    )

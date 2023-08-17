@@ -222,6 +222,7 @@ class FilterClass:
         self._app.jinja_env.filters['replace_uid_with_hid_link'] = self._filter_replace_uid_with_hid_link
         self._app.jinja_env.filters['replace_uid_with_hid'] = self._filter_replace_uid_with_hid
         self._app.jinja_env.filters['replace_underscore'] = flt.replace_underscore_filter
+        self._app.jinja_env.filters['version_is_compatible'] = flt.version_is_compatible
         self._app.jinja_env.filters['sort_chart_list_by_name'] = flt.sort_chart_list_by_name
         self._app.jinja_env.filters['sort_chart_list_by_value'] = flt.sort_chart_list_by_value
         self._app.jinja_env.filters['sort_comments'] = flt.sort_comments

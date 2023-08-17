@@ -3,8 +3,9 @@ from __future__ import annotations
 import grp
 import logging
 import os
+from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Type
+from typing import Type, Union
 
 import pytest
 from pydantic import BaseModel, Field
@@ -12,17 +13,18 @@ from pydantic.utils import deep_update
 
 import config
 from analysis.PluginBase import AnalysisBasePlugin
+from analysis.plugin import AnalysisPluginV0
 from test.common_helper import CommonDatabaseMock
 from test.conftest import merge_markers
 
 
 @pytest.fixture
-def _docker_mount_base_dir() -> str:  # noqa: PT005
+def docker_mount_base_dir() -> str:
     docker_gid = grp.getgrnam('docker').gr_gid
 
     with TemporaryDirectory(prefix='fact-docker-mount-base-dir') as tmp_dir:
         os.chown(tmp_dir, -1, docker_gid)
-        os.chmod(tmp_dir, 0o770)  # noqa: PTH101
+        Path(tmp_dir).chmod(0o770)
         yield tmp_dir
 
 
@@ -33,7 +35,7 @@ def _firmware_file_storage_directory() -> str:  # noqa: PT005
 
 
 @pytest.fixture
-def common_config(request, _docker_mount_base_dir) -> config.Common:
+def common_config(request, docker_mount_base_dir) -> config.Common:
     overwrite_config = merge_markers(request, 'common_config_overwrite', dict)
 
     if 'docker_mount_base_dir' in overwrite_config:
@@ -42,7 +44,7 @@ def common_config(request, _docker_mount_base_dir) -> config.Common:
     config.load()
     test_config = {
         'temp_dir_path': '/tmp',
-        'docker_mount_base_dir': _docker_mount_base_dir,
+        'docker_mount_base_dir': docker_mount_base_dir,
         'redis': dict(
             {
                 'fact_db': config.common.redis.test_db,
@@ -117,7 +119,7 @@ def backend_config(request, common_config, _firmware_file_storage_directory) -> 
         },
         'plugin': {
             'cpu_architecture': {'name': 'cpu_architecture', 'processes': 4},
-            'cve_loookup': {'name': 'cve_loookup', 'processes': 2},
+            'cve_lookup': {'name': 'cve_lookup', 'processes': 2},
         },
     }
 
@@ -155,7 +157,7 @@ def patch_config(monkeypatch, common_config, backend_config, frontend_config):  
     """This fixture will replace :py:data`config.common`, :py:data:`config.backend` and :py:data:`config.frontend`
     with the default test config.
 
-    Defaults in the test config can be ovewritten with the markers ``backend_config_overwrite``,
+    Defaults in the test config can be overwritten with the markers ``backend_config_overwrite``,
     ``frontend_config_overwrite`` and ``common_config_overwrite``.
     These three markers accept a single argument of the type ``dict``.
     When using ``backend_config_overwrite`` the dictionary has to contain valid keyword arguments for
@@ -177,10 +179,12 @@ class AnalysisPluginTestConfig(BaseModel):
     """A class configuring the :py:func:`analysis_plugin` fixture."""
 
     #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
-    plugin_class: Type[AnalysisBasePlugin] = AnalysisBasePlugin
-    #: Whether or not to start the workers (see ``AnalysisPlugin.start``)
+    plugin_class: Union[Type[AnalysisBasePlugin], Type[AnalysisPluginV0]] = AnalysisBasePlugin
+    #: Whether or not to start the workers (see ``AnalysisPlugin.start``).
+    #: Not supported for AnalysisPluginV0
     start_processes: bool = False
     #: Keyword arguments to be given to the ``plugin_class`` constructor.
+    #: Not supported for AnalysisPluginV0
     init_kwargs: dict = Field(default_factory=dict)
 
     class Config:
@@ -188,7 +192,7 @@ class AnalysisPluginTestConfig(BaseModel):
 
 
 @pytest.fixture
-def analysis_plugin(request, monkeypatch, patch_config):  # noqa: ARG001
+def analysis_plugin(request, patch_config):  # noqa: ARG001
     """Returns an instance of an AnalysisPlugin.
     This fixture can be configured by the supplying an instance of ``AnalysisPluginTestConfig`` as marker of the same
     name.
@@ -229,16 +233,29 @@ def analysis_plugin(request, monkeypatch, patch_config):  # noqa: ARG001
     """
     test_config = merge_markers(request, 'AnalysisPluginTestConfig', AnalysisPluginTestConfig)
 
+    # FIXME now with AnalysisPluginV0 analysis plugins became way simpler
+    # We might want to delete everything from AnalysisPluginTestConfig in the future
     PluginClass = test_config.plugin_class  # noqa: N806
+    if issubclass(PluginClass, AnalysisPluginV0):
+        assert (
+            test_config.init_kwargs == {}
+        ), 'AnalysisPluginTestConfig.init_kwargs must be empty for AnalysisPluginV0 instances'
+        assert (
+            not test_config.start_processes
+        ), 'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
 
-    plugin_instance = PluginClass(
-        view_updater=CommonDatabaseMock(),
-        **test_config.init_kwargs,
-    )
+        yield PluginClass()
 
-    # We don't want to actually start workers when testing, except for some special cases
-    if test_config.start_processes:
-        plugin_instance.start()
-    yield plugin_instance
+    elif issubclass(PluginClass, AnalysisBasePlugin):
+        plugin_instance = PluginClass(
+            view_updater=CommonDatabaseMock(),
+            **test_config.init_kwargs,
+        )
 
-    plugin_instance.shutdown()
+        # We don't want to actually start workers when testing, except for some special cases
+        if test_config.start_processes:
+            plugin_instance.start()
+
+        yield plugin_instance
+
+        plugin_instance.shutdown()

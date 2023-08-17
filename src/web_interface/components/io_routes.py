@@ -7,13 +7,13 @@ from time import sleep
 
 import requests
 from fact_helper_file import get_file_type_from_binary
-from flask import Response, make_response, redirect, render_template, request
+from flask import make_response, redirect, render_template, request, Response
 
 import config
-from helperFunctions.database import ConnectTo, get_shared_session
+from helperFunctions.database import get_shared_session
 from helperFunctions.pdf import build_pdf_report
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
-from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from web_interface.components.component_base import AppRoute, ComponentBase, GET, POST
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -29,8 +29,7 @@ class IORoutes(ComponentBase):
         if error:
             return self.get_upload(error=error)
         fw = convert_analysis_task_to_fw_obj(analysis_task)
-        with ConnectTo(self.intercom) as sc:
-            sc.add_analysis_task(fw)
+        self.intercom.add_analysis_task(fw)
         return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
@@ -41,8 +40,7 @@ class IORoutes(ComponentBase):
             device_class_list = frontend_db.get_device_class_list()
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
-        with ConnectTo(self.intercom) as sc:
-            analysis_plugins = sc.get_available_analysis_plugins()
+        analysis_plugins = self.intercom.get_available_analysis_plugins()
         return render_template(
             'upload/upload.html',
             device_classes=device_class_list,
@@ -69,8 +67,10 @@ class IORoutes(ComponentBase):
     def _prepare_file_download(self, uid: str, packed: bool = False) -> str | Response:
         if not self.db.frontend.exists(uid):
             return render_template('uid_not_found.html', uid=uid)
-        with ConnectTo(self.intercom) as sc:
-            result = sc.get_repacked_binary_and_file_name(uid) if packed else sc.get_binary_and_filename(uid)
+        if packed:
+            result = self.intercom.get_repacked_binary_and_file_name(uid)
+        else:
+            result = self.intercom.get_binary_and_filename(uid)
         if result is None:
             return render_template('error.html', message='timeout')
         binary, file_name = result
@@ -102,8 +102,7 @@ class IORoutes(ComponentBase):
         object_exists = self.db.frontend.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
-        with ConnectTo(self.intercom) as sc:
-            result = sc.get_binary_and_filename(uid)
+        result = self.intercom.get_binary_and_filename(uid)
         if result is None:
             return render_template('error.html', message='timeout')
         binary, _ = result

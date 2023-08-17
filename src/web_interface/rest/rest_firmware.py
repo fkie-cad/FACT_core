@@ -3,10 +3,9 @@ import logging
 from base64 import standard_b64decode
 
 from flask import request
-from flask_restx import Namespace, fields
+from flask_restx import fields, Namespace
 from flask_restx.fields import MarshallingError
 
-from helperFunctions.database import ConnectTo
 from helperFunctions.object_conversion import create_meta_dict
 from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
 from objects.firmware import Firmware
@@ -128,8 +127,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         except binascii.Error:
             return {'error_message': 'Could not parse binary (must be valid base64!)'}
         firmware_object = convert_analysis_task_to_fw_obj(data)
-        with ConnectTo(self.intercom) as intercom:
-            intercom.add_analysis_task(firmware_object)
+        self.intercom.add_analysis_task(firmware_object)
         data.pop('binary')
 
         return {'uid': firmware_object.uid}
@@ -197,12 +195,11 @@ class RestFirmwareGetWithUid(RestResourceBase):
 
         firmware.scheduled_analysis = update
 
-        with ConnectTo(self.intercom) as intercom:
-            supported_plugins = intercom.get_available_analysis_plugins().keys()
-            for item in update:
-                if item not in supported_plugins:
-                    return error_message(f"Unknown analysis system '{item}'", self.URL, {'uid': uid, 'update': update})
-            intercom.add_re_analyze_task(firmware, unpack)
+        supported_plugins = self.intercom.get_available_analysis_plugins().keys()
+        for item in update:
+            if item not in supported_plugins:
+                return error_message(f"Unknown analysis system '{item}'", self.URL, {'uid': uid, 'update': update})
+        self.intercom.add_re_analyze_task(firmware, unpack)
 
         if unpack:
             update.append('unpacker')

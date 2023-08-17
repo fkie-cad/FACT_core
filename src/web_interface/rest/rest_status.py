@@ -1,6 +1,5 @@
 from flask_restx import Namespace
 
-from helperFunctions.database import ConnectTo
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -25,8 +24,7 @@ class RestStatus(RestResourceBase):
         for component in components:
             status[component] = self.db.stats_viewer.get_statistic(component)
 
-        with ConnectTo(self.intercom) as sc:
-            plugins = sc.get_available_analysis_plugins()
+        plugins = self.intercom.get_available_analysis_plugins()
 
         if not any(bool(status[component]) for component in components):
             return error_message('Cannot get FACT component status: Database may be down', self.URL, return_code=404)
