@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from contextlib import suppress
 from typing import TYPE_CHECKING
@@ -244,6 +245,9 @@ def _add_preset_from_firmware(plugin_dict, fw: Firmware):
         plugin_dict.pop('unpacker')
         previously_processed_plugins.remove('unpacker')
     for plugin in previously_processed_plugins:
-        plugin_dict[plugin][2][preset_name] = True
+        if plugin in plugin_dict:
+            plugin_dict[plugin][2][preset_name] = True
+        else:
+            logging.warning(f'Previously used analysis plugin {plugin} not found for update preset')
 
     return preset_name
