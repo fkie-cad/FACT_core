@@ -64,30 +64,19 @@ class TestFileSystemMetadata:
     test_file_tar = TEST_DATA_DIR / 'test.tar'
     test_file_fs = TEST_DATA_DIR / 'squashfs.img'
 
-    def test_extract_metadata__correct_method_is_called(self, fs_metadata_plugin, monkeypatch):
-        result = None
-
-        def _extract_metadata_from_archive_mock(_):
-            nonlocal result
-            result = 'archive'
-
-        monkeypatch.setattr(fs_metadata_plugin, '_extract_metadata_from_tar', _extract_metadata_from_archive_mock)
-        fo = FoMock(None, 'application/x-tar')
-        fs_metadata_plugin._extract_metadata(fo)
-        assert result == 'archive'
-
-        monkeypatch.undo()
-
-        def _extract_metadata_from_file_system_mock(_):
-            nonlocal result
-            result = 'fs'
-
-        monkeypatch.setattr(
-            fs_metadata_plugin, '_extract_metadata_from_file_system', _extract_metadata_from_file_system_mock
-        )
-        fo = FoMock(None, 'filesystem/ext4')
-        fs_metadata_plugin._extract_metadata(fo)
-        assert result == 'fs'
+    @pytest.mark.parametrize(
+        ('mime', 'expected_result'),
+        [
+            ('application/x-tar', 'archive'),
+            ('filesystem/ext4', 'fs'),
+            ('image/png', {}),
+        ],
+    )
+    def test_correct_method_is_called(self, fs_metadata_plugin, monkeypatch, mime, expected_result):
+        monkeypatch.setattr(fs_metadata_plugin, '_extract_metadata_from_tar', lambda _: 'archive')
+        monkeypatch.setattr(fs_metadata_plugin, '_extract_metadata_from_file_system', lambda _: 'fs')
+        fo = FoMock(None, mime)
+        assert fs_metadata_plugin._extract_metadata(fo) == expected_result
 
     @flaky(max_runs=2, min_passes=1)  # test may fail once on a new system
     def test_extract_metadata_from_file_system(self, fs_metadata_plugin):
