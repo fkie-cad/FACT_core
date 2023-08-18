@@ -3,6 +3,7 @@ from __future__ import annotations
 from multiprocessing.sharedctypes import Synchronized, SynchronizedArray
 from tempfile import _TemporaryFileWrapper
 from typing import TypeVar, TypeAlias, NamedTuple
+from unittest.mock import _patch
 
 KT = TypeVar('KT', str, tuple, bytes)  # generic key type
 VT = TypeVar('VT')  # generic value type
@@ -22,6 +23,9 @@ CompId: TypeAlias = str
 
 # a UID (unique identifier) "{sha256 hash}_{file size in bytes}" for a byte string (i.e. the contents of a file)
 UID: TypeAlias = str
+
+# unittest patch() is a function and returns a private _patch class
+Patch: TypeAlias = _patch
 
 
 class AnalysisPluginInfo(NamedTuple):

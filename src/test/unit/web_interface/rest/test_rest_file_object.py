@@ -7,7 +7,7 @@ from test.common_helper import TEST_TEXT_FILE, CommonDatabaseMock
 
 class DbMock(CommonDatabaseMock):
     @staticmethod
-    def rest_get_file_object_uids(**_):
+    def rest_get_file_object_uids(*_, **__):
         return []
 
 
