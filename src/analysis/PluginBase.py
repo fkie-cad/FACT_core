@@ -227,9 +227,9 @@ class AnalysisBasePlugin(BasePlugin):
         result_fo.processed_analysis[self.NAME] = sanitize_processed_analysis(processed_analysis_entry)
         self.out_queue.put(result_fo)
 
-    def _update_duration_stats(self, duration):
+    def _update_duration_stats(self, duration: float):
         with self.analysis_stats.get_lock():
-            self.analysis_stats[self.analysis_stats_index.value] = duration
+            self.analysis_stats[self.analysis_stats_index.value] = ctypes.c_float(duration)
         self.analysis_stats_index.value += 1
         if self.analysis_stats_index.value >= self.ANALYSIS_STATS_LIMIT:
             # if the stats array is full, overwrite the oldest result

@@ -92,7 +92,7 @@ class AnalysisStatusWorker:
         self.currently_running: Dict[str, FwAnalysisStatus] = {}
         self._worker_process = None
         self.queue: Queue[tuple] = Queue()
-        self._running: MpValue = Value('i', 0)  # type: ignore[assignment]
+        self._running: MpValue[int] = Value('i', 0)  # type: ignore[assignment]
         self.redis = RedisStatusInterface()
 
     def start(self):
