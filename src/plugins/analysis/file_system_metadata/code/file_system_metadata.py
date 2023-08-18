@@ -22,6 +22,9 @@ if TYPE_CHECKING:
     from objects.file import FileObject
 
 DOCKER_IMAGE = 'fact/fs_metadata:latest'
+SUID_BIT = 0b100 << 9
+SGID_BIT = 0b010 << 9
+STICKY_BIT = 0b001 << 9
 
 
 class StatResult(NamedTuple):
@@ -65,28 +68,22 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def __init__(self, *args, **kwargs):
         self.db = DbInterfaceCommon()
-        self.result = None
         super().__init__(*args, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
-        self.result = {}
-        self._extract_metadata(file_object)
-        self._set_result_propagation_flag(file_object)
+        result = self._extract_metadata(file_object)
+        if 'files' in result:
+            self._add_tag(file_object, result['files'])
+        result['contained_in_file_system'] = self._parent_has_file_system_metadata(file_object)
+        file_object.processed_analysis[self.NAME] = result
         return file_object
-
-    def _set_result_propagation_flag(self, file_object: FileObject):
-        if 'file_system_metadata' not in file_object.processed_analysis:
-            file_object.processed_analysis['file_system_metadata'] = {}
-        file_object.processed_analysis['file_system_metadata'][
-            'contained_in_file_system'
-        ] = self._parent_has_file_system_metadata(file_object)
 
     def _parent_has_file_system_metadata(self, file_object: FileObject) -> bool:
         if hasattr(file_object, 'temporary_data') and 'parent_fo_type' in file_object.temporary_data:
             return self._has_correct_type(file_object.temporary_data['parent_fo_type'])
-        return self.parent_fo_has_fs_metadata_analysis_results(file_object)
+        return self._parent_fo_has_results(file_object)
 
-    def parent_fo_has_fs_metadata_analysis_results(self, file_object: FileObject):
+    def _parent_fo_has_results(self, file_object: FileObject) -> bool:
         for parent_uid in file_object.parents:
             analysis_entry = self.db.get_analysis(parent_uid, 'file_type')
             if analysis_entry is not None and self._has_correct_type(analysis_entry['result']['mime']):
@@ -96,28 +93,28 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _has_correct_type(self, mime_type: str) -> bool:
         return mime_type in self.ARCHIVE_MIME_TYPES + self.FS_MIME_TYPES
 
-    def _extract_metadata(self, file_object: FileObject):
+    def _extract_metadata(self, file_object: FileObject) -> dict:
         file_type = file_object.processed_analysis['file_type']['result']['mime']
         if file_type in self.FS_MIME_TYPES:
-            self._extract_metadata_from_file_system(file_object)
-        elif file_type in self.ARCHIVE_MIME_TYPES:
-            self._extract_metadata_from_tar(file_object)
-        if self.result:
-            file_object.processed_analysis[self.NAME] = {'files': self.result}
-            self._add_tag(file_object, self.result)
+            return self._extract_metadata_from_file_system(file_object)
+        if file_type in self.ARCHIVE_MIME_TYPES:
+            return self._extract_metadata_from_tar(file_object)
+        return {}
 
-    def _extract_metadata_from_file_system(self, file_object: FileObject):
+    def _extract_metadata_from_file_system(self, file_object: FileObject) -> dict:
         with TemporaryDirectory(dir=config.backend.docker_mount_base_dir) as tmp_dir:
             input_file = Path(tmp_dir) / 'input.img'
-            input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
+            input_file.write_bytes(file_object.binary)  # type: ignore[arg-type]  # we assume that binary is set
             output = self._mount_in_docker(tmp_dir)
             output_file = Path(tmp_dir) / 'output.pickle'
             if output_file.is_file():
-                self._analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
-            else:
-                message = f'mount failed:\n{output}'
-                logging.warning(f'[file_system_metadata] {message}')
-                file_object.processed_analysis[self.NAME]['failed'] = message
+                metadata = self._analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
+                if metadata:
+                    return {'files': metadata}
+                return {}
+            message = f'mount failed:\n{output}'
+            logging.warning(f'[file_system_metadata] {message}')
+            return {'failed': message}
 
     def _mount_in_docker(self, input_dir: str) -> str:
         result = run_docker_container(
@@ -133,57 +130,70 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return result.stdout
 
-    def _analyze_metadata_of_mounted_dir(self, docker_results: tuple[str, str, dict]):
+    def _analyze_metadata_of_mounted_dir(self, docker_results: tuple[str, str, dict]) -> dict[str, dict]:
+        result = {}
         for file_name, file_path, file_stats in docker_results:
-            self._enter_results_for_mounted_file(file_name, file_path, StatResult(**file_stats))
+            result.update(self._get_results_for_mounted_file(file_name, file_path, StatResult(**file_stats)))
+        return result
 
-    def _enter_results_for_mounted_file(self, file_name: str, file_path: str, stats: StatResult):
-        result = self.result[b64encode(file_name.encode()).decode()] = {}
-        result[FsKeys.MODE] = self._get_mounted_file_mode(stats)
-        result[FsKeys.MODE_HR] = stat.filemode(stats.mode)
-        result[FsKeys.NAME] = file_name
-        result[FsKeys.PATH] = file_path
-        result[FsKeys.UID] = stats.uid
-        result[FsKeys.GID] = stats.gid
-        result[FsKeys.USER] = 'root' if stats.uid == 0 else ''
-        result[FsKeys.GROUP] = 'root' if stats.gid == 0 else ''
-        result[FsKeys.M_TIME] = stats.m_time
-        result[FsKeys.A_TIME] = stats.a_time
-        result[FsKeys.C_TIME] = stats.c_time
-        result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(
-            result[FsKeys.MODE]
-        )
+    def _get_results_for_mounted_file(self, file_name: str, file_path: str, stats: StatResult):
+        file_mode = self._get_mounted_file_mode(stats)
+        result = {
+            FsKeys.MODE: file_mode,
+            FsKeys.MODE_HR: stat.filemode(stats.mode),
+            FsKeys.NAME: file_name,
+            FsKeys.PATH: file_path,
+            FsKeys.UID: stats.uid,
+            FsKeys.GID: stats.gid,
+            FsKeys.USER: 'root' if stats.uid == 0 else '',
+            FsKeys.GROUP: 'root' if stats.gid == 0 else '',
+            FsKeys.M_TIME: stats.m_time,
+            FsKeys.A_TIME: stats.a_time,
+            FsKeys.C_TIME: stats.c_time,
+            FsKeys.SUID: self._file_mode_contains_bit(file_mode, SUID_BIT),
+            FsKeys.SGID: self._file_mode_contains_bit(file_mode, SGID_BIT),
+            FsKeys.STICKY: self._file_mode_contains_bit(file_mode, STICKY_BIT),
+        }
+        key = b64encode(file_name.encode()).decode()
+        return {key: result}
 
-    def _extract_metadata_from_tar(self, file_object: FileObject):
+    def _extract_metadata_from_tar(self, file_object: FileObject) -> dict[str, dict]:
+        metadata = {}
         try:
             with tarfile.open(file_object.file_path) as tar_archive:
                 for file_info in tar_archive:
                     if file_info.isfile():
-                        self._enter_results_for_tar_file(file_info)
+                        metadata.update(self._get_results_for_tar_file(file_info))
         except (tarfile.TarError, zlib.error, EOFError) as error:
             logging.warning(f'[{self.NAME}]: Could not open archive on {file_object.uid}: {error}', exc_info=True)
+        if metadata:
+            return {'files': metadata}
+        return {}
 
-    def _enter_results_for_tar_file(self, file_info: tarfile.TarInfo):
+    def _get_results_for_tar_file(self, file_info: tarfile.TarInfo) -> dict[str, dict]:
         file_path = file_info.name
         if file_path[:2] == './':
             file_path = file_path[2:]
-        result = self.result[b64encode(file_path.encode()).decode()] = {}
-        result[FsKeys.MODE] = self._get_tar_file_mode_str(file_info)
-        result[FsKeys.NAME] = Path(file_path).name
-        result[FsKeys.PATH] = file_path
-        result[FsKeys.USER] = file_info.uname
-        result[FsKeys.GROUP] = file_info.gname
-        result[FsKeys.UID] = file_info.uid
-        result[FsKeys.GID] = file_info.gid
-        result[FsKeys.M_TIME] = file_info.mtime
-        result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(
-            result[FsKeys.MODE]
-        )
+        file_mode = self._get_tar_file_mode_str(file_info)
+        result = {
+            FsKeys.MODE: file_mode,
+            FsKeys.NAME: Path(file_path).name,
+            FsKeys.PATH: file_path,
+            FsKeys.USER: file_info.uname,
+            FsKeys.GROUP: file_info.gname,
+            FsKeys.UID: file_info.uid,
+            FsKeys.GID: file_info.gid,
+            FsKeys.M_TIME: file_info.mtime,
+            FsKeys.SUID: self._file_mode_contains_bit(file_mode, SUID_BIT),
+            FsKeys.SGID: self._file_mode_contains_bit(file_mode, SGID_BIT),
+            FsKeys.STICKY: self._file_mode_contains_bit(file_mode, STICKY_BIT),
+        }
+        key = b64encode(file_path.encode()).decode()
+        return {key: result}
 
     @staticmethod
-    def _get_extended_file_permissions(file_mode: str) -> list[bool]:
-        extended_file_permission_bits = f'{int(file_mode[-4]):03b}' if len(file_mode) > 3 else '000'  # noqa: PLR2004
-        return [b == '1' for b in extended_file_permission_bits]
+    def _file_mode_contains_bit(file_mode: str, bit: int) -> bool:
+        return bool(int(file_mode, 8) & bit)
 
     @staticmethod
     def _get_mounted_file_mode(stats: StatResult):
