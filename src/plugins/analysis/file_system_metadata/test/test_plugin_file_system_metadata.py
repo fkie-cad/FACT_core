@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 from base64 import b64encode
 from pathlib import Path
 
@@ -9,7 +8,7 @@ from flaky import flaky
 
 from test.common_helper import TEST_FW, TEST_FW_2, CommonDatabaseMock
 
-from ..code.file_system_metadata import AnalysisPlugin, FsKeys
+from ..code.file_system_metadata import AnalysisPlugin, FsKeys, SUID_BIT, SGID_BIT, STICKY_BIT
 
 PLUGIN_NAME = 'file_system_metadata'
 TEST_DATA_DIR = Path(__file__).parent / 'data'
@@ -54,7 +53,7 @@ class DbMock(CommonDatabaseMock):
 
 
 @pytest.fixture
-def file_system_metadata_plugin(analysis_plugin):
+def fs_metadata_plugin(analysis_plugin):
     analysis_plugin.result = {}
     analysis_plugin.db = DbMock()
     return analysis_plugin
@@ -65,18 +64,16 @@ class TestFileSystemMetadata:
     test_file_tar = TEST_DATA_DIR / 'test.tar'
     test_file_fs = TEST_DATA_DIR / 'squashfs.img'
 
-    def test_extract_metadata__correct_method_is_called(self, file_system_metadata_plugin, monkeypatch):
+    def test_extract_metadata__correct_method_is_called(self, fs_metadata_plugin, monkeypatch):
         result = None
 
         def _extract_metadata_from_archive_mock(_):
             nonlocal result
             result = 'archive'
 
-        monkeypatch.setattr(
-            file_system_metadata_plugin, '_extract_metadata_from_tar', _extract_metadata_from_archive_mock
-        )
+        monkeypatch.setattr(fs_metadata_plugin, '_extract_metadata_from_tar', _extract_metadata_from_archive_mock)
         fo = FoMock(None, 'application/x-tar')
-        file_system_metadata_plugin._extract_metadata(fo)
+        fs_metadata_plugin._extract_metadata(fo)
         assert result == 'archive'
 
         monkeypatch.undo()
@@ -86,17 +83,16 @@ class TestFileSystemMetadata:
             result = 'fs'
 
         monkeypatch.setattr(
-            file_system_metadata_plugin, '_extract_metadata_from_file_system', _extract_metadata_from_file_system_mock
+            fs_metadata_plugin, '_extract_metadata_from_file_system', _extract_metadata_from_file_system_mock
         )
         fo = FoMock(None, 'filesystem/ext4')
-        file_system_metadata_plugin._extract_metadata(fo)
+        fs_metadata_plugin._extract_metadata(fo)
         assert result == 'fs'
 
     @flaky(max_runs=2, min_passes=1)  # test may fail once on a new system
-    def test_extract_metadata_from_file_system(self, file_system_metadata_plugin):
+    def test_extract_metadata_from_file_system(self, fs_metadata_plugin):
         fo = FoMock(self.test_file_fs, 'filesystem/squashfs')
-        file_system_metadata_plugin._extract_metadata_from_file_system(fo)
-        result = file_system_metadata_plugin.result
+        result = fs_metadata_plugin._extract_metadata_from_file_system(fo)['files']
 
         testfile_sticky_key = _b64_encode('testfile_sticky')
         testfile_sgid_key = _b64_encode('testfile_sgid')
@@ -132,17 +128,16 @@ class TestFileSystemMetadata:
         assert result[testfile_sticky_key][FsKeys.GID] == 0
         assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842.0  # noqa: PLR2004
 
-    def test_extract_metadata_from_file_system__unmountable(self, file_system_metadata_plugin):
+    def test_extract_metadata_from_file_system__unmountable(self, fs_metadata_plugin):
         fo = FoMock(self.test_file_tar, 'application/x-tar')
-        file_system_metadata_plugin._extract_metadata_from_file_system(fo)
+        result = fs_metadata_plugin._extract_metadata_from_file_system(fo)
 
-        assert file_system_metadata_plugin.result == {}
-        assert 'failed' in fo.processed_analysis[PLUGIN_NAME]
+        assert 'failed' in result
+        assert 'files' not in result
 
-    def test_extract_metadata_from_tar(self, file_system_metadata_plugin):
+    def test_extract_metadata_from_tar(self, fs_metadata_plugin):
         fo = FoMock(self.test_file_tar, 'application/x-tar')
-        file_system_metadata_plugin._extract_metadata_from_tar(fo)
-        result = file_system_metadata_plugin.result
+        result = fs_metadata_plugin._extract_metadata_from_tar(fo)['files']
 
         testfile_sticky_key = _b64_encode('mount/testfile_sticky')
         testfile_sgid_key = _b64_encode('mount/testfile_sgid')
@@ -178,11 +173,10 @@ class TestFileSystemMetadata:
         assert result[testfile_sticky_key][FsKeys.GID] == 0
         assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842  # noqa: PLR2004
 
-    def test_extract_metadata_from_tar__packed_tar_gz(self, file_system_metadata_plugin):
+    def test_extract_metadata_from_tar__packed_tar_gz(self, fs_metadata_plugin):
         test_file_tar_gz = TEST_DATA_DIR / 'test.tar.gz'
         fo = FoMock(test_file_tar_gz, 'application/gzip')
-        file_system_metadata_plugin._extract_metadata_from_tar(fo)
-        result = file_system_metadata_plugin.result
+        result = fs_metadata_plugin._extract_metadata_from_tar(fo)['files']
         assert all(
             _b64_encode(key) in result
             for key in [
@@ -194,11 +188,10 @@ class TestFileSystemMetadata:
             ]
         )
 
-    def test_extract_metadata_from_tar__packed_tar_bz(self, file_system_metadata_plugin):
+    def test_extract_metadata_from_tar__packed_tar_bz(self, fs_metadata_plugin):
         test_file_tar_bz = TEST_DATA_DIR / 'test.tar.bz2'
         fo = FoMock(test_file_tar_bz, 'application/x-bzip2')
-        file_system_metadata_plugin._extract_metadata_from_tar(fo)
-        result = file_system_metadata_plugin.result
+        result = fs_metadata_plugin._extract_metadata_from_tar(fo)['files']
         assert all(
             _b64_encode(key) in result
             for key in [
@@ -210,54 +203,58 @@ class TestFileSystemMetadata:
             ]
         )
 
-    def test_extract_metadata_from_tar__tar_unreadable(self, file_system_metadata_plugin):
+    def test_extract_metadata_from_tar__tar_unreadable(self, fs_metadata_plugin):
         test_file = TEST_DATA_DIR / 'squashfs.img'
         fo = FoMock(test_file, 'application/gzip')
-        file_system_metadata_plugin._extract_metadata_from_tar(fo)
-        result = file_system_metadata_plugin.result
+        result = fs_metadata_plugin._extract_metadata_from_tar(fo)
         assert result == {}
 
-    def test_extract_metadata_from_tar__eof_error(self, file_system_metadata_plugin):
+    def test_extract_metadata_from_tar__eof_error(self, fs_metadata_plugin):
         test_file_tar_gz = TEST_DATA_DIR / 'broken.tar.gz'
         fo = FoMock(test_file_tar_gz, 'application/gzip')
-        file_system_metadata_plugin._extract_metadata_from_tar(fo)
-        result = file_system_metadata_plugin.result
-        assert len(result) < 5  # noqa: PLR2004
-        assert len(result) > 0
+        result = fs_metadata_plugin._extract_metadata_from_tar(fo)
+        assert 0 < len(result) < 5  # noqa: PLR2004
 
-    def test_get_extended_file_permissions(self, file_system_metadata_plugin):
-        assert file_system_metadata_plugin._get_extended_file_permissions('777') == [False, False, False]
-        assert file_system_metadata_plugin._get_extended_file_permissions('0777') == [False, False, False]
-        assert file_system_metadata_plugin._get_extended_file_permissions('1777') == [False, False, True]
-        assert file_system_metadata_plugin._get_extended_file_permissions('2777') == [False, True, False]
-        assert file_system_metadata_plugin._get_extended_file_permissions('3777') == [False, True, True]
-        assert file_system_metadata_plugin._get_extended_file_permissions('4777') == [True, False, False]
-        assert file_system_metadata_plugin._get_extended_file_permissions('5777') == [True, False, True]
-        assert file_system_metadata_plugin._get_extended_file_permissions('6777') == [True, True, False]
-        assert file_system_metadata_plugin._get_extended_file_permissions('7777') == [True, True, True]
-        assert file_system_metadata_plugin._get_extended_file_permissions('00007777') == [True, True, True]
+    @pytest.mark.parametrize(
+        ('mode', 'expected'),
+        [
+            ('777', [False, False, False]),
+            ('0777', [False, False, False]),
+            ('1777', [False, False, True]),
+            ('2777', [False, True, False]),
+            ('3777', [False, True, True]),
+            ('4777', [True, False, False]),
+            ('5777', [True, False, True]),
+            ('6777', [True, True, False]),
+            ('7777', [True, True, True]),
+            ('00007777', [True, True, True]),
+        ],
+    )
+    def test_get_extended_file_permissions(self, fs_metadata_plugin, mode, expected):
+        result = [fs_metadata_plugin._file_mode_contains_bit(mode, bit) for bit in (SUID_BIT, SGID_BIT, STICKY_BIT)]
+        assert result == expected
 
-    def test_parent_has_file_system_metadata(self, file_system_metadata_plugin):
+    def test_parent_has_file_system_metadata(self, fs_metadata_plugin):
         # fo has temporary_data entry
         fo = FoMock(None, None, parent_fo_type='wrong_type')
-        assert file_system_metadata_plugin._parent_has_file_system_metadata(fo) is False
+        assert fs_metadata_plugin._parent_has_file_system_metadata(fo) is False
         fo = FoMock(None, None, parent_fo_type='filesystem/ext2')
-        assert file_system_metadata_plugin._parent_has_file_system_metadata(fo) is True
+        assert fs_metadata_plugin._parent_has_file_system_metadata(fo) is True
 
-    def test_no_temporary_data(self, file_system_metadata_plugin):
+    def test_no_temporary_data(self, fs_metadata_plugin):
         fo = FoMock(None, None)
 
         fo.parents = [TEST_FW.uid]
         # mime-type in mocked db is 'application/octet-stream' so the result should be false
-        assert file_system_metadata_plugin._parent_has_file_system_metadata(fo) is False
+        assert fs_metadata_plugin._parent_has_file_system_metadata(fo) is False
 
         fo.parents = [TEST_FW_2.uid]
         # mime-type in mocked db is 'filesystem/cramfs' so the result should be true
-        assert file_system_metadata_plugin._parent_has_file_system_metadata(fo) is True
+        assert fs_metadata_plugin._parent_has_file_system_metadata(fo) is True
 
-    def test_process_object(self, file_system_metadata_plugin):
+    def test_process_object(self, fs_metadata_plugin):
         fo = FoMock(self.test_file_fs, 'filesystem/squashfs')
-        result = file_system_metadata_plugin.process_object(fo)
+        result = fs_metadata_plugin.process_object(fo)
         assert 'file_system_metadata' in result.processed_analysis
         assert 'contained_in_file_system' in result.processed_analysis['file_system_metadata']
         assert result.processed_analysis['file_system_metadata']['contained_in_file_system'] is False
@@ -266,25 +263,24 @@ class TestFileSystemMetadata:
         assert _b64_encode('testfile_sticky') in result.processed_analysis['file_system_metadata']['files']
 
         fo_2 = FoMock(self.test_file_fs, 'wrong_mime', parent_fo_type='filesystem/ext4')
-        result = file_system_metadata_plugin.process_object(fo_2)
+        result = fs_metadata_plugin.process_object(fo_2)
         assert 'file_system_metadata' in result.processed_analysis
         assert 'contained_in_file_system' in result.processed_analysis['file_system_metadata']
 
         fo_3 = FoMock(self.test_file_fs, 'wrong_mime')
-        result = file_system_metadata_plugin.process_object(fo_3)
+        result = fs_metadata_plugin.process_object(fo_3)
         assert 'file_system_metadata' in result.processed_analysis
         assert result.processed_analysis['file_system_metadata']['contained_in_file_system'] is False
         assert len(result.processed_analysis['file_system_metadata'].keys()) == 1
 
-    def test_enter_results_for_tar_file__malformed_path(self, file_system_metadata_plugin):
+    def test_enter_results_for_tar_file__malformed_path(self, fs_metadata_plugin):
         file_name = './foo/bar'
-        file_system_metadata_plugin._enter_results_for_tar_file(TarMock(file_name))
-        result = file_system_metadata_plugin.result
+        result = fs_metadata_plugin._get_results_for_tar_file(TarMock(file_name))
         assert result != {}
         assert _b64_encode(file_name) not in result
         assert _b64_encode('foo/bar') in result
 
-    def test_tag_should_be_set(self, file_system_metadata_plugin):
+    def test_tag_should_be_set(self, fs_metadata_plugin):
         def _get_results(user, suid, sgid):
             return {'foo': {FsKeys.USER: user, FsKeys.SUID: suid, FsKeys.SGID: sgid}}
 
@@ -300,7 +296,7 @@ class TestFileSystemMetadata:
             ({'foo': {FsKeys.SUID: True, FsKeys.SGID: True}}, False),  # user missing (legacy: was not always set)
         ]
         for input_data, expected_result in test_data:
-            assert file_system_metadata_plugin._tag_should_be_set(input_data) == expected_result
+            assert fs_metadata_plugin._tag_should_be_set(input_data) == expected_result
 
 
 def _b64_encode(string):
