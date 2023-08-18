@@ -4,6 +4,7 @@ from multiprocessing.sharedctypes import Synchronized, SynchronizedArray
 from tempfile import _TemporaryFileWrapper
 from typing import TypeVar, TypeAlias
 from typing import TypeVar, TypeAlias, NamedTuple
+from unittest.mock import _patch
 
 # a UID (unique identifier) "{sha256 hash}_{file size in bytes}" for a byte string (i.e. the contents of a file)
 UID: TypeAlias = str
@@ -23,6 +24,10 @@ MpArray: TypeAlias = SynchronizedArray
 # comparison ID: Represents one comparison between two or more firmwares.
 # Consists of UIDs with semicolons in-between (e.g. "uid1;uid2;...")
 CompId: TypeAlias = str
+
+# unittest patch() is a function and returns a private _patch class
+Patch: TypeAlias = _patch
+
 
 class AnalysisPluginInfo(NamedTuple):
     description: str
