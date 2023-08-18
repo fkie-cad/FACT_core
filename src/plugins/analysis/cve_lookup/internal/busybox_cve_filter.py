@@ -17,26 +17,25 @@ with GROUP_1_PATH.open('r') as f1, GROUP_2_PATH.open('r') as f2:
     GROUP_1 = f1.read().splitlines()
     GROUP_2 = f2.read().splitlines()
 
-PATTERNS_1 = [re.compile(fr'(?:\")(?:{re.escape(word)})(?:\-|\")') for word in GROUP_1]
-PATTERNS_2 = [re.compile(fr'(?:\b|\_)(?:{re.escape(word)})(?:\b|-)') for word in GROUP_2]
+PATTERNS_1 = [re.compile(fr'\"(?:{re.escape(word)})[-"]') for word in GROUP_1]
+PATTERNS_2 = [re.compile(fr'(?:\b|_)(?:{re.escape(word)})(?:\b|-)') for word in GROUP_2]
 
 
 def filter_busybox_cves(file_object: FileObject, cves: dict[str, Cve]) -> dict[str, Cve]:
     """
     Filters the BusyBox CVEs based on the components present in the binary file and the specified version.
     """
-    components = get_busybox_components(file_object)
+    components = get_busybox_components(file_object.binary)  # type: ignore[arg-type] # binary should be set here
     return filter_cves_by_component(file_object, cves, components)
 
 
-def get_busybox_components(file_object: FileObject) -> list[str]:
+def get_busybox_components(file_content: bytes) -> list[str]:
     """
     Extracts the BusyBox components from the binary file.
     """
-    data = Path(file_object.file_path).read_bytes()
-    start_index = data.index(b'\x5b\x00\x5b\x5b\x00')
-    end_index = data.index(b'\x00\x00', start_index + 5)
-    extracted_bytes = data[start_index : end_index + 2]
+    start_index = file_content.index(b'\x5b\x00\x5b\x5b\x00')
+    end_index = file_content.index(b'\x00\x00', start_index + 5)
+    extracted_bytes = file_content[start_index : end_index + 2]
     split_bytes = extracted_bytes.split(b'\x00')
     return [word.decode('ascii') for word in split_bytes if word]
 

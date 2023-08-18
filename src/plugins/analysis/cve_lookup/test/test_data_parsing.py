@@ -11,7 +11,7 @@ with open(Path(__file__).parent / 'test_resources/CVE-2012-0010.json') as file: 
 CVE_ENTRY = CveEntry(
     cve_id='CVE-2012-0010',
     summary='Microsoft Internet Explorer 6 through 9 does not properly perform copy-and-paste operations, which allows user-assisted remote attackers to read content from a different (1) domain or (2) zone via a crafted web site, aka "Copy and Paste Information Disclosure Vulnerability."',  # noqa: E501
-    impact={'cvssMetricV2': 4.3},
+    impact={'cvssMetricV2': '4.3'},
     cpe_entries=[
         ('cpe:2.3:a:microsoft:internet_explorer:6:*:*:*:*:*:*:*', '', '', '', ''),
         ('cpe:2.3:a:microsoft:internet_explorer:9:*:*:*:*:*:*:*', '', '', '', ''),
