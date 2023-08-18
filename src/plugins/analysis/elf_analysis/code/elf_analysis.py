@@ -11,6 +11,10 @@ import lief
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.hash import normalize_lief_items
 from helperFunctions.tag import TagColor
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 LIEF_DATA_ENTRIES = (
     'dynamic_entries',
@@ -23,7 +27,7 @@ LIEF_DATA_ENTRIES = (
     'symbols_version',
 )
 TEMPLATE_FILE_PATH = Path(__file__).parent.parent / 'internal/matching_template.json'
-BEHAVIOUR_CLASSES = json.loads(TEMPLATE_FILE_PATH.read_text())
+BEHAVIOUR_CLASSES: dict[str, list[str]] = json.loads(TEMPLATE_FILE_PATH.read_text())
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -38,7 +42,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
     FILE = __file__
 
-    def process_object(self, file_object):
+    def process_object(self, file_object: FileObject):
         try:
             elf_dict, parsed_binary = self._analyze_elf(file_object)
             file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
@@ -50,41 +54,40 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     @staticmethod
-    def _get_tags_from_library_list(libraries: list, behaviour_class: str, indicators: list, tags: list):
-        for library, indicator in ((lib, ind) for lib in libraries for ind in indicators):
-            if re.search(indicator, library):
-                tags.append(behaviour_class)
+    def _get_tags_from_library_list(libraries: list[str], behaviour_class: str, indicators: list[str], tags: list[str]):
+        for library in libraries:
+            for indicator in indicators:
+                if re.search(indicator, library):
+                    tags.append(behaviour_class)
 
     @staticmethod
-    def _get_tags_from_function_list(functions: list, behaviour_class: str, indicators: list, tags: list):
-        for function, indicator in ((f, i) for f in functions for i in indicators):
-            if (
-                indicator.lower() in function.lower()
-                and SequenceMatcher(None, indicator, function).ratio() >= 0.85  # noqa: PLR2004
-            ):
-                tags.append(behaviour_class)
+    def _get_tags_from_function_list(
+        functions: list[str], behaviour_class: str, indicators: list[str], tags: list[str]
+    ):
+        for function in functions:
+            for indicator in indicators:
+                if _function_contains_indicator(function, indicator):
+                    tags.append(behaviour_class)
 
-    def _get_tags(self, libraries: list, functions: list) -> list:
-        tags = []
-        for behaviour_class in BEHAVIOUR_CLASSES:
+    def _get_tags(self, libraries: list[str], functions: list[str]) -> list[str]:
+        tags: list[str] = []
+        for behaviour_class, behaviour_indicators in BEHAVIOUR_CLASSES.items():
             if behaviour_class not in tags:
-                behaviour_indicators = BEHAVIOUR_CLASSES[behaviour_class]
                 self._get_tags_from_function_list(functions, behaviour_class, behaviour_indicators, tags)
                 self._get_tags_from_library_list(libraries, behaviour_class, behaviour_indicators, tags)
         return list(set(tags))
 
     @staticmethod
-    def _get_symbols_version_entries(symbol_versions):
-        imported_libs = []
-        for sv in symbol_versions:
-            if str(sv) != '* Local *' and str(sv) != '* Global *':
-                imported_libs.append(str(sv).split('(', maxsplit=1)[0])
-        return list(set(imported_libs))
+    def _get_symbols_version_entries(symbol_versions: list[str]) -> list[str]:
+        imported_libs: set[str] = set()
+        for version in symbol_versions:
+            if str(version) != '* Local *' and str(version) != '* Global *':
+                imported_libs.add(str(version).split('(', maxsplit=1)[0])
+        return list(imported_libs)
 
     @staticmethod
-    def _get_relevant_imp_functions(imp_functions):
-        imp_functions[:] = [x for x in imp_functions if not x.startswith('__')]
-        return imp_functions
+    def _get_relevant_imp_functions(imp_functions: list[str]) -> list[str]:
+        return [x for x in imp_functions if not x.startswith('__')]
 
     @staticmethod
     def _get_color_codes(tag):
@@ -100,7 +103,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             return TagColor.LIGHT_BLUE
         return TagColor.GRAY
 
-    def create_tags(self, parsed_bin, file_object):
+    def create_tags(self, parsed_bin, file_object: FileObject):
         all_libs = self._get_symbols_version_entries(normalize_lief_items(parsed_bin.symbols_version))
         all_libs.extend(normalize_lief_items(parsed_bin.libraries))
         all_funcs = self._get_relevant_imp_functions(normalize_lief_items(parsed_bin.imported_functions))
@@ -119,7 +122,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if key in LIEF_DATA_ENTRIES and binary_json_dict[key]:
                 elf_dict[key] = binary_json_dict[key]
 
-    def _analyze_elf(self, file_object):
+    def _analyze_elf(self, file_object: FileObject):
         elf_dict = {}
         try:
             parsed_binary = lief.parse(file_object.file_path)
@@ -156,7 +159,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
         modinfo = None
         for section in binary.sections:
             if section.name == '.modinfo':
-                modinfo = bytes(section.content).decode()
-                modinfo = [entry for entry in modinfo.split('\x00') if entry]
+                section_content = bytes(section.content).decode()
+                modinfo = [entry for entry in section_content.split('\x00') if entry]
                 break
         return modinfo
+
+
+MIN_SIMILARITY = 0.85
+
+
+def _function_contains_indicator(function: str, indicator: str) -> bool:
+    return (
+        indicator.lower() in function.lower() and SequenceMatcher(None, indicator, function).ratio() >= MIN_SIMILARITY
+    )
