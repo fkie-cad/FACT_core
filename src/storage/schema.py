@@ -32,9 +32,9 @@ class AnalysisEntry(Base):
     plugin_version = mapped_column(VARCHAR(16), nullable=False)
     system_version = mapped_column(VARCHAR)
     analysis_date = mapped_column(Float, nullable=False)
-    summary = mapped_column(ARRAY(VARCHAR, dimensions=1), default=[])
-    tags = mapped_column(MutableDict.as_mutable(JSONB))
-    result = mapped_column(MutableDict.as_mutable(JSONB), default={})
+    summary = mapped_column(ARRAY(VARCHAR, dimensions=1), nullable=True)
+    tags = mapped_column(MutableDict.as_mutable(JSONB), nullable=True)
+    result = mapped_column(MutableDict.as_mutable(JSONB), nullable=True)
 
     file_object = relationship('FileObjectEntry', back_populates='analyses')
 
