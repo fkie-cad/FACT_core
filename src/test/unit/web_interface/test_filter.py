@@ -465,3 +465,15 @@ def test_hide_dts_data(input_dts, expected_result):
 )
 def test_get_searchable_crypto_block(input_, expected_result):
     assert flt.get_searchable_crypto_block(input_) == expected_result
+
+
+def test_as_ascii_table():
+    output = flt.as_ascii_table(
+        {
+            'left': 'right',
+            'foo': 'bar',
+        }
+    )
+    # Makes the pytest output more readable
+    output = output.replace(' ', '.')
+    assert output == 'left       right     \nfoo        bar       \n'.replace(' ', '.')
