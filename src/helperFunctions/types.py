@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from abc import ABCMeta
 from multiprocessing.sharedctypes import Synchronized, SynchronizedArray
 from tempfile import _TemporaryFileWrapper
-from typing import TypeVar, TypeAlias, NamedTuple
+from typing import Protocol, TypeVar, TypeAlias, NamedTuple, TYPE_CHECKING
 from unittest.mock import _patch
 
-from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+
+if TYPE_CHECKING:
+    from analysis.plugin import AnalysisPluginV0
 
 KT = TypeVar('KT', str, tuple, bytes)  # generic key type
 VT = TypeVar('VT')  # generic value type
@@ -32,14 +32,6 @@ UID: TypeAlias = str
 Patch: TypeAlias = _patch
 
 
-class CompatPluginV0(AnalysisPluginV0, AnalysisBasePluginAdapterMixin, metaclass=ABCMeta):
-    """An AnalysisPluginV0 plugin that also inherits from AnalysisBasePluginAdapterMixin"""
-
-    # Fixme: it would be better if AnalysisPluginV0 inherited from AnalysisBasePluginAdapterMixin because it should
-    #        not concern the user that we need a mixin class for compatibility. On top of that, we plan to remove that
-    #        class when we remove the old class and would need to change all plugins again.
-
-
 class AnalysisPluginInfo(NamedTuple):
     description: str
     mandatory: bool
@@ -49,3 +41,12 @@ class AnalysisPluginInfo(NamedTuple):
     blacklist: list[str]
     whitelist: list[str]
     worker_count: int
+
+
+class NewPluginKind(Protocol):
+    # mypy docs recommend Protocols to type hint the self parameter of mixin classes
+    # (see https://mypy.readthedocs.io/en/latest/more_types.html#mixin-classes)
+
+    @property
+    def metadata(self) -> AnalysisPluginV0.MetaData:
+        ...
