@@ -124,8 +124,8 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         start_time = time.time()
         result = self.analyze(file_handle, virtual_file_path, analyses)
 
-        summary = []
-        tags = []
+        summary = None
+        tags = None
         if result is not None:
             summary = self.summarize(result)
             tags = self.get_tags(result, summary)
