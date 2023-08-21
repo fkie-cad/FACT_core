@@ -22,8 +22,7 @@ def test_load(monkeypatch):
     assert config.backend.plugin['cpu_architecture'].processes == 4  # noqa: PLR2004
 
 
-def test_load_missing_entrys(monkeypatch):  # noqa: ARG001
+def test_load_missing_entries():
     cfg_path = get_test_data_dir() + '/fact-core-config.toml-missing-entrys'
-
-    with pytest.raises(pydantic.error_wrappers.ValidationError, match='server'):
+    with pytest.raises(pydantic.ValidationError, match='server'):
         load(path=cfg_path)

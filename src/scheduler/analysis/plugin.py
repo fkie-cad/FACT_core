@@ -11,7 +11,7 @@ import typing
 
 import psutil
 import pydantic
-from pydantic import BaseModel
+from pydantic import ConfigDict, BaseModel
 
 import config
 from objects.file import FileObject
@@ -47,9 +47,7 @@ class PluginRunner:
         # even if a process (like PluginRunner) does not need all state (e.g.
         # FileObject.scheduled_analysis)
         scheduler_state: FileObject
-
-        class Config:
-            arbitrary_types_allowed = True
+        model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(
         self,

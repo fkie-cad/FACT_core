@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import toml
-from pydantic import BaseModel, Extra, validator
+from pydantic import ConfigDict, field_validator, BaseModel
 from werkzeug.local import LocalProxy
 
 
@@ -25,19 +25,9 @@ _common = None
 common: Common = LocalProxy(lambda: _common)
 
 
-class _PydanticConfigExtraForbid:
-    # FIXME this should be replaced by class kwargs (extra=Extra.forbid)
-    # Sphinx autodoc will complain about unknown kwargs
-    extra = Extra.forbid
-
-
-class _PydanticConfigExtraAllow:
-    extra = Extra.allow
-
-
 class Common(BaseModel):
     class Postgres(BaseModel):
-        Config = _PydanticConfigExtraForbid
+        model_config = ConfigDict(extra='forbid')
 
         server: str
         port: int
@@ -57,31 +47,32 @@ class Common(BaseModel):
         admin_pw: str
 
     class Redis(BaseModel):
-        Config = _PydanticConfigExtraForbid
+        model_config = ConfigDict(extra='forbid')
 
         fact_db: int
         test_db: int
         host: str
         port: int
-        password: Optional[str]
+        password: Optional[str] = None
 
     class Logging(BaseModel):
-        Config = _PydanticConfigExtraForbid
+        model_config = ConfigDict(extra='forbid')
 
         file_backend: str = '/tmp/fact_backend.log'
         file_frontend: str = '/tmp/fact_frontend.log'
         file_database: str = '/tmp/fact_database.log'
         level: str = 'WARNING'
 
-        @validator('level')
-        def _validate_level(cls, value):  # noqa: N805
+        @field_validator('level')
+        @classmethod
+        def _validate_level(cls, value):
             if isinstance(logging.getLevelName(value), str):
                 raise ValueError(f'The "loglevel" {value} is not a valid loglevel.')
 
             return value
 
     class AnalysisPreset(BaseModel):
-        Config = _PydanticConfigExtraForbid
+        model_config = ConfigDict(extra='forbid')
 
         name: str
         plugins: List[str]
@@ -97,10 +88,10 @@ class Common(BaseModel):
 
 
 class Frontend(Common):
-    Config = _PydanticConfigExtraForbid
+    model_config = ConfigDict(extra='forbid')
 
     class Authentication(BaseModel):
-        Config = _PydanticConfigExtraForbid
+        model_config = ConfigDict(extra='forbid')
 
         enabled: bool
         user_database: str
@@ -120,7 +111,7 @@ class Frontend(Common):
 
 
 class Backend(Common):
-    Config = _PydanticConfigExtraForbid
+    model_config = ConfigDict(extra='forbid')
 
     class Unpacking(BaseModel):
         processes: int
@@ -137,7 +128,7 @@ class Backend(Common):
         processes: int
 
     class Plugin(BaseModel):
-        Config = _PydanticConfigExtraAllow
+        model_config = ConfigDict(extra='allow')
 
         name: str
 
@@ -158,8 +149,9 @@ class Backend(Common):
     plugin_defaults: Backend.PluginDefaults
     plugin: Dict[str, Backend.Plugin]
 
-    @validator('temp_dir_path')
-    def _validate_temp_dir_path(cls, value):  # noqa: N805
+    @field_validator('temp_dir_path')
+    @classmethod
+    def _validate_temp_dir_path(cls, value):
         if not Path(value).exists():
             raise ValueError('The "temp-dir-path" does not exist.')
         return value
