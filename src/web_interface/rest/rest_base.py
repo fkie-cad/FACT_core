@@ -4,6 +4,7 @@ from common_helper_encoder import ReportEncoder
 from flask import make_response
 from flask_restx import Api
 
+from web_interface.rest.rest_analysis import api as analysis_api
 from web_interface.rest.rest_binary import api as binary_api
 from web_interface.rest.rest_binary_search import api as binary_search_api
 from web_interface.rest.rest_compare import api as compare_api
@@ -27,14 +28,15 @@ class RestBase:
         )
 
         for api in [
-            firmware_api,
-            file_object_api,
-            compare_api,
+            analysis_api,
             binary_api,
             binary_search_api,
+            compare_api,
+            file_object_api,
+            firmware_api,
+            missing_analyses_api,
             statistics_api,
             status_api,
-            missing_analyses_api,
         ]:
             for _, _, _, kwargs in api.resources:
                 kwargs['resource_class_kwargs'] = {'db': db, 'intercom': intercom, 'status': status}
