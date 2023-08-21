@@ -18,6 +18,7 @@ from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from helperFunctions.types import AnalysisPluginInfo, CompatPluginV0, MpValue
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
@@ -28,9 +29,9 @@ from pathlib import Path
 from .plugin import PluginRunner, Worker
 from storage.db_interface_view_sync import ViewUpdater
 from typing import TYPE_CHECKING, Optional
+from storage.unpacking_locks import UnpackingLockManager
 
 if TYPE_CHECKING:
-    from storage.unpacking_locks import UnpackingLockManager
     from objects.file import FileObject
     from collections.abc import Callable
 
@@ -92,7 +93,6 @@ class AnalysisScheduler:
     actual analysis process is out of scope. Database interaction happens before (pre_analysis) and after
     (post_analysis) the running of a task, to store intermediate results for live updates, and final results.
 
-    :param pre_analysis: A database callback to execute before running an analysis task.
     :param post_analysis: A database callback to execute after running an analysis task.
     :param db_interface: An object reference to an instance of BackEndDbInterface.
     :param unpacking_locks: An instance of UnpackingLockManager.
@@ -104,19 +104,19 @@ class AnalysisScheduler:
         db_interface=None,
         unpacking_locks: UnpackingLockManager | None = None,
     ):
-        self.analysis_plugins = {}
-        self._plugin_runners = {}
+        self.analysis_plugins: dict[str, AnalysisBasePlugin | CompatPluginV0] = {}
+        self._plugin_runners: dict[str, PluginRunner] = {}
 
         self._load_plugins()
-        self.stop_condition = Value('i', 0)
-        self.process_queue = Queue()
-        self.unpacking_locks = unpacking_locks
+        self.stop_condition: MpValue[int] = Value('i', 0)  # type: ignore[assignment]
+        self.process_queue: Queue[FileObject] = Queue()
+        self.unpacking_locks = unpacking_locks or UnpackingLockManager()
         self.scheduling_lock = Lock()
 
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
-        self.schedule_processes = []
-        self.result_collector_processes = []
+        self.schedule_processes: list[ExceptionSafeProcess] = []
+        self.result_collector_processes: list[ExceptionSafeProcess] = []
 
         self.fs_organizer = FSOrganizer()
         self.db_backend_service = db_interface if db_interface else BackendDbInterface()
@@ -152,7 +152,8 @@ class AnalysisScheduler:
 
         with ThreadPoolExecutor() as pool:
             for plugin in self.analysis_plugins.values():
-                futures.append(pool.submit(plugin.shutdown))
+                if isinstance(plugin, AnalysisBasePlugin):
+                    futures.append(pool.submit(plugin.shutdown))
             for future in futures:
                 future.result()  # call result to make sure all threads are finished and there are no exceptions
         stop_processes(self.result_collector_processes, config.backend.block_delay + 1)
@@ -173,7 +174,7 @@ class AnalysisScheduler:
         self.status.add_update(fo, included_files)
         for child_fo in self.db_backend_service.get_objects_by_uid_list(included_files):
             child_fo.root_uid = fo.uid  # set correct root_uid so that "current analysis stats" work correctly
-            child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
+            child_fo.temporary_data['force_update'] = self._is_forced_update(fo)  # propagate forced update to children
             self.task_scheduler.schedule_analysis_tasks(child_fo, fo.scheduled_analysis)
             self._check_further_process_or_complete(child_fo)
         self._check_further_process_or_complete(fo)
@@ -217,7 +218,7 @@ class AnalysisScheduler:
             try:
                 PluginClass = plugin_module.AnalysisPlugin  # noqa: N806
                 if issubclass(PluginClass, AnalysisPluginV0):
-                    plugin: AnalysisPluginV0 = PluginClass()
+                    plugin = PluginClass()
                     self.analysis_plugins[plugin.metadata.name] = plugin
                     schemata[plugin.metadata.name] = PluginClass.Schema
                     _sync_view(plugin_module, plugin.metadata.name)
@@ -247,7 +248,7 @@ class AnalysisScheduler:
         if not os.getenv('PYTEST_CURRENT_TEST'):
             self._remove_example_plugins()
 
-    def get_plugin_dict(self) -> dict:
+    def get_plugin_dict(self) -> dict[str, AnalysisPluginInfo]:
         """
         Get information regarding all loaded plugins in form of a dictionary with the following form:
 
@@ -272,30 +273,32 @@ class AnalysisScheduler:
         :return: dict with information regarding all loaded plugins
         """
         plugin_list = self._get_list_of_available_plugins()
-        plugin_sets = config.backend.analysis_preset
         result = {}
         for plugin in plugin_list:
-            current_plugin_plugin_sets = {}
+            current_plugin_plugin_sets = {
+                preset_name: plugin in analysis_preset.plugins
+                for preset_name, analysis_preset in config.backend.analysis_preset.items()
+            }
             mandatory_flag = plugin in MANDATORY_PLUGINS
-            for plugin_set in plugin_sets:
-                current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set].plugins
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
             try:
                 thread_count = config.backend.plugin[plugin].processes
             except (AttributeError, KeyError):
                 thread_count = config.backend.plugin_defaults.processes
-            # TODO this should not be a tuple but rather a dictionary/class
-            result[plugin] = (
+            result[plugin] = AnalysisPluginInfo(
                 self.analysis_plugins[plugin].DESCRIPTION,
                 mandatory_flag,
                 dict(current_plugin_plugin_sets),
                 self.analysis_plugins[plugin].VERSION,
-                self.analysis_plugins[plugin].DEPENDENCIES,
+                list(self.analysis_plugins[plugin].DEPENDENCIES),
                 blacklist,
                 whitelist,
                 thread_count,
             )
-        result['unpacker'] = ('Additional information provided by the unpacker', True, False)
+        # FixMe: this is not actually a plugin and should therefore be handled in the frontend
+        result['unpacker'] = AnalysisPluginInfo(
+            'Additional information provided by the unpacker', True, {}, '', [], [], [], 0
+        )
         return result
 
     def _start_plugins(self):
@@ -339,7 +342,7 @@ class AnalysisScheduler:
         ):
             logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (analysis already in DB)')
             if analysis_to_do in self.task_scheduler.get_cumulative_remaining_dependencies(
-                file_object.scheduled_analysis
+                set(file_object.scheduled_analysis)
             ):
                 self._add_completed_analysis_results_to_file_object(analysis_to_do, file_object)
             self.status.add_analysis(file_object, analysis_to_do)
@@ -379,10 +382,10 @@ class AnalysisScheduler:
 
     @staticmethod
     def _is_forced_update(file_object: FileObject) -> bool:
-        try:
-            return bool(getattr(file_object, 'force_update', False))
-        except AttributeError:
-            return False
+        if hasattr(file_object, 'force_update'):
+            # FixMe: for backwards compatibility with older frontend. Remove in next release.
+            return bool(file_object.force_update)
+        return bool(file_object.temporary_data.get('force_update', False))
 
     # ---- 2. Analysis present and plugin version unchanged ----
 
@@ -395,7 +398,9 @@ class AnalysisScheduler:
             return False
         return self._analysis_is_up_to_date(db_entry, self.analysis_plugins[analysis_to_do], uid)
 
-    def _analysis_is_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
+    def _analysis_is_up_to_date(
+        self, db_entry: dict, analysis_plugin: AnalysisBasePlugin | CompatPluginV0, uid: str
+    ) -> bool:
         try:
             current_system_version = analysis_plugin.SYSTEM_VERSION
         except AttributeError:
@@ -423,7 +428,9 @@ class AnalysisScheduler:
         )
         return plugin_version_is_newer or system_version_is_newer
 
-    def _dependencies_are_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
+    def _dependencies_are_up_to_date(
+        self, db_entry: dict, analysis_plugin: AnalysisBasePlugin | CompatPluginV0, uid: str
+    ) -> bool:
         for dependency in analysis_plugin.DEPENDENCIES:
             dependency_entry = self.db_backend_service.get_analysis(uid, dependency)
             if db_entry['analysis_date'] < dependency_entry['analysis_date']:
@@ -432,7 +439,13 @@ class AnalysisScheduler:
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
         db_entry = self.db_backend_service.get_analysis(fw_object.uid, analysis_to_do)
-        fw_object.processed_analysis[analysis_to_do] = db_entry
+        if db_entry is not None:
+            fw_object.processed_analysis[analysis_to_do] = db_entry
+        else:
+            logging.error(
+                f'Could not add analysis result {analysis_to_do} to object {fw_object.uid} because it was not found in '
+                f'the DB.'
+            )
 
     # ---- 3. blacklist and whitelist ----
 
@@ -455,6 +468,8 @@ class AnalysisScheduler:
             logging.error(f'{message}: found blacklist and whitelist. Ignoring blacklist.')
 
         file_type = self._get_file_type_from_object_or_db(fw_object)
+        if file_type is None:
+            return False
 
         if whitelist:
             return not substring_is_in_list(file_type, whitelist)
@@ -479,12 +494,12 @@ class AnalysisScheduler:
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> tuple[list, list]:
         try:
-            blacklist = self.analysis_plugins[analysis_plugin].MIME_BLACKLIST
+            blacklist = list(self.analysis_plugins[analysis_plugin].MIME_BLACKLIST)
         except AttributeError:
             blacklist = []
 
         try:
-            whitelist = self.analysis_plugins[analysis_plugin].MIME_WHITELIST
+            whitelist = list(self.analysis_plugins[analysis_plugin].MIME_WHITELIST)
         except AttributeError:
             whitelist = []
 
@@ -523,8 +538,7 @@ class AnalysisScheduler:
 
     def _handle_collected_result(self, fo: FileObject, plugin_name: str):
         if plugin_name in fo.processed_analysis:
-            if fo.analysis_exception:
-                self.task_scheduler.reschedule_failed_analysis_task(fo)
+            self.task_scheduler.reschedule_failed_analysis_task(fo)
             self.status.add_analysis(fo, plugin_name)
             self.post_analysis(fo.uid, plugin_name, fo.processed_analysis[plugin_name])
         self._check_further_process_or_complete(fo)
@@ -567,7 +581,7 @@ class AnalysisScheduler:
         :return: Dictionary containing current workload statistics
         """
         # FixMe: move rest of system status from DB to Redis (CPU, RAM, queues, etc.)
-        workload = {
+        workload: dict = {
             'analysis_main_scheduler': self.process_queue.qsize(),
             'plugins': {},
         }

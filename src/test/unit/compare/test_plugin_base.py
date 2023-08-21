@@ -11,7 +11,8 @@ fw_three = create_test_firmware(device_name='dev_3', bin_path='container/test.ca
 
 @pytest.fixture
 def compare_plugin():
-    return ComparePlugin(view_updater=CommonDatabaseMock())
+    db_mock = CommonDatabaseMock()
+    return ComparePlugin(db_interface=db_mock, view_updater=db_mock)  # type: ignore[abstract]
 
 
 @pytest.mark.backend_config(

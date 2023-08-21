@@ -7,9 +7,13 @@ from base64 import b64encode
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 from tempfile import TemporaryDirectory
+from typing import Any, TYPE_CHECKING
 
 import config
 from analysis.PluginBase import AnalysisBasePlugin
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -20,8 +24,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = '0.5.5'
     FILE = __file__
 
-    def process_object(self, file_object):
-        result = {}
+    def process_object(self, file_object: FileObject):
+        result: dict[str, Any] = {}
         with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=config.backend.temp_dir_path) as tmp_dir:
             cmd_process = subprocess.run(
                 f'(cd {tmp_dir} && xvfb-run -a binwalk -BEJ {file_object.file_path})',
@@ -32,7 +36,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             )
             signature_analysis_result = cmd_process.stdout
             try:
-                pic_path = Path(tmp_dir) / f'{Path(file_object.file_path).name}.png'
+                pic_path = Path(tmp_dir) / 'entropy_graph.png'
                 result['entropy_analysis_graph'] = b64encode(pic_path.read_bytes()).decode()
                 result['signature_analysis'] = signature_analysis_result
                 result['summary'] = list(set(self._extract_summary(signature_analysis_result)))

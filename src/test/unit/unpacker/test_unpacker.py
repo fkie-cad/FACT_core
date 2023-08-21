@@ -19,7 +19,9 @@ def unpacker():
 
 @pytest.fixture
 def test_fo():
-    return create_test_file_object()
+    file_object = create_test_file_object()
+    file_object.root_uid = 'root_uid'
+    return file_object
 
 
 @pytest.mark.backend_config_overwrite(
@@ -83,6 +85,7 @@ class TestUnpackerCoreMain:
 
     def test_main_unpack_function(self, unpacker):
         test_file = FileObject(file_path=self.test_file_path)
+        test_file.root_uid = 'root_uid'
         self.main_unpack_check(unpacker, test_file, 3, '7z')
 
     def test_unpacking_depth_reached(self, unpacker):

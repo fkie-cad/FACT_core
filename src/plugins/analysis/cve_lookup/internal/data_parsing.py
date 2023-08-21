@@ -40,15 +40,15 @@ def extract_english_summary(descriptions: list) -> str:
 
 
 def extract_cve_impact(metrics: dict) -> dict[str, str]:
-    impact = {}
+    impact: dict[str, str] = {}
     for version in [2, 30, 31]:
         cvss_key = f'cvssMetricV{version}'
         if cvss_key in metrics:
             for entry in metrics[cvss_key]:
                 if entry['type'] == 'Primary':
-                    impact.setdefault(cvss_key, entry['cvssData']['baseScore'])
+                    impact.setdefault(cvss_key, str(entry['cvssData']['baseScore']))
                 elif cvss_key not in impact:
-                    impact[cvss_key] = entry['cvssData']['baseScore']
+                    impact[cvss_key] = str(entry['cvssData']['baseScore'])
     return impact
 
 

@@ -1,6 +1,18 @@
+from typing import Protocol
+
 import yara
 
+from analysis.plugin import AnalysisPluginV0
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
+
+
+class NewPluginKind(Protocol):
+    # mypy docs recommend Protocols to type hint the self parameter of mixin classes
+    # (see https://mypy.readthedocs.io/en/latest/more_types.html#mixin-classes)
+
+    @property
+    def metadata(self) -> AnalysisPluginV0.MetaData:
+        ...
 
 
 class AnalysisBasePluginAdapterMixin:
@@ -11,39 +23,39 @@ class AnalysisBasePluginAdapterMixin:
         pass
 
     @property
-    def NAME(self):  # noqa: N802
+    def NAME(self: NewPluginKind):  # noqa: N802
         return self.metadata.name
 
     @property
-    def DESCRIPTION(self):  # noqa: N802
+    def DESCRIPTION(self: NewPluginKind):  # noqa: N802
         return self.metadata.description
 
     @property
-    def DEPENDENCIES(self):  # noqa: N802
+    def DEPENDENCIES(self: NewPluginKind):  # noqa: N802
         return self.metadata.dependencies
 
     @property
-    def VERSION(self):  # noqa: N802
+    def VERSION(self: NewPluginKind):  # noqa: N802
         return str(self.metadata.version)
 
     @property
-    def RECURSIVE(self):  # noqa: N802
+    def RECURSIVE(self: NewPluginKind):  # noqa: N802
         return False
 
     @property
-    def TIMEOUT(self):  # noqa: N802
+    def TIMEOUT(self: NewPluginKind):  # noqa: N802
         return self.metadata.timeout
 
     @property
-    def SYSTEM_VERSION(self):  # noqa: N802
+    def SYSTEM_VERSION(self: NewPluginKind):  # noqa: N802
         return self.metadata.system_version
 
     @property
-    def MIME_BLACKLIST(self):  # noqa: N802
+    def MIME_BLACKLIST(self: NewPluginKind):  # noqa: N802
         return self.metadata.mime_blacklist
 
     @property
-    def MIME_WHITELIST(self):  # noqa: N802
+    def MIME_WHITELIST(self: NewPluginKind):  # noqa: N802
         return self.metadata.mime_whitelist
 
     @property
