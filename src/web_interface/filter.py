@@ -501,3 +501,8 @@ def _coerce_version(version: str) -> semver.Version:
         prerelease=coerced.pre,
         build=None,
     )
+
+
+def as_ascii_table(data: dict) -> str:
+    """Format a flat dictionary as two column ascii table"""
+    return ''.join([f'{k:<10} {v!s:<10}\n' for k, v in data.items()])

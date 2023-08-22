@@ -96,7 +96,6 @@ class UnpackingScheduler:
         logging.info('Unpacking scheduler online')
 
     def _start_extraction_loop(self):
-        logging.debug('Starting extraction loop')
         extraction_loop_process = ExceptionSafeProcess(target=self.extraction_loop)
         extraction_loop_process.start()
         return extraction_loop_process
@@ -105,7 +104,7 @@ class UnpackingScheduler:
         """
         shutdown the scheduler
         """
-        logging.debug('Shutting down unpacking scheduler ...')
+        logging.debug('Shutting down unpacking scheduler')
         self.stop_condition.value = 1
         self.in_queue.close()
         stop_processes(
@@ -116,7 +115,7 @@ class UnpackingScheduler:
         self._clean_tmp_dirs()
         if self.manager is not None:
             self.manager.shutdown()
-        logging.info('Unpacker Module offline')
+        logging.info('Unpacking scheduler offline')
 
     def _clean_tmp_dirs(self):
         for tmp_dir in self.worker_tmp_dirs:
@@ -153,6 +152,7 @@ class UnpackingScheduler:
                 pool.map(lambda container: container.stop(), self.workers)
 
     def extraction_loop(self):
+        logging.debug(f'Starting unpacking scheduler loop (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             self._check_pending()
             try:
@@ -166,10 +166,11 @@ class UnpackingScheduler:
                 logging.debug(f'Started Worker on {task.uid} ({container.tmp_dir})')
                 self.pending_tasks[container.id_] = task_thread
             except NoFreeWorker:
-                logging.debug('No free worker. Sleeping ..')
+                logging.debug('No free worker. Sleeping...')
                 sleep(0.2)
             except Empty:
                 pass
+        logging.debug('Stopped unpacking scheduler loop')
 
     def _check_pending(self):
         if self.workers is None:
@@ -216,6 +217,7 @@ class UnpackingScheduler:
 
             sleep(config.backend.unpacking.delay)  # unpacking may be too fast for the FS to keep up
 
+            logging.info(f'Unpacking completed: {task.uid} (extracted files: {len(extracted_objects)})')
             # each worker needs its own interface because connections are not thread-safe
             db_interface = self.db_interface()
             db_interface.add_object(task)  # save FO before submitting to analysis scheduler
@@ -292,11 +294,10 @@ class UnpackingScheduler:
             if self.throttle_condition.value == 0:
                 self.in_queue.put(item)
                 break
-            logging.debug('throttle down unpacking to reduce memory consumption...')
+            logging.debug('Throttling down unpacking to reduce memory consumption...')
             sleep(5)
 
     def start_work_load_monitor(self):
-        logging.debug('Start work load monitor...')
         work_load_process = ExceptionSafeProcess(target=self._work_load_monitor)
         work_load_process.start()
         return work_load_process
@@ -313,14 +314,18 @@ class UnpackingScheduler:
             else:
                 self.work_load_counter += 1
                 log_function = logging.debug
+
             message = f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}'
-            log_function(color_string(message, TerminalColors.WARNING))
 
             if workload < config.backend.unpacking.throttle_limit:
                 self.throttle_condition.value = 0
             else:
                 self.throttle_condition.value = 1
+                message += ' (throttled)'
+
+            log_function(color_string(message, TerminalColors.WARNING))
             sleep(THROTTLE_INTERVAL)
+        logging.debug('Stopped unpacking work load monitor')
 
     def _get_combined_analysis_workload(self):
         if self.get_analysis_workload is not None:
@@ -341,7 +346,7 @@ class UnpackingScheduler:
             raise RuntimeError('Scheduler not started yet')
         with self._sync():
             if fo.uid in self.currently_extracted:
-                logging.warning(f'starting unpacking of {fo.uid} but it is currently also still being unpacked')
+                logging.warning(f'Starting unpacking of {fo.uid} but it is currently also still being unpacked')
             else:
                 self.currently_extracted[fo.uid] = FwUnpackingStatus(remaining={fo.uid})
 

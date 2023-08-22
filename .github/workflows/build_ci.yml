@@ -8,11 +8,30 @@ on:
   workflow_dispatch:
 
 jobs:
+  generate-matrix:
+    name: Generate matrix for build
+    runs-on: ubuntu-latest
+    outputs:
+      target: ${{ steps.set-matrix.outputs.target }}
+    steps:
+      - id: set-matrix
+        run: |
+          echo "github.ref: ${GITHUB_REF}, name: ${GITHUB_REF_NAME}, event: ${GITHUB_EVENT_NAME}"
+          if [ "${GITHUB_EVENT_NAME}" = "schedule" ]; then
+            # scheduled build -> use master & stable branch
+            export TARGET='["refs/heads/master","refs/heads/stable"]'
+          else
+            # Pull Request -> only use that branch
+            export TARGET="[\"${GITHUB_REF}\"]"
+          fi
+          echo "target=${TARGET}" | tee -a $GITHUB_OUTPUT
   build-ci:
+    needs: generate-matrix
     strategy:
       fail-fast: false
       matrix:
         os: [ focal, jammy, bullseye, bookworm ]
+        target: ${{ fromJson(needs.generate-matrix.outputs.target) }}
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
     timeout-minutes: 35
     steps:
@@ -38,7 +57,7 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ matrix.target }}
       - name: Set ulimit
         run: ulimit -n 9999
       - name: venv Setup

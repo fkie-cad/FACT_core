@@ -25,7 +25,7 @@ xmltodict==0.13.0
 yara-python==4.2.3
 
 # Config validation
-pydantic==1.10.2
+pydantic==2.1.1
 # Config parsing
 toml==0.10.2
 

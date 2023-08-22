@@ -127,15 +127,15 @@ class AnalysisScheduler:
         self._start_runner_processes()
         self._start_result_collector()
         self._start_plugins()
-        logging.info('Analysis System online...')
-        logging.info(f'Plugins available: {self._get_list_of_available_plugins()}')
+        logging.info('Analysis scheduler online')
+        logging.info(f'Analysis plugins available: {self._format_available_plugins()}')
 
     def shutdown(self):
         """
         Shutdown the runner process, the result collector and all plugin processes. A multiprocessing.Value is set to
         notify all attached processes of the impending shutdown. Afterwards queues are closed once it's safe.
         """
-        logging.debug('Shutting down...')
+        logging.debug('Shutting down analysis scheduler')
         self.stop_condition.value = 1
         futures = []
         # first shut down scheduling, then analysis plugins and lastly the result collector
@@ -159,7 +159,7 @@ class AnalysisScheduler:
         stop_processes(self.result_collector_processes, config.backend.block_delay + 1)
         self.process_queue.close()
         self.status.shutdown()
-        logging.info('Analysis System offline')
+        logging.info('Analysis scheduler offline')
 
     def update_analysis_of_object_and_children(self, fo: FileObject):
         """
@@ -202,6 +202,12 @@ class AnalysisScheduler:
 
     def _get_list_of_available_plugins(self) -> list[str]:
         return sorted(self.analysis_plugins, key=str.lower)
+
+    def _format_available_plugins(self) -> str:
+        plugins = []
+        for plugin_name in sorted(self.analysis_plugins, key=str.lower):
+            plugins.append(f'{plugin_name} {self.analysis_plugins[plugin_name].VERSION}')
+        return ', '.join(plugins)
 
     # ---- plugin initialization ----
 
@@ -312,13 +318,14 @@ class AnalysisScheduler:
 
     def _start_runner_processes(self):
         self.schedule_processes = [
-            ExceptionSafeProcess(target=self._task_runner) for _ in range(config.backend.scheduling_worker_count)
+            ExceptionSafeProcess(target=self._task_runner, args=(i,))
+            for i in range(config.backend.scheduling_worker_count)
         ]
         for process in self.schedule_processes:
             process.start()
 
-    def _task_runner(self):
-        logging.debug(f'Started analysis scheduler (pid={os.getpid()})')
+    def _task_runner(self, index: int = 0):
+        logging.debug(f'Started analysis scheduling worker {index} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             try:
                 task = self.process_queue.get(timeout=config.backend.block_delay)
@@ -326,6 +333,7 @@ class AnalysisScheduler:
                 pass
             else:
                 self._process_next_analysis_task(task)
+        logging.debug(f'Stopped analysis scheduling worker {index}')
 
     def _process_next_analysis_task(self, fw_object: FileObject):
         self.unpacking_locks.release_unpacking_lock(fw_object.uid)
@@ -340,7 +348,7 @@ class AnalysisScheduler:
         if not self._is_forced_update(file_object) and self._analysis_is_already_in_db_and_up_to_date(
             analysis_to_do, file_object.uid
         ):
-            logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (analysis already in DB)')
+            logging.debug(f'Skipping analysis "{analysis_to_do}" for {file_object.uid} (analysis already in DB)')
             if analysis_to_do in self.task_scheduler.get_cumulative_remaining_dependencies(
                 set(file_object.scheduled_analysis)
             ):
@@ -350,7 +358,7 @@ class AnalysisScheduler:
         elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(
             analysis_to_do, file_object
         ):
-            logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (blacklisted file type)')
+            logging.debug(f'Skipping analysis "{analysis_to_do}" for {file_object.uid} (blacklisted file type)')
             analysis_result = self._get_skipped_analysis_result(analysis_to_do)
             file_object.processed_analysis[analysis_to_do] = analysis_result
             self.status.add_analysis(file_object, analysis_to_do)
@@ -410,7 +418,7 @@ class AnalysisScheduler:
             if self._current_version_is_newer(analysis_plugin.VERSION, current_system_version, db_entry):
                 return False
         except TypeError:
-            logging.error(f'plug-in or system version of "{analysis_plugin.NAME}" plug-in is or was invalid!')
+            logging.error(f'Plugin or system version of "{analysis_plugin.NAME}" plugin is or was invalid!')
             return False
         except InvalidVersion as error:
             logging.exception(f'Error while parsing plugin version: {error}')
@@ -431,9 +439,13 @@ class AnalysisScheduler:
     def _dependencies_are_up_to_date(
         self, db_entry: dict, analysis_plugin: AnalysisBasePlugin | AnalysisPluginV0, uid: str
     ) -> bool:
+        """
+        If there is dependency result that is newer than this analysis, it may be different from the dependency result
+        that was the basis of this analysis, and therefore this analysis should run again.
+        """
         for dependency in analysis_plugin.DEPENDENCIES:
             dependency_entry = self.db_backend_service.get_analysis(uid, dependency)
-            if db_entry['analysis_date'] < dependency_entry['analysis_date']:
+            if dependency_entry is None or db_entry['analysis_date'] < dependency_entry['analysis_date']:
                 return False
         return True
 
@@ -509,14 +521,15 @@ class AnalysisScheduler:
 
     def _start_result_collector(self):
         self.result_collector_processes = [
-            ExceptionSafeProcess(target=self._result_collector) for _ in range(config.backend.collector_worker_count)
+            ExceptionSafeProcess(target=self._result_collector, args=(i,))
+            for i in range(config.backend.collector_worker_count)
         ]
         for process in self.result_collector_processes:
             process.start()
 
-    def _result_collector(self):
+    def _result_collector(self, index: int = 0):
         # Collects the results form plugins and writes them in FileObject.processed_analysis
-        logging.debug(f'Started analysis result collector (pid={os.getpid()})')
+        logging.debug(f'Started analysis result collector worker {index} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
@@ -535,6 +548,7 @@ class AnalysisScheduler:
                     self._handle_collected_result(fw, plugin_name)
             if nop:
                 sleep(config.backend.block_delay)
+        logging.debug(f'Stopped analysis result collector worker {index}')
 
     def _handle_collected_result(self, fo: FileObject, plugin_name: str):
         if plugin_name in fo.processed_analysis:
@@ -545,7 +559,7 @@ class AnalysisScheduler:
 
     def _check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
-            logging.info(f'Analysis Completed:\n{fw_object}')
+            logging.info(f'Analysis Completed: {fw_object.uid}')
             self.status.remove_object(fw_object)
         else:
             self.process_queue.put(fw_object)

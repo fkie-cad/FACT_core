@@ -109,7 +109,9 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 raise DbInterfaceError(f'Analysis data of {plugin} is incomplete: {analysis_dict}')
 
             result = analysis_dict.get('result', {})
-            sanitize(result)
+            if result is not None:
+                sanitize(result)
+
             analysis = AnalysisEntry(
                 uid=uid,
                 plugin=plugin,

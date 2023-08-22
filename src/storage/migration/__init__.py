@@ -21,6 +21,7 @@ def alembic_table_exists():
 def db_needs_migration():
     # alembic must be executed from src for paths to line up
     with OperateInDirectory(get_src_dir()), AdminConnection().engine.connect().engine.begin() as connection:
+        logging.getLogger('alembic.runtime.migration').setLevel(logging.WARNING)  # hide alembic log messages
         context = migration.MigrationContext.configure(connection)
         current_revision = context.get_current_revision()
         current_head = script.ScriptDirectory.from_config(ALEMBIC_CFG).get_current_head()

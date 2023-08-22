@@ -1,23 +1,43 @@
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
-    {% set result = analysis_result['full'] | _linter_reformat_issues %}
-    {% for symbol, contents in result.items() %}
+    <tr>
+        <td>Linguist</td>
+        <td><pre>{{ analysis_result['linguist'] | as_ascii_table }}</pre></td>
+    </tr>
+    {% if analysis_result["language"] is not none %}
         <tr>
-            <td>{{symbol}}</td>
-            <td>
-                <ul class="list-unstyled">
-                    {% for c in contents %}
-                        <li class="border rounded p-2 bg-light">{{ c['line'] }}:{{ c['column'] }} {{ c['message'] | safe}}</li>
-                    {% endfor %}
-                </ul>
-            </td>
+            <td>Language</td>
+            <td><pre>{{ analysis_result["language"] }}</pre></td>
         </tr>
-    {% endfor %}
-    {% if 'warning' in analysis_result %}
+    {% else %}
         <tr class="table-warning">
             <td>Warning</td>
-            <td>{{ analysis_result['warning'] }}</td>
+            <td>No language detected</td>
         </tr>
     {% endif %}
+
+    {% if analysis_result["issues"] is not none %}
+        {% set issues = analysis_result['issues'] | _linter_reformat_issues %}
+
+        {% for symbol, contents in issues.items() %}
+            <tr>
+                <td>{{symbol}}</td>
+                <td>
+                    <ul class="list-unstyled">
+                        {% for c in contents %}
+                            <li class="border rounded p-2 bg-light">{{ c['line'] }}:{{ c['column'] }} {{ c['message'] | safe}}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+        {% endfor %}
+
+    {% elif analysis_result["language"] is not none %}
+        <tr class="table-warning">
+            <td>Warning</td>
+            <td>"No linter implemented for {{analysis_result["language"]}}"</td>
+        </tr>
+    {% endif %}
+
 {% endblock %}

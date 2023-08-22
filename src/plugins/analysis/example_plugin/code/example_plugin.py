@@ -1,6 +1,7 @@
 import io
 
 import pydantic
+from pydantic import Field
 
 from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from analysis.plugin import AnalysisPluginV0
@@ -8,7 +9,15 @@ from analysis.plugin import AnalysisPluginV0
 
 class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     class Schema(pydantic.BaseModel):
-        number: int
+        """Here goes the toplevel description of the plugin result"""
+
+        number: int = Field(
+            description=(
+                # fmt: off
+                'This is a description of the field number.\n'
+                'In an actual plugin all fields must have a description.'
+            ),
+        )
         name: str
         first_byte: str
         virtual_file_path: dict

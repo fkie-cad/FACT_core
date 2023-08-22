@@ -7,7 +7,7 @@ from typing import final, Iterable, Optional, Type, TYPE_CHECKING, TypeVar
 import semver
 
 import pydantic
-from pydantic import BaseModel, validator
+from pydantic import field_validator, ConfigDict, BaseModel
 
 from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 
@@ -42,8 +42,7 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
     class MetaData(BaseModel):
         """A class containing all metadata that describes the plugin"""
 
-        class Config:
-            arbitrary_types_allowed = True
+        model_config = ConfigDict(arbitrary_types_allowed=True)
 
         #: Name of the plugin
         name: str
@@ -75,8 +74,9 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         #: and will be aborted if the timeout is reached.
         timeout: int = 300
 
-        @validator('version', pre=True)
-        def _version_validator(cls, value):  # noqa: N805
+        @field_validator('version', mode='before')
+        @classmethod
+        def _version_validator(cls, value):
             if isinstance(value, str):
                 return semver.Version.parse(value)
 
@@ -128,8 +128,8 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         start_time = time.time()
         result = self.analyze(file_handle, virtual_file_path, analyses)
 
-        summary: list[str] = []
-        tags: list[Tag] = []
+        summary: list[str] | None = None
+        tags: list[Tag] | None = None
         if result is not None:
             summary = self.summarize(result)  # type: ignore[unreachable]  # this is obviously reachable
             tags = self.get_tags(result, summary)
@@ -137,7 +137,7 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         # The dictionary as defined in the docs for FileObject.analyses_tags
         # Misses the root uid, which must be added by the scheduler
         tags_dict = {}
-        for tag in tags:
+        for tag in tags or []:
             tag_dict = tag.dict()
             name = tag_dict.pop('name')
             tags_dict.update({name: tag_dict})

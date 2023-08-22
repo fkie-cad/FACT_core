@@ -10,11 +10,5 @@
         <td>MIME</td>
         <td>{{ analysis_result['mime'] }}</td>
     </tr>
-    {% if 'linguist' in analysis_result %}
-        <tr>
-            <td>Linguist script detection</td>
-            <td><pre>{{ analysis_result['linguist'] }}</pre></td>
-        </tr>
-    {% endif %}
 
 {% endblock %}

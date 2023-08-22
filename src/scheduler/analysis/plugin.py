@@ -13,7 +13,7 @@ from typing import Dict, TYPE_CHECKING
 
 import psutil
 import pydantic
-from pydantic import BaseModel
+from pydantic import ConfigDict, BaseModel
 
 import config
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
@@ -53,9 +53,7 @@ class PluginRunner:
         # even if a process (like PluginRunner) does not need all state (e.g.
         # FileObject.scheduled_analysis)
         scheduler_state: FileObject
-
-        class Config:
-            arbitrary_types_allowed = True
+        model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(
         self,
@@ -181,6 +179,7 @@ class Worker(mp.Process):
 
     def run(self):  # noqa: C901, PLR0912, PLR0915
         run = True
+        result = None
         recv_conn, send_conn = mp.Pipe(duplex=False)
 
         child_process = None
@@ -189,14 +188,19 @@ class Worker(mp.Process):
             del signum, frame
             logging.info(f'{self} received SIGTERM. Shutting down.')
             nonlocal run
+            nonlocal result
             run = False
 
             if child_process is None:
                 return
 
-            child_process.join(Worker.SIGTERM_TIMEOUT)  # type: ignore[unreachable]
-            if child_process.is_alive():
+            if not child_process.is_alive():  # type: ignore[unreachable]
+                return
+
+            if not recv_conn.poll(Worker.SIGTERM_TIMEOUT):
                 raise Worker.TimeoutError(Worker.SIGTERM_TIMEOUT)
+
+            result = recv_conn.recv()
 
         signal.signal(signal.SIGTERM, _handle_sigterm)
 
@@ -218,13 +222,9 @@ class Worker(mp.Process):
                     args=(self._plugin, task, send_conn),
                 )
                 child_process.start()
-                child_process.join(timeout=self._worker_config.timeout)
-                if not recv_conn.poll():
-                    if child_process.is_alive():
-                        raise Worker.TimeoutError(self._worker_config.timeout)
-                    else:  # noqa: RET506
-                        # The child is dead but didn't give us any result so it crashed
-                        raise Worker.CrashedError()
+                # If process crashes without an exception (e.g. SEGFAULT) we will report a timeout
+                if not recv_conn.poll(self._worker_config.timeout):
+                    raise Worker.TimeoutError(self._worker_config.timeout)
 
                 result = recv_conn.recv()
 
