@@ -206,12 +206,12 @@ class Worker(mp.Process):
             except queue.Empty:
                 continue
 
-            analysis_id = f'{self._plugin.metadata.name} analysis on {task.scheduler_state.uid}'
+            analysis_description = f'{self._plugin.metadata.name} analysis on {task.scheduler_state.uid}'
 
             entry = {}
             try:
                 self._is_working.value = 1
-                logging.debug(f'{self}: Beginning {analysis_id}')
+                logging.debug(f'{self}: Beginning {analysis_description}')
                 start_time = time.time()
 
                 child_process = mp.Process(
@@ -231,21 +231,21 @@ class Worker(mp.Process):
                 duration = time.time() - start_time
 
                 entry['analysis'] = result
-                logging.debug(f'{self}: Finished {analysis_id}')
+                logging.debug(f'{self}: Finished {analysis_description}')
                 if duration > 120:  # noqa: PLR2004
-                    logging.info(f'{analysis_id} is slow: took {duration:.1f} seconds')
+                    logging.info(f'{analysis_description} is slow: took {duration:.1f} seconds')
                 self._update_duration_stats(duration)
             except Worker.TimeoutError as err:
-                logging.warning(f'{analysis_id} timed out after {err.timeout} seconds.')
+                logging.warning(f'{analysis_description} timed out after {err.timeout} seconds.')
                 entry['timeout'] = (self._plugin.metadata.name, 'Analysis timed out')
             except Worker.CrashedError:
-                logging.warning(f'{analysis_id} crashed.')
+                logging.warning(f'{analysis_description} crashed.')
                 entry['exception'] = (self._plugin.metadata.name, 'Analysis crashed')
             except AnalysisExceptionError as exc:
-                logging.error(f'{self} got an exception during {analysis_id}: {exc}')
+                logging.error(f'{self} got an exception during {analysis_description}: {exc}')
                 entry['exception'] = (self._plugin.metadata.name, 'Exception occurred during analysis')
             except Exception as error:
-                logging.exception(f'An unexpected exception occurred during {analysis_id}: {error}')
+                logging.exception(f'An unexpected exception occurred during {analysis_description}: {error}')
                 entry['exception'] = (self._plugin.metadata.name, 'An unexpected exception occurred')
             finally:
                 # Don't kill another process if it uses the same PID as our dead worker
