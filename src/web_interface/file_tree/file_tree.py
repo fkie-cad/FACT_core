@@ -180,24 +180,13 @@ class VirtualPathFileTree:
 
     def __init__(self, root_uid: str, parent_uid: str, fo_data: FileTreeData, whitelist: list[str] | None = None):
         self.uid = fo_data.uid
-        self.root_uid = root_uid if root_uid else self._find_root_uid(parent_uid, fo_data)
+        self.root_uid = root_uid
         self.parent_uid = parent_uid
         self.fo_data: FileTreeData = fo_data
         self.whitelist = whitelist
         self.virtual_file_paths: Optional[list[str]] = (
             fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None
         )
-
-    @staticmethod
-    def _find_root_uid(parent_uid: str, fo_data: FileTreeData) -> str:
-        """
-        If we don't have a rood_uid, we must find a root_uid that contains the parent_uid (we can't just take a
-        random one because then the files could be missing from the file tree).
-        """
-        for root_uid, vfp_list in fo_data.virtual_file_path.items():
-            if any(parent_uid in vfp for vfp in vfp_list):
-                return root_uid
-        return list(fo_data.virtual_file_path)[0]  # safety fallback: this should not occur under normal circumstances
 
     def get_file_tree_nodes(self) -> Iterable[FileTreeNode]:
         """
