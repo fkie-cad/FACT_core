@@ -85,8 +85,24 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             fo_entry = session.get(FileObjectEntry, uid)
             if fo_entry is None:
                 return None
-            vfp_dict = self.get_vfps(uid)
-            return file_object_from_entry(fo_entry, analysis_filter=analysis_filter, virtual_file_paths=vfp_dict)
+            return file_object_from_entry(
+                fo_entry,
+                analysis_filter=analysis_filter,
+                virtual_file_paths=self.get_vfps(uid),
+                parent_fw=self.get_parent_fw(uid),
+            )
+
+    def get_parent_fw_for_uid_list(self, uid_list: list[str]) -> dict[str, set[str]]:
+        with self.get_read_only_session() as session:
+            query = (
+                select(fw_files_table.c.file_uid, func.array_agg(fw_files_table.c.root_uid))
+                .filter(fw_files_table.c.file_uid.in_(uid_list))
+                .group_by(fw_files_table.c.file_uid)
+            )
+            return {uid: set(parent_uid_list) for uid, parent_uid_list in session.execute(query)}
+
+    def get_parent_fw(self, uid: str) -> set[str]:
+        return self.get_parent_fw_for_uid_list([uid]).get(uid, set())
 
     def get_objects_by_uid_list(
         self, uid_list: list[str] | set[str], analysis_filter: list[str] | None = None
@@ -107,6 +123,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                 .group_by(FileObjectEntry)
             )
             virtual_file_paths = self.get_vfps_for_uid_list(uid_list)
+            parent_fw = self.get_parent_fw_for_uid_list(uid_list)
             file_objects = [
                 file_object_from_entry(
                     fo_entry,
@@ -114,6 +131,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                     included_files={f for f in included_files if f},
                     parents=set(parents),
                     virtual_file_paths=virtual_file_paths[fo_entry.uid],
+                    parent_fw=parent_fw.get(fo_entry.uid, set()),
                 )
                 for fo_entry, included_files, parents in session.execute(query)
             ]

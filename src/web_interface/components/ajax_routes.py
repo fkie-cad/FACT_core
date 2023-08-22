@@ -32,7 +32,9 @@ class AjaxRoutes(ComponentBase):
             return self.db.comparison.get_exclusive_files(compare_id, root_uid)
         return None
 
-    def _generate_file_tree(self, root_uid: str, uid: str, whitelist: list[str]) -> FileTreeNode:
+    def _generate_file_tree(self, root_uid: str | None, uid: str, whitelist: list[str]) -> FileTreeNode:
+        if root_uid is None:
+            root_uid = self.db.frontend.get_parent_fw(uid)
         root = FileTreeNode(None)
         with get_shared_session(self.db.frontend) as frontend_db:
             child_uids = [
