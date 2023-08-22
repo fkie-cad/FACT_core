@@ -11,11 +11,11 @@ import typing
 
 import psutil
 import pydantic
-from pydantic import ConfigDict, BaseModel
+from pydantic import BaseModel, ConfigDict
 
 import config
-from objects.file import FileObject
 from analysis.plugin import AnalysisPluginV0
+from objects.file import FileObject
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 from storage.fsorganizer import FSOrganizer
 
@@ -206,10 +206,12 @@ class Worker(mp.Process):
             except queue.Empty:
                 continue
 
+            analysis_id = f'{self._plugin.metadata.name} analysis on {task.scheduler_state.uid}'
+
             entry = {}
             try:
                 self._is_working.value = 1
-                logging.debug(f'{self}: Begin {self._plugin.metadata.name} analysis on {task.scheduler_state.uid}')
+                logging.debug(f'{self}: Beginning {analysis_id}')
                 start_time = time.time()
 
                 child_process = mp.Process(
@@ -223,29 +225,28 @@ class Worker(mp.Process):
 
                 result = recv_conn.recv()
 
-                if isinstance(result, Exception):
-                    raise result
+                if isinstance(result, str):
+                    raise AnalysisExceptionError(result)
 
                 duration = time.time() - start_time
 
                 entry['analysis'] = result
-                logging.debug(f'{self}: Finished {self._plugin.metadata.name} analysis on {task.scheduler_state.uid}')
+                logging.debug(f'{self}: Finished {analysis_id}')
                 if duration > 120:  # noqa: PLR2004
-                    logging.info(
-                        f'Analysis {self._plugin.metadata.name} on {task.scheduler_state.uid} is slow: took {duration:.1f} seconds'  # noqa: E501
-                    )
+                    logging.info(f'{analysis_id} is slow: took {duration:.1f} seconds')
                 self._update_duration_stats(duration)
             except Worker.TimeoutError as err:
-                logging.warning(f'{self} timed out after {err.timeout} seconds.')
+                logging.warning(f'{analysis_id} timed out after {err.timeout} seconds.')
                 entry['timeout'] = (self._plugin.metadata.name, 'Analysis timed out')
             except Worker.CrashedError:
-                logging.warning(f'{self} crashed.')
+                logging.warning(f'{analysis_id} crashed.')
                 entry['exception'] = (self._plugin.metadata.name, 'Analysis crashed')
-            except Exception as exc:
-                # As tracebacks can't be pickled we just print the __exception_str__ that we set in the child
-                logging.error(f'{self} got a exception during analysis:\n {exc}', exc_info=False)
-                logging.error(exc.__exception_str__)
-                entry['exception'] = (self._plugin.metadata.name, 'Analysis threw an exception')
+            except AnalysisExceptionError as exc:
+                logging.error(f'{self} got an exception during {analysis_id}: {exc}')
+                entry['exception'] = (self._plugin.metadata.name, 'Exception occurred during analysis')
+            except Exception as error:
+                logging.exception(f'An unexpected exception occurred during {analysis_id}: {error}')
+                entry['exception'] = (self._plugin.metadata.name, 'An unexpected exception occurred')
             finally:
                 # Don't kill another process if it uses the same PID as our dead worker
                 if child_process.is_alive():
@@ -279,8 +280,7 @@ class Worker(mp.Process):
         try:
             result = plugin.get_analysis(io.FileIO(task.path), task.virtual_file_path, task.dependencies)
         except Exception as exc:
-            result = exc
-            result.__exception_str__ = traceback.format_exc()
+            result = f'{exc}: {traceback.format_exc()}'
 
         conn.send(result)
 
@@ -293,3 +293,7 @@ class Worker(mp.Process):
             self._stats_idx.value = 0
         if self._stats_count.value < ANALYSIS_STATS_LIMIT:
             self._stats_count.value += 1
+
+
+class AnalysisExceptionError(Exception):
+    pass
