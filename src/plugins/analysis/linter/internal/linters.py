@@ -193,6 +193,10 @@ def run_phpstan(file_path):
 
     linter_output = json.loads(phpstan_p.stdout)
 
+    # if no issues are found, the file will be missing
+    if not linter_output['files'] or container_path not in linter_output['files']:
+        return []
+
     issues = []
     for message in linter_output['files'][container_path]['messages']:
         issues.append(
