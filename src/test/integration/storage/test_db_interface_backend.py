@@ -219,3 +219,20 @@ def test_update_analysis(backend_db, common_db):
     assert analysis['result']['content'] == 'file efgh'
     assert analysis['summary'] == updated_analysis_data['summary']
     assert analysis['plugin_version'] == updated_analysis_data['plugin_version']
+
+
+def test_get_parent_fw(backend_db, common_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    fw2 = create_test_firmware()
+    fw2.uid = 'test_fw2'
+    add_included_file(child_fo, fw2, fw2, ['/some/path'])
+    backend_db.insert_multiple_objects(fw, fw2, parent_fo, child_fo)
+
+    root_fw = common_db.get_parent_fw(child_fo.uid)
+    assert root_fw == {fw.uid, fw2.uid}
+
+    root_fw_dict = common_db.get_parent_fw_for_uid_list([fw.uid, parent_fo.uid, child_fo.uid])
+    assert root_fw_dict == {
+        parent_fo.uid: {fw.uid},
+        child_fo.uid: {fw.uid, fw2.uid},
+    }
