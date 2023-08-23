@@ -70,6 +70,7 @@ exclude = [
     "node_modules",
     "docker",  # ingore plugins/*/*/docker/scripts/* jython ghidra scripts
     "venv",
+    "data",  # ignore plugins/*/*/test/data/* test data folders (containing test files)
 ]
 line-length = 120
 target-version = "py38"
