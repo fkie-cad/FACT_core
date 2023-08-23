@@ -4,7 +4,7 @@ import pytest
 
 from test.common_helper import create_test_file_object, create_test_firmware
 
-from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child
+from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, add_included_file
 
 
 def test_insert_objects(backend_db):
@@ -114,11 +114,8 @@ def test_update_duplicate_other_fw(backend_db, frontend_db):
 
     fw2 = create_test_firmware()
     fw2.uid = 'test_fw2'
-    fw2.files_included = [fo.uid]
-    fo2 = create_test_file_object()
-    fo2.uid = fo.uid
-    fo2.virtual_file_path = {fw2.uid: [f'{fw2.uid}|/some/path']}
-    fo2.parents = {fw2.uid}
+    fo2 = create_test_file_object(uid=fo.uid)
+    add_included_file(fo2, fw2, fw2, ['/some/path'])
 
     backend_db.add_object(fw2)
     backend_db.add_object(fo2)
@@ -137,7 +134,7 @@ def test_update_duplicate_same_fw(backend_db, frontend_db):
     fo, fw = create_fw_with_child_fo()
     backend_db.insert_multiple_objects(fw, fo)
 
-    fo.virtual_file_path[fw.uid].append(f'{fw.uid}|/some/other/path')
+    fo.virtual_file_path[fw.uid].append('/some/other/path')
     backend_db.add_object(fo)
 
     db_fo = frontend_db.get_object(fo.uid)
