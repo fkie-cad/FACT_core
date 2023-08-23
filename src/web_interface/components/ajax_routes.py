@@ -34,7 +34,8 @@ class AjaxRoutes(ComponentBase):
 
     def _generate_file_tree(self, root_uid: str | None, uid: str, whitelist: list[str]) -> FileTreeNode:
         if root_uid is None:
-            root_uid = self.db.frontend.get_parent_fw(uid)
+            # parent FW set should never be empty (if it were empty, the file would not belong to any FW)
+            root_uid = list(self.db.frontend.get_parent_fw(uid)).pop()
         root = FileTreeNode(None)
         with get_shared_session(self.db.frontend) as frontend_db:
             child_uids = [
