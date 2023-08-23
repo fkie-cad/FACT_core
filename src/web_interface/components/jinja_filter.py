@@ -95,7 +95,7 @@ class FilterClass:
         all_uids = {uid for uid_list in virtual_path_list for uid in uid_list}
         hid_dict = self.db.frontend.get_hid_dict(all_uids, root_uid=root_uid)
         for uid_list in virtual_path_list:
-            components = [self._virtual_path_element_to_span(hid_dict[uid], uid, root_uid=root_uid) for uid in uid_list]
+            components = [self._virtual_path_element_to_span(hid_dict.get(uid, uid), uid, root_uid) for uid in uid_list]
             path_list.append(' '.join(components))
         return path_list
 
