@@ -1,6 +1,6 @@
 import binascii
 
-from flask import Markup
+from markupsafe import Markup
 
 from compare.PluginBase import CompareBasePlugin
 

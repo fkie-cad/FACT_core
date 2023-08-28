@@ -12,12 +12,12 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 @pytest.mark.usefixtures('database_interfaces')
 class TestRestDownload(RestTestBase):
-    def setup(self):
-        super().setup()
+    def setup_method(self):
+        super().setup_method()
         self.db_interface = BackendDbInterface()
         self.test_queue = Queue()
 
-    def teardown(self):
+    def teardown_method(self):
         self.test_queue.close()
 
     def test_rest_download_valid(self, backend_config):

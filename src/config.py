@@ -171,9 +171,9 @@ def load(path: str | None = None):
         When you only import the ``config`` module the ``load`` function will be looked up at runtime.
         See `this blog entry <https://alexmarandon.com/articles/python_mock_gotchas/>`_ for some more information.
     """
-    Common.update_forward_refs()
-    Backend.update_forward_refs()
-    Frontend.update_forward_refs()
+    Common.model_rebuild()
+    Backend.model_rebuild()
+    Frontend.model_rebuild()
     if path is None:
         path = Path(__file__).parent / 'config/fact-core-config.toml'
 
@@ -190,7 +190,7 @@ def load(path: str | None = None):
     preset_dict = {}
     for preset in preset_list:
         p = Common.AnalysisPreset(**preset)
-        preset_dict[p.name] = p.dict()
+        preset_dict[p.name] = p.model_dump()
 
     common_dict['analysis_preset'] = preset_dict
 
@@ -198,7 +198,7 @@ def load(path: str | None = None):
     plugin_dict = {}
     for plugin in plugin_list:
         p = Backend.Plugin(**plugin)
-        plugin_dict[p.name] = p.dict()
+        plugin_dict[p.name] = p.model_dump()
 
     backend_dict['plugin'] = plugin_dict
 

@@ -14,7 +14,7 @@ def compare_plugin():
     return ComparePlugin(view_updater=CommonDatabaseMock())
 
 
-@pytest.mark.backend_config(
+@pytest.mark.backend_config_overwrite(
     {
         'ssdeep_ignore': 80,
     }
