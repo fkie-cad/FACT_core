@@ -8,7 +8,7 @@ pyyaml==6.0.1
 
 # FIXME This is only needed by the compare/file_header plugin
 #       See Issue #832
-flask==2.3.2
+flask==2.3.3
 
 git+https://github.com/fkie-cad/common_helper_yara.git
 
