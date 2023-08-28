@@ -1,5 +1,4 @@
 from base64 import b64encode
-from unittest import TestCase
 
 from decorator import contextmanager
 from flask import Flask
@@ -107,7 +106,7 @@ class DbMock:
 
 
 class TestFileSystemMetadataRoutes:
-    def setup(self):
+    def setup_method(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
@@ -121,8 +120,8 @@ class TestFileSystemMetadataRoutes:
         assert 'test_value' in rv.data.decode()
 
 
-class TestFileSystemMetadataRoutesRest(TestCase):
-    def setUp(self):
+class TestFileSystemMetadataRoutesRest:
+    def setup_method(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True

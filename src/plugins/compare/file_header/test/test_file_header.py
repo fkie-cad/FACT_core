@@ -1,4 +1,4 @@
-from flask import Markup
+from markupsafe import Markup
 
 from test.unit.compare.compare_plugin_test_class import ComparePluginTest
 

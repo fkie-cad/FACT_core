@@ -9,7 +9,7 @@ class ComparePluginTest:
     PLUGIN_NAME = 'base'
     PLUGIN_CLASS = None
 
-    def setup(self):
+    def setup_method(self):
         self.config = self.generate_config()
         self.config.add_section('expert-settings')
         self.config.set('expert-settings', 'ssdeep-ignore', '80')
@@ -17,7 +17,7 @@ class ComparePluginTest:
         self.c_plugin = self.setup_plugin()
         self.setup_test_fw()
 
-    def teardown(self):
+    def teardown_method(self):
         gc.collect()
 
     def setup_plugin(self):

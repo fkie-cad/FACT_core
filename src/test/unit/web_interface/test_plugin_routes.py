@@ -24,7 +24,7 @@ class PluginRoutesMock(PluginRoutes):
 
 
 class TestPluginRoutes:
-    def setup(self):
+    def setup_method(self):
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
         self.api = Api(self.app)
