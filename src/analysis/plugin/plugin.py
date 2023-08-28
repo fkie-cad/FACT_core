@@ -125,7 +125,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         result = self.analyze(file_handle, virtual_file_path, analyses)
 
         summary = None
-        tags = None
+        tags = []
         if result is not None:
             summary = self.summarize(result)
             tags = self.get_tags(result, summary)
