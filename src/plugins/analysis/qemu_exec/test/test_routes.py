@@ -86,8 +86,8 @@ class DbMock:
     frontend = DbInterfaceMock()
 
 
-class TestFileSystemMetadataRoutes:
-    def setup(self):
+class TestQemuExecRoutes:
+    def setup_method(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
@@ -119,8 +119,8 @@ class TestFileSystemMetadataRoutes:
         assert 'some error' in response
 
 
-class TestFileSystemMetadataRoutesRest:
-    def setup(self):
+class TestQemuExecRoutesRest:
+    def setup_method(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
