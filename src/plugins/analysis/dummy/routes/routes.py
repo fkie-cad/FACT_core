@@ -19,7 +19,7 @@ api = Namespace('/plugins/dummy/rest')
 
 
 @api.hide
-class DummyRoutesRest(Resource):
+class PluginRestRoutes(Resource):
     ENDPOINTS = [('/plugins/dummy/rest', ['GET'])]  # noqa: RUF012
 
     def __init__(self, *args, **kwargs):
