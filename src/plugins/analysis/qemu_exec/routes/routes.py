@@ -50,8 +50,8 @@ api = Namespace('/plugins/qemu_exec/rest')
 
 
 @api.hide
-class QemuExecRoutesRest(RestResourceBase):
-    ENDPOINTS = [('/plugins/qemu_exec/rest/<uid>', ['GET'])]  # noqa: RUF012
+class PluginRestRoutes(RestResourceBase):
+    ENDPOINTS = (('/plugins/qemu_exec/rest/<uid>', ['GET']),)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def get(self, uid):
