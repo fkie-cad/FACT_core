@@ -8,23 +8,45 @@ import zlib
 from base64 import b64encode
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import NamedTuple, TYPE_CHECKING
+from typing import List, NamedTuple, Optional, TYPE_CHECKING
 
 from docker.types import Mount
+from pydantic import BaseModel, Field
 
 import config
-from analysis.PluginBase import AnalysisBasePlugin
+from analysis.plugin import AnalysisPluginV0, Tag
+from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
-from storage.db_interface_common import DbInterfaceCommon
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from io import FileIO
 
 DOCKER_IMAGE = 'fact/fs_metadata:latest'
 SUID_BIT = 0b100 << 9
 SGID_BIT = 0b010 << 9
 STICKY_BIT = 0b001 << 9
+ARCHIVE_MIME_TYPES = [
+    'application/gzip',
+    'application/x-bzip2',
+    'application/x-tar',
+]
+FS_MIME_TYPES = [
+    'filesystem/btrfs',
+    'filesystem/cramfs',
+    'filesystem/dosmbr',
+    'filesystem/ext2',
+    'filesystem/ext3',
+    'filesystem/ext4',
+    'filesystem/hfs',
+    'filesystem/jfs',
+    'filesystem/minix',
+    'filesystem/reiserfs',
+    'filesystem/romfs',
+    'filesystem/udf',
+    'filesystem/xfs',
+    'filesystem/squashfs',
+]
 
 
 class StatResult(NamedTuple):
@@ -36,85 +58,67 @@ class StatResult(NamedTuple):
     m_time: float
 
 
-class AnalysisPlugin(AnalysisBasePlugin):
+class FileMetadata(BaseModel):
+    mode: str = Field(description="The file's permissions as octal number")
+    mode_human_readable: str = Field(description="The file's permissions as human-readable string (e.g. '-rwxrwxrwx')")
+    name: str = Field(description="The file's name")
+    path: str = Field(description="The file's path")
+    user: str = Field(description="The user name of the file's owner")
+    uid: int = Field(description="The user ID of the file's owner")
+    group: str = Field(description="The group name of the file's owner")
+    gid: int = Field(description="The group ID of the file's owner")
+    modification_time: float = Field(description="The time of the file's last modification (as UNIX timestamp)")
+    access_time: Optional[float] = Field(None, description="The time of the file's last access (as UNIX timestamp)")
+    creation_time: Optional[float] = Field(None, description="The time of the file's creation (as UNIX timestamp)")
+    suid_bit: bool = Field(description='Whether the Setuid bit is set for this file')
+    sgid_bit: bool = Field(description='Whether the Setgid bit is set for this file')
+    sticky_bit: bool = Field(description='Whether the sticky bit is set for this file')
+    key: str = Field(description='Used internally for matching this file in the parent container')
+
+
+class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     NAME = 'file_system_metadata'
-    DEPENDENCIES = ['file_type']  # noqa: RUF012
-    DESCRIPTION = 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
-    VERSION = '0.2.1'
-    TIMEOUT = 600
-    FILE = __file__
 
-    ARCHIVE_MIME_TYPES = [  # noqa: RUF012
-        'application/gzip',
-        'application/x-bzip2',
-        'application/x-tar',
-    ]
-    FS_MIME_TYPES = [  # noqa: RUF012
-        'filesystem/btrfs',
-        'filesystem/cramfs',
-        'filesystem/dosmbr',
-        'filesystem/ext2',
-        'filesystem/ext3',
-        'filesystem/ext4',
-        'filesystem/hfs',
-        'filesystem/jfs',
-        'filesystem/minix',
-        'filesystem/reiserfs',
-        'filesystem/romfs',
-        'filesystem/udf',
-        'filesystem/xfs',
-        'filesystem/squashfs',
-    ]
+    class Schema(BaseModel):
+        files: List[FileMetadata]
 
-    def __init__(self, *args, **kwargs):
-        self.db = DbInterfaceCommon()
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        metadata = self.MetaData(
+            name=self.NAME,
+            dependencies=['file_type'],
+            description=(
+                'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
+            ),
+            version='1.0.0',
+            timeout=600,
+            Schema=self.Schema,
+        )
+        super().__init__(metadata=metadata)
 
-    def process_object(self, file_object: FileObject) -> FileObject:
-        result = self._extract_metadata(file_object)
-        if 'files' in result:
-            self._add_tag(file_object, result['files'])
-        result['contained_in_file_system'] = self._parent_has_file_system_metadata(file_object)
-        file_object.processed_analysis[self.NAME] = result
-        return file_object
+    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
+        del virtual_file_path
+        file_type = analyses['file_type'].mime
+        result = self._extract_metadata(file_handle, file_type)
+        return self.Schema(files=result)
 
-    def _parent_has_file_system_metadata(self, file_object: FileObject) -> bool:
-        if hasattr(file_object, 'temporary_data') and 'parent_fo_type' in file_object.temporary_data:
-            return self._has_correct_type(file_object.temporary_data['parent_fo_type'])
-        return self._parent_fo_has_results(file_object)
+    def _extract_metadata(self, file_handle: FileIO, file_type: str) -> list[FileMetadata]:
+        if file_type in FS_MIME_TYPES:
+            return self._extract_metadata_from_file_system(file_handle)
+        if file_type in ARCHIVE_MIME_TYPES:
+            return _extract_metadata_from_tar(file_handle)
+        return []
 
-    def _parent_fo_has_results(self, file_object: FileObject) -> bool:
-        for parent_uid in file_object.parents:
-            analysis_entry = self.db.get_analysis(parent_uid, 'file_type')
-            if analysis_entry is not None and self._has_correct_type(analysis_entry['result']['mime']):
-                return True
-        return False
-
-    def _has_correct_type(self, mime_type: str) -> bool:
-        return mime_type in self.ARCHIVE_MIME_TYPES + self.FS_MIME_TYPES
-
-    def _extract_metadata(self, file_object: FileObject) -> dict:
-        file_type = file_object.processed_analysis['file_type']['result']['mime']
-        if file_type in self.FS_MIME_TYPES:
-            return self._extract_metadata_from_file_system(file_object)
-        if file_type in self.ARCHIVE_MIME_TYPES:
-            return self._extract_metadata_from_tar(file_object)
-        return {}
-
-    def _extract_metadata_from_file_system(self, file_object: FileObject) -> dict:
+    def _extract_metadata_from_file_system(self, file_handle: FileIO) -> list[FileMetadata]:
         with TemporaryDirectory(dir=config.backend.docker_mount_base_dir) as tmp_dir:
             input_file = Path(tmp_dir) / 'input.img'
-            input_file.write_bytes(file_object.binary)  # type: ignore[arg-type]  # we assume that binary is set
+            input_file.write_bytes(file_handle.readall())
             output = self._mount_in_docker(tmp_dir)
             output_file = Path(tmp_dir) / 'output.pickle'
             if output_file.is_file():
-                metadata = self._analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
-                if metadata:
-                    return {'files': metadata}
-                return {}
-            message = f'mount failed:\n{output}'
-            logging.warning(f'[file_system_metadata] {message}')
-            return {'failed': message}
+                return _analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
+            message = 'Mounting the file system failed'
+            logging.warning(f'{message} for {file_handle.name}:\n{output}')
+            raise RuntimeError(message)
 
     def _mount_in_docker(self, input_dir: str) -> str:
         result = run_docker_container(
@@ -127,113 +131,115 @@ class AnalysisPlugin(AnalysisBasePlugin):
             timeout=int(self.TIMEOUT * 0.8),  # docker call gets 80% of the analysis time before it times out
             privileged=True,
         )
-
         return result.stdout
 
-    def _analyze_metadata_of_mounted_dir(self, docker_results: tuple[str, str, dict]) -> dict[str, dict]:
-        result = {}
-        for file_name, file_path, file_stats in docker_results:
-            result.update(self._get_results_for_mounted_file(file_name, file_path, StatResult(**file_stats)))
-        return result
+    def summarize(self, result: Schema) -> list[str]:
+        summary = set()
+        for file_metadata in result.files:
+            if file_metadata.suid_bit:
+                summary.add('SUID bit')
+            if file_metadata.sgid_bit:
+                summary.add('SGID bit')
+        return list(summary)
 
-    def _get_results_for_mounted_file(self, file_name: str, file_path: str, stats: StatResult):
-        file_mode = self._get_mounted_file_mode(stats)
-        result = {
-            FsKeys.MODE: file_mode,
-            FsKeys.MODE_HR: stat.filemode(stats.mode),
-            FsKeys.NAME: file_name,
-            FsKeys.PATH: file_path,
-            FsKeys.UID: stats.uid,
-            FsKeys.GID: stats.gid,
-            FsKeys.USER: 'root' if stats.uid == 0 else '',
-            FsKeys.GROUP: 'root' if stats.gid == 0 else '',
-            FsKeys.M_TIME: stats.m_time,
-            FsKeys.A_TIME: stats.a_time,
-            FsKeys.C_TIME: stats.c_time,
-            FsKeys.SUID: self._file_mode_contains_bit(file_mode, SUID_BIT),
-            FsKeys.SGID: self._file_mode_contains_bit(file_mode, SGID_BIT),
-            FsKeys.STICKY: self._file_mode_contains_bit(file_mode, STICKY_BIT),
-        }
-        key = b64encode(file_name.encode()).decode()
-        return {key: result}
-
-    def _extract_metadata_from_tar(self, file_object: FileObject) -> dict[str, dict]:
-        metadata = {}
-        try:
-            with tarfile.open(file_object.file_path) as tar_archive:
-                for file_info in tar_archive:
-                    if file_info.isfile():
-                        metadata.update(self._get_results_for_tar_file(file_info))
-        except (tarfile.TarError, zlib.error, EOFError) as error:
-            logging.warning(f'[{self.NAME}]: Could not open archive on {file_object.uid}: {error}', exc_info=True)
-        if metadata:
-            return {'files': metadata}
-        return {}
-
-    def _get_results_for_tar_file(self, file_info: tarfile.TarInfo) -> dict[str, dict]:
-        file_path = file_info.name
-        if file_path[:2] == './':
-            file_path = file_path[2:]
-        file_mode = self._get_tar_file_mode_str(file_info)
-        result = {
-            FsKeys.MODE: file_mode,
-            FsKeys.NAME: Path(file_path).name,
-            FsKeys.PATH: file_path,
-            FsKeys.USER: file_info.uname,
-            FsKeys.GROUP: file_info.gname,
-            FsKeys.UID: file_info.uid,
-            FsKeys.GID: file_info.gid,
-            FsKeys.M_TIME: file_info.mtime,
-            FsKeys.SUID: self._file_mode_contains_bit(file_mode, SUID_BIT),
-            FsKeys.SGID: self._file_mode_contains_bit(file_mode, SGID_BIT),
-            FsKeys.STICKY: self._file_mode_contains_bit(file_mode, STICKY_BIT),
-        }
-        key = b64encode(file_path.encode()).decode()
-        return {key: result}
-
-    @staticmethod
-    def _file_mode_contains_bit(file_mode: str, bit: int) -> bool:
-        return bool(int(file_mode, 8) & bit)
-
-    @staticmethod
-    def _get_mounted_file_mode(stats: StatResult):
-        return oct(stat.S_IMODE(stats.mode))[2:]
-
-    @staticmethod
-    def _get_tar_file_mode_str(file_info: tarfile.TarInfo) -> str:
-        return oct(file_info.mode)[2:]
-
-    def _add_tag(self, file_object: FileObject, results: dict):
-        if self._tag_should_be_set(results):
-            self.add_analysis_tag(
-                file_object=file_object,
-                tag_name='SUID/GUID + root',
+    def get_tags(self, result: Schema, summary: list[str]) -> list[Tag]:
+        del summary
+        if not _tag_should_be_set(result):
+            return []
+        return [
+            Tag(
+                name=self.metadata.name,
                 value='SUID/GUID + root',
                 color=TagColor.BLUE,
                 propagate=False,
             )
-
-    @staticmethod
-    def _tag_should_be_set(results: dict):
-        return any(
-            result[FsKeys.USER] == 'root' and (result[FsKeys.SUID] or result[FsKeys.SGID])
-            for result in results.values()
-            if FsKeys.USER in result
-        )
+        ]
 
 
-class FsKeys:
-    MODE = 'file mode octal'
-    MODE_HR = 'file mode'
-    NAME = 'file name'
-    PATH = 'file path'
-    UID = 'owner user id'
-    GID = 'owner group id'
-    USER = 'owner'
-    GROUP = 'owner group'
-    M_TIME = 'modification time'
-    A_TIME = 'access time'
-    C_TIME = 'creation time'
-    SUID = 'setuid flag'
-    SGID = 'setgid flag'
-    STICKY = 'sticky flag'
+def _tag_should_be_set(result: AnalysisPlugin.Schema) -> bool:
+    return any(
+        file_metadata.user == 'root' and (file_metadata.suid_bit or file_metadata.sgid_bit)
+        for file_metadata in result.files
+    )
+
+
+def _analyze_metadata_of_mounted_dir(docker_results: tuple[str, str, dict]) -> list[FileMetadata]:
+    return [
+        _get_results_for_mounted_file(file_name, file_path, StatResult(**file_stats))
+        for file_name, file_path, file_stats in docker_results
+    ]
+
+
+def _get_results_for_mounted_file(file_name: str, file_path: str, stats: StatResult) -> FileMetadata:
+    file_mode = _get_mounted_file_mode(stats)
+    return FileMetadata(
+        mode=file_mode,
+        mode_human_readable=stat.filemode(stats.mode),
+        name=file_name,
+        path=file_path,
+        uid=stats.uid,
+        gid=stats.gid,
+        user='root' if stats.uid == 0 else '',
+        group='root' if stats.gid == 0 else '',
+        modification_time=stats.m_time,
+        access_time=stats.a_time,
+        creation_time=stats.c_time,
+        suid_bit=_file_mode_contains_bit(file_mode, SUID_BIT),
+        sgid_bit=_file_mode_contains_bit(file_mode, SGID_BIT),
+        sticky_bit=_file_mode_contains_bit(file_mode, STICKY_BIT),
+        key=b64encode(file_name.encode()).decode(),
+    )
+
+
+def _extract_metadata_from_tar(file_handle: FileIO) -> list[FileMetadata]:
+    result = []
+    try:
+        with tarfile.open(file_handle.name) as tar_archive:
+            for file_info in tar_archive:
+                if file_info.isfile():
+                    result.append(_get_results_for_tar_file(file_info))
+    except EOFError:
+        logging.warning(f'File {file_handle.name} ended unexpectedly')
+    except (tarfile.TarError, zlib.error, tarfile.ReadError) as error:
+        message = 'Could not open tar archive'
+        logging.exception(f'{message} {file_handle.name}: {error}', exc_info=True)
+        raise RuntimeError(message) from error
+    return result
+
+
+def _get_results_for_tar_file(file_info: tarfile.TarInfo) -> FileMetadata:
+    file_path = file_info.name
+    if file_path[:2] == './':
+        file_path = file_path[2:]
+    file_mode = _get_tar_file_mode_str(file_info)
+    return FileMetadata(
+        mode=file_mode,
+        mode_human_readable=stat.filemode(file_info.mode),
+        name=Path(file_path).name,
+        path=file_path,
+        user=file_info.uname,
+        group=file_info.gname,
+        uid=file_info.uid,
+        gid=file_info.gid,
+        modification_time=file_info.mtime,
+        suid_bit=_file_mode_contains_bit(file_mode, SUID_BIT),
+        sgid_bit=_file_mode_contains_bit(file_mode, SGID_BIT),
+        sticky_bit=_file_mode_contains_bit(file_mode, STICKY_BIT),
+        key=b64encode(file_path.encode()).decode(),
+    )
+
+
+def _file_mode_contains_bit(file_mode: str, bit: int) -> bool:
+    return bool(int(file_mode, 8) & bit)
+
+
+def _get_mounted_file_mode(stats: StatResult) -> str:
+    return oct(stat.S_IMODE(stats.mode))[2:]
+
+
+def _get_tar_file_mode_str(file_info: tarfile.TarInfo) -> str:
+    return oct(file_info.mode)[2:]
+
+
+def _has_correct_type(mime_type: str) -> bool:
+    return mime_type in ARCHIVE_MIME_TYPES + FS_MIME_TYPES
