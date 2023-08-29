@@ -66,8 +66,8 @@ api = Namespace('/plugins/file_system_metadata/rest')
 
 
 @api.hide
-class FSMetadataRoutesRest(RestResourceBase):
-    ENDPOINTS = [('/plugins/file_system_metadata/rest/<uid>', ['GET'])]  # noqa: RUF012
+class PluginRestRoutes(RestResourceBase):
+    ENDPOINTS = (('/plugins/file_system_metadata/rest/<uid>', ['GET']),)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def get(self, uid):

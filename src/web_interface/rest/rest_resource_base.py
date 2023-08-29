@@ -13,10 +13,10 @@ if TYPE_CHECKING:
 
 class RestResourceBase(Resource):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self.db: FrontendDatabase = kwargs.get('db', None)
         self.intercom: InterComFrontEndBinding = kwargs.get('intercom', None)
         self.status: RedisStatusInterface = kwargs.get('status', None)
+        super().__init__(*args, **kwargs)
 
     @staticmethod
     def validate_payload_data(model: Model) -> dict:
