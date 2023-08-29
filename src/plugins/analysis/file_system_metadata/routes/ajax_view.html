@@ -5,22 +5,23 @@
             Results for this File
         </th>
     </tr>
-    {% for file in results %}
+    {% for file, metadata in results.items() %}
         <tr>
             <td onclick="location.href='/analysis/{{ results[file]['parent_uid'] }}'">
                 {{ results[file]["parent_uid"] | replace_uid_with_hid | safe }} | {{ file }}
             </td>
             <td class="p-0">
                 <table class="table table-bordered mb-0">
-                    {% for key in results[file] | sort %}
-                        {% if key != "parent_uid" %}
-                            <tr>
+                    {% for key, value in metadata.items() | sort %}
+                        {% if key not in ('path', 'key') %}
+                            {% set tr_class = "" if key not in ('suid_bit', 'sgid_bit') or not value else "table-danger"%}
+                            <tr class={{ tr_class }}>
                                 <td>{{ key }}</td>
                                 <td>
                                     {% if 'time' in key %}
-                                        {{ results[file][key] | nice_unix_time | safe }}
+                                        {{ value | nice_unix_time | safe }}
                                     {% else %}
-                                        {{ results[file][key] | safe }}
+                                        {{ value | safe }}
                                     {% endif %}
                                 </td>
                             </tr>

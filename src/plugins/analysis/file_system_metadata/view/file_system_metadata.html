@@ -1,51 +1,50 @@
 {% extends 'analysis_plugins/general_information.html' %}
 
-
 {% block analysis_result_details %}
 
-{% if 'files' in analysis_result %}
+{% set metadata_list = analysis_result.get('files', []) %}
+{% if metadata_list %}
     <tr>
         <th class="table-success" colspan="2">
             Results for Included Files
         </th>
     </tr>
-    {% for file in analysis_result['files'] %}
-        <tr>
-            <td>{{ analysis_result['files'][file]['file path'] }}</td>
-            <td class="p-0">
-                <table class="table table-bordered mb-0">
-                    {% for key in analysis_result['files'][file] | sort %}
-                        {% if key != 'file path' %}
-                        <tr>
+{% endif %}
+{% for metadata in metadata_list %}
+    <tr>
+        <td>{{ metadata['path'] }}</td>
+        <td class="p-0">
+            <table class="table table-bordered mb-0">
+                {% for key, value in metadata.items() | sort %}
+                    {% if key not in ('path', 'key') %}
+                        {% set tr_class = "" if key not in ('suid_bit', 'sgid_bit') or not value else "table-danger"%}
+                        <tr class={{ tr_class }}>
                             <td>{{ key }}</td>
                             <td>
                                 {% if 'time' in key %}
-                                    {{ analysis_result['files'][file][key] | nice_unix_time | safe }}
+                                    {{ value | nice_unix_time | safe }}
                                 {% else %}
-                                    {{ analysis_result['files'][file][key] | safe }}
+                                    {{ value | safe }}
                                 {% endif %}
                             </td>
                         </tr>
-                        {% endif %}
-                    {% endfor %}
-                </table>
-            </td>
-        </tr>
-    {% endfor %}
-{% endif %}
+                    {% endif %}
+                {% endfor %}
+            </table>
+        </td>
+    </tr>
+{% endfor %}
 
 {% endblock %}
 
 
 {% block ajax %}
 
-{% if 'contained_in_file_system' in analysis_result and analysis_result.contained_in_file_system == True %}
-    <div id="file_results"></div>
-    <script>
-        $(document).ready(function() {
-            $('#file_results').load('/plugins/file_system_metadata/ajax/{{ firmware.uid }}');
-        });
-    </script>
-{% endif %}
+<div id="file_results"></div>
+<script>
+    $(document).ready(function() {
+        $('#file_results').load('/plugins/file_system_metadata/ajax/{{ firmware.uid }}');
+    });
+</script>
 
 {% endblock %}
