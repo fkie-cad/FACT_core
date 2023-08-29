@@ -18,23 +18,25 @@ class DbInterfaceMock:
         self.fw = create_test_firmware()
         self.fw.uid = 'parent_uid'
         self.fw.processed_analysis[AnalysisPlugin.NAME] = {
-            'files': {
-                'foo': {'executable': False},
-                'bar': {
-                    'executable': True,
-                    'path': '/some/path',
-                    'results': {
-                        'some-arch': {
-                            '-h': {'stdout': 'stdout result', 'stderr': 'stderr result', 'return_code': '1337'}
-                        }
+            'result': {
+                'files': {
+                    'foo': {'executable': False},
+                    'bar': {
+                        'executable': True,
+                        'path': '/some/path',
+                        'results': {
+                            'some-arch': {
+                                '-h': {'stdout': 'stdout result', 'stderr': 'stderr result', 'return_code': '1337'}
+                            }
+                        },
                     },
-                },
-                'error-outside': {'executable': False, 'path': '/some/path', 'results': {'error': 'some error'}},
-                'error-inside': {
-                    'executable': False,
-                    'path': '/some/path',
-                    'results': {'some-arch': {'error': 'some error'}},
-                },
+                    'error-outside': {'executable': False, 'path': '/some/path', 'results': {'error': 'some error'}},
+                    'error-inside': {
+                        'executable': False,
+                        'path': '/some/path',
+                        'results': {'some-arch': {'error': 'some error'}},
+                    },
+                }
             }
         }
 
@@ -74,11 +76,11 @@ class TestQemuExecRoutesStatic:
 
     def test_get_results_from_parent_fo(self):
         analysis_result = {'executable': False}
-        result = routes._get_results_from_parent_fo({'files': {'foo': analysis_result}}, 'foo')
+        result = routes._get_results_from_parent_fo({'result': {'files': {'foo': analysis_result}}}, 'foo')
         assert result == analysis_result
 
     def test_no_results_from_parent(self):
-        result = routes._get_results_from_parent_fo({}, 'foo')
+        result = routes._get_results_from_parent_fo({'result': {}}, 'foo')
         assert result is None
 
 
@@ -125,9 +127,9 @@ class TestFileSystemMetadataRoutesRest:
         app.config.from_object(__name__)
         app.config['TESTING'] = True
         api = Api(app)
-        endpoint, methods = routes.QemuExecRoutesRest.ENDPOINTS[0]
+        endpoint, methods = routes.PluginRestRoutes.ENDPOINTS[0]
         api.add_resource(
-            routes.QemuExecRoutesRest,
+            routes.PluginRestRoutes,
             endpoint,
             methods=methods,
             resource_class_kwargs={'db': DbMock},

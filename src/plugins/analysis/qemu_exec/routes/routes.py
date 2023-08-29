@@ -29,8 +29,13 @@ def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInte
 
 
 def _get_results_from_parent_fo(analysis_entry: dict, uid: str):
-    if analysis_entry is not None and 'files' in analysis_entry and uid in analysis_entry['files']:
-        return analysis_entry['files'][uid]
+    if (
+        analysis_entry is not None
+        and analysis_entry['result'] is not None
+        and 'files' in analysis_entry['result']
+        and uid in analysis_entry['result']['files']
+    ):
+        return analysis_entry['result']['files'][uid]
     return None
 
 
