@@ -5,14 +5,17 @@ import ctypes
 import numpy as np
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
-    from multiprocessing import Value
+    from helperFunctions.types import MpValue, MpArray
+
+    pass
 
 # FIXME Make this configurable (but not per plugin!)
 ANALYSIS_STATS_LIMIT = 1000
 
 
-def get_plugin_stats(stats: Value, stats_count: Value) -> dict[str, str] | None:
+def get_plugin_stats(stats: MpArray, stats_count: MpValue) -> dict[str, str] | None:
     try:
         count = stats_count.value
         array = np.array(stats.get_obj(), ctypes.c_float)
