@@ -59,7 +59,8 @@ class ExtractIKConfigTest:
         analysis_plugin.process_object(test_file)
 
         assert test_file.processed_analysis[analysis_plugin.NAME]['is_kernel_config']
-        assert test_file.processed_analysis[analysis_plugin.NAME]['kernel_config'] == test_file.binary.decode()
+        kernel_config = test_file.processed_analysis[analysis_plugin.NAME]['kernel_config']
+        assert kernel_config == test_file.binary.decode()  # type: ignore[union-attr]
 
     def test_process_invalid_plain_text(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'random_invalid/c.image'))
@@ -75,7 +76,7 @@ class ExtractIKConfigTest:
         test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
         test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
 
-        result = AnalysisPlugin.try_object_extract_ikconfig(test_file.binary)
+        result = AnalysisPlugin.try_object_extract_ikconfig(test_file.binary)  # type: ignore[arg-type]
 
         assert len(result) > 0
         assert analysis_plugin.probably_kernel_config(result)
@@ -121,7 +122,7 @@ def test_try_extract_decompress_fail():
     test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
     test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
 
-    assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''
+    assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''  # type: ignore[arg-type]
 
 
 def test_is_kernel_image_true():
@@ -145,7 +146,7 @@ def test_try_extract_fail():
     test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
     test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
 
-    assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''
+    assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''  # type: ignore[arg-type]
 
 
 def test_try_extract_random_fail():
@@ -153,13 +154,13 @@ def test_try_extract_random_fail():
         test_file = FileObject(file_path=fp)
         test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
         test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
-        assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''
+        assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''  # type: ignore[arg-type]
 
 
 def test_gz_break_on_true():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG.gz'))
     decompressor = GZDecompressor()
-    assert decompressor.decompress(test_file.binary) != b''
+    assert decompressor.decompress(test_file.binary) != b''  # type: ignore[arg-type]
 
 
 def test_checksec_existing_config():

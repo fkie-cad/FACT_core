@@ -82,7 +82,7 @@ class TestFileSystemMetadataRoutesStatic:
         assert results[file_names[0]]['result'] == 'value', 'wrong value of analysis result'
 
     def test_get_analysis_results_for_included_uid(self):
-        result = routes.get_analysis_results_for_included_uid('foo', DbInterfaceMock())
+        result = routes.get_analysis_results_for_included_uid('foo', DbInterfaceMock())  # type: ignore[arg-type]
 
         assert result is not None
         assert result != {}, 'result should not be empty'
@@ -90,13 +90,13 @@ class TestFileSystemMetadataRoutesStatic:
         assert 'some_file' in result, 'files missing from result'
 
     def test_get_analysis_results_for_included_uid__uid_not_found(self):
-        result = routes.get_analysis_results_for_included_uid('not_found', DbInterfaceMock())
+        result = routes.get_analysis_results_for_included_uid('not_found', DbInterfaceMock())  # type: ignore[arg-type]
 
         assert result is not None
         assert result == {}, 'result should be empty'
 
     def test_get_analysis_results_for_included_uid__parent_not_found(self):
-        result = routes.get_analysis_results_for_included_uid('bar', DbInterfaceMock())
+        result = routes.get_analysis_results_for_included_uid('bar', DbInterfaceMock())  # type: ignore[arg-type]
 
         assert result is not None
         assert result == {}, 'result should be empty'
@@ -112,7 +112,7 @@ class TestFileSystemMetadataRoutes:
         app.config.from_object(__name__)
         app.config['TESTING'] = True
         app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x
-        self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None, status=None)
+        self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None, status=None)  # type: ignore[arg-type]
         self.test_client = app.test_client()
 
     def test_get_analysis_results_of_parent_fo(self):

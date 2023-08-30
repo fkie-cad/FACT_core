@@ -22,7 +22,7 @@ class FoMock:
         self.binary = file_path.read_bytes() if file_path is not None else None
         self.uid = 'deadbeef_123'
         self.root_uid = 'root_uid'
-        self.parents = []
+        self.parents: list[str] = []
         if parent_fo_type:
             self.temporary_data = {'parent_fo_type': parent_fo_type}
 
