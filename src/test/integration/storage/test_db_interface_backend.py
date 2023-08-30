@@ -4,7 +4,7 @@ import pytest
 
 from test.common_helper import create_test_file_object, create_test_firmware
 
-from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child
+from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, add_included_file
 
 
 def test_insert_objects(backend_db):
@@ -114,11 +114,8 @@ def test_update_duplicate_other_fw(backend_db, frontend_db):
 
     fw2 = create_test_firmware()
     fw2.uid = 'test_fw2'
-    fw2.files_included = [fo.uid]
-    fo2 = create_test_file_object()
-    fo2.uid = fo.uid
-    fo2.virtual_file_path = {fw2.uid: [f'{fw2.uid}|/some/path']}
-    fo2.parents = {fw2.uid}
+    fo2 = create_test_file_object(uid=fo.uid)
+    add_included_file(fo2, fw2, fw2, ['/some/path'])
 
     backend_db.add_object(fw2)
     backend_db.add_object(fo2)
@@ -137,7 +134,7 @@ def test_update_duplicate_same_fw(backend_db, frontend_db):
     fo, fw = create_fw_with_child_fo()
     backend_db.insert_multiple_objects(fw, fo)
 
-    fo.virtual_file_path[fw.uid].append(f'{fw.uid}|/some/other/path')
+    fo.virtual_file_path[fw.uid].append('/some/other/path')
     backend_db.add_object(fo)
 
     db_fo = frontend_db.get_object(fo.uid)
@@ -222,3 +219,20 @@ def test_update_analysis(backend_db, common_db):
     assert analysis['result']['content'] == 'file efgh'
     assert analysis['summary'] == updated_analysis_data['summary']
     assert analysis['plugin_version'] == updated_analysis_data['plugin_version']
+
+
+def test_get_parent_fw(backend_db, common_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    fw2 = create_test_firmware()
+    fw2.uid = 'test_fw2'
+    add_included_file(child_fo, fw2, fw2, ['/some/path'])
+    backend_db.insert_multiple_objects(fw, fw2, parent_fo, child_fo)
+
+    root_fw = common_db.get_parent_fw(child_fo.uid)
+    assert root_fw == {fw.uid, fw2.uid}
+
+    root_fw_dict = common_db.get_parent_fw_for_uid_list([fw.uid, parent_fo.uid, child_fo.uid])
+    assert root_fw_dict == {
+        parent_fo.uid: {fw.uid},
+        child_fo.uid: {fw.uid, fw2.uid},
+    }

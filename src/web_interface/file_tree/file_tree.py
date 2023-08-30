@@ -183,28 +183,13 @@ class VirtualPathFileTree:
     :param whitelist: A whitelist of file names needed to display partial trees in comparisons.
     '''
 
-    def __init__(
-        self, root_uid: UID, parent_uid: UID | None, fo_data: FileTreeData, whitelist: list[str] | None = None
-    ):
+    def __init__(self, root_uid: UID, parent_uid: UID, fo_data: FileTreeData, whitelist: list[str] | None = None):
+        self.root_uid = root_uid
         self.fo_data: FileTreeData = fo_data
-        self.root_uid = root_uid if root_uid else self._find_root_uid(parent_uid)
         self.whitelist = whitelist
         self.virtual_file_paths: list[VFP] | None = (
-            fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None  # type: ignore[arg-type]
+            fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None
         )
-
-    def _find_root_uid(self, parent_uid: UID | None) -> str:
-        """
-        If we don't have a rood_uid, we must find a root_uid that contains the parent_uid (we can't just take a
-        random one because then files could be missing from the file tree).
-        """
-        if self.fo_data.virtual_file_path is None:
-            # virtual_file_path is None for FWs but root_uid should always be set in this case
-            raise ValueError('File tree: Cannot determine root UID without VFP data')
-        for root_uid, vfp_list in self.fo_data.virtual_file_path.items():
-            if parent_uid and any(parent_uid in vfp for vfp in vfp_list):
-                return root_uid
-        return list(self.fo_data.virtual_file_path)[0]  # safety fallback: some parent (may occur if parent UID is None)
 
     def get_file_tree_nodes(self) -> Iterable[FileTreeNode]:
         """

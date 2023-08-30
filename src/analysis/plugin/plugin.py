@@ -129,7 +129,7 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         result = self.analyze(file_handle, virtual_file_path, analyses)
 
         summary: list[str] | None = None
-        tags: list[Tag] | None = None
+        tags: list[Tag] = []
         if result is not None:
             summary = self.summarize(result)  # type: ignore[unreachable]  # this is obviously reachable
             tags = self.get_tags(result, summary)

@@ -7,6 +7,7 @@ exclude =
     __pycache__,
     src/bin,
     src/install/compose-env
+    src/plugins/*/*/test/data/**
 per-file-ignores =
     src/plugins/*: E402
     src/install/install.py: E402

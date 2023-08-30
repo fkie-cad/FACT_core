@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 
 from docker.types import Mount
@@ -13,9 +15,13 @@ from pydantic import Field
 from typing import Optional
 from pathlib import Path
 
-import io
-from typing import List
+from typing import List, TYPE_CHECKING
+
+from helperFunctions.virtual_file_path import get_paths_for_all_parents
 from ..internal import linters
+
+if TYPE_CHECKING:
+    import io
 
 
 # All linter methods must return an array of dicts.
@@ -37,12 +43,11 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
 
             symbol: str = Field(
                 description=(
-                    # fmt: off
                     "An identifier for the linting type. E.g. 'unused-import' (pylint).\n"
                     "Note that this field is linter specific."
                 ),
             )
-            type: str = Field(description="E.g. 'warning' or 'error'")
+            type: Optional[str] = Field(None, description="E.g. 'warning' or 'error'")
             message: str = Field(
                 description=(
                     # fmt: off
@@ -68,7 +73,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
             metadata=AnalysisPluginV0.MetaData(
                 name='source_code_analysis',
                 description='This plugin implements static code analysis for multiple scripting languages',
-                version='0.7.0',
+                version='0.7.1',
                 Schema=AnalysisPlugin.Schema,
                 mime_whitelist=['text/'],
             ),
@@ -83,15 +88,20 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
 
         return summary
 
-    def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
+    def analyze(self, file_handle: io.FileIO, virtual_file_path: dict[str, list[str]], analyses: dict) -> Schema:
         """
         After only receiving text files thanks to the whitelist, we try to detect the correct scripting language
         and then call a linter if a supported language is detected
         """
-        del virtual_file_path, analyses
-        linguist_json = run_linguist(file_handle.name)
+        del analyses
 
-        language = linguist_json.get('language')
+        language, linguist_json = None, None
+        file_names = [Path(file_handle.name).name, *_get_paths_with_different_suffix(virtual_file_path)]
+        for name in file_names:
+            linguist_json = run_linguist(file_handle.name, name)
+            language = linguist_json.get('language')
+            if language is not None:
+                break
 
         if language is None:
             return AnalysisPlugin.Schema(
@@ -119,9 +129,8 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
         )
 
 
-def run_linguist(file_path: str) -> dict:
-    file_name = Path(file_path).name
-    container_path = f'/repo/{file_name}'
+def run_linguist(file_path: str, virtual_file_name: str) -> dict:
+    container_path = f'/repo/{virtual_file_name}'
     result = run_docker_container(
         'crazymax/linguist',
         combine_stderr_stdout=True,
@@ -136,3 +145,18 @@ def run_linguist(file_path: str) -> dict:
     output_json = json.loads(result.stdout)
 
     return output_json[container_path]
+
+
+def _get_paths_with_different_suffix(virtual_file_path: dict[str, list[str]]) -> list[str]:
+    """
+    A file can have multiple paths if it appears multiple times in one or more firmwares. Return one path per suffix
+    for language detection (linguist also considers the suffix while determining the language).
+    """
+    suffixes = set()
+    result = []
+    for vfp in sorted(get_paths_for_all_parents(virtual_file_path)):
+        path = Path(vfp)
+        if path.suffix not in suffixes:
+            suffixes.add(path.suffix)
+            result.append(path.name)
+    return result

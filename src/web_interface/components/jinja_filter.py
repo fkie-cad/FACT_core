@@ -11,7 +11,7 @@ import web_interface.filter as flt
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
 from helperFunctions.hash import get_md5
-from helperFunctions.uid import is_list_of_uids, is_uid
+from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
 from web_interface.filter import elapsed_time, random_collapse_id
 from typing import TYPE_CHECKING
@@ -95,22 +95,26 @@ class FilterClass:
         all_uids = {uid for uid_list in virtual_path_list for uid in uid_list}
         hid_dict = self.db.frontend.get_hid_dict(all_uids, root_uid=root_uid)
         for uid_list in virtual_path_list:
-            components = [self._virtual_path_element_to_span(hid_dict[uid], uid, root_uid=root_uid) for uid in uid_list]
+            components = [
+                self._virtual_path_element_to_span(hid_dict.get(uid, uid), uid, root_uid, uid_list[-1])
+                for uid in uid_list
+            ]
             path_list.append(' '.join(components))
         return path_list
 
     @staticmethod
-    def _virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str:
+    def _virtual_path_element_to_span(hid_element: str, uid: str, root_uid: str | None, current_file_uid: str) -> str:
         hid = cap_length_of_element(hid_element)
-        if is_uid(uid_element):
-            return (
-                '<span class="badge badge-primary">'
-                f'    <a style="color: #fff" href="/analysis/{uid_element}/ro/{root_uid}">'
-                f'        {hid}'
-                '    </a>'
-                '</span>'
-            )
-        return f'<span class="badge badge-secondary">{hid}</span>'
+        if uid == current_file_uid:
+            # if we are on the analysis page of this file, the element should not contain a link and use another color
+            return f'<span class="badge badge-secondary">{hid}</span>'
+        return (
+            '<span class="badge badge-primary">'
+            f'    <a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
+            f'        {hid}'
+            '    </a>'
+            '</span>'
+        )
 
     @staticmethod
     def _render_firmware_detail_tabular_field(firmware_meta_data):

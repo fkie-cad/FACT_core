@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
     firmware = Firmware(uid=fw_entry.uid)
-    _populate_fo_data(fw_entry.root_object, firmware, analysis_filter)
+    _populate_fo_data(fw_entry.root_object, firmware, analysis_filter, parent_fw=set())
     firmware.device_name = fw_entry.device_name
     firmware.device_class = fw_entry.device_class
     firmware.release_date = convert_time_to_str(fw_entry.release_date)
@@ -27,15 +27,16 @@ def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | No
     return firmware
 
 
-def file_object_from_entry(
+def file_object_from_entry(  # noqa: PLR0913
     fo_entry: FileObjectEntry,
     analysis_filter: list[str] | None = None,
     included_files: set[str] | None = None,
     parents: set[str] | None = None,
     virtual_file_paths: dict[str, list[str]] | None = None,
+    parent_fw: set[str] | None = None,
 ) -> FileObject:
     file_object = FileObject(uid=fo_entry.uid)
-    _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents, virtual_file_paths)
+    _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents, virtual_file_paths, parent_fw)
     return file_object
 
 
@@ -53,6 +54,7 @@ def _populate_fo_data(  # noqa: PLR0913
     included_files: set[str] | None = None,
     parents: set[str] | None = None,
     virtual_file_paths: dict[str, list[str]] | None = None,
+    parent_fw: set[str] | None = None,
 ):
     file_object.size = fo_entry.size
     file_object.file_name = fo_entry.file_name
@@ -66,7 +68,7 @@ def _populate_fo_data(  # noqa: PLR0913
     file_object.comments = fo_entry.comments
     file_object.parents = fo_entry.get_parent_uids() if parents is None else parents
     file_object.files_included = fo_entry.get_included_uids() if included_files is None else included_files
-    file_object.parent_firmware_uids = set(file_object.virtual_file_path)
+    file_object.parent_firmware_uids = fo_entry.get_parent_fw_uids() if parent_fw is None else parent_fw
 
 
 def _collect_analysis_tags(analysis_dict: dict) -> dict:
