@@ -192,7 +192,7 @@ class VirtualPathFileTree:
         self.fo_data: FileTreeData = fo_data
         self.whitelist = whitelist
         self.virtual_file_paths: list[VFP] | None = (
-            fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None  # type: ignore[arg-type]
+            fo_data.virtual_file_path.get(str(parent_uid)) if fo_data.virtual_file_path else None
         )
 
     def get_file_tree_nodes(self) -> Iterable[FileTreeNode]:
