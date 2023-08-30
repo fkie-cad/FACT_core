@@ -16,15 +16,18 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import Session, backref, declarative_base, mapped_column, relationship
+from sqlalchemy.orm import Session, backref, DeclarativeBase, mapped_column, relationship
 
-Base = declarative_base()
 UID = VARCHAR(78)
 
 # primary_key=True implies `unique=True` and `nullable=False`
 
 
-class AnalysisEntry(Base):  # type: ignore[valid-type,misc]
+class Base(DeclarativeBase):
+    pass
+
+
+class AnalysisEntry(Base):
     __tablename__ = 'analysis'
 
     uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), index=True)
@@ -67,7 +70,7 @@ comparisons_table = Table(
 )
 
 
-class FileObjectEntry(Base):  # type: ignore[valid-type,misc]
+class FileObjectEntry(Base):
     __tablename__ = 'file_object'
 
     uid = mapped_column(UID, primary_key=True)
@@ -130,7 +133,7 @@ class FileObjectEntry(Base):  # type: ignore[valid-type,misc]
         return f'FileObject({self.uid}, {self.file_name}, {self.is_firmware})'
 
 
-class FirmwareEntry(Base):  # type: ignore[valid-type,misc]
+class FirmwareEntry(Base):
     __tablename__ = 'firmware'
 
     uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True)
@@ -146,7 +149,7 @@ class FirmwareEntry(Base):  # type: ignore[valid-type,misc]
     root_object = relationship('FileObjectEntry', back_populates='firmware')
 
 
-class ComparisonEntry(Base):  # type: ignore[valid-type,misc]
+class ComparisonEntry(Base):
     __tablename__ = 'comparison'
 
     comparison_id = mapped_column(VARCHAR, primary_key=True)
@@ -154,14 +157,14 @@ class ComparisonEntry(Base):  # type: ignore[valid-type,misc]
     data = mapped_column(MutableDict.as_mutable(JSONB))
 
 
-class StatsEntry(Base):  # type: ignore[valid-type,misc]
+class StatsEntry(Base):
     __tablename__ = 'stats'
 
     name = mapped_column(VARCHAR, primary_key=True)
     data = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
 
 
-class SearchCacheEntry(Base):  # type: ignore[valid-type,misc]
+class SearchCacheEntry(Base):
     __tablename__ = 'search_cache'
 
     uid = mapped_column(UID, primary_key=True)
@@ -169,14 +172,14 @@ class SearchCacheEntry(Base):  # type: ignore[valid-type,misc]
     yara_rule = mapped_column(VARCHAR, nullable=False)
 
 
-class WebInterfaceTemplateEntry(Base):  # type: ignore[valid-type,misc]
+class WebInterfaceTemplateEntry(Base):
     __tablename__ = 'templates'
 
     plugin = mapped_column(VARCHAR, primary_key=True)
     template = mapped_column(LargeBinary, nullable=False)
 
 
-class VirtualFilePath(Base):  # type: ignore[valid-type,misc]
+class VirtualFilePath(Base):
     """Represents a file path `file_path` of file `file_object` extracted from `_parent_object`"""
 
     __tablename__ = 'virtual_file_path'
