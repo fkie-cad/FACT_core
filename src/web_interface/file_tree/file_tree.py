@@ -183,12 +183,14 @@ class VirtualPathFileTree:
     :param whitelist: A whitelist of file names needed to display partial trees in comparisons.
     '''
 
-    def __init__(self, root_uid: UID, parent_uid: UID, fo_data: FileTreeData, whitelist: list[str] | None = None):
+    def __init__(
+        self, root_uid: UID, parent_uid: UID | None, fo_data: FileTreeData, whitelist: list[str] | None = None
+    ):
         self.root_uid = root_uid
         self.fo_data: FileTreeData = fo_data
         self.whitelist = whitelist
         self.virtual_file_paths: list[VFP] | None = (
-            fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None
+            fo_data.virtual_file_path.get(str(parent_uid)) if fo_data.virtual_file_path else None
         )
 
     def get_file_tree_nodes(self) -> Iterable[FileTreeNode]:

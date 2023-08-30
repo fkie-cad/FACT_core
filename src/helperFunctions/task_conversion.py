@@ -45,7 +45,7 @@ def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes 
     :return: A Tuple containing the file name and the file content.
     """
     try:
-        file_name = escape(request.files['file'].filename)
+        file_name: str = escape(request.files['file'].filename)
     except AttributeError:
         file_name = 'no name'
     file_binary = _get_uploaded_file_binary(request.files['file'])

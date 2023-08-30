@@ -245,7 +245,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- file tree
 
     def generate_file_tree_nodes_for_uid_list(
-        self, uid_list: list[str], root_uid: str, parent_uid: str | None, whitelist: list[str] | None = None
+        self, uid_list: list[UID], root_uid: UID, parent_uid: UID, whitelist: list[str] | None = None
     ):
         file_tree_data = self.get_file_tree_data(uid_list)
         for entry in file_tree_data:
@@ -253,9 +253,9 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def generate_file_tree_level(  # noqa: PLR0913
         self,
-        uid: str,
-        root_uid: str,
-        parent_uid: str | None = None,
+        uid: UID,
+        root_uid: UID,
+        parent_uid: UID | None = None,
         whitelist: list[str] | None = None,
         data: FileTreeData | None = None,
     ) -> Iterator[FileTreeNode]:
