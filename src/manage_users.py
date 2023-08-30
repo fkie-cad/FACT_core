@@ -43,7 +43,9 @@ FACT_ASCII_ART = '''
 def setup_argparse():
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--version', action='version', version=f'FACT User Management (FACTUM) {__VERSION__}')
-    parser.add_argument('-C', '--config_file', help='set path to config File', default=f'{get_config_dir()}/main.cfg')
+    parser.add_argument(
+        '-C', '--config_file', help='set path to config File', default=f'{get_config_dir()}/fact-core-config.toml'
+    )
     return parser.parse_args()
 
 
