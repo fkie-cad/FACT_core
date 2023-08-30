@@ -15,16 +15,18 @@ from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, orm, Pr
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import CHAR, JSONB, VARCHAR
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import declarative_base, mapped_column
+from sqlalchemy.orm import DeclarativeBase, mapped_column
 
 # revision identifiers, used by Alembic.
 revision = 'a1312300d62d'
 down_revision = '221cfef47173'
 branch_labels = None
 depends_on = None
-
-Base = declarative_base()
 UID = VARCHAR(78)
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class FileObjectEntry(Base):
@@ -52,7 +54,7 @@ class VirtualFilePath(Base):
 
     __table_args__ = (PrimaryKeyConstraint('parent_uid', 'file_uid', 'file_path', name='_vfp_primary_key'),)
 
-    def __eq__(self, other: VirtualFilePath) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, VirtualFilePath):
             raise ValueError('A VirtualFilePath object can only be compared with another VirtualFilePath object.')
         return (
@@ -154,7 +156,7 @@ def _downgrade_vfp_entries():
     bind = op.get_bind()
     session = orm.Session(bind=bind)
 
-    child_to_parents = {}
+    child_to_parents: dict[str, set[str]] = {}
     for parent, child in session.execute(select(included_files_table.c.parent_uid, included_files_table.c.child_uid)):
         child_to_parents.setdefault(child, set()).add(parent)
 
@@ -163,11 +165,11 @@ def _downgrade_vfp_entries():
     root_uids = set()
     for uid, uid_path_list in full_paths.items():
         query = select(VirtualFilePath.file_path, VirtualFilePath.parent_uid).filter(VirtualFilePath.file_uid == uid)
-        path_dict = {}
+        path_dict: dict[str, list[str]] = {}
         for path, parent_uid in session.execute(query):
             path_dict.setdefault(parent_uid, []).append(path)
 
-        vfp_dict = {}
+        vfp_dict: dict[str, list[str]] = {}
         for uid_list in uid_path_list:
             root_uid, parent_uid = uid_list[0], uid_list[-2]
             root_uids.add(root_uid)

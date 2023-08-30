@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from sqlalchemy.exc import SQLAlchemyError
 
 from storage.db_connection import DbConnection, ReadOnlyConnection, ReadWriteConnection
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -26,7 +26,7 @@ class ReadOnlyDbInterface:
         self.ro_session: Session | None = None
 
     @contextmanager
-    def get_read_only_session(self) -> Session:
+    def get_read_only_session(self) -> Iterator[Session]:
         if self.ro_session is not None:
             yield self.ro_session
             return
