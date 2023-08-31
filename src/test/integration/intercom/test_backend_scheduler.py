@@ -1,8 +1,10 @@
 from multiprocessing import Queue, Value
 from time import sleep
+from typing import Any
 
 import pytest
 
+from helperFunctions.types import MpValue
 from intercom.back_end_binding import InterComBackEndBinding
 
 # This number must be changed, whenever a listener is added or removed
@@ -21,7 +23,7 @@ class ServiceMock:
 
 
 class CommunicationBackendMock:
-    counter = Value('i', 0)
+    counter: MpValue = Value('i', 0)  # type: ignore[assignment]
 
     def __init__(self):
         pass
@@ -47,21 +49,20 @@ class AnalysisServiceMock:
 
 @pytest.fixture(name='intercom')
 def get_intercom_for_testing():
-    test_queue = Queue()
+    test_queue: Queue[Any] = Queue()
     interface = InterComBackEndBinding(
         testing=True,
         analysis_service=AnalysisServiceMock(),
         compare_service=ServiceMock(test_queue),
         unpacking_service=ServiceMock(test_queue),
     )
-    interface.WAIT_TIME = 2
     yield interface
     interface.shutdown()
     test_queue.close()
 
 
 def test_backend_worker(intercom):
-    test_queue = Queue()
+    test_queue: Queue[str] = Queue()
     service = ServiceMock(test_queue)
     intercom._start_listener(CommunicationBackendMock, service.add_task)
     result = test_queue.get(timeout=5)
