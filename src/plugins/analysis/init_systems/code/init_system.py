@@ -1,8 +1,15 @@
+from __future__ import annotations
+
 import re
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.data_conversion import make_unicode_string
-from objects.file import FileObject
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from helperFunctions.types import AnalysisResult
+    from objects.file import FileObject
 
 FILE_IGNORES = ['README', 'README.md', 'README.txt', 'INSTALL', 'VERSION']
 
@@ -35,7 +42,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return list(file_object.virtual_file_path.values())[0][0]
 
     def _get_systemd_config(self, file_object):
-        result = {}
+        result: AnalysisResult = {}
         match_description = self._findall_regex(r'(?:Description=)(.*)', self.content)
         match_exec = self._findall_regex(r'(?<=ExecStart=).*', self.content)
         if match_exec:
@@ -48,7 +55,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_rc_config(self, _):
-        result = {}
+        result: AnalysisResult = {}
         matches = self._findall_regex(r'^(?!#)(.+)', self.content)
         if matches:
             result['script'] = '\n'.join(matches)
@@ -57,7 +64,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_inittab_config(self, _):
-        result = {}
+        result: AnalysisResult = {}
         matches_sysinit = self._findall_regex(r'^[^#].*(?<=sysinit:)([^#].*)', self.content)
         matches_respawn = self._findall_regex(r'^[^#].*(?<=respawn:)([^#].*)', self.content)
         all_matches = []
@@ -70,7 +77,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_initscript_config(self, _):
-        result = {}
+        result: AnalysisResult = {}
         matches = self._findall_regex(r'^(?!#)(.+)', self.content)
         if matches:
             result['script'] = '\n'.join(matches)
@@ -79,7 +86,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_upstart_config(self, file_object):
-        result = {}
+        result: AnalysisResult = {}
         match_description = self._findall_regex(r'^[^#].*(?<=description)\s*(.*)', self.content)
         match_exec = self._findall_regex(r'[^#]^exec\s*((?:.*\\\n)*.*)', self.content)
         match_pre_start = self._findall_regex(
@@ -99,7 +106,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_runit_config(self, file_object):
         # TODO description = filepath
-        result = {}
+        result: AnalysisResult = {}
         match_exec = self._findall_regex(r'^([^#](?:.*\\\n)*.*)', self.content)
         if match_exec:
             result['script'] = '\n'.join(match_exec)
@@ -109,7 +116,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_sysvinit_config(self, file_object):
-        result = {}
+        result: AnalysisResult = {}
         match_desc1 = self._findall_regex(r'Short-Description:\s*(.*)', self.content)
         match_desc2 = self._findall_regex(r'DESC=\"*([^\"|\n]*)', self.content)
         matches = self._findall_regex(r'^(?!#)(.+)', self.content)

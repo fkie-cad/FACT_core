@@ -20,7 +20,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object: FileObject):
         file_object.processed_analysis[self.NAME] = {'summary': []}
 
-        device_trees = dump_device_trees(file_object.binary)
+        device_trees = dump_device_trees(file_object.binary)  # type: ignore[arg-type]  # V0 will fix this
         if device_trees:
             file_object.processed_analysis[self.NAME]['device_trees'] = device_trees
             for result in device_trees:
