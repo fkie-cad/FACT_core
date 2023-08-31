@@ -26,12 +26,12 @@ class RoleSuperuser(RoleMixin):
 
 class SuperuserUser(UserMixin):
     id = 1
-    roles = [RoleSuperuser]  # noqa: RUF012
+    roles = (RoleSuperuser,)
 
 
 class NormalUser(UserMixin):
     id = 2
-    roles = []  # noqa: RUF012
+    roles = ()
 
 
 @pytest.mark.parametrize(

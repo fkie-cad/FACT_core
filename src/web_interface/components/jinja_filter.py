@@ -134,8 +134,8 @@ class FilterClass:
         )
 
     @staticmethod
-    def _split_user_and_password_type_entry(result: dict) -> dict[str, dict[str, str]]:
-        new_result: dict[str, dict[str, str]] = {}
+    def _split_user_and_password_type_entry(result: dict[str, dict[str, str]]) -> dict[str, dict[str, dict[str, str]]]:
+        new_result: dict[str, dict[str, dict[str, str]]] = {}
         for key, value in result.items():
             if ':' in key:
                 *user_elements, password_type = key.split(':')

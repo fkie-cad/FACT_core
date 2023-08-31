@@ -11,7 +11,7 @@ class TestAnalysisScheduling:
             self.VERSION = 1
 
     def setup_class(self):
-        self.analysis_plugins = {}
+        self.analysis_plugins: dict[str, TestAnalysisScheduling.PluginMock] = {}
         self.scheduler = AnalysisTaskScheduler(self.analysis_plugins)
         self.plugin_list = ['no_deps', 'foo', 'bar']
 

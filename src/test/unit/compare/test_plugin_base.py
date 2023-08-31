@@ -1,7 +1,10 @@
+from typing import cast
+
 import pytest
 
 from compare.PluginBase import CompareBasePlugin as ComparePlugin
 from compare.PluginBase import _get_unmatched_dependencies
+from storage.db_interface_comparison import ComparisonDbInterface
 from test.common_helper import CommonDatabaseMock, create_test_firmware
 
 fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
@@ -12,7 +15,10 @@ fw_three = create_test_firmware(device_name='dev_3', bin_path='container/test.ca
 @pytest.fixture
 def compare_plugin():
     db_mock = CommonDatabaseMock()
-    return ComparePlugin(db_interface=db_mock, view_updater=db_mock)  # type: ignore[abstract]
+    return ComparePlugin(  # type: ignore[abstract]
+        db_interface=cast(ComparisonDbInterface, db_mock),
+        view_updater=db_mock,
+    )
 
 
 @pytest.mark.backend_config_overwrite(

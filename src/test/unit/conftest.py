@@ -1,4 +1,4 @@
-from typing import Type, Any
+from typing import Type
 
 import pytest
 from pydantic import BaseModel
@@ -11,11 +11,10 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 
 class CommonIntercomMock:
-    task_list: list[Any]
     _common_fields: tuple[str, list, list, list, int] = ('0.0', [], [], [], 1)
 
     def __init__(self, *_, **__):
-        pass
+        self.task_list: list = []
 
     def get_available_analysis_plugins(self):
         return {
@@ -148,7 +147,8 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
     test_config = merge_markers(request, 'WebInterfaceUnitTestConfig', WebInterfaceUnitTestConfig)
 
     db_mock_instance = test_config.database_mock_class()
-    IntercomMockClass = test_config.intercom_mock_class  # noqa: N806
+    intercom_mock = test_config.intercom_mock_class()
+    intercom_mock.task_list = intercom_task_list
 
     def _add_flask_security_to_app_mock(app):
         add_flask_security_to_app(app)
@@ -156,11 +156,10 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
 
     monkeypatch.setattr('web_interface.frontend_main.add_flask_security_to_app', _add_flask_security_to_app_mock)
 
-    monkeypatch.setattr(IntercomMockClass, 'task_list', intercom_task_list)
     # Note: The intercom argument is only the class. It gets instanced when intercom access in needed by `ConnectTo`.
     frontend = WebFrontEnd(
         db=FrontendDatabaseMock(db_mock_instance),  # type: ignore[arg-type]
-        intercom=IntercomMockClass,
+        intercom=intercom_mock,
         status_interface=test_config.status_mock_class(),
     )
     frontend.app.config['TESTING'] = True

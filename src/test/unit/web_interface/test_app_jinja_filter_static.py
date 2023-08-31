@@ -1,3 +1,5 @@
+from typing import cast
+
 import pytest
 
 from web_interface.components.jinja_filter import FilterClass
@@ -8,8 +10,8 @@ def test_split_user_and_password_type_entry():
     old_test_entry_form = {'test': {'password': '123456'}}
     expected_new_entry = {'test': {'mosquitto': {'password': '123456'}}}
     expected_old_entry = {'test': {'unix': {'password': '123456'}}}
-    assert expected_new_entry == FilterClass._split_user_and_password_type_entry(new_test_entry_form)
-    assert expected_old_entry == FilterClass._split_user_and_password_type_entry(old_test_entry_form)
+    assert FilterClass._split_user_and_password_type_entry(new_test_entry_form) == expected_new_entry
+    assert FilterClass._split_user_and_password_type_entry(old_test_entry_form) == expected_old_entry
 
 
 @pytest.mark.parametrize(
@@ -72,5 +74,5 @@ class FilterClassMock:
     ],
 )
 def test_data_to_chart_limited(input_data, limit, expected_result):
-    result = FilterClass.data_to_chart_limited(FilterClassMock(), input_data, limit=limit)
+    result = FilterClass.data_to_chart_limited(cast(FilterClass, FilterClassMock()), input_data, limit=limit)
     assert result == expected_result
