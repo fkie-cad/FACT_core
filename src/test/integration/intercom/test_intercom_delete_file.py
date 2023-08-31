@@ -1,8 +1,10 @@
 import logging
+from typing import cast
 
 import pytest
 
 from intercom.back_end_binding import InterComBackEndDeleteFile
+from storage.fsorganizer import FSOrganizer
 from test.common_helper import CommonDatabaseMock
 from test.integration.common import MockFSOrganizer
 
@@ -18,7 +20,7 @@ class UnpackingLockMock:
 @pytest.fixture
 def mock_listener():
     listener = InterComBackEndDeleteFile(unpacking_locks=UnpackingLockMock(), db_interface=CommonDatabaseMock())
-    listener.fs_organizer = MockFSOrganizer()
+    listener.fs_organizer = cast(FSOrganizer, MockFSOrganizer())
     return listener
 
 
