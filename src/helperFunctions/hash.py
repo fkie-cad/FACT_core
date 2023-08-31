@@ -29,11 +29,10 @@ def get_hash(hash_function, binary):
 
     :param hash_function: The hash function to use. See hashlib for more
     :param binary: The data to hash, either as string or array of Integers
-    :return: The hash as hexstring
+    :return: The hash as hex string
     """
-    binary = make_bytes(binary)
     raw_hash = new(hash_function)
-    raw_hash.update(binary)
+    raw_hash.update(make_bytes(binary))
     return raw_hash.hexdigest()
 
 

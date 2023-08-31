@@ -36,6 +36,12 @@ class DbMock(CommonDatabaseMock):
             return {'system': {'cpu_percentage': 13.37}, 'analysis': {'current_analyses': [None, None]}}
         return None
 
+    def get_stats_list(self, *identifiers: str):
+        return [{'foo': 'bar'}]
+
+    def peek_in_binary(self, uid, offset, length):
+        return b'foobar'
+
 
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestAppAjaxRoutes:
@@ -68,13 +74,11 @@ class TestAppAjaxRoutes:
         assert result['number_of_running_analyses'] == 'n/a'
 
     def test_ajax_system_health(self, test_client):
-        DbMock.get_stats_list = lambda *_: [{'foo': 'bar'}]
         result = test_client.get('/ajax/system_health').json
         assert 'systemHealth' in result
         assert result['systemHealth'] == [{'foo': 'bar'}]
 
     def test_ajax_get_hex_preview(self, test_client):
-        DbMock.peek_in_binary = lambda *_: b'foobar'
         result = test_client.get('/ajax_get_hex_preview/some_uid/0/10')
         assert result.data.startswith(b'<pre')
         assert b'foobar' in result.data

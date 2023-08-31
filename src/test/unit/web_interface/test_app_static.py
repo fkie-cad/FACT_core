@@ -14,7 +14,7 @@ SRC_DIR = Path(get_src_dir())
 
 
 def _find_static_files() -> Iterable[tuple[str, set[str]]]:
-    result = {}
+    result: dict[str, set[str]] = {}
     for template in get_template_dir().glob('**/*.html'):
         for static_url in URL_FOR_REGEX.findall(template.read_text()):
             result.setdefault(static_url, set()).add(str(template.relative_to(SRC_DIR)))

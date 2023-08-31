@@ -59,9 +59,9 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         assert 'Error when calling YARA' in result
 
     def test_eliminate_duplicates(self):
-        test_dict = {1: [1, 2, 3, 3], 2: [1, 1, 2, 3]}
+        test_dict = {'1': ['1', '2', '3', '3'], '2': ['1', '1', '2', '3']}
         self.yara_binary_scanner._eliminate_duplicates(test_dict)
-        assert test_dict == {1: [1, 2, 3], 2: [1, 2, 3]}
+        assert test_dict == {'1': ['1', '2', '3'], '2': ['1', '2', '3']}
 
     def test_parse_raw_result(self):
         raw_result = 'rule_1 match_1\nrule_1 match_2\nrule_2 match_1'

@@ -16,12 +16,12 @@ import pydantic
 from pydantic import ConfigDict, BaseModel
 
 import config
+from helperFunctions.virtual_file_path import VfpDict  # noqa: TCH001  # pydantic actually needs these imports
+from objects.file import FileObject  # noqa: TCH001
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 from storage.fsorganizer import FSOrganizer
 
 if TYPE_CHECKING:
-    from helperFunctions.virtual_file_path import VfpDict
-    from objects.file import FileObject
     from helperFunctions.types import MpValue, MpArray
     from analysis.plugin import AnalysisPluginV0
 
