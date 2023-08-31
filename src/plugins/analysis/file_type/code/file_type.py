@@ -8,6 +8,8 @@ from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 import io
 from typing import List
 
+from helperFunctions.virtual_file_path import VfpDict
+
 
 class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     class Schema(pydantic.BaseModel):
@@ -31,7 +33,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     def summarize(self, result: Schema) -> List[str]:
         return [result.mime]
 
-    def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
+    def analyze(self, file_handle: io.FileIO, virtual_file_path: VfpDict, analyses: dict) -> Schema:
         del virtual_file_path, analyses
 
         file_dict = get_file_type_from_path(file_handle.name)

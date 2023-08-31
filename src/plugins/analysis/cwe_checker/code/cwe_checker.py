@@ -11,9 +11,10 @@ Currently, the cwe_checker supports the following architectures:
 - PowerPC
 - Mips
 """
+from __future__ import annotations
+
 import json
 import logging
-from collections import defaultdict
 
 from docker.types import Mount
 
@@ -82,24 +83,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result.stdout
 
     @staticmethod
-    def _parse_cwe_checker_output(output):
-        tmp = defaultdict(list)
-        j_doc = json.loads(output)
+    def _parse_cwe_checker_output(output: str) -> dict[str, dict]:
+        j_doc: list[dict] = json.loads(output)
+
+        res: dict[str, dict] = {}
         for warning in j_doc:
-            tmp[warning['name']] = tmp[warning['name']] + [
-                warning,
-            ]
-
-        res = {}
-        for key, values in tmp.items():
-            tmp_list = []
-            plugin_version = None
-            for hit in values:
-                tmp_list.append(hit['description'])
-                if not plugin_version:
-                    plugin_version = hit['version']
-            res[key] = {'plugin_version': plugin_version, 'warnings': tmp_list}
-
+            res.setdefault(warning['name'], {'plugin_version': warning['version'], 'warnings': []})
+            res[warning['name']]['warnings'].append(warning['description'])
         return res
 
     def _is_supported_arch(self, file_object):

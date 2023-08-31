@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from multiprocessing.sharedctypes import Synchronized, SynchronizedArray
 from tempfile import _TemporaryFileWrapper
-from typing import Protocol, TypeVar, TypeAlias, NamedTuple, TYPE_CHECKING
+from typing import Dict, List, Protocol, TypeVar, TypeAlias, NamedTuple, TYPE_CHECKING, Union
 from unittest.mock import _patch
 
 
@@ -11,6 +11,10 @@ if TYPE_CHECKING:
 
 KT = TypeVar('KT', str, tuple, bytes)  # generic key type
 VT = TypeVar('VT')  # generic value type
+
+# analysis results should be JSON compatible (i.e. no sets, byte strings, etc.)
+JSON = Union[Dict[str, 'JSON'], List['JSON'], str, int, float, bool, None]
+AnalysisResult: TypeAlias = Dict[str, JSON]
 
 # NamedTemporaryFile is actually a function that returns an instance of class _TemporaryFileWrapper, so it can't be
 # used for type hinting

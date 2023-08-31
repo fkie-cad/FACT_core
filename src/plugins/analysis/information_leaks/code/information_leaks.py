@@ -92,7 +92,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self._find_artifacts(file_object)
             file_object.processed_analysis[self.NAME]['summary'] = sorted(file_object.processed_analysis[self.NAME])
         else:
-            result, summary = _find_regex(file_object.binary, PATH_REGEX)
+            result, summary = _find_regex(file_object.binary, PATH_REGEX)  # type: ignore[arg-type]  # V0 will fix this
             file_object.processed_analysis[self.NAME].update(result)
             file_object.processed_analysis[self.NAME]['summary'] = summary
         return file_object
@@ -118,7 +118,7 @@ def _find_files(file_path: str) -> dict[str, list[str]]:
 
 
 def _check_for_files(file_path: str) -> dict[str, list[str]]:
-    results = {}
+    results: dict[str, list[str]] = {}
     for key_path, artifact in PATH_ARTIFACT_DICT.items():
         if file_path.endswith(key_path):
             results.setdefault(artifact, []).append(file_path)
@@ -126,7 +126,7 @@ def _check_for_files(file_path: str) -> dict[str, list[str]]:
 
 
 def _check_for_directories(file_path: str) -> dict[str, list[str]]:
-    results = {}
+    results: dict[str, list[str]] = {}
     for key_path, artifact in DIRECTORY_DICT.items():
         file_path_list = file_path.split('/')
         if len(file_path_list) > 1 and file_path_list[-2] == key_path:
@@ -135,7 +135,7 @@ def _check_for_directories(file_path: str) -> dict[str, list[str]]:
 
 
 def _find_regex(search_term: bytes, regex_dict: dict[str, re.Pattern]) -> tuple[dict[str, list[str]], list[str]]:
-    results = {}
+    results: dict[str, list[str]] = {}
     summary = set()
     for label, regex in regex_dict.items():
         result = regex.findall(search_term)
