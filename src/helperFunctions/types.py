@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from multiprocessing.sharedctypes import Synchronized, SynchronizedArray
+from multiprocessing.synchronize import Event
 from tempfile import _TemporaryFileWrapper
 from typing import Dict, List, Protocol, TypeVar, TypeAlias, NamedTuple, TYPE_CHECKING, Union
 from unittest.mock import _patch
@@ -25,6 +26,7 @@ TmpFile: TypeAlias = _TemporaryFileWrapper
 # the actual subclass of SynchronizedBase for Value that is returned)
 MpValue: TypeAlias = Synchronized
 MpArray: TypeAlias = SynchronizedArray
+MpEvent: TypeAlias = Event
 
 # comparison ID: Represents one comparison between two or more firmwares.
 # Consists of UIDs with semicolons in-between (e.g. "uid1;uid2;...")
