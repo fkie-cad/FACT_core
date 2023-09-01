@@ -29,7 +29,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'input_vectors'
     DESCRIPTION = 'Determines possible input vectors of an ELF executable like stdin, network, or syscalls.'
     DEPENDENCIES = ['file_type']  # noqa: RUF012
-    VERSION = '0.1.2'
+    VERSION = '0.1.3'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']  # noqa: RUF012
     FILE = __file__
 
