@@ -3,12 +3,13 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import List, Dict
 
 import r2pipe
 
 
 class RadareAPI:
-    def __init__(self, path_to_elf: str, config: dict):
+    def __init__(self, path_to_elf: str, config: Dict):
         self.config = config
         self.api = r2pipe.open(path_to_elf)
 
@@ -66,8 +67,8 @@ class RadareAPI:
                         interrupts.append(instruction['offset'])
         return interrupts
 
-    def find_input_vectors(self) -> list[dict]:
-        input_vectors: list[dict] = []
+    def find_input_vectors(self) -> List[Dict]:
+        input_vectors: List[Dict] = []
         function_list = self.api.cmdj('aflj')
         if not function_list:
             return input_vectors
@@ -83,8 +84,8 @@ class RadareAPI:
             )
         return input_vectors
 
-    def find_input_vectors_of_function(self, function) -> list[dict]:
-        input_vectors: list[dict] = []
+    def find_input_vectors_of_function(self, function) -> List[Dict]:
+        input_vectors: List[Dict] = []
         clean_import = function['name'].replace(self.config['import_prefix'], '')
         for input_class in self.config['input_classes']:
             if self.matches_import(clean_import.lower(), self.config['input_classes'][input_class]):
@@ -106,8 +107,8 @@ def get_class_summary(input_vectors):
     return list(classes)
 
 
-def group_input_vectors(input_vectors: list[dict]) -> dict[str, list[dict]]:
-    result: dict[str, list[dict]] = {}
+def group_input_vectors(input_vectors: List[Dict]) -> Dict[str, List[Dict]]:
+    result: Dict[str, List[Dict]] = {}
     for entry in input_vectors:
         result.setdefault(entry['class'], []).append({'name': entry['name'], 'xrefs': entry['xrefs']})
     return result

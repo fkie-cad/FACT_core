@@ -10,6 +10,7 @@ USER r2
 WORKDIR /home/r2
 ENV HOME /home/r2
 
-COPY internal/ /home/r2/input_vectors/
+COPY config.json .
+COPY input_vectors_r2.py .
 
-ENTRYPOINT [ "python3", "/home/r2/input_vectors/input_vectors_r2.py" ]
+ENTRYPOINT [ "python3", "input_vectors_r2.py" ]
