@@ -177,7 +177,7 @@ class MigrationMongoInterface(MongoInterface):
         :return: dict
         """
         if analysis_filter is None:
-            plugins = sanitized_dict.keys()
+            plugins: set[str] = set(sanitized_dict.keys())
         else:
             # only use the plugins from analysis_filter that are actually in the results
             plugins = set(sanitized_dict.keys()).intersection(analysis_filter)
@@ -232,7 +232,7 @@ def _fix_illegal_dict(dict_: dict, label=''):
                 logging.debug('converting users_and_passwords entry to str...')
                 dict_[key] = value.decode(errors='replace').replace('\0', '\\x00')
             else:
-                logging.debug(f'entry ({label}) {key} has illegal type bytes: {value[:10]}')
+                logging.debug(f'entry ({label}) {key} has illegal type bytes: {value[:10]!r}')
                 sys.exit(1)
         elif isinstance(value, dict):
             _fix_illegal_dict(value, label)
@@ -246,11 +246,11 @@ def _fix_illegal_dict(dict_: dict, label=''):
             dict_[key] = value.replace('\0', '\\x00')
 
 
-def _fix_illegal_list(list_: list, key=None, label=''):
+def _fix_illegal_list(list_: list, key=None, label: str = ''):
     for index, element in enumerate(list_):
         if isinstance(element, bytes):
             logging.debug(
-                f'array entry ({label}) {key} has illegal type bytes: {element[:10]}... -> converting to str...'
+                f'array entry ({label}) {key} has illegal type bytes: {element[:10]!r}... -> converting to str...'
             )
             list_[index] = element.decode()
         elif isinstance(element, dict):
@@ -355,8 +355,8 @@ class DbMigrator:
         return migrated_fw_count
 
     def _migrate_single_object(self, firmware_object: Firmware | FileObject, parent_uid: str, root_uid: str):
-        firmware_object.parents = [parent_uid]
-        firmware_object.parent_firmware_uids = [root_uid]
+        firmware_object.parents = {parent_uid}
+        firmware_object.parent_firmware_uids = {root_uid}
         processed_analysis = firmware_object.processed_analysis
         firmware_object.processed_analysis = {}
         try:
