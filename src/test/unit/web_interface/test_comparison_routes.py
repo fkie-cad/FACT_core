@@ -19,8 +19,7 @@ class TemplateDbMock(CommonDatabaseMock):
 
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=TemplateDbMock)
 def test_get_compare_plugin_views(web_frontend):
-    compare_result = {'plugins': {}}
-    result = CompareRoutes._get_compare_plugin_views(web_frontend, compare_result)
+    result = CompareRoutes._get_compare_plugin_views(web_frontend, {'plugins': {}})
     assert result == ([], [])
 
     compare_result = {'plugins': {'plugin_1': None, 'plugin_2': None}}

@@ -1,11 +1,12 @@
 from multiprocessing import Event, Queue, Value
-from typing import List, NamedTuple, Type, TypeVar
+from typing import Iterator, List, NamedTuple, Type, TypeVar
 
 import pytest
 from pydantic import BaseModel, Extra
 from pathlib import Path
 
 import config
+from helperFunctions.types import MpEvent, MpValue
 from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
@@ -187,7 +188,7 @@ def _database_interfaces():  # noqa: PT005
 
 
 @pytest.fixture
-def database_interfaces(_database_interfaces) -> DatabaseInterfaces:
+def database_interfaces(_database_interfaces) -> Iterator[DatabaseInterfaces]:
     """Returns an object containing all database interfaces.
     The database is emptied after this fixture goes out of scope.
     """
@@ -262,7 +263,7 @@ def pre_analysis_queue(request) -> Queue:
 
 
 @pytest.fixture
-def analysis_finished_event(request) -> Event:
+def analysis_finished_event(request) -> MpEvent:
     """An event that is set once the :py:func:`analysis_scheduler` has analyzed
     :py:attribute:`SchedulerTestConfig.items_to_analyze` items.
 
@@ -279,13 +280,13 @@ def analysis_finished_event(request) -> Event:
 
 
 @pytest.fixture
-def analysis_finished_counter() -> Value:
+def analysis_finished_counter() -> MpValue:
     """A :py:class:`Value` counting how many analyses are finished."""
-    return Value('i', 0)
+    return Value('i', 0)  # type: ignore[return-value]
 
 
 @pytest.fixture
-def _unpacking_lock_manager() -> UnpackingLockManager:  # noqa: PT005
+def _unpacking_lock_manager() -> Iterator[UnpackingLockManager]:  # noqa: PT005
     _manager = UnpackingLockManager()
     yield _manager
     _manager.shutdown()
@@ -307,14 +308,13 @@ def _store_file_if_not_exists(fs_organizer, file_object):
 @pytest.fixture
 def analysis_scheduler(  # noqa: PLR0913
     request,  # noqa: ARG001
-    pre_analysis_queue,
     post_analysis_queue,
     analysis_finished_event,
     analysis_finished_counter,
     _unpacking_lock_manager,
     test_config,
     monkeypatch,
-) -> AnalysisScheduler:
+) -> Iterator[AnalysisScheduler]:
     """Returns an instance of :py:class:`~scheduler.analysis.AnalysisScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """
@@ -335,16 +335,9 @@ def analysis_scheduler(  # noqa: PLR0913
         _store_file_if_not_exists(fs_organizer, file_object)
         start_analysis_of_object(file_object)
 
-    _analysis_scheduler.start_analysis_of_object = _start_analysis_of_object_wrapper
+    _analysis_scheduler.start_analysis_of_object = _start_analysis_of_object_wrapper  # type: ignore[method-assign]
 
     _analysis_scheduler.db_backend_service = test_config.backend_db_class()
-
-    def _pre_analysis_hook(fw):
-        pre_analysis_queue.put(fw)
-        if test_config.pipeline:
-            _analysis_scheduler.db_backend_service.add_object(fw)
-
-    _analysis_scheduler.pre_analysis = _pre_analysis_hook
 
     def _post_analysis_hook(*args):
         post_analysis_queue.put(args)
@@ -376,16 +369,16 @@ def post_unpack_queue(request) -> Queue:
 
 
 @pytest.fixture
-def unpacking_finished_event(request) -> Event:
+def unpacking_finished_event(request) -> MpEvent:
     """An event that triggers when the expected number of extractions are completed."""
     _assert_fixture_is_requested(request, 'unpacking_scheduler')
     return Event()
 
 
 @pytest.fixture
-def unpacking_finished_counter() -> Value:
+def unpacking_finished_counter() -> MpValue:
     """A :py:class:`Value` counting how many extractions are finished."""
-    return Value('i', 0)
+    return Value('i', 0)  # type: ignore[return-value]
 
 
 @pytest.fixture
@@ -396,7 +389,7 @@ def unpacking_scheduler(
     test_config,
     unpacking_finished_event,
     unpacking_finished_counter,
-) -> UnpackingScheduler:
+) -> Iterator[UnpackingScheduler]:
     """Returns an instance of :py:class:`~scheduler.unpacking_scheduler.UnpackingScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """
@@ -429,7 +422,7 @@ def unpacking_scheduler(
         _store_file_if_not_exists(fs_organizer, fw)
         add_task(fw)
 
-    _unpacking_scheduler.add_task = _add_task_wrapper
+    _unpacking_scheduler.add_task = _add_task_wrapper  # type: ignore[method-assign]
 
     if test_config.start_processes:
         _unpacking_scheduler.start()
@@ -441,7 +434,7 @@ def unpacking_scheduler(
 
 
 @pytest.fixture
-def comparison_finished_event(request) -> Event:
+def comparison_finished_event(request) -> MpEvent:
     """The returned event is set once the comparison_scheduler is finished comparing.
     Note that the event must be reset if you want to do multiple comparisons in one test.
 
@@ -454,7 +447,11 @@ def comparison_finished_event(request) -> Event:
 
 
 @pytest.fixture
-def comparison_scheduler(request, comparison_finished_event, test_config) -> ComparisonScheduler:  # noqa: ARG001
+def comparison_scheduler(
+    request,  # noqa: ARG001
+    comparison_finished_event,
+    test_config,
+) -> Iterator[ComparisonScheduler]:
     """Returns an instance of :py:class:`~scheduler.comparison_scheduler.ComparisonScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """

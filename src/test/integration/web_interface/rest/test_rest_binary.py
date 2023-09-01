@@ -8,6 +8,10 @@ from storage.db_interface_backend import BackendDbInterface
 from test.common_helper import create_test_firmware, store_binary_on_file_system
 from test.integration.intercom import test_backend_scheduler
 from test.integration.web_interface.rest.base import RestTestBase
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
 @pytest.mark.usefixtures('database_interfaces')
@@ -15,7 +19,7 @@ class TestRestDownload(RestTestBase):
     def setup(self):
         super().setup()
         self.db_interface = BackendDbInterface()
-        self.test_queue = Queue()
+        self.test_queue: Queue[FileObject] = Queue()
 
     def teardown(self):
         self.test_queue.close()

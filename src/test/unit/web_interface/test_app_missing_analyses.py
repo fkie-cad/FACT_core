@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import pytest
 
 from test.common_helper import CommonDatabaseMock
 
 
 class DbMock(CommonDatabaseMock):
-    result = None
+    result: dict | None = None
 
     def find_missing_analyses(self):
         return self.result

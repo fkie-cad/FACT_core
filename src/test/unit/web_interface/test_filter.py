@@ -7,7 +7,7 @@ import pytest
 
 import web_interface.filter as flt
 
-UNSORTABLE_LIST = [[], ()]
+UNSORTABLE_LIST: list = [[], ()]
 
 
 def test_set_limit_for_data_to_chart():
@@ -102,13 +102,9 @@ def test_list_to_line_break_string_no_sort(input_data, expected_result):
 
 
 def test_nice_unix_time_stamp():
-    input_data = 1459427460
-    assert flt.nice_unix_time(input_data).startswith('2016-03-31')
-    assert flt.nice_unix_time(input_data).endswith(':31:00')
-
-    input_data = 1459427460.4
-    assert flt.nice_unix_time(input_data).startswith('2016-03-31')
-    assert flt.nice_unix_time(input_data).endswith(':31:00')
+    for input_data in (1459427460, 1459427460.4):
+        assert flt.nice_unix_time(input_data).startswith('2016-03-31')
+        assert flt.nice_unix_time(input_data).endswith(':31:00')
 
     assert flt.nice_unix_time('test') == 'test'
 
@@ -264,7 +260,7 @@ def test_user_has_role(user, role, expected_result):
 
 def test_sort_roles_by_number_of_privileges():
     roles = ['a', 'b', 'c']
-    privileges = {
+    privileges: dict[str, list[str]] = {
         'p_1': ['b'],
         'p_2': ['a', 'b', 'c'],
         'p_3': ['b', 'c'],
@@ -287,7 +283,7 @@ def test_filter_decompress():
     test_string = 'test123'
     assert flt.decompress(b64encode(compress(test_string.encode())).decode()) == test_string
     assert flt.decompress(test_string) == test_string
-    assert flt.decompress(None) is None
+    assert flt.decompress(None) is None  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(

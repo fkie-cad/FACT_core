@@ -143,17 +143,9 @@ def test_remove_virtual_path_from_root(input_data, expected_output):
 
 
 class TestVirtualPathFileTree:
-    tree_data = {  # noqa: RUF012
-        'uid': 'uid',
-        'file_name': 'foo.exe',
-        'size': 1,
-        'mime': 'footype',
-        'included_files': set(),
-    }
-
     def test_multiple_paths(self):
-        fo_data = {**self.tree_data, 'virtual_file_path': {'root_uid': ['/dir1/file1', '/dir2/file2']}}
-        nodes = self._nodes_by_name(VirtualPathFileTree('root_uid', 'root_uid', FileTreeData(**fo_data)))
+        ft_data = _get_tree_data(vfp={'root_uid': ['/dir1/file1', '/dir2/file2']})
+        nodes = _nodes_by_name(VirtualPathFileTree('root_uid', 'root_uid', ft_data))
         assert len(nodes) == 2, 'wrong number of nodes created'  # noqa: PLR2004
         assert 'dir1' in nodes
         assert 'dir2' in nodes
@@ -161,15 +153,23 @@ class TestVirtualPathFileTree:
         assert nodes['dir1'].get_names_of_children() == ['file1']
 
     def test_multiple_occurrences(self):
-        fo_data = {
-            **self.tree_data,
-            'virtual_file_path': {'parent_1': ['/foo/bar'], 'parent_2': ['/other/path']},
-        }
-        nodes = self._nodes_by_name(VirtualPathFileTree('root_uid', 'parent_1', FileTreeData(**fo_data)))
+        ft_data = _get_tree_data(vfp={'parent_1': ['/foo/bar'], 'parent_2': ['/other/path']})
+        nodes = _nodes_by_name(VirtualPathFileTree('root_uid', 'parent_1', ft_data))
         assert len(nodes) == 1, 'includes duplicates'
         assert 'foo' in nodes
         assert 'other' not in nodes
 
-    @staticmethod
-    def _nodes_by_name(file_tree: VirtualPathFileTree) -> dict[str, FileTreeNode]:
-        return {node.name: node for node in file_tree.get_file_tree_nodes()}
+
+def _nodes_by_name(file_tree: VirtualPathFileTree) -> dict[str, FileTreeNode]:
+    return {node.name: node for node in file_tree.get_file_tree_nodes()}
+
+
+def _get_tree_data(vfp):
+    return FileTreeData(
+        uid='uid',
+        file_name='foo.exe',
+        size=1,
+        mime='footype',
+        included_files=set(),
+        virtual_file_path=vfp,
+    )

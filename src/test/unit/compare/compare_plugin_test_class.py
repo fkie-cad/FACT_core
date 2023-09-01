@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import gc
 from configparser import ConfigParser
-from typing import Type, TYPE_CHECKING
+from typing import cast, Type, TYPE_CHECKING
 
+from storage.db_interface_comparison import ComparisonDbInterface
 from test.common_helper import CommonDatabaseMock, create_test_firmware
 
 if TYPE_CHECKING:
@@ -30,7 +31,7 @@ class ComparePluginTest:
         assert self.PLUGIN_CLASS is not None, f'PLUGIN_CLASS should be set by {self.__class__}'
         db_mock = CommonDatabaseMock()
         return self.PLUGIN_CLASS(
-            db_interface=db_mock,
+            db_interface=cast(ComparisonDbInterface, db_mock),
             view_updater=db_mock,
         )
 
@@ -48,3 +49,4 @@ class ComparePluginTest:
         self.fw_three = create_test_firmware(
             device_name='dev_3', bin_path='container/test.cab', all_files_included_set=True
         )
+        pass

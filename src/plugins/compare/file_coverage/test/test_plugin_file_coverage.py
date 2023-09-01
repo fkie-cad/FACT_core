@@ -33,8 +33,8 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         return ComparePlugin(db_interface=DbMock(), view_updater=CommonDatabaseMock())
 
     def test_get_intersection_of_files(self):
-        self.fw_one.list_of_all_included_files.append('foo')
-        self.fw_two.list_of_all_included_files.append('foo')
+        self.fw_one.list_of_all_included_files.add('foo')
+        self.fw_two.list_of_all_included_files.add('foo')
         result = self.c_plugin._get_intersection_of_files([self.fw_one, self.fw_two])
         assert isinstance(result, dict), 'result is not a dict'
         assert 'all' in result, 'all field not present'
@@ -49,8 +49,8 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         assert self.fw_two.uid not in result[self.fw_one.uid], 'fw_two in exclusive file of fw one'
 
     def test_get_files_in_more_than_one_but_not_in_all(self):
-        self.fw_one.list_of_all_included_files.append('foo')
-        self.fw_two.list_of_all_included_files.append('foo')
+        self.fw_one.list_of_all_included_files.add('foo')
+        self.fw_two.list_of_all_included_files.add('foo')
         fo_list = [self.fw_one, self.fw_two, self.fw_three]
         tmp_result_dict: dict[str, dict] = {'files_in_common': {}, 'exclusive_files': {}}
         tmp_result_dict['files_in_common']['all'] = set()
@@ -63,8 +63,8 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         assert 'foo' not in result[self.fw_three.uid], 'foo in result fw_three'
 
     def test_run_compare_plugin(self):
-        self.fw_one.list_of_all_included_files.append('foo')
-        self.fw_two.list_of_all_included_files.append('foo')
+        self.fw_one.list_of_all_included_files.add('foo')
+        self.fw_two.list_of_all_included_files.add('foo')
         result = self.c_plugin.compare_function([self.fw_one, self.fw_two])
         assert len(result.keys()) == 5  # noqa: PLR2004
 
