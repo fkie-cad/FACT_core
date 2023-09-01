@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import re
@@ -7,6 +9,10 @@ from subprocess import PIPE, STDOUT
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 SHELL_SCRIPT = Path(get_src_dir()) / 'bin' / 'checksec'
 

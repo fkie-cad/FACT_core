@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from plugins.compare.file_coverage.code.file_coverage import ComparePlugin, generate_similarity_sets
