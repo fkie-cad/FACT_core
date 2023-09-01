@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from helperFunctions.data_conversion import normalize_compare_id
