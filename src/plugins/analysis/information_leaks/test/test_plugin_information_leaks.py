@@ -21,7 +21,7 @@ class TestAnalysisPluginInformationLeaks:
 
         result = fo.processed_analysis[analysis_plugin.NAME]
         assert 'user_paths' in result
-        assert result['user_paths'] == [  # type: ignore[comparison-overlap]
+        assert result['user_paths'] == [
             '/home/multiple/file.a',
             '/home/multiple/file.b',
             '/home/user/test/urandom',
@@ -29,10 +29,10 @@ class TestAnalysisPluginInformationLeaks:
         ]
 
         assert 'www_path' in result
-        assert result['www_path'] == ['/var/www/tmp/me_']  # type: ignore[comparison-overlap]
+        assert result['www_path'] == ['/var/www/tmp/me_']
 
         assert 'root_path' in result
-        assert result['root_path'] == ['/root/user_name/this_directory']  # type: ignore[comparison-overlap]
+        assert result['root_path'] == ['/root/user_name/this_directory']
 
         assert 'summary' in result
         assert sorted(result['summary']) == ['root_path', 'user_paths', 'www_path']
@@ -58,7 +58,7 @@ class TestAnalysisPluginInformationLeaks:
         analysis_plugin.process_object(fo)
         result = fo.processed_analysis[analysis_plugin.NAME]
         assert 'summary' in result
-        assert result['summary'] == [  # type: ignore[comparison-overlap]
+        assert result['summary'] == [
             'any_history',
             'git_config',
             'keil_uvision_config',

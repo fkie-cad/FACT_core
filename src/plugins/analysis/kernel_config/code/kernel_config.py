@@ -31,6 +31,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self.kernel_pattern_old = re.compile(r'^# Linux kernel version: [\d.]+$', re.MULTILINE)
 
     def process_object(self, file_object: FileObject) -> FileObject:
+        # FixMe: fo.binary and path should always be set in plugins; should be fixed by V0 migration
+        if file_object.binary is None:
+            raise RuntimeError('FileObject.binary is None')
+
         file_object.processed_analysis[self.NAME] = {}
 
         if self.object_mime_is_plaintext(file_object) and (

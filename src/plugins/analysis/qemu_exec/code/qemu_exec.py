@@ -25,9 +25,10 @@ from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from storage.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from multiprocessing.managers import DictProxy
     from objects.file import FileObject
 
 TIMEOUT_IN_SECONDS = 15
@@ -82,8 +83,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
         ]
     )
 
-    root_path = None
-
     def __init__(self, *args, unpacker=None, **kwargs):
         self.unpacker = Unpacker() if unpacker is None else unpacker
         super().__init__(*args, **kwargs)
@@ -111,23 +110,23 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         if extracted_files_dir.is_dir():
             try:
-                self.root_path = self._find_root_path(extracted_files_dir)
-                file_list = self._find_relevant_files(extracted_files_dir)
+                root_path = self._find_root_path(extracted_files_dir)
+                file_list = self._find_relevant_files(extracted_files_dir, root_path)
                 if file_list:
                     file_object.processed_analysis[self.NAME]['files'] = {}
-                    self._process_included_files(file_list, file_object)
+                    self._process_included_files(file_list, file_object, root_path)
             finally:
                 tmp_dir.cleanup()
 
         return file_object
 
-    def _find_relevant_files(self, extracted_files_dir: Path):
+    def _find_relevant_files(self, extracted_files_dir: Path, root_path: Path):
         result = []
         for path in safe_rglob(extracted_files_dir):
             if path.is_file() and not path.is_symlink():
                 file_type = get_file_type_from_path(path.absolute())
                 if self._has_relevant_type(file_type):
-                    result.append((f'/{path.relative_to(Path(self.root_path))}', file_type['full']))
+                    result.append((f'/{path.relative_to(root_path)}', file_type['full']))
         return result
 
     def _find_root_path(self, extracted_files_dir: Path) -> Path:
@@ -142,12 +141,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
             return True
         return False
 
-    def _process_included_files(self, file_list, file_object):
+    def _process_included_files(self, file_list, file_object, root_path: Path):
         manager = Manager()
         executor = ThreadPoolExecutor(max_workers=8)
         results_dict = manager.dict()
 
-        jobs = self._run_analysis_jobs(executor, file_list, file_object, results_dict)
+        jobs = self._run_analysis_jobs(executor, file_list, file_object, results_dict, root_path)
         for future in jobs:  # wait for jobs to finish
             future.result()
         executor.shutdown(wait=False)
@@ -155,21 +154,20 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self._add_tag(file_object)
         manager.shutdown()
 
-    def _run_analysis_jobs(
+    def _run_analysis_jobs(  # noqa: PLR0913
         self,
         executor: ThreadPoolExecutor,
         file_list: list[tuple[str, str]],
         file_object: FileObject,
-        results_dict: dict,
+        results_dict: DictProxy,
+        root_path: Path,
     ) -> list[Future]:
         jobs = []
         for file_path, full_type in file_list:
-            uid = self._get_uid(file_path, self.root_path)
+            uid = self._get_uid(file_path, root_path)
             if self._analysis_not_already_completed(file_object, uid):
                 for arch_suffix in self._find_arch_suffixes(full_type):
-                    jobs.append(
-                        executor.submit(process_qemu_job, file_path, arch_suffix, self.root_path, results_dict, uid)
-                    )
+                    jobs.append(executor.submit(process_qemu_job, file_path, arch_suffix, root_path, results_dict, uid))
         return jobs
 
     def _analysis_not_already_completed(self, file_object, uid):
@@ -210,7 +208,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return []
 
 
-def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_dict: dict, uid: str):
+def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_dict: DictProxy | dict, uid: str):
     result = check_qemu_executability(file_path, arch_suffix, root_path)
     if result:
         if uid in results_dict:
@@ -280,7 +278,7 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
         return {'error': 'could not decode result'}
 
 
-def process_docker_output(docker_output: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
+def process_docker_output(docker_output: dict) -> dict:
     process_strace_output(docker_output)
     replace_empty_strings(docker_output)
     merge_identical_results(docker_output)
@@ -288,7 +286,7 @@ def process_docker_output(docker_output: dict[str, dict[str, str]]) -> dict[str,
 
 
 def decode_output_values(result_dict: dict[str, dict[str, str | int]]) -> dict[str, dict[str, str]]:
-    result = {}
+    result: dict[str, dict[str, str]] = {}
     for parameter in result_dict:
         for key, value in result_dict[parameter].items():
             if isinstance(value, str) and key != 'error':
@@ -326,7 +324,7 @@ def contains_docker_error(docker_output: str) -> bool:
     return any(error in docker_output for error in QEMU_ERRORS)
 
 
-def replace_empty_strings(docker_output: dict[str, object]):
+def replace_empty_strings(docker_output: dict[str, Any]):
     for key in list(docker_output):
         if key == ' ':
             docker_output[EMPTY] = docker_output.pop(key)

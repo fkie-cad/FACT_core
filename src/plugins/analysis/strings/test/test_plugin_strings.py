@@ -29,11 +29,11 @@ class TestAnalysisPlugInPrintableStrings:
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))  # noqa: PTH118
         fo = analysis_plugin.process_object(fo)
         results = fo.processed_analysis[analysis_plugin.NAME]
-        for item in self.strings:
-            assert item in results['strings'], f'{item} not found'
+        for string in self.strings:
+            assert string in results['strings'], f'{string} not found'
         assert len(results['strings']) == len(self.strings), 'number of found strings not correct'
-        for item in self.offsets:
-            assert item in results['offsets'], f'offset {item} not found'
+        for offset in self.offsets:
+            assert offset in results['offsets'], f'offset {offset} not found'
         assert len(results['offsets']) == len(self.offsets), 'number of offsets not correct'
 
     def test_process_object__no_strings(self, analysis_plugin):

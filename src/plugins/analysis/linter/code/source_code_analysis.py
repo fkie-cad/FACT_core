@@ -96,9 +96,9 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
         del analyses
 
         language, linguist_json = None, None
-        file_names = [Path(file_handle.name).name, *_get_paths_with_different_suffix(virtual_file_path)]
+        file_names = [Path(str(file_handle.name)).name, *_get_paths_with_different_suffix(virtual_file_path)]
         for name in file_names:
-            linguist_json = run_linguist(file_handle.name, name)
+            linguist_json = run_linguist(str(file_handle.name), name)
             language = linguist_json.get('language')
             if language is not None:
                 break

@@ -3,7 +3,6 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 import r2pipe
 
@@ -67,8 +66,8 @@ class RadareAPI:
                         interrupts.append(instruction['offset'])
         return interrupts
 
-    def find_input_vectors(self):
-        input_vectors = []
+    def find_input_vectors(self) -> list[dict]:
+        input_vectors: list[dict] = []
         function_list = self.api.cmdj('aflj')
         if not function_list:
             return input_vectors
@@ -84,8 +83,8 @@ class RadareAPI:
             )
         return input_vectors
 
-    def find_input_vectors_of_function(self, function):
-        input_vectors = []
+    def find_input_vectors_of_function(self, function) -> list[dict]:
+        input_vectors: list[dict] = []
         clean_import = function['name'].replace(self.config['import_prefix'], '')
         for input_class in self.config['input_classes']:
             if self.matches_import(clean_import.lower(), self.config['input_classes'][input_class]):
@@ -107,8 +106,8 @@ def get_class_summary(input_vectors):
     return list(classes)
 
 
-def group_input_vectors(input_vectors: List[dict]) -> Dict[str, List[dict]]:
-    result = {}
+def group_input_vectors(input_vectors: list[dict]) -> dict[str, list[dict]]:
+    result: dict[str, list[dict]] = {}
     for entry in input_vectors:
         result.setdefault(entry['class'], []).append({'name': entry['name'], 'xrefs': entry['xrefs']})
     return result

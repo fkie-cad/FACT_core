@@ -146,20 +146,19 @@ def _get_kernel_hardening_data(kernel_config: str) -> list[list[str]]:
 
 def _add_protection_info(hardening_result: list[list[str]]) -> list[HardeningCheckResult]:
     full_result = []
-    for single_result in hardening_result:
-        config_key = single_result[0]
-        actual_value = _detach_actual_value_from_result(single_result)
-        protection_info = PROTECTS_AGAINST[config_key] if config_key in PROTECTS_AGAINST else []
-        full_result.append(HardeningCheckResult(*single_result, actual_value, protection_info))
+    for name, desired, decision, reason, check in hardening_result:
+        split_check, actual_value = _detach_actual_value_from_result(check)
+        protection_info = PROTECTS_AGAINST[name] if name in PROTECTS_AGAINST else []
+        result = HardeningCheckResult(name, desired, decision, reason, split_check, actual_value, protection_info)
+        full_result.append(result)
     return full_result
 
 
-def _detach_actual_value_from_result(single_result: list[str]) -> str:
+def _detach_actual_value_from_result(check_result: str) -> tuple[str, str]:
     '''
     the result may contain the actual value after a colon
     e.g. 'FAIL: not found' or 'FAIL: "y"'
     removes actual value and returns it (or empty string if missing)
     '''
-    split_result = single_result[4].split(': ')
-    single_result[4] = split_result[0]
-    return ': '.join(split_result[1:]).replace('"', '')
+    check_result, *actual_value = check_result.split(': ')
+    return check_result, ': '.join(actual_value).replace('"', '')

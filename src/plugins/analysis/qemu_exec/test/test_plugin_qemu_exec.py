@@ -2,6 +2,7 @@ import os
 from base64 import b64decode, b64encode
 from pathlib import Path
 from subprocess import CompletedProcess
+from typing import Any
 from unittest import TestCase
 
 import pytest
@@ -11,7 +12,6 @@ from requests.exceptions import ReadTimeout
 
 from test.common_helper import TEST_FW, create_test_firmware, get_test_data_dir
 from test.mock import mock_patch
-
 from ..code import qemu_exec
 from ..code.qemu_exec import EXECUTABLE, AnalysisPlugin
 
@@ -95,9 +95,9 @@ class TestPluginQemuExec:
     def test_find_relevant_files(self, analysis_plugin):
         tmp_dir = MockTmpDir(str(TEST_DATA_DIR))
 
-        analysis_plugin.root_path = tmp_dir.name
         analysis_plugin.unpacker.set_tmp_dir(tmp_dir)
-        result = sorted(analysis_plugin._find_relevant_files(Path(tmp_dir.name)))
+        tmp_path = Path(tmp_dir.name)
+        result = sorted(analysis_plugin._find_relevant_files(tmp_path, tmp_path))
         assert len(result) == 4  # noqa: PLR2004
 
         path_list, mime_types = list(zip(*result))
@@ -136,11 +136,11 @@ class TestPluginQemuExec:
         analysis_plugin.OPTIONS = ['-h']
         test_fw = create_test_firmware()
         test_uid = '6b4142fa7e0a35ff6d10e18654be8ac5b778c3b5e2d3d345d1a01c2bcbd51d33_676340'
-        test_fw.processed_analysis[analysis_plugin.NAME] = result = {'files': {}}
+        result: dict[str, Any] = {'files': {}}
+        test_fw.processed_analysis[analysis_plugin.NAME] = result
         file_list = [('/test_mips_static', '-MIPS32-')]
 
-        analysis_plugin.root_path = Path(TEST_DATA_DIR)
-        analysis_plugin._process_included_files(file_list, test_fw)
+        analysis_plugin._process_included_files(file_list, test_fw, Path(TEST_DATA_DIR))
         assert result is not None
         assert 'files' in result
         assert test_uid in result['files']
@@ -281,7 +281,7 @@ def test_get_docker_output__json_error(execute_docker_error):  # noqa: ARG001
 def test_process_qemu_job():
     test_results = {'--option': {'stdout': 'test', 'stderr': '', 'return_code': '0'}}
     uid = 'test_uid'
-    results = {}
+    results: dict = {}
 
     with mock_patch(qemu_exec, 'check_qemu_executability', lambda *_: test_results):
         qemu_exec.process_qemu_job('test_path', 'test_arch', Path('test_root'), results, uid)
@@ -414,7 +414,7 @@ def test_process_strace_output__no_strace(input_data):
 
 
 def test_process_strace_output():
-    input_data = {'strace': {'stdout': 'foobar'}}
+    input_data: dict = {'strace': {'stdout': 'foobar'}}
     qemu_exec.process_strace_output(input_data)
     result = input_data['strace']
     assert isinstance(result, str)
@@ -425,11 +425,12 @@ class TestQemuExecUnpacker(TestCase):
     def setUp(self):
         self.name_prefix = 'FACT_plugin_qemu'
         self.unpacker = qemu_exec.Unpacker()
-        qemu_exec.FSOrganizer = MockFSOrganizer
+        qemu_exec.FSOrganizer = MockFSOrganizer  # type: ignore[assignment,misc]
 
     def test_unpack_fo(self):
         test_fw = create_test_firmware()
         tmp_dir = self.unpacker.unpack_fo(test_fw)
+        assert tmp_dir is not None
 
         try:
             assert self.name_prefix in tmp_dir.name
@@ -445,6 +446,8 @@ class TestQemuExecUnpacker(TestCase):
 
         with mock_patch(self.unpacker.fs_organizer, 'generate_path', lambda _: TEST_FW.file_path):
             tmp_dir = self.unpacker.unpack_fo(test_fw)
+
+        assert tmp_dir is not None
 
         try:
             assert self.name_prefix in tmp_dir.name
