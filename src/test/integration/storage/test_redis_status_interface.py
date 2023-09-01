@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from storage.redis_status_interface import RedisStatusInterface
