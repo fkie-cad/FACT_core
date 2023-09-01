@@ -3,39 +3,40 @@ from __future__ import annotations
 from multiprocessing.sharedctypes import Synchronized, SynchronizedArray
 from multiprocessing.synchronize import Event
 from tempfile import _TemporaryFileWrapper
-from typing import Dict, List, Protocol, TypeVar, TypeAlias, NamedTuple, TYPE_CHECKING, Union
+from typing import Dict, List, Protocol, TypeVar, NamedTuple, TYPE_CHECKING, Union
 from unittest.mock import _patch
 
 if TYPE_CHECKING:
     from analysis.plugin import AnalysisPluginV0
 
 # a UID (unique identifier) "{sha256 hash}_{file size in bytes}" for a byte string (i.e. the contents of a file)
-UID: TypeAlias = str
+UID = str
 
 KT = TypeVar('KT', str, tuple, bytes)  # generic key type
 VT = TypeVar('VT')  # generic value type
 
 # analysis results should be JSON compatible (i.e. no sets, byte strings, etc.)
 JSON = Union[Dict[str, 'JSON'], List['JSON'], str, int, float, bool, None]
-AnalysisResult: TypeAlias = Dict[str, JSON]
+# FixMe: add TypeAlias type hint when FACT supports Python>=3.10 only
+AnalysisResult = Dict[str, JSON]
 
 # NamedTemporaryFile is actually a function that returns an instance of class _TemporaryFileWrapper, so it can't be
 # used for type hinting
-TmpFile: TypeAlias = _TemporaryFileWrapper
+TmpFile = _TemporaryFileWrapper
 
 # multiprocessing.Value returns "SynchronizedBase[Any]" which has no attribute "value". This is a known bug in
 # mypy, see https://github.com/python/typeshed/issues/8799 -> ignore assignment and treat as Synchronized (which is
 # the actual subclass of SynchronizedBase for Value that is returned)
-MpValue: TypeAlias = Synchronized
-MpArray: TypeAlias = SynchronizedArray
-MpEvent: TypeAlias = Event
+MpValue = Synchronized
+MpArray = SynchronizedArray
+MpEvent = Event
 
 # comparison ID: Represents one comparison between two or more firmwares.
 # Consists of UIDs with semicolons in-between (e.g. "uid1;uid2;...")
-CompId: TypeAlias = str
+CompId = str
 
 # unittest patch() is a function and returns a private _patch class
-Patch: TypeAlias = _patch
+Patch = _patch
 
 
 class AnalysisPluginInfo(NamedTuple):
