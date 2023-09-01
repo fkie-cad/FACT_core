@@ -108,7 +108,7 @@ class AbstractPluginInstaller:
         manager
         """
 
-    def _build_docker_image(self, tag: str, dockerfile_path: Path | None = None):
+    def _build_docker_image(self, tag: str, dockerfile_path: Path | str | None = None):
         assert self.base_path is not None, 'the base_path should never be None here'
         if not dockerfile_path:
             dockerfile_path = self.base_path / 'docker'

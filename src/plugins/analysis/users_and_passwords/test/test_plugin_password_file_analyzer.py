@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest
@@ -75,7 +77,7 @@ class TestAnalysisPluginPasswordFileAnalyzer:
 
 def test_crack_hash_failure():
     passwd_entry = [b'user', b'BfKEUi/mdF1D2']
-    result_entry = {}
+    result_entry: dict[str, str | bool] = {}
     assert crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False
     assert 'ERROR' in result_entry
     assert result_entry['ERROR'] == 'password cracking not successful'
@@ -83,7 +85,7 @@ def test_crack_hash_failure():
 
 def test_hash_unsupported():
     passwd_entry = [b'user', b'foobar']
-    result_entry = {}
+    result_entry: dict[str, str | bool] = {}
     assert crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False
     assert 'ERROR' in result_entry
     assert result_entry['ERROR'] == 'hash type is not supported'
@@ -94,7 +96,7 @@ def test_crack_hash_success():
         'test:$dynamic_82$2c93b2efec757302a527be320b005a935567f370f268a13936fa42ef331cc703'
         '6ec75a65f8112ce511ff6088c92a6fe1384fbd0f70a9bc7ac41aa6103384aa8c$HEX$010203040506'
     )
-    result_entry = {}
+    result_entry: dict[str, str | bool] = {}
     assert crack_hash(passwd_entry.encode(), result_entry, '--format=dynamic_82') is True
     assert 'password' in result_entry
     assert result_entry['password'] == '123456'

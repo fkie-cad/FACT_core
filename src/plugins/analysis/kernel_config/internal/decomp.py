@@ -5,12 +5,13 @@ import gzip
 import io
 import lzma
 import zlib
+from typing import Protocol
 
 
 class GZDecompressor:
     @staticmethod
-    def decompress(raw: bytes):
-        with gzip.GzipFile(fileobj=io.BytesIO(raw)) as stream:
+    def decompress(data: bytes):
+        with gzip.GzipFile(fileobj=io.BytesIO(data)) as stream:
             decompressed = b''
 
             try:
@@ -25,11 +26,16 @@ class GZDecompressor:
         return decompressed
 
 
-_COMPRESSIONS = [
-    {'magic': b'\037\213', 'cls': GZDecompressor},
-    {'magic': b'\3757zXZ', 'cls': lzma.LZMADecompressor},
-    {'magic': b'\135\0\0\0', 'cls': lzma.LZMADecompressor},
-    {'magic': b'BZh', 'cls': bz2.BZ2Decompressor},
+class Decompressor(Protocol):
+    def decompress(self, data: bytes) -> bytes:
+        ...
+
+
+_COMPRESSIONS: list[tuple[bytes, Decompressor]] = [
+    (b'\037\213', GZDecompressor),
+    (b'\3757zXZ', lzma.LZMADecompressor),  # type: ignore[list-item]
+    (b'\135\0\0\0', lzma.LZMADecompressor),  # type: ignore[list-item]
+    (b'BZh', bz2.BZ2Decompressor),  # type: ignore[list-item]
 ]
 
 DECOMPRESS_CHUNK_SIZE = 8388608  # 8 MiB
@@ -49,7 +55,7 @@ def _collect_compression_indices(raw, magic_word: bytes) -> list[int]:
     return indices
 
 
-def _decompress_indices(raw: bytes, indices: list[int], decompressor: object) -> list[bytes]:
+def _decompress_indices(raw: bytes, indices: list[int], decompressor: Decompressor) -> list[bytes]:
     result = []
     for index in indices:
         try:
@@ -65,15 +71,13 @@ def _decompress_indices(raw: bytes, indices: list[int], decompressor: object) ->
 def decompress(raw: bytes) -> list[bytes]:
     result = []
 
-    for compression in _COMPRESSIONS:
-        indices = _collect_compression_indices(raw, compression['magic'])
+    for magic, decompression_func in _COMPRESSIONS:
+        indices = _collect_compression_indices(raw, magic)
 
         if len(indices) == 0:
             continue
 
-        decompressor = compression['cls']()
-
-        result = _decompress_indices(raw, indices, decompressor)
+        result = _decompress_indices(raw, indices, decompression_func)
 
         if len(result) > 0:
             break
