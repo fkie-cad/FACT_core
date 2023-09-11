@@ -42,4 +42,3 @@ class ComparePluginTest:
         self.fw_three = create_test_firmware(
             device_name='dev_3', bin_path='container/test.cab', all_files_included_set=True
         )
-        pass

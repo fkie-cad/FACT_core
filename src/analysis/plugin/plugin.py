@@ -120,7 +120,7 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         :param virtual_file_path: The virtual file paths, see :py:class:`~objects.file.FileObject`
         :param analyses: A dictionary of dependent analysis
 
-        :return: The analysis results (if there are any).
+        :return: The analysis results if there are any.
         """
 
     @final
