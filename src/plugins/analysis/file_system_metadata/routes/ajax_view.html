@@ -11,22 +11,38 @@
                 {{ results[file]["parent_uid"] | replace_uid_with_hid | safe }} | {{ file }}
             </td>
             <td class="p-0">
-                <table class="table table-bordered mb-0">
-                    {% for key, value in metadata.items() | sort %}
-                        {% if key not in ('path', 'key') %}
-                            {% set tr_class = "" if key not in ('suid_bit', 'sgid_bit') or not value else "table-danger"%}
-                            <tr class={{ tr_class }}>
-                                <td>{{ key }}</td>
-                                <td>
-                                    {% if 'time' in key %}
-                                        {{ value | nice_unix_time | safe }}
-                                    {% else %}
-                                        {{ value | safe }}
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
+                {# this should be the same as in ../view/file_system_metadata.html #}
+                <table class="table table-bordered table-sm mb-0">
+                    {% set tr_class = "" if key not in ('suid_bit', 'sgid_bit') or not value else "table-danger"%}
+                    <tr class={{ tr_class }}>
+                    <tr>
+                        <td class="text-right" style="width: 25%">user / group ID</td>
+                        <td class="text-left" style="width: 25%">
+                            {{ metadata.uid | safe }} {{ "(" + metadata.user + ")" if metadata.user else "" }} /
+                            {{ metadata.gid | safe }} {{ "(" + metadata.group + ")" if metadata.group else "" }}
+                        </td>
+                        <td class="text-right" style="width: 25%">creation time</td>
+                        <td class="text-left" style="width: 25%">{{ metadata.creation_time | nice_unix_time | safe }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">permissions</td>
+                        <td class="text-left">
+                            {{ metadata.mode | safe }} ({{ metadata.mode | octal_to_readable }})
+                        </td>
+                        <td class="text-right">modification time</td>
+                        <td class="text-left">{{ metadata.modification_time | nice_unix_time | safe }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right">SUID / SGID / sticky bit</td>
+                        {% set td_class = "table-danger" if metadata.suid_bit or metadata.sgid_bit else "" %}
+                        <td class="text-left {{ td_class }}">
+                            {{ metadata.suid_bit | safe }} /
+                            {{ metadata.sgid_bit | safe }} /
+                            {{ metadata.sticky_bit | safe }}
+                        </td>
+                        <td class="text-right">last access time</td>
+                        <td class="text-left">{{ metadata.access_time | nice_unix_time | safe }}</td>
+                    </tr>
                 </table>
             </td>
         </tr>
