@@ -215,6 +215,7 @@ class FilterClass:
         self._app.jinja_env.filters['nice_unix_time'] = flt.nice_unix_time
         self._app.jinja_env.filters['nice_virtual_path_list'] = self._nice_virtual_path_list
         self._app.jinja_env.filters['number_format'] = flt.byte_number_filter
+        self._app.jinja_env.filters['octal_to_readable'] = flt.octal_to_readable
         self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
         self._app.jinja_env.filters['regex_meta'] = flt.comment_out_regex_meta_chars
         self._app.jinja_env.filters['remaining_time'] = elapsed_time
