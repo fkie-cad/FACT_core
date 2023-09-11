@@ -2,10 +2,8 @@ from multiprocessing import Event, Queue, Value
 from typing import List, NamedTuple, Type, TypeVar
 
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from pathlib import Path
-
-from pydantic.v1 import ConfigDict
 
 import config
 from scheduler.analysis import AnalysisScheduler
