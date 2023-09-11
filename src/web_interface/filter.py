@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import binascii
+import stat
+
 import semver
 import json
 import logging
@@ -507,3 +509,7 @@ def _coerce_version(version: str) -> semver.Version:
 def as_ascii_table(data: dict) -> str:
     """Format a flat dictionary as two column ascii table"""
     return ''.join([f'{k:<10} {v!s:<10}\n' for k, v in data.items()])
+
+
+def octal_to_readable(octal: str) -> str:
+    return stat.filemode(int(octal, 8)).lstrip('?')

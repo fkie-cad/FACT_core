@@ -59,28 +59,59 @@ class StatResult(NamedTuple):
 
 
 class FileMetadata(BaseModel):
-    mode: str = Field(description="The file's permissions as octal number")
-    mode_human_readable: str = Field(description="The file's permissions as human-readable string (e.g. '-rwxrwxrwx')")
-    name: str = Field(description="The file's name")
-    path: str = Field(description="The file's path")
-    user: str = Field(description="The user name of the file's owner")
-    uid: int = Field(description="The user ID of the file's owner")
-    group: str = Field(description="The group name of the file's owner")
-    gid: int = Field(description="The group ID of the file's owner")
-    modification_time: float = Field(description="The time of the file's last modification (as UNIX timestamp)")
-    access_time: Optional[float] = Field(None, description="The time of the file's last access (as UNIX timestamp)")
-    creation_time: Optional[float] = Field(None, description="The time of the file's creation (as UNIX timestamp)")
-    suid_bit: bool = Field(description='Whether the Setuid bit is set for this file')
-    sgid_bit: bool = Field(description='Whether the Setgid bit is set for this file')
-    sticky_bit: bool = Field(description='Whether the sticky bit is set for this file')
-    key: str = Field(description='Used internally for matching this file in the parent container')
+    mode: str = Field(
+        description="The file's permissions as octal number",
+    )
+    name: str = Field(
+        description="The file's name",
+    )
+    path: str = Field(
+        description="The file's path",
+    )
+    user: str = Field(
+        description="The user name of the file's owner",
+    )
+    uid: int = Field(
+        description="The user ID of the file's owner",
+    )
+    group: str = Field(
+        description="The group name of the file's owner",
+    )
+    gid: int = Field(
+        description="The group ID of the file's owner",
+    )
+    modification_time: float = Field(
+        description="The time of the file's last modification (as UNIX timestamp)",
+    )
+    access_time: Optional[float] = Field(
+        None,
+        description="The time of the file's last access (as UNIX timestamp)",
+    )
+    creation_time: Optional[float] = Field(
+        None,
+        description="The time of the file's creation (as UNIX timestamp)",
+    )
+    suid_bit: bool = Field(
+        description='Whether the Setuid bit is set for this file',
+    )
+    sgid_bit: bool = Field(
+        description='Whether the Setgid bit is set for this file',
+    )
+    sticky_bit: bool = Field(
+        description='Whether the sticky bit is set for this file',
+    )
+    key: str = Field(
+        description='Used internally for matching this file in the parent container',
+    )
 
 
 class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     NAME = 'file_system_metadata'
 
     class Schema(BaseModel):
-        files: List[FileMetadata]
+        files: List[FileMetadata] = Field(
+            description='A list of metadata dictionaries (each representing the results of a contained file)',
+        )
 
     def __init__(self):
         metadata = self.MetaData(
@@ -90,7 +121,6 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
                 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
             ),
             version='1.0.0',
-            timeout=600,
             Schema=self.Schema,
         )
         super().__init__(metadata=metadata)
@@ -174,7 +204,6 @@ def _get_results_for_mounted_file(file_name: str, file_path: str, stats: StatRes
     file_mode = _get_mounted_file_mode(stats)
     return FileMetadata(
         mode=file_mode,
-        mode_human_readable=stat.filemode(stats.mode),
         name=file_name,
         path=file_path,
         uid=stats.uid,
@@ -187,7 +216,7 @@ def _get_results_for_mounted_file(file_name: str, file_path: str, stats: StatRes
         suid_bit=_file_mode_contains_bit(file_mode, SUID_BIT),
         sgid_bit=_file_mode_contains_bit(file_mode, SGID_BIT),
         sticky_bit=_file_mode_contains_bit(file_mode, STICKY_BIT),
-        key=b64encode(file_name.encode()).decode(),
+        key=b64encode(file_path.encode()).decode(),
     )
 
 
@@ -201,9 +230,7 @@ def _extract_metadata_from_tar(file_handle: FileIO) -> list[FileMetadata]:
     except EOFError:
         logging.warning(f'File {file_handle.name} ended unexpectedly')
     except (tarfile.TarError, zlib.error, tarfile.ReadError) as error:
-        message = 'Could not open tar archive'
-        logging.exception(f'{message} {file_handle.name}: {error}', exc_info=True)
-        raise RuntimeError(message) from error
+        raise RuntimeError('Could not open tar archive') from error
     return result
 
 
@@ -214,7 +241,6 @@ def _get_results_for_tar_file(file_info: tarfile.TarInfo) -> FileMetadata:
     file_mode = _get_tar_file_mode_str(file_info)
     return FileMetadata(
         mode=file_mode,
-        mode_human_readable=stat.filemode(file_info.mode),
         name=Path(file_path).name,
         path=file_path,
         user=file_info.uname,

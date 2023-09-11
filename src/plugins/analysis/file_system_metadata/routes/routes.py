@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from base64 import b64encode
 from pathlib import Path
 
@@ -68,7 +67,6 @@ class PluginRoutes(ComponentBase, ParentAnalysisLookupMixin):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _get_analysis_results_of_parent_fo(self, uid):
         results = self.get_analysis_results_for_included_uid(uid)
-        logging.warning(f'_get_analysis_results_of_parent_fo {results=}')
         return render_template_string(VIEW_PATH.read_text(), results=results)
 
 
