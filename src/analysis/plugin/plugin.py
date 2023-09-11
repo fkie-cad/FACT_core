@@ -120,7 +120,7 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         :param virtual_file_path: The virtual file paths, see :py:class:`~objects.file.FileObject`
         :param analyses: A dictionary of dependent analysis
 
-        :return: The analysis results (if there are any).
+        :return: The analysis results if there are any.
         """
 
     @final
@@ -137,7 +137,7 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         # The dictionary as defined in the docs for FileObject.analyses_tags
         # Misses the root uid, which must be added by the scheduler
         tags_dict = {}
-        for tag in tags or []:
+        for tag in tags:
             tag_dict = tag.dict()
             name = tag_dict.pop('name')
             tags_dict.update({name: tag_dict})
