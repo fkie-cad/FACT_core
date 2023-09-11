@@ -8,8 +8,7 @@ from tempfile import TemporaryDirectory
 from typing import Type, Union
 
 import pytest
-from pydantic import BaseModel, Field
-from pydantic.v1 import ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.v1.utils import deep_update
 
 import config
