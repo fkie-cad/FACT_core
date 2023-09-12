@@ -42,7 +42,7 @@ class DbInterfaceMock:
 
     def get_analysis(self, uid, plugin):
         if uid == self.fw.uid and plugin == AnalysisPlugin.NAME:
-            return {'result': {'files': [{'key': b64_encode('some_file'), 'test_result': 'test_value'}]}}
+            return {'result': {'files': [{'key': b64_encode('some_file'), 'mode': '1337'}]}}
         return None
 
     @contextmanager
@@ -124,14 +124,14 @@ class TestFileSystemMetadataRoutes:
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
-        app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x
+        for filter_ in ('replace_uid_with_hid', 'nice_unix_time', 'octal_to_readable'):
+            app.jinja_env.filters[filter_] = lambda x: x
         self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None, status=None)
         self.test_client = app.test_client()
 
     def test_get_analysis_results_of_parent_fo(self):
         rv = self.test_client.get('/plugins/file_system_metadata/ajax/foo')
-        assert 'test_result' in rv.data.decode()
-        assert 'test_value' in rv.data.decode()
+        assert '1337' in rv.data.decode()
 
 
 class TestFileSystemMetadataRoutesRest(TestCase):
@@ -153,7 +153,8 @@ class TestFileSystemMetadataRoutesRest(TestCase):
         result = self.test_client.get('/plugins/file_system_metadata/rest/foo').json
         assert AnalysisPlugin.NAME in result
         assert 'some_file' in result[AnalysisPlugin.NAME]
-        assert 'test_result' in result[AnalysisPlugin.NAME]['some_file']
+        assert 'mode' in result[AnalysisPlugin.NAME]['some_file']
+        assert result[AnalysisPlugin.NAME]['some_file']['mode'] == '1337'
 
     def test_get_rest__no_result(self):
         result = self.test_client.get('/plugins/file_system_metadata/rest/not_found').json
