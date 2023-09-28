@@ -2,7 +2,7 @@ from multiprocessing import Event, Queue, Value
 from typing import Iterator, List, NamedTuple, Type, TypeVar
 
 import pytest
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 from pathlib import Path
 
 import config
@@ -65,7 +65,7 @@ def merge_markers(request, name: str, dtype: Type[T]) -> T:
             if isinstance(argument, dict):
                 marker_dict.update(argument)
             elif isinstance(argument, BaseModel):
-                marker_dict.update(argument.dict())
+                marker_dict.update(argument.model_dump())
         else:
             raise _err
     return dtype(**marker_dict)
@@ -82,6 +82,8 @@ class DatabaseInterfaces(NamedTuple):
 
 
 class MockDataStorage(BaseModel):
+    model_config = ConfigDict(extra='allow')
+
     postgres_server: str
     postgres_port: int
     postgres_database: str
@@ -104,20 +106,16 @@ class MockDataStorage(BaseModel):
     redis_host: str
     redis_port: int
 
-    class Config:
-        extra = Extra.forbid
-
 
 class ConfigCommonMock(BaseModel):
     """This class is a mock of :py:class:`config.Common` which only contains
     postgres and redis configuration.
     """
 
+    model_config = ConfigDict(extra='forbid')
+
     postgres: config.Common.Postgres
     redis: config.Common.Redis
-
-    class Config:
-        extra = Extra.forbid
 
 
 class MockIntercom:

@@ -21,7 +21,7 @@ def compare_plugin():
     )
 
 
-@pytest.mark.backend_config(
+@pytest.mark.backend_config_overwrite(
     {
         'ssdeep_ignore': 80,
     }

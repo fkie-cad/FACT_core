@@ -8,8 +8,8 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 @pytest.mark.usefixtures('database_interfaces')
 class TestRestStatistics(RestTestBase):
-    def setup(self):
-        super().setup()
+    def setup_method(self):
+        super().setup_method()
         self.stats_updater = StatsUpdateDbInterface()
         self.stats_updater.update_statistic(
             'file_type',

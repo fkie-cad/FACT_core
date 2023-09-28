@@ -138,7 +138,7 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         # Misses the root uid, which must be added by the scheduler
         tags_dict = {}
         for tag in tags:
-            tag_dict = tag.dict()
+            tag_dict = tag.model_dump()
             name = tag_dict.pop('name')
             tags_dict.update({name: tag_dict})
 
@@ -149,7 +149,7 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
             'system_version': self.metadata.system_version,
             'summary': summary,
             'tags': tags_dict,
-            'result': result.dict() if isinstance(result, BaseModel) else None,
+            'result': result.model_dump() if isinstance(result, BaseModel) else None,
         }
 
     def get_tags(self, result: Schema, summary: list[str]) -> list[Tag]:

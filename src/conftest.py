@@ -8,8 +8,8 @@ from tempfile import TemporaryDirectory
 from typing import Type, Union, Iterator
 
 import pytest
-from pydantic import BaseModel, Field
-from pydantic.utils import deep_update
+from pydantic import BaseModel, ConfigDict, Field
+from pydantic.v1.utils import deep_update
 
 import config
 from analysis.PluginBase import AnalysisBasePlugin
@@ -123,7 +123,7 @@ def backend_config(request, common_config, _firmware_file_storage_directory) -> 
         },
     }
 
-    test_config.update(common_config.dict())
+    test_config.update(common_config.model_dump())
     test_config = deep_update(test_config, overwrite_config)
 
     return config.Backend(**test_config)
@@ -146,7 +146,7 @@ def frontend_config(request, common_config) -> config.Frontend:
         },
     }
 
-    test_config.update(common_config.dict())
+    test_config.update(common_config.model_dump())
     test_config = deep_update(test_config, overwrite_config)
 
     return config.Frontend(**test_config)
@@ -178,6 +178,8 @@ def patch_config(monkeypatch, common_config, backend_config, frontend_config):  
 class AnalysisPluginTestConfig(BaseModel):
     """A class configuring the :py:func:`analysis_plugin` fixture."""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
     plugin_class: Union[Type[AnalysisBasePlugin], Type[AnalysisPluginV0]] = AnalysisBasePlugin
     #: Whether or not to start the workers (see ``AnalysisPlugin.start``).
@@ -186,9 +188,6 @@ class AnalysisPluginTestConfig(BaseModel):
     #: Keyword arguments to be given to the ``plugin_class`` constructor.
     #: Not supported for AnalysisPluginV0
     init_kwargs: dict = Field(default_factory=dict)
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 @pytest.fixture
