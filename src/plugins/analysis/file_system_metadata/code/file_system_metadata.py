@@ -110,7 +110,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
 
     class Schema(BaseModel):
         files: List[FileMetadata] = Field(
-            description='A list of metadata dictionaries (each representing the results of a contained file)',
+            description='An array of metadata objects (each representing the results of a contained file)',
         )
 
     def __init__(self):
@@ -122,6 +122,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
             ),
             version='1.0.0',
             Schema=self.Schema,
+            timeout=30,
         )
         super().__init__(metadata=metadata)
 
