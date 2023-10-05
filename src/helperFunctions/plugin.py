@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from types import ModuleType
+    from importlib.machinery import ModuleSpec
 
 
 def discover_analysis_plugins() -> list[ModuleType]:
@@ -37,7 +38,7 @@ def _import_plugins(plugin_type) -> list[ModuleType]:
         module_name = str(plugin_file).replace('/', '.')[len(src_dir + '/') : -len('.py')]
 
         loader = SourceFileLoader(module_name, str(plugin_file))
-        spec = importlib.util.spec_from_loader(loader.name, loader)
+        spec = importlib.util.spec_from_loader(loader.name, loader) # type: ignore[assignment]
         plugin_module = importlib.util.module_from_spec(spec)
 
         sys.modules[spec.name] = plugin_module
