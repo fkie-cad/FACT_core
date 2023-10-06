@@ -114,7 +114,7 @@
             <h3>
                 {{ firmware.uid | replace_uid_with_hid(root_uid=root_uid) | safe }}<br />
                 {% if firmware.analysis_tags or firmware.tags %}
-                    {{ firmware.analysis_tags | render_analysis_tags | safe }}{{ firmware.tags | render_fw_tags | safe }}<br />
+                    {{ firmware.analysis_tags | render_analysis_tags(uid, root_uid) | safe }}{{ firmware.tags | render_fw_tags | safe }}<br />
                 {% endif %}
                 <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
             </h3>
@@ -316,7 +316,7 @@
                         </div>
                     </div>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_summary.js') }}"></script>
-                    
+
                 {%- endif -%}
             </div>
 
@@ -358,7 +358,7 @@
                     </div>
 
                     {%- set is_text_preview = firmware.processed_analysis["file_type"]["result"]['mime'][0:5] == "text/" or firmware.processed_analysis["file_type"]["result"]['mime'][0:6] == "image/" %}
-                    
+
                     <script>
                         const isTextOrImage = {{ 'true' if is_text_preview else 'false' }};
                         let mimeType = '{{ firmware.processed_analysis["file_type"]["result"]["mime"].replace("/", "_") }}';
@@ -446,6 +446,15 @@
             document.body.append(radare_form);
             radare_form.submit();
         }
+        document.addEventListener("DOMContentLoaded", function() {
+            // auto load summary if URL parameter "load_summary=true" is set
+            const urlParams = new URLSearchParams(window.location.search);
+            const summary = urlParams.get('load_summary');
+            const has_children = {{ "true" if firmware.files_included | length > 0  else "false" }};
+            if (summary === "true" && has_children && selected_analysis !== "None") {
+                load_summary(uid, selected_analysis, focus=true);
+            }
+        });
     </script>
 
 {% endblock %}

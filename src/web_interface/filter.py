@@ -281,7 +281,7 @@ def render_fw_tags(tag_dict, size=14):
     return output
 
 
-def render_analysis_tags(tags, size=14):
+def render_analysis_tags(tags, uid=None, root_uid=None, size=14):
     output = ''
     if tags:
         for plugin_name in tags:
@@ -295,6 +295,9 @@ def render_analysis_tags(tags, size=14):
                     value=tag['value'],
                     tooltip=f'{plugin_name}: {key}',
                     size=size,
+                    plugin=plugin_name,
+                    root_uid=root_uid,
+                    uid=uid,
                 )
     return output
 
