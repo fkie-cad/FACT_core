@@ -238,7 +238,7 @@ def _add_preset_from_firmware(plugin_dict, fw: Firmware):
     Adds a preset to plugin_dict with all plugins ticked that are processed on the firmware fw.
     Returns the name of the new preset.
     """
-    preset_name = fw.uid
+    preset_name = fw.get_hid()
 
     previously_processed_plugins = list(fw.processed_analysis.keys())
     with suppress(ValueError):
