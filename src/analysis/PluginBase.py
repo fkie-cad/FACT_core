@@ -1,4 +1,6 @@
-import ctypes  # noqa: N999
+from __future__ import annotations  # noqa: N999
+
+import ctypes
 import logging
 import os
 from multiprocessing import Array, Manager, Queue, Value
@@ -17,8 +19,11 @@ from helperFunctions.process import (
     terminate_process_and_children,
 )
 from helperFunctions.tag import TagColor
-from objects.file import FileObject
 from plugins.base import BasePlugin
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 META_KEYS = {
     'tags',
@@ -47,7 +52,7 @@ def sanitize_processed_analysis(processed_analysis_entry: dict) -> dict:
 
 
 class PluginInitException(Exception):  # noqa: N818
-    def __init__(self, *args, plugin: 'AnalysisBasePlugin'):
+    def __init__(self, *args, plugin: AnalysisBasePlugin):
         self.plugin: AnalysisBasePlugin = plugin
         super().__init__(*args)
 
@@ -202,7 +207,7 @@ class AnalysisBasePlugin(BasePlugin):
 
     def worker_processing_with_timeout(self, worker_id, next_task: FileObject):
         result = self.manager.list()
-        process = ExceptionSafeProcess(target=self.process_next_object, args=(next_task, result))
+        process = ExceptionSafeProcess(target=self.process_next_object, args=(next_task, result), reraise=False)
         start = time()
         process.start()
         process.join(timeout=self.TIMEOUT)
@@ -214,7 +219,8 @@ class AnalysisBasePlugin(BasePlugin):
         if self.timeout_happened(process):
             result_fo = self._handle_failed_analysis(next_task, process, worker_id, 'Timeout')
         elif process.exception:
-            result_fo = self._handle_failed_analysis(next_task, process, worker_id, 'Exception')
+            _, trace = process.exception
+            result_fo = self._handle_failed_analysis(next_task, process, worker_id, 'Exception', trace=trace)
         else:
             result_fo = result.pop()
             logging.debug(f'Worker {worker_id}: Finished {self.NAME} analysis on {next_task.uid}')
@@ -233,10 +239,15 @@ class AnalysisBasePlugin(BasePlugin):
         if self.analysis_stats_count.value < self.ANALYSIS_STATS_LIMIT:
             self.analysis_stats_count.value += 1
 
-    def _handle_failed_analysis(self, fw_object, process, worker_id, cause: str):
+    def _handle_failed_analysis(  # noqa: PLR0913
+        self, fw_object, process, worker_id, cause: str, trace: str | None = None
+    ):
         terminate_process_and_children(process)
         fw_object.analysis_exception = (self.NAME, f'{cause} occurred during analysis')
-        logging.error(f'Worker {worker_id}: {cause} during analysis {self.NAME} on {fw_object.uid}')
+        message = f'Worker {worker_id}: {cause} during analysis {self.NAME} on {fw_object.uid}'
+        if trace:
+            message += f':\n{trace}'
+        logging.error(message)
 
         return fw_object
 
