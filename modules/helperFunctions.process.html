@@ -133,7 +133,7 @@
 <span id="helperfunctions-process-module"></span><h1>helperFunctions.process module<a class="headerlink" href="#module-helperFunctions.process" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="helperFunctions.process.ExceptionSafeProcess">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></span><span class="sig-name descname"><span class="pre">ExceptionSafeProcess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></span><span class="sig-name descname"><span class="pre">ExceptionSafeProcess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reraise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
 <p>ExceptionSafeProcess is a subtype of <code class="docutils literal notranslate"><span class="pre">multiprocessing.Process</span></code> with added exception handling.
 Opposed to what the name may suggest, the class does not make the process impervious to exceptions.
@@ -141,6 +141,11 @@ Instead, it retrieves the exception of the subprocess and re-raises it. This all
 happened in the subprocess.</p>
 <p>The parameters for creating an instance of the class are the same as for <code class="docutils literal notranslate"><span class="pre">multiprocessing.Process</span></code>
 (see <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Process">Python docs</a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reraise</strong> (<em>bool</em>) – </p>
+</dd>
+</dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="helperFunctions.process.ExceptionSafeProcess.exception">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exception</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Exception</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess.exception" title="Permalink to this definition"></a></dt>
