@@ -8,7 +8,7 @@ flask==2.3.3
 flask_restx==1.1.0
 flask_sqlalchemy==3.0.5
 itsdangerous==2.1.2
-matplotlib==3.5.3
+matplotlib==3.7.3
 more_itertools==9.0.0
 prompt_toolkit==3.0.32
 python-dateutil==2.8.2

@@ -1,9 +1,6 @@
 # General build stuff
 testresources==2.0.1
 
-# FixMe: remove pinned version as soon as installation of ssdeep works again
-setuptools<66
-
 # General python dependencies
 appdirs==1.4.4
 flaky==3.7.0
