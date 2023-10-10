@@ -96,6 +96,7 @@ autodoc_mock_imports = [
     'pytest-cov',
     'pytest-timeout',
     'redis',
+    'quantiphy',
     'requests',
     'rich',
     'semver',
