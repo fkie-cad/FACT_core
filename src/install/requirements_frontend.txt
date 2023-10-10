@@ -12,7 +12,7 @@ matplotlib==3.5.3
 more_itertools==9.0.0
 prompt_toolkit==3.0.32
 python-dateutil==2.8.2
-si-prefix==1.2.2
+quantiphy==2.19
 uwsgi==2.0.22
 virtualenv
 

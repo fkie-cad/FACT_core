@@ -74,9 +74,9 @@ def test_cap_length_of_element_short():
 @pytest.mark.parametrize(
     ('number', 'unit', 'expected_output'),
     [
-        (1, 'm', '1.00 m'),
-        (0.034, 'g', '34.00 mg'),
-        (0.0000123456789, 's', '12.35 µs'),
+        (1, 'm', '1 m'),
+        (0.034, 'g', '34 mg'),
+        (0.0000123456789, 's', '12.3 µs'),
         (1234.5, 'm', '1.23 km'),
     ],
 )
@@ -87,8 +87,8 @@ def test_format_si_prefix(number, unit, expected_output):
 @pytest.mark.parametrize(
     ('seconds', 'expected_output'),
     [
-        (2, '2.00 s'),
-        (0.2, '200.00 ms'),
+        (2, '2 s'),
+        (0.2, '200 ms'),
         (120, '0:02:00'),
         (100000, '1 day, 3:46:40'),
     ],
