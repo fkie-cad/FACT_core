@@ -65,8 +65,8 @@ def create_test_firmware(  # noqa: PLR0913
 
     fw.processed_analysis.update(processed_analysis)
     if all_files_included_set:
-        fw.list_of_all_included_files = list(fw.files_included)
-        fw.list_of_all_included_files.append(fw.uid)
+        fw.list_of_all_included_files = set(fw.files_included)
+        fw.list_of_all_included_files.add(fw.uid)
     return fw
 
 
@@ -134,6 +134,8 @@ class MockFileObject:
         self.binary = binary
         self.file_path = file_path
         self.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
+        self.temporary_data = {}
+        self.virtual_file_path = {}
 
 
 class CommonDatabaseMock:
@@ -290,6 +292,7 @@ def get_firmware_for_rest_upload_test():
 def store_binary_on_file_system(tmp_dir: str, test_object: FileObject | Firmware):
     binary_dir = Path(tmp_dir) / test_object.uid[:2]
     binary_dir.mkdir(parents=True)
+    assert test_object.binary is not None
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
 
 

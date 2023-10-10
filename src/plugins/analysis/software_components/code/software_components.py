@@ -66,11 +66,11 @@ class AnalysisPlugin(YaraBasePlugin):
 
     def add_version_information(self, results, file_object: FileObject):
         for item in results:
-            if item != 'summary':
-                results[item] = self.get_version_for_component(results[item], file_object)
+            if item != 'summary' and file_object.binary is not None:
+                results[item] = self.get_version_for_component(results[item], file_object.binary)
         return results
 
-    def get_version_for_component(self, result, file_object: FileObject):
+    def get_version_for_component(self, result, file_contents: bytes):
         versions = set()
         for matched_string in result['strings']:
             match = matched_string[2]
@@ -80,7 +80,7 @@ class AnalysisPlugin(YaraBasePlugin):
             key_strings = [s for _, _, s in result['strings'] if '%s' in s]
             if key_strings:
                 versions.update(
-                    extract_data_from_ghidra(file_object.binary, key_strings, config.backend.docker_mount_base_dir)
+                    extract_data_from_ghidra(file_contents, key_strings, config.backend.docker_mount_base_dir)
                 )
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')

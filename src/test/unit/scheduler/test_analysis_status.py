@@ -16,7 +16,7 @@ class TestAnalysisStatus:
 
     def test_add_firmware_to_current_analyses(self):
         fw = Firmware(binary=b'foo')
-        fw.files_included = ['foo', 'bar']
+        fw.files_included = {'foo', 'bar'}
         self.status.add_object(fw)
         self.status._worker._update_status()
 
@@ -42,7 +42,7 @@ class TestAnalysisStatus:
         }
         fo = FileObject(binary=b'foo')
         fo.root_uid = ROOT_UID
-        fo.files_included = ['bar', 'new']
+        fo.files_included = {'bar', 'new'}
         fo.uid = 'foo'
         self.status.add_object(fo)
         self.status._worker._update_status()
@@ -68,7 +68,7 @@ class TestAnalysisStatus:
         }
         fo = FileObject(binary=b'foo')
         fo.root_uid = ROOT_UID
-        fo.files_included = ['duplicate']
+        fo.files_included = {'duplicate'}
         fo.uid = 'foo'
         self.status.add_object(fo)
         self.status._worker._update_status()
@@ -128,7 +128,7 @@ class TestAnalysisStatus:
                 total_files_count=2,
             )
         }
-        self.status.recently_finished = {}
+        self.status._worker.recently_finished = {}
         fo = FileObject(binary=b'foo')
         fo.root_uid = ROOT_UID
         fo.uid = 'foo'

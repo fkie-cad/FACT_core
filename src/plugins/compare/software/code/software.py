@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from objects.file import FileObject
@@ -17,13 +17,13 @@ class ComparePlugin(CompareBasePlugin):
     DEPENDENCIES = ['software_components']  # noqa: RUF012
     FILE = __file__
 
-    def compare_function(self, fo_list):
+    def compare_function(self, fo_list: list[FileObject]) -> dict[str, dict]:
         """
         This function must be implemented by the plug-in.
         'fo_list' is a list with file_objects including analysis and all summaries
         this function should return a dictionary
         """
-        compare_result = {
+        compare_result: dict[str, dict[str, Any]] = {
             'software_in_common': self._get_intersection_of_software(fo_list),
             'exclusive_software': self._get_exclusive_software(fo_list),
         }
@@ -34,7 +34,7 @@ class ComparePlugin(CompareBasePlugin):
         return compare_result
 
     def _get_exclusive_software(self, fo_list: list[FileObject]) -> dict:
-        result = {'collapse': True}
+        result: dict[str, list[str] | bool] = {'collapse': True}
         for current_element, other_elements in iter_element_and_rest(fo_list):
             result[current_element.uid] = list(
                 set.difference(
@@ -48,7 +48,7 @@ class ComparePlugin(CompareBasePlugin):
         return {'all': list(intersecting_software), 'collapse': True}
 
     def _get_software_in_more_than_one_but_not_in_all(self, fo_list, result_dict):
-        result = {'collapse': True}
+        result: dict[str, list[str] | bool] = {'collapse': True}
         for current_element in fo_list:
             result[current_element.uid] = list(
                 set.difference(

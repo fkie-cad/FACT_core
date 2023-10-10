@@ -26,7 +26,7 @@ def add_flask_security_to_app(app):
     return db, user_datastore
 
 
-def create_user_datastore(db):
+def create_user_datastore(db: SQLAlchemy):
     roles_users = db.Table(
         'roles_users',
         db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),

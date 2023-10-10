@@ -13,7 +13,7 @@ import psutil
 
 import config
 from helperFunctions.logging import TerminalColors, color_string
-from typing import TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -187,7 +187,7 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
     return new_process != old_process
 
 
-def stop_processes(processes: list[Process], timeout: float = 10.0):
+def stop_processes(processes: Sequence[Process], timeout: float = 10.0):
     """
     Try to stop processes gracefully in parallel. If a process does not stop until `timeout` is reached, kill it.
 

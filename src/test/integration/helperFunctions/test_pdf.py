@@ -21,5 +21,6 @@ def test_build_pdf_report():
 
     pdf_path = build_pdf_report(TEST_FW, docker_mount_base_dir)
 
+    assert pdf_path is not None
     assert get_file_type_from_binary(pdf_path.read_bytes())['mime'] == 'application/pdf'
     assert pdf_path.name == f"{TEST_FW.device_name.replace(' ', '_')}_analysis_report.pdf"

@@ -8,6 +8,7 @@
 
 import sys
 from pathlib import Path
+from unittest import mock
 
 FACT_SRC = Path(__file__).parent.parent / 'src'
 sys.path.insert(0, str(FACT_SRC))
@@ -117,6 +118,16 @@ autodoc_mock_imports = [
 #     'description' – Show typehints as content of function or method
 #     'none' – Do not show typehints
 autodoc_typehints = 'description'
+
+
+class BaseMock:
+    metadata = None
+
+
+orm_mock = mock.Mock()
+orm_mock.DeclarativeBase = BaseMock
+sys.modules['sqlalchemy.orm'] = orm_mock
+sys.modules['sqlalchemy.orm.exc'] = mock.Mock()
 
 
 def setup(app):

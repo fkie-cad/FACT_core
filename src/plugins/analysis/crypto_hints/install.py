@@ -17,7 +17,7 @@ except ImportError:
     from plugins.installer import AbstractPluginInstaller
 
 
-class SoftwareComponentsInstaller(AbstractPluginInstaller):
+class CryptoHintsInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_files(self):
@@ -28,7 +28,7 @@ class SoftwareComponentsInstaller(AbstractPluginInstaller):
 
 
 # Alias for generic use
-Installer = SoftwareComponentsInstaller
+Installer = CryptoHintsInstaller
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

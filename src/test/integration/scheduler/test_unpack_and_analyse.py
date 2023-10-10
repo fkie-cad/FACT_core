@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from objects.firmware import Firmware
@@ -17,7 +19,7 @@ class TestFileAddition:
 
         unpacking_scheduler.add_task(test_fw)
 
-        processed_container = {}
+        processed_container: dict[str, dict[str, dict]] = {}
         for _ in range(4 * 2):  # container with 3 included files times 2 mandatory plugins run
             uid, plugin, analysis_result = post_analysis_queue.get(timeout=3)
             processed_container.setdefault(uid, {}).setdefault(plugin, {})

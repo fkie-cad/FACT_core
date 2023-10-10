@@ -18,7 +18,7 @@ def build_stats_entry_from_date_query(release_date_stats: list[tuple[int, int, i
 
 
 def _build_time_dict(release_date_stats: list[tuple[int, int, int]]) -> dict[int, dict[int, int]]:
-    result = {}
+    result: dict[int, dict[int, int]] = {}
     for year, month, count in release_date_stats:
         if year > 1970:  # noqa: PLR2004
             result.setdefault(year, {})[month] = count

@@ -16,12 +16,15 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import Session, backref, declarative_base, mapped_column, relationship
+from sqlalchemy.orm import Session, backref, DeclarativeBase, mapped_column, relationship
 
-Base = declarative_base()
 UID = VARCHAR(78)
 
 # primary_key=True implies `unique=True` and `nullable=False`
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class AnalysisEntry(Base):

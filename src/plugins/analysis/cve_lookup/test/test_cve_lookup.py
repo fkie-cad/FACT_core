@@ -38,14 +38,14 @@ SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
 CVE_ENTRY1 = CveEntry(
     cve_id='CVE-2013-0198',
     summary='Dnsmasq before 2.66test2, when used with certain libvirt configurations, replies to queries from prohibited interfaces, which allows remote attackers to cause a denial of service (traffic amplification) via spoofed TCP based DNS queries. NOTE: this vulnerability exists because of an incomplete fix for CVE-2012-3411.',  # noqa: E501
-    impact={'cvssMetricV2': 5.0},
+    impact={'cvssMetricV2': '5.0'},
     cpe_entries=[('cpe:2.3:a:thekelleys:dnsmasq:*:*:*:*:*:*:*:*', '', '', '2.65', '')],
 )
 
 CVE_ENTRY2 = CveEntry(
     cve_id='CVE-2017-14493',
     summary='Stack-based buffer overflow in dnsmasq before 2.78 allows remote attackers to cause a denial of service (crash) or execute arbitrary code via a crafted DHCPv6 request.',  # noqa: E501
-    impact={'cvssMetricV2': 7.5, 'cvssMetricV30': 9.8},
+    impact={'cvssMetricV2': '7.5', 'cvssMetricV30': '9.8'},
     cpe_entries=[
         ('cpe:2.3:o:canonical:ubuntu_linux:14.04:*:*:*:lts:*:*:*', '', '', '', ''),
         ('cpe:2.3:o:canonical:ubuntu_linux:16.04:*:*:*:lts:*:*:*', '', '', '', ''),

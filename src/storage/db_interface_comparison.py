@@ -14,17 +14,15 @@ from helperFunctions.data_conversion import (
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
+from typing import TYPE_CHECKING, Any
 
-
-class FactComparisonException(Exception):  # noqa: N818
-    def get_message(self):
-        if self.args:
-            return self.args[0]
-        return ''
+if TYPE_CHECKING:
+    from helperFunctions.types import CompId, UID
+    from helperFunctions.virtual_file_path import VfpDict, VFP
 
 
 class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
-    def add_comparison_result(self, comparison_result: dict):
+    def add_comparison_result(self, comparison_result: dict[str, dict]):
         comparison_id = self._calculate_comp_id(comparison_result)
         if not self.objects_exist(comparison_id):
             logging.error(f'Could not add comparison result: not all objects found in db: {comparison_id}')
@@ -47,7 +45,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             return session.execute(query).scalar() == len(uid_list)
 
     @staticmethod
-    def _calculate_comp_id(comparison_result):
+    def _calculate_comp_id(comparison_result: dict[str, dict]):
         uid_set = {uid for c_dict in comparison_result['general'].values() for uid in c_dict}
         return convert_uid_list_to_compare_id(uid_set)
 
@@ -57,12 +55,15 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             logging.debug(f'Compare result not found in db: {comparison_id}')
             return None
         with self.get_read_only_session() as session:
-            comparison_entry = session.get(ComparisonEntry, comparison_id)
+            comparison_entry: ComparisonEntry | None = session.get(ComparisonEntry, comparison_id)
+            if comparison_entry is None:
+                logging.error('Could not load comparison from DB')
+                return None
             logging.debug(f'got compare result from db: {comparison_id}')
             return self._entry_to_dict(comparison_entry, comparison_id)
 
     @staticmethod
-    def _entry_to_dict(comparison_entry, comparison_id):
+    def _entry_to_dict(comparison_entry: ComparisonEntry, comparison_id: CompId) -> dict[str, Any]:
         return {
             **comparison_entry.data,
             '_id': comparison_id,  # FixMe? for backwards compatibility. change/remove?
@@ -111,17 +112,17 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 return 0.0
             return analysis.result['entropy']
 
-    def get_exclusive_files(self, compare_id: str, root_uid: str) -> list[str]:
+    def get_exclusive_files(self, compare_id: UID | None, root_uid: UID | None) -> list[UID]:
         if compare_id is None or root_uid is None:
             return []
         try:
             result = self.get_comparison_result(compare_id)
-            exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]
-        except (KeyError, FactComparisonException):
+            exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]  # type: ignore[index]
+        except (KeyError, TypeError):
             exclusive_files = []
         return exclusive_files
 
-    def get_vfp_of_included_text_files(self, root_uid: str, blacklist: set[str]) -> dict[str, set[str]]:
+    def get_vfp_of_included_text_files(self, root_uid: str, blacklist: set[str]) -> dict[VFP, set[UID]]:
         with self.get_read_only_session() as session:
             query = (
                 select(FileObjectEntry.uid)
@@ -137,14 +138,13 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         return self._transpose_vfp_dict(vfp_data)
 
     @staticmethod
-    def _transpose_vfp_dict(vfp_data: dict[str, dict[str, list[str]]]) -> dict[str, set[str]]:
+    def _transpose_vfp_dict(vfp_data: dict[UID, VfpDict]) -> dict[VFP, set[UID]]:
         """
-        Look for files with the same "virtual file path".
-        input: {uid {parent_uid: [vfp]}} -> output: {vfp: [uid]}
+        Look for files with the same "virtual file path" (vfp).
+        input: {uid1: {parent_uid: [vfp1, ...]}, ...} -> output: {vfp1: {uid1, ...}, ...}
         """
-        result = {}
-        for uid in vfp_data:
-            vfp_dict = vfp_data.get(uid)
+        result: dict[str, set[UID]] = {}
+        for uid, vfp_dict in vfp_data.items():
             for vfp_list in vfp_dict.values():
                 for vfp in vfp_list:
                     result.setdefault(vfp, set()).add(uid)

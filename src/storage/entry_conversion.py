@@ -8,10 +8,14 @@ from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VfpDict
 
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
-    firmware = Firmware()
+    firmware = Firmware(uid=fw_entry.uid)
     _populate_fo_data(fw_entry.root_object, firmware, analysis_filter, parent_fw=set())
     firmware.device_name = fw_entry.device_name
     firmware.device_class = fw_entry.device_class
@@ -31,13 +35,13 @@ def file_object_from_entry(  # noqa: PLR0913
     virtual_file_paths: dict[str, list[str]] | None = None,
     parent_fw: set[str] | None = None,
 ) -> FileObject:
-    file_object = FileObject()
+    file_object = FileObject(uid=fo_entry.uid)
     _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents, virtual_file_paths, parent_fw)
     return file_object
 
 
-def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, list[str]]:
-    result = {}
+def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> VfpDict:
+    result: VfpDict = {}
     for vfp_entry in vfp_list or []:
         result.setdefault(vfp_entry.parent_uid, []).append(vfp_entry.file_path)
     return result
@@ -52,7 +56,6 @@ def _populate_fo_data(  # noqa: PLR0913
     virtual_file_paths: dict[str, list[str]] | None = None,
     parent_fw: set[str] | None = None,
 ):
-    file_object.uid = fo_entry.uid
     file_object.size = fo_entry.size
     file_object.file_name = fo_entry.file_name
     file_object.virtual_file_path = virtual_file_paths or {}
@@ -73,6 +76,9 @@ def _collect_analysis_tags(analysis_dict: dict) -> dict:
 
 
 def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> FirmwareEntry:
+    if firmware.release_date is None:
+        logging.warning(f'Trying to create a DB entry for FW with uninitialized date {Firmware}')
+        firmware.release_date = '1970-01-01'
     return FirmwareEntry(
         uid=firmware.uid,
         submission_date=time(),

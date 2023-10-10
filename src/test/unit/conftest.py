@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from typing import Type
 
 import pytest
 from pydantic import BaseModel
 
+from helperFunctions.types import AnalysisPluginInfo
 from test.common_helper import TEST_FW, TEST_TEXT_FILE, CommonDatabaseMock
 from test.conftest import merge_markers
 from web_interface.frontend_main import WebFrontEnd
@@ -10,19 +13,26 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 
 class CommonIntercomMock:
-    task_list = None
-    _common_fields = ('0.0', [], [], [], 1)
+    _common_fields: tuple[str, list, list, list, int] = ('0.0', [], [], [], 1)
 
     def __init__(self, *_, **__):
-        pass
+        self.task_list: list = []
 
     def get_available_analysis_plugins(self):
         return {
-            'default_plugin': ('default plugin description', False, {'default': True}, *self._common_fields),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *self._common_fields),
-            'optional_plugin': ('optional plugin description', False, {'default': False}, *self._common_fields),
-            'file_type': ('file_type plugin', False, {'default': False}, *self._common_fields),
-            'unpacker': ('Additional information provided by the unpacker', True, False),
+            'default_plugin': AnalysisPluginInfo(
+                'default plugin description', False, {'default': True}, *self._common_fields
+            ),
+            'mandatory_plugin': AnalysisPluginInfo(
+                'mandatory plugin description', True, {'default': False}, *self._common_fields
+            ),
+            'optional_plugin': AnalysisPluginInfo(
+                'optional plugin description', False, {'default': False}, *self._common_fields
+            ),
+            'file_type': AnalysisPluginInfo('file_type plugin', False, {'default': False}, *self._common_fields),
+            'unpacker': AnalysisPluginInfo(
+                'Additional information provided by the unpacker', True, {}, '', [], [], [], 0
+            ),
         }
 
     def shutdown(self):
@@ -53,7 +63,7 @@ class CommonIntercomMock:
     @staticmethod
     def get_binary_search_result(uid):
         if uid == 'binary_search_id':
-            return {'test_rule': ['test_uid']}, b'some yara rule'
+            return {'test_rule': ['test_uid']}, (b'some yara rule', None)
         return None, None
 
     def add_compare_task(self, compare_id, force=False):
@@ -97,7 +107,7 @@ class _UserDbMock:
 
 class StatusInterfaceMock:
     def __init__(self):
-        self._status = {'current_analyses': {}, 'recently_finished_analyses': {}}
+        self._status: dict[str, dict] = {'current_analyses': {}, 'recently_finished_analyses': {}}
 
     def set_analysis_status(self, status: dict):
         self._status = status
@@ -139,7 +149,8 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
     test_config = merge_markers(request, 'WebInterfaceUnitTestConfig', WebInterfaceUnitTestConfig)
 
     db_mock_instance = test_config.database_mock_class()
-    IntercomMockClass = test_config.intercom_mock_class  # noqa: N806
+    intercom_mock = test_config.intercom_mock_class()
+    intercom_mock.task_list = intercom_task_list
 
     def _add_flask_security_to_app_mock(app):
         add_flask_security_to_app(app)
@@ -147,11 +158,10 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
 
     monkeypatch.setattr('web_interface.frontend_main.add_flask_security_to_app', _add_flask_security_to_app_mock)
 
-    monkeypatch.setattr(IntercomMockClass, 'task_list', intercom_task_list)
     # Note: The intercom argument is only the class. It gets instanced when intercom access in needed by `ConnectTo`.
     frontend = WebFrontEnd(
-        db=FrontendDatabaseMock(db_mock_instance),
-        intercom=IntercomMockClass,
+        db=FrontendDatabaseMock(db_mock_instance),  # type: ignore[arg-type]
+        intercom=intercom_mock,
         status_interface=test_config.status_mock_class(),
     )
     frontend.app.config['TESTING'] = True

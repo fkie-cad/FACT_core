@@ -34,6 +34,10 @@ class TestCweCheckerFunctions:
         assert isinstance(result, dict)
         assert len(result.keys()) == 1
         assert isinstance(result['CWE676'], dict)
+        assert result['CWE676']['plugin_version'] == '0.1'
+        assert result['CWE676']['warnings'] == [
+            '(Use of Potentially Dangerous Function) FUN_00102ef0 (00103042) -> strlen'
+        ]
 
     def test_is_supported_arch(self, analysis_plugin):
         fo = FileObject()

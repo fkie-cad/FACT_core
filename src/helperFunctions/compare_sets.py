@@ -47,7 +47,7 @@ def substring_is_in_list(string: str, substring_list: list[str]) -> bool:
     return any(substring in string for substring in substring_list)
 
 
-def iter_element_and_rest(iterable: Iterable[_T]) -> Iterator[tuple[_T, Iterable[_T]]]:
+def iter_element_and_rest(iterable: Iterable[_T]) -> Iterator[tuple[_T, list[_T]]]:
     """
     Iterate over each element of an iterable object (e.g. a list) and also get all other (remaining) elements
     from the object.

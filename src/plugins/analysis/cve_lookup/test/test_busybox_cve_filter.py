@@ -1,5 +1,6 @@
 import pytest
 
+from objects.file import FileObject
 from ..internal.busybox_cve_filter import filter_cves_by_component
 from ..internal.database.schema import Cve
 
@@ -173,5 +174,5 @@ CVE_DICT = {
     ],
 )
 def test_filter_cves_by_component(components, expected_cve_ids):
-    filtered_cves = filter_cves_by_component(None, CVE_DICT, components)
+    filtered_cves = filter_cves_by_component(FileObject(), CVE_DICT, components)
     assert set(filtered_cves) == expected_cve_ids

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from time import time
 
 import pytest
@@ -6,7 +8,7 @@ from test.common_helper import CommonDatabaseMock
 
 
 class DbMock(CommonDatabaseMock):
-    result = None
+    result: dict | None = None
 
     def get_statistic(self, identifier):
         return self.result if identifier == 'general' else None

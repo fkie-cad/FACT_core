@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from test.unit.compare.compare_plugin_test_class import ComparePluginTest
 
 from ..code.software import ComparePlugin
@@ -35,7 +37,7 @@ class TestComparePluginSoftware(ComparePluginTest):
         self.fw_two.processed_analysis['software_components'] = {'summary': {'software a': self.fw_two.uid}}
         self.fw_three.processed_analysis['software_components'] = {'summary': {}}
         fo_list = [self.fw_one, self.fw_two, self.fw_three]
-        tmp_result_dict = {'software_in_common': {}, 'exclusive_software': {}}
+        tmp_result_dict: dict[str, dict] = {'software_in_common': {}, 'exclusive_software': {}}
         tmp_result_dict['software_in_common']['all'] = set()
         for fo in fo_list:
             tmp_result_dict['exclusive_software'][fo.uid] = {}

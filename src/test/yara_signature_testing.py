@@ -30,8 +30,10 @@ class SignatureTestingMatching:
 
 
 class SignatureTestingMeta:
-    META_FIELDS = ['software_name', 'open_source', 'website', 'description']  # noqa: RUF012
-    missing_meta_fields = []  # noqa: RUF012
+    META_FIELDS = ('software_name', 'open_source', 'website', 'description')
+
+    def setup_method(self):
+        self.missing_meta_fields = []
 
     def check_meta_fields(self, sig_path: Path):
         for file in sig_path.iterdir():

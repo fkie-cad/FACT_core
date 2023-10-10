@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+from __future__ import annotations
 
 import logging
 import pickle
@@ -40,7 +41,7 @@ COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 class UwsgiServer:
     def __init__(self, config_path: Optional[str] = None):
         self.config_path = config_path
-        self.process = None
+        self.process: Popen | None = None
 
     def start(self):
         config_parameter = f' --pyargv {self.config_path}' if self.config_path else ''

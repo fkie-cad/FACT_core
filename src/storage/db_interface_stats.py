@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections import Counter
-from typing import Any, Callable, Iterator, List, Tuple, TYPE_CHECKING
+from typing import Any, Callable, Iterator, List, Tuple, TYPE_CHECKING, ItemsView
 
 from sqlalchemy import column, func, select
 from sqlalchemy.exc import SQLAlchemyError
@@ -12,6 +12,7 @@ from storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 
 if TYPE_CHECKING:
+    from helperFunctions.types import UID
     from sqlalchemy.sql import Select
 
 Stats = List[Tuple[str, int]]
@@ -27,7 +28,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         logging.debug(f'Updating {identifier} statistics')
         try:
             with self.get_read_write_session() as session:
-                entry: StatsEntry = session.get(StatsEntry, identifier)
+                entry: StatsEntry | None = session.get(StatsEntry, identifier)
                 if entry is None:  # no old entry in DB -> create new one
                     entry = StatsEntry(name=identifier, data=content_dict)
                     session.add(entry)
@@ -160,7 +161,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 query = query.filter_by(**q_filter)
             return count_occurrences(session.execute(query).scalars())
 
-    def get_arch_stats(self, q_filter: dict | None = None) -> list[tuple[str, int, str]]:
+    def get_arch_stats(self, q_filter: dict | None = None) -> list[tuple[str, int, UID]]:
         """
         Get architecture stats per firmware. Returns tuples with arch, count, and root_uid.
         """
@@ -293,12 +294,12 @@ def count_occurrences(result_list: list[str]) -> Stats:
     return _sort_tuples(Counter(result_list).items())
 
 
-def _sort_tuples(query_result: Stats) -> Stats:
+def _sort_tuples(query_result: ItemsView[str, int]) -> Stats:
     # Sort stats tuples by count in ascending order
     return sorted(_convert_to_tuples(query_result), key=lambda e: (e[1], e[0]))
 
 
-def _convert_to_tuples(query_result) -> Iterator[tuple[str, int]]:
+def _convert_to_tuples(query_result: ItemsView[str, int]) -> Iterator[tuple[str, int]]:
     # results from the DB query will be of type `Row` and not actual tuples -> convert
     # (otherwise they cannot be serialized as JSON and not be saved in the stats DB)
     return (tuple(item) if not isinstance(item, tuple) else item for item in query_result)
@@ -317,7 +318,7 @@ class StatsDbViewer(ReadOnlyDbInterface):
 
     def get_statistic(self, identifier) -> dict | None:
         with self.get_read_only_session() as session:
-            entry: StatsEntry = session.get(StatsEntry, identifier)
+            entry: StatsEntry | None = session.get(StatsEntry, identifier)
             if entry is None:
                 return None
             return self._stats_entry_to_dict(entry)

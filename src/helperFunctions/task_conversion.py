@@ -12,6 +12,7 @@ from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 
 if TYPE_CHECKING:
+    from helperFunctions.types import UID
     from flask import Request
     from werkzeug.datastructures import FileStorage
 
@@ -36,23 +37,22 @@ def create_analysis_task(request: Request) -> dict[str, Any]:
     return task
 
 
-def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes]:
+def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes | None]:
     """
     Retrieves the file name and content from the flask request object.
 
     :param request: The flask request object.
-    :param config: The FACT configuration.
     :return: A Tuple containing the file name and the file content.
     """
     try:
-        file_name = escape(request.files['file'].filename)
+        file_name: str = escape(request.files['file'].filename)
     except AttributeError:
         file_name = 'no name'
     file_binary = _get_uploaded_file_binary(request.files['file'])
     return file_name, file_binary
 
 
-def create_re_analyze_task(request: Request, uid: str) -> dict[str, Any]:
+def create_re_analyze_task(request: Request, uid: UID) -> dict[str, Any]:
     """
     Create an analysis task for a file that is already in the database.
 
@@ -107,15 +107,11 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Firmware | Non
     :param base_fw: The existing `Firmware` object in case of analysis update.
     :return: A `Firmware` object based on the analysis task data.
     """
-    fw = base_fw or Firmware()
+    fw = base_fw or Firmware(uid=analysis_task.get('uid'))
     fw.scheduled_analysis = analysis_task['requested_analysis_systems']
-    if 'binary' in analysis_task:
-        fw.set_binary(analysis_task['binary'])
-        fw.file_name = analysis_task['file_name']
-    else:
-        if 'file_name' in analysis_task:
-            fw.file_name = analysis_task['file_name']
-        fw.uid = analysis_task['uid']
+    if (binary := analysis_task.get('binary')) is not None:
+        fw.set_binary(binary)
+    fw.file_name = analysis_task.get('file_name')
     fw.device_name = analysis_task['device_name']
     fw.set_part_name(analysis_task['device_part'])
     fw.version = analysis_task['version']

@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Iterable
 
 from storage.db_interface_view_sync import ViewUpdater
 
 
 class BasePlugin:
-    NAME = 'base'
-    DEPENDENCIES = []  # noqa: RUF012
+    NAME: str = ''
+    FILE: str = ''
+    DEPENDENCIES: Iterable[str] = ()
 
     def __init__(self, plugin_path=None, view_updater=None):
         self.view_updater = view_updater if view_updater is not None else ViewUpdater()

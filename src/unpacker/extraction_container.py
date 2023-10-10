@@ -30,7 +30,7 @@ class ExtractionContainer:
         self.id_ = id_
         self.tmp_dir = tmp_dir
         self.port = config.backend.unpacking.base_port + id_
-        self.container_id = None
+        self.container_id: str | None = None
         self.exception = value
         self._adapter = HTTPAdapter(max_retries=Retry(total=3, backoff_factor=0.1))
 

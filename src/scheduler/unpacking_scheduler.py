@@ -4,19 +4,21 @@ import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager, suppress
+from dataclasses import dataclass, field
 from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from tempfile import TemporaryDirectory
-from threading import Thread
+from threading import Lock, Thread
 from time import sleep
+from typing import TYPE_CHECKING
 
 from docker.errors import DockerException
 
 import config
-from helperFunctions.logging import TerminalColors, color_string
+from helperFunctions.logging import color_string, TerminalColors
 from helperFunctions.process import (
-    ExceptionSafeProcess,
     check_worker_exceptions,
+    ExceptionSafeProcess,
     new_worker_was_started,
     stop_processes,
 )
@@ -25,9 +27,11 @@ from storage.db_interface_backend import BackendDbInterface
 from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack import Unpacker
 from unpacker.unpack_base import ExtractionError
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VFP
+    from multiprocessing.managers import DictProxy, ListProxy, SyncManager
+    from helperFunctions.types import MpValue, UID
     from objects.file import FileObject
 
 
@@ -51,39 +55,42 @@ class UnpackingScheduler:
         unpacking_locks=None,
         db_interface=BackendDbInterface,
     ):
-        self.stop_condition = Value('i', 0)
-        self.throttle_condition = Value('i', 0)
+        self.stop_condition: MpValue[int] = Value('i', 0)  # type: ignore[assignment]
+        self.throttle_condition: MpValue[int] = Value('i', 0)  # type: ignore[assignment]
         self.get_analysis_workload = analysis_workload
-        self.in_queue = Queue()
+        self.in_queue: Queue[FileObject] = Queue()
         self.work_load_counter = 25
-        self.worker_tmp_dirs = []  # type: list[TemporaryDirectory]
+        self.worker_tmp_dirs: list[TemporaryDirectory] = []
         self.pending_tasks: dict[int, Thread] = {}
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
         self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
 
-        self.manager = None
-        self.workers = None
-        self.work_load_process = None
+        self.manager: SyncManager | None = None
+        self.workers: ListProxy[ExtractionContainer] | None = None
+        self.work_load_process: ExceptionSafeProcess | None = None
         self.extraction_process = None
-        self.currently_extracted = None
-        self.sync_lock = None
+        self.currently_extracted: DictProxy[UID, FwUnpackingStatus] | None = None
+        self.sync_lock: Lock | None = None
         self.db_interface = db_interface
 
     @contextmanager
     def _sync(self):
-        try:
-            self.sync_lock.acquire()
-            yield
-        finally:
-            self.sync_lock.release()
+        if self.sync_lock is not None:
+            try:
+                self.sync_lock.acquire()
+                yield
+            finally:
+                self.sync_lock.release()
+        else:
+            raise RuntimeError('Lock can only be acquired after starting the scheduler')
 
     def start(self):
         self.manager = Manager()
-        self.workers = self.manager.list()  # type: list[ExtractionContainer]
-        self.currently_extracted = self.manager.dict()  # type: dict[str, dict[str, set]]
+        self.workers = self.manager.list()
+        self.currently_extracted = self.manager.dict()
         self.sync_lock = self.manager.Lock()
-        self.create_containers()
+        self._create_containers()
         self.work_load_process = self.start_work_load_monitor()
         self.extraction_process = self._start_extraction_loop()
         logging.info('Unpacking scheduler online')
@@ -101,12 +108,13 @@ class UnpackingScheduler:
         self.stop_condition.value = 1
         self.in_queue.close()
         stop_processes(
-            [self.work_load_process, self.extraction_process],
+            [p for p in (self.work_load_process, self.extraction_process) if p is not None],
             THROTTLE_INTERVAL,
         )
-        self.stop_containers()
+        self._stop_containers()
         self._clean_tmp_dirs()
-        self.manager.shutdown()
+        if self.manager is not None:
+            self.manager.shutdown()
         logging.info('Unpacking scheduler offline')
 
     def _clean_tmp_dirs(self):
@@ -128,7 +136,9 @@ class UnpackingScheduler:
     def get_scheduled_workload(self):
         return {'unpacking_queue': self.in_queue.qsize(), 'is_throttled': self.throttle_condition.value == 1}
 
-    def create_containers(self):
+    def _create_containers(self):
+        if self.manager is None or self.workers is None:
+            raise RuntimeError('Scheduler not started yet')
         for id_ in range(config.backend.unpacking.processes):
             tmp_dir = TemporaryDirectory(dir=config.backend.docker_mount_base_dir)
             container = ExtractionContainer(id_=id_, tmp_dir=tmp_dir, value=self.manager.Value('i', 0))
@@ -136,16 +146,17 @@ class UnpackingScheduler:
             self.workers.append(container)
             self.worker_tmp_dirs.append(tmp_dir)
 
-    def stop_containers(self):
-        with ThreadPoolExecutor(max_workers=len(self.workers)) as pool:
-            pool.map(lambda container: container.stop(), self.workers)
+    def _stop_containers(self):
+        if self.workers is not None:
+            with ThreadPoolExecutor(max_workers=len(self.workers)) as pool:
+                pool.map(lambda container: container.stop(), self.workers)
 
     def extraction_loop(self):
         logging.debug(f'Starting unpacking scheduler loop (pid={os.getpid()})')
         while self.stop_condition.value == 0:
-            self.check_pending()
+            self._check_pending()
             try:
-                container = self.get_free_worker()
+                container = self._get_free_worker()
                 task = self.in_queue.get(timeout=1)
                 task_thread = Thread(
                     target=self._work_thread_wrapper,
@@ -161,7 +172,9 @@ class UnpackingScheduler:
                 pass
         logging.debug('Stopped unpacking scheduler loop')
 
-    def check_pending(self):
+    def _check_pending(self):
+        if self.workers is None:
+            raise RuntimeError('Scheduler not started yet')
         for container_id, thread in list(self.pending_tasks.items()):
             if not thread.is_alive():
                 thread.join()
@@ -171,7 +184,9 @@ class UnpackingScheduler:
                     self.workers[container_id] = container  # force update of manager
                 self.pending_tasks.pop(container_id)
 
-    def get_free_worker(self) -> ExtractionContainer:
+    def _get_free_worker(self) -> ExtractionContainer:
+        if self.workers is None:
+            raise RuntimeError('Scheduler not started yet')
         for container in self.workers:
             if container.id_ not in self.pending_tasks:
                 return container
@@ -213,7 +228,11 @@ class UnpackingScheduler:
     def _update_currently_unpacked(
         self, task: FileObject, extracted_objects: list[FileObject], db_interface: BackendDbInterface
     ):
+        if self.currently_extracted is None:
+            raise RuntimeError('Scheduler not started yet')
         with self._sync():
+            if task.root_uid is None:
+                raise RuntimeError('Root UID must not be None during unpacking')
             currently_unpacked = self.currently_extracted.get(task.root_uid)
             if currently_unpacked is None:
                 # this file is a duplicate and unpacking of the FW is already finished -> do nothing
@@ -221,16 +240,16 @@ class UnpackingScheduler:
                 extracted_objects.clear()
                 return
 
-            if task.uid in currently_unpacked['delayed_vfp_update']:
-                for parent_uid, path_list in currently_unpacked['delayed_vfp_update'][task.uid].items():
+            if task.uid in currently_unpacked.delayed_vfp_update:
+                for parent_uid, path_list in currently_unpacked.delayed_vfp_update[task.uid].items():
                     db_interface.add_vfp(parent_uid, task.uid, path_list)
                     db_interface.add_child_to_parent(parent_uid=parent_uid, child_uid=task.uid)
-            currently_unpacked['done'].add(task.uid)
+            currently_unpacked.done.add(task.uid)
 
             self._update_extracted_objects(currently_unpacked, db_interface, extracted_objects, task)
             with suppress(KeyError):
-                currently_unpacked['remaining'].remove(task.uid)
-            if not currently_unpacked['remaining']:
+                currently_unpacked.remaining.remove(task.uid)
+            if not currently_unpacked.remaining:
                 logging.info(f'Unpacking of firmware {task.root_uid} completed.')
                 self.currently_extracted.pop(task.root_uid)
             else:
@@ -238,7 +257,7 @@ class UnpackingScheduler:
 
     @staticmethod
     def _update_extracted_objects(
-        currently_unpacked: dict,
+        currently_unpacked: FwUnpackingStatus,
         db_interface: BackendDbInterface,
         extracted_objects: list[FileObject],
         current_fo: FileObject,
@@ -246,12 +265,12 @@ class UnpackingScheduler:
         for fo in extracted_objects[:]:
             path_list = fo.virtual_file_path[current_fo.uid]
             # 3 cases: unpacking not yet started, unpacking currently in progress, unpacking already done
-            if fo.uid in currently_unpacked['remaining']:
+            if fo.uid in currently_unpacked.remaining:
                 # FO is currently being unpacked -> DB entry is not yet created -> delay VFP update
                 extracted_objects.remove(fo)
-                currently_unpacked['delayed_vfp_update'].setdefault(fo.uid, {})[current_fo.uid] = path_list
-            elif fo.uid not in currently_unpacked['done']:  # unpacking of FO not yet started (usually new file)
-                currently_unpacked['remaining'].add(fo.uid)
+                currently_unpacked.delayed_vfp_update.setdefault(fo.uid, {})[current_fo.uid] = path_list
+            elif fo.uid not in currently_unpacked.done:  # unpacking of FO not yet started (usually new file)
+                currently_unpacked.remaining.add(fo.uid)
             else:  # FO was already unpacked from this FW -> only update VFP and skip unpacking/analysis
                 extracted_objects.remove(fo)
                 db_interface.add_vfp(current_fo.uid, fo.uid, path_list)
@@ -314,6 +333,8 @@ class UnpackingScheduler:
         return 0
 
     def check_exceptions(self):
+        if self.work_load_process is None:
+            raise RuntimeError('Scheduler not started yet')
         list_with_load_process = [self.work_load_process]
         shutdown = check_worker_exceptions(list_with_load_process, 'unpack-load', self._work_load_monitor)
         if new_worker_was_started(new_process=list_with_load_process[0], old_process=self.work_load_process):
@@ -321,8 +342,17 @@ class UnpackingScheduler:
         return shutdown
 
     def _init_currently_unpacked(self, fo: Firmware):
+        if self.currently_extracted is None:
+            raise RuntimeError('Scheduler not started yet')
         with self._sync():
             if fo.uid in self.currently_extracted:
                 logging.warning(f'Starting unpacking of {fo.uid} but it is currently also still being unpacked')
             else:
-                self.currently_extracted[fo.uid] = {'remaining': {fo.uid}, 'done': set(), 'delayed_vfp_update': {}}
+                self.currently_extracted[fo.uid] = FwUnpackingStatus(remaining={fo.uid})
+
+
+@dataclass
+class FwUnpackingStatus:
+    remaining: set[UID]
+    done: set[UID] = field(default_factory=set)
+    delayed_vfp_update: dict[UID, dict[UID, list[VFP]]] = field(default_factory=dict)
