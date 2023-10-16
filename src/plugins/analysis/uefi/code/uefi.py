@@ -119,8 +119,8 @@ def _convert_json_to_schema(fw_hunt_data: dict[str, dict]) -> Schema:
     {
         <rule_name>: {
             category: ...,
-            author: ...,
-            description: ...,
+            [author: ...,]
+            [description: ...,]
             [url: ...,]
             variants: {
                 <name>: {
@@ -137,9 +137,9 @@ def _convert_json_to_schema(fw_hunt_data: dict[str, dict]) -> Schema:
         Rule(
             name=rule_name,
             category=data['category'],
-            author=data['author'],
-            description=data['description'],
-            url=data.get('url') or None,  # fix for empty strings
+            author=data.get('author'),
+            description=data.get('description'),
+            url=data.get('url'),
             variants=[
                 Variant(name=variant_name, **variant_data) for variant_name, variant_data in data['variants'].items()
             ],
