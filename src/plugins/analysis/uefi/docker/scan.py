@@ -94,17 +94,17 @@ def _parse_output(output: str, rules: dict[str, dict]) -> dict[str, dict]:
         if rule_data is None:
             print(f'error: rule {rule_name} not found')
             sys.exit(3)
-        category = rule_data['meta']['namespace']
-        result.setdefault(category, {}).setdefault(
+        result.setdefault(
             rule_name,
             {
-                'description': rule_data['meta'].get('description', ''),
-                'author': rule_data['meta'].get('author', ''),
-                'url': rule_data['meta'].get('url', ''),
+                'category': rule_data['meta']['namespace'],
+                'description': rule_data['meta'].get('description'),
+                'author': rule_data['meta'].get('author'),
+                'url': rule_data['meta'].get('url'),
                 'variants': {},
             },
         )
-        result[category][rule_name]['variants'][variant] = {
+        result[rule_name]['variants'][variant] = {
             'output': detected,
             'match': NO_MATCH_STR not in detected,
         }

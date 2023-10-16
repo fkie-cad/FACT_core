@@ -1,15 +1,14 @@
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
-
-    {% for category, category_results in analysis_result.items() %}
+    {% for category, result_list in analysis_result.vulnerabilities | groupby("category") %}
         <tr>
             <td>{{ category | safe }}</td>
             <td class="p-0">
                 <table class="table table-bordered m-0" style="width: 100%">
-                    {% for rule, rule_results in category_results.items() %}
+                    {% for rule_results in result_list %}
                         <tr>
-                            <td style="width: 20%">{{ rule | safe }}</td>
+                            <td style="width: 20%">{{ rule_results.name | safe }}</td>
                             <td class="p-0">
                                 <table class="table table-bordered m-0" style="width: 100%">
                                     {% if rule_results.url %}
@@ -26,9 +25,9 @@
                                         <td>variants</td>
                                         <td class="p-0">
                                             <table class="table table-bordered m-0" style="width: 100%">
-                                                {% for variant, variant_data in rule_results.variants.items() %}
+                                                {% for variant_data in rule_results.variants %}
                                                     <tr>
-                                                        <td>{{ variant | safe }}</td>
+                                                        <td>{{ variant_data.name | safe }}</td>
                                                         {% if variant_data.match %}
                                                             <td class="table-danger" style="width: 50%">{{ variant_data.output | safe }}</td>
                                                         {% else %}
