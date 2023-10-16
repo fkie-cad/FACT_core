@@ -1,6 +1,6 @@
 # @category IPC
 
-# pylint: disable=undefined-variable,consider-using-f-string
+
 # flake8: noqa
 
 import sys

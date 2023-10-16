@@ -1,4 +1,3 @@
-# pylint: disable=protected-access,wrong-import-order,no-self-use,no-member,attribute-defined-outside-init
 from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
@@ -19,29 +18,31 @@ class DbInterfaceMock:
         self.fw = create_test_firmware()
         self.fw.uid = 'parent_uid'
         self.fw.processed_analysis[AnalysisPlugin.NAME] = {
-            'files': {
-                'foo': {'executable': False},
-                'bar': {
-                    'executable': True,
-                    'path': '/some/path',
-                    'results': {
-                        'some-arch': {
-                            '-h': {'stdout': 'stdout result', 'stderr': 'stderr result', 'return_code': '1337'}
-                        }
+            'result': {
+                'files': {
+                    'foo': {'executable': False},
+                    'bar': {
+                        'executable': True,
+                        'path': '/some/path',
+                        'results': {
+                            'some-arch': {
+                                '-h': {'stdout': 'stdout result', 'stderr': 'stderr result', 'return_code': '1337'}
+                            }
+                        },
                     },
-                },
-                'error-outside': {'executable': False, 'path': '/some/path', 'results': {'error': 'some error'}},
-                'error-inside': {
-                    'executable': False,
-                    'path': '/some/path',
-                    'results': {'some-arch': {'error': 'some error'}},
-                },
+                    'error-outside': {'executable': False, 'path': '/some/path', 'results': {'error': 'some error'}},
+                    'error-inside': {
+                        'executable': False,
+                        'path': '/some/path',
+                        'results': {'some-arch': {'error': 'some error'}},
+                    },
+                }
             }
         }
 
         self.fo = create_test_file_object()
         self.fo.uid = 'foo'
-        self.fo.virtual_file_path['parent_uid'] = ['parent_uid|/some_file']
+        self.fo.parents = ['parent_uid']
 
     def get_object(self, uid):
         if uid == 'parent_uid':
@@ -69,17 +70,17 @@ class TestQemuExecRoutesStatic:
     def test_get_results_for_included(self):
         result = routes.get_analysis_results_for_included_uid('foo', DbInterfaceMock())
         assert result is not None
-        assert result != {}  # pylint: disable=use-implicit-booleaness-not-comparison
+        assert result != {}
         assert 'parent_uid' in result
         assert result['parent_uid'] == {'executable': False}
 
     def test_get_results_from_parent_fo(self):
         analysis_result = {'executable': False}
-        result = routes._get_results_from_parent_fo({'files': {'foo': analysis_result}}, 'foo')
+        result = routes._get_results_from_parent_fo({'result': {'files': {'foo': analysis_result}}}, 'foo')
         assert result == analysis_result
 
     def test_no_results_from_parent(self):
-        result = routes._get_results_from_parent_fo({}, 'foo')
+        result = routes._get_results_from_parent_fo({'result': {}}, 'foo')
         assert result is None
 
 
@@ -87,13 +88,13 @@ class DbMock:
     frontend = DbInterfaceMock()
 
 
-class TestFileSystemMetadataRoutes:
-    def setup(self):
+class TestQemuExecRoutes:
+    def setup_method(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
         app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x
-        self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None)
+        self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None, status=None)
         self.test_client = app.test_client()
 
     def test_not_executable(self):
@@ -120,15 +121,15 @@ class TestFileSystemMetadataRoutes:
         assert 'some error' in response
 
 
-class TestFileSystemMetadataRoutesRest:
-    def setup(self):
+class TestQemuExecRoutesRest:
+    def setup_method(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
         api = Api(app)
-        endpoint, methods = routes.QemuExecRoutesRest.ENDPOINTS[0]
+        endpoint, methods = routes.PluginRestRoutes.ENDPOINTS[0]
         api.add_resource(
-            routes.QemuExecRoutesRest,
+            routes.PluginRestRoutes,
             endpoint,
             methods=methods,
             resource_class_kwargs={'db': DbMock},

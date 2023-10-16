@@ -29,7 +29,9 @@ def run_eslint(file_path):
     issues = []
     # As we only ever analyse one file use output_json[0]
     for msg in output_json[0]['messages']:
-        issues.append(dict(line=msg['line'], column=msg['column'], message=msg['message'], symbol=msg['ruleId']))
+        issues.append(
+            {'line': msg['line'], 'column': msg['column'], 'message': msg['message'], 'symbol': msg['ruleId']}
+        )
 
     return issues
 
@@ -44,7 +46,7 @@ def run_shellcheck(file_path):
         text=True,
     )
 
-    if shellcheck_process.returncode == 2:
+    if shellcheck_process.returncode == 2:  # noqa: PLR2004
         logging.debug(f'Failed to execute shellcheck:\n{shellcheck_process.stdout}')
         return []
 
@@ -87,10 +89,10 @@ def run_luacheck(file_path):
 
 
 def _luacheck_parse_linter_output(output):
-    '''
+    """
     https://luacheck.readthedocs.io/en/stable/warnings.html
     ignore_cases = ['(W611)', '(W612)', '(W613)', '(W614)', '(W621)', '(W631)']
-    '''
+    """
     issues = []
     for line in output.splitlines():
         try:
@@ -190,6 +192,10 @@ def run_phpstan(file_path):
     )
 
     linter_output = json.loads(phpstan_p.stdout)
+
+    # if no issues are found, the file will be missing
+    if not linter_output['files'] or container_path not in linter_output['files']:
+        return []
 
     issues = []
     for message in linter_output['files'][container_path]['messages']:

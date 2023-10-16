@@ -1,4 +1,3 @@
-# pylint: disable=no-self-use,protected-access,wrong-import-order,attribute-defined-outside-init
 import os
 from itertools import chain
 
@@ -16,23 +15,24 @@ from web_interface.components.plugin_routes import (
 
 
 class PluginRoutesMock(PluginRoutes):
-    def __init__(self, app, db=None, intercom=None, api=None):
+    def __init__(self, app, db=None, intercom=None, api=None, status=None):  # noqa: PLR0913
         self._app = app
         self._api = api
         self.db = db
         self.intercom = intercom
+        self.status = status
 
 
 class TestPluginRoutes:
-    def setup(self):
+    def setup_method(self):
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
         self.api = Api(self.app)
 
     def test_get_modules_in_path(self):
-        plugin_dir_path = os.path.join(get_src_dir(), 'plugins')
+        plugin_dir_path = os.path.join(get_src_dir(), 'plugins')  # noqa: PTH118
         plugin_folder_modules = _get_modules_in_path(plugin_dir_path)
-        assert len(plugin_folder_modules) >= 3
+        assert len(plugin_folder_modules) >= 3  # noqa: PLR2004
         for category in PLUGIN_CATEGORIES:
             assert category in plugin_folder_modules
 

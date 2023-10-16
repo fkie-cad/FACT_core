@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from types import MethodType
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, TYPE_CHECKING
 
-from web_interface.frontend_database import FrontendDatabase
+
+if TYPE_CHECKING:
+    from intercom.front_end_binding import InterComFrontEndBinding
+    from storage.redis_status_interface import RedisStatusInterface
+    from web_interface.frontend_database import FrontendDatabase
+    from collections.abc import Callable
 
 ROUTES_ATTRIBUTE = 'view_routes'
 
@@ -43,11 +47,19 @@ class AppRoute:
 
 
 class ComponentBase:
-    def __init__(self, app, db: FrontendDatabase, intercom, api=None):
+    def __init__(  # noqa: PLR0913
+        self,
+        app,
+        db: FrontendDatabase,
+        intercom: InterComFrontEndBinding,
+        status: RedisStatusInterface,
+        api=None,
+    ):
         self._app = app
         self._api = api
         self.db = db
         self.intercom = intercom
+        self.status = status
 
         self._init_component()
 

@@ -13,7 +13,7 @@ from web_interface.security.authentication import user_has_privilege
 
 
 @pytest.mark.parametrize(
-    'input_data, expected',
+    ('input_data', 'expected'),
     [('', ''), ('abc', 'abc'), ('Größer 2', 'Größer 2'), ('{"$test": ["test"]}', 'test test'), (None, None)],
 )
 def test_filter_out_illegal_characters(input_data, expected):
@@ -25,23 +25,25 @@ class RoleSuperuser(RoleMixin):
 
 
 class SuperuserUser(UserMixin):
-    id = 1  # pylint: disable=invalid-name
-    roles = [RoleSuperuser]
+    id = 1
+    roles = [RoleSuperuser]  # noqa: RUF012
 
 
 class NormalUser(UserMixin):
-    id = 2  # pylint: disable=invalid-name
-    roles = []
+    id = 2
+    roles = []  # noqa: RUF012
 
 
-@pytest.mark.parametrize('input_data, expected', [(AnonymousUser, True), (SuperuserUser, True), (NormalUser, False)])
+@pytest.mark.parametrize(
+    ('input_data', 'expected'), [(AnonymousUser, True), (SuperuserUser, True), (NormalUser, False)]
+)
 def test_is_superuser(input_data, expected):
     proxied_object = LocalProxy(input_data)
     assert user_has_privilege(proxied_object) == expected
 
 
 @pytest.mark.parametrize(
-    'input_data, expected',
+    ('input_data', 'expected'),
     [
         ('', False),
         ('123456', True),
@@ -55,7 +57,7 @@ def test_password_is_legal(input_data, expected):
 
 
 @pytest.mark.parametrize(
-    'element_in, element_out',
+    ('element_in', 'element_out'),
     [
         ('A' * 55, 'A' * 55),
         ('A' * 56, '~' + 'A' * 54),
@@ -70,7 +72,7 @@ def test_cap_length_of_element_short():
 
 
 @pytest.mark.parametrize(
-    'number, unit, expected_output',
+    ('number', 'unit', 'expected_output'),
     [
         (1, 'm', '1.00 m'),
         (0.034, 'g', '34.00 mg'),
@@ -83,7 +85,7 @@ def test_format_si_prefix(number, unit, expected_output):
 
 
 @pytest.mark.parametrize(
-    'seconds, expected_output',
+    ('seconds', 'expected_output'),
     [
         (2, '2.00 s'),
         (0.2, '200.00 ms'),

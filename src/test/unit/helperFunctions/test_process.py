@@ -9,7 +9,7 @@ from helperFunctions.process import ExceptionSafeProcess, check_worker_exception
 def breaking_process(wait: bool = False):
     if wait:
         sleep(0.5)
-    raise RuntimeError('now that\'s annoying')
+    raise RuntimeError("now that's annoying")
 
 
 def test_exception_safe_process():
@@ -20,7 +20,7 @@ def test_exception_safe_process():
     process.start()
     process.join()
     assert process.exception
-    assert str(process.exception[0]) == 'now that\'s annoying'
+    assert str(process.exception[0]) == "now that's annoying"
 
 
 @pytest.mark.backend_config_overwrite(

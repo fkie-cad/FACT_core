@@ -5,8 +5,8 @@ import html
 from flask import jsonify, render_template
 
 from helperFunctions.data_conversion import none_to_none
-from helperFunctions.database import ConnectTo, get_shared_session
-from web_interface.components.component_base import GET, AppRoute, ComponentBase
+from helperFunctions.database import get_shared_session
+from web_interface.components.component_base import AppRoute, ComponentBase, GET
 from web_interface.components.hex_highlighting import preview_data_as_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
 from web_interface.file_tree.file_tree_node import FileTreeNode
@@ -32,7 +32,10 @@ class AjaxRoutes(ComponentBase):
             return self.db.comparison.get_exclusive_files(compare_id, root_uid)
         return None
 
-    def _generate_file_tree(self, root_uid: str, uid: str, whitelist: list[str]) -> FileTreeNode:
+    def _generate_file_tree(self, root_uid: str | None, uid: str, whitelist: list[str]) -> FileTreeNode:
+        if root_uid is None:
+            # parent FW set should never be empty (if it were empty, the file would not belong to any FW)
+            root_uid = list(self.db.frontend.get_parent_fw(uid)).pop()
         root = FileTreeNode(None)
         with get_shared_session(self.db.frontend) as frontend_db:
             child_uids = [
@@ -84,20 +87,24 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_get_binary/<mime_type>/<uid>', GET)
     def ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
-        with ConnectTo(self.intercom) as sc:
-            binary = sc.get_binary_and_filename(uid)[0]
+        binary = self.intercom.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
-            return f'<pre class="line_numbering" style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
+            return (
+                '<pre class="line_numbering" style="white-space: pre-wrap">'
+                f'{html.escape(bytes_to_str_filter(binary))}</pre>'
+            )
         if 'image/' in mime_type:
-            div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'
-            return f'{div}<img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" style="max-width:100%"></div>'
+            return (
+                '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; '
+                f'text-align: center"><img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" '
+                'style="max-width:100%"></div>'
+            )
         return None
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_hex_preview/<string:uid>/<int:offset>/<int:length>', GET)
     def ajax_get_hex_preview(self, uid: str, offset: int, length: int) -> str:
-        with ConnectTo(self.intercom) as sc:
-            partial_binary = sc.peek_in_binary(uid, offset, length)
+        partial_binary = self.intercom.peek_in_binary(uid, offset, length)
         hex_dump = preview_data_as_hex(partial_binary, offset=offset)
         return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'
 
@@ -118,10 +125,11 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax/stats/system', GET)
     def get_system_stats(self):
         backend_data = self.db.stats_viewer.get_statistic('backend')
+        analysis_status = self.status.get_analysis_status()
         try:
             return {
                 'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",
-                'number_of_running_analyses': len(backend_data['analysis']['current_analyses']),
+                'number_of_running_analyses': len(analysis_status['current_analyses']),
             }
         except (KeyError, TypeError):
             return {'backend_cpu_percentage': 'n/a', 'number_of_running_analyses': 'n/a'}
@@ -129,4 +137,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/ajax/system_health', GET)
     def get_system_health_update(self):
-        return {'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database')}
+        return {
+            'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database'),
+            'analysisStatus': self.status.get_analysis_status(),
+        }

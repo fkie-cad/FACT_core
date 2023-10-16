@@ -1,4 +1,4 @@
-import re
+import re  # noqa: EXE002
 
 
 def eval_strings(str_list):
@@ -48,7 +48,7 @@ def _add_special_character_ratio_score(string, score):
 
 def _ratio_word_non_word_helper(num_word, num_non_word):
     ratio = num_word if num_non_word == 0 else num_word / num_non_word
-    return 15 if ratio >= 2 else -15
+    return 15 if ratio >= 2 else -15  # noqa: PLR2004
 
 
 def _add_case_ratio_score(string, score):
@@ -64,7 +64,7 @@ def _add_case_ratio_score(string, score):
 
 def _case_ratio_helper(num_lower, num_capital):
     # all caps
-    if num_lower == 0 and num_capital >= 6:
+    if num_lower == 0 and num_capital >= 6:  # noqa: PLR2004
         return num_capital / 2
     case_ratio = num_lower if num_capital == 0 else num_lower / num_capital
     return 10 if case_ratio > 1 else -10
@@ -105,7 +105,7 @@ def _add_format_string_score(string, score):
 
 
 def _add_mail_adress_score(string, score):
-    regex = r"(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))"
+    regex = r'(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))'  # noqa: E501
     match = re.search(regex, string)
     return score + 150 if match else score
 
@@ -117,7 +117,7 @@ def _add_underscore_or_period_at_beginning_score(string, score):
 
 def _add_parameter_score(string, score):
     match = re.search(r'^\s*-{1,2}', string)
-    return score + 35 if match and len(string) > 6 else score
+    return score + 35 if match and len(string) > 6 else score  # noqa: PLR2004
 
 
 def _add_html_score(string, score):

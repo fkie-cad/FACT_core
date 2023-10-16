@@ -1,12 +1,11 @@
-# pylint: disable=protected-access,no-member
 import pytest
 
 from plugins.compare.file_coverage.code.file_coverage import ComparePlugin, generate_similarity_sets
-from test.common_helper import CommonDatabaseMock  # pylint: disable=wrong-import-order
-from test.unit.compare.compare_plugin_test_class import ComparePluginTest  # pylint: disable=wrong-import-order
+from test.common_helper import CommonDatabaseMock
+from test.unit.compare.compare_plugin_test_class import ComparePluginTest
 
 
-class DbMock:  # pylint: disable=unused-argument,no-self-use
+class DbMock:
     def get_entropy(self, uid):
         return 0.2
 
@@ -22,16 +21,15 @@ class DbMock:  # pylint: disable=unused-argument,no-self-use
 
 
 class TestComparePluginFileCoverage(ComparePluginTest):
-
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'File_Coverage'
     PLUGIN_CLASS = ComparePlugin
 
     def setup_plugin(self):
-        '''
+        """
         This function must be overwritten by the test instance.
         In most cases it is sufficient to copy this function.
-        '''
+        """
         return ComparePlugin(db_interface=DbMock(), view_updater=CommonDatabaseMock())
 
     def test_get_intersection_of_files(self):
@@ -68,17 +66,18 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         self.fw_one.list_of_all_included_files.append('foo')
         self.fw_two.list_of_all_included_files.append('foo')
         result = self.c_plugin.compare_function([self.fw_one, self.fw_two])
-        assert len(result.keys()) == 5
+        assert len(result.keys()) == 5  # noqa: PLR2004
 
     def test_find_changed_text_files(self):
         result = self.c_plugin._find_changed_text_files([self.fw_one, self.fw_two], common_files=[])
-        assert '/foo' in result and '/bar' in result
+        assert '/foo' in result
+        assert '/bar' in result
         assert result['/foo'] == [('uid_1', 'uid_4')]
-        assert len(result['/bar']) == 2
+        assert len(result['/bar']) == 2  # noqa: PLR2004
 
 
 @pytest.mark.parametrize(
-    'similar_files, similarity_dict, expected_output',
+    ('similar_files', 'similarity_dict', 'expected_output'),
     [
         (['fw1:file1', 'fw2:file2'], {}, ''),
         (['fw1:file1', 'fw2:file2'], {'fw1:file1;fw2:file2': '99'}, '99'),
@@ -100,7 +99,7 @@ def test_get_similarity_value(similar_files, similarity_dict, expected_output):
 
 
 @pytest.mark.parametrize(
-    'test_input, expected_output',
+    ('test_input', 'expected_output'),
     [
         ([], []),
         ([(1, 2), (2, 3), (1, 3)], [[1, 2, 3]]),

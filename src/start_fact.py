@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-'''
+"""
     Firmware Analysis and Comparison Tool (FACT)
     Copyright (C) 2015-2023  Fraunhofer FKIE
 
@@ -15,10 +15,9 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+"""
 from __future__ import annotations
 
-import argparse
 import logging
 import os
 import signal
@@ -31,12 +30,16 @@ from time import sleep
 import config
 
 try:
-    import fact_base  # pylint: disable=unused-import  # noqa: F401  # just check if FACT is installed
+    import fact_base  # noqa: F401
 except ImportError:
     sys.exit(1)
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.program_setup import setup_argparser, setup_logging
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import argparse
 
 
 class FactStarter:

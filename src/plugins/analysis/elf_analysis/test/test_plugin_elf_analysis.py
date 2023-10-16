@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name,protected-access,wrong-import-order
 from collections import namedtuple
 from pathlib import Path
 
@@ -20,12 +19,12 @@ LiefResult = namedtuple(
 )
 
 MOCK_DATA = (
-    '{"header": {"entrypoint": 109724, "file_type": "DYNAMIC", "header_size": 52, "identity_class": "CLASS32", "identity_data": "LSB", "identity_os_abi": "SYSTEMV"},'
-    '"dynamic_entries": [{"library": "libdl.so.2", "tag": "NEEDED", "value": 1}, {"library": "libc.so.6", "tag": "NEEDED", "value": 137}, {"tag": "INIT", "value": 99064}],'
-    '"sections": [{"alignment": 0, "entry_size": 0, "flags": [], "information": 0, "link": 0, "name": "", "offset": 0, "size": 0, "type": "NULL", "virtual_address": 0}],'
+    '{"header": {"entrypoint": 109724, "file_type": "DYNAMIC", "header_size": 52, "identity_class": "CLASS32", "identity_data": "LSB", "identity_os_abi": "SYSTEMV"},'  # noqa: E501
+    '"dynamic_entries": [{"library": "libdl.so.2", "tag": "NEEDED", "value": 1}, {"library": "libc.so.6", "tag": "NEEDED", "value": 137}, {"tag": "INIT", "value": 99064}],'  # noqa: E501
+    '"sections": [{"alignment": 0, "entry_size": 0, "flags": [], "information": 0, "link": 0, "name": "", "offset": 0, "size": 0, "type": "NULL", "virtual_address": 0}],'  # noqa: E501
     '"segments": [{"alignment": 4, "file_offset": 2269, "flags": 4, "physical_address": 2269, "physical_size": 8, '
     '"sections": [".ARM.exidx"], "type": "ARM_EXIDX", "virtual_address": 2269, "virtual_size": 8}],'
-    '"symbols_version": [{"value": 0}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}]}'
+    '"symbols_version": [{"value": 0}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}]}'  # noqa: E501
 )
 
 MOCK_LIEF_RESULT = LiefResult(
@@ -37,10 +36,9 @@ MOCK_LIEF_RESULT = LiefResult(
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def stub_object():
-    test_object = FileObject(file_path=str(TEST_DATA))
-    return test_object
+    return FileObject(file_path=str(TEST_DATA))
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
@@ -70,7 +68,9 @@ class TestElfAnalysis:
             (['a', 'b', 'c'], 'b', ['d', 'e'], ['x'], ['x']),
         ],
     )
-    def test_get_tags_from_library_list(self, analysis_plugin, indicators, behaviour_class, libraries, tags, expected):
+    def test_get_tags_from_library_list(  # noqa: PLR0913
+        self, analysis_plugin, indicators, behaviour_class, libraries, tags, expected
+    ):
         analysis_plugin._get_tags_from_library_list(libraries, behaviour_class, indicators, tags)
         assert tags == expected
 
@@ -85,7 +85,7 @@ class TestElfAnalysis:
             (['a', 'b'], 'c', ['b'], ['d', 'e'], ['d', 'e', 'c']),
         ],
     )
-    def test_get_tags_from_function_list(
+    def test_get_tags_from_function_list(  # noqa: PLR0913
         self, analysis_plugin, functions, behaviour_class, indicators, tags, expected_result
     ):
         analysis_plugin._get_tags_from_function_list(functions, behaviour_class, indicators, tags)
@@ -131,7 +131,7 @@ class TestElfAnalysis:
         result = analysis_plugin._analyze_elf(stub_object)
         assert result == {}
 
-    final_analysis_test_data = [({}, {}, 0), ({'header': [], 'segments': [1, 2], 'a': []}, {}, 1)]
+    final_analysis_test_data = [({}, {}, 0), ({'header': [], 'segments': [1, 2], 'a': []}, {}, 1)]  # noqa: RUF012
 
     @pytest.mark.parametrize(('binary_json_dict', 'elf_dict', 'expected'), final_analysis_test_data)
     def test_get_final_analysis_dict(self, analysis_plugin, binary_json_dict, elf_dict, expected):

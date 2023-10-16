@@ -1,6 +1,6 @@
 import binascii
 
-from flask import Markup
+from markupsafe import Markup
 
 from compare.PluginBase import CompareBasePlugin
 
@@ -21,18 +21,18 @@ class ComparePlugin(CompareBasePlugin):
     '''
 
     NAME = 'File_Header'
-    DEPENDENCIES = []
+    DEPENDENCIES = []  # noqa: RUF012
     FILE = __file__
 
     def compare_function(self, fo_list):
         binaries = [fo.binary for fo in fo_list]
-        lower_bound = min(min(len(binary) for binary in binaries), BYTES_TO_SHOW)
+        lower_bound = min(*(len(binary) for binary in binaries), BYTES_TO_SHOW)
 
         offsets = self._get_offsets(lower_bound)
         hexdiff = self._get_highlighted_hex_string(binaries, lower_bound)
         ascii_representation = self._get_ascii_representation(binaries, lower_bound)
 
-        return dict(hexdiff=hexdiff, offsets=offsets, ascii=ascii_representation)
+        return {'hexdiff': hexdiff, 'offsets': offsets, 'ascii': ascii_representation}
 
     def _get_ascii_representation(self, binaries, lower_bound):
         part = binaries[0][0:lower_bound]

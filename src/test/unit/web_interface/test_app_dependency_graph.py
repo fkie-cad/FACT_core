@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 import pytest
 
 from test.common_helper import TEST_FW, CommonDatabaseMock

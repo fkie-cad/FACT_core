@@ -17,7 +17,7 @@ class TarRepack(UnpackBase):
         self.extract_files_from_file(file_path, extraction_directory.name)
 
         archive_directory = TemporaryDirectory(prefix='FACT_tar_repack', dir=config.backend.temp_dir_path)
-        archive_path = os.path.join(archive_directory.name, 'download.tar.gz')
+        archive_path = os.path.join(archive_directory.name, 'download.tar.gz')  # noqa: PTH118
         tar_binary = self._repack_extracted_files(Path(extraction_directory.name, 'files'), archive_path)
 
         extraction_directory.cleanup()

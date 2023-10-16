@@ -11,7 +11,7 @@ class PluginRoutes(ComponentBase):
         self._app.add_url_rule('/plugins/dummy', 'plugins/dummy', self._get_dummy)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def _get_dummy(self):  # pylint: disable=no-self-use
+    def _get_dummy(self):
         return 'dummy', 200
 
 
@@ -19,8 +19,8 @@ api = Namespace('/plugins/dummy/rest')
 
 
 @api.hide
-class DummyRoutesRest(Resource):
-    ENDPOINTS = [('/plugins/dummy/rest', ['GET'])]
+class PluginRestRoutes(Resource):
+    ENDPOINTS = [('/plugins/dummy/rest', ['GET'])]  # noqa: RUF012
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

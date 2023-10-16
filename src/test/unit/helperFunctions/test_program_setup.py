@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 from helperFunctions.program_setup import _get_logging_config, setup_logging
-from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
+from test.common_helper import get_test_data_dir
 
 
 class ArgumentMock:

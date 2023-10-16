@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-# pylint: disable=no-self-use,unused-argument
+
 import os
 from base64 import standard_b64encode
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 
-from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -15,13 +14,13 @@ from objects.firmware import Firmware
 
 
 def get_test_data_dir():
-    '''
+    """
     Returns the absolute path of the test data directory
-    '''
-    return os.path.join(get_src_dir(), 'test/data')
+    """
+    return os.path.join(get_src_dir(), 'test/data')  # noqa: PTH118
 
 
-def create_test_firmware(
+def create_test_firmware(  # noqa: PLR0913
     device_class='Router',
     device_name='test_router',
     vendor='test_vendor',
@@ -29,7 +28,7 @@ def create_test_firmware(
     all_files_included_set=False,
     version='0.1',
 ):
-    fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
+    fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))  # noqa: PTH118
     fw.device_class = device_class
     fw.device_name = device_name
     fw.vendor = vendor
@@ -71,8 +70,8 @@ def create_test_firmware(
     return fw
 
 
-def create_test_file_object(bin_path='get_files_test/testfile1'):
-    fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
+def create_test_file_object(bin_path='get_files_test/testfile1', uid=None, analyses=None):
+    fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))  # noqa: PTH118
     processed_analysis = {
         'dummy': {
             'summary': ['sum a', 'file exclusive sum b'],
@@ -85,6 +84,7 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
         'file_type': {
             'result': {
                 'full': 'Not a PE file',
+                'mime': 'test_type',
             },
             'plugin_version': '1.0',
             'analysis_date': '0',
@@ -98,8 +98,11 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
             'analysis_date': '0',
         },
     }
+    if analyses:
+        processed_analysis.update(analyses)
     fo.processed_analysis.update(processed_analysis)
-    fo.virtual_file_path = fo.get_virtual_file_paths()
+    if uid:
+        fo.uid = uid
     return fo
 
 
@@ -108,13 +111,14 @@ TEST_FW_2 = create_test_firmware(
     device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z'
 )
 TEST_TEXT_FILE = create_test_file_object()
+TEST_TEXT_FILE.virtual_file_path = {TEST_FW.uid: [TEST_TEXT_FILE.file_name]}
 TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')
 NICE_LIST_DATA = {
     'uid': TEST_FW.uid,
     'files_included': TEST_FW.files_included,
     'size': TEST_FW.size,
     'mime-type': 'file-type-plugin/not-run-yet',
-    'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths()),
+    'current_virtual_path': [[TEST_FW.uid]],
 }
 COMPARISON_ID = f'{TEST_FW.uid};{TEST_FW_2.uid}'
 
@@ -132,12 +136,12 @@ class MockFileObject:
         self.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
 
 
-class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
+class CommonDatabaseMock:
     fw_uid = TEST_FW.uid
     fo_uid = TEST_TEXT_FILE.uid
     fw2_uid = TEST_FW_2.uid
 
-    def __init__(self, config=None):
+    def __init__(self, config=None):  # noqa: ARG002
         self.tasks = []
         self.locks = []
 
@@ -148,7 +152,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def update_view(self, file_name, content):
         pass
 
-    def get_object(self, uid, analysis_filter=None):
+    def get_object(self, uid, analysis_filter=None):  # noqa: ARG002
         if uid == TEST_FW.uid:
             result = deepcopy(TEST_FW)
             result.processed_analysis = {
@@ -172,7 +176,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
             return result
         return None
 
-    def get_hid(self, uid, root_uid=None):
+    def get_hid(self, uid, root_uid=None):  # noqa: ARG002
         return 'TEST_FW_HID'
 
     def get_device_class_list(self):
@@ -193,10 +197,13 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
-    def all_uids_found_in_database(self, uid_list):
+    def uid_list_exists(self, uid_list):  # noqa: ARG002
+        return set()
+
+    def all_uids_found_in_database(self, uid_list):  # noqa: ARG002
         return True
 
-    def get_data_for_nice_list(self, input_data, root_uid):
+    def get_data_for_nice_list(self, input_data, root_uid):  # noqa: ARG002
         return [NICE_LIST_DATA]
 
     @staticmethod
@@ -207,7 +214,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def create_analysis_structure():
         return ''
 
-    def get_other_versions_of_firmware(self, fo):
+    def get_other_versions_of_firmware(self, fo):  # noqa: ARG002
         return []
 
     def is_firmware(self, uid):
@@ -247,16 +254,26 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
             return True
         return False
 
+    @staticmethod
+    def get_hid_dict(uid_set, root_uid):  # noqa: ARG004
+        return {uid: 'hid' for uid in uid_set}
 
-def fake_exit(self, *args):
+    @staticmethod
+    def get_file_tree_path(uid: str, root_uid=None):
+        if root_uid:
+            return [[root_uid, uid]]
+        return [[uid]]
+
+
+def fake_exit(self, *args):  # noqa: ARG001
     pass
 
 
 def get_firmware_for_rest_upload_test():
-    testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')
-    with open(testfile_path, 'rb') as fp:
+    testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')  # noqa: PTH118
+    with open(testfile_path, 'rb') as fp:  # noqa: PTH123
         file_content = fp.read()
-    data = {
+    return {
         'binary': standard_b64encode(file_content).decode(),
         'file_name': 'test.zip',
         'device_name': 'test_device',
@@ -268,7 +285,6 @@ def get_firmware_for_rest_upload_test():
         'tags': '',
         'requested_analysis_systems': ['software_components'],
     }
-    return data
 
 
 def store_binary_on_file_system(tmp_dir: str, test_object: FileObject | Firmware):

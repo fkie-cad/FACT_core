@@ -9,8 +9,6 @@ import web_interface.filter as flt
 
 UNSORTABLE_LIST = [[], ()]
 
-# pylint: disable=invalid-name
-
 
 def test_set_limit_for_data_to_chart():
     limit = 5
@@ -21,7 +19,7 @@ def test_set_limit_for_data_to_chart():
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_result',
+    ('input_data', 'expected_result'),
     [
         (
             [('NX enabled', 1696, 0.89122), ('NX disabled', 207, 0.10878), ('Canary enabled', 9, 0.00473)],
@@ -47,12 +45,12 @@ def test_data_to_chart_with_value_percentage_pairs(input_data, expected_result):
 
 def test_get_all_uids_in_string():
     test_string = (
-        '{\'d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24\', '
-        '\'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25\' , '
-        '\'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080\'}'
+        "{'d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24', "
+        "'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25' , "
+        "'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080'}"
     )
     result = flt.get_all_uids_in_string(test_string)
-    assert len(result) == 3, 'not all uids found'
+    assert len(result) == 3, 'not all uids found'  # noqa: PLR2004
     assert 'd41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24' in result, 'first uid not found'
     assert 'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25' in result, 'second uid not found'
     assert 'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080' in result, 'third uid not found'
@@ -69,11 +67,14 @@ def test_handle_uids():
 
 
 def check_nice_list_output(input_data):
+    expected = (
+        '<ul class="list-group list-group-flush">\n'
+        '\t<li class="list-group-item">a</li>\n'
+        '\t<li class="list-group-item">b</li>\n'
+        '</ul>\n'
+    )
     result = flt.list_group(input_data)
-    assert (
-        result
-        == '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">a</li>\n\t<li class="list-group-item">b</li>\n</ul>\n'
-    ), 'output not correct'
+    assert result == expected, 'output not correct'
 
 
 def test_nice_list_set():
@@ -90,7 +91,7 @@ def test_list_to_line_break_string():
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_result',
+    ('input_data', 'expected_result'),
     [
         (['b', 'a'], 'b\na\n'),
         (None, None),
@@ -125,7 +126,7 @@ def test_sort_chart_list_by_name():
 
 
 @pytest.mark.parametrize(
-    'input_data, keyword_args, expected_output',
+    ('input_data', 'keyword_args', 'expected_output'),
     [
         ('online', {}, '<span style="color:green;">online</span>'),
         ('offline', {}, '<span style="color:red;">offline</span>'),
@@ -139,7 +140,7 @@ def test_text_highlighter(input_data, keyword_args, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output',
+    ('input_data', 'expected_output'),
     [
         ('clean', 'color:green'),
         (0, 'color:green'),
@@ -169,7 +170,7 @@ def test_base64_filter():
 
 
 @pytest.mark.parametrize(
-    'input_data, verbose, expected',
+    ('input_data', 'verbose', 'expected'),
     [
         (1000, False, '1000.00 Byte'),
         (1024, False, '1.00 KiB'),
@@ -185,7 +186,7 @@ def test_byte_number_filter(input_data, verbose, expected):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected',
+    ('input_data', 'expected'),
     [(b'abc', b'abc'), (123, '123'), (1234, '1,234'), (1234.1234, '1,234.12'), (None, 'not available')],
 )
 def test_nice_number(input_data, expected):
@@ -193,13 +194,16 @@ def test_nice_number(input_data, expected):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected',
+    ('input_data', 'expected'),
     [
         (b'abc', 'abc'),
         (1234, '1,234'),
         (
             [1, 3],
-            '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">1</li>\n\t<li class="list-group-item">3</li>\n</ul>\n',
+            '<ul class="list-group list-group-flush">\n'
+            '\t<li class="list-group-item">1</li>\n'
+            '\t<li class="list-group-item">3</li>\n'
+            '</ul>\n',
         ),
         ({'a': 1}, 'a: 1<br />'),
         (gmtime(0), '1970-01-01 - 00:00:00'),
@@ -211,7 +215,7 @@ def test_generic_nice_representation(input_data, expected):
     assert flt.generic_nice_representation(input_data) == expected
 
 
-@pytest.mark.parametrize('score, class_', [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
+@pytest.mark.parametrize(('score', 'class_'), [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
 def test_vulnerability_class_success(score, class_):
     assert flt.vulnerability_class(score) == class_
 
@@ -246,7 +250,7 @@ class CurrentUserMock:
 
 
 @pytest.mark.parametrize(
-    'user, role, expected_result',
+    ('user', 'role', 'expected_result'),
     [
         (CurrentUserMock(False, []), 'manage_users', False),
         (CurrentUserMock(False, ['superuser']), 'manage_users', False),
@@ -272,7 +276,7 @@ def test_sort_roles_by_number_of_privileges():
 
 def test_filter_format_string_list_with_offset():
     test_input = [(4, 'abc'), (7, 'abc'), (256, 'def'), (12, 'ghi')]
-    expected_result = '  4: abc\n' '  7: abc\n' ' 12: ghi\n' '256: def'
+    expected_result = '  4: abc\n  7: abc\n 12: ghi\n256: def'
     result = flt.filter_format_string_list_with_offset(test_input)
     assert result == expected_result
 
@@ -287,7 +291,7 @@ def test_filter_decompress():
 
 
 @pytest.mark.parametrize(
-    'list_of_dicts, expected_result',
+    ('list_of_dicts', 'expected_result'),
     [
         ([], set()),
         ([{'1': ''}], {'1'}),
@@ -299,14 +303,14 @@ def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
 
 
 @pytest.mark.parametrize(
-    'function, input_data, expected_output, error_message',
+    ('function', 'input_data', 'expected_output', 'error_message'),
     [
         (
             flt._get_sorted_list,
             UNSORTABLE_LIST,
             UNSORTABLE_LIST,
             'Could not sort list',
-        ),  # pylint: disable=protected-access
+        ),
         (flt.sort_comments, UNSORTABLE_LIST, [], 'Could not sort comment list'),
         (flt.sort_chart_list_by_name, UNSORTABLE_LIST, [], 'Could not sort chart list'),
         (flt.sort_chart_list_by_value, UNSORTABLE_LIST, [], 'Could not sort chart list'),
@@ -319,7 +323,7 @@ def test_error_logging(function, input_data, expected_output, error_message, cap
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_result',
+    ('input_data', 'expected_result'),
     [
         ('abc', 'abc'),
         ('^$.[]|()?*+{}', '\\^\\$\\.\\[\\]\\|\\(\\)\\?\\*\\+\\{\\}'),
@@ -347,19 +351,20 @@ def test_random_collapse_id():
     assert not collapse_id[0].isnumeric()
 
 
-@pytest.mark.parametrize('time_diff, expected_result', [(5, '0:00:05'), (83, '0:01:23'), (5025, '1:23:45')])
+@pytest.mark.parametrize(('time_diff', 'expected_result'), [(5, '0:00:05'), (83, '0:01:23'), (5025, '1:23:45')])
 def test_remaining_time(time_diff, expected_result):
     assert flt.format_duration(flt.elapsed_time(time() - time_diff)) == expected_result
 
 
 @pytest.mark.parametrize(
-    'input_string, expected_result',
+    ('input_string', 'expected_result'),
     [
         ('foo_bar-1-23', 'foo_bar-1-23'),
         ('CVE-1-2', '<a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a>'),
         (
             'a CVE-1-2 b CVE-3-4 c',
-            'a <a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a> b <a href="https://nvd.nist.gov/vuln/detail/CVE-3-4">CVE-3-4</a> c',
+            'a <a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a> b '
+            '<a href="https://nvd.nist.gov/vuln/detail/CVE-3-4">CVE-3-4</a> c',
         ),
     ],
 )
@@ -368,13 +373,14 @@ def test_replace_cve_with_link(input_string, expected_result):
 
 
 @pytest.mark.parametrize(
-    'input_string, expected_result',
+    ('input_string', 'expected_result'),
     [
         ('foo_bar-1', 'foo_bar-1'),
         ('CWE-123', '<a href="https://cwe.mitre.org/data/definitions/123.html">CWE-123</a>'),
         (
             'a CWE-1 b CWE-1234 c',
-            'a <a href="https://cwe.mitre.org/data/definitions/1.html">CWE-1</a> b <a href="https://cwe.mitre.org/data/definitions/1234.html">CWE-1234</a> c',
+            'a <a href="https://cwe.mitre.org/data/definitions/1.html">CWE-1</a> b '
+            '<a href="https://cwe.mitre.org/data/definitions/1234.html">CWE-1234</a> c',
         ),
     ],
 )
@@ -383,33 +389,57 @@ def test_replace_cwe_with_link(input_string, expected_result):
 
 
 @pytest.mark.parametrize(
-    'input_dict, expected_result',
+    ('input_dict', 'expected_result'),
     [
-        ({}, {}),
-        (
+        ({}, []),
+        (  # primary key max(v2, v3) sorting
             {
-                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
-                'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
-                'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
+                'cve_id1': {'score2': '6.0', 'score3': '2.0'},
+                'cve_id2': {'score2': '4.0', 'score3': '3.0'},
+                'cve_id3': {'score2': '1.0', 'score3': '5.0'},
             },
+            ['cve_id1', 'cve_id3', 'cve_id2'],
+        ),
+        (  # numerical sorting
             {
-                'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
-                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
-                'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
+                'cve_id1': {'score2': '1.3', 'score3': '0.0'},
+                'cve_id2': {'score2': '10.0', 'score3': '0.0'},
+                'cve_id3': {'score2': '2.6', 'score3': '0.0'},
             },
+            ['cve_id2', 'cve_id3', 'cve_id1'],
+        ),
+        (  # secondary key sorting
+            {
+                'cve_id1': {'score2': '5.0', 'score3': '2.0'},
+                'cve_id2': {'score2': '5.0', 'score3': '3.0'},
+                'cve_id3': {'score2': '5.0', 'score3': '4.0'},
+            },
+            ['cve_id3', 'cve_id2', 'cve_id1'],
+        ),
+        (  # N/A entries
+            {
+                'cve_id1': {'score2': 'N/A', 'score3': '4.0'},
+                'cve_id2': {'score2': '3.0', 'score3': 'N/A'},
+            },
+            ['cve_id1', 'cve_id2'],
+        ),
+        (  # missing entries
+            {
+                'cve_id1': {'score3': '1.0'},
+                'cve_id2': {'score2': '2.0'},
+                'cve_id3': {},
+            },
+            ['cve_id2', 'cve_id1', 'cve_id3'],
         ),
     ],
 )
 def test_sort_cve_result(input_dict, expected_result):
     result = dict(flt.sort_cve_results(input_dict))
-    assert result == expected_result
-
-    for item1, item2 in zip(result, expected_result):
-        assert item1 == item2
+    assert list(result) == expected_result
 
 
 @pytest.mark.parametrize(
-    'input_dts, expected_result',
+    ('input_dts', 'expected_result'),
     [
         ('', ''),
         ('data = [01 23 45 67 89 ab cd ef 01 23 45 67 89 ab cd ef];', 'data = (BINARY DATA ...);'),
@@ -423,7 +453,7 @@ def test_hide_dts_data(input_dts, expected_result):
 
 
 @pytest.mark.parametrize(
-    'input_, expected_result',
+    ('input_', 'expected_result'),
     [
         ('', ''),
         ('foo', 'foo'),
@@ -435,3 +465,15 @@ def test_hide_dts_data(input_dts, expected_result):
 )
 def test_get_searchable_crypto_block(input_, expected_result):
     assert flt.get_searchable_crypto_block(input_) == expected_result
+
+
+def test_as_ascii_table():
+    output = flt.as_ascii_table(
+        {
+            'left': 'right',
+            'foo': 'bar',
+        }
+    )
+    # Makes the pytest output more readable
+    output = output.replace(' ', '.')
+    assert output == 'left       right     \nfoo        bar       \n'.replace(' ', '.')

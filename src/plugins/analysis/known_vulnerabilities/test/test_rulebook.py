@@ -35,7 +35,7 @@ def test_get_dotted_path_from_dictionary():
     abc = {'a': {'b': {'c': 5}}}
     assert _get_dotted_path_from_dictionary(abc, 'a') == {'b': {'c': 5}}
     assert _get_dotted_path_from_dictionary(abc, 'a.b') == {'c': 5}
-    assert _get_dotted_path_from_dictionary(abc, 'a.b.c') == 5
+    assert _get_dotted_path_from_dictionary(abc, 'a.b.c') == 5  # noqa: PLR2004
 
 
 def test_get_value():
@@ -109,4 +109,4 @@ def test_evaluate_base_rule():
 
 def test_evaluate_bad_type():
     with pytest.raises(TypeError):
-        evaluate(dict(), object())
+        evaluate({}, object())

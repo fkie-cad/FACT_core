@@ -19,11 +19,10 @@ def test_load(monkeypatch):
     assert config.backend is not None, 'backend global was not set'
     assert config.frontend is not None, 'frontend global was not set'
     assert config.common.temp_dir_path == '/tmp', 'default value was not set'
-    assert config.backend.plugin['cpu_architecture'].processes == 4
+    assert config.backend.plugin['cpu_architecture'].processes == 4  # noqa: PLR2004
 
 
-def test_load_missing_entrys(monkeypatch):
+def test_load_missing_entries():
     cfg_path = get_test_data_dir() + '/fact-core-config.toml-missing-entrys'
-
-    with pytest.raises(pydantic.error_wrappers.ValidationError, match='server'):
+    with pytest.raises(pydantic.ValidationError, match='server'):
         load(path=cfg_path)

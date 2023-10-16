@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name,wrong-import-order
 import logging
 
 import pytest
@@ -16,7 +15,7 @@ class UnpackingLockMock:
         return False
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def mock_listener():
     listener = InterComBackEndDeleteFile(unpacking_locks=UnpackingLockMock(), db_interface=CommonDatabaseMock())
     listener.fs_organizer = MockFSOrganizer()
@@ -25,18 +24,18 @@ def mock_listener():
 
 def test_delete_file_success(mock_listener, caplog):
     with caplog.at_level(logging.INFO):
-        mock_listener.post_processing(['AnyID'], None)
-        assert 'removing file: AnyID' in caplog.messages
+        mock_listener.post_processing({'AnyID'}, None)
+        assert 'Deleted 1 file(s)' in caplog.messages
 
 
 def test_delete_file_entry_exists(mock_listener, monkeypatch, caplog):
-    monkeypatch.setattr('test.common_helper.CommonDatabaseMock.exists', lambda self, uid: True)
+    monkeypatch.setattr('test.common_helper.CommonDatabaseMock.uid_list_exists', lambda _, uid_list: set(uid_list))
     with caplog.at_level(logging.DEBUG):
-        mock_listener.post_processing(['AnyID'], None)
+        mock_listener.post_processing({'AnyID'}, None)
         assert 'entry exists: AnyID' in caplog.messages[-1]
 
 
 def test_delete_file_is_locked(mock_listener, caplog):
     with caplog.at_level(logging.DEBUG):
-        mock_listener.post_processing(['locked'], None)
+        mock_listener.post_processing({'locked'}, None)
         assert 'processed by unpacker: locked' in caplog.messages[-1]

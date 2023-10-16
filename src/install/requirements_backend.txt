@@ -1,12 +1,16 @@
-cryptography==41.0.0
+cryptography==41.0.4
 docker==6.0.1
 MarkupSafe==2.1.1
 networkx==2.6.3
-Pillow==9.3.0
-pyopenssl==22.1.0
+Pillow==10.0.1
+pyopenssl==23.2.0
+pyyaml==6.0.1
 
 # FIXME This is only needed by the compare/file_header plugin
 #       See Issue #832
-flask==2.3.2
+flask==2.3.3
 
 git+https://github.com/fkie-cad/common_helper_yara.git
+
+# For plugin definition
+semver==3.0.1

@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 import pytest
 
 from helperFunctions.data_conversion import normalize_compare_id
@@ -51,15 +50,15 @@ class TestAppAjaxRoutes:
         assert b'No summary found' in result
 
     def test_ajax_get_common_files_for_compare(self, test_client):
-        url = f'/compare/ajax_common_files/{f"{TEST_FW.uid};{TEST_FW_2.uid}"}/{f"some_feature___{TEST_FW.uid}"}/'
+        url = f'/compare/ajax_common_files/{TEST_FW.uid};{TEST_FW_2.uid}/some_feature___{TEST_FW.uid}/'
         result = test_client.get(url).data.decode()
         assert TEST_FW.uid in result
 
-    def test_ajax_get_system_stats(self, test_client):
+    def test_ajax_get_system_stats(self, test_client, web_frontend):
+        web_frontend.status_interface.set_analysis_status({'current_analyses': {'a': {}, 'b': {}}})
         result = test_client.get('/ajax/stats/system').json
-
         assert result['backend_cpu_percentage'] == '13.37%'
-        assert result['number_of_running_analyses'] == 2
+        assert result['number_of_running_analyses'] == 2  # noqa: PLR2004
 
     def test_ajax_get_system_stats_error(self, test_client):
         with mock_patch(DbMock, 'get_statistic', lambda *_: {}):

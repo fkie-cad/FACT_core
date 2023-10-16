@@ -1,15 +1,19 @@
-# pylint: disable=wrong-import-order
 from __future__ import annotations
 
-import os
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from time import sleep
 
 import pytest
 
 from intercom.back_end_binding import (
     InterComBackEndAnalysisPlugInsPublisher,
     InterComBackEndAnalysisTask,
+    InterComBackEndBinarySearchTask,
     InterComBackEndCompareTask,
     InterComBackEndFileDiffTask,
+    InterComBackEndLogsTask,
     InterComBackEndPeekBinaryTask,
     InterComBackEndRawDownloadTask,
     InterComBackEndReAnalyzeTask,
@@ -21,7 +25,7 @@ from test.common_helper import create_test_firmware
 
 
 class AnalysisServiceMock:
-    def get_plugin_dict(self):  # pylint: disable=no-self-use
+    def get_plugin_dict(self):
         return {'dummy': 'dummy description'}
 
 
@@ -42,7 +46,7 @@ class BinaryServiceMock:
             return b'binary content 1', 'file_name_1'
         if uid == 'uid2':
             return b'binary content 2', 'file_name_2'
-        assert False, 'if this line reached something went wrong'
+        raise AssertionError('if this line reached something went wrong')
 
 
 @pytest.mark.frontend_config_overwrite(
@@ -60,7 +64,7 @@ class TestInterComTaskCommunication:
 
         assert task.uid == test_fw.uid, 'uid not correct'
         assert task.file_path is not None, 'file_path not set'
-        assert os.path.exists(task.file_path), 'file does not exist'
+        assert Path(task.file_path).exists(), 'file does not exist'
 
     def test_single_file_task(self, intercom_frontend):
         task_listener = InterComBackEndSingleFileTask()
@@ -94,7 +98,7 @@ class TestInterComTaskCommunication:
         assert plugins == {'dummy': 'dummy description'}, 'content not correct'
 
     def test_analysis_plugin_publication_not_available(self, intercom_frontend):
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             intercom_frontend.get_available_analysis_plugins()
 
     def test_raw_download_task(self, monkeypatch, intercom_frontend):
@@ -154,3 +158,33 @@ class TestInterComTaskCommunication:
         assert task == 'valid_uid', 'task not correct'
         result = intercom_frontend.get_repacked_binary_and_file_name('valid_uid_0.0')
         assert result == (b'test', 'test.tar'), 'retrieved binary not correct'
+
+    def test_binary_search_task(self, intercom_frontend, monkeypatch):
+        yara_rule, expected_result = b'yara rule', 'result'
+        monkeypatch.setattr(
+            'intercom.back_end_binding.YaraBinarySearchScanner.get_binary_search_result', lambda *_: expected_result
+        )
+        result = intercom_frontend.add_binary_search_request(yara_rule)
+        assert result is not None
+
+        task_listener = InterComBackEndBinarySearchTask()
+        task = task_listener.get_next_task()
+        assert task == (yara_rule, None), 'task not correct'
+
+        result = intercom_frontend.get_binary_search_result(result)
+        assert result == (expected_result, task)
+
+    def test_logs_task(self, intercom_frontend, monkeypatch):
+        with NamedTemporaryFile() as tmp_file:
+            expected_result = 'test\nlog'
+            Path(tmp_file.name).write_text(expected_result)
+            monkeypatch.setattr('intercom.back_end_binding.config.backend.logging.file_backend', tmp_file.name)
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                task_listener = InterComBackEndLogsTask()
+                result_future = pool.submit(intercom_frontend.get_backend_logs)
+                sleep(0.2)  # give the task some time to reach the listener
+                task_future = pool.submit(task_listener.get_next_task)
+                task = task_future.result()
+                result = result_future.result()
+            assert task is None, 'task not correct'
+            assert result == expected_result.split()

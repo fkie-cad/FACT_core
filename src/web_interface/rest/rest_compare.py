@@ -1,8 +1,8 @@
 from flask import request
-from flask_restx import Namespace, fields
+from flask_restx import fields, Namespace
 
 from helperFunctions.data_conversion import convert_compare_id_to_list, normalize_compare_id
-from helperFunctions.database import ConnectTo, get_shared_session
+from helperFunctions.database import get_shared_session
 from helperFunctions.uid import is_uid
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
@@ -28,11 +28,11 @@ class RestComparePut(RestResourceBase):
     @roles_accepted(*PRIVILEGES['compare'])
     @api.expect(compare_model)
     def put(self):
-        '''
+        """
         Start a comparison
         For this sake a list of uids of the files, which should be compared, is needed
         The `uid_list` must contain uids of already analysed FileObjects or Firmware objects
-        '''
+        """
         data = self.validate_payload_data(compare_model)
         compare_id = normalize_compare_id(';'.join(data['uid_list']))
 
@@ -56,8 +56,7 @@ class RestComparePut(RestResourceBase):
                     return_code=404,
                 )
 
-        with ConnectTo(self.intercom) as intercom:
-            intercom.add_compare_task(compare_id, force=data['redo'])
+        self.intercom.add_compare_task(compare_id, force=data['redo'])
         return success_message(
             {'message': 'Compare started. Please use GET to get the results.'},
             self.URL,
@@ -75,12 +74,12 @@ class RestCompareGet(RestResourceBase):
     @roles_accepted(*PRIVILEGES['compare'])
     @api.doc(responses={200: 'Success', 400: 'Unknown comparison ID'})
     def get(self, compare_id):
-        '''
+        """
         Request results from a comparisons
         The result can be requested by providing a semicolon separated list of uids as compare_id
         The response will contain a json_document with the comparison result, along with the fields status, timestamp,
         request_resource and request as metadata
-        '''
+        """
         try:
             self._validate_compare_id(compare_id)
             compare_id = normalize_compare_id(compare_id)

@@ -1,19 +1,21 @@
 import pytest
+import io
 
-from objects.file import FileObject
-from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
+from test.common_helper import get_test_data_dir
 
 from ..code.file_type import AnalysisPlugin
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 def test_detect_type_of_file(analysis_plugin):
-    test_file = FileObject(file_path=f'{get_test_data_dir()}/container/test.zip')
-    test_file = analysis_plugin.process_object(test_file)
-    assert (
-        test_file.processed_analysis[analysis_plugin.NAME]['mime'] == 'application/zip'
-    ), 'mime-type not detected correctly'
-    assert test_file.processed_analysis[analysis_plugin.NAME]['full'].startswith(
-        'Zip archive data, at least'
-    ), 'full type not correct'
-    assert test_file.processed_analysis[analysis_plugin.NAME]['summary'] == ['application/zip']
+    result = analysis_plugin.analyze(
+        io.FileIO(f'{get_test_data_dir()}/container/test.zip'),
+        {},
+        {},
+    )
+    summary = analysis_plugin.summarize(result)
+
+    assert result.mime == 'application/zip', 'mime-type not detected correctly'
+    assert result.full.startswith('Zip archive data, at least'), 'full type not correct'
+
+    assert summary == ['application/zip']

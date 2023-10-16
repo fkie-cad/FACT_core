@@ -11,18 +11,20 @@ import web_interface.filter as flt
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
 from helperFunctions.hash import get_md5
-from helperFunctions.uid import is_list_of_uids, is_uid
-from helperFunctions.virtual_file_path import split_virtual_path
+from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
-from storage.db_interface_frontend import MetaEntry
 from web_interface.filter import elapsed_time, random_collapse_id
-from web_interface.frontend_database import FrontendDatabase
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from web_interface.frontend_database import FrontendDatabase
+    from storage.db_interface_frontend import MetaEntry
 
 
 class FilterClass:
-    '''
+    """
     This is WEB front end main class
-    '''
+    """
 
     def __init__(self, app, program_version, db: FrontendDatabase, **_):
         self._program_version = program_version
@@ -87,42 +89,48 @@ class FilterClass:
             filename_only=filename_only,
         )
 
-    def _nice_virtual_path_list(self, virtual_path_list: list[str]) -> list[str]:
+    def _nice_virtual_path_list(self, virtual_path_list: list[list[str]], root_uid: str | None = None) -> list[str]:
+        root_uid = none_to_none(root_uid)
         path_list = []
-        for virtual_path in virtual_path_list:
-            uid_list = split_virtual_path(virtual_path)
+        all_uids = {uid for uid_list in virtual_path_list for uid in uid_list}
+        hid_dict = self.db.frontend.get_hid_dict(all_uids, root_uid=root_uid)
+        for uid_list in virtual_path_list:
             components = [
-                self._virtual_path_element_to_span(hid, uid, root_uid=uid_list[0])
-                for hid, uid in zip(split_virtual_path(self._filter_replace_uid_with_hid(virtual_path)), uid_list)
+                self._virtual_path_element_to_span(hid_dict.get(uid, uid), uid, root_uid, uid_list[-1])
+                for uid in uid_list
             ]
             path_list.append(' '.join(components))
         return path_list
 
     @staticmethod
-    def _virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str:
+    def _virtual_path_element_to_span(hid_element: str, uid: str, root_uid: str, current_file_uid: str) -> str:
         hid = cap_length_of_element(hid_element)
-        if is_uid(uid_element):
-            return (
-                '<span class="badge badge-primary">'
-                f'    <a style="color: #fff" href="/analysis/{uid_element}/ro/{root_uid}">'
-                f'        {hid}'
-                '    </a>'
-                '</span>'
-            )
-        return f'<span class="badge badge-secondary">{hid}</span>'
+        if uid == current_file_uid:
+            # if we are on the analysis page of this file, the element should not contain a link and use another color
+            return f'<span class="badge badge-secondary">{hid}</span>'
+        return (
+            '<span class="badge badge-primary">'
+            f'    <a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
+            f'        {hid}'
+            '    </a>'
+            '</span>'
+        )
 
     @staticmethod
     def _render_firmware_detail_tabular_field(firmware_meta_data):
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware: MetaEntry, root_uid: str, other_versions, selected_analysis):
+    def _render_general_information_table(
+        firmware: MetaEntry, root_uid: str, other_versions, selected_analysis, file_tree_paths
+    ):
         return render_template(
             'generic_view/general_information.html',
             firmware=firmware,
             root_uid=root_uid,
             other_versions=other_versions,
             selected_analysis=selected_analysis,
+            file_tree_paths=file_tree_paths,
         )
 
     @staticmethod
@@ -156,7 +164,7 @@ class FilterClass:
 
     def _get_chart_element_count(self):
         limit = config.frontend.max_elements_per_chart
-        if limit > 100:
+        if limit > 100:  # noqa: PLR2004
             logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
             return 100
         return limit
@@ -165,10 +173,11 @@ class FilterClass:
         color_list = get_color_list(1) * len(data)
         return self.data_to_chart_limited(data, limit=0, color_list=color_list)
 
-    def _setup_filters(self):  # pylint: disable=too-many-statements
+    def _setup_filters(self):  # noqa: PLR0915
         self._app.jinja_env.add_extension('jinja2.ext.do')
 
         self._app.jinja_env.filters['all_items_equal'] = lambda data: len({str(value) for value in data.values()}) == 1
+        self._app.jinja_env.filters['as_ascii_table'] = flt.as_ascii_table
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
         self._app.jinja_env.filters['base64_encode'] = flt.encode_base64_filter
         self._app.jinja_env.filters['bytes_to_str'] = flt.bytes_to_str_filter
@@ -206,6 +215,7 @@ class FilterClass:
         self._app.jinja_env.filters['nice_unix_time'] = flt.nice_unix_time
         self._app.jinja_env.filters['nice_virtual_path_list'] = self._nice_virtual_path_list
         self._app.jinja_env.filters['number_format'] = flt.byte_number_filter
+        self._app.jinja_env.filters['octal_to_readable'] = flt.octal_to_readable
         self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
         self._app.jinja_env.filters['regex_meta'] = flt.comment_out_regex_meta_chars
         self._app.jinja_env.filters['remaining_time'] = elapsed_time
@@ -218,6 +228,7 @@ class FilterClass:
         self._app.jinja_env.filters['replace_uid_with_hid_link'] = self._filter_replace_uid_with_hid_link
         self._app.jinja_env.filters['replace_uid_with_hid'] = self._filter_replace_uid_with_hid
         self._app.jinja_env.filters['replace_underscore'] = flt.replace_underscore_filter
+        self._app.jinja_env.filters['version_is_compatible'] = flt.version_is_compatible
         self._app.jinja_env.filters['sort_chart_list_by_name'] = flt.sort_chart_list_by_name
         self._app.jinja_env.filters['sort_chart_list_by_value'] = flt.sort_chart_list_by_value
         self._app.jinja_env.filters['sort_comments'] = flt.sort_comments

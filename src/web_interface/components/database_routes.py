@@ -7,13 +7,13 @@ from flask import redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
 from helperFunctions.data_conversion import make_unicode_string
-from helperFunctions.database import ConnectTo, get_shared_session
+from helperFunctions.database import get_shared_session
 from helperFunctions.task_conversion import get_file_name_and_binary_from_request
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
 from storage.query_conversion import QueryConversionException
-from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from web_interface.components.component_base import AppRoute, ComponentBase, GET, POST
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -23,7 +23,7 @@ class DatabaseRoutes(ComponentBase):
     @staticmethod
     def _add_date_to_query(query, date):
         try:
-            start_str = datetime.strptime(date.replace('\'', ''), '%B %Y').strftime('%Y-%m')
+            start_str = datetime.strptime(date.replace("'", ''), '%B %Y').strftime('%Y-%m')
             date_query = {'release_date': {'$regex': start_str}}
             if query == {}:
                 query = date_query
@@ -55,9 +55,7 @@ class DatabaseRoutes(ComponentBase):
                 return render_template('error.html', message=error_message)
             except Exception as err:
                 error_message = 'Could not query database'
-                logging.error(  # pylint: disable=logging-not-lazy
-                    error_message + f' due to exception: {err}', exc_info=True
-                )
+                logging.error(error_message + f' due to exception: {err}', exc_info=True)
                 return render_template('error.html', message=error_message)
 
             total = frontend_db.get_number_of_total_matches(
@@ -90,9 +88,7 @@ class DatabaseRoutes(ComponentBase):
                 total = frontend_db.get_total_cached_query_count()
         except SQLAlchemyError as exception:
             error_message = 'Could not query database'
-            logging.error(  # pylint: disable=logging-not-lazy
-                error_message + f'due to exception: {exception}', exc_info=True
-            )
+            logging.error(error_message + f'due to exception: {exception}', exc_info=True)
             return render_template('error.html', message=error_message)
 
         pagination = get_pagination(page=page, per_page=per_page, total=total)
@@ -105,11 +101,11 @@ class DatabaseRoutes(ComponentBase):
         )
 
     def _get_search_parameters(self, query, only_firmware, inverted):
-        '''
+        """
         This function prepares the requested search by parsing all necessary parameters.
         In case of a binary search, indicated by the query being an uid instead of a dict, the cached search result is
         retrieved.
-        '''
+        """
         search_parameters = {}
         if request.args.get('query'):
             query = request.args.get('query')
@@ -134,7 +130,7 @@ class DatabaseRoutes(ComponentBase):
     def _query_has_only_one_result(result_list, query):
         return len(result_list) == 1 and query != '{}'
 
-    def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):
+    def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):  # noqa: PLR0913
         meta_list = self.db.frontend.generic_search(
             query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted, as_meta=True
         )
@@ -198,7 +194,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', GET)
-    def show_advanced_search(self, error=None):  # pylint: disable=no-self-use
+    def show_advanced_search(self, error=None):
         return render_template('database/database_advanced_search.html', error=error)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
@@ -208,11 +204,10 @@ class DatabaseRoutes(ComponentBase):
         if request.method == 'POST':
             yara_rule_file, firmware_uid, only_firmware = self._get_items_from_binary_search_request(request)
             if firmware_uid and not self._firmware_is_in_db(firmware_uid):
-                error = f'Error: Firmware with UID {repr(firmware_uid)} not found in database'
+                error = f'Error: Firmware with UID {firmware_uid!r} not found in database'
             elif yara_rule_file is not None:
                 if is_valid_yara_rule_file(yara_rule_file):
-                    with ConnectTo(self.intercom) as connection:
-                        request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
+                    request_id = self.intercom.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(
                         url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware)
                     )
@@ -240,8 +235,7 @@ class DatabaseRoutes(ComponentBase):
         firmware_dict, error, yara_rules = None, None, None
         if request.args.get('request_id'):
             request_id = request.args.get('request_id')
-            with ConnectTo(self.intercom) as connection:
-                result, yara_rules = connection.get_binary_search_result(request_id)
+            result, yara_rules = self.intercom.get_binary_search_result(request_id)
             if isinstance(result, str):
                 error = result
             elif result is not None:
@@ -263,9 +257,8 @@ class DatabaseRoutes(ComponentBase):
         )
 
     def _store_binary_search_query(self, binary_search_results: list, yara_rules: str) -> str:
-        query = '{"_id": {"$in": ' + str(binary_search_results).replace('\'', '"') + '}}'
-        query_uid = self.db.editing.add_to_search_query_cache(query, query_title=yara_rules)
-        return query_uid
+        query = '{"_id": {"$in": ' + str(binary_search_results).replace("'", '"') + '}}'
+        return self.db.editing.add_to_search_query_cache(query, query_title=yara_rules)
 
     @staticmethod
     def _join_results(result_dict):
@@ -273,7 +266,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/quick_search', GET)
-    def start_quick_search(self):  # pylint: disable=no-self-use
+    def start_quick_search(self):
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
             return render_template('error.html', message='Search string not found')

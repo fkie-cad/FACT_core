@@ -27,8 +27,6 @@ def add_flask_security_to_app(app):
 
 
 def create_user_datastore(db):
-    # pylint: disable=no-member
-
     roles_users = db.Table(
         'roles_users',
         db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
@@ -36,12 +34,12 @@ def create_user_datastore(db):
     )
 
     class Role(db.Model, RoleMixin):
-        id = db.Column(db.Integer(), primary_key=True)  # pylint: disable=invalid-name
+        id = db.Column(db.Integer(), primary_key=True)
         name = db.Column(db.String(80), unique=True)
         description = db.Column(db.String(255))
 
     class User(db.Model, UserMixin):
-        id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
+        id = db.Column(db.Integer, primary_key=True)
         api_key = db.Column(db.String(255), default=_build_api_key, unique=True)
         email = db.Column(db.String(255), unique=True)
         password = db.Column(db.String(255))
@@ -55,7 +53,7 @@ def create_user_datastore(db):
 
 def _add_apikey_handler(security, user_datastore):
     @security.login_manager.request_loader
-    def load_user_from_request(request):  # pylint: disable=unused-variable
+    def load_user_from_request(request):
         api_key = request.headers.get('Authorization')
         if api_key:
             user = user_datastore.find_user(api_key=api_key)
@@ -70,9 +68,7 @@ def _build_api_key():
 
 
 def _auth_is_disabled(user):
-    user_object = (
-        user._get_current_object() if isinstance(user, LocalProxy) else user
-    )  # pylint: disable=protected-access
+    user_object = user._get_current_object() if isinstance(user, LocalProxy) else user
     return isinstance(user_object, AnonymousUser)
 
 

@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order
 from pathlib import Path
 
 import pytest

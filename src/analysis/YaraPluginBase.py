@@ -1,19 +1,21 @@
-from __future__ import annotations
+from __future__ import annotations  # noqa: N999
 
-import json
 import logging
 import re
 import subprocess
 from pathlib import Path
+
+import yaml
+from yaml.parser import ParserError
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
 
 
 class YaraBasePlugin(AnalysisBasePlugin):
-    '''
+    """
     This should be the base for all YARA based analysis plugins
-    '''
+    """
 
     NAME = 'Yara_Base_Plugin'
     DESCRIPTION = 'this is a Yara plugin'
@@ -21,17 +23,17 @@ class YaraBasePlugin(AnalysisBasePlugin):
     FILE = None
 
     def __init__(self, view_updater=None):
-        '''
+        """
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
-        '''
+        """
         self.signature_path = self._get_signature_file(self.FILE) if self.FILE else None
         if self.signature_path and not Path(self.signature_path).exists():
             raise PluginInitException(
                 f'Signature file {self.signature_path} not found. Did you run "compile_yara_signatures.py"?',
                 plugin=self,
             )
-        self.SYSTEM_VERSION = self.get_yara_system_version()  # pylint: disable=invalid-name
+        self.SYSTEM_VERSION = self.get_yara_system_version()
         super().__init__(view_updater=view_updater)
 
     def get_yara_system_version(self):
@@ -97,21 +99,21 @@ def _append_match_to_result(match, resulting_matches: dict[str, dict], rule):
     rule_name, meta_string, _, _ = rule
     _, offset, matched_tag, matched_string = match
     resulting_matches.setdefault(
-        rule_name, dict(rule=rule_name, matches=True, strings=[], meta=_parse_meta_data(meta_string))
+        rule_name, {'rule': rule_name, 'matches': True, 'strings': [], 'meta': _parse_meta_data(meta_string)}
     )
     resulting_matches[rule_name]['strings'].append((int(offset, 16), matched_tag, matched_string))
 
 
-def _parse_meta_data(meta_data_string):
+def _parse_meta_data(meta_data_string: str) -> dict[str, str | bool | int]:
     '''
-    Will be of form 'item0=lowercaseboolean0,item1="value1",item2=value2,..'
+    Will be of form 'item0=lowercaseboolean0,item1="str1",item2=int2,...'
     '''
-    meta_data = {}
-    for item in meta_data_string.split(','):
-        if '=' in item:
-            key, value = item.split('=', maxsplit=1)
-            value = json.loads(value) if value in ['true', 'false'] else value.strip('"')
-            meta_data[key] = value
-        else:
-            logging.warning(f'Malformed meta string \'{meta_data_string}\'')
-    return meta_data
+    try:
+        # YARA insert backslashes before single quotes in the meta output and the YAML parser doesn't like that
+        meta_data_string = meta_data_string.replace(r"\'", "'")
+        meta_data = yaml.safe_load(f'{{{meta_data_string.replace("=", ": ")}}}')
+        assert isinstance(meta_data, dict)
+        return meta_data
+    except (ParserError, AssertionError):
+        logging.warning(f"Malformed meta string '{meta_data_string}'")
+        return {}

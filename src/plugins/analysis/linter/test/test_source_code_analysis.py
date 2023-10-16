@@ -1,50 +1,45 @@
-# pylint: disable=redefined-outer-name,unused-argument,protected-access,wrong-import-order
 from pathlib import Path
 
 import pytest
 
-from test.common_helper import create_test_file_object
-from test.mock import mock_patch
-
 from ..code.source_code_analysis import AnalysisPlugin
 
-PYLINT_TEST_FILE = Path(__file__).parent / 'data' / 'linter_test_file'
-
-
-@pytest.fixture(scope='function')
-def test_object():
-    return create_test_file_object()
+TEST_DATA_DIR = Path(__file__).parent / 'data'
+PYLINT_TEST_FILE = TEST_DATA_DIR / 'hello_world.py'
+PHP_TEST_FILE = TEST_DATA_DIR / 'hello_world.php'
+JS_TEST_FILE = TEST_DATA_DIR / 'hello_world.js'
+RUBY_TEST_FILE = TEST_DATA_DIR / 'hello_world.ruby'
+BASH_TEST_FILE = TEST_DATA_DIR / 'hello_world.sh'
+NOT_A_SCRIPT_FILE = TEST_DATA_DIR / 'file'
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestSourceCodeAnalysis:
-    def test_process_object_not_supported(self, analysis_plugin, test_object, monkeypatch):
-        monkeypatch.setattr(
-            'storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_object.file_path
-        )
-        result = analysis_plugin.process_object(test_object)
-        assert result.processed_analysis[analysis_plugin.NAME] == {
-            'summary': [],
-            'warning': 'Is not a script or language could not be detected',
-        }
+    def test_analyze_not_supported(self, analysis_plugin):
+        with NOT_A_SCRIPT_FILE.open() as f:
+            result = analysis_plugin.analyze(f, {}, {})
+        summary = analysis_plugin.summarize(result)
 
-    def test_process_object_this_file(self, analysis_plugin, monkeypatch):
-        test_file = create_test_file_object(bin_path=str(PYLINT_TEST_FILE))
-        with mock_patch(analysis_plugin._fs_organizer, 'generate_path_from_uid', lambda _: test_file.file_path):
-            analysis_plugin.process_object(test_file)
-        result = test_file.processed_analysis[analysis_plugin.NAME]
-        assert result['full']
-        assert result['full'][0]['type'] == 'warning'
-        assert result['full'][0]['symbol'] == 'unused-import'
+        assert summary == []
+        assert result.language is None
+        assert result.issues is None
 
-    def test_process_object_no_issues(self, analysis_plugin, test_object, monkeypatch):
-        test_object.processed_analysis['file_type'] = {'result': {'full': 'anything containing python'}}
-        monkeypatch.setattr(
-            'storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_object.file_path
-        )
-        monkeypatch.setattr(
-            'plugins.analysis.linter.code.source_code_analysis.linters.run_pylint', lambda self, file_path: []
-        )
-        analysis_plugin.process_object(test_object)
-        result = test_object.processed_analysis[analysis_plugin.NAME]
-        assert 'full' not in result
+    @pytest.mark.parametrize(
+        ('file', 'language', 'symbol'),
+        [
+            (PYLINT_TEST_FILE, 'python', 'unused-import'),
+            (PHP_TEST_FILE, 'php', 'error'),
+            (JS_TEST_FILE, 'javascript', 'no-unused-vars'),
+            (RUBY_TEST_FILE, 'ruby', 'Style/FrozenStringLiteralComment'),
+            (BASH_TEST_FILE, 'shell', '2050'),
+        ],
+    )
+    def test_analyze(self, analysis_plugin, file, language, symbol):
+        with file.open() as f:
+            result = analysis_plugin.analyze(f, {}, {})
+        summary = analysis_plugin.summarize(result)
+
+        assert set(summary) == {'has-warnings', language}
+        assert result is not None
+        assert len(result.issues) > 0
+        assert result.issues[0].symbol == symbol

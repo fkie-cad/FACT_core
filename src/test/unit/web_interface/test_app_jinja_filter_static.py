@@ -1,10 +1,9 @@
-# pylint: disable=protected-access
 import pytest
 
 from web_interface.components.jinja_filter import FilterClass
 
 
-def test_split_user_and_password_type_entry():  # pylint: disable=invalid-name
+def test_split_user_and_password_type_entry():
     new_test_entry_form = {'test:mosquitto': {'password': '123456'}}
     old_test_entry_form = {'test': {'password': '123456'}}
     expected_new_entry = {'test': {'mosquitto': {'password': '123456'}}}
@@ -14,19 +13,20 @@ def test_split_user_and_password_type_entry():  # pylint: disable=invalid-name
 
 
 @pytest.mark.parametrize(
-    'hid, uid, expected_output',
+    ('hid', 'uid', 'current_uid', 'expected_output'),
     [
-        ('foo', 'bar', 'badge-secondary">foo'),
-        ('foo', 'a152ccc610b53d572682583e778e43dc1f24ddb6577255bff61406bc4fb322c3_21078024', 'badge-primary">    <a'),
+        ('hid', 'uid', 'uid', 'badge-secondary">hid'),
+        ('hid', 'uid', 'different_uid', 'badge-primary">    <a'),
         (
             'suuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id',
-            'bar',
+            'uid',
+            'uid',
             '~uuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id',
         ),
     ],
 )
-def test_virtual_path_element_to_span(hid, uid, expected_output):
-    assert expected_output in FilterClass._virtual_path_element_to_span(hid, uid, 'root_uid')
+def test_virtual_path_element_to_span(hid, uid, current_uid, expected_output):
+    assert expected_output in FilterClass._virtual_path_element_to_span(hid, uid, 'root_uid', current_uid)
 
 
 class FilterClassMock:
@@ -36,7 +36,7 @@ class FilterClassMock:
 
 
 @pytest.mark.parametrize(
-    'input_data, limit, expected_result',
+    ('input_data', 'limit', 'expected_result'),
     [
         (
             [('NX enabled', 1696), ('NX disabled', 207), ('Canary enabled', 9)],

@@ -1,4 +1,3 @@
-# pylint: disable=wrong-import-order,protected-access,no-self-use,unused-argument
 import pytest
 
 from compare.compare import Compare
@@ -33,8 +32,11 @@ class MockDbInterface:
     def get_vfp_of_included_text_files(self, root_uid, blacklist=None):
         return {}
 
+    def get_vfps_for_uid_list(self, uid_list, root_uid=None):
+        return {}
 
-@pytest.fixture()
+
+@pytest.fixture
 def compare_system():
     return Compare(db_interface=MockDbInterface())
 
@@ -67,7 +69,7 @@ def test_create_general_section_dict(compare_system):
     assert result['version'][fw_one.uid] == '0.1'
     assert result['release_date'][fw_one.uid] == '1970-01-01'
     assert result['size'][fw_one.uid] == len(fw_one.binary)
-    assert result['virtual_file_path'][fw_one.uid] == [fw_one.uid]
+    assert result['virtual_file_path'][fw_one.uid] == [fw_one.file_name]
 
 
 def test_plugin_system(compare_system):

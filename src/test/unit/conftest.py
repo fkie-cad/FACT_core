@@ -1,8 +1,7 @@
-# pylint: disable=no-self-use
 from typing import Type
 
 import pytest
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 
 from test.common_helper import TEST_FW, TEST_TEXT_FILE, CommonDatabaseMock
 from test.conftest import merge_markers
@@ -12,18 +11,17 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 class CommonIntercomMock:
     task_list = None
+    _common_fields = ('0.0', [], [], [], 1)
 
     def __init__(self, *_, **__):
         pass
 
-    @staticmethod
-    def get_available_analysis_plugins():
-        common_fields = ('0.0.', [], [], [], 1)
+    def get_available_analysis_plugins(self):
         return {
-            'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
-            'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
-            'file_type': ('file_type plugin', False, {'default': False}, *common_fields),
+            'default_plugin': ('default plugin description', False, {'default': True}, *self._common_fields),
+            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *self._common_fields),
+            'optional_plugin': ('optional plugin description', False, {'default': False}, *self._common_fields),
+            'file_type': ('file_type plugin', False, {'default': False}, *self._common_fields),
             'unpacker': ('Additional information provided by the unpacker', True, False),
         }
 
@@ -64,7 +62,7 @@ class CommonIntercomMock:
     def add_analysis_task(self, task):
         self.task_list.append(task)
 
-    def add_re_analyze_task(self, task, unpack=True):  # pylint: disable=unused-argument
+    def add_re_analyze_task(self, task, unpack=True):
         self.task_list.append(task)
 
 
@@ -87,7 +85,7 @@ class FrontendDatabaseMock:
 
 
 class _UserDbMock:
-    class session:  # pylint: disable=invalid-name
+    class session:  # noqa: N801
         @staticmethod
         def commit():
             pass
@@ -97,8 +95,18 @@ class _UserDbMock:
             pass
 
 
-@dataclass
-class WebInterfaceUnitTestConfig:
+class StatusInterfaceMock:
+    def __init__(self):
+        self._status = {'current_analyses': {}, 'recently_finished_analyses': {}}
+
+    def set_analysis_status(self, status: dict):
+        self._status = status
+
+    def get_analysis_status(self):
+        return self._status
+
+
+class WebInterfaceUnitTestConfig(BaseModel):
     """A class configuring the :py:func:`web_frontend` fixture."""
 
     #: A class that can be instanced to mock every ``@property`` of
@@ -107,13 +115,15 @@ class WebInterfaceUnitTestConfig:
     database_mock_class: Type = CommonDatabaseMock
     #: A class mocking :py:class:`~intercom.front_end_binding.InterComFrontEndBinding`
     intercom_mock_class: Type[CommonIntercomMock] = CommonIntercomMock
+    #: A class mocking :py:class:`~storage.redis_status_interface.RedisStatusInterface`
+    status_mock_class: Type[StatusInterfaceMock] = StatusInterfaceMock
 
 
 @pytest.fixture
 def intercom_task_list() -> list:
     """A fixture used to add tasks in the :py:class:`CommonIntercomMock`.
     It can be used to inspect what tasks where added"""
-    yield []
+    return []
 
 
 @pytest.fixture
@@ -129,7 +139,7 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
     test_config = merge_markers(request, 'WebInterfaceUnitTestConfig', WebInterfaceUnitTestConfig)
 
     db_mock_instance = test_config.database_mock_class()
-    IntercomMockClass = test_config.intercom_mock_class
+    IntercomMockClass = test_config.intercom_mock_class  # noqa: N806
 
     def _add_flask_security_to_app_mock(app):
         add_flask_security_to_app(app)
@@ -139,14 +149,17 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
 
     monkeypatch.setattr(IntercomMockClass, 'task_list', intercom_task_list)
     # Note: The intercom argument is only the class. It gets instanced when intercom access in needed by `ConnectTo`.
-    frontend = WebFrontEnd(db=FrontendDatabaseMock(db_mock_instance), intercom=IntercomMockClass)
-
+    frontend = WebFrontEnd(
+        db=FrontendDatabaseMock(db_mock_instance),
+        intercom=IntercomMockClass,
+        status_interface=test_config.status_mock_class(),
+    )
     frontend.app.config['TESTING'] = True
 
-    yield frontend
+    return frontend
 
 
 @pytest.fixture
 def test_client(web_frontend):
     """Shorthand for ``web_frontend.app.test_client``"""
-    yield web_frontend.app.test_client()
+    return web_frontend.app.test_client()

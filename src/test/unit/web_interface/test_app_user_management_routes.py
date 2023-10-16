@@ -1,5 +1,3 @@
-# pylint: disable=wrong-import-order,no-self-use,redefined-outer-name
-
 import logging
 
 import pytest
@@ -28,7 +26,6 @@ class UserMock:
 
 
 class UserDbInterfaceMock:
-    # pylint: disable=unused-argument
     @staticmethod
     def list_users():
         return [UserMock('user_1', 'foo'), UserMock('user_2', 'bar')]
@@ -44,7 +41,7 @@ class UserDbInterfaceMock:
         pass
 
     @staticmethod
-    def find_user(id=None, email=None):  # pylint: disable=redefined-builtin
+    def find_user(id=None, email=None):  # noqa: A002
         if id == '0':
             return UserMock('test_user', 'foo', user_roles=[RoleMock(roles[0]), RoleMock(roles[1])])
         if email == 'error':
@@ -71,7 +68,7 @@ class UserDbInterfaceMock:
 
 
 @pytest.fixture
-def current_user_fixture(monkeypatch):
+def current_user_fixture(monkeypatch):  # noqa: PT004
     monkeypatch.setattr(user_management_routes, 'current_user', UserMock('foobar', 'test'))
 
 
@@ -201,7 +198,7 @@ class TestAppUpload:
         with caplog.at_level(logging.INFO):
             test_client.post('/admin/user/0', follow_redirects=True, data={'input_roles': [roles[0], roles[2]]})
             assert 'Creating user role' in caplog.messages[0]
-            assert f'added roles {{\'{roles[2]}\'}}, removed roles {{\'{roles[1]}\'}}' in caplog.messages[1]
+            assert f"added roles {{'{roles[2]}'}}, removed roles {{'{roles[1]}'}}" in caplog.messages[1]
 
     def test_edit_roles__error(self, test_client):
         response = test_client.post('/admin/user/0', follow_redirects=True, data={})
@@ -213,7 +210,7 @@ class TestAppUpload:
 
 
 @pytest.mark.parametrize(
-    'user_roles, role_indexes, expected_added_roles, expected_removed_roles',
+    ('user_roles', 'role_indexes', 'expected_added_roles', 'expected_removed_roles'),
     [
         ([RoleMock(roles[0]), RoleMock(roles[1])], {roles[1], roles[2]}, {roles[2]}, {roles[0]}),
         ([RoleMock(roles[1])], {roles[1]}, set(), set()),
@@ -222,8 +219,6 @@ class TestAppUpload:
     ],
 )
 def test_determine_role_changes(user_roles, role_indexes, expected_added_roles, expected_removed_roles):
-    added_roles, removed_roles = UserManagementRoutes._determine_role_changes(
-        user_roles, role_indexes
-    )  # pylint: disable=protected-access
+    added_roles, removed_roles = UserManagementRoutes._determine_role_changes(user_roles, role_indexes)
     assert added_roles == expected_added_roles
     assert removed_roles == expected_removed_roles

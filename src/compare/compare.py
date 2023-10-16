@@ -1,28 +1,32 @@
 from __future__ import annotations
 
 import logging
-from contextlib import suppress
 
 from helperFunctions.plugin import discover_compare_plugins
+from helperFunctions.virtual_file_path import get_paths_for_all_parents
 from objects.firmware import Firmware
 from storage.binary_service import BinaryService
-from storage.db_interface_comparison import ComparisonDbInterface
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from storage.db_interface_comparison import ComparisonDbInterface
+    from objects.file import FileObject
 
 
 class Compare:
-    '''
+    """
     This Module compares firmware images
-    '''
+    """
 
-    compare_plugins = {}
+    compare_plugins = {}  # noqa: RUF012
 
     def __init__(self, db_interface: ComparisonDbInterface | None = None):
         self.db_interface = db_interface
         self._setup_plugins()
-        logging.info(f'Plug-ins available: {self.compare_plugins.keys()}')
+        logging.info(f'Comparison plugins available: {", ".join(self.compare_plugins)}')
 
     def compare(self, uid_list):
-        logging.info(f'Compare in progress: {uid_list}')
+        logging.info(f'Comparison in progress: {uid_list}')
         binary_service = BinaryService()
 
         fo_list = []
@@ -41,31 +45,34 @@ class Compare:
 
     def _create_general_section_dict(self, object_list):
         general = {}
+        vfp_data = self._get_vfp_data(object_list)
         for fo in object_list:
             if isinstance(fo, Firmware):
                 fo.root_uid = fo.uid
-                self._add_content_to_general_dict(general, 'device_name', fo.uid, fo.device_name)
-                self._add_content_to_general_dict(general, 'device_part', fo.uid, fo.part)
-                self._add_content_to_general_dict(general, 'device_class', fo.uid, fo.device_class)
-                self._add_content_to_general_dict(general, 'vendor', fo.uid, fo.vendor)
-                self._add_content_to_general_dict(general, 'version', fo.uid, fo.version)
-                self._add_content_to_general_dict(general, 'release_date', fo.uid, fo.release_date)
+                general.setdefault('device_name', {})[fo.uid] = fo.device_name
+                general.setdefault('device_part', {})[fo.uid] = fo.part
+                general.setdefault('device_class', {})[fo.uid] = fo.device_class
+                general.setdefault('vendor', {})[fo.uid] = fo.vendor
+                general.setdefault('version', {})[fo.uid] = fo.version
+                general.setdefault('release_date', {})[fo.uid] = fo.release_date
             else:
-                self._add_content_to_general_dict(
-                    general, 'firmwares_including_this_file', fo.uid, list(fo.get_virtual_file_paths().keys())
-                )
-            self._add_content_to_general_dict(general, 'hid', fo.uid, fo.get_hid())
-            self._add_content_to_general_dict(general, 'size', fo.uid, fo.size)
-            self._add_content_to_general_dict(general, 'virtual_file_path', fo.uid, fo.get_virtual_paths_for_all_uids())
-            self._add_content_to_general_dict(general, 'number_of_files', fo.uid, len(fo.list_of_all_included_files))
+                general.setdefault('firmwares_including_this_file', {})[fo.uid] = list(fo.parent_firmware_uids)
+            general.setdefault('hid', {})[fo.uid] = fo.get_hid()
+            general.setdefault('size', {})[fo.uid] = fo.size
+            general.setdefault('virtual_file_path', {})[fo.uid] = vfp_data[fo.uid]
+            general.setdefault('number_of_files', {})[fo.uid] = len(fo.list_of_all_included_files)
         return general
 
-    @staticmethod
-    def _add_content_to_general_dict(general_dict, feature, uid, content):
-        with suppress(Exception):
-            if feature not in general_dict:
-                general_dict[feature] = {}
-            general_dict[feature][uid] = content
+    def _get_vfp_data(self, object_list: list[FileObject]) -> dict[str, list[str]]:
+        vfp_data = {
+            uid: get_paths_for_all_parents(vfp_dict)
+            for uid, vfp_dict in self.db_interface.get_vfps_for_uid_list([fo.uid for fo in object_list]).items()
+        }
+        # firmware objects don't have "virtual file paths" (because they are themselves not included in another file)
+        for fo in object_list:
+            if isinstance(fo, Firmware):
+                vfp_data[fo.uid] = [fo.file_name]
+        return vfp_data
 
     # --- plug-in system ---
 
@@ -77,7 +84,7 @@ class Compare:
         for plugin in discover_compare_plugins():
             try:
                 self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(db_interface=self.db_interface)
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 logging.error(f'Could not import comparison plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
     def _execute_compare_plugins(self, fo_list):
