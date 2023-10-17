@@ -5,33 +5,37 @@
         <tr>
             <td>{{ category | safe }}</td>
             <td class="p-0">
-                <table class="table table-bordered m-0" style="width: 100%">
-                    {% for rule_results in result_list %}
+                <table class="table table-bordered m-0 w-100">
+                    {% for rule_results in result_list | sort(attribute="name") %}
                         <tr>
                             <td style="width: 20%">{{ rule_results.name | safe }}</td>
                             <td class="p-0">
-                                <table class="table table-bordered m-0" style="width: 100%">
+                                <table class="table table-bordered table-sm m-0 w-100">
                                     {% if rule_results.url %}
                                         <tr>
                                             <td>url</td>
                                             <td><a href="{{ rule_results.url | safe }}">{{ rule_results.url | safe }}</a></td>
                                         </tr>
                                     {% endif %}
-                                    <tr>
-                                        <td style="width: 25%">author</td>
-                                        <td>{{ rule_results.author | safe }}</td>
-                                    </tr>
+                                    {% for key in ["author", "description", "cve", "architecture"] %}
+                                        {% if rule_results.get(key) %}
+                                            <tr>
+                                                <td class="w-25">{{ key }}</td>
+                                                <td>{{ rule_results.get(key) | link_cve | safe }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
                                     <tr>
                                         <td>variants</td>
                                         <td class="p-0">
-                                            <table class="table table-bordered m-0" style="width: 100%">
+                                            <table class="table table-bordered table-sm m-0 w-100">
                                                 {% for variant_data in rule_results.variants %}
                                                     <tr>
                                                         <td>{{ variant_data.name | safe }}</td>
                                                         {% if variant_data.match %}
-                                                            <td class="table-danger" style="width: 50%">{{ variant_data.output | safe }}</td>
+                                                            <td class="table-danger w-50">{{ variant_data.output | safe }}</td>
                                                         {% else %}
-                                                            <td class="table-success" style="width: 50%">{{ variant_data.output | safe }}</td>
+                                                            <td class="table-success w-50">{{ variant_data.output | safe }}</td>
                                                         {% endif %}
                                                     </tr>
                                                 {% endfor %}

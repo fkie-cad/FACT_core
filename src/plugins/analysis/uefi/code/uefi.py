@@ -33,6 +33,8 @@ class Rule(BaseModel):
     author: Optional[str] = Field(None, description='The Author of the rule')
     description: Optional[str] = Field(None, description='The description of the rule/vulnerability')
     url: Optional[str] = Field(None, description='A link with more information for this rule/vulnerability')
+    cve: Optional[str] = Field(None, description='A list of related CVEs')
+    architecture: Optional[str] = Field(None, description='The affected architecture')
     variants: List[Variant] = Field(description='The list of variants with matching information')
 
 
@@ -140,6 +142,8 @@ def _convert_json_to_schema(fw_hunt_data: dict[str, dict]) -> Schema:
             author=data.get('author'),
             description=data.get('description'),
             url=data.get('url'),
+            architecture=data.get('architecture'),
+            cve=data.get('CVE'),
             variants=[
                 Variant(name=variant_name, **variant_data) for variant_name, variant_data in data['variants'].items()
             ],

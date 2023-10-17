@@ -52,6 +52,8 @@ def _load_rules(rule_files: list[Path]) -> dict[str, dict]:
           "namespace": "<rule_type>",
           "description": "...",
           "url": "...",
+          "CVE number": "...",
+          "advisory": "...",
           ...
         },
         "variants": {
@@ -100,7 +102,9 @@ def _parse_output(output: str, rules: dict[str, dict]) -> dict[str, dict]:
                 'category': rule_data['meta']['namespace'],
                 'description': rule_data['meta'].get('description'),
                 'author': rule_data['meta'].get('author'),
-                'url': rule_data['meta'].get('url'),
+                'url': rule_data['meta'].get('url', rule_data['meta'].get('advisory')),
+                'CVE': rule_data['meta'].get('CVE number'),
+                'architecture': rule_data['meta'].get('architecture'),
                 'variants': {},
             },
         )
