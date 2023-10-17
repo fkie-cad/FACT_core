@@ -32,6 +32,7 @@ PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible 
     'known_vulnerabilities',
     'qemu_exec',
     'software_components',
+    'uefi',
     'users_and_passwords',
 ]
 Summary = Dict[str, List[str]]
