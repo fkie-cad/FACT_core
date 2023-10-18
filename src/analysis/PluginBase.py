@@ -124,7 +124,7 @@ class AnalysisBasePlugin(BasePlugin):
 
     def _check_plugin_attributes(self):
         for attribute in ['FILE', 'NAME', 'VERSION']:
-            if getattr(self, attribute, None) is None:
+            if not bool(getattr(self, attribute, None)):
                 raise PluginInitException(f'Plugin {self.NAME} is missing {attribute} in configuration', plugin=self)
         self._check_version(self.VERSION)
         if self.SYSTEM_VERSION:

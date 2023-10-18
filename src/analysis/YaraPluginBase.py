@@ -4,12 +4,17 @@ import logging
 import re
 import subprocess
 from pathlib import Path
+from shlex import split
 
 import yaml
 from yaml.parser import ParserError
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
+
+MATCH_REGEX = re.compile(r'((0x[a-f0-9]*):(\$[a-zA-Z0-9_]+):\s(.+))+')
+SPLIT_REGEX = re.compile(r'\n*.*\[.*]\s/.+\n*')
+RULE_REGEX = re.compile(r'(\w*)\s\[(.*)]\s([.]{0,2}/)(.+)')
 
 
 class YaraBasePlugin(AnalysisBasePlugin):
@@ -20,7 +25,6 @@ class YaraBasePlugin(AnalysisBasePlugin):
     NAME = 'Yara_Base_Plugin'
     DESCRIPTION = 'this is a Yara plugin'
     VERSION = '0.0'
-    FILE = None
 
     def __init__(self, view_updater=None):
         """
@@ -37,8 +41,10 @@ class YaraBasePlugin(AnalysisBasePlugin):
         super().__init__(view_updater=view_updater)
 
     def get_yara_system_version(self):
-        with subprocess.Popen(['yara', '--version'], stdout=subprocess.PIPE) as process:
-            yara_version = process.stdout.readline().decode().strip()
+        process = subprocess.run(split('yara --version'), capture_output=True, text=True)
+        if process.returncode != 0:
+            raise RuntimeError('Could not determine YARA version. Is YARA installed correctly?')
+        yara_version = process.stdout.strip()
 
         access_time = int(Path(self.signature_path).stat().st_mtime)
         return f'{yara_version}-{access_time}'
@@ -47,10 +53,9 @@ class YaraBasePlugin(AnalysisBasePlugin):
         if self.signature_path is not None:
             compiled_flag = '-C' if Path(self.signature_path).read_bytes().startswith(b'YARA') else ''
             command = f'yara {compiled_flag} --print-meta --print-strings {self.signature_path} {file_object.file_path}'
-            with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE) as process:
-                output = process.stdout.read().decode()
+            process = subprocess.run(split(command), capture_output=True, text=True)
             try:
-                result = self._parse_yara_output(output)
+                result = self._parse_yara_output(process.stdout)
                 file_object.processed_analysis[self.NAME] = result
                 file_object.processed_analysis[self.NAME]['summary'] = list(result.keys())
             except (ValueError, TypeError):
@@ -73,35 +78,33 @@ class YaraBasePlugin(AnalysisBasePlugin):
 
         match_blocks, rules = _split_output_in_rules_and_matches(output)
 
-        matches_regex = re.compile(r'((0x[a-f0-9]*):(\$[a-zA-Z0-9_]+):\s(.+))+')
+        resulting_matches: dict[str, dict] = {}
         for index, rule in enumerate(rules):
-            for match in matches_regex.findall(match_blocks[index]):
-                _append_match_to_result(match, resulting_matches, rule)
+            rule_name, meta_string, _, _ = rule
+            for _, offset, matched_tag, matched_string in MATCH_REGEX.findall(match_blocks[index]):
+                resulting_matches.setdefault(
+                    rule_name,
+                    {
+                        'rule': rule_name,
+                        'matches': True,
+                        'strings': [],
+                        'meta': _parse_meta_data(meta_string),
+                    },
+                )['strings'].append((int(offset, 16), matched_tag, matched_string))
 
         return resulting_matches
 
 
 def _split_output_in_rules_and_matches(output):
-    split_regex = re.compile(r'\n*.*\[.*\]\s/.+\n*')
-    match_blocks = split_regex.split(output)
+    match_blocks = SPLIT_REGEX.split(output)
     while '' in match_blocks:
         match_blocks.remove('')
 
-    rule_regex = re.compile(r'(\w*)\s\[(.*)\]\s([.]{0,2}/)(.+)')
-    rules = rule_regex.findall(output)
+    rules = RULE_REGEX.findall(output)
 
     if not len(match_blocks) == len(rules):
         raise ValueError()
     return match_blocks, rules
-
-
-def _append_match_to_result(match, resulting_matches: dict[str, dict], rule):
-    rule_name, meta_string, _, _ = rule
-    _, offset, matched_tag, matched_string = match
-    resulting_matches.setdefault(
-        rule_name, {'rule': rule_name, 'matches': True, 'strings': [], 'meta': _parse_meta_data(meta_string)}
-    )
-    resulting_matches[rule_name]['strings'].append((int(offset, 16), matched_tag, matched_string))
 
 
 def _parse_meta_data(meta_data_string: str) -> dict[str, str | bool | int]:
