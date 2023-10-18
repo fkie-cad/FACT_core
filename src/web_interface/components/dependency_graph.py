@@ -61,19 +61,21 @@ def create_data_graph_edges(data_graph: dict):
 def create_symbolic_link_edges(data_graph: dict):
     for node in data_graph['nodes']:
         if node['group'] == 'inode/symlink':
-            link_to = Path(node['full_file_type'].split("'")[1])
+            path = Path(node['full_file_type'].split("'")[1])
 
-            if not link_to.is_absolute():
+            if not path.is_absolute():
                 base = Path(node['label']).parent
-                link_to = normpath(base / link_to)
+                link_to = normpath(base / path)
+            else:
+                link_to = str(path)
 
             for match in data_graph['nodes']:
-                if match['label'] == str(link_to):
+                if match['label'] == link_to:
                     edge = {'from': node['id'], 'to': match['id'], 'id': len(data_graph['edges'])}
                     data_graph['edges'].append(edge)
 
 
-def _find_edges(node, linked_lib_name, data_graph):
+def _find_edges(node: dict, linked_lib_name: str, data_graph: dict[str, list]):
     for lib in data_graph['nodes']:
         if linked_lib_name != Path(lib['label']).name:
             continue
@@ -82,5 +84,5 @@ def _find_edges(node, linked_lib_name, data_graph):
         break
 
 
-def get_graph_colors(quantity):
+def get_graph_colors(quantity: int) -> list[str]:
     return get_color_list(quantity, quantity) if quantity > 0 else []

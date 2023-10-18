@@ -10,6 +10,7 @@ from helperFunctions.data_conversion import (
     convert_compare_id_to_list,
     convert_uid_list_to_compare_id,
     normalize_compare_id,
+    none_to_none,
 )
 from helperFunctions.database import get_shared_session
 from helperFunctions.web_interface import get_template_as_string
@@ -170,16 +171,13 @@ class CompareRoutes(ComponentBase):
     @AppRoute('/comparison/text_files/<uid_1>/<uid_2>', GET)
     @AppRoute('/comparison/text_files/<uid_1>/<uid_2>/<root_uid_1>/<root_uid_2>', GET)
     def compare_text_files(self, uid_1: str, uid_2: str, root_uid_1: str | None = None, root_uid_2: str | None = None):
-        diff_files = [
-            self._get_data_for_file_diff(uid_1, root_uid_1),
-            self._get_data_for_file_diff(uid_2, root_uid_2),
-        ]
-
-        uids_with_missing_file_type = ', '.join(f.uid for f in diff_files if f.mime is None)
-        if uids_with_missing_file_type:
-            return render_template(
-                'compare/error.html', error=f'file_type analysis is not finished for {uids_with_missing_file_type}'
-            )
+        try:
+            diff_files: list[FileDiffData] = [
+                self._get_data_for_file_diff(uid_1, none_to_none(root_uid_1)),
+                self._get_data_for_file_diff(uid_2, none_to_none(root_uid_2)),
+            ]
+        except RuntimeError as error:
+            return render_template('compare/error.html', error=str(error))
 
         if any(not f.mime.startswith('text') for f in diff_files):
             return render_template(
@@ -195,14 +193,17 @@ class CompareRoutes(ComponentBase):
             'compare/text_files.html', diffstr=diff_str, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid
         )
 
-    def _get_data_for_file_diff(self, uid: str, root_uid: str | None) -> FileDiffData:
+    def _get_data_for_file_diff(self, uid: UID, root_uid: UID | None) -> FileDiffData:
         with get_shared_session(self.db.frontend) as frontend_db:
-            fo = frontend_db.get_object(uid)
-            if root_uid in [None, 'None']:
-                root_uid = frontend_db.get_root_uid(fo.uid)
-            fw_hid = frontend_db.get_object(root_uid).get_hid()
+            if not (fo := frontend_db.get_object(uid)):
+                raise RuntimeError(f'File with UID {uid} not found in the database')
+            fw_uid = root_uid or frontend_db.get_root_uid(fo.uid)
+            if not (fw := frontend_db.get_object(fw_uid)):
+                raise RuntimeError(f'Firmware with UID {uid} not found in the database')
         mime = fo.processed_analysis.get('file_type', {}).get('result', {}).get('mime')
-        return FileDiffData(uid, mime, fw_hid)
+        if not mime:
+            raise RuntimeError(f'file_type analysis is not finished for {uid}')
+        return FileDiffData(uid, mime, fw.get_hid())
 
 
 def _get_compare_view(plugin_views):

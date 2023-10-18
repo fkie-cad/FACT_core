@@ -74,6 +74,8 @@ class IORoutes(ComponentBase):
         if result is None:
             return render_template('error.html', message='timeout')
         binary, file_name = result
+        if binary is None:
+            return render_template('error.html', message='binary not found')
         response = make_response(binary)
         response.headers['Content-Disposition'] = f'attachment; filename={file_name}'
         response.headers['Content-Type'] = 'application/gzip' if packed else self._get_file_download_mime(binary, uid)

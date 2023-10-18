@@ -88,7 +88,7 @@ class InterComBackEndBinding:
 
 
 class InterComBackEndAnalysisPlugInsPublisher(InterComRedisInterface):
-    def __init__(self, analysis_service=None):
+    def __init__(self, analysis_service):
         super().__init__()
         self.publish_available_analysis_plugins(analysis_service)
 
@@ -199,8 +199,9 @@ class InterComBackEndBinarySearchTask(InterComListenerAndResponder):
 
     def get_response(self, task):
         yara_binary_searcher = YaraBinarySearchScanner()
-        uid_list = yara_binary_searcher.get_binary_search_result(task)
-        return uid_list, task
+        # search_result is a string if an error occurred and a dict otherwise
+        search_result = yara_binary_searcher.get_binary_search_result(task)
+        return search_result, task
 
 
 class InterComBackEndDeleteFile(InterComListenerAndResponder):

@@ -37,7 +37,7 @@ class FilterClass:
         return f'{self._program_version}'
 
     def _filter_replace_uid_with_file_name(self, input_data):
-        tmp = input_data.__str__()
+        tmp = str(input_data)
         uid_list = flt.get_all_uids_in_string(tmp)
         with get_shared_session(self.db.frontend) as frontend_db:
             for item in uid_list:
@@ -134,8 +134,8 @@ class FilterClass:
         )
 
     @staticmethod
-    def _split_user_and_password_type_entry(result: dict):
-        new_result = {}
+    def _split_user_and_password_type_entry(result: dict) -> dict[str, dict[str, str]]:
+        new_result: dict[str, dict[str, str]] = {}
         for key, value in result.items():
             if ':' in key:
                 *user_elements, password_type = key.split(':')
