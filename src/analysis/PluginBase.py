@@ -7,8 +7,7 @@ from multiprocessing import Array, Manager, Queue, Value
 from queue import Empty
 from time import time
 
-from packaging.version import InvalidVersion
-from packaging.version import parse as parse_version
+from packaging.version import InvalidVersion, parse as parse_version
 
 import config
 from helperFunctions.process import (
@@ -20,10 +19,11 @@ from helperFunctions.process import (
 )
 from helperFunctions.tag import TagColor
 from plugins.base import BasePlugin
-from typing import TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject
+    from helperFunctions.types import MpValue, MpArray
 
 META_KEYS = {
     'tags',
@@ -62,18 +62,16 @@ class AnalysisBasePlugin(BasePlugin):
     This is the base plugin. All analysis plugins should be a subclass of this class.
     """
 
-    # must be set by the plugin:
-    FILE = None
-    NAME = None
-    DESCRIPTION = None
-    VERSION = None
+    # must be set by the plugin: NAME, FILE from BasePlugin and:
+    DESCRIPTION: str = ''
+    VERSION: str = ''
 
-    # can be set by the plugin:
-    RECURSIVE = True  # If `True` (default) recursively analyze included files
-    TIMEOUT = 300
-    SYSTEM_VERSION = None
-    MIME_BLACKLIST = []  # noqa: RUF012
-    MIME_WHITELIST = []  # noqa: RUF012
+    # can be set by the plugin: DEPENDENCIES from BasePlugin and:
+    RECURSIVE: bool = True  # If `True` (default) recursively analyze included files
+    TIMEOUT: int = 300
+    SYSTEM_VERSION: str | None = None
+    MIME_BLACKLIST: Iterable[str] = ()
+    MIME_WHITELIST: Iterable[str] = ()
 
     ANALYSIS_STATS_LIMIT = 1000
 
@@ -81,16 +79,16 @@ class AnalysisBasePlugin(BasePlugin):
         super().__init__(plugin_path=self.FILE, view_updater=view_updater)
         self._check_plugin_attributes()
         self.additional_setup()
-        self.in_queue = Queue()
-        self.out_queue = Queue()
-        self.stop_condition = Value('i', 0)
+        self.in_queue: Queue[FileObject] = Queue()
+        self.out_queue: Queue[FileObject] = Queue()
+        self.stop_condition: MpValue[int] = Value('i', 0)  # type: ignore[assignment]
         self.workers = []
         self.thread_count = 1 if no_multithread else self._get_thread_count()
-        self.active = [Value('i', 0) for _ in range(self.thread_count)]
+        self.active: list[MpValue[int]] = [Value('i', 0) for _ in range(self.thread_count)]  # type: ignore[misc]
         self.manager = Manager()
-        self.analysis_stats = Array(ctypes.c_float, self.ANALYSIS_STATS_LIMIT)
-        self.analysis_stats_count = Value('i', 0)
-        self.analysis_stats_index = Value('i', 0)
+        self.analysis_stats: MpArray[ctypes.c_float] = Array(ctypes.c_float, self.ANALYSIS_STATS_LIMIT)
+        self.analysis_stats_count: MpValue[int] = Value('i', 0)  # type: ignore[assignment]
+        self.analysis_stats_index: MpValue[int] = Value('i', 0)  # type: ignore[assignment]
 
     def _get_thread_count(self):
         """
