@@ -32,7 +32,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         """
         Process the given file object and look up vulnerabilities for each software component.
         """
-        cves = {'cve_results': {}}
+        cves: dict = {'cve_results': {}}
         connection = DbConnection(f'sqlite:///{DB_PATH}')
         lookup = Lookup(file_object, connection)
         for _key, value in file_object.processed_analysis['software_components']['result'].items():
