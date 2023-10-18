@@ -17,8 +17,8 @@ class DbConnection:
 
         address = config.common.postgres.server
         port = config.common.postgres.port
-        user = getattr(config.common.postgres, user)
-        password = getattr(config.common.postgres, password)
+        user = getattr(config.common.postgres, user) if user else None
+        password = getattr(config.common.postgres, password) if password else None
 
         database = db_name if db_name else config.common.postgres.database
         engine_url = URL.create(
