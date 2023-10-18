@@ -1,18 +1,13 @@
-from typing import Protocol
+from __future__ import annotations
 
-import yara
+from typing import TYPE_CHECKING
 
-from analysis.plugin import AnalysisPluginV0
+
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 
-
-class NewPluginKind(Protocol):
-    # mypy docs recommend Protocols to type hint the self parameter of mixin classes
-    # (see https://mypy.readthedocs.io/en/latest/more_types.html#mixin-classes)
-
-    @property
-    def metadata(self) -> AnalysisPluginV0.MetaData:
-        ...
+if TYPE_CHECKING:
+    import yara
+    from helperFunctions.types import NewPluginKind
 
 
 class AnalysisBasePluginAdapterMixin:

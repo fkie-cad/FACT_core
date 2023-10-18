@@ -18,6 +18,7 @@ from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from helperFunctions.types import AnalysisPluginInfo, MpValue
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
@@ -105,7 +106,7 @@ class AnalysisScheduler:
         db_interface=None,
         unpacking_locks: UnpackingLockManager | None = None,
     ):
-        self.analysis_plugins: dict[str, AnalysisBasePlugin | CompatPluginV0] = {}
+        self.analysis_plugins: dict[str, AnalysisBasePlugin | AnalysisPluginV0] = {}
         self._plugin_runners: dict[str, PluginRunner] = {}
 
         self._load_plugins()
@@ -408,7 +409,7 @@ class AnalysisScheduler:
         return self._analysis_is_up_to_date(db_entry, self.analysis_plugins[analysis_to_do], uid)
 
     def _analysis_is_up_to_date(
-        self, db_entry: dict, analysis_plugin: AnalysisBasePlugin | CompatPluginV0, uid: str
+        self, db_entry: dict, analysis_plugin: AnalysisBasePlugin | AnalysisPluginV0, uid: str
     ) -> bool:
         try:
             current_system_version = analysis_plugin.SYSTEM_VERSION
@@ -440,7 +441,7 @@ class AnalysisScheduler:
     def _dependencies_are_up_to_date(
         self,
         db_entry: dict,
-        analysis_plugin: AnalysisBasePlugin | CompatPluginV0,
+        analysis_plugin: AnalysisBasePlugin | AnalysisPluginV0,
         uid: str,
     ) -> bool:
         """

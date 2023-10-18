@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ctypes
 import io
 import logging
@@ -7,7 +9,7 @@ import queue
 import signal
 import time
 import traceback
-import typing
+from typing import Dict, TYPE_CHECKING
 
 import psutil
 import pydantic
@@ -18,6 +20,12 @@ from analysis.plugin import AnalysisPluginV0
 from objects.file import FileObject
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 from storage.fsorganizer import FSOrganizer
+
+if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VfpDict
+    from objects.file import FileObject
+    from helperFunctions.types import MpValue, MpArray
+    from analysis.plugin import AnalysisPluginV0
 
 
 class PluginRunner:
@@ -33,11 +41,11 @@ class PluginRunner:
 
         #: The virtual file path of the file object
         #: See :py:class:`FileObject`.
-        virtual_file_path: typing.Dict
+        virtual_file_path: VfpDict
         #: The path of the file on the disk
         path: str
         #: A dictionary containing plugin names as keys and their analysis as value.
-        dependencies: typing.Dict
+        dependencies: Dict[str, pydantic.BaseModel]
         #: The schedulers state associated with the file that is analyzed.
         #: Here it is just the whole FileObject
         # We need this because the scheduler is using multiple processes which
@@ -53,19 +61,19 @@ class PluginRunner:
         self,
         plugin: AnalysisPluginV0,
         config: Config,
-        schemata: typing.Dict[str, pydantic.BaseModel],
+        schemata: Dict[str, pydantic.BaseModel],
     ):
         self._plugin = plugin
         self._config = config
         self._schemata = schemata
 
-        self._in_queue: mp.Queue = mp.Queue()
+        self._in_queue: mp.Queue[PluginRunner.Task] = mp.Queue()
         #: Workers put the ``Task.scheduler_state`` and the finished analysis in the out_queue
-        self.out_queue: mp.Queue = mp.Queue()
+        self.out_queue: mp.Queue[FileObject] = mp.Queue()
 
-        self.stats = mp.Array(ctypes.c_float, ANALYSIS_STATS_LIMIT)
-        self.stats_count = mp.Value('i', 0)
-        self._stats_idx = mp.Value('i', 0)
+        self.stats: MpArray[ctypes.c_float] = mp.Array(ctypes.c_float, ANALYSIS_STATS_LIMIT)
+        self.stats_count: MpValue[int] = mp.Value('i', 0)  # type: ignore[assignment]
+        self._stats_idx: MpValue[int] = mp.Value('i', 0)  # type: ignore[assignment]
 
         self._fsorganizer = FSOrganizer()
 
@@ -148,11 +156,11 @@ class Worker(mp.Process):
         self,
         plugin: AnalysisPluginV0,
         worker_config: Config,
-        in_queue: mp.Queue,
-        out_queue: mp.Queue,
-        stats: mp.Array,
-        stats_count: mp.Value,
-        stats_idx: mp.Value,
+        in_queue: mp.Queue[PluginRunner.Task],
+        out_queue: mp.Queue[FileObject],
+        stats: MpArray[ctypes.c_float],
+        stats_count: MpValue[int],
+        stats_idx: MpValue[int],
     ):
         super().__init__(name=f'{plugin.metadata.name} worker')
         self._plugin = plugin
@@ -166,8 +174,7 @@ class Worker(mp.Process):
         self._stats_idx = stats_idx
 
         # Used for statistics
-        self._is_working = mp.Value('i')
-        self._is_working.value = 0
+        self._is_working: MpValue[int] = mp.Value('i', 0)  # type: ignore[assignment]
 
     def is_working(self):
         return self._is_working.value != 0
@@ -249,7 +256,7 @@ class Worker(mp.Process):
                 entry['exception'] = (self._plugin.metadata.name, 'An unexpected exception occurred')
             finally:
                 # Don't kill another process if it uses the same PID as our dead worker
-                if child_process.is_alive():
+                if child_process and child_process.is_alive():
                     child = psutil.Process(pid=child_process.pid)
                     for grandchild in child.children(recursive=True):
                         grandchild.kill()
@@ -262,7 +269,7 @@ class Worker(mp.Process):
 
     def _write_result_in_file_object(self, entry: dict, file_object: FileObject):
         """Takes a file_object and an entry as it is returned by :py:func:`Worker.run`
-        and returns a FileObject with the corresponding fileds set.
+        and returns a FileObject with the corresponding fields set.
         """
         if 'analysis' in entry:
             file_object.processed_analysis[self._plugin.metadata.name] = entry['analysis']
@@ -278,15 +285,17 @@ class Worker(mp.Process):
         Exceptions and formatted tracebacks are also written to ``conn``.
         """
         try:
-            result = plugin.get_analysis(io.FileIO(task.path), task.virtual_file_path, task.dependencies)
+            result: dict | Exception = plugin.get_analysis(
+                io.FileIO(task.path), task.virtual_file_path, task.dependencies
+            )
         except Exception as exc:
             result = f'{exc}: {traceback.format_exc()}'
 
         conn.send(result)
 
-    def _update_duration_stats(self, duration):
+    def _update_duration_stats(self, duration: float):
         with self._stats.get_lock():
-            self._stats[self._stats_idx.value] = duration
+            self._stats[self._stats_idx.value] = ctypes.c_float(duration)
         self._stats_idx.value += 1
         if self._stats_idx.value >= ANALYSIS_STATS_LIMIT:
             # if the stats array is full, overwrite the oldest result
