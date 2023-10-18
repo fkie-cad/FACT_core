@@ -135,9 +135,8 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         Look for files with the same "virtual file path".
         input: {uid {parent_uid: [vfp]}} -> output: {vfp: [uid]}
         """
-        result = {}
-        for uid in vfp_data:
-            vfp_dict = vfp_data.get(uid)
+        result: dict[str, set[UID]] = {}
+        for uid, vfp_dict in vfp_data.items():
             for vfp_list in vfp_dict.values():
                 for vfp in vfp_list:
                     result.setdefault(vfp, set()).add(uid)

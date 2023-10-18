@@ -73,6 +73,9 @@ def _collect_analysis_tags(analysis_dict: dict) -> dict:
 
 
 def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> FirmwareEntry:
+    if firmware.release_date is None:
+        logging.warning(f'Trying to create a DB entry for FW with uninitialized date {Firmware}')
+        firmware.release_date = '1970-01-01'
     return FirmwareEntry(
         uid=firmware.uid,
         submission_date=time(),

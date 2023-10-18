@@ -106,15 +106,13 @@ class FrontEndDbInterface(DbInterfaceCommon):
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry).filter(FirmwareEntry.uid.in_(uid_set))
             hid_dict = {fw_entry.uid: self._get_hid_firmware(fw_entry) for fw_entry in session.execute(query).scalars()}
+        # for the remaining UIDs (mostly FOs) use a VFP as HID
         vfp_data = self.get_vfps_for_uid_list(uid_set - set(hid_dict), root_uid=root_uid)
         for uid, vfp_dict in vfp_data.items():
-            hid_dict[uid] = get_some_vfp(vfp_dict)
+            hid_dict[uid] = get_some_vfp(vfp_dict) or uid  # vfp_dict should not be empty but use UID as fallback
         return hid_dict
 
     @staticmethod
-    def _get_current_vfp(vfp: dict[str, list[str]]) -> list[str]:
-        return get_value_of_first_key(vfp)
-
     def get_file_name(self, uid: str) -> str:
         with self.get_read_only_session() as session:
             entry = session.get(FileObjectEntry, uid)
@@ -174,8 +172,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def generic_search(  # noqa: PLR0913
         self,
         search_dict: dict,
-        skip: int = 0,
-        limit: int = 0,
+        skip: int | None = None,
+        limit: int | None = None,
         only_fo_parent_firmware: bool = False,
         inverted: bool = False,
         as_meta: bool = False,
@@ -304,7 +302,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             .join(included_files_table, included_files_table.c.parent_uid == FileObjectEntry.uid)
             .group_by(FileObjectEntry)
         )
-        return dict(iter(session.execute(included_query)))
+        return {uid: set(included_files) for uid, included_files in session.execute(included_query)}
 
     # --- REST ---
 
@@ -405,7 +403,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 .filter(AnalysisEntry.plugin == 'file_type')
             )
             return [
-                DepGraphData(uid_, file_name, vfp_dict.get(uid_), mime, full_type, libraries_by_uid.get(uid_))
+                DepGraphData(uid_, file_name, vfp_dict.get(uid_, []), mime, full_type, libraries_by_uid.get(uid_))
                 for uid_, file_name, mime, full_type in session.execute(query)
             ]
 

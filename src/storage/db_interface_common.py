@@ -137,7 +137,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             ]
             fw_query = select(FirmwareEntry).filter(FirmwareEntry.uid.in_(uid_list))
             firmware = [self._firmware_from_entry(fw_entry) for fw_entry in session.execute(fw_query).scalars()]
-            return file_objects + firmware
+            return [*file_objects, *firmware]
 
     def _get_analysis_entry(self, uid: str, plugin: str) -> AnalysisEntry | None:
         with self.get_read_only_session() as session:

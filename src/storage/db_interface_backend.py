@@ -199,4 +199,4 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def update_file_object_parents(self, file_uid: str, root_uid: str, parent_uid):
         with self.get_read_write_session() as session:
             fo_entry = session.get(FileObjectEntry, file_uid)
-            self._update_parents([root_uid], [parent_uid], fo_entry, session)
+            self._update_parents({root_uid}, [parent_uid], fo_entry, session)
