@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 from helperFunctions.tag import TagColor
@@ -8,16 +7,11 @@ from analysis.PluginBase import AnalysisBasePlugin
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 from typing import TYPE_CHECKING
 
+from ..internal.lookup import Lookup
+from ..internal.database.db_connection import DbConnection
+
 if TYPE_CHECKING:
     from objects.file import FileObject
-
-try:
-    from ..internal.lookup import Lookup
-    from ..internal.database.db_connection import DbConnection
-except ImportError:
-    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from lookup import Lookup
-    from database.db_connection import DbConnection
 
 DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
 

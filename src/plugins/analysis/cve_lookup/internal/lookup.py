@@ -52,11 +52,12 @@ class Lookup:
                 cve = cves.get(association.cve_id)
                 if cve:
                     cpe = cpe_matches.get(association.cpe_id)
-                    vulnerabilities[cve.cve_id] = {
-                        'score2': cve.cvss_v2_score,
-                        'score3': cve.cvss_v3_score,
-                        'cpe_version': self._build_version_string(association, cpe),
-                    }
+                    if cpe:
+                        vulnerabilities[cve.cve_id] = {
+                            'score2': cve.cvss_v2_score,
+                            'score3': cve.cvss_v3_score,
+                            'cpe_version': self._build_version_string(association, cpe),
+                        }
 
         return vulnerabilities
 
