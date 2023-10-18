@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING, Any
 
 from helperFunctions.plugin import discover_compare_plugins
 from helperFunctions.virtual_file_path import get_paths_for_all_parents
 from objects.firmware import Firmware
 from storage.binary_service import BinaryService
-from typing import TYPE_CHECKING, Any
 from storage.db_interface_comparison import ComparisonDbInterface
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ class Compare:
         self._load_plugins()
         logging.info(f'Comparison plugins available: {", ".join(self.compare_plugins)}')
 
-    def compare(self, uid_list):
+    def compare(self, uid_list: list[UID]):
         logging.info(f'Comparison in progress: {uid_list}')
         binary_service = BinaryService()
 

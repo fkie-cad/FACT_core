@@ -14,16 +14,17 @@ from helperFunctions.data_conversion import (
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
+    from helperFunctions.types import CompId
     from helperFunctions.virtual_file_path import VfpDict
     from helperFunctions.uid import UID
 
 
 class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
-    def add_comparison_result(self, comparison_result: dict):
+    def add_comparison_result(self, comparison_result: dict[str, dict]):
         comparison_id = self._calculate_comp_id(comparison_result)
         if not self.objects_exist(comparison_id):
             logging.error(f'Could not add comparison result: not all objects found in db: {comparison_id}')
@@ -46,7 +47,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             return session.execute(query).scalar() == len(uid_list)
 
     @staticmethod
-    def _calculate_comp_id(comparison_result):
+    def _calculate_comp_id(comparison_result: dict[str, dict]):
         uid_set = {uid for c_dict in comparison_result['general'].values() for uid in c_dict}
         return convert_uid_list_to_compare_id(uid_set)
 
@@ -56,12 +57,15 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             logging.debug(f'Compare result not found in db: {comparison_id}')
             return None
         with self.get_read_only_session() as session:
-            comparison_entry = session.get(ComparisonEntry, comparison_id)
+            comparison_entry: ComparisonEntry | None = session.get(ComparisonEntry, comparison_id)
+            if comparison_entry is None:
+                logging.error('Could not load comparison from DB')
+                return None
             logging.debug(f'got compare result from db: {comparison_id}')
             return self._entry_to_dict(comparison_entry, comparison_id)
 
     @staticmethod
-    def _entry_to_dict(comparison_entry, comparison_id):
+    def _entry_to_dict(comparison_entry: ComparisonEntry, comparison_id: CompId) -> dict[str, Any]:
         return {
             **comparison_entry.data,
             '_id': comparison_id,  # FixMe? for backwards compatibility. change/remove?
