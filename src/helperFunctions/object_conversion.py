@@ -1,13 +1,17 @@
-from objects.file import FileObject
+from __future__ import annotations
+
+from typing import Any, TYPE_CHECKING
+
 from objects.firmware import Firmware
 
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
-def _add_firmware_only_fields(fo, meta):
+
+def _get_firmware_only_fields(fo: Firmware) -> dict:
     """
-    Adds fields relevant for :class:`objects.firmware.Firmware` objects from
-    `fo` to `meta`
+    Get fields relevant for :class:`objects.firmware.Firmware` objects from `fo`
 
-    :param meta: The dictionary to add the fields to
     :param fo: A :class:`objects.firmware.Firmware`
     """
     return {
@@ -20,12 +24,10 @@ def _add_firmware_only_fields(fo, meta):
     }
 
 
-def _add_file_object_only_fields(fo, meta):
+def _get_file_object_only_fields(fo: FileObject) -> dict:
     """
-    Adds fields relevant for only :class:`objects.file.FileObject` but not
-    Firmware objects from `fo` to `meta`
+    Get fields relevant for only :class:`objects.file.FileObject` but not Firmware objects from `fo`
 
-    :param meta: The dictionary to add the fields to
     :param fo: A :class:`objects.firmware.FileObject`
     """
     return {
@@ -34,12 +36,10 @@ def _add_file_object_only_fields(fo, meta):
     }
 
 
-def _add_general_information(fo, meta):
+def _get_general_information(fo: FileObject | Firmware) -> dict:
     """
-    Adds fields relevant for :class:`objects.file.FileObjects` and
-    :class:`objects.firmware.Firmware` from `fo` to `meta`
+    Gets fields relevant for :class:`objects.file.FileObjects` and :class:`objects.firmware.Firmware` from `fo`
 
-    :param meta: The dictionary to add the fields to
     :param fo: A :class:`objects.file.FileObject`
     """
     return {
@@ -51,7 +51,7 @@ def _add_general_information(fo, meta):
     }
 
 
-def create_meta_dict(fo: FileObject):
+def create_meta_dict(fo: FileObject) -> dict:
     """
     Creates a dictionary with the meta information contained in :class:`objects.file.FileObject` `fo`
     """
