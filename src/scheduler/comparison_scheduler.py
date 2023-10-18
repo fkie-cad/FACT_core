@@ -19,7 +19,6 @@ from storage.db_interface_comparison import ComparisonDbInterface
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from helperFunctions.uid import UID
     from helperFunctions.types import MpValue, CompId
 
 
@@ -87,7 +86,7 @@ class ComparisonScheduler:
             logging.error(f'Fatal error in comparison process for {comparison_id}', exc_info=True)
 
     @staticmethod
-    def _comparison_should_start(uid, redo, comparisons_done):
+    def _comparison_should_start(uid: UID, redo: bool, comparisons_done: set[CompId]):
         return redo or uid not in comparisons_done
 
     def check_exceptions(self):
