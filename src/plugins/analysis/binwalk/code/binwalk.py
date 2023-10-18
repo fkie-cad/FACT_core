@@ -36,7 +36,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             )
             signature_analysis_result = cmd_process.stdout
             try:
-                pic_path = Path(tmp_dir) / f'{Path(file_object.file_path).name}.png'
+                pic_path = Path(tmp_dir) / 'entropy_graph.png'
                 result['entropy_analysis_graph'] = b64encode(pic_path.read_bytes()).decode()
                 result['signature_analysis'] = signature_analysis_result
                 result['summary'] = list(set(self._extract_summary(signature_analysis_result)))

@@ -7,7 +7,6 @@ from subprocess import PIPE, STDOUT
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
-from objects.file import FileObject
 
 SHELL_SCRIPT = Path(get_src_dir()) / 'bin' / 'checksec'
 
@@ -24,9 +23,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if not SHELL_SCRIPT.is_file():
             raise RuntimeError(f'checksec not found at path {SHELL_SCRIPT}. Please re-run the backend installation.')
 
-    def process_object(self, file_object):
+    def process_object(self, file_object: FileObject):
         try:
-            if re.search(r'.*elf.*', file_object.processed_analysis['file_type']['result']['full'].lower()) is not None:
+            full_type = file_object.processed_analysis['file_type']['result']['full'].lower()
+            if re.search(r'.*elf.*', full_type) is not None and file_object.file_path is not None:
                 mitigation_dict, mitigation_dict_summary = check_mitigations(file_object.file_path)
                 file_object.processed_analysis[self.NAME] = mitigation_dict
                 file_object.processed_analysis[self.NAME]['summary'] = list(mitigation_dict_summary.keys())
