@@ -25,7 +25,7 @@ class AnalysisTaskScheduler:
         )
 
     def _smart_shuffle(self, plugin_list: list[str]) -> list[str]:
-        scheduled_plugins = []
+        scheduled_plugins: list[str] = []
         remaining_plugins = set(plugin_list)
 
         while remaining_plugins:
