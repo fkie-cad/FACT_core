@@ -33,11 +33,12 @@ class OperateInDirectory:
         self._remove = remove
 
     def __enter__(self):
-        self._current_working_dir = os.getcwd()  # noqa: PTH109
+        self._current_working_dir = str(Path.cwd())
         os.chdir(self._target_directory)
 
     def __exit__(self, *args):
-        os.chdir(self._current_working_dir)
+        if self._current_working_dir:
+            os.chdir(self._current_working_dir)
         if self._remove:
             remove_folder(self._target_directory)
 
