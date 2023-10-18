@@ -8,10 +8,11 @@ from typing import Any, TYPE_CHECKING
 from markupsafe import escape
 
 import config
-from helperFunctions.uid import create_uid, UID
+from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 
 if TYPE_CHECKING:
+    from helperFunctions.types import UID
     from flask import Request
     from werkzeug.datastructures import FileStorage
 

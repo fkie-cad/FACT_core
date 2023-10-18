@@ -24,7 +24,7 @@ from web_interface.file_tree.file_tree import FileTreeData, VirtualPathFileTree
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 if TYPE_CHECKING:
-    from helperFunctions.uid import UID
+    from helperFunctions.types import UID
 
 RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
 

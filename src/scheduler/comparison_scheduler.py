@@ -19,7 +19,7 @@ from storage.db_interface_comparison import ComparisonDbInterface
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from helperFunctions.types import MpValue, CompId
+    from helperFunctions.types import MpValue, CompId, UID
 
 
 class ComparisonScheduler:

@@ -10,7 +10,7 @@ from storage.binary_service import BinaryService
 from storage.db_interface_comparison import ComparisonDbInterface
 
 if TYPE_CHECKING:
-    from helperFunctions.uid import UID
+    from helperFunctions.types import UID
     from compare.PluginBase import CompareBasePlugin
     from objects.file import FileObject
 

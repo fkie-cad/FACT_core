@@ -18,9 +18,8 @@ from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
-    from helperFunctions.types import CompId
+    from helperFunctions.types import CompId, UID
     from helperFunctions.virtual_file_path import VfpDict
-    from helperFunctions.uid import UID
 
 
 class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):

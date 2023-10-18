@@ -4,7 +4,7 @@ import json
 import logging
 from datetime import datetime
 from itertools import chain
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from flask import redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
@@ -12,7 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.database import get_shared_session
 from helperFunctions.task_conversion import get_file_name_and_binary_from_request
-from helperFunctions.uid import is_uid, UID
+from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
 from storage.query_conversion import QueryConversionException
@@ -20,6 +20,9 @@ from web_interface.components.component_base import AppRoute, ComponentBase, GET
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+if TYPE_CHECKING:
+    from helperFunctions.types import UID
 
 
 class DatabaseRoutes(ComponentBase):
