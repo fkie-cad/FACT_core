@@ -29,7 +29,7 @@ class Tag(BaseModel):
     propagate: bool = False
 
 
-class AnalysisPluginV0(metaclass=abc.ABCMeta):
+class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
     """An abstract class that all analysis plugins must inherit from.
 
     Analysis plugins should not depend on FACT_core code where they mustn't.

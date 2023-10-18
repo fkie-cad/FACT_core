@@ -33,7 +33,7 @@ from storage.unpacking_locks import UnpackingLockManager
 from helperFunctions.types import AnalysisPluginInfo
 
 if TYPE_CHECKING:
-    from helperFunctions.types import CompatPluginV0, MpValue
+    from helperFunctions.types import MpValue
     from objects.file import FileObject
     from collections.abc import Callable
 
