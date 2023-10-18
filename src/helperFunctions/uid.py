@@ -11,7 +11,7 @@ UID_REGEX = re.compile(r'[a-f0-9]{64}_[0-9]+')
 UID: TypeAlias = str
 
 
-def create_uid(input_data: bytes) -> str:
+def create_uid(input_data: bytes) -> UID:
     """
     generate a UID (unique identifier) SHA256_SIZE for a byte string containing data (e.g. a binary)
 
