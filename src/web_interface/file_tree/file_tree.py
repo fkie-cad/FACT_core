@@ -215,7 +215,7 @@ class VirtualPathFileTree:
 
     def _get_node_for_real_file(self, virtual_path: str | None = None) -> FileTreeNode:
         return FileTreeNode(
-            self.uid,
+            self.fo_data.uid,
             self.root_uid,
             virtual=False,
             name=virtual_path or self.fo_data.file_name,
