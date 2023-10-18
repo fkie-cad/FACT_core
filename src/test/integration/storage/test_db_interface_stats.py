@@ -129,7 +129,7 @@ def test_filtered_included_sum(stats_update_db, backend_db):
     fw2 = create_test_firmware()
     fw2.uid, fo2.uid = 'other fw uid', 'other fo uid'
     fw2.vendor = 'other vendor'
-    fo2.parents.append(fw2.uid)
+    fo2.parents.add(fw2.uid)
     fo2.parent_firmware_uids.add(fw2.uid)
     fw2.size, fo2.size = 69, 70
     backend_db.add_object(fw2)
