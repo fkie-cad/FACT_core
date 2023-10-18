@@ -77,7 +77,8 @@ def test_check_mitigations(analysis_plugin):
     ],
 )
 def test_all_checks(file_path, check, expected_result, expected_summary):
-    result, dict_summary = {}, {}
+    result: dict[str, str] = {}
+    dict_summary: dict[str, str] = {}
     dict_file_info = execute_checksec_script(file_path)
     check(file_path, result, dict_summary, dict_file_info)
     assert result == expected_result

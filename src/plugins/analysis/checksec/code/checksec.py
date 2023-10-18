@@ -7,6 +7,7 @@ from subprocess import PIPE, STDOUT
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
+from objects.file import FileObject
 
 SHELL_SCRIPT = Path(get_src_dir()) / 'bin' / 'checksec'
 
@@ -37,7 +38,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
 
-def execute_checksec_script(file_path):
+def execute_checksec_script(file_path: str) -> dict[str, str]:
     checksec_process = subprocess.run(
         f'{SHELL_SCRIPT} --file={file_path} --format=json --extended', shell=True, stdout=PIPE, stderr=STDOUT, text=True
     )
@@ -46,9 +47,10 @@ def execute_checksec_script(file_path):
     return json.loads(checksec_process.stdout)[str(file_path)]
 
 
-def check_mitigations(file_path):
-    mitigations, summary = {}, {}
-    checksec_result = execute_checksec_script(file_path)
+def check_mitigations(file_path: str) -> tuple[dict[str, str], dict[str, str]]:
+    mitigations: dict[str, str] = {}
+    summary: dict[str, str] = {}
+    checksec_result: dict[str, str] = execute_checksec_script(file_path)
 
     check_relro(file_path, mitigations, summary, checksec_result)
     check_nx(file_path, mitigations, summary, checksec_result)
@@ -64,7 +66,7 @@ def check_mitigations(file_path):
     return mitigations, summary
 
 
-def check_relro(file_path, mitigations, summary, checksec_result):
+def check_relro(file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]):
     if checksec_result['relro'] == 'full':
         summary.update({'RELRO fully enabled': file_path})
         mitigations.update({'RELRO': 'fully enabled'})
@@ -78,7 +80,9 @@ def check_relro(file_path, mitigations, summary, checksec_result):
         mitigations.update({'RELRO': 'disabled'})
 
 
-def check_fortify_source(file_path, mitigations, summary, checksec_result):
+def check_fortify_source(
+    file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]
+):
     if checksec_result['fortify_source'] == 'yes':
         summary.update({'FORTIFY_SOURCE enabled': file_path})
         mitigations.update({'FORTIFY_SOURCE': 'enabled'})
@@ -88,7 +92,7 @@ def check_fortify_source(file_path, mitigations, summary, checksec_result):
         mitigations.update({'FORTIFY_SOURCE': 'disabled'})
 
 
-def check_pie(file_path, mitigations, summary, checksec_result):
+def check_pie(file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]):
     if checksec_result['pie'] == 'yes':
         summary.update({'PIE enabled': file_path})
         mitigations.update({'PIE': 'enabled'})
@@ -110,7 +114,7 @@ def check_pie(file_path, mitigations, summary, checksec_result):
         mitigations.update({'PIE': 'invalid ELF file'})
 
 
-def check_nx(file_path, mitigations, summary, checksec_result):
+def check_nx(file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]):
     if checksec_result['nx'] == 'yes':
         summary.update({'NX enabled': file_path})
         mitigations.update({'NX': 'enabled'})
@@ -120,7 +124,7 @@ def check_nx(file_path, mitigations, summary, checksec_result):
         mitigations.update({'NX': 'disabled'})
 
 
-def check_canary(file_path, mitigations, summary, checksec_result):
+def check_canary(file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]):
     if checksec_result['canary'] == 'yes':
         summary.update({'CANARY enabled': file_path})
         mitigations.update({'CANARY': 'enabled'})
@@ -130,7 +134,9 @@ def check_canary(file_path, mitigations, summary, checksec_result):
         mitigations.update({'CANARY': 'disabled'})
 
 
-def check_clang_cfi(file_path, mitigations, summary, checksec_result):
+def check_clang_cfi(
+    file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]
+):
     if checksec_result['clangcfi'] == 'yes':
         summary.update({'CLANGCFI enabled': file_path})
         mitigations.update({'CLANGCFI': 'enabled'})
@@ -140,7 +146,9 @@ def check_clang_cfi(file_path, mitigations, summary, checksec_result):
         mitigations.update({'CLANGCFI': 'disabled'})
 
 
-def check_clang_safestack(file_path, mitigations, summary, checksec_result):
+def check_clang_safestack(
+    file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]
+):
     if checksec_result['safestack'] == 'yes':
         summary.update({'SAFESTACK enabled': file_path})
         mitigations.update({'SAFESTACK': 'enabled'})
@@ -150,7 +158,7 @@ def check_clang_safestack(file_path, mitigations, summary, checksec_result):
         mitigations.update({'SAFESTACK': 'disabled'})
 
 
-def check_rpath(file_path, mitigations, summary, checksec_result):
+def check_rpath(file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]):
     if checksec_result['rpath'] == 'yes':
         summary.update({'RPATH enabled': file_path})
         mitigations.update({'RPATH': 'enabled'})
@@ -160,7 +168,9 @@ def check_rpath(file_path, mitigations, summary, checksec_result):
         mitigations.update({'RPATH': 'disabled'})
 
 
-def check_runpath(file_path, mitigations, summary, checksec_result):
+def check_runpath(
+    file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]
+):
     if checksec_result['runpath'] == 'yes':
         summary.update({'RUNPATH enabled': file_path})
         mitigations.update({'RUNPATH': 'enabled'})
@@ -170,7 +180,9 @@ def check_runpath(file_path, mitigations, summary, checksec_result):
         mitigations.update({'RUNPATH': 'disabled'})
 
 
-def check_stripped_symbols(file_path, mitigations, summary, checksec_result):
+def check_stripped_symbols(
+    file_path: str, mitigations: dict[str, str], summary: dict[str, str], checksec_result: dict[str, str]
+):
     if checksec_result['symbols'] == 'yes':
         summary.update({'STRIPPED SYMBOLS disabled': file_path})
         mitigations.update({'STRIPPED SYMBOLS': 'disabled'})
