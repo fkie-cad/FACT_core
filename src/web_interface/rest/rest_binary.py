@@ -32,7 +32,7 @@ class RestBinary(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @api.doc(responses={200: 'Success', 404: 'Unknown UID'})
-    def get(self, uid):
+    def get(self, uid: str):
         '''
         Request a binary
         The uid of the file_object in question has to be given in the url
