@@ -52,7 +52,6 @@ def _populate_fo_data(  # noqa: PLR0913
     virtual_file_paths: dict[str, list[str]] | None = None,
     parent_fw: set[str] | None = None,
 ):
-    file_object.uid = fo_entry.uid
     file_object.size = fo_entry.size
     file_object.file_name = fo_entry.file_name
     file_object.virtual_file_path = virtual_file_paths or {}
