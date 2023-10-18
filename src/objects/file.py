@@ -142,15 +142,19 @@ class FileObject:
                 self.file_name = make_unicode_string(Path(self.file_path).name)
 
     @property
-    def uid(self) -> str:
+    def uid(self) -> UID:
         """
         Unique identifier of this file.
         Consisting of the file's sha256 hash, and it's length in the form `hash_length`.
 
         :return: uid of this file.
         """
-        if self._uid is None and self.binary is not None:
-            self._uid = create_uid(self.binary)
+        if self._uid is None:
+            if self.binary is not None:
+                self._uid = create_uid(self.binary)
+            else:
+                logging.warning(f'Accessing FO with uninitialized UID: {self}')
+                return 'uninitialized'
         return self._uid
 
     @uid.setter
