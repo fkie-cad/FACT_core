@@ -286,8 +286,9 @@ def render_fw_tags(tag_dict, size=14):
 def render_analysis_tags(tags, size=14):
     output = ''
     if tags:
-        for plugin_name in tags:
-            for key, tag in tags[plugin_name].items():
+        for plugin_name in sorted(tags):
+            # sort tags by "value" (the displayed text in the tag)
+            for key, tag in sorted(tags[plugin_name].items(), key=lambda t: t[1]['value']):
                 if key == 'root_uid':
                     continue
                 color = tag['color'] if tag['color'] in TagColor.ALL else TagColor.BLUE
