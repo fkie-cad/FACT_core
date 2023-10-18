@@ -3,7 +3,7 @@ from __future__ import annotations  # noqa: N999
 from abc import abstractmethod
 
 from plugins.base import BasePlugin
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
     from objects.file import FileObject
@@ -20,7 +20,7 @@ class CompareBasePlugin(BasePlugin):
         self.database = db_interface
 
     @abstractmethod
-    def compare_function(self, fo_list):
+    def compare_function(self, fo_list: list[FileObject]) -> dict:
         """
         This function must be implemented by the plug-in.
         'fo_list' is a list with file_objects including analysis and all summaries
@@ -28,7 +28,7 @@ class CompareBasePlugin(BasePlugin):
         """
         return {'dummy': {'all': 'dummy-content', 'collapse': False}}
 
-    def compare(self, fo_list):
+    def compare(self, fo_list: list[FileObject]) -> dict:
         """
         This function is called by the compare module.
         """
@@ -38,5 +38,5 @@ class CompareBasePlugin(BasePlugin):
         return self.compare_function(fo_list)
 
 
-def _get_unmatched_dependencies(fo_list: list[FileObject], dependency_list: list[str]) -> set[str]:
+def _get_unmatched_dependencies(fo_list: list[FileObject], dependency_list: Iterable[str]) -> set[str]:
     return {dependency for dependency in dependency_list for fo in fo_list if dependency not in fo.processed_analysis}

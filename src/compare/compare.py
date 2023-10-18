@@ -6,10 +6,12 @@ from helperFunctions.plugin import discover_compare_plugins
 from helperFunctions.virtual_file_path import get_paths_for_all_parents
 from objects.firmware import Firmware
 from storage.binary_service import BinaryService
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+from storage.db_interface_comparison import ComparisonDbInterface
 
 if TYPE_CHECKING:
-    from storage.db_interface_comparison import ComparisonDbInterface
+    from helperFunctions.uid import UID
+    from compare.PluginBase import CompareBasePlugin
     from objects.file import FileObject
 
 
@@ -36,14 +38,14 @@ class Compare:
 
         return self.compare_objects(fo_list)
 
-    def compare_objects(self, fo_list):
+    def compare_objects(self, fo_list: list[FileObject]) -> dict[str, dict[str, dict[str, Any]]]:
         return {
             'general': self._create_general_section_dict(fo_list),
             'plugins': self._execute_compare_plugins(fo_list),
         }
 
-    def _create_general_section_dict(self, object_list):
-        general = {}
+    def _create_general_section_dict(self, object_list) -> dict[str, dict[UID, Any]]:
+        general: dict[str, dict[UID, Any]] = {}
         vfp_data = self._get_vfp_data(object_list)
         for fo in object_list:
             if isinstance(fo, Firmware):
@@ -82,5 +84,5 @@ class Compare:
             except Exception:
                 logging.error(f'Could not initialize comparison plugin {plugin.__name__}', exc_info=True)
 
-    def _execute_compare_plugins(self, fo_list):
+    def _execute_compare_plugins(self, fo_list: list[FileObject]) -> dict[str, dict]:
         return {name: plugin.compare(fo_list) for name, plugin in self.compare_plugins.items()}
