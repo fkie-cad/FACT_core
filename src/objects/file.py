@@ -44,7 +44,7 @@ class FileObject:
         #: List of parent uids.
         #: A parent in this context is the direct predecessor in a firmware tree.
         #: Not necessarily it's root.
-        self.parents = []
+        self.parents: set[UID] = set()
 
         #: UID of root (i.e. firmware) object for the given file.
         #: Useful to associate results of children with firmware.
@@ -192,7 +192,7 @@ class FileObject:
         """
         if self.uid is None or file_object.uid is None:
             raise ValueError(f'UID should never be None while adding file {file_object} to {self}')
-        file_object.parents.append(self.uid)
+        file_object.parents.add(self.uid)
         file_object.root_uid = self.root_uid
         file_object.depth = self.depth + 1
         file_object.scheduled_analysis = self.scheduled_analysis
