@@ -6,7 +6,7 @@ from typing import Any, AnyStr, TypeVar, TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-_KT = TypeVar('_KT')  # Key type
+_KT = TypeVar('_KT', str, tuple, bytes)  # Key type
 _VT = TypeVar('_VT')  # Value type
 
 
