@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from time import time
+from typing import Sequence, Mapping
 
 from common_helper_filter.time import time_format
 
@@ -17,9 +18,9 @@ class StatsUpdater:
 
     def __init__(self, stats_db: StatsUpdateDbInterface | None = None):
         self.db = stats_db if stats_db else StatsUpdateDbInterface()
-        self.match = {}
+        self.match: dict = {}
 
-    def set_match(self, match):
+    def set_match(self, match: dict | None):
         self.match = match or {}
 
     def update_all_stats(self):
@@ -131,8 +132,8 @@ class StatsUpdater:
             'average_unpacked_entropy': self.db.get_unpacking_entropy('unpacked', q_filter=self.match),
         }
 
-    def get_architecture_stats(self):
-        arch_stats_by_fw = {}
+    def get_architecture_stats(self) -> dict[str, Stats]:
+        arch_stats_by_fw: dict[str, list[tuple[str, int]]] = {}
         for arch, count, uid in self.db.get_arch_stats(q_filter=self.match):
             arch_stats_by_fw.setdefault(uid, []).append((arch, count))
         arch_stats = [
@@ -190,7 +191,7 @@ class StatsUpdater:
         return self._remove_location_info(ip_stats)
 
     @staticmethod
-    def _remove_location_info(ip_stats: dict[str, Stats]):
+    def _remove_location_info(ip_stats: Mapping[str, Sequence[tuple[str | list[str], int]]]) -> dict[str, Stats]:
         # IP data can contain location info -> just use the IP string (which is the first element in a list)
         result: dict[str, Stats] = {}
         for key, tuple_list in ip_stats.items():

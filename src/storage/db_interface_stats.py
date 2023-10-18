@@ -12,6 +12,7 @@ from storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 
 if TYPE_CHECKING:
+    from helperFunctions.types import UID
     from sqlalchemy.sql import Select
 
 Stats = List[Tuple[str, int]]
@@ -160,7 +161,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 query = query.filter_by(**q_filter)
             return count_occurrences(session.execute(query).scalars())
 
-    def get_arch_stats(self, q_filter: dict | None = None) -> list[tuple[str, int, str]]:
+    def get_arch_stats(self, q_filter: dict | None = None) -> list[tuple[str, int, UID]]:
         """
         Get architecture stats per firmware. Returns tuples with arch, count, and root_uid.
         """
