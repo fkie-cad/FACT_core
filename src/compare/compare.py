@@ -18,11 +18,10 @@ class Compare:
     This Module compares firmware images
     """
 
-    compare_plugins = {}  # noqa: RUF012
-
     def __init__(self, db_interface: ComparisonDbInterface | None = None):
-        self.db_interface = db_interface
-        self._setup_plugins()
+        self.db_interface: ComparisonDbInterface = db_interface or ComparisonDbInterface()
+        self.compare_plugins: dict[str, CompareBasePlugin] = {}
+        self._load_plugins()
         logging.info(f'Comparison plugins available: {", ".join(self.compare_plugins)}')
 
     def compare(self, uid_list):
@@ -71,21 +70,17 @@ class Compare:
         # firmware objects don't have "virtual file paths" (because they are themselves not included in another file)
         for fo in object_list:
             if isinstance(fo, Firmware):
-                vfp_data[fo.uid] = [fo.file_name]
+                vfp_data[fo.uid] = [fo.file_name or 'unknown']  # file_name should always be initialized here
         return vfp_data
 
     # --- plug-in system ---
 
-    def _setup_plugins(self):
-        self.compare_plugins = {}
-        self._init_plugins()
-
-    def _init_plugins(self):
+    def _load_plugins(self):
         for plugin in discover_compare_plugins():
             try:
                 self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(db_interface=self.db_interface)
             except Exception:
-                logging.error(f'Could not import comparison plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
+                logging.error(f'Could not initialize comparison plugin {plugin.__name__}', exc_info=True)
 
     def _execute_compare_plugins(self, fo_list):
         return {name: plugin.compare(fo_list) for name, plugin in self.compare_plugins.items()}
