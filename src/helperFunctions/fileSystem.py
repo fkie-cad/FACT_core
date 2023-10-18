@@ -52,6 +52,7 @@ def file_is_empty(file_path: Path) -> bool:
         return False
     except Exception as exception:
         logging.error(f'Unexpected Exception: {type(exception)} {exception!s}')
+        return False
 
 
 def get_config_dir():
