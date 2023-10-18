@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import re
-from typing import Any, NamedTuple, Optional
+from typing import Any, NamedTuple, Optional, TYPE_CHECKING, Iterator, Container
 
 from sqlalchemy import Column, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
 
-from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_some_vfp
 from objects.firmware import Firmware
@@ -95,8 +94,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
             self._replace_uids_in_nice_list(nice_list_data, root_uid)
             return nice_list_data
 
-    def _replace_uids_in_nice_list(self, nice_list_data: list[dict], root_uid: str):
-        uids_in_vfp = set()
+    def _replace_uids_in_nice_list(self, nice_list_data: list[dict], root_uid: UID | None):
+        uids_in_vfp: set[UID] = set()
         for item in nice_list_data:
             uids_in_vfp.update(uid for uid_list in item['current_virtual_path'] for uid in uid_list)
         hid_dict = self.get_hid_dict(uids_in_vfp, root_uid)
@@ -105,7 +104,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 vfp = [hid_dict.get(uid, uid) for uid in uid_list]
                 item['current_virtual_path'][index] = ' | '.join(vfp)
 
-    def get_hid_dict(self, uid_set: set[str], root_uid: str) -> dict[str, str]:
+    def get_hid_dict(self, uid_set: set[UID], root_uid: UID | None) -> dict[UID, str]:
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry).filter(FirmwareEntry.uid.in_(uid_set))
             hid_dict = {fw_entry.uid: self._get_hid_firmware(fw_entry) for fw_entry in session.execute(query).scalars()}
@@ -116,7 +115,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return hid_dict
 
     @staticmethod
-    def get_file_name(self, uid: str) -> str:
+    def get_file_name(self, uid: UID) -> str:
         with self.get_read_only_session() as session:
             entry = session.get(FileObjectEntry, uid)
             return entry.file_name if entry is not None else 'unknown'
@@ -140,17 +139,17 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = select(func.unnest(FirmwareEntry.firmware_tags)).distinct()
             return sorted(session.execute(query).scalars())
 
-    def get_device_name_dict(self):
-        device_name_dict = {}
+    def get_device_name_dict(self) -> dict[str, dict[str, list[str]]]:
+        device_name_dict: dict[str, dict[str, list[str]]] = {}
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry.device_class, FirmwareEntry.vendor, FirmwareEntry.device_name)
-            for device_class, vendor, device_name in session.execute(query):
+            for device_class, vendor, device_name in session.execute(query):  # type: str, str, str
                 device_name_dict.setdefault(device_class, {}).setdefault(vendor, []).append(device_name)
         return device_name_dict
 
-    def get_other_versions_of_firmware(self, firmware: Firmware) -> list[tuple[str, str]]:
+    def get_other_versions_of_firmware(self, firmware: Firmware) -> list[tuple[UID, str]]:
         if not isinstance(firmware, Firmware):
-            return []
+            return []  # type: ignore[unreachable]
         with self.get_read_only_session() as session:
             query = (
                 select(FirmwareEntry.uid, FirmwareEntry.version)
