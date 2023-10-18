@@ -1,6 +1,18 @@
+from typing import Protocol
+
 import yara
 
+from analysis.plugin import AnalysisPluginV0
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
+
+
+class NewPluginKind(Protocol):
+    # mypy docs recommend Protocols to type hint the self parameter of mixin classes
+    # (see https://mypy.readthedocs.io/en/latest/more_types.html#mixin-classes)
+
+    @property
+    def metadata(self) -> AnalysisPluginV0.MetaData:
+        ...
 
 
 class AnalysisBasePluginAdapterMixin:
