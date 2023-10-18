@@ -10,14 +10,14 @@ def _add_firmware_only_fields(fo, meta):
     :param meta: The dictionary to add the fields to
     :param fo: A :class:`objects.firmware.Firmware`
     """
-    if isinstance(fo, Firmware):
-        fo.root_uid = fo.uid
-        meta['device_name'] = fo.device_name
-        meta['device_class'] = fo.device_class
-        meta['device_part'] = fo.part
-        meta['vendor'] = fo.vendor
-        meta['version'] = fo.version
-        meta['release_date'] = fo.release_date
+    return {
+        'device_name': fo.device_name,
+        'device_class': fo.device_class,
+        'device_part': fo.part,
+        'vendor': fo.vendor,
+        'version': fo.version,
+        'release_date': fo.release_date,
+    }
 
 
 def _add_file_object_only_fields(fo, meta):
@@ -28,9 +28,10 @@ def _add_file_object_only_fields(fo, meta):
     :param meta: The dictionary to add the fields to
     :param fo: A :class:`objects.firmware.FileObject`
     """
-    if not isinstance(fo, Firmware):
-        meta['firmwares_including_this_file'] = list(fo.parent_firmware_uids)
-        meta['virtual_file_path'] = fo.virtual_file_path
+    return {
+        'firmwares_including_this_file': list(fo.parent_firmware_uids),
+        'virtual_file_path': fo.virtual_file_path,
+    }
 
 
 def _add_general_information(fo, meta):
@@ -41,19 +42,22 @@ def _add_general_information(fo, meta):
     :param meta: The dictionary to add the fields to
     :param fo: A :class:`objects.file.FileObject`
     """
-    meta['hid'] = fo.get_hid()
-    meta['size'] = fo.size
-    meta['number_of_included_files'] = len(fo.files_included) if fo.files_included else 0
-    meta['included_files'] = list(fo.files_included) if fo.files_included else []
-    meta['total_files_in_firmware'] = len(fo.list_of_all_included_files) if fo.list_of_all_included_files else 'unknown'
+    return {
+        'hid': fo.get_hid(),
+        'size': fo.size,
+        'number_of_included_files': len(fo.files_included) if fo.files_included else 0,
+        'included_files': list(fo.files_included) if fo.files_included else [],
+        'total_files_in_firmware': len(fo.list_of_all_included_files) if fo.list_of_all_included_files else 'unknown',
+    }
 
 
 def create_meta_dict(fo: FileObject):
     """
     Creates a dictionary with the meta information contained in :class:`objects.file.FileObject` `fo`
     """
-    meta = {}
-    _add_firmware_only_fields(fo, meta)
-    _add_file_object_only_fields(fo, meta)
-    _add_general_information(fo, meta)
+    meta: dict[str, Any] = _get_general_information(fo)
+    if not isinstance(fo, Firmware):
+        meta.update(_get_file_object_only_fields(fo))
+    else:
+        meta.update(_get_firmware_only_fields(fo))
     return meta
