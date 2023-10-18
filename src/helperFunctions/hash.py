@@ -101,7 +101,7 @@ def _suppress_stdout():
     writer = _StandardOutWriter()
 
     stdout, stderr = sys.stdout, sys.stderr
-    sys.stdout, sys.stderr = writer, writer
+    sys.stdout, sys.stderr = writer, writer  # type: ignore[assignment]
 
     yield
 

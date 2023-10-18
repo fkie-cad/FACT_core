@@ -11,6 +11,10 @@ import yara
 import config
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from helperFunctions.types import TmpFile
 
 
 class YaraBinarySearchScanner:
@@ -55,7 +59,7 @@ class YaraBinarySearchScanner:
         :param raw_result: raw yara scan result
         :return: dict of matching rules with lists of matched UIDs as values
         """
-        results = {}
+        results: dict[str, list[str]] = {}
         for line in raw_result.split('\n'):
             if line and 'warning' not in line:
                 rule, match = line.split(' ')
@@ -88,7 +92,7 @@ class YaraBinarySearchScanner:
             except CalledProcessError as process_error:
                 return f'Error when calling YARA:\n{process_error.output.decode()}'
 
-    def _get_raw_result(self, firmware_uid: str | None, temp_rule_file: NamedTemporaryFile) -> str:
+    def _get_raw_result(self, firmware_uid: str | None, temp_rule_file: TmpFile) -> str:
         if firmware_uid is None:
             raw_result = self._execute_yara_search(temp_rule_file.name)
         else:
@@ -96,7 +100,7 @@ class YaraBinarySearchScanner:
         return raw_result
 
     @staticmethod
-    def _prepare_temp_rule_file(temp_rule_file: NamedTemporaryFile, yara_rules: bytes):
+    def _prepare_temp_rule_file(temp_rule_file: TmpFile, yara_rules: bytes):
         compiled_rules = yara.compile(source=yara_rules.decode())
         compiled_rules.save(file=temp_rule_file)
         temp_rule_file.flush()
