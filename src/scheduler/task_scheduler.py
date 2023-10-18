@@ -69,6 +69,8 @@ class AnalysisTaskScheduler:
         }.difference(scheduled_analyses)
 
     def reschedule_failed_analysis_task(self, fw_object: Firmware | FileObject):
+        if fw_object.analysis_exception is None:
+            return
         failed_plugin, cause = fw_object.analysis_exception
         fw_object.processed_analysis[failed_plugin] = self._get_failed_analysis_result(cause, failed_plugin)
         for plugin in fw_object.scheduled_analysis[:]:
