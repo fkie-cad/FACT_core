@@ -20,7 +20,7 @@ class BinaryService:
         self.fs_organizer = FSOrganizer()
         self.db_interface = BinaryServiceDbInterface()
 
-    def get_binary_and_file_name(self, uid: str) -> tuple[bytes | None, str | None]:
+    def get_binary_and_file_name(self, uid: str) -> tuple[bytes, str] | tuple[None, None]:
         file_name = self.db_interface.get_file_name(uid)
         if file_name is None:
             return None, None
