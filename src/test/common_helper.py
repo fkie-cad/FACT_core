@@ -135,6 +135,7 @@ class MockFileObject:
         self.file_path = file_path
         self.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
         self.temporary_data = {}
+        self.virtual_file_path = {}
 
 
 class CommonDatabaseMock:

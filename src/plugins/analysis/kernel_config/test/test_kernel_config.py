@@ -59,7 +59,8 @@ class ExtractIKConfigTest:
         analysis_plugin.process_object(test_file)
 
         assert test_file.processed_analysis[analysis_plugin.NAME]['is_kernel_config']
-        assert test_file.processed_analysis[analysis_plugin.NAME]['kernel_config'] == test_file.binary.decode()
+        kernel_config = test_file.processed_analysis[analysis_plugin.NAME]['kernel_config']
+        assert kernel_config == test_file.binary.decode()  # type: ignore[union-attr]
 
     def test_process_invalid_plain_text(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'random_invalid/c.image'))
