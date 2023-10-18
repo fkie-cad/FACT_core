@@ -8,7 +8,7 @@ import config
 from intercom.common_redis_binding import InterComRedisInterface, generate_task_id
 
 if TYPE_CHECKING:
-    from helperFunctions.types import UID
+    from helperFunctions.types import AnalysisPluginInfo, UID
 
 
 class InterComFrontEndBinding(InterComRedisInterface):
@@ -34,9 +34,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def delete_file(self, uid_list: set[str]):
         self._add_to_redis_queue('file_delete_task', uid_list)
 
-    def get_available_analysis_plugins(
-        self,
-    ) -> dict[str, tuple[str, bool, dict, str, list[str], list[str], list[str], str]]:
+    def get_available_analysis_plugins(self) -> dict[str, AnalysisPluginInfo]:
         plugin_dict = self.redis.get('analysis_plugins', delete=False)
         if plugin_dict is None:
             raise RuntimeError('No available plug-ins found. FACT backend might be down!')
@@ -61,7 +59,8 @@ class InterComFrontEndBinding(InterComRedisInterface):
 
     def get_binary_search_result(
         self, request_id: str
-    ) -> tuple[dict[str, list[UID]] | str | None, tuple[bytes, str] | None]:
+    ) -> tuple[dict[str, list[UID]] | str | None, tuple[bytes, str | None] | None]:
+        # FixMe: no one needs the UID part of the returned task (the str | None part of the second tuple)
         result = self._response_listener('binary_search_task_resp', request_id, timeout=time() + 10)
         return result if result is not None else (None, None)
 

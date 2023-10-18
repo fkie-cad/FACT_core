@@ -30,7 +30,7 @@ class ComparisonScheduler:
     def __init__(self, db_interface=None, admin_db_interface=None, callback=None):
         self.db_interface = db_interface if db_interface else ComparisonDbInterface()
         self.db_admin_interface = admin_db_interface or AdminDbInterface()
-        self.stop_condition: MpValue = Value('i', 1)  # type: ignore[assignment]
+        self.stop_condition: MpValue[int] = Value('i', 1)  # type: ignore[assignment]
         self.in_queue: Queue[tuple[CompId, bool]] = Queue()
         self.callback = callback
         self.comparison_module = Compare(db_interface=self.db_interface)

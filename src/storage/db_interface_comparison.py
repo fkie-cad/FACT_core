@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from helperFunctions.types import CompId, UID
-    from helperFunctions.virtual_file_path import VfpDict
+    from helperFunctions.virtual_file_path import VfpDict, VFP
 
 
 class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
@@ -123,7 +123,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             exclusive_files = []
         return exclusive_files
 
-    def get_vfp_of_included_text_files(self, root_uid: str, blacklist: set[str]) -> dict[str, set[str]]:
+    def get_vfp_of_included_text_files(self, root_uid: str, blacklist: set[str]) -> dict[VFP, set[UID]]:
         with self.get_read_only_session() as session:
             query = (
                 select(FileObjectEntry.uid)
@@ -139,7 +139,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         return self._transpose_vfp_dict(vfp_data)
 
     @staticmethod
-    def _transpose_vfp_dict(vfp_data: dict[str, VfpDict]) -> dict[str, set[UID]]:
+    def _transpose_vfp_dict(vfp_data: dict[UID, VfpDict]) -> dict[VFP, set[UID]]:
         """
         Look for files with the same "virtual file path" (vfp).
         input: {uid1: {parent_uid: [vfp1, ...]}, ...} -> output: {vfp1: {uid1, ...}, ...}

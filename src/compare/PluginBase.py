@@ -5,7 +5,9 @@ from abc import abstractmethod
 from plugins.base import BasePlugin
 from typing import TYPE_CHECKING, Iterable
 
+
 if TYPE_CHECKING:
+    from storage.db_interface_comparison import ComparisonDbInterface
     from objects.file import FileObject
 
 

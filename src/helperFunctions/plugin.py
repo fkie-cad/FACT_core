@@ -1,25 +1,29 @@
 from __future__ import annotations
 
-import importlib
+import importlib.util
 import logging
 import sys
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
 from helperFunctions.fileSystem import get_src_dir
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 
-def discover_analysis_plugins() -> list:
+def discover_analysis_plugins() -> list[ModuleType]:
     """Returns a list of modules where each module is an analysis plugin."""
     return _import_plugins('analysis')
 
 
-def discover_compare_plugins() -> list:
+def discover_compare_plugins() -> list[ModuleType]:
     """Returns a list of modules where each module is a compare plugin."""
     return _import_plugins('compare')
 
 
-def _import_plugins(plugin_type):
+def _import_plugins(plugin_type) -> list[ModuleType]:
     assert plugin_type in ['analysis', 'compare']
 
     plugins = []
