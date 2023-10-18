@@ -18,6 +18,7 @@ from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from helperFunctions.types import AnalysisPluginInfo, CompatPluginV0, MpValue
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
@@ -28,9 +29,9 @@ from pathlib import Path
 from .plugin import PluginRunner, Worker
 from storage.db_interface_view_sync import ViewUpdater
 from typing import TYPE_CHECKING, Optional
+from storage.unpacking_locks import UnpackingLockManager
 
 if TYPE_CHECKING:
-    from storage.unpacking_locks import UnpackingLockManager
     from objects.file import FileObject
     from collections.abc import Callable
 
@@ -92,7 +93,6 @@ class AnalysisScheduler:
     actual analysis process is out of scope. Database interaction happens before (pre_analysis) and after
     (post_analysis) the running of a task, to store intermediate results for live updates, and final results.
 
-    :param pre_analysis: A database callback to execute before running an analysis task.
     :param post_analysis: A database callback to execute after running an analysis task.
     :param db_interface: An object reference to an instance of BackEndDbInterface.
     :param unpacking_locks: An instance of UnpackingLockManager.
@@ -104,19 +104,19 @@ class AnalysisScheduler:
         db_interface=None,
         unpacking_locks: UnpackingLockManager | None = None,
     ):
-        self.analysis_plugins = {}
-        self._plugin_runners = {}
+        self.analysis_plugins: dict[str, AnalysisBasePlugin | CompatPluginV0] = {}
+        self._plugin_runners: dict[str, PluginRunner] = {}
 
         self._load_plugins()
-        self.stop_condition = Value('i', 0)
-        self.process_queue = Queue()
-        self.unpacking_locks = unpacking_locks
+        self.stop_condition: MpValue[int] = Value('i', 0)  # type: ignore[assignment]
+        self.process_queue: Queue[FileObject] = Queue()
+        self.unpacking_locks = unpacking_locks or UnpackingLockManager()
         self.scheduling_lock = Lock()
 
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
-        self.schedule_processes = []
-        self.result_collector_processes = []
+        self.schedule_processes: list[ExceptionSafeProcess] = []
+        self.result_collector_processes: list[ExceptionSafeProcess] = []
 
         self.fs_organizer = FSOrganizer()
         self.db_backend_service = db_interface if db_interface else BackendDbInterface()
@@ -223,7 +223,7 @@ class AnalysisScheduler:
             try:
                 PluginClass = plugin_module.AnalysisPlugin  # noqa: N806
                 if issubclass(PluginClass, AnalysisPluginV0):
-                    plugin: AnalysisPluginV0 = PluginClass()
+                    plugin = PluginClass()
                     self.analysis_plugins[plugin.metadata.name] = plugin
                     schemata[plugin.metadata.name] = PluginClass.Schema
                     _sync_view(plugin_module, plugin.metadata.name)
@@ -253,7 +253,7 @@ class AnalysisScheduler:
         if not os.getenv('PYTEST_CURRENT_TEST'):
             self._remove_example_plugins()
 
-    def get_plugin_dict(self) -> dict:
+    def get_plugin_dict(self) -> dict[str, AnalysisPluginInfo]:
         """
         Get information regarding all loaded plugins in form of a dictionary with the following form:
 
@@ -403,7 +403,9 @@ class AnalysisScheduler:
             return False
         return self._analysis_is_up_to_date(db_entry, self.analysis_plugins[analysis_to_do], uid)
 
-    def _analysis_is_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
+    def _analysis_is_up_to_date(
+        self, db_entry: dict, analysis_plugin: AnalysisBasePlugin | CompatPluginV0, uid: str
+    ) -> bool:
         try:
             current_system_version = analysis_plugin.SYSTEM_VERSION
         except AttributeError:
@@ -431,7 +433,12 @@ class AnalysisScheduler:
         )
         return plugin_version_is_newer or system_version_is_newer
 
-    def _dependencies_are_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
+    def _dependencies_are_up_to_date(
+        self,
+        db_entry: dict,
+        analysis_plugin: AnalysisBasePlugin | CompatPluginV0,
+        uid: str,
+    ) -> bool:
         """
         If there is dependency result that is newer than this analysis, it may be different from the dependency result
         that was the basis of this analysis, and therefore this analysis should run again.
@@ -581,7 +588,7 @@ class AnalysisScheduler:
         :return: Dictionary containing current workload statistics
         """
         # FixMe: move rest of system status from DB to Redis (CPU, RAM, queues, etc.)
-        workload = {
+        workload: dict = {
             'analysis_main_scheduler': self.process_queue.qsize(),
             'plugins': {},
         }
