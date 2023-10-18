@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import Dict, List, TypeAlias
+
 
 VFP: TypeAlias = str
 VfpDict: TypeAlias = Dict[str, List[VFP]]
@@ -19,5 +21,6 @@ def get_paths_for_all_parents(vfp_dict: VfpDict) -> list[VFP]:
 def get_some_vfp(vfp_dict: VfpDict) -> VFP | None:
     """Just get some random virtual file path."""
     for vfp_list in vfp_dict.values():
-        return vfp_list[0]
+        with suppress(KeyError):
+            return vfp_list[0]
     return None
