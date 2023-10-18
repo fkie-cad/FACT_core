@@ -116,11 +116,11 @@ class FileObject:
         self.file_path = file_path
         self.create_binary_from_path()
 
-        #: The "virtual file path" (vfp) is not an actual path in the file system but rather a file path inside the
+        #: The "virtual file path" (VFP) is not an actual path in the file system but rather a file path inside the
         #: parent object (e.g. file system or archive) where the file was unpacked from (e.g. `"/etc/hosts"`).
         #: Files (especially symlinks) can have multiple paths inside a single parent object.
-        #: The vfp is a dict with the parent object UIDs as keys and a list of paths (strings) as values.
-        self.virtual_file_path: dict[str, list[str]] = {}
+        #: The VFP dict is a dict with parent object UIDs as keys and a list of paths (strings) as values.
+        self.virtual_file_path: VfpDict = {}
 
     def set_binary(self, binary: bytes) -> None:
         """
@@ -202,9 +202,9 @@ class FileObject:
         file_object.scheduled_analysis = self.scheduled_analysis
         self.files_included.add(file_object.uid)
 
-    def get_virtual_paths_for_all_uids(self) -> list[str]:
+    def get_virtual_paths_for_all_uids(self) -> list[VFP]:
         """
-        Get all virtual file paths (VFPs) of the file in all firmware containers.
+        Get all virtual file paths (VFPs) of the file for all parent objects (containers, file systems, etc.).
 
         :return: List of virtual paths.
         """
