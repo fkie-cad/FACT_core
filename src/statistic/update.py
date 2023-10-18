@@ -17,14 +17,13 @@ class StatsUpdater:
 
     def __init__(self, stats_db: StatsUpdateDbInterface | None = None):
         self.db = stats_db if stats_db else StatsUpdateDbInterface()
-        self.start_time = None
         self.match = {}
 
     def set_match(self, match):
         self.match = match or {}
 
     def update_all_stats(self):
-        self.start_time = time()
+        start_time = time()
 
         with self.db.get_read_only_session():
             self.db.update_statistic('firmware_meta', self.get_firmware_meta_stats())
@@ -39,13 +38,13 @@ class StatsUpdater:
             self.db.update_statistic('software_components', self.get_software_components_stats())
             self.db.update_statistic('elf_executable', self.get_executable_stats())
             # should always be the last, because of the benchmark
-            self.db.update_statistic('general', self.get_general_stats())
+            self.db.update_statistic('general', self.get_general_stats(start_time))
 
     # ---- get statistic functions
 
-    def get_general_stats(self):
-        if self.start_time is None:
-            self.start_time = time()
+    def get_general_stats(self, start_time: float | None = None):
+        if start_time is None:
+            start_time = time()
         with self.db.get_read_only_session():
             stats = {
                 'number_of_firmwares': self.db.get_count(q_filter=self.match, firmware=True),
@@ -58,7 +57,7 @@ class StatsUpdater:
         stats['average_file_size'] = (
             stats['total_file_size'] / stats['number_of_unique_files'] if stats['number_of_unique_files'] > 0 else 0
         )
-        benchmark = stats['creation_time'] - self.start_time
+        benchmark = stats['creation_time'] - start_time
         stats['benchmark'] = benchmark
         logging.info(f'time to create stats: {time_format(benchmark)}')
         return stats
@@ -188,17 +187,20 @@ class StatsUpdater:
             )
             for key in ['ips_v4', 'ips_v6', 'uris']
         }
-        self._remove_location_info(ip_stats)
-        return ip_stats
+        return self._remove_location_info(ip_stats)
 
     @staticmethod
     def _remove_location_info(ip_stats: dict[str, Stats]):
         # IP data can contain location info -> just use the IP string (which is the first element in a list)
-        for key in ['ips_v4', 'ips_v6']:
-            for index, (ip, count) in enumerate(ip_stats[key]):
-                if isinstance(ip, list):
-                    ip_without_gps_info = ip[0]
-                    ip_stats[key][index] = (ip_without_gps_info, count)
+        result: dict[str, Stats] = {}
+        for key, tuple_list in ip_stats.items():
+            result.setdefault(key, [])
+            for item, count in tuple_list:
+                if isinstance(item, list):
+                    result[key].append((item[0], count))
+                else:
+                    result[key].append((item, count))
+        return result
 
     def get_time_stats(self):
         release_date_stats = self.db.get_release_date_stats(q_filter=self.match)
