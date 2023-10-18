@@ -87,7 +87,13 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_get_binary/<mime_type>/<uid>', GET)
     def ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
-        binary = self.intercom.get_binary_and_filename(uid)[0]
+        response = self.intercom.get_binary_and_filename(uid)
+        if response is None or None in response:
+            error = 'Timeout' if response is None else 'File not found'
+            message = f'Could not retrieve binary from backend: {error}'
+            logging.error(message)
+            return f'Error: {message}'
+        binary, _ = response
         if 'text/' in mime_type:
             return (
                 '<pre class="line_numbering" style="white-space: pre-wrap">'
@@ -105,6 +111,8 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_get_hex_preview/<string:uid>/<int:offset>/<int:length>', GET)
     def ajax_get_hex_preview(self, uid: str, offset: int, length: int) -> str:
         partial_binary = self.intercom.peek_in_binary(uid, offset, length)
+        if partial_binary is None:
+            return 'Error: Could not retrieve binary from backend: Timeout'
         hex_dump = preview_data_as_hex(partial_binary, offset=offset)
         return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'
 

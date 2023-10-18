@@ -113,12 +113,14 @@ class MiscellaneousRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_logs'])
     @AppRoute('/admin/logs', GET)
     def show_logs(self):
-        backend_logs = '\n'.join(self.intercom.get_backend_logs())
-        frontend_logs = '\n'.join(self._get_frontend_logs())
+        response = self.intercom.get_backend_logs()
+        backend_logs = '\n'.join(response) if response is not None else 'Error: Could not retrieve logs'
+        frontend_logs = '\n'.join(_get_frontend_logs())
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
 
-    def _get_frontend_logs(self):
-        frontend_logs = Path(config.frontend.logging.file_frontend)
-        if frontend_logs.is_file():
-            return frontend_logs.read_text().splitlines()[-100:]
-        return []
+
+def _get_frontend_logs():
+    frontend_logs = Path(config.frontend.logging.file_frontend)
+    if frontend_logs.is_file():
+        return frontend_logs.read_text().splitlines()[-100:]
+    return []
