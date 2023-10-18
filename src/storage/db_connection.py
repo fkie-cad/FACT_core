@@ -6,12 +6,15 @@ from sqlalchemy.orm import sessionmaker
 
 import config
 from storage.schema import Base
-from typing import Optional
 
 
 class DbConnection:
     def __init__(
-        self, user: Optional[str] = None, password: Optional[str] = None, db_name: str | None = None, **kwargs
+        self,
+        user: str | None = None,
+        password: str | None = None,
+        db_name: str | None = None,
+        **kwargs,
     ):
         self.base = Base
 

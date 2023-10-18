@@ -8,6 +8,10 @@ from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VfpDict
 
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
@@ -36,8 +40,8 @@ def file_object_from_entry(  # noqa: PLR0913
     return file_object
 
 
-def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, list[str]]:
-    result = {}
+def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> VfpDict:
+    result: VfpDict = {}
     for vfp_entry in vfp_list or []:
         result.setdefault(vfp_entry.parent_uid, []).append(vfp_entry.file_path)
     return result

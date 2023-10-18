@@ -24,7 +24,7 @@ UID = VARCHAR(78)
 # primary_key=True implies `unique=True` and `nullable=False`
 
 
-class AnalysisEntry(Base):
+class AnalysisEntry(Base):  # type: ignore[valid-type,misc]
     __tablename__ = 'analysis'
 
     uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), index=True)
@@ -67,7 +67,7 @@ comparisons_table = Table(
 )
 
 
-class FileObjectEntry(Base):
+class FileObjectEntry(Base):  # type: ignore[valid-type,misc]
     __tablename__ = 'file_object'
 
     uid = mapped_column(UID, primary_key=True)
@@ -130,7 +130,7 @@ class FileObjectEntry(Base):
         return f'FileObject({self.uid}, {self.file_name}, {self.is_firmware})'
 
 
-class FirmwareEntry(Base):
+class FirmwareEntry(Base):  # type: ignore[valid-type,misc]
     __tablename__ = 'firmware'
 
     uid = mapped_column(UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True)
@@ -146,7 +146,7 @@ class FirmwareEntry(Base):
     root_object = relationship('FileObjectEntry', back_populates='firmware')
 
 
-class ComparisonEntry(Base):
+class ComparisonEntry(Base):  # type: ignore[valid-type,misc]
     __tablename__ = 'comparison'
 
     comparison_id = mapped_column(VARCHAR, primary_key=True)
@@ -154,14 +154,14 @@ class ComparisonEntry(Base):
     data = mapped_column(MutableDict.as_mutable(JSONB))
 
 
-class StatsEntry(Base):
+class StatsEntry(Base):  # type: ignore[valid-type,misc]
     __tablename__ = 'stats'
 
     name = mapped_column(VARCHAR, primary_key=True)
     data = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
 
 
-class SearchCacheEntry(Base):
+class SearchCacheEntry(Base):  # type: ignore[valid-type,misc]
     __tablename__ = 'search_cache'
 
     uid = mapped_column(UID, primary_key=True)
@@ -169,14 +169,14 @@ class SearchCacheEntry(Base):
     yara_rule = mapped_column(VARCHAR, nullable=False)
 
 
-class WebInterfaceTemplateEntry(Base):
+class WebInterfaceTemplateEntry(Base):  # type: ignore[valid-type,misc]
     __tablename__ = 'templates'
 
     plugin = mapped_column(VARCHAR, primary_key=True)
     template = mapped_column(LargeBinary, nullable=False)
 
 
-class VirtualFilePath(Base):
+class VirtualFilePath(Base):  # type: ignore[valid-type,misc]
     """Represents a file path `file_path` of file `file_object` extracted from `_parent_object`"""
 
     __tablename__ = 'virtual_file_path'
