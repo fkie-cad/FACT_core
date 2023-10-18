@@ -16,13 +16,6 @@ from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
 
 
-class FactComparisonException(Exception):  # noqa: N818
-    def get_message(self):
-        if self.args:
-            return self.args[0]
-        return ''
-
-
 class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def add_comparison_result(self, comparison_result: dict):
         comparison_id = self._calculate_comp_id(comparison_result)
@@ -116,8 +109,8 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             return []
         try:
             result = self.get_comparison_result(compare_id)
-            exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]
-        except (KeyError, FactComparisonException):
+            exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]  # type: ignore[index]
+        except (KeyError, TypeError):
             exclusive_files = []
         return exclusive_files
 
