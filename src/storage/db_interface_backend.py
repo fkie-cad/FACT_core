@@ -198,5 +198,8 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def update_file_object_parents(self, file_uid: str, root_uid: str, parent_uid):
         with self.get_read_write_session() as session:
-            fo_entry = session.get(FileObjectEntry, file_uid)
-            self._update_parents({root_uid}, [parent_uid], fo_entry, session)
+            fo_entry: FileObjectEntry | None = session.get(FileObjectEntry, file_uid)
+            if fo_entry is None:
+                logging.error(f'Trying to update parents of {file_uid} but no FO entry could be found in the DB')
+                return
+            self._update_parents({root_uid}, {parent_uid}, fo_entry, session)
