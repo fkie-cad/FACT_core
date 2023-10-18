@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import abc
 import time
-import typing
+from typing import final, Iterable, Optional, Type, TYPE_CHECKING, TypeVar
+
 import semver
 
 import pydantic
 from pydantic import field_validator, ConfigDict, BaseModel
 
-if typing.TYPE_CHECKING:
+from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+
+if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VfpDict
     import io
 
 
@@ -46,26 +50,26 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         description: str
         #: Pydantic model of the object returned by :py:func:`analyse`.
         # Note that we cannot allow pydantic dataclasses because they lack the `schema` method
-        Schema: typing.Type
+        Schema: Type
         #: The version of the plugin.
         #: It MUST be a `semver <https://semver.org/>`_ version.
         #: Here is a quick summary how semver relates to plugins.
         #: * MAJOR: The plugin schema changed.
-        #: * MINOR: The schema din't change but might contain more data.
+        #: * MINOR: The schema didn't change but might contain more data.
         #: * PATCH: A bug was fixed e.g. a crash on some files.
         #:
         #: Note that any version change leads to rescheduling the analysis.
-        #: But backwards compatible results will still be shown in the fronfrontend.
+        #: But backwards compatible results will still be shown in the frontend.
         version: semver.Version
         #: The version of the backing analysis system.
         #: E.g. for yara plugins this would be the yara version.
-        system_version: typing.Optional[str] = None
+        system_version: Optional[str] = None
         #: A list of all plugins that this plugin depends on
-        dependencies: typing.List = pydantic.Field(default_factory=list)
+        dependencies: Iterable[str] = pydantic.Field(default_factory=list)
         #: List of mimetypes that should not be processed
-        mime_blacklist: list = pydantic.Field(default_factory=list)
+        mime_blacklist: Iterable[str] = pydantic.Field(default_factory=list)
         #: List of mimetypes that should be processed
-        mime_whitelist: list = pydantic.Field(default_factory=list)
+        mime_whitelist: Iterable[str] = pydantic.Field(default_factory=list)
         #: The analysis in not expected to take longer than timeout seconds on any given file
         #: and will be aborted if the timeout is reached.
         timeout: int = 300
@@ -82,7 +86,7 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         self.metadata: AnalysisPluginV0.MetaData = metadata
 
     # The type MetaData.Schema
-    Schema = typing.TypeVar('Schema')
+    Schema = TypeVar('Schema', bound=BaseModel)
 
     @abc.abstractmethod
     def summarize(self, result: Schema) -> list[str]:
@@ -106,9 +110,9 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
     def analyze(
         self,
         file_handle: io.FileIO,
-        virtual_file_path: dict,
+        virtual_file_path: VfpDict,
         analyses: dict[str, pydantic.BaseModel],
-    ) -> typing.Optional[Schema]:
+    ) -> Schema | None:
         """Analyze a file.
         May return None if nothing was found.
 
@@ -116,18 +120,18 @@ class AnalysisPluginV0(AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
         :param virtual_file_path: The virtual file paths, see :py:class:`~objects.file.FileObject`
         :param analyses: A dictionary of dependent analysis
 
-        :return: The analysis if anything was found.
+        :return: The analysis results (if there are any).
         """
 
-    @typing.final
-    def get_analysis(self, file_handle: io.FileIO, virtual_file_path: dict, analyses: dict[str, dict]) -> dict:
+    @final
+    def get_analysis(self, file_handle: io.FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> dict:
         start_time = time.time()
         result = self.analyze(file_handle, virtual_file_path, analyses)
 
-        summary = None
-        tags = []
+        summary: list[str] | None = None
+        tags: list[Tag] = []
         if result is not None:
-            summary = self.summarize(result)
+            summary = self.summarize(result)  # type: ignore[unreachable]  # this is obviously reachable
             tags = self.get_tags(result, summary)
 
         # The dictionary as defined in the docs for FileObject.analyses_tags

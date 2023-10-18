@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from abc import ABCMeta
 from multiprocessing.sharedctypes import Synchronized, SynchronizedArray
 from tempfile import _TemporaryFileWrapper
-from typing import TypeVar, TypeAlias, NamedTuple
+from typing import Protocol, TypeVar, TypeAlias, NamedTuple, TYPE_CHECKING
 from unittest.mock import _patch
-from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+
+if TYPE_CHECKING:
+    from analysis.plugin import AnalysisPluginV0
 
 # a UID (unique identifier) "{sha256 hash}_{file size in bytes}" for a byte string (i.e. the contents of a file)
 UID: TypeAlias = str
