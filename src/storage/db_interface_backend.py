@@ -54,7 +54,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             session.add_all([fo_entry, *analyses, *vfp_entries])
 
     def _update_parents(
-        self, root_fw_uids: set[UID], parent_uids: list[UID], fo_entry: FileObjectEntry, session: Session
+        self, root_fw_uids: set[UID], parent_uids: set[UID], fo_entry: FileObjectEntry, session: Session
     ):
         self._update_entries(session, fo_entry.root_firmware, root_fw_uids, 'root')
         self._update_entries(session, fo_entry.parent_files, parent_uids, 'parent')

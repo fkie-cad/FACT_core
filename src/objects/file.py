@@ -23,14 +23,15 @@ class FileObject:
     :param scheduled_analysis: A list of analysis plugins that should be run on this file.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         binary: bytes | None = None,
         file_name: str | None = None,
         file_path: str | None = None,
         scheduled_analysis: list[str] | None = None,
+        uid: UID | None = None,
     ):
-        self._uid: UID | None = None
+        self._uid: UID | None = uid
 
         #: The set of files included in this file. This is usually true for archives.
         #: Only lists the next layer, not recursively included files on lower extraction layers.
