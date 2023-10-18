@@ -30,5 +30,6 @@ class TarRepack(UnpackBase):
         tar_process = subprocess.run(
             f'tar -C {extraction_dir} -cvzf {out_file_path} .', shell=True, stdout=PIPE, stderr=STDOUT
         )
-        logging.debug(f'tar -cvzf:\n {tar_process.stdout}')
+        if tar_process.returncode != 0:
+            logging.error(f'Error during tar repacking: {tar_process.stdout.decode(errors="replace")}')
         return get_binary_from_file(out_file_path)
