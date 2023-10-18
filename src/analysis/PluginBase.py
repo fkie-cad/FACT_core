@@ -229,7 +229,7 @@ class AnalysisBasePlugin(BasePlugin):
 
     def _update_duration_stats(self, duration):
         with self.analysis_stats.get_lock():
-            self.analysis_stats[self.analysis_stats_index.value] = duration
+            self.analysis_stats[self.analysis_stats_index.value] = ctypes.c_float(duration)
         self.analysis_stats_index.value += 1
         if self.analysis_stats_index.value >= self.ANALYSIS_STATS_LIMIT:
             # if the stats array is full, overwrite the oldest result

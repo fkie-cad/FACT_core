@@ -14,9 +14,8 @@ class CompareBasePlugin(BasePlugin):
     This is the compare plug-in base class. All compare plug-ins should be derived from this class.
     """
 
-    def __init__(self, config=None, db_interface=None, view_updater=None):
-        super().__init__(plugin_path=self.FILE, view_updater=view_updater)
-        self.config = config
+    def __init__(self, db_interface: ComparisonDbInterface, **kwargs):
+        super().__init__(plugin_path=self.FILE, **kwargs)
         self.database = db_interface
 
     @abstractmethod
