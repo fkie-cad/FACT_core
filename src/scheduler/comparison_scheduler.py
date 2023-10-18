@@ -34,7 +34,7 @@ class ComparisonScheduler:
 
     def shutdown(self):
         logging.debug('Shutting down comparison scheduler')
-        if self.stop_condition.value == 0:
+        if self.worker and self.stop_condition.value == 0:
             self.stop_condition.value = 1
             self.worker.join()
         self.in_queue.close()
@@ -81,6 +81,8 @@ class ComparisonScheduler:
         return redo or uid not in comparisons_done
 
     def check_exceptions(self):
+        if not self.worker:
+            return False
         processes_to_check = [self.worker]
         shutdown = check_worker_exceptions(processes_to_check, 'Comparison', self._comparison_scheduler_worker)
         if not shutdown and new_worker_was_started(new_process=processes_to_check[0], old_process=self.worker):
