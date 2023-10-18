@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, NamedTuple, Optional
+from typing import Iterable, NamedTuple, TYPE_CHECKING
 
 from web_interface.file_tree.file_tree_node import FileTreeNode
+
+if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VfpDict, VFP
+    from helperFunctions.uid import UID
 
 WEB_BASE_PATH = Path(__file__).parent.parent
 ICON_URL_BASE = 'static/file_icons'
@@ -104,8 +108,8 @@ class FileTreeData(NamedTuple):
     uid: str
     file_name: str
     size: int
-    virtual_file_path: dict[str, list[str]]
-    mime: str
+    virtual_file_path: VfpDict | None  # is None for firmwares (all other files should get a VFP dict during unpacking)
+    mime: str | None  # is None if the analysis did not run (successfully) for this file
     included_files: set[str]
 
 
@@ -145,6 +149,7 @@ def get_icon_for_mime(mime_type: str | None) -> str:
 
 
 def _root_is_virtual(root: list[dict]) -> bool:
+    # checks if the root node of the tree is "virtual" (a directory) or an actual file (FileObject)
     try:
         return root[0]['a_attr'] == {'href': '#'}
     except (KeyError, IndexError):
@@ -178,14 +183,14 @@ class VirtualPathFileTree:
     :param whitelist: A whitelist of file names needed to display partial trees in comparisons.
     '''
 
-    def __init__(self, root_uid: str, parent_uid: str, fo_data: FileTreeData, whitelist: list[str] | None = None):
+    def __init__(self, root_uid: UID, parent_uid: UID | None, fo_data: FileTreeData, whitelist: list[str] | None = None):
         self.uid = fo_data.uid
         self.root_uid = root_uid
         self.parent_uid = parent_uid
         self.fo_data: FileTreeData = fo_data
         self.whitelist = whitelist
-        self.virtual_file_paths: Optional[list[str]] = (
-            fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None
+        self.virtual_file_paths: list[VFP] | None = (
+            fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None  # type: ignore[arg-type]
         )
 
     def get_file_tree_nodes(self) -> Iterable[FileTreeNode]:
@@ -196,7 +201,7 @@ class VirtualPathFileTree:
 
         :return: An iterable sequence of nodes of the file tree.
         """
-        if self.virtual_file_paths is None:  # firmware objects don't have VPFs
+        if self.virtual_file_paths is None:  # firmware objects don't have VFPs
             yield self._get_node_for_real_file()
         else:
             for path in self.virtual_file_paths:
