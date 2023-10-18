@@ -68,13 +68,15 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def get_backend_logs(self) -> list[str] | None:
         return self._request_response_listener(None, 'logs_task', 'logs_task_resp')
 
-    def _request_response_listener(self, input_data, request_connection, response_connection) -> Any | None:
+    def _request_response_listener(
+        self, input_data: Any, request_connection: str, response_connection: str
+    ) -> Any | None:
         request_id = generate_task_id(input_data)
         self._add_to_redis_queue(request_connection, input_data, request_id)
         logging.debug(f'Request sent: {request_connection} -> {request_id}')
         return self._response_listener(response_connection, request_id)
 
-    def _response_listener(self, response_connection, request_id, timeout=None) -> Any | None:
+    def _response_listener(self, response_connection: str, request_id: str, timeout=None) -> Any | None:
         output_data: Any | None = None
         if timeout is None:
             timeout = time() + int(config.frontend.communication_timeout)

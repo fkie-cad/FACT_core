@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from time import time
-from typing import TYPE_CHECKING
+from typing import Mapping, TYPE_CHECKING
 
 from flask import redirect, render_template, request, url_for
 from flask_security import login_required
@@ -98,7 +98,7 @@ class MiscellaneousRoutes(ComponentBase):
         }
 
     @staticmethod
-    def _count_values(dictionary: dict[str, Sized]) -> int:
+    def _count_values(dictionary: Mapping[str, Sized]) -> int:
         return sum(len(e) for e in dictionary.values())
 
     def _find_failed_analyses(self):
