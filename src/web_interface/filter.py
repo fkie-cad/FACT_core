@@ -17,7 +17,7 @@ from operator import itemgetter
 from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import Union
+from typing import Union, Iterable
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -287,8 +287,7 @@ def render_analysis_tags(tags, size=14):
     output = ''
     if tags:
         for plugin_name in sorted(tags):
-            # sort tags by "value" (the displayed text in the tag)
-            for key, tag in sorted(tags[plugin_name].items(), key=lambda t: t[1]['value']):
+            for key, tag in sorted(tags[plugin_name].items(), key=_sort_tags_key):
                 if key == 'root_uid':
                     continue
                 color = tag['color'] if tag['color'] in TagColor.ALL else TagColor.BLUE
@@ -300,6 +299,12 @@ def render_analysis_tags(tags, size=14):
                     size=size,
                 )
     return output
+
+
+def _sort_tags_key(tag_tuples: Iterable[tuple[str, dict]]) -> str:
+    # Sort tags by "value" (the displayed text in the tag). There can be 'root_uid' entries which are no dicts
+    _, tag_dict = tag_tuples
+    return tag_dict['value'] if isinstance(tag_dict, dict) else ''
 
 
 def fix_cwe(string):
