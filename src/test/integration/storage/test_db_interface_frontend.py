@@ -457,8 +457,8 @@ def test_get_file_tree_data(frontend_db, backend_db):
     assert result_by_uid[fw.uid].mime is None
     assert result_by_uid[parent_fo.uid].mime == 'foo_type'
     assert result_by_uid[child_fo.uid].mime is None
-    assert result_by_uid[fw.uid].included_files == [parent_fo.uid]
-    assert result_by_uid[parent_fo.uid].included_files == [child_fo.uid]
+    assert result_by_uid[fw.uid].included_files == {parent_fo.uid}
+    assert result_by_uid[parent_fo.uid].included_files == {child_fo.uid}
 
 
 @pytest.mark.parametrize(

@@ -30,7 +30,7 @@ def run_docker_container_stub(*_, **__):
         "usedDeprecatedRules": []
     }
 ]'''
-    return CompletedProcess(args=None, returncode=1, stdout=stdout, stderr=None)
+    return CompletedProcess(args=(), returncode=1, stdout=stdout, stderr=None)
 
 
 def test_do_analysis(monkeypatch):

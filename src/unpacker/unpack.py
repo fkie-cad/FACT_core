@@ -39,8 +39,9 @@ class Unpacker(UnpackBase):
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
-        self._check_path(current_fo)
         try:
+            self._check_path(current_fo)
+            assert current_fo.file_path is not None, 'file path must never be None here'
             extracted_files = self.extract_files_from_file(current_fo.file_path, tmp_dir, container)
         except ExtractionError as error:
             self._store_unpacking_error_skip_info(current_fo, error=error)
@@ -89,6 +90,8 @@ class Unpacker(UnpackBase):
     def generate_objects_and_store_files(
         self, file_paths: list[Path], extraction_dir: Path, parent: FileObject
     ) -> list[FileObject]:
+        if parent.root_uid is None:
+            raise ExtractionError(f'Root UID of parent {parent.uid} is not set')
         extracted_files = {}
         for path in file_paths:
             if file_is_empty(path):
@@ -106,9 +109,8 @@ class Unpacker(UnpackBase):
         extracted_files.pop(parent.uid, None)  # the same file should not be unpacked from itself
         return list(extracted_files.values())
 
-    def _check_path(self, file_object: FileObject):
-        if not Path(file_object.file_path).exists():
+    @staticmethod
+    def _check_path(file_object: FileObject):
+        if file_object.file_path is None or not Path(file_object.file_path).exists():
             logging.error(f'File with path "{file_object.file_path}" not found ({file_object.uid}).')
-            error = ExtractionError('File not found')
-            self._store_unpacking_error_skip_info(file_object, error=error)
-            raise error
+            raise ExtractionError('File not found')

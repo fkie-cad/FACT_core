@@ -5,6 +5,7 @@ from pydantic import Field
 
 from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from analysis.plugin import AnalysisPluginV0
+from helperFunctions.virtual_file_path import VfpDict
 
 
 class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
@@ -43,7 +44,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
         del result
         return ['big-file', 'binary']
 
-    def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
+    def analyze(self, file_handle: io.FileIO, virtual_file_path: VfpDict, analyses: dict) -> Schema:
         file_type_analysis = analyses['file_type']
 
         first_byte = file_handle.read(1)

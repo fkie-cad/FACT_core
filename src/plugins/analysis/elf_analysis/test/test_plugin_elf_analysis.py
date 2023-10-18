@@ -13,7 +13,6 @@ TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
-
 LiefResult = namedtuple(
     'LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions', 'sections']
 )
@@ -131,9 +130,10 @@ class TestElfAnalysis:
         result = analysis_plugin._analyze_elf(stub_object)
         assert result == {}
 
-    final_analysis_test_data = [({}, {}, 0), ({'header': [], 'segments': [1, 2], 'a': []}, {}, 1)]  # noqa: RUF012
-
-    @pytest.mark.parametrize(('binary_json_dict', 'elf_dict', 'expected'), final_analysis_test_data)
+    @pytest.mark.parametrize(
+        ('binary_json_dict', 'elf_dict', 'expected'),
+        [({}, {}, 0), ({'header': [], 'segments': [1, 2], 'a': []}, {}, 1)],
+    )
     def test_get_final_analysis_dict(self, analysis_plugin, binary_json_dict, elf_dict, expected):
         analysis_plugin.get_final_analysis_dict(binary_json_dict, elf_dict)
         assert len(elf_dict) == expected

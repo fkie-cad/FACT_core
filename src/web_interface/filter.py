@@ -328,9 +328,8 @@ def user_has_role(current_user, role):
     return current_user.is_authenticated and user_has_privilege(current_user, role)
 
 
-def sort_roles_by_number_of_privileges(roles, privileges=None):
-    privileges = PRIVILEGES if privileges is None else privileges
-    inverted_privileges = {}
+def sort_roles_by_number_of_privileges(roles, privileges: dict[str, list[str]] = PRIVILEGES):
+    inverted_privileges: dict[str, list[str]] = {}
     for key, value_list in privileges.items():
         for value in value_list:
             inverted_privileges.setdefault(value, []).append(key)

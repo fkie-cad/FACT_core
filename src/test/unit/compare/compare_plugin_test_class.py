@@ -1,18 +1,21 @@
-import gc
-from configparser import ConfigParser
+from __future__ import annotations
 
+import gc
+from typing import cast, Type, TYPE_CHECKING
+
+from storage.db_interface_comparison import ComparisonDbInterface
 from test.common_helper import CommonDatabaseMock, create_test_firmware
+
+if TYPE_CHECKING:
+    from compare.PluginBase import CompareBasePlugin
 
 
 class ComparePluginTest:
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'base'
-    PLUGIN_CLASS = None
+    PLUGIN_CLASS: Type[CompareBasePlugin] | None = None
 
     def setup_method(self):
-        self.config = self.generate_config()
-        self.config.add_section('expert-settings')
-        self.config.set('expert-settings', 'ssdeep-ignore', '80')
         self.compare_plugins = {}
         self.c_plugin = self.setup_plugin()
         self.setup_test_fw()
@@ -24,13 +27,12 @@ class ComparePluginTest:
         """
         This function can be overwritten by the test instance.
         """
-        return self.PLUGIN_CLASS(config=self.config, view_updater=CommonDatabaseMock())
-
-    def generate_config(self):
-        """
-        This function can be overwritten by the test instance if a special config is needed
-        """
-        return ConfigParser()
+        assert self.PLUGIN_CLASS is not None, f'PLUGIN_CLASS should be set by {self.__class__}'
+        db_mock = CommonDatabaseMock()
+        return self.PLUGIN_CLASS(
+            db_interface=cast(ComparisonDbInterface, db_mock),
+            view_updater=db_mock,
+        )
 
     def setup_test_fw(self):
         self.fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)

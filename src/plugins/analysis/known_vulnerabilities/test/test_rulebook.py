@@ -38,19 +38,17 @@ def test_get_dotted_path_from_dictionary():
     assert _get_dotted_path_from_dictionary(abc, 'a.b.c') == 5  # noqa: PLR2004
 
 
-def test_get_value():
-    abc = {'a': {'b': [1, 2, 3]}}
-    assert _get_value(abc, ['a.b']) == [1, 2, 3]
-
-    abc = {'a': {'b': [{'c': 5}]}}
-    assert _get_value(abc, ['a.b', 'c']) == [
-        5,
-    ]
-
-    abc = {'a': {'b': [{'c': {'d': 1}}, {'c': {'d': 2}}, {'c': {'d': 3}}]}}
-    assert _get_value(abc, ['a.b', 'c.d']) == [1, 2, 3]
-
-    assert _get_value(IPS, ['ip_and_uri_finder.ip_v4', 'address']) == ['1', '2', '3', '4']
+@pytest.mark.parametrize(
+    ('abc', 'path', 'expected_output'),
+    [
+        ({'a': {'b': [1, 2, 3]}}, ['a.b'], [1, 2, 3]),
+        ({'a': {'b': [{'c': 5}]}}, ['a.b', 'c'], [5]),
+        ({'a': {'b': [{'c': {'d': 1}}, {'c': {'d': 2}}, {'c': {'d': 3}}]}}, ['a.b', 'c.d'], [1, 2, 3]),
+        (IPS, ['ip_and_uri_finder.ip_v4', 'address'], ['1', '2', '3', '4']),
+    ],
+)
+def test_get_value(abc, path, expected_output):
+    assert _get_value(abc, path) == expected_output
 
 
 @pytest.mark.parametrize('relation', list(RELATIONS.keys()))

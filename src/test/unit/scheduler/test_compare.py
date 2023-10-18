@@ -44,7 +44,7 @@ class TestSchedulerCompare:
         comparison_scheduler.shutdown()
 
     def test_compare_single_run(self, comparison_scheduler):
-        compares_done = set()
+        compares_done: set[str] = set()
         comparison_scheduler.in_queue.put((comparison_scheduler.db_interface.test_object.uid, False))
         comparison_scheduler._compare_single_run(compares_done)
         assert len(compares_done) == 1, 'compares done not set correct'

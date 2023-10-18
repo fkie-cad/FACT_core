@@ -5,7 +5,7 @@ import logging
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Type, Union
+from typing import Type, Union, Iterator
 
 import pytest
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,7 +19,7 @@ from test.conftest import merge_markers
 
 
 @pytest.fixture
-def docker_mount_base_dir() -> str:
+def docker_mount_base_dir() -> Iterator[str]:
     docker_gid = grp.getgrnam('docker').gr_gid
 
     with TemporaryDirectory(prefix='fact-docker-mount-base-dir') as tmp_dir:
@@ -29,7 +29,7 @@ def docker_mount_base_dir() -> str:
 
 
 @pytest.fixture
-def _firmware_file_storage_directory() -> str:  # noqa: PT005
+def _firmware_file_storage_directory() -> Iterator[str]:  # noqa: PT005
     with TemporaryDirectory(prefix='fact-firmware-file-storage-directory') as tmp_dir:
         yield tmp_dir
 
@@ -243,7 +243,8 @@ def analysis_plugin(request, patch_config):  # noqa: ARG001
             not test_config.start_processes
         ), 'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
 
-        yield PluginClass()
+        # FixMe: error: Missing positional argument "metadata" in call to "AnalysisPluginV0"
+        yield PluginClass()  # type: ignore[call-arg]
 
     elif issubclass(PluginClass, AnalysisBasePlugin):
         plugin_instance = PluginClass(

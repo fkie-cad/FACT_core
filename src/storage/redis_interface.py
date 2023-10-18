@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from math import ceil
 from pickle import dumps, loads
 from random import randint
@@ -63,12 +64,16 @@ class RedisInterface:
         return loads(value)
 
     def _combine_chunks(self, meta_key: str, delete: bool) -> bytes:
-        return b''.join(
-            [
-                self._redis_pop(chunk_key) if delete else self.redis.get(chunk_key)
-                for chunk_key in meta_key.split(SEPARATOR)[1:]
-            ]
-        )
+        try:
+            return b''.join(
+                [
+                    self._redis_pop(chunk_key) if delete else self.redis.get(chunk_key)  # type: ignore[misc]
+                    for chunk_key in meta_key.split(SEPARATOR)[1:]
+                ]
+            )
+        except TypeError:
+            logging.error(f'Chunk of multi-part value is missing in Redis: {meta_key}')
+            raise
 
     def _redis_pop(self, key: str) -> bytes | None:
         pipeline = self.redis.pipeline()

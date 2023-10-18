@@ -83,7 +83,8 @@ def convert_device_tree_to_str(file_path: str | Path) -> str | None:
     process = run(f'dtc -I dtb -O dts {file_path}', shell=True, capture_output=True)
     if process.returncode != 0:
         logging.warning(
-            f'The Device Tree Compiler exited with non-zero return code {process.returncode}: {process.stderr}'
+            f'The Device Tree Compiler exited with non-zero return code on file {file_path}:\n'
+            f'{process.stderr.decode(errors="replace")}'
         )
         return None
     return process.stdout.decode(errors='replace').strip()

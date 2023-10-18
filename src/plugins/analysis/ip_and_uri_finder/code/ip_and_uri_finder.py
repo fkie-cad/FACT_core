@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from contextlib import suppress
 from itertools import product
@@ -19,7 +21,6 @@ IP_V6_BLACKLIST = [r'^[0-9A-Za-z]::$', r'^::[0-9A-Za-z]$', r'^[0-9A-Za-z]::[0-9A
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'ip_and_uri_finder'
-    DEPENDENCIES = []  # noqa: RUF012
     MIME_WHITELIST = [  # noqa: RUF012
         'text/plain',
         'application/octet-stream',
@@ -35,10 +36,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def additional_setup(self):
         self.ip_and_uri_finder = CommonAnalysisIPAndURIFinder()
         try:
-            self.reader = geoip2.database.Reader(str(GEOIP_DATABASE_PATH))
-        except FileNotFoundError:
-            logging.error('could not load GeoIP database')
-            self.reader = None
+            self.reader: geoip2.database.Reader = geoip2.database.Reader(str(GEOIP_DATABASE_PATH))
+        except FileNotFoundError as err:
+            raise RuntimeError('Could not load GeoIP database. Please rerun the installation.') from err
 
     def process_object(self, file_object):
         result = self.ip_and_uri_finder.analyze_file(file_object.file_path, separate_ipv6=True)

@@ -53,7 +53,7 @@ class TestTaskConversion(unittest.TestCase):
 
     def test_convert_analysis_task_to_firmware_object(self):
         fw_obj = Firmware()
-        fw_obj.tags = {'tag', tag.TagColor.GRAY}
+        fw_obj.tags = {'tag': tag.TagColor.GRAY}
         fw_obj = convert_analysis_task_to_fw_obj(TEST_TASK)
         assert isinstance(fw_obj, Firmware), 'return type not correct'
         assert (

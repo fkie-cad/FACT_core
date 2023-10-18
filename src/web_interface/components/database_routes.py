@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 from datetime import datetime
 from itertools import chain
+from typing import Any, TYPE_CHECKING
 
 from flask import redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
@@ -17,6 +20,9 @@ from web_interface.components.component_base import AppRoute, ComponentBase, GET
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+if TYPE_CHECKING:
+    from helperFunctions.types import UID
 
 
 class DatabaseRoutes(ComponentBase):
@@ -37,10 +43,10 @@ class DatabaseRoutes(ComponentBase):
     @AppRoute('/database/browse', GET)
     def browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
         page, per_page = extract_pagination_from_request(request)[0:2]
-        search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
 
         with get_shared_session(self.db.frontend) as frontend_db:
             try:
+                search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
                 firmware_list = self._search_database(
                     search_parameters['query'],
                     skip=per_page * (page - 1),
@@ -100,17 +106,19 @@ class DatabaseRoutes(ComponentBase):
             pagination=pagination,
         )
 
-    def _get_search_parameters(self, query, only_firmware, inverted):
+    def _get_search_parameters(self, query: str, only_firmware: bool, inverted: bool) -> dict:
         """
         This function prepares the requested search by parsing all necessary parameters.
         In case of a binary search, indicated by the query being an uid instead of a dict, the cached search result is
         retrieved.
         """
-        search_parameters = {}
+        search_parameters: dict[str, Any] = {}
         if request.args.get('query'):
             query = request.args.get('query')
             if is_uid(query):
                 cached_query = self.db.frontend.get_query_from_cache(query)
+                if cached_query is None:
+                    raise QueryConversionException(f'Cached query with ID {query} not found')
                 query = cached_query.query
                 search_parameters['query_title'] = cached_query.yara_rule
         search_parameters['only_firmware'] = (
@@ -216,7 +224,8 @@ class DatabaseRoutes(ComponentBase):
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)
 
-    def _get_items_from_binary_search_request(self, req):
+    @staticmethod
+    def _get_items_from_binary_search_request(req):
         yara_rule_file = None
         if 'file' in req.files and req.files['file']:
             _, yara_rule_file = get_file_name_and_binary_from_request(req)
@@ -232,28 +241,28 @@ class DatabaseRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/binary_search_results', GET)
     def get_binary_search_results(self):
-        firmware_dict, error, yara_rules = None, None, None
-        if request.args.get('request_id'):
-            request_id = request.args.get('request_id')
-            result, yara_rules = self.intercom.get_binary_search_result(request_id)
+        error: str | None = None
+        if request_id := request.args.get('request_id'):
+            result, task = self.intercom.get_binary_search_result(request_id)
             if isinstance(result, str):
                 error = result
-            elif result is not None:
-                yara_rules = make_unicode_string(yara_rules[0])
-                joined_results = self._join_results(result)
-                query_uid = self._store_binary_search_query(joined_results, yara_rules)
+            elif result is not None and task is not None:
+                yara_rules, _ = task
+                query_uid = self._store_binary_search_query(
+                    self._join_results(result),
+                    make_unicode_string(yara_rules),
+                )
                 return redirect(
                     url_for('browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware'))
                 )
         else:
             error = 'No request ID found'
-            request_id = None
         return render_template(
             'database/database_binary_search_results.html',
-            result=firmware_dict,
+            result=None,
             error=error,
             request_id=request_id,
-            yara_rules=yara_rules,
+            yara_rules=None,
         )
 
     def _store_binary_search_query(self, binary_search_results: list, yara_rules: str) -> str:
@@ -261,7 +270,8 @@ class DatabaseRoutes(ComponentBase):
         return self.db.editing.add_to_search_query_cache(query, query_title=yara_rules)
 
     @staticmethod
-    def _join_results(result_dict):
+    def _join_results(result_dict: dict[str, list[UID]]) -> list[UID]:
+        # concatenates all the result lists to one big list
         return list(set(chain(*result_dict.values())))
 
     @roles_accepted(*PRIVILEGES['basic_search'])

@@ -32,7 +32,7 @@ class RestBinary(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @api.doc(responses={200: 'Success', 404: 'Unknown UID'})
-    def get(self, uid):
+    def get(self, uid: str):
         '''
         Request a binary
         The uid of the file_object in question has to be given in the url
@@ -50,9 +50,15 @@ class RestBinary(RestResourceBase):
             return error_message(str(value_error), self.URL, request_data={'uid': uid, 'tar': request.args.get('tar')})
 
         if not tar_flag:
-            binary, file_name = self.intercom.get_binary_and_filename(uid)
+            intercom_response = self.intercom.get_binary_and_filename(uid)
         else:
-            binary, file_name = self.intercom.get_repacked_binary_and_file_name(uid)
+            intercom_response = self.intercom.get_repacked_binary_and_file_name(uid)
+        binary, file_name = intercom_response or (None, None)
+        if binary is None:
+            error = 'Timeout' if intercom_response is None else 'Binary not found'
+            return error_message(
+                f'Error when trying to retrieve binary: {error}', self.URL, request_data={'uid': uid}, return_code=404
+            )
 
         response = {'binary': standard_b64encode(binary).decode(), 'file_name': file_name, 'SHA256': get_sha256(binary)}
         return success_message(response, self.URL, request_data={'uid': uid, 'tar': tar_flag})

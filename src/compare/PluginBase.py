@@ -3,9 +3,11 @@ from __future__ import annotations  # noqa: N999
 from abc import abstractmethod
 
 from plugins.base import BasePlugin
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
+
 
 if TYPE_CHECKING:
+    from storage.db_interface_comparison import ComparisonDbInterface
     from objects.file import FileObject
 
 
@@ -14,16 +16,12 @@ class CompareBasePlugin(BasePlugin):
     This is the compare plug-in base class. All compare plug-ins should be derived from this class.
     """
 
-    # must be set by the plugin:
-    FILE = None
-
-    def __init__(self, config=None, db_interface=None, view_updater=None):
-        super().__init__(plugin_path=self.FILE, view_updater=view_updater)
-        self.config = config
+    def __init__(self, db_interface: ComparisonDbInterface, **kwargs):
+        super().__init__(plugin_path=self.FILE, **kwargs)
         self.database = db_interface
 
     @abstractmethod
-    def compare_function(self, fo_list):
+    def compare_function(self, fo_list: list[FileObject]) -> dict:
         """
         This function must be implemented by the plug-in.
         'fo_list' is a list with file_objects including analysis and all summaries
@@ -31,7 +29,7 @@ class CompareBasePlugin(BasePlugin):
         """
         return {'dummy': {'all': 'dummy-content', 'collapse': False}}
 
-    def compare(self, fo_list):
+    def compare(self, fo_list: list[FileObject]) -> dict:
         """
         This function is called by the compare module.
         """
@@ -41,5 +39,5 @@ class CompareBasePlugin(BasePlugin):
         return self.compare_function(fo_list)
 
 
-def _get_unmatched_dependencies(fo_list: list[FileObject], dependency_list: list[str]) -> set[str]:
+def _get_unmatched_dependencies(fo_list: list[FileObject], dependency_list: Iterable[str]) -> set[str]:
     return {dependency for dependency in dependency_list for fo in fo_list if dependency not in fo.processed_analysis}

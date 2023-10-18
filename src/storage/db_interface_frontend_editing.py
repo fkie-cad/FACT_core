@@ -17,7 +17,7 @@ class FrontendEditingDbInterface(ReadWriteDbInterface):
             fo_entry: FileObjectEntry = session.get(FileObjectEntry, uid)
             fo_entry.comments = [comment for comment in fo_entry.comments if comment['time'] != timestamp]
 
-    def add_to_search_query_cache(self, search_query: str, query_title: str | None = None) -> str:
+    def add_to_search_query_cache(self, search_query: str, query_title: str) -> str:
         query_uid = create_uid(query_title.encode())
         with self.get_read_write_session() as session:
             old_entry = session.get(SearchCacheEntry, query_uid)

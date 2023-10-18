@@ -17,6 +17,7 @@ from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from helperFunctions.types import AnalysisResult
     from objects.file import FileObject
     from collections.abc import Callable
 
@@ -35,6 +36,7 @@ HTPASSWD_REGEXES = [
 ]
 MOSQUITTO_REGEXES = [br'[a-zA-Z][a-zA-Z0-9_-]{2,15}\:\$6\$[a-zA-Z0-9+/=]+\$[a-zA-Z0-9+/]{86}==']
 RESULTS_DELIMITER = '=== Results: ==='
+DES_HASH_LENGTH = 13
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -60,7 +62,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def find_password_entries(self, file_object: FileObject, regex_list: list[bytes], entry_gen_function: Callable):
         for passwd_regex in regex_list:
-            passwd_entries = re.findall(passwd_regex, file_object.binary)
+            # FixMe: fo.binary and path should always be set in plugins; should be fixed by V0 migration
+            passwd_entries = re.findall(passwd_regex, file_object.binary or b'')
             for entry in passwd_entries:
                 self.update_file_object(file_object, entry_gen_function(entry))
 
@@ -81,19 +84,19 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 def generate_unix_entry(entry: bytes) -> dict:
     user_name, pw_hash, *_ = entry.split(b':')
-    result_entry = {'type': 'unix', 'entry': _to_str(entry)}
+    result_entry: AnalysisResult = {'type': 'unix', 'entry': _to_str(entry)}
     try:
         if pw_hash.startswith(b'$') or _is_des_hash(pw_hash):
             result_entry['password-hash'] = _to_str(pw_hash)
             result_entry['cracked'] = crack_hash(b':'.join((user_name, pw_hash)), result_entry)
     except (IndexError, AttributeError, TypeError):
-        logging.warning(f'Unsupported password format: {entry}', exc_info=True)
+        logging.warning(f'Unsupported password format: {entry!r}', exc_info=True)
     return {f'{_to_str(user_name)}:unix': result_entry}
 
 
 def generate_htpasswd_entry(entry: bytes) -> dict:
     user_name, pw_hash = entry.split(b':')
-    result_entry = {'type': 'htpasswd', 'entry': _to_str(entry), 'password-hash': _to_str(pw_hash)}
+    result_entry: AnalysisResult = {'type': 'htpasswd', 'entry': _to_str(entry), 'password-hash': _to_str(pw_hash)}
     result_entry['cracked'] = crack_hash(entry, result_entry)
     return {f'{_to_str(user_name)}:htpasswd': result_entry}
 
@@ -107,8 +110,8 @@ def generate_mosquitto_entry(entry: bytes) -> dict:
     return {f'{user}:mosquitto': result_entry}
 
 
-def _is_des_hash(pw_hash: str) -> bool:
-    return len(pw_hash) == 13  # noqa: PLR2004
+def _is_des_hash(pw_hash: str | bytes) -> bool:
+    return len(pw_hash) == DES_HASH_LENGTH
 
 
 def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -> bool:
