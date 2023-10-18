@@ -8,6 +8,7 @@ from helperFunctions.install import (
     install_pip_packages,
     read_package_list_from_file,
     run_cmd_with_logging,
+    InstallationError,
 )
 
 
@@ -27,15 +28,18 @@ class AbstractPluginInstaller:
     _skip_docker_env = os.getenv('FACT_INSTALLER_SKIP_DOCKER') is not None
     #: The base directory of the plugin
     #: Must be overwritten by a class variable of a child class
-    base_path = None
+    base_path: Path | None = None
 
     def __init__(self, distribution: str | None = None, skip_docker: bool = _skip_docker_env):
+        if self.base_path is None:
+            raise InstallationError(f'base_path is missing in plugin installer {self.__class__}')
         self.distribution = distribution or check_distribution()
         self.build_path = self.base_path / 'build'
         self.skip_docker = skip_docker
 
     def install(self):
         """Completely install the plugin."""
+        assert self.base_path is not None, 'the base_path should never be None here'
         cwd = os.getcwd()  # noqa: PTH109
         os.chdir(self.base_path)
         self.install_system_packages()
@@ -83,6 +87,7 @@ class AbstractPluginInstaller:
         """
         Install packages with pip
         """
+        assert self.base_path is not None, 'the base_path should never be None here'
         requirements_path = self.base_path / 'requirements.txt'
         if requirements_path.exists():
             install_pip_packages(requirements_path)
@@ -104,6 +109,7 @@ class AbstractPluginInstaller:
         """
 
     def _build_docker_image(self, tag: str, dockerfile_path: Path | None = None):
+        assert self.base_path is not None, 'the base_path should never be None here'
         if not dockerfile_path:
             dockerfile_path = self.base_path / 'docker'
         run_cmd_with_logging(f'docker build -t {tag} {dockerfile_path}')

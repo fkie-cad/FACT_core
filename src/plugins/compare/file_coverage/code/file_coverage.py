@@ -29,8 +29,14 @@ class ComparePlugin(CompareBasePlugin):
         super().__init__(*args, **kwargs)
         self.ssdeep_ignore_threshold = config.backend.ssdeep_ignore
 
-    def compare_function(self, fo_list):
-        compare_result = {
+    def compare_function(self, fo_list: list[FileObject]):
+        if any(fo.list_of_all_included_files is None for fo in fo_list):
+            # list_of_all_included_files should be set for all FOs by the compare module
+            # for the rest of this plugin, we assume that list_of_all_included_files is always set
+            uids = {fo.uid for fo in fo_list}
+            raise RuntimeError(f'Cannot run file_coverage plugin: list_of_all_included_files is missing from FO {uids}')
+
+        compare_result: dict[str, dict[str, Any]] = {
             'files_in_common': self._get_intersection_of_files(fo_list),
             'exclusive_files': self._get_exclusive_files(fo_list),
         }
@@ -84,6 +90,7 @@ class ComparePlugin(CompareBasePlugin):
     def _get_files_in_more_than_one_but_not_in_all(fo_list, result_dict):
         result = {}
         for current_element in fo_list:
+            assert current_element.list_of_all_included_files is not None, 'file list should be set in compare module'
             result[current_element.uid] = list(
                 set.difference(
                     set(current_element.list_of_all_included_files),
@@ -141,8 +148,8 @@ class ComparePlugin(CompareBasePlugin):
             return ''
         if len(similarities_list) == 1:
             return similarities_list.pop()
-        similarities_list = [int(v) for v in similarities_list]
-        return f'{min(similarities_list)} ‒ {max(similarities_list)}'
+        similarity_values = [int(v) for v in similarities_list]
+        return f'{min(similarity_values)} ‒ {max(similarity_values)}'
 
     @staticmethod
     def _get_similar_file_id(file_uid: str, parent_uid: str) -> str:
@@ -159,21 +166,23 @@ class ComparePlugin(CompareBasePlugin):
     def _get_non_zero_common_files(self, files_in_all, not_in_all):
         non_zero_files = {}
         if files_in_all['all']:
-            self._evaluate_entropy_for_list_of_uids(files_in_all['all'], non_zero_files, 'all')
+            non_zero_files.update(self._evaluate_entropy_for_list_of_uids(files_in_all['all'], 'all'))
 
         if not_in_all:
             for firmware_uid in not_in_all:
-                self._evaluate_entropy_for_list_of_uids(not_in_all[firmware_uid], non_zero_files, firmware_uid)
+                non_zero_files.update(self._evaluate_entropy_for_list_of_uids(not_in_all[firmware_uid], firmware_uid))
 
         return non_zero_files
 
-    def _evaluate_entropy_for_list_of_uids(self, list_of_uids, new_result, firmware_uid):
+    def _evaluate_entropy_for_list_of_uids(self, list_of_uids: list[UID], firmware_uid: str) -> dict[str, list[UID]]:
+        result = {}
         non_zero_file_ids = []
         for uid in list_of_uids:
             if self.database.get_entropy(uid) > 0.1:  # noqa: PLR2004
                 non_zero_file_ids.append(uid)
         if non_zero_file_ids:
-            new_result[firmware_uid] = non_zero_file_ids
+            result[firmware_uid] = non_zero_file_ids
+        return result
 
     def _find_changed_text_files(
         self, fo_list: list[FileObject], common_files: list[str]
@@ -186,9 +195,11 @@ class ComparePlugin(CompareBasePlugin):
         :param common_files: list of UIDs that are in both file objects
         :return: a dict with paths as keys and a list of UID pairs (tuples) as values
         """
-        changed_text_files = {}
-        vfp_a = self.database.get_vfp_of_included_text_files(fo_list[0].uid, blacklist=common_files)
-        vfp_b = self.database.get_vfp_of_included_text_files(fo_list[1].uid, blacklist=common_files)
+        common_set = set(common_files)
+        vfp_a = self.database.get_vfp_of_included_text_files(fo_list[0].uid, blacklist=common_set)
+        vfp_b = self.database.get_vfp_of_included_text_files(fo_list[1].uid, blacklist=common_set)
+
+        changed_text_files: dict[VFP, list[tuple[UID, UID]]] = {}
         for common_path in set(vfp_a).intersection(set(vfp_b)):
             # vfp_x[common_path] should usually contain only 1 element (except if there are multiple files with the same
             # path, e.g. if the FW contains multiple file systems, in which case all combinations are added)
