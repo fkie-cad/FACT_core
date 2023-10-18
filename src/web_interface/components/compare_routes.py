@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import suppress
-from typing import NamedTuple
+from typing import NamedTuple, TYPE_CHECKING
 
 from flask import redirect, render_template, render_template_string, request, session, url_for
 
@@ -18,6 +18,9 @@ from web_interface.components.component_base import AppRoute, ComponentBase, GET
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+if TYPE_CHECKING:
+    from helperFunctions.uid import UID
 
 
 class FileDiffData(NamedTuple):

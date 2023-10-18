@@ -29,6 +29,7 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 if TYPE_CHECKING:
+    from helperFunctions.uid import UID
     from objects.file import FileObject
 
 
@@ -180,12 +181,11 @@ class AnalysisRoutes(ComponentBase):
             return self.get_update_analysis(uid=uid, re_do=re_do)
         return render_template('upload/upload_successful.html', uid=uid)
 
-    def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
+    def _schedule_re_analysis_task(self, uid: UID, analysis_task: dict, re_do: bool, force_reanalysis: bool):
         if re_do:
             analysis_task['binary'] = self._get_binary(uid)
             base_fw = None
             self.db.admin.delete_firmware(uid, delete_root_file=False)
-            # FixMe? do we need to wait for cascade/event listener to finish?
         else:
             base_fw = self._get_base_fw(uid)
             base_fw.temporary_data['force_update'] = force_reanalysis

@@ -17,7 +17,7 @@ class DepGraphData(NamedTuple):
 
 
 def create_data_graph_nodes_and_groups(dependency_data: list[DepGraphData], whitelist):
-    data_graph = {'nodes': [], 'edges': []}
+    data_graph: dict[str, list] = {'nodes': [], 'edges': []}
     groups = set()
 
     for entry in dependency_data:

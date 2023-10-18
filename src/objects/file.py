@@ -82,7 +82,8 @@ class FileObject:
         self.parent_firmware_uids: set[UID] = set()
 
         #: This field can be used for arbitrary temporary storage.
-        #: It will not be persisted to the database, so it dies after the analysis cycle.
+        #: It will not be persisted to the database, so it is not available after the analysis cycle (i.e. when loading
+        #: the object from the database).
         self.temporary_data: dict[str, Any] = {}
 
         #: Analysis tags for this file.

@@ -8,7 +8,7 @@ from typing import Any, TYPE_CHECKING
 from markupsafe import escape
 
 import config
-from helperFunctions.uid import create_uid
+from helperFunctions.uid import create_uid, UID
 from objects.firmware import Firmware
 
 if TYPE_CHECKING:
@@ -51,7 +51,7 @@ def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes 
     return file_name, file_binary
 
 
-def create_re_analyze_task(request: Request, uid: str) -> dict[str, Any]:
+def create_re_analyze_task(request: Request, uid: UID) -> dict[str, Any]:
     """
     Create an analysis task for a file that is already in the database.
 
