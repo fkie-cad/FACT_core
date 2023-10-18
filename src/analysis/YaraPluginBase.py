@@ -73,9 +73,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
         return str(Path(get_src_dir()) / 'analysis/signatures' / sig_file_name)
 
     @staticmethod
-    def _parse_yara_output(output):
-        resulting_matches = {}
-
+    def _parse_yara_output(output) -> dict[str, dict]:
         match_blocks, rules = _split_output_in_rules_and_matches(output)
 
         resulting_matches: dict[str, dict] = {}
