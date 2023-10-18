@@ -10,9 +10,11 @@ from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_list
 from helperFunctions.data_conversion import convert_uid_list_to_compare_id
 from objects.firmware import Firmware
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Iterable
 
 if TYPE_CHECKING:
+    from helperFunctions.virtual_file_path import VFP
+    from helperFunctions.types import UID
     from objects.file import FileObject
 
 
@@ -57,29 +59,30 @@ class ComparePlugin(CompareBasePlugin):
 
         return compare_result
 
-    def _get_exclusive_files(self, fo_list: list[FileObject]) -> dict[str, list[str]]:
+    def _get_exclusive_files(self, fo_list: list[FileObject]) -> dict[str, list[UID]]:
         result = {}
         for current_element, other_elements in iter_element_and_rest(fo_list):
             exclusive_files = set.difference(
-                set(current_element.list_of_all_included_files), *self._get_included_file_sets(other_elements)
+                set(current_element.list_of_all_included_files),  # type: ignore[arg-type]
+                *self._get_included_file_sets(other_elements),
             )
             result[current_element.uid] = list(exclusive_files)
         return result
 
-    def _get_intersection_of_files(self, fo_list: list[FileObject]) -> dict[str, list[str]]:
+    def _get_intersection_of_files(self, fo_list: list[FileObject]) -> dict[str, list[UID]]:
         intersection_of_files = set.intersection(*self._get_included_file_sets(fo_list))
         return {'all': list(intersection_of_files)}
 
     @staticmethod
-    def _get_included_file_sets(fo_list: list[FileObject]) -> list[set[str]]:
-        return [set(file_object.list_of_all_included_files) for file_object in fo_list]
+    def _get_included_file_sets(fo_list: Iterable[FileObject]) -> list[set[str]]:
+        return [set(file_object.list_of_all_included_files) for file_object in fo_list]  # type: ignore[arg-type]
 
-    def _handle_partially_common_files(self, compare_result, fo_list):
+    def _handle_partially_common_files(self, compare_result: dict[str, dict], fo_list: list[FileObject]):
         if len(fo_list) > 2:  # noqa: PLR2004
             compare_result['files_in_more_than_one_but_not_in_all'] = self._get_files_in_more_than_one_but_not_in_all(
                 fo_list, compare_result
             )
-            not_in_all = compare_result['files_in_more_than_one_but_not_in_all']
+            not_in_all: dict[UID, list[UID]] = compare_result['files_in_more_than_one_but_not_in_all']
         else:
             not_in_all = {}
         compare_result['non_zero_files_in_common'] = self._get_non_zero_common_files(
@@ -87,7 +90,9 @@ class ComparePlugin(CompareBasePlugin):
         )
 
     @staticmethod
-    def _get_files_in_more_than_one_but_not_in_all(fo_list, result_dict):
+    def _get_files_in_more_than_one_but_not_in_all(
+        fo_list: list[FileObject], result_dict: dict[str, dict]
+    ) -> dict[UID, list[UID]]:
         result = {}
         for current_element in fo_list:
             assert current_element.list_of_all_included_files is not None, 'file list should be set in compare module'
@@ -115,7 +120,7 @@ class ComparePlugin(CompareBasePlugin):
         similarity_sets = generate_similarity_sets(remove_duplicates_from_list(similar_files))
         return similarity_sets, similarity
 
-    def _find_similar_file_for(self, file_uid: str, parent_uid: str, comparison_fo: FileObject):
+    def _find_similar_file_for(self, file_uid: UID, parent_uid: UID, comparison_fo: FileObject):
         hash_one = self.database.get_ssdeep_hash(file_uid)
         if hash_one:
             id1 = self._get_similar_file_id(file_uid, parent_uid)
@@ -129,7 +134,7 @@ class ComparePlugin(CompareBasePlugin):
     def combine_similarity_results(self, similar_files: list[list[str]], fo_list: list[FileObject], similarity: dict):
         result_dict = {}
         for group_of_similar_files in similar_files:
-            match_dict = {fo.uid: None for fo in fo_list}
+            match_dict: dict[UID, UID | None] = {fo.uid: None for fo in fo_list}
             for similar_file_id in group_of_similar_files:
                 parent_id, file_id = similar_file_id.split(':')
                 match_dict[parent_id] = file_id
@@ -163,7 +168,9 @@ class ComparePlugin(CompareBasePlugin):
             group_id = f'{group_id}{parent_uid[:4]}{file_uid[:4]}'
         return group_id
 
-    def _get_non_zero_common_files(self, files_in_all, not_in_all):
+    def _get_non_zero_common_files(
+        self, files_in_all: dict[str, list[UID]], not_in_all: dict[UID, list[UID]]
+    ) -> dict[str, list[UID]]:
         non_zero_files = {}
         if files_in_all['all']:
             non_zero_files.update(self._evaluate_entropy_for_list_of_uids(files_in_all['all'], 'all'))
@@ -186,7 +193,7 @@ class ComparePlugin(CompareBasePlugin):
 
     def _find_changed_text_files(
         self, fo_list: list[FileObject], common_files: list[str]
-    ) -> dict[str, list[tuple[str, str]]]:
+    ) -> dict[VFP, list[tuple[UID, UID]]]:
         """
         Find text files that have the same path but different content for the file objects that are compared. The idea
         is to find config files that were changed between different versions of a firmware. Only works if two firmware
