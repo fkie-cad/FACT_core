@@ -3,6 +3,7 @@ from __future__ import annotations
 from multiprocessing.sharedctypes import Synchronized, SynchronizedArray
 from tempfile import _TemporaryFileWrapper
 from typing import TypeVar, TypeAlias
+from typing import TypeVar, TypeAlias, NamedTuple
 
 # a UID (unique identifier) "{sha256 hash}_{file size in bytes}" for a byte string (i.e. the contents of a file)
 UID: TypeAlias = str
@@ -22,3 +23,13 @@ MpArray: TypeAlias = SynchronizedArray
 # comparison ID: Represents one comparison between two or more firmwares.
 # Consists of UIDs with semicolons in-between (e.g. "uid1;uid2;...")
 CompId: TypeAlias = str
+
+class AnalysisPluginInfo(NamedTuple):
+    description: str
+    mandatory: bool
+    presets: dict
+    version: str
+    dependencies: list[str]
+    blacklist: list[str]
+    whitelist: list[str]
+    worker_count: int
