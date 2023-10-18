@@ -125,7 +125,7 @@ class TestFileSystemMetadataRoutes:
         app.config['TESTING'] = True
         for filter_ in ('replace_uid_with_hid', 'nice_unix_time', 'octal_to_readable'):
             app.jinja_env.filters[filter_] = lambda x: x
-        self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None, status=None)
+        self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None, status=None)  # type: ignore[arg-type]
         self.test_client = app.test_client()
 
     def test_get_analysis_results_of_parent_fo(self):

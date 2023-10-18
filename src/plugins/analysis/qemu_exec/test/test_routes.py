@@ -68,7 +68,7 @@ class DbInterfaceMock:
 
 class TestQemuExecRoutesStatic:
     def test_get_results_for_included(self):
-        result = routes.get_analysis_results_for_included_uid('foo', DbInterfaceMock())
+        result = routes.get_analysis_results_for_included_uid('foo', DbInterfaceMock())  # type: ignore[arg-type]
         assert result is not None
         assert result != {}
         assert 'parent_uid' in result
@@ -94,7 +94,7 @@ class TestQemuExecRoutes:
         app.config.from_object(__name__)
         app.config['TESTING'] = True
         app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x
-        self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None, status=None)
+        self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None, status=None)  # type: ignore[arg-type]
         self.test_client = app.test_client()
 
     def test_not_executable(self):
