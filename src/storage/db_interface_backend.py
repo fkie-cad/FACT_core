@@ -154,7 +154,10 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def update_firmware(self, firmware: Firmware):
         with self.get_read_write_session() as session:
-            entry: FirmwareEntry = session.get(FirmwareEntry, firmware.uid)
+            entry: FirmwareEntry | None = session.get(FirmwareEntry, firmware.uid)
+            if entry is None:
+                logging.error(f'Could not update firmware entry: Firmware {firmware.uid} not found in the DB')
+                return
             entry.release_date = firmware.release_date
             entry.version = firmware.version
             entry.vendor = firmware.vendor
