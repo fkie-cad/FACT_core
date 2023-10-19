@@ -47,7 +47,11 @@ class TestRestFirmware(RestTestBase):
         rv = self.test_client.get(f'/rest/firmware?query={query}', follow_redirects=True)
         assert b'"uids": []' in rv.data
 
-    def test_rest_upload_valid(self):
+    def test_rest_upload_valid(self, monkeypatch):
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
+            lambda _: ['dummy'],
+        )
         data = {
             'binary': standard_b64encode(b'test_file_content').decode(),
             'file_name': 'test_file.txt',
