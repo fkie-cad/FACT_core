@@ -149,6 +149,14 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def update_object(self, fw_object: FileObject):
         if isinstance(fw_object, Firmware):
+            if not self.is_firmware(fw_object.uid):
+                # special case: Trying to upload a file as firmware that is already in the DB as part of another
+                # firmware. This is currently not possible and will likely cause errors
+                parent_fw = self.get_parent_fw(fw_object.uid)
+                raise DbInterfaceError(
+                    'Cannot upload file as firmware that is part of another firmware. '
+                    f'The file you are trying to upload is already part of the following firmware images: {parent_fw}'
+                )
             self.update_firmware(fw_object)
         self.update_file_object(fw_object)
 
