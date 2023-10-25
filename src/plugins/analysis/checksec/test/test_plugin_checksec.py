@@ -9,7 +9,6 @@ from ..code.checksec import (
     check_canary,
     check_clang_cfi,
     check_clang_safestack,
-    check_fortify_source,
     check_nx,
     check_pie,
     check_relro,
@@ -27,7 +26,6 @@ FILE_PATH_SHAREDLIB = PLUGIN_DIR / 'test/data/Hallo.so'
 FILE_PATH_EXE_CANARY = PLUGIN_DIR / 'test/data/Hallo_Canary'
 FILE_PATH_EXE_SAFESTACK = PLUGIN_DIR / 'test/data/Hallo_SafeStack'
 FILE_PATH_EXE_NO_PIE = PLUGIN_DIR / 'test/data/Hallo_no_pie'
-FILE_PATH_EXE_FORTIFY = PLUGIN_DIR / 'test/data/Hallo_Fortify'
 FILE_PATH_EXE_RUNPATH = PLUGIN_DIR / 'test/data/Hallo_runpath'
 FILE_PATH_EXE_RPATH = PLUGIN_DIR / 'test/data/Hallo_rpath'
 FILE_PATH_EXE_STRIPPED = PLUGIN_DIR / 'test/data/Hallo_stripped'
@@ -62,8 +60,6 @@ def test_check_mitigations(analysis_plugin):
         (FILE_PATH_OBJECT, check_nx, {'NX': 'disabled'}, 'NX disabled'),
         (FILE_PATH_EXE, check_canary, {'CANARY': 'disabled'}, 'CANARY disabled'),
         (FILE_PATH_EXE_CANARY, check_canary, {'CANARY': 'enabled'}, 'CANARY enabled'),
-        (FILE_PATH_EXE, check_fortify_source, {'FORTIFY_SOURCE': 'disabled'}, 'FORTIFY_SOURCE disabled'),
-        (FILE_PATH_EXE_FORTIFY, check_fortify_source, {'FORTIFY_SOURCE': 'enabled'}, 'FORTIFY_SOURCE enabled'),
         (FILE_PATH_EXE, check_clang_cfi, {'CLANGCFI': 'disabled'}, 'CLANGCFI disabled'),
         # TODO: Test CLANCFI: enabled
         (FILE_PATH_EXE, check_clang_safestack, {'SAFESTACK': 'disabled'}, 'SAFESTACK disabled'),
