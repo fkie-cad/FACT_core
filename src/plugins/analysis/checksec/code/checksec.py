@@ -16,7 +16,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'analyses ELF binaries within a firmware for present exploit mitigation techniques'
     DEPENDENCIES = ['file_type']  # noqa: RUF012
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']  # noqa: RUF012
-    VERSION = '0.1.6'
+    VERSION = '0.2.0'
     FILE = __file__
 
     def additional_setup(self):
