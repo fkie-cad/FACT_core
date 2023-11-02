@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import logging
+import re
 from datetime import datetime
 from time import time
 
@@ -8,6 +10,8 @@ from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
+
+JSON_UNICODE_REGEX = re.compile(r'\\u[0-9a-f]{4}')
 
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
@@ -142,17 +146,23 @@ def _sanitize_value(analysis_data: dict, key: str, value):
 
 
 def _sanitize_string(string: str) -> str:
-    string = string.replace('\0', '')
     try:
         string.encode()
     except UnicodeEncodeError:
         string = string.encode(errors='replace').decode()
+    # replace all characters that are converted to unicode characters in JSON, because unicode characters can't be
+    # saved in the PostgreSQL database
+    json_string = json.dumps(string)
+    if JSON_UNICODE_REGEX.search(json_string):
+        logging.warning(f'Sanitizing unicode characters in string {json_string[100:]}')
+        string = json.loads(JSON_UNICODE_REGEX.sub('', json_string))
     return string
 
 
 def _sanitize_key(analysis_data: dict, key: str):
-    if '\0' in key:
-        analysis_data[key.replace('\0', '')] = analysis_data.pop(key)
+    sanitized_key = _sanitize_string(key)
+    if sanitized_key != key:
+        analysis_data[sanitized_key] = analysis_data.pop(key)
 
 
 def _sanitize_list(value: list) -> list:
