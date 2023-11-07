@@ -37,11 +37,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'Due to the nature of static analysis, this plugin may run for a long time.'
     )
     DEPENDENCIES = ['cpu_architecture', 'file_type']  # noqa: RUF012
-    VERSION = '0.5.3'
+    VERSION = '0.5.4'
     TIMEOUT = 600  # 10 minutes
     MIME_WHITELIST = [  # noqa: RUF012
         'application/x-executable',
-        'application/x-object',
         'application/x-pie-executable',
         'application/x-sharedlib',
     ]
