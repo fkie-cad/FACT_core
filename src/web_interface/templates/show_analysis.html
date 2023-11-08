@@ -304,7 +304,7 @@
                 {% endblock %}
 
                 {# summary of included files #}
-                {%- if selected_analysis -%}
+                {%- if selected_analysis and firmware.files_included -%}
                     <button id="summary-button" class="btn list-group-item list-group-item-primary" onclick="load_summary(uid, selected_analysis);" style="width: 100%; margin-bottom: 20px;">
                         Load Summary for Included Files
                     </button>
