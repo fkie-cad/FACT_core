@@ -1,8 +1,3 @@
-function change_button(button_id) {
-    element = document.getElementById(button_id);
-    ["fa-caret-down", "fa-caret-up"].forEach(class_name => element.classList.toggle(class_name));
-}
-
 async function getSystemHealthData() {
     const response = await fetch("/ajax/system_health");
     return response.json();
@@ -37,16 +32,15 @@ async function updateSystemHealth() {
             const throttleElement = document.getElementById("backend-unpacking-throttle-indicator");
             if (entry.unpacking.is_throttled) {
                 throttleElement.innerHTML = '<i class="far fa-pause-circle fa-lg"></i>';
-            }
-            else {
+            } else {
                 throttleElement.innerHTML = '';
-             }
+            }
 
             const analysisQueueElement = document.getElementById("backend-analysis-queue");
             analysisQueueElement.innerText = entry.analysis.analysis_main_scheduler.toString();
 
             Object.entries(entry.analysis.plugins).map(([pluginName, pluginData], index) => {
-                if (!pluginName.includes("dummy")){
+                if (!pluginName.includes("dummy")) {
                     updatePluginCard(pluginName, pluginData);
                 }
             });
@@ -80,7 +74,6 @@ function updatePluginCard(pluginName, pluginData) {
     const queueIndicatorElement = document.getElementById(`${pluginName}-queue-indicator`);
     const queueElement = document.getElementById(`${pluginName}-queue`);
     const outQueueElement = document.getElementById(`${pluginName}-out-queue`);
-    const statsElement = document.getElementById(`${pluginName}-stats`);
     if (pluginData.active > 0) {
         activeIndicatorElement.classList.add("fa-spin");
         activeIndicatorElement.classList.remove("text-muted");
@@ -113,39 +106,31 @@ function updatePluginCard(pluginName, pluginData) {
     }
     queueElement.innerText = pluginData.queue.toString();
     outQueueElement.innerText = pluginData.out_queue.toString();
-    if (pluginData.stats !== null) {
-        statsElement.innerHTML = `
-            <table class="table table-sm table-striped" style="margin-left: 16px">
-                <tbody>
-                    <tr>
-                        <td style="width: 10px; text-align: right;">min</td>
-                        <td>${pluginData.stats.min}s</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 10px; text-align: right;">max</td>
-                        <td>${pluginData.stats.max}s</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 10px; text-align: right;">mean</td>
-                        <td>${pluginData.stats.mean}s</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 10px; text-align: right;">median</td>
-                        <td>${pluginData.stats.median}s</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 10px; text-align: right;">std.dev.</td>
-                        <td>${pluginData.stats.std_dev}s</td>
-                    </tr>
-                    <tr>
-                        <td style="width: 10px; text-align: right;">count</td>
-                        <td>${pluginData.stats.count}</td>
-                    </tr>
-                </tbody>
-            </table>
+    updatePluginRuntimeStatsTooltip(pluginData, pluginName);
+}
+
+function updatePluginRuntimeStatsTooltip(pluginData, pluginName) {
+    const stats = getPluginRuntimeStats(pluginData.stats);
+    const stats_element = $(`#${pluginName}-stats`);
+    if (stats_element.attr("data-original-title") !== stats) {
+        // only update the tooltip if the stats actually changed
+        stats_element
+            .attr("data-original-title", stats)
+            .tooltip('update');
+    }
+}
+
+function getPluginRuntimeStats(stats) {
+    if (stats !== null) {
+        return `
+            min: ${stats.min}s<br>
+            max: ${stats.max}s<br>
+            mean: ${stats.mean}s<br>
+            median: ${stats.median}s<br>
+            count: ${stats.count}
         `;
     } else {
-        statsElement.innerHTML = `N/A`;
+        return "N/A<br>count: 0";
     }
 }
 
@@ -160,17 +145,19 @@ function updateCurrentAnalyses(analysisData) {
             .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid, false, true)),
     ).join("\n");
     currentAnalysesElement.innerHTML = currentAnalysesHTML !== "" ? currentAnalysesHTML : "No analysis in progress";
-    document.querySelectorAll('div[role=tooltip]').forEach((element) => {element.remove();});
+    document.querySelectorAll('div[role=tooltip]').forEach((element) => {
+        element.remove();
+    });
     $("body").tooltip({selector: '[data-toggle="tooltip"]'});  // update tooltips for dynamically created elements
 }
 
-function createCurrentAnalysisItem(data, uid, isFinished=false, isCancelled=false) {
+function createCurrentAnalysisItem(data, uid, isFinished = false, isCancelled = false) {
     const timeString = isFinished ? `Finished in ${getDuration(null, data.duration)}` : `${getDuration(data.start_time)}`;
     const total = isFinished ? data.total_files_count : data.total_count;
     const showDetails = Boolean(document.getElementById("ca-show-details").checked);
-    const width = isFinished || isCancelled || !showDetails ? "30px": "50%";
+    const width = isFinished || isCancelled || !showDetails ? "30px" : "50%";
     const unpackingIsFinished = isFinished ? null : (data.unpacked_count == data.total_count);
-    const padding = isFinished || isCancelled || !showDetails ? 55 : 211;
+    const padding = isFinished || isCancelled || !showDetails ? "88%" : "47%";
     const cancelButton = isFinished || isCancelled ? '' : `
         <button type="button" class="close" onclick="cancelAnalysis(this, '${uid}')" style="font-size: 1.1rem; color: red; opacity: 1;">
             <span aria-hidden="true">
@@ -235,12 +222,12 @@ function createSinglePluginProgress(plugin, count, total, unpackingIsFinished) {
     return `
         <tr>
             <td class="text-right">${plugin}</td>
-            ${createProgressBarCell(count, total, 211, unpackingIsFinished)}
+            ${createProgressBarCell(count, total, "47%", unpackingIsFinished)}
         </tr>
     `;
 }
 
-function createProgressBarCell(count, total, padding_offset=211, unpackingIsFinished=true, isCancelled=false) {
+function createProgressBarCell(count, total, width, unpackingIsFinished = true, isCancelled = false) {
     const progress = count / total * 100;
     const progressString = `${count} / ${total} (${progress.toFixed(1)}%)`;
     const divClass = (progress >= 100.0) ? `progress-bar ${unpackingIsFinished ? "bg-success" : "bg-warning"}` : isCancelled ? "bg-danger" : "progress-bar";
@@ -249,10 +236,9 @@ function createProgressBarCell(count, total, padding_offset=211, unpackingIsFini
         "font-size": "0.75rem",
         "position": "absolute",
         "z-index": "3",
-        "width": "100%",
+        "width": `${width}`,
         "margin-top": "1px",
         "text-align": "center",
-        "padding-right": `${padding_offset}px`,
     };
     return `
         <td class="align-middle">
@@ -276,8 +262,8 @@ function createIconCell(icon, tooltip, width) {
     `;
 }
 
-function getDuration(start=null, duration=null) {
-    duration = duration != null ? duration : Date.now()/1000 - start;
+function getDuration(start = null, duration = null) {
+    duration = duration != null ? duration : Date.now() / 1000 - start;
     const date = new Date(duration * 1000);
     if (date.getUTCHours() > 0) {
         return date.toUTCString().slice(-12, -4);  // returns something like '01:23:45'

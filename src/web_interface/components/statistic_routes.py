@@ -33,6 +33,13 @@ class StatisticRoutes(ComponentBase):
         plugin_dict.pop('unpacker')
         return render_template('system_health.html', analysis_plugin_info=plugin_dict)
 
+    @roles_accepted(*PRIVILEGES['status'])
+    @AppRoute('/plugins', GET)
+    def show_plugin_page(self):
+        plugin_dict = self.intercom.get_available_analysis_plugins()
+        plugin_dict.pop('unpacker')
+        return render_template('plugins.html', plugins=plugin_dict)
+
     def _get_stats_from_db(self):
         with get_shared_session(self.db.stats_viewer) as stats_db:
             return {

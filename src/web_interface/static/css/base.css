@@ -157,7 +157,7 @@ body.dark-mode a.nav-link.active {
 }
 
 body.dark-mode :is(pre:not(.CodeMirror-line), .pagination-page-info b, .line-number, .list-group-item-action,
-        .table:not(.table-borderless), .list-group-flush, .d2h-file-wrapper) {
+        .table:not(.table-borderless, .card-table), .list-group-flush, .d2h-file-wrapper) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-dark) !important;
 }
@@ -188,7 +188,7 @@ body.dark-mode :is(div.card, input, textarea, select, .dropdown-menu, .d2h-wrapp
     border-color: var(--border-color-dark) !important;
 }
 
-body.dark-mode :is(.table.table-borderless, .bg-light) {
+body.dark-mode :is(.table.table-borderless, .bg-light, .card-table) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-element-dark) !important;
 }

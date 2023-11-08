@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% set active_page = "Info" %}
+
+{% macro icon_tooltip_desk(icon, tooltip, icon_class=None) %}
+    {% set icon_class = icon_class if icon_class else 'fas' %}
+    <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}">
+        <i class="{{ icon_class }} fa-{{ icon }}"></i>
+    </td>
+{% endmacro %}
+
+{% macro plugin_card(plugin_name) %}
+    {% set description, _, __, version, dependencies, blacklist, whitelist, threads = plugins[plugin_name] %}
+    <div class="card m-2" style="width: 430px;">
+        <div class="card-body">
+            <h5 class="card-title">{{ plugin_name }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{ version }}</h6>
+
+            <div class="collapse m-0 p-0 mt-3" id="{{ plugin_name }}">
+                <span class="card-text">
+                    {{ description }}
+                </span>
+                <table class="table table-borderless mb-0 table-sm">
+                    <tr>
+                        {{ icon_tooltip_desk('project-diagram', 'Plugin dependencies') }}
+                        <td>{{ dependencies | list_group_collapse | safe}}</td>
+                    </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('flag', 'Blacklisted file types') }}
+                        <td>{{ blacklist | list_group_collapse | safe }}</td>
+                    </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('flag', 'Whitelisted file types', icon_class='far') }}
+                        <td>{{ whitelist | list_group_collapse | safe }}</td>
+                    </tr>
+
+                </table>
+            </div>
+
+            {% set button_id = "bt-" + plugin_name %}
+            <button class="btn btn-outline-secondary btn-sm btn-block mt-3" data-toggle="collapse" data-target="#{{ plugin_name }}" onclick="toggleCaretIcon('{{ button_id }}')">
+                <i id="{{ button_id }}" class="fas fa-caret-down"></i>
+            </button>
+
+        </div>
+    </div>
+{% endmacro %}
+
+{% block body %}
+
+<div class="row justify-content-center mt-4">
+    <h3 class="mb-3">Analysis Plugins</h3>
+</div>
+{% if plugins %}
+    <div class="row justify-content-center">
+        {% for plugin_name in plugins | sort %}
+            {% if plugin_name != "unpacker" %}
+                {{ plugin_card(plugin_name) }}
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+    
+<script>
+    function toggleCaretIcon(button_id) {
+        const element = document.getElementById(button_id);
+        ["fa-caret-down", "fa-caret-up"].forEach(class_name => element.classList.toggle(class_name));
+    }
+</script>
+
+{% endblock %}
