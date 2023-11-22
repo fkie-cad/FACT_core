@@ -13,4 +13,4 @@ flask==2.3.3
 git+https://github.com/fkie-cad/common_helper_yara.git
 
 # For plugin definition
-semver==3.0.1
+semver==3.0.2

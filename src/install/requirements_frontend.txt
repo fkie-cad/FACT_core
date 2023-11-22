@@ -10,10 +10,10 @@ flask_sqlalchemy==3.0.5
 itsdangerous==2.1.2
 matplotlib==3.7.3
 more_itertools==9.0.0
-prompt_toolkit==3.0.32
+prompt_toolkit==3.0.41
 python-dateutil==2.8.2
 quantiphy==2.19
-uwsgi==2.0.22
+uwsgi==2.0.23
 virtualenv
 
 # must be below dependent packages (flask, flask-login, flask-restx)
@@ -23,4 +23,4 @@ werkzeug==2.3.7
 bleach==5.0.1
 
 # Figuring out if the analysis is outdated
-semver==3.0.1
+semver==3.0.2
