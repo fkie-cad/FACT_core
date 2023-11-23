@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject
@@ -17,6 +17,12 @@ PATH_REGEX = {
 
 FILES_REGEX = {
     'any_history': re.compile(rb'.+_history'),
+}
+
+URL_REGEXES = {
+    'credentials_in_url': re.compile(
+        rb'([a-zA-Z]{3,10}://[a-zA-Z0-9]{3,20}:[^/\s:@]{3,20}@[A-Za-z0-9._/:%?&${}=-]{7,100})["\'\s\x00]?'
+    )
 }
 
 PATH_ARTIFACT_DICT = {
@@ -83,25 +89,31 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'application/x-sharedlib',
         'text/plain',
     ]
-    VERSION = '0.1.4'
+    VERSION = '0.2.0'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
-        file_object.processed_analysis[self.NAME] = {}
         if file_object.processed_analysis['file_type']['result']['mime'] == 'text/plain':
-            self._find_artifacts(file_object)
-            file_object.processed_analysis[self.NAME]['summary'] = sorted(file_object.processed_analysis[self.NAME])
+            result, summary = _find_artifacts(file_object)
         else:
             result, summary = _find_regex(file_object.binary, PATH_REGEX)
-            file_object.processed_analysis[self.NAME].update(result)
-            file_object.processed_analysis[self.NAME]['summary'] = summary
+
+        url_result, url_summary = _find_regex(file_object.binary, URL_REGEXES)
+        result.update(url_result)
+        summary.extend(url_summary)
+
+        file_object.processed_analysis[self.NAME] = result
+        file_object.processed_analysis[self.NAME]['summary'] = summary
         return file_object
 
-    def _find_artifacts(self, file_object: FileObject):
-        # FixMe: after removal of duplicate unpacking/analysis, all VFPs will only be found after analysis update
-        for virtual_path_list in file_object.virtual_file_path.values():
-            for virtual_path in virtual_path_list:
-                file_object.processed_analysis[self.NAME].update(_check_file_path(virtual_path))
+
+def _find_artifacts(file_object: FileObject) -> tuple[dict[str, Any], list[str]]:
+    # FixMe: after removal of duplicate unpacking/analysis, all VFPs will only be found after analysis update
+    result = {}
+    for virtual_path_list in file_object.virtual_file_path.values():
+        for virtual_path in virtual_path_list:
+            result.update(_check_file_path(virtual_path))
+    return result, sorted(result)
 
 
 def _check_file_path(file_path: str) -> dict[str, list[str]]:
