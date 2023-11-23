@@ -4,7 +4,14 @@ import pytest
 
 from test.common_helper import MockFileObject
 
-from ..code.information_leaks import AnalysisPlugin, _check_file_path, _check_for_directories, _check_for_files
+from ..code.information_leaks import (
+    URL_REGEXES,
+    AnalysisPlugin,
+    _check_file_path,
+    _check_for_directories,
+    _check_for_files,
+    _find_regex,
+)
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
@@ -74,3 +81,13 @@ def test_check_file_path():
     svn_path = '/home/user/project/.svn/entries'
     assert _check_for_files(svn_path) and _check_for_directories(svn_path), 'both rules should match'  # noqa: PT018
     assert _check_file_path(svn_path) == {'svn_entries': ['/home/user/project/.svn/entries']}
+
+
+def test_find_creds_in_urls():
+    content = b'\0\0http://username:password@some.address.org/foo/bar\0\0"ftp://user:passwd@example.com"\0\0'
+    result, summary = _find_regex(content, URL_REGEXES)
+    assert result['credentials_in_url'] == [
+        'ftp://user:passwd@example.com',
+        'http://username:password@some.address.org/foo/bar',
+    ]
+    assert summary == ['credentials_in_url']
