@@ -20,6 +20,7 @@ FILES_REGEX = {
 }
 
 URL_REGEXES = {
+    # based on https://gitlab.com/gitlab-com/gl-security/threatmanagement/redteam/redteam-public/token-hunter regex
     'credentials_in_url': re.compile(
         rb'([a-zA-Z]{3,10}://[a-zA-Z0-9]{3,20}:[^/\s:@]{3,20}@[A-Za-z0-9._/:%?&${}=-]{7,100})["\'\s\x00]?'
     )
