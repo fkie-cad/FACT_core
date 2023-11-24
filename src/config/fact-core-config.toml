@@ -108,6 +108,14 @@ name = "cve_lookup"
 processes = 4
 
 [[backend.plugin]]
+name = "cwe_checker"
+processes = 2
+memory-limit = "4G"
+# see https://docs.docker.com/config/containers/resource_constraints/#--memory-swap-details
+# unintuitively, if memswap-limit is set to the same value as memory-limit, the swap will *not* be used
+memswap-limit = "4G"
+
+[[backend.plugin]]
 name = "elf_analysis"
 processes = 4
 

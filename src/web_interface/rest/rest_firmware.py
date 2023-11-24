@@ -113,6 +113,16 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         except MarshallingError as error:
             logging.error(f'REST|firmware|PUT: Error in payload data: {error}')
             return error_message(str(error), self.URL)
+
+        available_plugins = set(self.intercom.get_available_analysis_plugins()) - {'unpacker'}
+        unavailable_plugins = set(data['requested_analysis_systems']) - available_plugins
+        if unavailable_plugins:
+            return error_message(
+                f'The requested analysis plugins are not available: {", ".join(unavailable_plugins)}',
+                self.URL,
+                request_data={k: v for k, v in data.items() if k != 'binary'},  # don't send the firmware binary back
+            )
+
         result = self._process_data(data)
         if 'error_message' in result:
             logging.warning('Submission not according to API guidelines! (data could not be parsed)')

@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import pytest
 
+from storage.db_interface_base import DbInterfaceError
 from test.common_helper import create_test_file_object, create_test_firmware
 
 from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, add_included_file
@@ -141,6 +142,17 @@ def test_update_duplicate_same_fw(backend_db, frontend_db):
     assert list(db_fo.virtual_file_path) == [fw.uid]
     assert len(db_fo.virtual_file_path[fw.uid]) == 2  # noqa: PLR2004
     assert db_fo.parents == {fw.uid}
+
+
+def test_update_duplicate_file_as_fw(backend_db):
+    # special case: trying to upload a file as FW that is already in the DB as part of another FW -> should cause error
+    fo, fw = create_fw_with_child_fo()
+    backend_db.insert_multiple_objects(fw, fo)
+    fw2 = create_test_firmware()
+    fw2.uid = fo.uid
+
+    with pytest.raises(DbInterfaceError):
+        backend_db.add_object(fw2)
 
 
 def test_analysis_exists(backend_db):

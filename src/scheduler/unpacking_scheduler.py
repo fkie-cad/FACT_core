@@ -22,6 +22,7 @@ from helperFunctions.process import (
 )
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
+from storage.db_interface_base import DbInterfaceError
 from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack import Unpacker
 from unpacker.unpack_base import ExtractionError
@@ -205,8 +206,12 @@ class UnpackingScheduler:
             logging.info(f'Unpacking completed: {task.uid} (extracted files: {len(extracted_objects)})')
             # each worker needs its own interface because connections are not thread-safe
             db_interface = self.db_interface()
-            db_interface.add_object(task)  # save FO before submitting to analysis scheduler
-            self.post_unpack(task)
+            try:
+                db_interface.add_object(task)  # save FO before submitting to analysis scheduler
+                self.post_unpack(task)
+            except DbInterfaceError as error:
+                logging.error(str(error))
+                extracted_objects = []
             self._update_currently_unpacked(task, extracted_objects, db_interface)
             self._schedule_extracted_files(extracted_objects)
 

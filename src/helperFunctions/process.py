@@ -72,10 +72,11 @@ class ExceptionSafeProcess(Process):
     .. _Python docs: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Process
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, reraise: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
         self._receive_pipe, self._send_pipe = Pipe()
         self._exception = None
+        self._reraise = reraise
 
     def run(self):
         """
@@ -88,7 +89,8 @@ class ExceptionSafeProcess(Process):
         except Exception as exception:
             trace = traceback.format_exc()
             self._send_pipe.send((exception, trace))
-            raise exception
+            if self._reraise:
+                raise exception
 
     @property
     def exception(self) -> tuple[Exception, str] | None:

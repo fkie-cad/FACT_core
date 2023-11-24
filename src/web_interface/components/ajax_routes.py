@@ -6,6 +6,7 @@ from flask import jsonify, render_template
 
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
+from objects.firmware import Firmware
 from web_interface.components.component_base import AppRoute, ComponentBase, GET
 from web_interface.components.hex_highlighting import preview_data_as_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
@@ -114,10 +115,11 @@ class AjaxRoutes(ComponentBase):
         with get_shared_session(self.db.frontend) as frontend_db:
             firmware = frontend_db.get_object(uid, analysis_filter=selected_analysis)
             summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis)
+            root_uid = uid if isinstance(firmware, Firmware) else frontend_db.get_root_uid(uid)
         return render_template(
             'summary.html',
             summary_of_included_files=summary_of_included_files,
-            root_uid=uid,
+            root_uid=root_uid,
             selected_analysis=selected_analysis,
         )
 

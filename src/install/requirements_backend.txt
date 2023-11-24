@@ -2,7 +2,7 @@ cryptography==41.0.4
 docker==6.0.1
 MarkupSafe==2.1.1
 networkx==2.6.3
-Pillow==9.3.0
+Pillow==10.0.1
 pyopenssl==23.2.0
 pyyaml==6.0.1
 

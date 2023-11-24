@@ -17,6 +17,7 @@ from collections import defaultdict
 
 from docker.types import Mount
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
 
@@ -36,11 +37,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'Due to the nature of static analysis, this plugin may run for a long time.'
     )
     DEPENDENCIES = ['cpu_architecture', 'file_type']  # noqa: RUF012
-    VERSION = '0.5.2'
+    VERSION = '0.5.4'
     TIMEOUT = 600  # 10 minutes
     MIME_WHITELIST = [  # noqa: RUF012
         'application/x-executable',
-        'application/x-object',
         'application/x-pie-executable',
         'application/x-sharedlib',
     ]
@@ -50,6 +50,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def additional_setup(self):
         self._log_version_string()
+        self.memory_limit = getattr(config.backend.plugin.get(self.NAME, None), 'memory_limit', '4G')
+        self.swap_limit = getattr(config.backend.plugin.get(self.NAME, None), 'memswap_limit', '4G')
 
     def _log_version_string(self):
         output = self._run_cwe_checker_to_get_version_string()
@@ -78,6 +80,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
             mounts=[
                 Mount('/input', file_object.file_path, type='bind'),
             ],
+            mem_limit=self.memory_limit,
+            memswap_limit=self.swap_limit,
         )
         return result.stdout
 

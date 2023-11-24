@@ -7,6 +7,20 @@ from test.common_helper import create_test_firmware
 from test.integration.web_interface.rest.base import RestTestBase
 
 
+UPLOAD_DATA = {
+    'binary': standard_b64encode(b'test_file_content').decode(),
+    'file_name': 'test_file.txt',
+    'device_name': 'test_device',
+    'device_part': 'full',
+    'device_class': 'test_class',
+    'version': '1',
+    'vendor': 'test_vendor',
+    'release_date': '1970-01-01',
+    'tags': '',
+    'requested_analysis_systems': ['dummy'],
+}
+
+
 @pytest.mark.usefixtures('database_interfaces')
 class TestRestFirmware(RestTestBase):
     def test_rest_firmware_existing(self, backend_db):
@@ -47,35 +61,33 @@ class TestRestFirmware(RestTestBase):
         rv = self.test_client.get(f'/rest/firmware?query={query}', follow_redirects=True)
         assert b'"uids": []' in rv.data
 
-    def test_rest_upload_valid(self):
-        data = {
-            'binary': standard_b64encode(b'test_file_content').decode(),
-            'file_name': 'test_file.txt',
-            'device_name': 'test_device',
-            'device_part': 'full',
-            'device_class': 'test_class',
-            'version': '1',
-            'vendor': 'test_vendor',
-            'release_date': '1970-01-01',
-            'tags': '',
-            'requested_analysis_systems': ['dummy'],
-        }
-        rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
+    def test_rest_upload_valid(self, monkeypatch):
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
+            lambda _: ['dummy'],
+        )
+        rv = self.test_client.put('/rest/firmware', json=UPLOAD_DATA, follow_redirects=True)
         assert b'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17' in rv.data
         assert b'"status": 0' in rv.data
 
-    def test_rest_upload_invalid(self):
+    def test_upload_unknown_plugin(self, monkeypatch):
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
+            lambda _: ['plugin_1'],
+        )
         data = {
-            'binary': standard_b64encode(b'test_file_content').decode(),
-            'file_name': 'test_file.txt',
-            'device_name': 'test_device',
-            'device_part': 'test_part',
-            'device_class': 'test_class',
-            'vendor': 'test_vendor',
-            'release_date': '01.01.1970',
-            'tags': '',
-            'requested_analysis_systems': ['dummy'],
+            **UPLOAD_DATA,
+            'requested_analysis_systems': ['plugin_1', 'plugin_2'],
         }
+        response = self.test_client.put('/rest/firmware', json=data, follow_redirects=True).json
+        assert 'error_message' in response
+        assert 'The requested analysis plugins are not available' in response['error_message']
+        assert 'plugin_2' in response['error_message']
+        assert 'plugin_1' not in response['error_message']
+
+    def test_rest_upload_invalid(self):
+        data = {**UPLOAD_DATA}
+        data.pop('version')
         rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
         assert rv.json['message'] == 'Input payload validation failed'
         assert 'version' in rv.json['errors']

@@ -16,7 +16,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'analyses ELF binaries within a firmware for present exploit mitigation techniques'
     DEPENDENCIES = ['file_type']  # noqa: RUF012
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']  # noqa: RUF012
-    VERSION = '0.1.6'
+    VERSION = '0.2.0'
     FILE = __file__
 
     def additional_setup(self):
@@ -54,7 +54,6 @@ def check_mitigations(file_path):
     check_nx(file_path, mitigations, summary, checksec_result)
     check_canary(file_path, mitigations, summary, checksec_result)
     check_pie(file_path, mitigations, summary, checksec_result)
-    check_fortify_source(file_path, mitigations, summary, checksec_result)
     check_clang_cfi(file_path, mitigations, summary, checksec_result)
     check_clang_safestack(file_path, mitigations, summary, checksec_result)
     check_stripped_symbols(file_path, mitigations, summary, checksec_result)
@@ -76,16 +75,6 @@ def check_relro(file_path, mitigations, summary, checksec_result):
     elif checksec_result['relro'] == 'no':
         summary.update({'RELRO disabled': file_path})
         mitigations.update({'RELRO': 'disabled'})
-
-
-def check_fortify_source(file_path, mitigations, summary, checksec_result):
-    if checksec_result['fortify_source'] == 'yes':
-        summary.update({'FORTIFY_SOURCE enabled': file_path})
-        mitigations.update({'FORTIFY_SOURCE': 'enabled'})
-
-    elif checksec_result['fortify_source'] == 'no':
-        summary.update({'FORTIFY_SOURCE disabled': file_path})
-        mitigations.update({'FORTIFY_SOURCE': 'disabled'})
 
 
 def check_pie(file_path, mitigations, summary, checksec_result):

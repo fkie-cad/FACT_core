@@ -2,6 +2,8 @@ import logging
 from struct import unpack
 
 import OpenSSL
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import pkcs12
 
 from helperFunctions.data_conversion import make_unicode_string
 
@@ -48,9 +50,14 @@ def read_pkcs_cert(binary: bytes, offset: int):
         return None
     start, size = _get_start_and_size_of_der_field(binary=binary, offset=offset)
     try:
-        x509_cert = OpenSSL.crypto.load_pkcs12(buffer=binary[offset : start + size]).get_certificate()
+        private_key, certificate, additional_certificates = pkcs12.load_key_and_certificates(
+            binary[offset : start + size], None
+        )
+        x509_cert = OpenSSL.crypto.load_certificate(
+            OpenSSL.crypto.FILETYPE_PEM, certificate.public_bytes(serialization.Encoding.PEM)
+        )
         return make_unicode_string(OpenSSL.crypto.dump_certificate(type=OpenSSL.crypto.FILETYPE_TEXT, cert=x509_cert))
-    except OpenSSL.crypto.Error:
+    except ValueError:
         logging.debug('Found PKCS#12 certificate, but passphrase is missing or false positive.')
         return None
 
