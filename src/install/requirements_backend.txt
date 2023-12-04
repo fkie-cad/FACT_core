@@ -1,4 +1,4 @@
-cryptography==41.0.4
+cryptography==41.0.6
 docker==6.0.1
 MarkupSafe==2.1.1
 networkx==2.6.3
