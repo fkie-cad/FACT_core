@@ -1,11 +1,14 @@
 import logging
 import os
 import signal
+import sys
+from pathlib import Path
 from time import sleep
 
 import config
 
 try:
+    import git
     import psutil
     import psycopg2  # noqa: F401
 
@@ -13,6 +16,7 @@ try:
     from statistic.work_load import WorkLoadStatistic
     from storage.db_interface_base import DbInterfaceError
     from storage.migration import db_needs_migration
+    from version import __VERSION__
 except (ImportError, ModuleNotFoundError):
     logging.exception(
         'Could not load dependencies. Please make sure that you have installed FACT correctly '
@@ -37,10 +41,22 @@ class FactBase:
         self.args = setup_argparser(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
         config.load(self.args.config_file)
         setup_logging(self.args, self.COMPONENT)
+        python_version, *_ = sys.version.split(' ')
+        logging.info(
+            f'Starting {self.PROGRAM_NAME} @ {__VERSION__} ({self._get_git_revision()}, Python {python_version})'
+        )
         self.do_self_test()
 
         self._register_signal_handlers()
         self.work_load_stat = WorkLoadStatistic(component=self.COMPONENT)
+
+    @staticmethod
+    def _get_git_revision() -> str:
+        try:
+            repo = git.Repo(Path(__file__), search_parent_directories=True)
+            return f'commit {repo.head.object.hexsha}'
+        except git.exc.InvalidGitRepositoryError:
+            return 'unknown revision'
 
     def _register_signal_handlers(self):
         # Check whether the process was started by start_fact.py

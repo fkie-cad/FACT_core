@@ -7,6 +7,7 @@ setuptools<66
 # General python dependencies
 appdirs==1.4.4
 flaky==3.7.0
+gitpython~=3.1.40
 lief==0.12.3
 psutil==5.9.4
 psycopg2-binary==2.9.5
