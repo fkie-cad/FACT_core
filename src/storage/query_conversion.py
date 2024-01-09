@@ -10,6 +10,7 @@ from sqlalchemy.orm import aliased
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
 if TYPE_CHECKING:
+    from sqlalchemy.orm.util import AliasedClass
     from sqlalchemy.sql import Select
 
 FIRMWARE_ORDER = FirmwareEntry.vendor.asc(), FirmwareEntry.device_name.asc()
@@ -73,12 +74,18 @@ def build_query_from_dict(  # noqa: C901, PLR0912
 
     analysis_search_dict = {key: value for key, value in query_dict.items() if key.startswith('processed_analysis')}
     if analysis_search_dict:
-        query = query.join(
-            AnalysisEntry, AnalysisEntry.uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid)
-        )
-        for key, value in analysis_search_dict.items():
-            _, plugin, subkey = key.split('.', maxsplit=2)
-            filters.append((_add_analysis_filter_to_query(key, value, subkey)) & (AnalysisEntry.plugin == plugin))
+        # group analysis query items per plugin and create an alias and a join for each (otherwise it is not possible
+        # to search for the results of multiple plugins at the same time)
+        for plugin, plugin_search_list in _group_query_by_plugin(analysis_search_dict).items():
+            analysis_alias = aliased(AnalysisEntry)
+            query = query.join(
+                analysis_alias, analysis_alias.uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid)
+            )
+            for value, key, subkey in plugin_search_list:
+                filters.append(
+                    (_add_analysis_filter_to_query(analysis_alias, key, value, subkey))
+                    & (analysis_alias.plugin == plugin)
+                )
 
     firmware_search_dict = get_search_keys_from_dict(query_dict, FirmwareEntry, blacklist=['uid'])
     if firmware_search_dict:
@@ -103,6 +110,14 @@ def build_query_from_dict(  # noqa: C901, PLR0912
     query = query.filter(or_(*filters)) if or_query else query.filter(*filters)
 
     return query.distinct()
+
+
+def _group_query_by_plugin(analysis_search_dict: dict[str, Any]) -> dict[str, tuple[Any, str, str]]:
+    query_per_plugin = {}
+    for key, value in analysis_search_dict.items():
+        _, plugin, subkey = key.split('.', maxsplit=2)
+        query_per_plugin.setdefault(plugin, []).append((value, key, subkey))
+    return query_per_plugin
 
 
 def get_search_keys_from_dict(query_dict: dict, table, blacklist: Optional[list[str]] = None) -> dict[str, Any]:
@@ -138,13 +153,13 @@ def _get_column(key: str, table: type[FirmwareEntry] | type[FileObjectEntry] | t
     return column
 
 
-def _add_analysis_filter_to_query(key: str, value: Any, subkey: str):
-    if hasattr(AnalysisEntry, subkey):
+def _add_analysis_filter_to_query(analysis: AliasedClass, key: str, value: Any, subkey: str):
+    if hasattr(analysis, subkey):
         if subkey == 'summary':  # special case: array field
-            return _get_array_filter(AnalysisEntry.summary, key, value)
-        return getattr(AnalysisEntry, subkey) == value
+            return _get_array_filter(analysis.summary, key, value)
+        return getattr(analysis, subkey) == value
     # no metadata field, actual analysis result key in `AnalysisEntry.result` (JSON)
-    return _add_json_filter(key, value, subkey)
+    return _add_json_filter(analysis, key, value, subkey)
 
 
 def _get_array_filter(field, key, value):
@@ -166,8 +181,8 @@ def _to_list(value):
     return value if isinstance(value, list) else [value]
 
 
-def _add_json_filter(key, value, subkey):
-    column = AnalysisEntry.result
+def _add_json_filter(analysis: AliasedClass, key: str, value: Any, subkey: str):
+    column = analysis.result
     if isinstance(value, dict) and '$exists' in value:
         # "$exists" (aka key exists in json document) is a special case because
         # we need to query the element one level above the actual key
