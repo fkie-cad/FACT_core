@@ -267,6 +267,31 @@ def test_generic_search_dict_in_list(backend_db, frontend_db):
     }
 
 
+def test_generic_search_multi(backend_db, frontend_db):
+    fo = create_test_file_object()
+    fo.processed_analysis = {
+        'plugin_1': generate_analysis_entry(analysis_result={'key_1': 'foo'}),
+        'plugin_2': generate_analysis_entry(analysis_result={'key_2': 'bar'}),
+    }
+    backend_db.insert_object(fo)
+
+    result = frontend_db.generic_search(
+        {
+            'processed_analysis.plugin_1.key_1': 'foo',
+            'processed_analysis.plugin_2.key_2': 'bar',
+        }
+    )
+    assert result == [fo.uid], 'filter & join for multiple analyses does not work'
+
+    result = frontend_db.generic_search(
+        {
+            'processed_analysis.plugin_1.key_1': 'foo',
+            'processed_analysis.plugin_2.key_2': 'wrong',
+        }
+    )
+    assert result == [], 'this should not match if one value is wrong'
+
+
 def test_generic_search_json_types(frontend_db, backend_db):
     fo, fw = create_fw_with_child_fo()
     fo.processed_analysis = {
