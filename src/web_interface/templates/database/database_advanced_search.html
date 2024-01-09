@@ -99,6 +99,14 @@
                 <span class="example-json">{"processed_analysis.software_components.OpenSSL.meta.version": {"$contains": "1.0.1f"}}</span><br />
                 <span class="example-comment">Select files where OpenSSL version 1.0.1f was found</span>
             </p>
+            <p>
+                Searching for multiple results from different plugins:<br />
+                <span class="example-json">{<br>
+                &nbsp;&nbsp;"processed_analysis.software_components.OpenSSL": {"$exists": true},<br>
+                &nbsp;&nbsp;"processed_analysis.file_type.mime": "application/x-sharedlib"<br>
+                }</span><br />
+                <span class="example-comment">Search shared libraries with OpenSSL</span>
+            </p>
 
             For further usage also see <a href="https://docs.mongodb.com/v3.6/tutorial/query-documents/">the MongoDB documentation</a> or simply ask for help at our <a href="https://gitter.im/FACT_core/community">Gitter channel</a>.
 
