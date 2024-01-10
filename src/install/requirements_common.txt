@@ -1,9 +1,6 @@
 # General build stuff
 testresources==2.0.1
 
-# FixMe: remove pinned version as soon as installation of ssdeep works again
-setuptools<66
-
 # General python dependencies
 appdirs==1.4.4
 flaky==3.7.0
@@ -22,7 +19,8 @@ rich==12.6.0
 sqlalchemy==2.0.15
 ssdeep==3.4
 xmltodict==0.13.0
-yara-python==4.2.3
+# FixMe: pin to 4.4.x as soon as it releases
+git+https://github.com/VirusTotal/yara-python@d0921c0
 
 # Config validation
 pydantic==2.1.1

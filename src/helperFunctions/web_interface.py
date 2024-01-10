@@ -7,7 +7,7 @@ from datetime import timedelta
 from common_helper_files import get_binary_from_file
 from matplotlib import cm, colors
 from passlib.context import CryptContext
-from si_prefix import si_format
+from quantiphy import Quantity
 
 from helperFunctions.fileSystem import get_template_dir
 
@@ -113,7 +113,9 @@ def cap_length_of_element(hid_element: str, maximum: int = 55) -> str:
 
 
 def _format_si_prefix(number: float, unit: str) -> str:
-    return f'{si_format(number, precision=2)}{unit}'
+    quantity = Quantity(number, unit)
+    quantity.set_prefs(map_sf={'u': 'µ'})
+    return quantity.render(prec=2)
 
 
 def format_time(seconds: float) -> str:

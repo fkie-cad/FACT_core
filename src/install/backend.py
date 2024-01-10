@@ -120,7 +120,7 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
 
 
 def _install_yara():
-    yara_version = 'v4.2.3'  # must be the same version as `yara-python` in `install/requirements_common.txt`
+    yara_version = 'v4.4.0'  # must be the same version as `yara-python` in `install/requirements_common.txt`
 
     yara_process = subprocess.run('yara --version', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
     if yara_process.returncode == 0 and yara_process.stdout.strip() == yara_version.strip('v'):
