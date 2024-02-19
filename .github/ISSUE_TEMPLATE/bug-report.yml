@@ -36,6 +36,13 @@ body:
     validations:
       required: true
   - type: textarea
+    id: observed-behavior
+    attributes:
+      label: Observed Behavior
+      description: What did happen?
+    validations:
+      required: true
+  - type: textarea
     id: expected-behavior
     attributes:
       label: Expeced Behavior
