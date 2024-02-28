@@ -3,12 +3,13 @@ import os
 import signal
 import sys
 from pathlib import Path
+from shlex import split
+from subprocess import CalledProcessError, PIPE, run, STDOUT
 from time import sleep
 
 import config
 
 try:
-    import git
     import psutil
     import psycopg2  # noqa: F401
 
@@ -53,9 +54,9 @@ class FactBase:
     @staticmethod
     def _get_git_revision() -> str:
         try:
-            repo = git.Repo(Path(__file__), search_parent_directories=True)
-            return f'commit {repo.head.object.hexsha}'
-        except git.exc.InvalidGitRepositoryError:
+            proc = run(split('git rev-parse --short HEAD'), stdout=PIPE, stderr=STDOUT, cwd=Path(__file__).parent)
+            return proc.stdout.decode().strip()
+        except CalledProcessError:
             return 'unknown revision'
 
     def _register_signal_handlers(self):
