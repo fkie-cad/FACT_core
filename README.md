@@ -107,7 +107,7 @@ We've been happy to show FACT in a number of BlackHat Arsenal sessions.
 ## License
 ```
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2023  Fraunhofer FKIE
+    Copyright (C) 2015-2024  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
