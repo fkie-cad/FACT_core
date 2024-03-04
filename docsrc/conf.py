@@ -17,7 +17,7 @@ sys.path.insert(0, str(FACT_SRC))
 
 
 project = 'FACT'
-copyright = '2020-2023  Fraunhofer FKIE'  # noqa: A001
+copyright = '2020-2024  Fraunhofer FKIE'  # noqa: A001
 author = 'jstucke'
 
 
