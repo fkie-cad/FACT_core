@@ -103,9 +103,7 @@ class DeviceTree(pydantic.BaseModel):
             'https://devicetree-specification.readthedocs.io/en/latest/chapter2-devicetree-basics.html?highlight=model#model'
         ),
     )
-    description: Optional[str] = Field(
-        description='',
-    )
+    description: Optional[str] = Field()
 
     @classmethod
     def from_binary(cls, binary: bytes, offset: int = 0):
