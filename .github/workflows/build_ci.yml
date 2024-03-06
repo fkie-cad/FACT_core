@@ -55,7 +55,7 @@ jobs:
           echo "::add-mask::${{ secrets.SECRET_STRING_2 }}"
           echo "::add-mask::${{ secrets.SECRET_STRING_3 }}"
       - name: Checkout Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ matrix.target }}
       - name: Set ulimit
