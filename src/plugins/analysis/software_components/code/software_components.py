@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import string
-
+from typing import TYPE_CHECKING
 
 import config
 from analysis.YaraPluginBase import YaraBasePlugin
@@ -12,7 +12,6 @@ from plugins.analysis.software_components.bin import OS_LIST
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 from ..internal.resolve_version_format_string import extract_data_from_ghidra
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject

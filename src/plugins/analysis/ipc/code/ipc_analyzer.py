@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from docker.types import Mount
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject

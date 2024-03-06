@@ -39,7 +39,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 def execute_checksec_script(file_path):
     checksec_process = subprocess.run(
-        f'{SHELL_SCRIPT} --file={file_path} --format=json --extended', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+        f'{SHELL_SCRIPT} --file={file_path} --format=json --extended',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        text=True,
+        check=False,
     )
     if checksec_process.returncode != 0:
         raise ValueError(f'Checksec script exited with non-zero return code {checksec_process.returncode}')

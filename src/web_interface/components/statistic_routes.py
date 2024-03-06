@@ -3,7 +3,7 @@ from flask import render_template, request
 from helperFunctions.database import get_shared_session
 from helperFunctions.web_interface import apply_filters_to_query
 from statistic.update import StatsUpdater
-from web_interface.components.component_base import AppRoute, ComponentBase, GET
+from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 

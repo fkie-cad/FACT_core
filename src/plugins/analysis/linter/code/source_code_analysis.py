@@ -1,23 +1,18 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
+from typing import TYPE_CHECKING, List, Optional
 
+import pydantic
 from docker.types import Mount
-
-from helperFunctions.docker import run_docker_container
+from pydantic import Field
 
 from analysis.plugin import AnalysisPluginV0
 from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
-
-import pydantic
-from pydantic import Field
-
-from typing import Optional
-from pathlib import Path
-
-from typing import List, TYPE_CHECKING
-
+from helperFunctions.docker import run_docker_container
 from helperFunctions.virtual_file_path import get_paths_for_all_parents
+
 from ..internal import linters
 
 if TYPE_CHECKING:
@@ -44,15 +39,14 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
             symbol: str = Field(
                 description=(
                     "An identifier for the linting type. E.g. 'unused-import' (pylint).\n"
-                    "Note that this field is linter specific."
+                    'Note that this field is linter specific.'
                 ),
             )
             type: Optional[str] = Field(None, description="E.g. 'warning' or 'error'")
             message: str = Field(
                 description=(
                     # fmt: off
-                    'The human readable description of the issue.\n'
-                    'Note that this field is linter specific.'
+                    'The human readable description of the issue.\n' 'Note that this field is linter specific.'
                 ),
             )
             line: int = Field(description='The line in the file where the issue occurred')
@@ -63,8 +57,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
         issues: Optional[List[Issue]] = Field(
             description=(
                 # fmt: off
-                'A list of issues the linter for ``script_type`` found.\n'
-                'Is set to None if no linter is available.'
+                'A list of issues the linter for ``script_type`` found.\n' 'Is set to None if no linter is available.'
             ),
         )
 

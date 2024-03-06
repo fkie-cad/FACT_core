@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, AnyStr, TypeVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, AnyStr, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -78,23 +78,23 @@ def get_value_of_first_key(input_dict: dict[_KT, _VT]) -> _VT | None:
 
 
 def none_to_none(input_data: str | None) -> str | None:
-    '''
+    """
     Convert a string to `None` if it consists of the word `"None"` or return the input data otherwise.
     Used to convert a string coming from the web interface to a NoneType object if necessary.
 
     :param input_data: A string that may
-    '''
+    """
     return None if input_data == 'None' else input_data
 
 
 def convert_time_to_str(time_obj: Any) -> str:
-    '''
+    """
     Convert a time object to a string. The time object may be a datetime.date object or a string. If it is anything else,
     the output defaults to `"1970-01-01"`.
 
     :param time_obj: The time object, that is converted to string.
     :return: The converted time object as string or a default date (if the conversion fails).
-    '''  # noqa: E501
+    """  # noqa: E501
     if isinstance(time_obj, datetime.date):
         return time_obj.strftime('%Y-%m-%d')
     if isinstance(time_obj, str):
@@ -103,10 +103,10 @@ def convert_time_to_str(time_obj: Any) -> str:
 
 
 def convert_str_to_bool(string: str) -> bool:
-    '''
+    """
     Convert a string to a boolean, e.g. `"0"` to `False` or `"Y"` to `True`.
     Replaces `distutils.util.strtobool` which was deprecated in Python 3.10.
-    '''
+    """
     if not isinstance(string, str):
         raise ValueError(f'Expected type str and not {type(string)}')
     lower: str = string.lower()

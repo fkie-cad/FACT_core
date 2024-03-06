@@ -3,8 +3,8 @@ import io
 import pydantic
 from pydantic import Field
 
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from analysis.plugin import AnalysisPluginV0
+from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 
 
 class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
@@ -14,8 +14,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
         number: int = Field(
             description=(
                 # fmt: off
-                'This is a description of the field number.\n'
-                'In an actual plugin all fields must have a description.'
+                'This is a description of the field number.\n' 'In an actual plugin all fields must have a description.'
             ),
         )
         name: str

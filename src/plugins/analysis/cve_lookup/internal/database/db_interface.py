@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from pathlib import Path
 from collections import defaultdict
-
-from ..database.schema import Association, Cve, Cpe
+from pathlib import Path
 from typing import TYPE_CHECKING
+
+from ..database.schema import Association, Cpe, Cve
 
 if TYPE_CHECKING:
     from ..database.db_connection import DbConnection

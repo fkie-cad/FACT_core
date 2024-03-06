@@ -1,12 +1,12 @@
 from typing import NamedTuple
 
 import pytest
+from manage_users import setup_argparse, start_user_management
 from prompt_toolkit import PromptSession
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.input.base import PipeInput
 from prompt_toolkit.output import DummyOutput
 
-from manage_users import setup_argparse, start_user_management
 from web_interface.app import create_app
 from web_interface.security.authentication import add_flask_security_to_app
 

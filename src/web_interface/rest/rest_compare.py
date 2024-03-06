@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import fields, Namespace
+from flask_restx import Namespace, fields
 
 from helperFunctions.data_conversion import convert_compare_id_to_list, normalize_compare_id
 from helperFunctions.database import get_shared_session

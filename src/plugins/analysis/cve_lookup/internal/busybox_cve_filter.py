@@ -1,12 +1,13 @@
 from __future__ import annotations
-import re
-import logging
-from pathlib import Path
 
+import logging
+import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject
+
     from .database.schema import Cve
 
 BASE_DIR = Path(__file__).parent
@@ -17,8 +18,8 @@ with GROUP_1_PATH.open('r') as f1, GROUP_2_PATH.open('r') as f2:
     GROUP_1 = f1.read().splitlines()
     GROUP_2 = f2.read().splitlines()
 
-PATTERNS_1 = [re.compile(fr'(?:\")(?:{re.escape(word)})(?:\-|\")') for word in GROUP_1]
-PATTERNS_2 = [re.compile(fr'(?:\b|\_)(?:{re.escape(word)})(?:\b|-)') for word in GROUP_2]
+PATTERNS_1 = [re.compile(rf'(?:\")(?:{re.escape(word)})(?:\-|\")') for word in GROUP_1]
+PATTERNS_2 = [re.compile(rf'(?:\b|\_)(?:{re.escape(word)})(?:\b|-)') for word in GROUP_2]
 
 
 def filter_busybox_cves(file_object: FileObject, cves: dict[str, Cve]) -> dict[str, Cve]:

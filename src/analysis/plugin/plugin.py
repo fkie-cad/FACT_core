@@ -3,10 +3,10 @@ from __future__ import annotations
 import abc
 import time
 import typing
-import semver
 
 import pydantic
-from pydantic import field_validator, ConfigDict, BaseModel
+import semver
+from pydantic import BaseModel, ConfigDict, field_validator
 
 if typing.TYPE_CHECKING:
     import io

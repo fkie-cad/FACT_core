@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import yara
 
 from helperFunctions.fileSystem import get_src_dir
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from analysis.plugin import AnalysisPluginV0
     import io
+
+    from analysis.plugin import AnalysisPluginV0
 
 
 class Yara:

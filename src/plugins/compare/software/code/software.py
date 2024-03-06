@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject

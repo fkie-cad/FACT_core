@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from json import dumps
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import func, or_, select, type_coerce
 from sqlalchemy.dialects.postgresql import JSONB

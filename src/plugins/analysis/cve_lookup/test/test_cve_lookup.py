@@ -1,10 +1,13 @@
-import pytest
 import tempfile
-from ..code import cve_lookup
+
+import pytest
+
 from test.common_helper import TEST_FW
-from ..internal.helper_functions import CveEntry
-from ..internal.database.db_setup import DbSetup
+
+from ..code import cve_lookup
 from ..internal.database.db_connection import DbConnection
+from ..internal.database.db_setup import DbSetup
+from ..internal.helper_functions import CveEntry
 
 # Set the temp path for the DB
 temp_dir = tempfile.TemporaryDirectory()

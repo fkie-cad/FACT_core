@@ -12,7 +12,6 @@ from web_interface.file_tree.file_tree import (
 )
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
-
 NON_VIRTUAL_TREE_ROOT = {
     'a_attr': {'href': '/analysis/someUID/ro/someUID'},
     'children': True,

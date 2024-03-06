@@ -8,7 +8,7 @@ import zlib
 from base64 import b64encode
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, NamedTuple, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, NamedTuple, Optional
 
 from docker.types import Mount
 from pydantic import BaseModel, Field

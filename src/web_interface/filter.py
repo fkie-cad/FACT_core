@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import binascii
-import stat
-
-import semver
 import json
 import logging
-import packaging.version
 import random
 import re
+import stat
 import zlib
 from base64 import b64decode, standard_b64encode
 from collections import defaultdict
@@ -17,8 +14,10 @@ from operator import itemgetter
 from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import Union, Iterable
+from typing import Iterable, Union
 
+import packaging.version
+import semver
 from common_helper_files import human_readable_file_size
 from flask import render_template
 

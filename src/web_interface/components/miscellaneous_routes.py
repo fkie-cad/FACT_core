@@ -11,7 +11,7 @@ import config
 from helperFunctions.database import get_shared_session
 from helperFunctions.web_interface import format_time
 from statistic.update import StatsUpdater
-from web_interface.components.component_base import AppRoute, ComponentBase, GET, POST
+from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 

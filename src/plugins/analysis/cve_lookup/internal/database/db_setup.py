@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-
-from .schema import Association, Cve, Cpe
-from ..helper_functions import CveEntry, replace_wildcards
 from typing import TYPE_CHECKING
+
+from ..helper_functions import CveEntry, replace_wildcards
+from .schema import Association, Cpe, Cve
 
 if TYPE_CHECKING:
     from .db_connection import DbConnection

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from random import sample, seed
-from typing import TypeVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

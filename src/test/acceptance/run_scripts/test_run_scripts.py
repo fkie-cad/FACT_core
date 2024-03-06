@@ -3,10 +3,10 @@ import os
 import subprocess
 from subprocess import PIPE, STDOUT
 
-import pytest
-
 import init_postgres
+import pytest
 import update_statistic
+
 from helperFunctions.fileSystem import get_src_dir
 
 
@@ -27,6 +27,7 @@ def test_start_script_help_and_version(script, expected_str):
         stdout=PIPE,
         stderr=STDOUT,
         text=True,
+        check=False,
     )
     assert cmd_process.returncode == 0
     assert f'usage: {script}' in cmd_process.stdout
@@ -38,6 +39,7 @@ def test_start_script_help_and_version(script, expected_str):
         stdout=PIPE,
         stderr=STDOUT,
         text=True,
+        check=False,
     )
     assert expected_str in cmd_process.stdout, f'Wrong output {cmd_process.stdout}'
     assert cmd_process.returncode == 0
@@ -59,6 +61,7 @@ def test_fact_complete_start():
         stdout=PIPE,
         stderr=STDOUT,
         text=True,
+        check=False,
     )
     assert '[DEBUG]' in cmd_process.stdout
     assert 'Analysis System online...' in cmd_process.stdout

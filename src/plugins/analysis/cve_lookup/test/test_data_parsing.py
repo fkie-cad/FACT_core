@@ -4,7 +4,6 @@ from pathlib import Path
 from ..internal import data_parsing
 from ..internal.helper_functions import CveEntry
 
-
 with open(Path(__file__).parent / 'test_resources/CVE-2012-0010.json') as file:  # noqa: PTH123
     CVE_ITEM = json.load(file)
 

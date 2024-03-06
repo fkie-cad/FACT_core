@@ -28,7 +28,7 @@ class TarRepack(UnpackBase):
     @staticmethod
     def _repack_extracted_files(extraction_dir: Path, out_file_path: str) -> bytes:
         tar_process = subprocess.run(
-            f'tar -C {extraction_dir} -cvzf {out_file_path} .', shell=True, stdout=PIPE, stderr=STDOUT
+            f'tar -C {extraction_dir} -cvzf {out_file_path} .', shell=True, stdout=PIPE, stderr=STDOUT, check=False
         )
         logging.debug(f'tar -cvzf:\n {tar_process.stdout}')
         return get_binary_from_file(out_file_path)

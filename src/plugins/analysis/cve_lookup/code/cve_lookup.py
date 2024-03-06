@@ -2,22 +2,22 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-
-from helperFunctions.tag import TagColor
-from analysis.PluginBase import AnalysisBasePlugin
-from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 from typing import TYPE_CHECKING
+
+from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.tag import TagColor
+from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 if TYPE_CHECKING:
     from objects.file import FileObject
 
 try:
-    from ..internal.lookup import Lookup
     from ..internal.database.db_connection import DbConnection
+    from ..internal.lookup import Lookup
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from lookup import Lookup
     from database.db_connection import DbConnection
+    from lookup import Lookup
 
 DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
 

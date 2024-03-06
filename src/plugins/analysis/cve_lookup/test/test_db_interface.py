@@ -1,8 +1,8 @@
-from ..internal.helper_functions import CveEntry
-from ..internal.database.db_setup import DbSetup
-from ..internal.database.db_interface import DbInterface
 from ..internal.database.db_connection import DbConnection
-from ..internal.database.schema import Association, Cve, Cpe
+from ..internal.database.db_interface import DbInterface
+from ..internal.database.db_setup import DbSetup
+from ..internal.database.schema import Association, Cpe, Cve
+from ..internal.helper_functions import CveEntry
 
 CVE_ENTRY = CveEntry(
     cve_id='CVE-2023-1234',

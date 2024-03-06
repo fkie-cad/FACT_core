@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
-import os
 import logging
+import os
 from pathlib import Path
 
 try:
-    from plugins.installer import AbstractPluginInstaller
     from helperFunctions.install import check_distribution
     from plugins.analysis.cve_lookup.internal.data_parsing import parse_data
-    from plugins.analysis.cve_lookup.internal.database.db_setup import DbSetup
     from plugins.analysis.cve_lookup.internal.database.db_connection import DbConnection
+    from plugins.analysis.cve_lookup.internal.database.db_setup import DbSetup
+    from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
 
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from plugins.installer import AbstractPluginInstaller
     from helperFunctions.install import check_distribution
     from plugins.analysis.cve_lookup.internal.data_parsing import parse_data
-    from plugins.analysis.cve_lookup.internal.database.db_setup import DbSetup
     from plugins.analysis.cve_lookup.internal.database.db_connection import DbConnection
+    from plugins.analysis.cve_lookup.internal.database.db_setup import DbSetup
+    from plugins.installer import AbstractPluginInstaller
 
 
 class CveLookupInstaller(AbstractPluginInstaller):

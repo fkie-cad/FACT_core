@@ -44,7 +44,7 @@ class StructureBlock:
 
 
 def convert_device_tree_to_str(file_path: str | Path) -> str | None:
-    process = run(f'dtc -I dtb -O dts {file_path}', shell=True, capture_output=True)
+    process = run(f'dtc -I dtb -O dts {file_path}', shell=True, capture_output=True, check=False)
     if process.returncode != 0:
         logging.warning(
             f'The Device Tree Compiler exited with non-zero return code {process.returncode}: {process.stderr}'

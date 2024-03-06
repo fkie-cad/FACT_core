@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import TYPE_CHECKING
 
 from common_helper_filter.time import time_format
 from flask import render_template
@@ -14,11 +15,10 @@ from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
 from web_interface.filter import elapsed_time, random_collapse_id
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from web_interface.frontend_database import FrontendDatabase
     from storage.db_interface_frontend import MetaEntry
+    from web_interface.frontend_database import FrontendDatabase
 
 
 class FilterClass:

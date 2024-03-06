@@ -6,6 +6,7 @@ import sys
 from base64 import b64encode
 from configparser import ConfigParser
 from pathlib import Path
+from typing import Optional
 
 import gridfs
 from pymongo import MongoClient, errors
@@ -17,7 +18,6 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
-from typing import Optional
 
 try:
     from rich.progress import BarColumn, Progress, TimeElapsedColumn
@@ -318,9 +318,7 @@ class DbMigrator:
         self.mongo = mongo
         self.progress = progress
 
-    def migrate_fw(  # noqa: PLR0913
-        self, query, label: Optional[str] = None, root=False, root_uid=None, parent_uid=None
-    ) -> int:
+    def migrate_fw(self, query, label: Optional[str] = None, root=False, root_uid=None, parent_uid=None) -> int:
         migrated_fw_count = 0
         collection = self.mongo.firmwares if root else self.mongo.file_objects
         total = collection.count_documents(query)

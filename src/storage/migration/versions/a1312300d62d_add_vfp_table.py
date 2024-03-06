@@ -11,7 +11,7 @@ import logging
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, orm, PrimaryKeyConstraint, select, Table, text
+from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Integer, PrimaryKeyConstraint, Table, orm, select, text
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import CHAR, JSONB, VARCHAR
 from sqlalchemy.ext.mutable import MutableDict, MutableList

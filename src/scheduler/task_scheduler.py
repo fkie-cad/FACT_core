@@ -3,13 +3,13 @@ from __future__ import annotations
 import logging
 from copy import copy
 from time import time
-
-from helperFunctions.merge_generators import shuffled
 from typing import TYPE_CHECKING
 
+from helperFunctions.merge_generators import shuffled
+
 if TYPE_CHECKING:
-    from objects.firmware import Firmware
     from objects.file import FileObject
+    from objects.firmware import Firmware
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
 

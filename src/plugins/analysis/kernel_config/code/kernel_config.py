@@ -4,7 +4,7 @@ import re
 from typing import TYPE_CHECKING
 
 from analysis.PluginBase import AnalysisBasePlugin
-from plugins.analysis.kernel_config.internal.checksec_check_kernel import check_kernel_config, CHECKSEC_PATH
+from plugins.analysis.kernel_config.internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
 from plugins.analysis.kernel_config.internal.decomp import decompress
 from plugins.analysis.kernel_config.internal.kernel_config_hardening_check import check_kernel_hardening
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE

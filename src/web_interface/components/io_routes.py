@@ -7,13 +7,13 @@ from time import sleep
 
 import requests
 from fact_helper_file import get_file_type_from_binary
-from flask import make_response, redirect, render_template, request, Response
+from flask import Response, make_response, redirect, render_template, request
 
 import config
 from helperFunctions.database import get_shared_session
 from helperFunctions.pdf import build_pdf_report
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
-from web_interface.components.component_base import AppRoute, ComponentBase, GET, POST
+from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 

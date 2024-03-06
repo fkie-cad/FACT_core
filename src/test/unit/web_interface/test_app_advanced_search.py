@@ -6,7 +6,7 @@ from test.common_helper import TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
 
 class DbMock(CommonDatabaseMock):
     @staticmethod
-    def generic_search(  # noqa: PLR0913
+    def generic_search(
         search_dict: dict,
         skip: int = 0,  # noqa: ARG004
         limit: int = 0,  # noqa: ARG004
@@ -20,9 +20,8 @@ class DbMock(CommonDatabaseMock):
         if TEST_TEXT_FILE.uid in str(search_dict):
             if not only_fo_parent_firmware:
                 result.append(TEST_TEXT_FILE.uid)
-            else:
-                if TEST_FW_2.uid not in result:  # noqa: PLR5501
-                    result.append(TEST_FW_2.uid)
+            elif TEST_FW_2.uid not in result:
+                result.append(TEST_FW_2.uid)
         if as_meta:
             return [MetaEntry(uid, 'hid', {}, 0) for uid in result]
         return result

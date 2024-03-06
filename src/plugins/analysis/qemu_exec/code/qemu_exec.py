@@ -11,6 +11,7 @@ from json import JSONDecodeError, loads
 from multiprocessing import Manager
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import TYPE_CHECKING
 
 from common_helper_files import get_binary_from_file, safe_rglob
 from docker.errors import DockerException
@@ -25,7 +26,6 @@ from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from storage.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject

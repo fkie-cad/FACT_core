@@ -171,7 +171,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- generic search ---
 
-    def generic_search(  # noqa: PLR0913
+    def generic_search(
         self,
         search_dict: dict,
         skip: int = 0,
@@ -252,7 +252,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         for entry in file_tree_data:
             yield from self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry)
 
-    def generate_file_tree_level(  # noqa: PLR0913
+    def generate_file_tree_level(
         self,
         uid: str,
         root_uid: str,
@@ -308,7 +308,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- REST ---
 
-    def rest_get_firmware_uids(  # noqa: PLR0913
+    def rest_get_firmware_uids(
         self, offset: int, limit: int, query: Optional[dict] = None, recursive=False, inverted=False
     ):
         if query is None:

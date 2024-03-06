@@ -98,7 +98,7 @@ class TestAcceptanceMisc:
         items_to_analyze=4 * 2 * 2,
     )
     @pytest.mark.usefixtures('intercom_backend_binding')
-    def test_misc(  # noqa: PLR0913
+    def test_misc(
         self,
         test_client,
         workload_statistic,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from operator import or_
-from typing import Dict, Iterable, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Iterable, List
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import JSONB
@@ -23,8 +23,9 @@ from storage.schema import (
 )
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
     from sqlalchemy.sql import Select
+
+    from objects.file import FileObject
 
 PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
     'crypto_material',

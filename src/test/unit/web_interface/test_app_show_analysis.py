@@ -4,15 +4,14 @@ import pytest
 
 from helperFunctions.data_conversion import make_bytes
 from test.common_helper import (
-    CommonDatabaseMock,
-    create_test_file_object,
-    generate_analysis_entry,
     TEST_FW,
     TEST_FW_2,
     TEST_TEXT_FILE,
+    CommonDatabaseMock,
+    create_test_file_object,
+    generate_analysis_entry,
 )
 from test.unit.conftest import CommonIntercomMock
-
 
 FAILED_FO = create_test_file_object(
     uid='failed_uid',

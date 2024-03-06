@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -16,12 +17,12 @@ from storage.entry_conversion import (
     create_vfp_entries,
     sanitize,
 )
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, included_files_table, VirtualFilePath
-from typing import TYPE_CHECKING
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath, included_files_table
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
     from sqlalchemy.orm import Session
+
+    from objects.file import FileObject
 
 
 class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):

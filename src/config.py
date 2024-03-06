@@ -5,9 +5,8 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import toml
-from pydantic import ConfigDict, field_validator, BaseModel
+from pydantic import BaseModel, ConfigDict, field_validator
 from werkzeug.local import LocalProxy
-
 
 _backend = None
 #: Proxy to an instance of :py:class:`Backend`

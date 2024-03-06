@@ -30,9 +30,10 @@ try:
 except (ImportError, ModuleNotFoundError):
     sys.exit(1)
 
+from typing import Optional
+
 from helperFunctions.fileSystem import get_config_dir, get_src_dir
 from helperFunctions.install import run_cmd_with_logging
-from typing import Optional
 
 COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from markupsafe import escape
 
@@ -171,7 +171,7 @@ def check_for_errors(analysis_task: dict) -> dict[str, str]:
     :return: A dictionary containing error messages in the form `{task_key: error_message}`.
     """
     return {
-        key: f'''Please specify the {key.replace('_', ' ')}'''
+        key: f"""Please specify the {key.replace('_', ' ')}"""
         for key in analysis_task
         if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS
     }

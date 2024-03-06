@@ -38,7 +38,7 @@ class YaraBinarySearchScanner:
         """
         compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b'YARA') else ''
         command = f'yara -r {compiled_flag} {rule_file_path} {target_path or self.db_path}'
-        yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+        yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
         return yara_process.stdout
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path: str, firmware_uid: str) -> str:

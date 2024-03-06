@@ -2,8 +2,7 @@ import pytest
 
 from storage.db_interface_frontend import CachedQuery
 from storage.query_conversion import QueryConversionException
-from test.common_helper import generate_analysis_entry
-from test.common_helper import create_test_file_object, create_test_firmware
+from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
@@ -470,9 +469,7 @@ def test_get_file_tree_data(frontend_db, backend_db):
         ({'vendor': 'test_vendor'}, 1, 1, 0),
     ],
 )
-def test_get_number_of_total_matches(  # noqa: PLR0913
-    frontend_db, backend_db, query, expected, expected_fw, expected_inv
-):
+def test_get_number_of_total_matches(frontend_db, backend_db, query, expected, expected_fw, expected_inv):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
     fw.vendor = 'test_vendor'
     parent_fo.size = 123

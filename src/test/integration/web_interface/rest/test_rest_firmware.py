@@ -6,7 +6,6 @@ import pytest
 from test.common_helper import create_test_firmware
 from test.integration.web_interface.rest.base import RestTestBase
 
-
 UPLOAD_DATA = {
     'binary': standard_b64encode(b'test_file_content').decode(),
     'file_name': 'test_file.txt',
