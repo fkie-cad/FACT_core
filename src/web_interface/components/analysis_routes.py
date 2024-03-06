@@ -18,7 +18,7 @@ from helperFunctions.task_conversion import check_for_errors, convert_analysis_t
 from helperFunctions.web_interface import get_template_as_string
 from objects.firmware import Firmware
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
-from web_interface.components.component_base import AppRoute, ComponentBase, GET, POST
+from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.components.dependency_graph import (
     create_data_graph_edges,
     create_data_graph_nodes_and_groups,

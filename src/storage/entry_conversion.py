@@ -23,7 +23,7 @@ def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | No
     return firmware
 
 
-def file_object_from_entry(  # noqa: PLR0913
+def file_object_from_entry(
     fo_entry: FileObjectEntry,
     analysis_filter: list[str] | None = None,
     included_files: set[str] | None = None,
@@ -43,7 +43,7 @@ def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, l
     return result
 
 
-def _populate_fo_data(  # noqa: PLR0913
+def _populate_fo_data(
     fo_entry: FileObjectEntry,
     file_object: FileObject,
     analysis_filter: list[str] | None = None,

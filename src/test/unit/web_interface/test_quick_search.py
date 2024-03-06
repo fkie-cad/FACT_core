@@ -6,7 +6,7 @@ from test.common_helper import TEST_FW_2, CommonDatabaseMock
 
 class DbMock(CommonDatabaseMock):
     @staticmethod
-    def generic_search(  # noqa: PLR0913
+    def generic_search(
         search_dict: dict,
         skip: int = 0,  # noqa: ARG004
         limit: int = 0,  # noqa: ARG004

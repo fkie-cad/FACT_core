@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Optional
 
 from common_helper_files import get_binary_from_file
 
@@ -9,7 +10,6 @@ from helperFunctions.data_conversion import make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
 from helperFunctions.virtual_file_path import get_some_vfp
-from typing import Optional
 
 
 class FileObject:

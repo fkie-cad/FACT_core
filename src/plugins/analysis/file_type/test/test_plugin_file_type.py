@@ -1,5 +1,6 @@
-import pytest
 import io
+
+import pytest
 
 from test.common_helper import get_test_data_dir
 

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from http import HTTPStatus
 import logging
 from contextlib import suppress
+from http import HTTPStatus
 from os import getgid, getuid
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import docker
 import requests
@@ -13,13 +14,13 @@ from docker.types import Mount
 from requests.adapters import HTTPAdapter, Retry
 
 import config
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    import multiprocessing
+    from tempfile import TemporaryDirectory
+
     from docker.models.containers import Container
     from requests.adapters import Response
-    from tempfile import TemporaryDirectory
-    import multiprocessing
 
 DOCKER_CLIENT = docker.from_env()
 EXTRACTOR_DOCKER_IMAGE = 'fkiecad/fact_extractor'

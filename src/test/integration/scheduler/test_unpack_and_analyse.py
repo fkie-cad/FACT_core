@@ -2,7 +2,6 @@ import pytest
 
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
-
 from test.integration.common import MockDbInterface
 
 

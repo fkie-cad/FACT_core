@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections import Counter
-from typing import Any, Callable, Iterator, List, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Iterator, List, Tuple
 
 from sqlalchemy import column, func, select
 from sqlalchemy.exc import SQLAlchemyError

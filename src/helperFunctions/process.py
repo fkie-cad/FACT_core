@@ -8,12 +8,12 @@ from contextlib import suppress
 from multiprocessing import Pipe, Process
 from signal import SIGTERM
 from threading import Thread
+from typing import TYPE_CHECKING
 
 import psutil
 
 import config
 from helperFunctions.logging import TerminalColors, color_string
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable

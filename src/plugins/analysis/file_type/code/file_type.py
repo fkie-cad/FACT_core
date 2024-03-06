@@ -1,12 +1,12 @@
-from fact_helper_file import get_file_type_from_path
+import io
+from typing import List
+
 import pydantic
+from fact_helper_file import get_file_type_from_path
 from pydantic import Field
 
 from analysis.plugin import AnalysisPluginV0
 from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
-
-import io
-from typing import List
 
 
 class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):

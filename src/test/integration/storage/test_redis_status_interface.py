@@ -2,7 +2,6 @@ import pytest
 
 from storage.redis_status_interface import RedisStatusInterface
 
-
 EMPTY_RESULT = {'current_analyses': {}, 'recently_finished_analyses': {}}
 TEST_RESULT = {'current_analyses': {'foo': {}}, 'recently_finished_analyses': {'bar': {}}}
 

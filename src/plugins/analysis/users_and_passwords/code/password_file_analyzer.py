@@ -6,6 +6,7 @@ from base64 import b64decode
 from contextlib import suppress
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import TYPE_CHECKING
 
 from docker.types import Mount
 
@@ -14,26 +15,26 @@ from helperFunctions.docker import run_docker_container
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
     from collections.abc import Callable
+
+    from objects.file import FileObject
 
 JOHN_PATH = Path(__file__).parent.parent / 'bin' / 'john'
 JOHN_POT = Path(__file__).parent.parent / 'bin' / 'john.pot'
 WORDLIST_PATH = Path(get_src_dir()) / 'bin' / 'passwords.txt'
-USER_NAME_REGEX = br'[a-zA-Z][a-zA-Z0-9_-]{2,15}'
+USER_NAME_REGEX = rb'[a-zA-Z][a-zA-Z0-9_-]{2,15}'
 UNIX_REGEXES = [
-    USER_NAME_REGEX + br':[^:]?:\d+:\d*:[^:]*:[^:]*:[^\n ]*',
-    USER_NAME_REGEX + br':\$[1256][ay]?\$[a-zA-Z0-9\./+]*\$[a-zA-Z0-9\./+]{16,128}={0,2}',  # MD5 / Blowfish / SHA
-    USER_NAME_REGEX + br':[a-zA-Z0-9\./=]{13}:\d*:\d*:',  # DES
+    USER_NAME_REGEX + rb':[^:]?:\d+:\d*:[^:]*:[^:]*:[^\n ]*',
+    USER_NAME_REGEX + rb':\$[1256][ay]?\$[a-zA-Z0-9\./+]*\$[a-zA-Z0-9\./+]{16,128}={0,2}',  # MD5 / Blowfish / SHA
+    USER_NAME_REGEX + rb':[a-zA-Z0-9\./=]{13}:\d*:\d*:',  # DES
 ]
 HTPASSWD_REGEXES = [
-    USER_NAME_REGEX + br':\$apr1\$[a-zA-Z0-9\./+=]+\$[a-zA-Z0-9\./+]{22}',  # MD5 apr1
-    USER_NAME_REGEX + br':\{SHA\}[a-zA-Z0-9\./+]{27}=',  # SHA-1
+    USER_NAME_REGEX + rb':\$apr1\$[a-zA-Z0-9\./+=]+\$[a-zA-Z0-9\./+]{22}',  # MD5 apr1
+    USER_NAME_REGEX + rb':\{SHA\}[a-zA-Z0-9\./+]{27}=',  # SHA-1
 ]
-MOSQUITTO_REGEXES = [br'[a-zA-Z][a-zA-Z0-9_-]{2,15}\:\$6\$[a-zA-Z0-9+/=]+\$[a-zA-Z0-9+/]{86}==']
+MOSQUITTO_REGEXES = [rb'[a-zA-Z][a-zA-Z0-9_-]{2,15}\:\$6\$[a-zA-Z0-9+/=]+\$[a-zA-Z0-9+/]{86}==']
 RESULTS_DELIMITER = '=== Results: ==='
 
 

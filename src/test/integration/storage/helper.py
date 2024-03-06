@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from test.common_helper import create_test_file_object, create_test_firmware
 from typing import TYPE_CHECKING
 
+from test.common_helper import create_test_file_object, create_test_firmware
+
 if TYPE_CHECKING:
-    from objects.firmware import Firmware
     from objects.file import FileObject
+    from objects.firmware import Firmware
 
 TEST_FO = create_test_file_object()
 TEST_FO_2 = create_test_file_object(bin_path='get_files_test/testfile2')
@@ -67,7 +68,7 @@ def insert_test_fw(  # noqa: PLR0913
     return test_fw
 
 
-def insert_test_fo(  # noqa: PLR0913
+def insert_test_fo(
     backend_db, uid, file_name='test.zip', size=1, analysis: dict | None = None, parent_fw=None, comments=None
 ):
     test_fo = create_test_file_object()

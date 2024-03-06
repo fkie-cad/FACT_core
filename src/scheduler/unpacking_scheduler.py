@@ -9,6 +9,7 @@ from queue import Empty
 from tempfile import TemporaryDirectory
 from threading import Thread
 from time import sleep
+from typing import TYPE_CHECKING
 
 from docker.errors import DockerException
 
@@ -26,7 +27,6 @@ from storage.db_interface_base import DbInterfaceError
 from unpacker.extraction_container import ExtractionContainer
 from unpacker.unpack import Unpacker
 from unpacker.unpack_base import ExtractionError
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject
@@ -44,7 +44,7 @@ class UnpackingScheduler:
     This scheduler performs unpacking on firmware objects
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         post_unpack=None,
         analysis_workload=None,

@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from objects.file import FileObject
+
 from ..code.software_components import AnalysisPlugin
 
 YARA_TEST_FILE = str(Path(__file__).parent / 'data' / 'yara_test_file')

@@ -1,6 +1,6 @@
+import contextlib
 import logging
 from multiprocessing import Manager
-import contextlib
 
 
 class UnpackingLockManager:

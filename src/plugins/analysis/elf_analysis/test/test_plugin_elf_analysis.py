@@ -68,9 +68,7 @@ class TestElfAnalysis:
             (['a', 'b', 'c'], 'b', ['d', 'e'], ['x'], ['x']),
         ],
     )
-    def test_get_tags_from_library_list(  # noqa: PLR0913
-        self, analysis_plugin, indicators, behaviour_class, libraries, tags, expected
-    ):
+    def test_get_tags_from_library_list(self, analysis_plugin, indicators, behaviour_class, libraries, tags, expected):
         analysis_plugin._get_tags_from_library_list(libraries, behaviour_class, indicators, tags)
         assert tags == expected
 
@@ -85,7 +83,7 @@ class TestElfAnalysis:
             (['a', 'b'], 'c', ['b'], ['d', 'e'], ['d', 'e', 'c']),
         ],
     )
-    def test_get_tags_from_function_list(  # noqa: PLR0913
+    def test_get_tags_from_function_list(
         self, analysis_plugin, functions, behaviour_class, indicators, tags, expected_result
     ):
         analysis_plugin._get_tags_from_function_list(functions, behaviour_class, indicators, tags)

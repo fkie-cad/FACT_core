@@ -1,9 +1,9 @@
 from multiprocessing import Event, Queue, Value
+from pathlib import Path
 from typing import List, NamedTuple, Type, TypeVar
 
 import pytest
 from pydantic import BaseModel, ConfigDict
-from pathlib import Path
 
 import config
 from scheduler.analysis import AnalysisScheduler
@@ -303,7 +303,7 @@ def _store_file_if_not_exists(fs_organizer, file_object):
 
 
 @pytest.fixture
-def analysis_scheduler(  # noqa: PLR0913
+def analysis_scheduler(
     request,  # noqa: ARG001
     pre_analysis_queue,
     post_analysis_queue,

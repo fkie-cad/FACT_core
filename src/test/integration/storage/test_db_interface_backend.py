@@ -5,7 +5,7 @@ import pytest
 from storage.db_interface_base import DbInterfaceError
 from test.common_helper import create_test_file_object, create_test_firmware
 
-from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, add_included_file
+from .helper import TEST_FO, TEST_FW, add_included_file, create_fw_with_child_fo, create_fw_with_parent_and_child
 
 
 def test_insert_objects(backend_db):

@@ -13,7 +13,7 @@ from helperFunctions.data_conversion import (
 )
 from helperFunctions.database import get_shared_session
 from helperFunctions.web_interface import get_template_as_string
-from web_interface.components.component_base import AppRoute, ComponentBase, GET
+from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES

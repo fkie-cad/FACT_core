@@ -8,11 +8,11 @@ from subprocess import PIPE, STDOUT
 import config
 from helperFunctions.install import (
     InstallationError,
-    is_virtualenv,
     OperateInDirectory,
     apt_install_packages,
     dnf_install_packages,
     install_pip_packages,
+    is_virtualenv,
     read_package_list_from_file,
     run_cmd_with_logging,
 )
@@ -27,7 +27,7 @@ ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/Papirus/24x24')
 def execute_commands_and_raise_on_return_code(commands, error=None):
     for command in commands:
         bad_return = error if error else f'execute {command}'
-        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
         if cmd_process.returncode != 0:
             raise InstallationError(f'Failed to {bad_return}\n{cmd_process.stdout}')
 
@@ -40,10 +40,15 @@ def _create_directory_for_authentication():
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
     mkdir_process = subprocess.run(
-        f'sudo mkdir -p --mode=0744 {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+        f'sudo mkdir -p --mode=0744 {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
     chown_process = subprocess.run(
-        f'sudo chown {os.getuid()}:{os.getgid()} {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+        f'sudo chown {os.getuid()}:{os.getgid()} {factauthdir}',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        text=True,
+        check=False,
     )
 
     if not all(return_code == 0 for return_code in [mkdir_process.returncode, chown_process.returncode]):
@@ -70,7 +75,7 @@ def _install_nginx(distribution):
             ],
             error='restore selinux context',
         )
-    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, capture_output=True, text=True)
+    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, capture_output=True, text=True, check=False)
     if nginx_process.returncode != 0:
         raise InstallationError(f'Failed to start nginx\n{nginx_process.stderr}')
 
@@ -109,7 +114,7 @@ def _install_docker_images(radare):
 
         with OperateInDirectory('radare'):
             docker_compose_process = subprocess.run(
-                'docker compose build', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+                'docker compose build', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
             )
             if docker_compose_process.returncode != 0:
                 raise InstallationError(f'Failed to initialize radare container:\n{docker_compose_process.stdout}')
@@ -117,7 +122,7 @@ def _install_docker_images(radare):
     # pull pdf report container
     logging.info('Pulling pdf report container')
     docker_process = subprocess.run(
-        'docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+        'docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
     if docker_process.returncode != 0:
         raise InstallationError(f'Failed to pull pdf report container:\n{docker_process.stdout}')

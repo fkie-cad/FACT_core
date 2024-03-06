@@ -3,9 +3,9 @@ from pathlib import Path
 
 import yara
 
-from analysis.YaraPluginBase import YaraBasePlugin
 from analysis.plugin.addons import Yara
 from analysis.plugin.compat import yara_match_to_dict
+from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.fileSystem import get_src_dir
 from test.common_helper import create_test_file_object
 

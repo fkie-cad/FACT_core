@@ -310,7 +310,7 @@ class TestAnalysisSkipping:
             (' 1.0', '1.1', '1.1', '1.0', False),  # invalid version string
         ],
     )
-    def test_analysis_is_already_in_db_and_up_to_date(  # noqa: PLR0913
+    def test_analysis_is_already_in_db_and_up_to_date(
         self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output
     ):
         plugin = 'foo'

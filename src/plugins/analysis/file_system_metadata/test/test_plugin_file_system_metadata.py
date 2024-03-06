@@ -8,17 +8,16 @@ import pytest
 from flaky import flaky
 
 from ..code.file_system_metadata import (
+    SGID_BIT,
+    STICKY_BIT,
+    SUID_BIT,
+    AnalysisPlugin,
+    FileMetadata,
     _extract_metadata_from_tar,
     _file_mode_contains_bit,
     _get_results_for_tar_file,
     _tag_should_be_set,
-    AnalysisPlugin,
-    FileMetadata,
-    SGID_BIT,
-    STICKY_BIT,
-    SUID_BIT,
 )
-
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 EXPECTED_FILE_COUNT = 5

@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 from queue import Empty
+from typing import TYPE_CHECKING
 
 import pytest
 
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from multiprocessing import Queue

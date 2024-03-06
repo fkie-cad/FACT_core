@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-'''
+"""
 This module offers neat wrapper functionality for use in rest endpoints.
 Most wrappers target request and response parsing.
-'''
+"""
 
 import calendar  # noqa: E402
 import json  # noqa: E402
 import time  # noqa: E402
 from copy import deepcopy  # noqa: E402
-
 from typing import TYPE_CHECKING  # noqa: E402
 
 if TYPE_CHECKING:

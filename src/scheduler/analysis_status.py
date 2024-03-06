@@ -1,18 +1,18 @@
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 from dataclasses import dataclass, field
-from enum import auto, Enum
+from enum import Enum, auto
 from multiprocessing import Process, Queue, Value
 from queue import Empty
 from time import time
-from typing import Dict, Set, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Set
 
 from helperFunctions.process import stop_process
 from objects.firmware import Firmware
 from storage.redis_status_interface import RedisStatusInterface
-import contextlib
 
 if TYPE_CHECKING:
     from objects.file import FileObject

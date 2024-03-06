@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from base64 import b64encode
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flask import render_template_string
 from flask_restx import Namespace
@@ -14,7 +15,6 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 from ..code.file_system_metadata import AnalysisPlugin
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from web_interface.frontend_database import FrontendDatabase

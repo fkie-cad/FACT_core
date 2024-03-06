@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import SQLAlchemyError
 
 from storage.db_connection import DbConnection, ReadOnlyConnection, ReadWriteConnection
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

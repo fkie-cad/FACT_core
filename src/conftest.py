@@ -12,8 +12,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.v1.utils import deep_update
 
 import config
-from analysis.PluginBase import AnalysisBasePlugin
 from analysis.plugin import AnalysisPluginV0
+from analysis.PluginBase import AnalysisBasePlugin
 from test.common_helper import CommonDatabaseMock
 from test.conftest import merge_markers
 

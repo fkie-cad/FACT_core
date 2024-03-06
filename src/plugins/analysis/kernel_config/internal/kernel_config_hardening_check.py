@@ -137,6 +137,7 @@ def _get_kernel_hardening_data(kernel_config: str) -> list[list[str]]:
                 stdout=PIPE,
                 stderr=STDOUT,
                 text=True,
+                check=False,
             )
             return json.loads(kconfig_process.stdout)
     except (JSONDecodeError, KeyError):
@@ -155,11 +156,11 @@ def _add_protection_info(hardening_result: list[list[str]]) -> list[HardeningChe
 
 
 def _detach_actual_value_from_result(single_result: list[str]) -> str:
-    '''
+    """
     the result may contain the actual value after a colon
     e.g. 'FAIL: not found' or 'FAIL: "y"'
     removes actual value and returns it (or empty string if missing)
-    '''
+    """
     split_result = single_result[4].split(': ')
     single_result[4] = split_result[0]
     return ': '.join(split_result[1:]).replace('"', '')

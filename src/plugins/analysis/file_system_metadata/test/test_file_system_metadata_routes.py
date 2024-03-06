@@ -9,7 +9,7 @@ from test.common_helper import create_test_file_object, create_test_firmware
 
 from ..code.file_system_metadata import AnalysisPlugin
 from ..routes import routes
-from ..routes.routes import _get_results_from_parent_fo, ParentAnalysisLookupMixin
+from ..routes.routes import ParentAnalysisLookupMixin, _get_results_from_parent_fo
 
 
 def b64_encode(string):

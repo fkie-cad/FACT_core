@@ -6,6 +6,7 @@ import os
 from multiprocessing import Process, Value
 from pathlib import Path
 from time import sleep
+from typing import TYPE_CHECKING
 
 import config
 from helperFunctions.process import stop_processes
@@ -14,12 +15,12 @@ from intercom.common_redis_binding import InterComListener, InterComListenerAndR
 from storage.binary_service import BinaryService
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from storage.unpacking_locks import UnpackingLockManager
-    from objects.firmware import Firmware
     from collections.abc import Callable
+
+    from objects.firmware import Firmware
+    from storage.unpacking_locks import UnpackingLockManager
 
 
 class InterComBackEndBinding:
@@ -27,7 +28,7 @@ class InterComBackEndBinding:
     Internal Communication Backend Binding
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         analysis_service=None,
         compare_service=None,

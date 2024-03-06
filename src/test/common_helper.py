@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import os
 from base64 import standard_b64encode
 from contextlib import contextmanager
@@ -20,7 +19,7 @@ def get_test_data_dir():
     return os.path.join(get_src_dir(), 'test/data')  # noqa: PTH118
 
 
-def create_test_firmware(  # noqa: PLR0913
+def create_test_firmware(
     device_class='Router',
     device_name='test_router',
     vendor='test_vendor',

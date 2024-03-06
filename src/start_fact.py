@@ -34,9 +34,10 @@ try:
 except ImportError:
     sys.exit(1)
 
+from typing import TYPE_CHECKING
+
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.program_setup import setup_argparser, setup_logging
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import argparse

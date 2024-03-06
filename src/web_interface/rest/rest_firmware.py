@@ -3,7 +3,7 @@ import logging
 from base64 import standard_b64decode
 
 from flask import request
-from flask_restx import fields, Namespace
+from flask_restx import Namespace, fields
 from flask_restx.fields import MarshallingError
 
 from helperFunctions.object_conversion import create_meta_dict

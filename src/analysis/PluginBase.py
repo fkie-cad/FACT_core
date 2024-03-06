@@ -6,6 +6,7 @@ import os
 from multiprocessing import Array, Manager, Queue, Value
 from queue import Empty
 from time import time
+from typing import TYPE_CHECKING
 
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
@@ -20,7 +21,6 @@ from helperFunctions.process import (
 )
 from helperFunctions.tag import TagColor
 from plugins.base import BasePlugin
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objects.file import FileObject
@@ -170,9 +170,7 @@ class AnalysisBasePlugin(BasePlugin):
 
     # ---- internal functions ----
 
-    def add_analysis_tag(  # noqa: PLR0913
-        self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False
-    ):
+    def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
         new_tag = {
             tag_name: {
                 'value': value,
@@ -239,9 +237,7 @@ class AnalysisBasePlugin(BasePlugin):
         if self.analysis_stats_count.value < self.ANALYSIS_STATS_LIMIT:
             self.analysis_stats_count.value += 1
 
-    def _handle_failed_analysis(  # noqa: PLR0913
-        self, fw_object, process, worker_id, cause: str, trace: str | None = None
-    ):
+    def _handle_failed_analysis(self, fw_object, process, worker_id, cause: str, trace: str | None = None):
         terminate_process_and_children(process)
         fw_object.analysis_exception = (self.NAME, f'{cause} occurred during analysis')
         message = f'Worker {worker_id}: {cause} during analysis {self.NAME} on {fw_object.uid}'

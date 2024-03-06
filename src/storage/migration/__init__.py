@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from alembic import config, script, command
+from alembic import command, config, script
 from alembic.runtime import migration
 from sqlalchemy import inspect
 

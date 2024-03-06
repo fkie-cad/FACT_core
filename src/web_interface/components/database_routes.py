@@ -13,7 +13,7 @@ from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
 from storage.query_conversion import QueryConversionException
-from web_interface.components.component_base import AppRoute, ComponentBase, GET, POST
+from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -130,7 +130,7 @@ class DatabaseRoutes(ComponentBase):
     def _query_has_only_one_result(result_list, query):
         return len(result_list) == 1 and query != '{}'
 
-    def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):  # noqa: PLR0913
+    def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):
         meta_list = self.db.frontend.generic_search(
             query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted, as_meta=True
         )
@@ -141,7 +141,7 @@ class DatabaseRoutes(ComponentBase):
     def _build_search_query(self):
         query = {}
         for key in ['device_class', 'vendor']:
-            if key in request.form and request.form[key]:
+            if request.form.get(key):
                 choices = list(dict(request.form.lists())[key])
                 query[key] = {'$in': choices}
         for key in ['file_name', 'device_name', 'version', 'release_date']:
@@ -149,7 +149,7 @@ class DatabaseRoutes(ComponentBase):
                 query[key] = {'$like': request.form[key]}
         if request.form['hash_value']:
             self._add_hash_query_to_query(query, request.form['hash_value'])
-        if 'tags' in request.form and request.form['tags']:
+        if request.form.get('tags'):
             tags = list(dict(request.form.lists())['tags'])
             query['firmware_tags'] = {'$overlap': tags}
         return json.dumps(query)
@@ -218,7 +218,7 @@ class DatabaseRoutes(ComponentBase):
 
     def _get_items_from_binary_search_request(self, req):
         yara_rule_file = None
-        if 'file' in req.files and req.files['file']:
+        if req.files.get('file'):
             _, yara_rule_file = get_file_name_and_binary_from_request(req)
         elif req.form['textarea']:
             yara_rule_file = req.form['textarea'].encode()

@@ -7,8 +7,9 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-import config
 from compile_yara_signatures import main as compile_signatures
+
+import config
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import (
     InstallationError,
@@ -55,6 +56,7 @@ def main(skip_docker, distribution):
         shell=True,
         capture_output=True,
         text=True,
+        check=False,
     )
     if yarac_process.returncode != 0:
         raise InstallationError('Failed to compile yara test signatures')
@@ -72,7 +74,7 @@ def _install_docker_images():
     logging.info('Pulling fact extraction container')
 
     docker_process = subprocess.run(
-        'docker pull fkiecad/fact_extractor', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+        'docker pull fkiecad/fact_extractor', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
     if docker_process.returncode != 0:
         raise InstallationError(f'Failed to pull extraction container:\n{docker_process.stdout}')
@@ -89,10 +91,15 @@ def _create_firmware_directory():
 
     data_dir_name = config.backend.firmware_file_storage_directory
     mkdir_process = subprocess.run(
-        f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+        f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
     chown_process = subprocess.run(
-        f'sudo chown {os.getuid()}:{os.getgid()} {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+        f'sudo chown {os.getuid()}:{os.getgid()} {data_dir_name}',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        text=True,
+        check=False,
     )
     if not all(code == 0 for code in (mkdir_process.returncode, chown_process.returncode)):
         raise InstallationError(
@@ -122,7 +129,7 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
 def _install_yara():
     yara_version = 'v4.4.0'  # must be the same version as `yara-python` in `install/requirements_common.txt`
 
-    yara_process = subprocess.run('yara --version', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    yara_process = subprocess.run('yara --version', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
     if yara_process.returncode == 0 and yara_process.stdout.strip() == yara_version.strip('v'):
         logging.info('Skipping yara installation: Already installed and up to date')
         return
@@ -130,18 +137,20 @@ def _install_yara():
     logging.info(f'Installing yara {yara_version}')
     archive = f'{yara_version}.zip'
     download_url = f'https://github.com/VirusTotal/yara/archive/refs/tags/{archive}'
-    wget_process = subprocess.run(f'wget {download_url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    wget_process = subprocess.run(
+        f'wget {download_url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
+    )
     if wget_process.returncode != 0:
         raise InstallationError(f'Error on yara download.\n{wget_process.stdout}')
-    unzip_process = subprocess.run(f'unzip {archive}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    unzip_process = subprocess.run(f'unzip {archive}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
     Path(archive).unlink()
     if unzip_process.returncode != 0:
         raise InstallationError(f'Error on yara extraction.\n{unzip_process.stdout}')
-    yara_folder = [p for p in Path('.').iterdir() if p.name.startswith('yara-')][0]
+    yara_folder = [p for p in Path().iterdir() if p.name.startswith('yara-')][0]
     with OperateInDirectory(yara_folder.name, remove=True):
         os.chmod('bootstrap.sh', 0o775)  # noqa: PTH101
         for command in ['./bootstrap.sh', './configure --enable-magic', 'make -j$(nproc)', 'sudo make install']:
-            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
             if cmd_process.returncode != 0:
                 raise InstallationError(f'Error in yara installation.\n{cmd_process.stdout}')
 
@@ -152,7 +161,7 @@ def _install_checksec():
     logging.info('Installing checksec.sh')
     checksec_url = 'https://raw.githubusercontent.com/slimm609/checksec.sh/2.5.0/checksec'
     wget_process = subprocess.run(
-        f'wget -P {BIN_DIR} {checksec_url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True
+        f'wget -P {BIN_DIR} {checksec_url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
     if wget_process.returncode != 0:
         raise InstallationError(f'Error during installation of checksec.sh\n{wget_process.stdout}')

@@ -1,22 +1,25 @@
 from __future__ import annotations
 
-import re
 import logging
 import operator
+import re
 from itertools import combinations
-from packaging.version import parse as parse_version
+from typing import TYPE_CHECKING
+
 from packaging.version import InvalidVersion, Version
+from packaging.version import parse as parse_version
 
 from .busybox_cve_filter import filter_busybox_cves
 from .database.db_interface import DbInterface
 from .helper_functions import replace_wildcards
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from objects.file import FileObject
+
     from .database.db_connection import DbConnection
     from .database.schema import Association, Cpe
-    from collections.abc import Callable
-    from objects.file import FileObject
 
 VALID_VERSION_REGEX = re.compile(r'v?(\d+!)?\d+(\.\d+)*([.-]?(a(lpha)?|b(eta)?|c|dev|post|pre(view)?|r|rc)?\d+)?')
 

@@ -1,8 +1,7 @@
-from ..internal.database.db_setup import DbSetup
-from ..internal.helper_functions import CveEntry
 from ..internal.database.db_connection import DbConnection
-from ..internal.database.schema import Association, Cve, Cpe
-
+from ..internal.database.db_setup import DbSetup
+from ..internal.database.schema import Association, Cpe, Cve
+from ..internal.helper_functions import CveEntry
 
 CPE_ID = 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
 CVE_ENTRY = CveEntry(

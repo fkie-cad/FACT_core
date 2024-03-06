@@ -17,7 +17,7 @@ class BadRuleError(ValueError):
 
 
 class Vulnerability:
-    def __init__(self, rule, description, reliability, score, link, short_name):  # noqa: PLR0913
+    def __init__(self, rule, description, reliability, score, link, short_name):
         try:
             self.reliability = str(int(reliability))
             self.score = score
@@ -32,7 +32,7 @@ class Vulnerability:
 
     def _make_type_assertions(self, link, rule):
         for type_assertion, error_message in [
-            (int(self.reliability) in range(0, 101), 'reliability must be between 0 and 100'),
+            (int(self.reliability) in range(101), 'reliability must be between 0 and 100'),
             (self.score in ['low', 'medium', 'high'], 'score has to be one of low, medium or high'),
             (isinstance(self.description, str), 'description must be a string'),
             (

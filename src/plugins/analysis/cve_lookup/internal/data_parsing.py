@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 import lzma
+from typing import TYPE_CHECKING
+
 import requests
 from requests.adapters import HTTPAdapter, Retry
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from requests.models import Response

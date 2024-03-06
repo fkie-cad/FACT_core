@@ -5,15 +5,17 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Lock, Queue, Value
+from pathlib import Path
 from queue import Empty
 from time import sleep
+from typing import TYPE_CHECKING, Optional
 
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
 import config
-from analysis.PluginBase import AnalysisBasePlugin
 from analysis.plugin import AnalysisPluginV0
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
@@ -22,17 +24,16 @@ from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
+from storage.db_interface_view_sync import ViewUpdater
 from storage.fsorganizer import FSOrganizer
-from pathlib import Path
 
 from .plugin import PluginRunner, Worker
-from storage.db_interface_view_sync import ViewUpdater
-from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from storage.unpacking_locks import UnpackingLockManager
-    from objects.file import FileObject
     from collections.abc import Callable
+
+    from objects.file import FileObject
+    from storage.unpacking_locks import UnpackingLockManager
 
 
 class AnalysisScheduler:
