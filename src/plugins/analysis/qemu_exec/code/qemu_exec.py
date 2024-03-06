@@ -16,11 +16,11 @@ from typing import TYPE_CHECKING
 from common_helper_files import get_binary_from_file, safe_rglob
 from docker.errors import DockerException
 from docker.types import Mount
-from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
 import config
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions import magic
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
@@ -125,7 +125,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         result = []
         for path in safe_rglob(extracted_files_dir):
             if path.is_file() and not path.is_symlink():
-                file_type = get_file_type_from_path(path.absolute())
+                file_type = {
+                    'full': magic.from_file(path.absolute(), mime=False),
+                    'mime': magic.from_file(path.absolute(), mime=True),
+                }
                 if self._has_relevant_type(file_type):
                     result.append((f'/{path.relative_to(Path(self.root_path))}', file_type['full']))
         return result

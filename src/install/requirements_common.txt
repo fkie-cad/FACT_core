@@ -26,8 +26,6 @@ pydantic==2.4.0
 # Config parsing
 toml==0.10.2
 
-git+https://github.com/fkie-cad/fact_helper_file.git
-
 # Common code modules
 git+https://github.com/fkie-cad/common_helper_files.git
 git+https://github.com/fkie-cad/common_helper_filter.git
