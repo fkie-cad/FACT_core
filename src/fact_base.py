@@ -4,7 +4,7 @@ import signal
 import sys
 from pathlib import Path
 from shlex import split
-from subprocess import CalledProcessError, PIPE, run, STDOUT
+from subprocess import PIPE, STDOUT, CalledProcessError, run
 from time import sleep
 
 import config
@@ -54,7 +54,13 @@ class FactBase:
     @staticmethod
     def _get_git_revision() -> str:
         try:
-            proc = run(split('git rev-parse --short HEAD'), stdout=PIPE, stderr=STDOUT, cwd=Path(__file__).parent)
+            proc = run(
+                split('git rev-parse --short HEAD'),
+                stdout=PIPE,
+                stderr=STDOUT,
+                cwd=Path(__file__).parent,
+                check=False,
+            )
             return proc.stdout.decode().strip()
         except CalledProcessError:
             return 'unknown revision'

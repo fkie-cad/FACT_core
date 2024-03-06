@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-
 from ..code.device_tree import AnalysisPlugin
 
 TEST_DATA = Path(__file__).parent.parent / 'test/data'
