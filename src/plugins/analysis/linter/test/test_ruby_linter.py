@@ -3,7 +3,7 @@ from subprocess import CompletedProcess
 
 from ..internal.linters import run_rubocop
 
-MOCK_RESPONSE = '''
+MOCK_RESPONSE = """
 {
   "metadata": {
     "rubocop_version": "0.52.1",
@@ -40,7 +40,7 @@ MOCK_RESPONSE = '''
     "inspected_file_count": 1
   }
 }
-'''  # noqa: E501
+"""  # noqa: E501
 
 
 def test_do_analysis(monkeypatch):

@@ -5,7 +5,7 @@ from ..internal.linters import run_eslint
 
 
 def run_docker_container_stub(*_, **__):
-    stdout = r'''[
+    stdout = r"""[
     {
         "filePath": "test_file_path.js",
         "messages": [
@@ -29,7 +29,7 @@ def run_docker_container_stub(*_, **__):
         "source": "var x = 5\nalert( 'Hello, world!' );\n",
         "usedDeprecatedRules": []
     }
-]'''
+]"""
     return CompletedProcess(args=None, returncode=1, stdout=stdout, stderr=None)
 
 

@@ -25,7 +25,11 @@ TEST_FW_PAYLOAD = {
 class DbMock(CommonDatabaseMock):
     @staticmethod
     def rest_get_firmware_uids(
-        limit: int = 10, offset: int = 0, query=None, recursive=False, inverted=False  # noqa: ARG004
+        limit: int = 10,
+        offset: int = 0,
+        query=None,
+        recursive=False,
+        inverted=False,  # noqa: ARG004
     ):
         return [f'uid{i}' for i in range(offset, limit or 10)]
 

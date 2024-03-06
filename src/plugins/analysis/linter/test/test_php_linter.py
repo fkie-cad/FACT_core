@@ -3,7 +3,7 @@ from subprocess import CompletedProcess
 
 from ..internal.linters import run_phpstan
 
-MOCK_RESPONSE = '''{
+MOCK_RESPONSE = """{
   "totals": {
     "errors": 0,
     "file_errors": 1
@@ -22,7 +22,7 @@ MOCK_RESPONSE = '''{
   },
   "errors": []
 }
-'''
+"""
 
 
 def test_do_analysis(monkeypatch):

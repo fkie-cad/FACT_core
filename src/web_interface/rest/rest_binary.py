@@ -33,12 +33,12 @@ class RestBinary(RestResourceBase):
     @roles_accepted(*PRIVILEGES['download'])
     @api.doc(responses={200: 'Success', 404: 'Unknown UID'})
     def get(self, uid):
-        '''
+        """
         Request a binary
         The uid of the file_object in question has to be given in the url
         Alternatively the tar parameter can be used to get the target archive as its content repacked into a .tar.gz.
         The return format will be {"binary": b64_encoded_binary_or_tar_gz, "file_name": file_name}
-        '''
+        """
         if not self.db.frontend.exists(uid):
             return error_message(
                 f'No firmware with UID {uid} found in database', self.URL, request_data={'uid': uid}, return_code=404

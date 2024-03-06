@@ -101,14 +101,14 @@ def password_is_legal(pw: str) -> bool:
 
 
 def cap_length_of_element(hid_element: str, maximum: int = 55) -> str:
-    '''
+    """
     Limit the length of an HID element of the "Virtual File Path", so that it can be displayed in the web interface
     without errors
 
     :param hid_element: An element of the virtual file path.
     :param maximum: The length after witch the element is capped.
     :return: The capped string.
-    '''
+    """
     return f'~{hid_element[-(maximum - 1):]}' if len(hid_element) > maximum else hid_element
 
 

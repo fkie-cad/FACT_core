@@ -125,13 +125,13 @@ def get_mime_for_text_file(filename: str) -> str:
 
 
 def get_icon_for_mime(mime_type: str | None) -> str:
-    '''
+    """
     Retrieve the path to the appropriate icon for a given mime type. The icons are located in the static
     folder of the web interface and the paths therefore start with "/static". Archive types all receive the same icon.
 
     :param mime_type: The MIME type of the file (in the file tree).
     :return: The path to the icon for the webserver (usually `/static/file_icons/...`)
-    '''
+    """
     if mime_type is None:
         return MIME_TO_ICON_PATH['unknown']
     if mime_type.replace('/', '-') in MIME_TO_ICON_PATH:
@@ -162,7 +162,7 @@ def remove_virtual_path_from_root(root: list[dict]) -> list[dict]:
 
 
 class VirtualPathFileTree:
-    '''
+    """
     This class represents a layer of the file tree (a partial tree) for a ``Firmware`` or ``FileObject`` as root and
     is based on the virtual file paths of its child objects (unpacked files). "Layer" means that the file tree is
     created in layers as it is unfolded (one partial tree for each file).
@@ -176,7 +176,7 @@ class VirtualPathFileTree:
     :param root_uid: The uid of the root node of the file tree.
     :param fo_data: The firmware / file object data from the database that is needed to create the file tree.
     :param whitelist: A whitelist of file names needed to display partial trees in comparisons.
-    '''
+    """
 
     def __init__(self, root_uid: str, parent_uid: str, fo_data: FileTreeData, whitelist: list[str] | None = None):
         self.uid = fo_data.uid

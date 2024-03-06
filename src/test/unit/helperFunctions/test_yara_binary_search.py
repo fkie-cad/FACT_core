@@ -76,7 +76,8 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
     def test_execute_yara_search_for_single_file(self):
         test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')  # noqa: PTH118
         result = self.yara_binary_scanner._execute_yara_search(
-            test_rule_path, target_path=path.join(get_test_data_dir(), TEST_FILE_1, TEST_FILE_1)  # noqa: PTH118
+            test_rule_path,
+            target_path=path.join(get_test_data_dir(), TEST_FILE_1, TEST_FILE_1),  # noqa: PTH118
         )
         assert 'test_rule' in result
 
