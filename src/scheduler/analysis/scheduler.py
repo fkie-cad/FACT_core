@@ -611,7 +611,7 @@ class AnalysisScheduler:
 
         :return: Boolean value stating if any attached process ran into an exception
         """
-        for _, plugin in self.analysis_plugins.items():
+        for plugin in self.analysis_plugins.values():
             if isinstance(plugin, AnalysisPluginV0):
                 continue
             if plugin.check_exceptions():

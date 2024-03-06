@@ -41,7 +41,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         cves = {'cve_results': {}}
         connection = DbConnection(f'sqlite:///{DB_PATH}')
         lookup = Lookup(file_object, connection)
-        for _key, value in file_object.processed_analysis['software_components']['result'].items():
+        for value in file_object.processed_analysis['software_components']['result'].values():
             product = value['meta']['software_name']
             version = value['meta']['version'][0]
             if product and version:

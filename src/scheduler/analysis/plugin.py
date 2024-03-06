@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ctypes
 import io
 import logging
@@ -14,10 +16,12 @@ import pydantic
 from pydantic import BaseModel, ConfigDict
 
 import config
-from analysis.plugin import AnalysisPluginV0
-from objects.file import FileObject
+from objects.file import FileObject  # noqa: TCH001  # needed by pydantic
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 from storage.fsorganizer import FSOrganizer
+
+if typing.TYPE_CHECKING:
+    from analysis.plugin import AnalysisPluginV0
 
 
 class PluginRunner:

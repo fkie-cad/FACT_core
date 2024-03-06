@@ -58,7 +58,7 @@ def _get_compatible_entry(dts: str) -> str | None:
                 break
 
         cpu = cpus[cpu_name]
-        if 'compatible' not in cpu.keys():
+        if 'compatible' not in cpu:
             continue
 
         compatible = cpu['compatible']

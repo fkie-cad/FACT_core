@@ -150,7 +150,7 @@ def _add_protection_info(hardening_result: list[list[str]]) -> list[HardeningChe
     for single_result in hardening_result:
         config_key = single_result[0]
         actual_value = _detach_actual_value_from_result(single_result)
-        protection_info = PROTECTS_AGAINST[config_key] if config_key in PROTECTS_AGAINST else []
+        protection_info = PROTECTS_AGAINST.get(config_key, [])
         full_result.append(HardeningCheckResult(*single_result, actual_value, protection_info))
     return full_result
 
