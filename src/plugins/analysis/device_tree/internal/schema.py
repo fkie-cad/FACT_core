@@ -1,8 +1,11 @@
+from __future__ import annotations
+
+import pathlib as pl
+from tempfile import NamedTemporaryFile
+from typing import ClassVar, List, Optional
+
 import pydantic
 from pydantic import Field
-from typing import Optional, List, ClassVar
-from tempfile import NamedTemporaryFile
-import pathlib as pl
 
 from .device_tree_utils import StructureBlock, convert_device_tree_to_str, get_model_or_description, int_from_buf
 

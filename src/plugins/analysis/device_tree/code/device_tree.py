@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Dict, Optional
+
+from analysis.plugin import AnalysisPluginV0, Tag
+from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.tag import TagColor
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
-from analysis.plugin import AnalysisPluginV0, Tag
-from typing import Optional, Dict, TYPE_CHECKING
 
-from ..internal.schema import Schema
-from ..internal.schema import DeviceTree, IllegalDeviceTreeError
+from ..internal.schema import DeviceTree, IllegalDeviceTreeError, Schema
 
 if TYPE_CHECKING:
     import io
