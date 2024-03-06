@@ -3,36 +3,6 @@ line-length = 120
 skip-string-normalization = true
 target-version = ['py38']
 
-[tool.pylint.main]
-init-hook = 'import sys; sys.path.append("./src")'
-ignore-paths = ["src/bin"]
-load-plugins = ["pylint.extensions.bad_builtin", "pylint.extensions.mccabe"]
-extension-pkg-allow-list = ["yara"]
-jobs = 0
-include-naming-hint = true
-good-names = ["i", "j", "k", "Run", "_", "db", "ex", "fd", "fo", "fp", "fw", "pw", "rv", "sc", "tc"]
-
-[tool.pylint."messages control"]
-confidence = []
-disable = ["missing-docstring" , "locally-disabled", "logging-format-interpolation", "logging-fstring-interpolation"]
-
-
-[tool.pylint.reports]
-output-format = "colorized"
-msg-template="{path}:{line}: [{symbol}:{obj}] {msg}"
-
-[tool.pylint.format]
-max-line-length = 120
-
-[tool.pylint.design]
-max-args=7
-max-complexity = 7
-min-public-methods = 0
-max-public-methods = 40
-
-[tool.pylint.imports]
-known-third-party = ["enchant", "docker"]
-
 [tool.pytest.ini_options]
 addopts = "-v"
 testpaths = [
@@ -49,19 +19,6 @@ markers = [
 ]
 
 [tool.ruff]
-select = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH",
-    "PTH", "PLR", "PLW", "ARG", "ERA", "RUF", "Q"]
-ignore = [
-    "A003",
-    "RUF001",
-    "RUF002",
-    "RUF003",
-    # pydantic only supports these from python>=3.9
-    "UP006",
-    "UP007",
-]
-fixable = ["F", "E", "W", "C90", "N", "UP", "B", "A", "PL", "C4", "EXE", "ISC", "PIE", "T20", "PT", "RET", "SIM", "TCH",
-    "PTH", "PLR", "PLW", "ARG", "ERA", "RUF", "Q"]
 exclude = [
     ".git",
     ".ruff_cache",
@@ -71,26 +28,80 @@ exclude = [
     "docker",  # ingore plugins/*/*/docker/scripts/* jython ghidra scripts
     "venv",
     "data",  # ignore plugins/*/*/test/data/* test data folders (containing test files)
+    "src/plugins/analysis/input_vectors/internal",  # FixMe: runs inside a bionic docker container with python 3.6
 ]
 line-length = 120
 target-version = "py38"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint]
+select = [
+    "F",  # Pyflakes
+    "E",  # pycodestyle Error
+    "W",  # pycodestyle Warning
+    "C90",  # mccabe
+    "I",  # isort
+    "N",  # pep8-naming
+    "UP",  # pyupgrade
+    "B",  # flake8-bugbear
+    "A",  # flake8-builtins
+    "C4",  # flake8-comprehensions
+    "EXE",  # flake8-executable
+    "FA",  # flake8-future-annotations
+    "ISC",  # flake8-implicit-str-concat
+    "PIE",  # flake8-pie
+    "T20",  # flake8-print
+    "PT",  # flake8-pytest-style
+    "Q",  # flake8-quotes
+    "RET",  # flake8-return
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "ERA",  # eradicate
+    "PL",  # Pylint
+    "PERF",  # Perflint
+    "RUF",  # Ruff-specific rules
+]
+ignore = [
+    "A003",
+    "PERF203",
+    "PERF401",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    "RUF015",
+    # pydantic only supports these from python>=3.9
+    "UP006",
+    "UP007",
+    # rules may cause conflicts when used with the formatter
+    "ISC001",
+    "Q001",
+]
+fixable = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
 "test*.py" = ["ARG002"]
 "conftest.py" = ["ARG002"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["analysis", "compare", "helperFunctions", "install", "intercom", "objects", "plugins", "scheduler",
     "statistic", "storage", "test", "unpacker", "version", "web_interface", "config"]
 known-third-party = ["docker"]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.pylint]
+max-args=7
+max-public-methods = 40
+
+[tool.ruff.lint.mccabe]
 max-complexity = 10
 
-[tool.ruff.flake8-pytest-style]
+[tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = false
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
 multiline-quotes = "single"
 docstring-quotes = "double"
+
+[tool.ruff.format]
+quote-style = "single"
