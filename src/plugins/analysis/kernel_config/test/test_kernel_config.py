@@ -1,4 +1,3 @@
-import glob
 from pathlib import Path
 from subprocess import CompletedProcess
 
@@ -81,7 +80,7 @@ class ExtractIKConfigTest:
         assert analysis_plugin.probably_kernel_config(result)
 
     def test_process_objects_kernel_image(self, analysis_plugin):
-        for valid_image in glob.glob(str(TEST_DATA_DIR / 'synthetic/*.image')):
+        for valid_image in (TEST_DATA_DIR / 'synthetic').glob('*.image'):
             test_file = FileObject(file_path=str(valid_image))
             test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
             test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
@@ -91,7 +90,7 @@ class ExtractIKConfigTest:
             assert test_file.processed_analysis[analysis_plugin.NAME]['is_kernel_config']
             assert len(test_file.processed_analysis[analysis_plugin.NAME]['kernel_config']) > 0
 
-        for bad_image in glob.glob(str(TEST_DATA_DIR / 'random_invalid/*.image')):
+        for bad_image in (TEST_DATA_DIR / 'random_invalid').glob('*.image'):
             test_file = FileObject(file_path=str(bad_image))
             test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
             test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
@@ -149,7 +148,7 @@ def test_try_extract_fail():
 
 
 def test_try_extract_random_fail():
-    for fp in glob.glob(str(TEST_DATA_DIR / 'random_invalid/*.image')):
+    for fp in (TEST_DATA_DIR / 'random_invalid').glob('*.image'):
         test_file = FileObject(file_path=fp)
         test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
         test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}

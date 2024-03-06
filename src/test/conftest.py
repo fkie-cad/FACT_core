@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from multiprocessing import Event, Queue, Value
 from pathlib import Path
 from typing import List, NamedTuple, Type, TypeVar
@@ -290,7 +292,7 @@ def _unpacking_lock_manager() -> UnpackingLockManager:  # noqa: PT005
 
 
 @pytest.fixture(name='test_config')
-def _scheduler_test_config(request) -> 'SchedulerTestConfig':  # noqa: PT005
+def _scheduler_test_config(request) -> SchedulerTestConfig:  # noqa: PT005
     return SchedulerTestConfig.get_instance_from_request(request)
 
 
@@ -566,7 +568,7 @@ class SchedulerTestConfig(BaseModel):
         )
 
     @staticmethod
-    def get_instance_from_request(request: pytest.FixtureRequest) -> 'SchedulerTestConfig':
+    def get_instance_from_request(request: pytest.FixtureRequest) -> SchedulerTestConfig:
         err = ValueError(f'{request.module} is neither a unit, acceptance nor integration test')
 
         test_config_dict = merge_markers(request, 'SchedulerTestConfig', dict)

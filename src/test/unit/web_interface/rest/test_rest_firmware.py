@@ -27,8 +27,8 @@ class DbMock(CommonDatabaseMock):
     def rest_get_firmware_uids(
         limit: int = 10,
         offset: int = 0,
-        query=None,
-        recursive=False,
+        query=None,  # noqa: ARG004
+        recursive=False,  # noqa: ARG004
         inverted=False,  # noqa: ARG004
     ):
         return [f'uid{i}' for i in range(offset, limit or 10)]

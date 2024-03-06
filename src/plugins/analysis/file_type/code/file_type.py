@@ -1,4 +1,6 @@
-import io
+from __future__ import annotations
+
+import typing
 from typing import List
 
 import pydantic
@@ -7,6 +9,9 @@ from pydantic import Field
 
 from analysis.plugin import AnalysisPluginV0
 from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+
+if typing.TYPE_CHECKING:
+    import io
 
 
 class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
