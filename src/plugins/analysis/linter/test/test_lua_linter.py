@@ -2,7 +2,7 @@ from subprocess import CompletedProcess
 
 from ..internal.linters import run_luacheck
 
-MOCK_RESPONSE = '''/usr/share/nmap/nse_main.lua:88:7-12: (W211) unused variable 'select'
+MOCK_RESPONSE = """/usr/share/nmap/nse_main.lua:88:7-12: (W211) unused variable 'select'
 /usr/share/nmap/nse_main.lua:140:11-14 (W431) shadowing upvalue 'type' on line 92
 /usr/share/nmap/nse_main.lua:204:9-14: (W421) shadowing definition of variable 'resume' on line 96
 /usr/share/nmap/nse_main.lua:285:44-44: (W432) shadowing upvalue argument 'a' on line 284
@@ -12,7 +12,7 @@ MOCK_RESPONSE = '''/usr/share/nmap/nse_main.lua:88:7-12: (W211) unused variable 
 /usr/share/nmap/nse_main.lua:726:19-22: (W413) variable 'rule' was previously defined as a loop variable on line 724
 /usr/share/nmap/nse_main.lua:881:35-39: (W212) unused argument 'hosts'
 /usr/share/nmap/nse_main.lua:1362:9-17: (W411) variable 'runlevels' was previously defined on line 1336
-'''  # noqa: E501
+"""  # noqa: E501
 
 
 def test_do_analysis(monkeypatch):

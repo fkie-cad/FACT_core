@@ -18,7 +18,7 @@ def upgrade(cur):
     # We can't use ALTER TABLE to change fs_uniquifier from beeing NULLable to
     # NOT NULL
     cur.execute(
-        '''
+        """
         CREATE TABLE "user_tmp" (
             "id"			INTEGER NOT NULL,
             "api_key"		VARCHAR(255) UNIQUE,
@@ -29,7 +29,7 @@ def upgrade(cur):
             "fs_uniquifier"	VARCHAR(64) NOT NULL UNIQUE,
             CHECK(active IN (0,1)),
             PRIMARY KEY("id")
-        );'''
+        );"""
     )
     cur.execute('INSERT INTO "user_tmp" SELECT * FROM "user" WHERE true')
     cur.execute('DROP TABLE "user"')
@@ -42,7 +42,7 @@ def downgrade(cur):
     # Due to limitations in SQLite we have to create a temporary table
     # We can't DROP COLUMN fs_uniquifier because it is unique
     cur.execute(
-        '''
+        """
         CREATE TABLE "user_tmp" (
             "id"			INTEGER NOT NULL,
             "api_key"		VARCHAR(255) UNIQUE,
@@ -52,7 +52,7 @@ def downgrade(cur):
             "confirmed_at"	DATETIME,
             CHECK(active IN (0,1)),
             PRIMARY KEY("id")
-        );'''
+        );"""
     )
     cur.execute(
         'INSERT INTO "user_tmp" SELECT id, api_key, email, password, active, confirmed_at FROM "user" WHERE true'

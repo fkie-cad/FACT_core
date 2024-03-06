@@ -59,8 +59,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _get_tags_from_function_list(functions: list, behaviour_class: str, indicators: list, tags: list):
         for function, indicator in ((f, i) for f in functions for i in indicators):
             if (
-                indicator.lower() in function.lower()
-                and SequenceMatcher(None, indicator, function).ratio() >= 0.85  # noqa: PLR2004
+                indicator.lower() in function.lower() and SequenceMatcher(None, indicator, function).ratio() >= 0.85  # noqa: PLR2004
             ):
                 tags.append(behaviour_class)
 

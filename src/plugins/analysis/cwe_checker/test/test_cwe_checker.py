@@ -8,7 +8,7 @@ from ..code.cwe_checker import AnalysisPlugin
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestCweCheckerFunctions:
     def test_parse_cwe_checker_output(self, analysis_plugin):
-        test_data = '''[
+        test_data = """[
             {
                 "name": "CWE676",
                 "version": "0.1",
@@ -29,7 +29,7 @@ class TestCweCheckerFunctions:
                 ],
                 "description": "(Use of Potentially Dangerous Function) FUN_00102ef0 (00103042) -> strlen"
             }
-        ]'''
+        ]"""
         result = analysis_plugin._parse_cwe_checker_output(test_data)
         assert isinstance(result, dict)
         assert len(result.keys()) == 1

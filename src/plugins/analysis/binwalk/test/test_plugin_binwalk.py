@@ -7,7 +7,7 @@ from test.common_helper import get_test_data_dir
 
 from ..code.binwalk import AnalysisPlugin
 
-TEST_OUTPUT = '''
+TEST_OUTPUT = """
 DECIMAL       HEXADECIMAL     DESCRIPTION
 --------------------------------------------------------------------------------
 0             0x0             Microsoft executable, portable (PE)
@@ -15,7 +15,7 @@ DECIMAL       HEXADECIMAL     DESCRIPTION
 113771        0x1BC6B         Zip archive data, at least v2.0 to extract, compressed size: 47799, uncompressed size: 119688, name: PH1BXRM_AM_000803003938.dat
 2752561       0x2A0031        Falling entropy edge (0.026681)
 12226608      0xBA9030        End of Zip archive, footer length: 22
-'''  # noqa: E501
+"""  # noqa: E501
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)

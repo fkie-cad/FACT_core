@@ -18,7 +18,7 @@ from web_interface.security.authentication import add_flask_security_to_app
 from web_interface.security.privileges import ROLES
 from web_interface.security.terminal_validators import ActionValidator, ActionValidatorReverse
 
-FACT_ASCII_ART = '''
+FACT_ASCII_ART = """
                                                       ***********.
                                                    *******************.
    *****************  ***********************   ********'       .********   *********************.
@@ -37,7 +37,7 @@ FACT_ASCII_ART = '''
    ******             *****             *****   *********       .********           *****
                                                    *******************
                                                       ***********'
-'''
+"""
 
 
 def setup_argparse():

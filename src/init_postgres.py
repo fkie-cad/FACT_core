@@ -13,7 +13,10 @@ from storage.migration import alembic_table_exists, create_alembic_table, set_al
 
 
 def execute_psql_command(
-    psql_command: str, host, port=5432, user=os.getenv('PGUSER', default='postgres')  # noqa: B008
+    psql_command: str,
+    host,
+    port=5432,
+    user=os.getenv('PGUSER', default='postgres'),  # noqa: B008
 ) -> bytes:
     # This is only used to create the fact_admin user.
     # In order to create this user we have to have access to the default admin user (postgres).
@@ -41,10 +44,7 @@ def user_exists(user_name: str, host: str, port: str | int) -> bool:
 def create_admin_user(user_name: str, password: str, host: str, port: int | str):
     execute_psql_command(
         # fmt: off
-        (
-            f"CREATE USER {user_name} WITH PASSWORD '{password}' "
-            'LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;'
-        ),
+        (f"CREATE USER {user_name} WITH PASSWORD '{password}' " 'LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;'),
         # fmt: on
         host=host,
         port=port,

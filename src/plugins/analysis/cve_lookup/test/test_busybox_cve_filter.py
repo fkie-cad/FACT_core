@@ -9,7 +9,7 @@ CVE_DICT = {
         year='2021',
         summary=(
             "A use-after-free in Busybox's awk applet leads to denial of service and possibly code execution when "
-            "processing a crafted awk pattern in the evaluate function"
+            'processing a crafted awk pattern in the evaluate function'
         ),
         cvss_v2_score='6.5',
         cvss_v3_score='7.2',
@@ -19,7 +19,7 @@ CVE_DICT = {
         year='2021',
         summary=(
             "A use-after-free in Busybox's awk applet leads to denial of service and possibly code execution when "
-            " processing a crafted awk pattern in the next_input_file function"
+            ' processing a crafted awk pattern in the next_input_file function'
         ),
         cvss_v2_score='6.5',
         cvss_v3_score='7.2',
@@ -29,7 +29,7 @@ CVE_DICT = {
         year='2021',
         summary=(
             "A use-after-free in Busybox's awk applet leads to denial of service and possibly code execution when "
-            "processing a crafted awk pattern in the hash_init function"
+            'processing a crafted awk pattern in the hash_init function'
         ),
         cvss_v2_score='6.5',
         cvss_v3_score='7.2',
@@ -49,7 +49,7 @@ CVE_DICT = {
         year='2021',
         summary=(
             "A use-after-free in Busybox's awk applet leads to denial of service and possibly code execution when "
-            "processing a crafted awk pattern in the nvalloc function"
+            'processing a crafted awk pattern in the nvalloc function'
         ),
         cvss_v2_score='6.5',
         cvss_v3_score='7.2',
@@ -59,7 +59,7 @@ CVE_DICT = {
         year='2021',
         summary=(
             "A use-after-free in Busybox's awk applet leads to denial of service and possibly code execution when "
-            "processing a crafted awk pattern in the clrvar function"
+            'processing a crafted awk pattern in the clrvar function'
         ),
         cvss_v2_score='6.5',
         cvss_v3_score='7.2',
@@ -69,8 +69,8 @@ CVE_DICT = {
         year='2021',
         summary=(
             "A NULL pointer dereference in Busybox's hush applet leads to denial of service when processing a "
-            "crafted shell command, due to missing validation after a \\x03 delimiter character. This may be used "
-            "for DoS under very rare conditions of filtered command input."
+            'crafted shell command, due to missing validation after a \\x03 delimiter character. This may be used '
+            'for DoS under very rare conditions of filtered command input.'
         ),
         cvss_v2_score='1.9',
         cvss_v3_score='5.5',
@@ -79,7 +79,7 @@ CVE_DICT = {
         cve_id='CVE-2022-28391',
         year='2021',
         summary=(
-            "BusyBox through 1.35.0 allows remote attackers to execute arbitrary code if netstat is used to print a "
+            'BusyBox through 1.35.0 allows remote attackers to execute arbitrary code if netstat is used to print a '
             "DNS PTR record's value to a VT compatible terminal. Alternatively, the attacker could choose to change "
             "the terminal's colors."
         ),
@@ -91,7 +91,7 @@ CVE_DICT = {
         year='2021',
         summary=(
             "A use-after-free in Busybox's awk applet leads to denial of service and possibly code execution when "
-            "processing a crafted awk pattern in the handle_special function"
+            'processing a crafted awk pattern in the handle_special function'
         ),
         cvss_v2_score='6.5',
         cvss_v3_score='7.2',
@@ -101,8 +101,8 @@ CVE_DICT = {
         year='2021',
         summary=(
             "An out-of-bounds heap read in Busybox's unlzma applet leads to information leak and denial of service "
-            "when crafted LZMA-compressed input is decompressed. This can be triggered by any "
-            "applet/format that"
+            'when crafted LZMA-compressed input is decompressed. This can be triggered by any '
+            'applet/format that'
         ),
         cvss_v2_score='3.3',
         cvss_v3_score='5.3',
@@ -112,7 +112,7 @@ CVE_DICT = {
         year='2021',
         summary=(
             "A use-after-free in Busybox's awk applet leads to denial of service and possibly code execution when "
-            "processing a crafted awk pattern in the getvar_i function"
+            'processing a crafted awk pattern in the getvar_i function'
         ),
         cvss_v2_score='6.5',
         cvss_v3_score='7.2',
@@ -122,7 +122,7 @@ CVE_DICT = {
         year='2021',
         summary=(
             "A use-after-free in Busybox's awk applet leads to denial of service and possibly code execution when "
-            "processing a crafted awk pattern in the getvar_s function"
+            'processing a crafted awk pattern in the getvar_s function'
         ),
         cvss_v2_score='6.5',
         cvss_v3_score='7.2',
@@ -132,7 +132,7 @@ CVE_DICT = {
         year='2022',
         summary=(
             "A use-after-free in Busybox 1.35-x's awk applet leads to denial of service and possibly code execution "
-            "when processing a crafted awk pattern in the copyvar function."
+            'when processing a crafted awk pattern in the copyvar function.'
         ),
         cvss_v2_score='6.8',
         cvss_v3_score='7.8',

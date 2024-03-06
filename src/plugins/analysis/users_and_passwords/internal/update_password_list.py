@@ -23,10 +23,14 @@ def _setup_argparser():
     parser.add_argument('-V', '--version', action='version', version=f'{PROGRAM_NAME} {PROGRAM_VERSION}')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
     parser.add_argument(
-        '-p', '--password_lists_directory', default=os.path.join(THIS_FILE_DIR, 'passwords')  # noqa: PTH118
+        '-p',
+        '--password_lists_directory',
+        default=os.path.join(THIS_FILE_DIR, 'passwords'),  # noqa: PTH118
     )
     parser.add_argument(
-        '-o', '--output_file', default=os.path.join(THIS_FILE_DIR, '../../../..', 'bin/passwords.txt')  # noqa: PTH118
+        '-o',
+        '--output_file',
+        default=os.path.join(THIS_FILE_DIR, '../../../..', 'bin/passwords.txt'),  # noqa: PTH118
     )
     return parser.parse_args()
 

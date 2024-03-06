@@ -16,9 +16,9 @@ class Mask:
 
 
 class ComparePlugin(CompareBasePlugin):
-    '''
+    """
     Shows a "binwalk -Ww"-ish comparison of the FOs headers in highlighted hexadecimal
-    '''
+    """
 
     NAME = 'File_Header'
     DEPENDENCIES = []  # noqa: RUF012

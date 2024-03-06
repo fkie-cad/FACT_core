@@ -137,16 +137,13 @@ def test_filtered_included_sum(stats_update_db, backend_db):
 
     assert stats_update_db.get_sum(FileObjectEntry.size, firmware=False) == 100  # noqa: PLR2004
     assert (
-        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=False)
-        == 30  # noqa: PLR2004
+        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=False) == 30  # noqa: PLR2004
     )
     assert (
-        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw2.vendor}, firmware=False)
-        == 70  # noqa: PLR2004
+        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw2.vendor}, firmware=False) == 70  # noqa: PLR2004
     )
     assert (
-        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=True)
-        == 1337  # noqa: PLR2004
+        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=True) == 1337  # noqa: PLR2004
     )
 
 
