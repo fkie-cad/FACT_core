@@ -6,10 +6,10 @@ from tempfile import TemporaryDirectory
 from time import sleep
 
 import requests
-from fact_helper_file import get_file_type_from_binary
 from flask import Response, make_response, redirect, render_template, request
 
 import config
+from helperFunctions import magic
 from helperFunctions.database import get_shared_session
 from helperFunctions.pdf import build_pdf_report
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
@@ -82,7 +82,7 @@ class IORoutes(ComponentBase):
     def _get_file_download_mime(self, binary: bytes, uid: str) -> str:
         type_analysis = self.db.frontend.get_analysis(uid, 'file_type')
         mime = type_analysis.get('mime') if type_analysis is not None else None
-        return mime or get_file_type_from_binary(binary)['mime']
+        return mime or magic.from_buffer(binary, mime=True)
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/ida-download/<compare_id>', GET)

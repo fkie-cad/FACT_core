@@ -1,6 +1,6 @@
 import pytest
-from fact_helper_file import get_file_type_from_binary
 
+from helperFunctions import magic
 from storage.db_interface_comparison import ComparisonDbInterface
 from test.common_helper import create_test_firmware
 
@@ -68,4 +68,4 @@ class TestAcceptanceIoRoutes:
         assert response.status_code == 200, 'pdf download failed'  # noqa: PLR2004
         device = self.test_fw.device_name.replace(' ', '_')
         assert response.headers['Content-Disposition'] == f'attachment; filename={device}_analysis_report.pdf'
-        assert get_file_type_from_binary(response.data)['mime'] == 'application/pdf'
+        assert magic.from_buffer(response.data, mime=True) == 'application/pdf'
