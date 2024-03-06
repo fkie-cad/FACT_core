@@ -4,11 +4,11 @@ import typing
 from typing import List
 
 import pydantic
-from fact_helper_file import get_file_type_from_path
 from pydantic import Field
 
 from analysis.plugin import AnalysisPluginV0
 from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+from helperFunctions import magic
 
 if typing.TYPE_CHECKING:
     import io
@@ -39,9 +39,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
         del virtual_file_path, analyses
 
-        file_dict = get_file_type_from_path(file_handle.name)
-
         return AnalysisPlugin.Schema(
-            mime=file_dict['mime'],
-            full=file_dict['full'],
+            mime=magic.from_file(file_handle.name, mime=True),
+            full=magic.from_file(file_handle.name, mime=False),
         )

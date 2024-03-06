@@ -6,10 +6,9 @@ from pathlib import Path
 from time import time
 from typing import TYPE_CHECKING, Optional
 
-from fact_helper_file import get_file_type_from_path
-
 import config
 from analysis.PluginBase import sanitize_processed_analysis
+from helperFunctions import magic
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -94,7 +93,8 @@ class Unpacker(UnpackBase):
                 continue
             current_file = FileObject(file_path=str(path))
             current_virtual_path = get_relative_object_path(path, extraction_dir)
-            current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
+            current_file.temporary_data['parent_fo_type'] = magic.from_file(parent.file_path, mime=True)
+
             if current_file.uid not in extracted_files:
                 # the same file can be contained multiple times in one archive -> only the VFP needs an update
                 self.unpacking_locks.set_unpacking_lock(current_file.uid)
