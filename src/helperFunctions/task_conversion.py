@@ -1,19 +1,14 @@
 from __future__ import annotations
 
-import logging
-from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any
 
 from markupsafe import escape
 
-import config
 from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 
 if TYPE_CHECKING:
     from flask import Request
-    from werkzeug.datastructures import FileStorage
 
 OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
@@ -41,14 +36,13 @@ def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes]
     Retrieves the file name and content from the flask request object.
 
     :param request: The flask request object.
-    :param config: The FACT configuration.
     :return: A Tuple containing the file name and the file content.
     """
     try:
         file_name = escape(request.files['file'].filename)
     except AttributeError:
         file_name = 'no name'
-    file_binary = _get_uploaded_file_binary(request.files['file'])
+    file_binary = request.files['file'].read() if request.files['file'] else None
     return file_name, file_binary
 
 
@@ -139,27 +133,6 @@ def _get_uid_of_analysis_task(analysis_task: dict) -> str | None:
     if analysis_task['binary']:
         return create_uid(analysis_task['binary'])
     return None
-
-
-def _get_uploaded_file_binary(request_file: FileStorage) -> bytes | None:
-    """
-    Retrieves the binary from the request file storage and returns it as byte string. May return `None` if no
-    binary was found or an exception occurred.
-
-    :param request_file: A file contained in the flask request object.
-    :param config: The FACT configuration.
-    :return: The binary as byte string or `None` if no binary was found.
-    """
-    if not request_file:
-        return None
-    with TemporaryDirectory(prefix='fact_upload_', dir=config.common.temp_dir_path) as tmp_dir:
-        tmp_file_path = Path(tmp_dir) / 'upload.bin'
-        try:
-            request_file.save(str(tmp_file_path))
-            return tmp_file_path.read_bytes()
-        except OSError:
-            logging.error('Encountered error when trying to read uploaded file:', exc_info=True)
-            return None
 
 
 def check_for_errors(analysis_task: dict) -> dict[str, str]:
