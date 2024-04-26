@@ -27,7 +27,7 @@ src/web_interface/static/file_icons
 # Start scripts
 start_all_installed_fact_components
 start_fact_backend
-start_fact_db
+start_fact_database
 start_fact_frontend
 
 # Editor specific files
