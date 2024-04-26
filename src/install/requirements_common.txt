@@ -23,7 +23,7 @@ xmltodict==0.13.0
 git+https://github.com/VirusTotal/yara-python@d0921c0
 
 # Config validation
-pydantic==2.1.1
+pydantic==2.4.0
 # Config parsing
 toml==0.10.2
 
