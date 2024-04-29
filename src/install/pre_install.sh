@@ -54,7 +54,7 @@ sudo apt-get install -y \
 # add Docker's GPG key
 sudo install -m 0755 -d /etc/apt/keyrings
 echo "curl -fsSL \"https://download.docker.com/linux/${DISTRO}/gpg\""
-curl -fsSL "https://download.docker.com/linux/${DISTRO}/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+curl -fsSL "https://download.docker.com/linux/${DISTRO}/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --batch --yes
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
 # set up repository
@@ -81,7 +81,7 @@ fi
 sudo usermod -aG docker "$FACTUSER"
 
 # Setup npm repository as described in https://github.com/nodesource/distributions#debian-and-ubuntu-based-distributions
-curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg --batch --yes
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
 
 IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
@@ -90,7 +90,7 @@ if [[ $IS_VENV == "False" ]]
 then
   SUDO="sudo -EH"
 fi
-$SUDO pip3 install -U pip
+$SUDO pip3 install -U pip setuptools wheel
 $SUDO pip3 install -r ./requirements_pre_install.txt --prefer-binary
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"

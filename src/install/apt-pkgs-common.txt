@@ -9,6 +9,7 @@ libtool
 python3
 python3-dev
 unzip
+wget
 
 # general python dependencies
 libfuzzy-dev

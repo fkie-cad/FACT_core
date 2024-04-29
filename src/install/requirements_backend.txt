@@ -1,9 +1,9 @@
-cryptography==42.0.4
+cryptography==42.0.5
 docker~=6.1.3
 MarkupSafe==2.1.1
 networkx==2.6.3
 Pillow==10.3.0
-pyopenssl==23.2.0
+pyopenssl==24.1.0
 pyyaml==6.0.1
 
 # FIXME This is only needed by the compare/file_header plugin
