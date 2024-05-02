@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import shutil
 import subprocess
 from contextlib import suppress
 from pathlib import Path
@@ -147,25 +148,43 @@ def _copy_mime_icons():
         run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
-def _install_nodejs():
+def _node_version_is_up_to_date(nodejs_version: str) -> bool:
+    try:
+        proc = subprocess.run(split('./nodeenv/bin/node --version'), capture_output=True, text=True, check=True)
+        installed_version = proc.stdout.strip().lstrip('v')
+        return installed_version == nodejs_version
+    except (subprocess.CalledProcessError, OSError):  # venv dir exists but node is not installed correctly
+        return False
+
+
+def _install_nodejs(nodejs_version: str = '22'):
+    latest_version = _find_latest_node_version(nodejs_version)
     with OperateInDirectory(STATIC_WEB_DIR):
+        if Path(NODEENV_DIR).is_dir() and not _node_version_is_up_to_date(latest_version):
+            shutil.rmtree(NODEENV_DIR)
+
         if Path(NODEENV_DIR).is_dir():
             logging.info('Skipping nodeenv installation (already exists)')
         else:
-            _set_up_nodeenv()
+            _set_up_nodeenv(latest_version)
         run_cmd_with_logging(f'. {NODEENV_DIR}/bin/activate && npm install --no-fund .', shell=True)
 
 
-def _set_up_nodeenv(nodejs_version: str = '22'):
+def _set_up_nodeenv(nodejs_version: str):
+    latest_version = _find_latest_node_version(nodejs_version)
+    run_cmd_with_logging(f'nodeenv {NODEENV_DIR} --node={latest_version} --prebuilt')
+
+
+def _find_latest_node_version(target_version: str) -> str:
     proc = subprocess.run(split('nodeenv --list'), capture_output=True, text=True, check=False)
     if proc.returncode != 0:
         raise InstallationError('nodejs installation failed. Is nodeenv installed?')
     available_versions = [
-        parse_version(v) for v in re.split(r'[\n\t ]', proc.stderr) if v and v.startswith(nodejs_version)
+        parse_version(v) for v in re.split(r'[\n\t ]', proc.stderr) if v and v.startswith(target_version)
     ]
     if not available_versions:
-        raise InstallationError(f'No nodejs installation candidates found for version "{nodejs_version}"')
-    run_cmd_with_logging(f'nodeenv {NODEENV_DIR} --node={max(available_versions)} --prebuilt')
+        raise InstallationError(f'No nodejs installation candidates found for version "{target_version}"')
+    return str(max(available_versions))
 
 
 def main(skip_docker, radare, nginx, distribution):
