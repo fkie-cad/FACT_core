@@ -166,13 +166,8 @@ def _install_nodejs(nodejs_version: str = '22'):
         if Path(NODEENV_DIR).is_dir():
             logging.info('Skipping nodeenv installation (already exists)')
         else:
-            _set_up_nodeenv(latest_version)
+            run_cmd_with_logging(f'nodeenv {NODEENV_DIR} --node={latest_version} --prebuilt')
         run_cmd_with_logging(f'. {NODEENV_DIR}/bin/activate && npm install --no-fund .', shell=True)
-
-
-def _set_up_nodeenv(nodejs_version: str):
-    latest_version = _find_latest_node_version(nodejs_version)
-    run_cmd_with_logging(f'nodeenv {NODEENV_DIR} --node={latest_version} --prebuilt')
 
 
 def _find_latest_node_version(target_version: str) -> str:
