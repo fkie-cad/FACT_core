@@ -1,9 +1,13 @@
 import logging
 import os
+import re
 import subprocess
 from contextlib import suppress
 from pathlib import Path
+from shlex import split
 from subprocess import PIPE, STDOUT
+
+from packaging.version import parse as parse_version
 
 import config
 from helperFunctions.install import (
@@ -20,8 +24,10 @@ from helperFunctions.install import (
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
-MIME_ICON_DIR = INSTALL_DIR.parent / 'web_interface' / 'static' / 'file_icons'
+STATIC_WEB_DIR = INSTALL_DIR.parent / 'web_interface' / 'static'
+MIME_ICON_DIR = STATIC_WEB_DIR / 'file_icons'
 ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/Papirus/24x24')
+NODEENV_DIR = 'nodeenv'
 
 
 def execute_commands_and_raise_on_return_code(commands, error=None):
@@ -141,6 +147,27 @@ def _copy_mime_icons():
         run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
+def _install_nodejs():
+    with OperateInDirectory(STATIC_WEB_DIR):
+        if Path(NODEENV_DIR).is_dir():
+            logging.info('Skipping nodeenv installation (already exists)')
+        else:
+            _set_up_nodeenv()
+        run_cmd_with_logging(f'. {NODEENV_DIR}/bin/activate && npm install --no-fund .', shell=True)
+
+
+def _set_up_nodeenv(nodejs_version: str = '22'):
+    proc = subprocess.run(split('nodeenv --list'), capture_output=True, text=True, check=False)
+    if proc.returncode != 0:
+        raise InstallationError('nodejs installation failed. Is nodeenv installed?')
+    available_versions = [
+        parse_version(v) for v in re.split(r'[\n\t ]', proc.stderr) if v and v.startswith(nodejs_version)
+    ]
+    if not available_versions:
+        raise InstallationError(f'No nodejs installation candidates found for version "{nodejs_version}"')
+    run_cmd_with_logging(f'nodeenv {NODEENV_DIR} --node={max(available_versions)} --prebuilt')
+
+
 def main(skip_docker, radare, nginx, distribution):
     if distribution != 'fedora':
         pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-frontend.txt')
@@ -156,10 +183,7 @@ def main(skip_docker, radare, nginx, distribution):
 
     install_pip_packages(PIP_DEPENDENCIES)
 
-    # npm does not allow us to install packages to a specific directory
-    with OperateInDirectory('../../src/web_interface/static'):
-        # EBADENGINE can probably be ignored because we probably don't need node.
-        run_cmd_with_logging('npm install --no-fund .')
+    _install_nodejs()
 
     # create user database
     _create_directory_for_authentication()

@@ -16,6 +16,9 @@ quantiphy==2.19
 uwsgi==2.0.23
 virtualenv
 
+# npm installation
+nodeenv~=1.8.0
+
 # must be below dependent packages (flask, flask-login, flask-restx)
 werkzeug==2.3.8
 
