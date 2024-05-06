@@ -6,7 +6,7 @@ python-magic==0.4.27
 requests==2.31.0
 # Needed by config.py
 pydantic==2.4.0
-werkzeug==2.3.8
+werkzeug==3.0.3
 toml==0.10.2
 
 git+https://github.com/fkie-cad/common_helper_files.git
