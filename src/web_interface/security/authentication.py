@@ -1,7 +1,8 @@
 import base64
 import os
 
-from flask_security import AnonymousUser, LoginForm, RoleMixin, Security, UserMixin
+from flask_security import LoginForm, RoleMixin, Security, UserMixin
+from flask_security.core import AnonymousUser
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.local import LocalProxy
 from wtforms import StringField
