@@ -19,8 +19,7 @@ rich==12.6.0
 sqlalchemy==2.0.15
 ssdeep==3.4
 xmltodict==0.13.0
-# FixMe: pin to 4.4.x as soon as it releases
-git+https://github.com/VirusTotal/yara-python@d0921c0
+yara-python==4.5.0
 
 # Config validation
 pydantic==2.4.0
