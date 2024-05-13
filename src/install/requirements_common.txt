@@ -16,7 +16,7 @@ python-tlsh==4.5.0
 redis==4.5.4
 requests==2.31.0
 rich==12.6.0
-sqlalchemy==2.0.15
+sqlalchemy~=2.0.30
 ssdeep==3.4
 xmltodict==0.13.0
 yara-python==4.5.0
