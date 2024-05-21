@@ -14,7 +14,7 @@ pytest==7.2.0
 python-magic==0.4.27
 python-tlsh==4.5.0
 redis==4.5.4
-requests==2.31.0
+requests==2.32.0
 rich==12.6.0
 sqlalchemy~=2.0.30
 ssdeep==3.4

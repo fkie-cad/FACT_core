@@ -3,7 +3,7 @@ virtualenv
 # Python Libraries for python based installation
 distro==1.8.0
 python-magic==0.4.27
-requests==2.31.0
+requests==2.32.0
 # Needed by config.py
 pydantic==2.4.0
 werkzeug~=3.0.3
