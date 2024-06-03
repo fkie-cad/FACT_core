@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from multiprocessing.sharedctypes import Synchronized, SynchronizedArray
 from tempfile import _TemporaryFileWrapper
-from typing import TypeVar, TypeAlias
+from typing import TypeAlias, TypeVar
 
 # a UID (unique identifier) "{sha256 hash}_{file size in bytes}" for a byte string (i.e. the contents of a file)
 UID: TypeAlias = str
