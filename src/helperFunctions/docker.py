@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from contextlib import suppress
 from subprocess import CompletedProcess
@@ -65,7 +67,7 @@ def run_docker_container(
     # We do not know the docker entrypoint so we just insert a generic "entrypoint"
     command = kwargs.get('command', None)
     if isinstance(command, str):
-        args = 'entrypoint' + command
+        args: list[str] | str = 'entrypoint' + command
     elif isinstance(command, list):
         args = ['entrypoint', *command]
     else:
