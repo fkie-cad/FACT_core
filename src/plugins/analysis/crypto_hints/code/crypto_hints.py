@@ -1,15 +1,18 @@
-import io
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List
 
 import pydantic
-import typing
 
-from analysis.plugin import addons, compat
-from analysis.plugin import AnalysisPluginV0
+from analysis.plugin import AnalysisPluginV0, addons, compat
+
+if TYPE_CHECKING:
+    import io
 
 
 class AnalysisPlugin(AnalysisPluginV0, compat.AnalysisBasePluginAdapterMixin):
     class Schema(pydantic.BaseModel):
-        matches: typing.List[dict]
+        matches: List[dict]
 
     def __init__(self):
         metadata = AnalysisPluginV0.MetaData(
