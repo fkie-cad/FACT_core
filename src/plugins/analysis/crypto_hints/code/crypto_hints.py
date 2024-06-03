@@ -18,7 +18,7 @@ class AnalysisPlugin(AnalysisPluginV0, compat.AnalysisBasePluginAdapterMixin):
         metadata = AnalysisPluginV0.MetaData(
             name='crypto_hints',
             description='find indicators of specific crypto algorithms',
-            version='0.2.0',
+            version='0.2.1',
             Schema=AnalysisPlugin.Schema,
         )
         super().__init__(metadata=metadata)
