@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import Dict, List, TypeAlias
+from typing import Dict, List
 
-VFP: TypeAlias = str
-VfpDict: TypeAlias = Dict[str, List[VFP]]
+# FixMe: add TypeAlias type hint when FACT supports Python>=3.10 only
+VFP = str
+VfpDict = Dict[str, List[VFP]]
 
 
 def get_paths_for_all_parents(vfp_dict: VfpDict) -> list[VFP]:
