@@ -28,7 +28,7 @@ class OperateInDirectory:
     """
 
     def __init__(self, target_directory: str | Path, remove: bool = False):
-        self._current_working_dir = None
+        self._current_working_dir: str | None = None
         self._target_directory = str(target_directory)
         self._remove = remove
 
@@ -59,7 +59,7 @@ def remove_folder(folder_name: str):
         raise InstallationError(exception) from None
 
 
-def log_current_packages(packages: tuple[str], install: bool = True):
+def log_current_packages(packages: tuple[str, ...], install: bool = True):
     """
     Log which packages are installed or removed.
 
