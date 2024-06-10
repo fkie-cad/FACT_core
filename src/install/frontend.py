@@ -102,7 +102,8 @@ def _configure_nginx():
             # copy is better on redhat to respect selinux context
             '(cd ../config && sudo install -m 644 $PWD/nginx.conf /etc/nginx/nginx.conf)',
             '(sudo mkdir /etc/nginx/error || true)',
-            '(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true',  # noqa: E501
+            '(cd ../web_interface/templates/ '
+            '&& sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true',
         ],
         error='configuring nginx',
     )
@@ -141,6 +142,27 @@ def _copy_mime_icons():
         run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
+def _init_graphql():
+    user = config.common.postgres.rw_user
+    pw = config.common.postgres.rw_pw
+    port = config.common.postgres.port
+    server = config.common.postgres.server
+    if server in ('localhost', '127.0.0.1', '::1'):
+        # if postgres is running on the host, the host is available through this special address (which represents the
+        # gateway address of the internal docker network)
+        server = 'host.docker.internal'
+    with OperateInDirectory(INSTALL_DIR.parent / 'graphql' / 'hasura'):
+        run_cmd_with_logging(
+            'docker-compose up -d',
+            env={
+                **os.environ,
+                'HASURA_ADMIN_SECRET': config.frontend.Hasura.admin_secret,
+                'FACT_DB_URL': f'postgresql://{user}:{pw}@{server}:{port} / fact_db',
+            },
+        )
+        run_cmd_with_logging('python3 init_hasura.py')
+
+
 def main(skip_docker, radare, nginx, distribution):
     if distribution != 'fedora':
         pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-frontend.txt')
@@ -169,6 +191,8 @@ def main(skip_docker, radare, nginx, distribution):
 
     if not skip_docker:
         _install_docker_images(radare)
+
+    _init_graphql()
 
     if not MIME_ICON_DIR.is_dir():
         MIME_ICON_DIR.mkdir()
