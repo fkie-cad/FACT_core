@@ -1,0 +1,46 @@
+version: "3.6"
+services:
+  # the postgres instance is only for Hasura to store its metadata and should not be available from outside
+  postgres:
+    image: postgres:15
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: postgrespassword
+  graphql-engine:
+    image: hasura/graphql-engine:v2.38.0
+    ports:
+      - "8080:8080"
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/postgres
+      PG_DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
+      HASURA_GRAPHQL_METADATA_DEFAULTS: '{"backend_configs":{"dataconnector":{"athena":{"uri":"http://data-connector-agent:8081/api/v1/athena"},"mariadb":{"uri":"http://data-connector-agent:8081/api/v1/mariadb"},"mysql8":{"uri":"http://data-connector-agent:8081/api/v1/mysql"},"oracle":{"uri":"http://data-connector-agent:8081/api/v1/oracle"},"snowflake":{"uri":"http://data-connector-agent:8081/api/v1/snowflake"}}}}'
+      # should be set during init
+      FACT_DB_URL: "${FACT_DB_URL}"
+      HASURA_GRAPHQL_ADMIN_SECRET: "${HASURA_ADMIN_SECRET}"
+    depends_on:
+      data-connector-agent:
+        condition: service_healthy
+  data-connector-agent:
+    image: hasura/graphql-data-connector:v2.38.0
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      QUARKUS_LOG_LEVEL: ERROR
+      QUARKUS_OPENTELEMETRY_ENABLED: "false"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/athena/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+volumes:
+  db_data:
