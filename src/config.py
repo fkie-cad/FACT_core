@@ -108,6 +108,10 @@ class Frontend(Common):
 
     radare2_url: str
 
+    class Hasura(BaseModel):
+        model_config = ConfigDict(extra='forbid')
+        admin_secret: str
+
 
 class Backend(Common):
     model_config = ConfigDict(extra='forbid')
