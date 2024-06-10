@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block head %}
+    <script>let exports = {};</script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/codemirror/lib/codemirror.css') }}">
+    <script src="{{ url_for('static', filename='graphql/bundle.js') }}"></script>
+{% endblock %}
+
+{% block styles %}
+{% endblock %}
+
+
+{% block body %}
+
+<div class="row justify-content-center" style="font-size: 0.9rem;">
+
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
+        <h3 class="mb-3">Advanced Search with GraphQL</h3>
+
+        <textarea id="editor"></textarea>
+        <script>
+            const textArea = document.getElementById('editor');
+            const graphqlEndpoint = 'http://localhost:8080/v1/graphql';
+
+            fetch("/graphql/schema", {method: 'GET'})
+            .then(response => response.text())
+            .then(schema => {
+                let editor = createCodeMirror.default(textArea, schema);
+                console.log("done");
+             })
+            .catch(error => console.error('Error fetching schema:', error));
+        </script>
+    </div>
+</div>
+
+{% endblock %}
