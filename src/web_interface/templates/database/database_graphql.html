@@ -4,12 +4,15 @@
 
 
 {% block head %}
-    <script>let exports = {};</script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/codemirror/lib/codemirror.css') }}">
-    <script src="{{ url_for('static', filename='graphql/bundle.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/react/umd/react.development.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/react-dom/umd/react-dom.development.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/graphiql/graphiql.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/@graphiql/plugin-explorer/dist/index.umd.js') }}"></script>
 {% endblock %}
 
 {% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/graphiql/graphiql.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/@graphiql/plugin-explorer/dist/style.css') }}"/>
 {% endblock %}
 
 
@@ -17,21 +20,73 @@
 
 <div class="row justify-content-center" style="font-size: 0.9rem;">
 
-    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
+    <div class="col-sm-12 mt-4">
         <h3 class="mb-3">Advanced Search with GraphQL</h3>
 
-        <textarea id="editor"></textarea>
         <script>
-            const textArea = document.getElementById('editor');
-            const graphqlEndpoint = 'http://localhost:8080/v1/graphql';
+        </script>
 
-            fetch("/graphql/schema", {method: 'GET'})
-            .then(response => response.text())
-            .then(schema => {
-                let editor = createCodeMirror.default(textArea, schema);
-                console.log("done");
-             })
-            .catch(error => console.error('Error fetching schema:', error));
+
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" href="#" onclick="switchTab(event, 'graphiql')">
+                    GraphiQL
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="switchTab(event, 'advancedSearch')">
+                    Advanced Search
+                </a>
+            </li>
+        </ul>
+
+
+        <div class="col-sm-12 px-0">
+            <div class="form-group tab-content" id="graphiql" style="display: none;">
+                <div id="graphiql">Loading...</div>
+            </div>
+        </div>
+
+        <div class="col-sm-12 px-0">
+            <div class="form-group tab-content" id="advancedSearch" style="display: none;">
+                    <label class="control-label" for="textarea">GraphQL query:</label><br />
+                <div>
+                    <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
+                    class="form-control" id="textarea"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <script>
+          const root = ReactDOM.createRoot(document.getElementById('graphiql'));
+          const fetcher = GraphiQL.createFetcher({
+            url: 'http://localhost:33333/v1/graphql',
+            // ToDo: fetch the secret from a secured endpoint!
+            headers: { 'x-hasura-admin-secret': '4dM1n_S3cR3T_changemeplz' },
+          });
+          const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
+          root.render(
+            React.createElement(GraphiQL, {
+              fetcher,
+              defaultEditorToolsVisibility: true,
+              plugins: [explorerPlugin],
+            }),
+          );
+
+          // ToDo: refactor merge with binary search switchTab()
+          function switchTab(evt, tabname) {
+              let i, tabcontent, tablinks;
+              tabcontent = document.getElementsByClassName("tab-content");
+              for (i = 0; i < tabcontent.length; i++) {
+                  tabcontent[i].style.display = "none";
+              }
+              tablinks = document.getElementsByClassName("nav-link");
+              for (i = 0; i < tablinks.length; i++) {
+                  tablinks[i].className = tablinks[i].className.replace(" active", "");
+              }
+              document.getElementById(tabname).style.display = "inline";
+              evt.currentTarget.className += " active";
+          }
         </script>
     </div>
 </div>
