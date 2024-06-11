@@ -153,11 +153,12 @@ def _init_graphql():
         server = 'host.docker.internal'
     with OperateInDirectory(INSTALL_DIR.parent / 'graphql' / 'hasura'):
         run_cmd_with_logging(
-            'docker-compose up -d',
+            'docker compose up -d',
             env={
                 **os.environ,
-                'HASURA_ADMIN_SECRET': config.frontend.Hasura.admin_secret,
-                'FACT_DB_URL': f'postgresql://{user}:{pw}@{server}:{port} / fact_db',
+                'HASURA_ADMIN_SECRET': config.frontend.hasura.admin_secret,
+                'FACT_DB_URL': f'postgresql://{user}:{pw}@{server}:{port}/fact_db',
+                'HASURA_PORT': str(config.frontend.hasura.port),
             },
         )
         run_cmd_with_logging('python3 init_hasura.py')

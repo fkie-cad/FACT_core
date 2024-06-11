@@ -15,18 +15,17 @@ except ImportError:
     sys.path.append(str(SRC_DIR))
     import config
 
+config.load()
 HTML_OK = 200
 HTML_BAD_REQUEST = 400
-HASURA_PORT = 8080
 DB_NAME = 'fact_db'
-URL = f'http://localhost:{HASURA_PORT}/v1/metadata'
+URL = f'http://localhost:{config.frontend.hasura.port}/v1/metadata'
 HEADERS = {
     'Content-Type': 'application/json',
     'X-Hasura-Role': 'admin',
-    'X-Hasura-Admin-Secret': config.frontend.Hasura.admin_secret,
+    'X-Hasura-Admin-Secret': config.frontend.hasura.admin_secret,
 }
 client = docker.from_env()
-config.load()
 
 TRACKED_TABLES = ('analysis', 'file_object', 'firmware', 'fw_files', 'included_files', 'virtual_file_path')
 RELATIONSHIPS = {

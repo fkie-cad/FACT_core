@@ -1,4 +1,3 @@
-version: "3.6"
 services:
   # the postgres instance is only for Hasura to store its metadata and should not be available from outside
   postgres:
@@ -11,7 +10,7 @@ services:
   graphql-engine:
     image: hasura/graphql-engine:v2.38.0
     ports:
-      - "8080:8080"
+      - "${HASURA_PORT}:8080"
     restart: always
     extra_hosts:
       - "host.docker.internal:host-gateway"
