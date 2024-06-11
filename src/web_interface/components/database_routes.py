@@ -283,12 +283,12 @@ class DatabaseRoutes(ComponentBase):
         return redirect(url_for('browse_database', query=json.dumps(query)))
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
-    @AppRoute('/graphql', GET)
+    @AppRoute('/database/graphql', GET)
     def get_graphql(self):
         return render_template('database/database_graphql.html')
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
-    @AppRoute('/graphql/schema', GET)
+    @AppRoute('/database/graphql/schema', GET)
     def get_graphql_schema(self):
         schema_path = Path(__file__).parent.parent / 'static' / 'graphql' / 'schema.graphql'
         return schema_path.read_text()
