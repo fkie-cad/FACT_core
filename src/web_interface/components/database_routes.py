@@ -2,11 +2,11 @@ import json
 import logging
 from datetime import datetime
 from itertools import chain
-from pathlib import Path
 
 from flask import redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
+import config
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.database import get_shared_session
 from helperFunctions.task_conversion import get_file_name_and_binary_from_request
@@ -285,10 +285,7 @@ class DatabaseRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/graphql', GET)
     def get_graphql(self):
-        return render_template('database/database_graphql.html')
-
-    @roles_accepted(*PRIVILEGES['advanced_search'])
-    @AppRoute('/database/graphql/schema', GET)
-    def get_graphql_schema(self):
-        schema_path = Path(__file__).parent.parent / 'static' / 'graphql' / 'schema.graphql'
-        return schema_path.read_text()
+        return render_template(
+            'database/database_graphql.html',
+            secret=config.frontend.hasura.admin_secret,
+        )

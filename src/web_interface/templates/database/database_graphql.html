@@ -34,8 +34,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" onclick="switchTab(event, 'advancedSearch')">
-                    Advanced Search
+                <a class="nav-link" href="#" onclick="switchTab(event, 'factDbSearch')">
+                    FACT Database Search
                 </a>
             </li>
         </ul>
@@ -48,7 +48,7 @@
         </div>
 
         <div class="col-sm-12 px-0">
-            <div class="form-group tab-content" id="advancedSearch" style="display: none;">
+            <div class="form-group tab-content" id="factDbSearch" style="display: none;">
                     <label class="control-label" for="textarea">GraphQL query:</label><br />
                 <div>
                     <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
@@ -62,7 +62,7 @@
           const fetcher = GraphiQL.createFetcher({
             url: 'http://localhost:33333/v1/graphql',
             // ToDo: fetch the secret from a secured endpoint!
-            headers: { 'x-hasura-admin-secret': '4dM1n_S3cR3T_changemeplz' },
+            headers: { 'x-hasura-admin-secret': '{{ secret }}' },
           });
           const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
           root.render(
