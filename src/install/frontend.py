@@ -151,7 +151,7 @@ def _init_graphql():
         # if postgres is running on the host, the host is available through this special address (which represents the
         # gateway address of the internal docker network)
         server = 'host.docker.internal'
-    with OperateInDirectory(INSTALL_DIR.parent / 'graphql' / 'hasura'):
+    with OperateInDirectory(INSTALL_DIR.parent / 'storage' / 'graphql' / 'hasura'):
         run_cmd_with_logging(
             'docker compose up -d',
             env={
