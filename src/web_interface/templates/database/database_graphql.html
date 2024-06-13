@@ -8,11 +8,32 @@
     <script src="{{ url_for('static', filename='node_modules/react-dom/umd/react-dom.development.js') }}"></script>
     <script src="{{ url_for('static', filename='node_modules/graphiql/graphiql.min.js') }}"></script>
     <script src="{{ url_for('static', filename='node_modules/@graphiql/plugin-explorer/dist/index.umd.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/codemirror/lib/codemirror.js') }}"></script>
 {% endblock %}
 
 {% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/graphiql/graphiql.min.css') }}"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/@graphiql/plugin-explorer/dist/style.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/codemirror/lib/codemirror.css') }}"/>
+    <style>
+        .CodeMirror:not(.cm-s-graphiql) {
+          /* from Bootstrap .form-control */
+          font-size: 1rem;
+          font-weight: 400;
+          line-height: 1.5;
+          color: #495057;
+          background-color: #fff;
+          border: 1px solid #ced4da;
+          border-radius: .25rem;
+        }
+        .CodeMirror-focused:not(.cm-s-graphiql) {
+          /* from Bootstrap .form-control-focused */
+          border-color: #66afe9;
+          outline: 0;
+          box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+          transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+        }
+    </style>
 {% endblock %}
 
 
@@ -33,6 +54,7 @@
                     <i class="fas fa-search"></i> Search Database
                 </button>
             </form>
+            <div class="mt-1">Note: You can only search for file_objects, firmware and analyses and your query must include the uid field.</div>
         </div>
 
         <h5 class="mt-3">GraphiQL query editor:</h5>
@@ -52,6 +74,9 @@
               plugins: [explorerPlugin],
             }),
           );
+          CodeMirror.fromTextArea(document.getElementById('textarea'), {
+		    lineNumbers: true,
+          });
         </script>
 
         <a href="https://hasura.io/docs/latest/queries/postgres/filters/index/">
