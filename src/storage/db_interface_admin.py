@@ -40,8 +40,8 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         uids_to_delete = included_uids - still_in_db
         if delete_root_file:
             uids_to_delete.add(uid)
-        else:
-            assert uid not in uids_to_delete  # this should never ever happen
+        elif uid in uids_to_delete:  # this should not happen but apparently may happen with old DB entries
+            uids_to_delete.remove(uid)
         self.intercom.delete_file(uids_to_delete)
         return len(still_in_db), len(uids_to_delete)
 
