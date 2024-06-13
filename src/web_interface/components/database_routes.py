@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import json
 import logging
+from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from itertools import chain
 
-from flask import redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
 import config
@@ -13,11 +17,28 @@ from helperFunctions.task_conversion import get_file_name_and_binary_from_reques
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
+from storage.graphql.interface import search_gql, validate_gql
 from storage.query_conversion import QueryConversionException
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+
+@dataclass
+class SearchParameters:
+    query: dict | str
+    only_firmware: bool
+    inverted: bool
+    search_target: TargetType
+    query_title: str
+
+    class TargetType(str, Enum):
+        yara = 'YARA'
+        graphql = 'GraphQL'
+        file = 'File'
+        firmware = 'Firmware'
+        inverted = 'Inverse Firmware'
 
 
 class DatabaseRoutes(ComponentBase):
@@ -36,20 +57,30 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/browse', GET)
-    def browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
+    def browse_database(self, query: str = '{}'):
         page, per_page = extract_pagination_from_request(request)[0:2]
-        search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
+        search_parameters = self._get_search_parameters(query)
+
+        if search_parameters.search_target == 'GraphQL':
+            matches = search_gql(search_parameters.query)
+
+            if not matches:
+                flash('Error: No matches found. Did you forget to include the UID field in the query?')
+                return redirect(url_for(self.get_graphql.__name__))
+
+            # ToDo: move paging to GraphQL
+            search_parameters.query = {'uid': {'$in': matches}}
 
         with get_shared_session(self.db.frontend) as frontend_db:
             try:
                 firmware_list = self._search_database(
-                    search_parameters['query'],
+                    search_parameters.query,
                     skip=per_page * (page - 1),
                     limit=per_page,
-                    only_firmwares=search_parameters['only_firmware'],
-                    inverted=search_parameters['inverted'],
+                    only_firmwares=search_parameters.only_firmware,
+                    inverted=search_parameters.inverted,
                 )
-                if self._query_has_only_one_result(firmware_list, search_parameters['query']):
+                if self._query_has_only_one_result(firmware_list, search_parameters.query):
                     return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
             except QueryConversionException as exception:
                 error_message = exception.get_message()
@@ -60,7 +91,7 @@ class DatabaseRoutes(ComponentBase):
                 return render_template('error.html', message=error_message)
 
             total = frontend_db.get_number_of_total_matches(
-                search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted']
+                search_parameters.query, search_parameters.only_firmware, inverted=search_parameters.inverted
             )
             device_classes = frontend_db.get_device_class_list()
             vendors = frontend_db.get_vendor_list()
@@ -101,31 +132,45 @@ class DatabaseRoutes(ComponentBase):
             pagination=pagination,
         )
 
-    def _get_search_parameters(self, query, only_firmware, inverted):
+    def _get_search_parameters(self, query_str: str) -> SearchParameters:
         """
         This function prepares the requested search by parsing all necessary parameters.
         In case of a binary search, indicated by the query being an uid instead of a dict, the cached search result is
         retrieved.
         """
-        search_parameters = {}
-        if request.args.get('query'):
-            query = request.args.get('query')
-            if is_uid(query):
-                cached_query = self.db.frontend.get_query_from_cache(query)
-                query = cached_query.query
-                search_parameters['query_title'] = cached_query.yara_rule
-        search_parameters['only_firmware'] = (
-            request.args.get('only_firmwares') == 'True' if request.args.get('only_firmwares') else only_firmware
+        query_str = request.args.get('query', query_str)
+        graphql = request.args.get('graphql') == 'True'
+        only_firmware = request.args.get('only_firmwares') == 'True'
+        inverted = request.args.get('inverted') == 'True'
+        query_title = None
+        if graphql:
+            query = json.loads(query_str)
+        elif is_uid(query_str):  # cached binary search
+            cached_query = self.db.frontend.get_query_from_cache(query_str)
+            query = json.loads(cached_query.query)
+            query_title = cached_query.yara_rule
+        else:  # regular / advanced search
+            query = apply_filters_to_query(request, query_str)
+            if request.args.get('date'):
+                query = self._add_date_to_query(query, request.args.get('date'))
+        search_target = (
+            SearchParameters.TargetType.yara
+            if query_title
+            else SearchParameters.TargetType.graphql
+            if graphql
+            else SearchParameters.TargetType.file
+            if not only_firmware
+            else SearchParameters.TargetType.firmware
+            if not inverted
+            else SearchParameters.TargetType.inverted
         )
-        search_parameters['inverted'] = (
-            request.args.get('inverted') == 'True' if request.args.get('inverted') else inverted
+        return SearchParameters(
+            query=query,
+            inverted=inverted,
+            only_firmware=only_firmware,
+            search_target=search_target,
+            query_title=query_title or query,
         )
-        search_parameters['query'] = apply_filters_to_query(request, query)
-        if 'query_title' not in search_parameters:
-            search_parameters['query_title'] = search_parameters['query']
-        if request.args.get('date'):
-            search_parameters['query'] = self._add_date_to_query(search_parameters['query'], request.args.get('date'))
-        return search_parameters
 
     @staticmethod
     def _query_has_only_one_result(result_list, query):
@@ -155,7 +200,8 @@ class DatabaseRoutes(ComponentBase):
             query['firmware_tags'] = {'$overlap': tags}
         return json.dumps(query)
 
-    def _add_hash_query_to_query(self, query, value):
+    @staticmethod
+    def _add_hash_query_to_query(query, value):
         # FIXME: The frontend should not need to know how the plugin is configured
         hash_types = ['md5', 'sha1', 'sha256', 'sha512', 'ripemd160', 'whirlpool']
         hash_query = {f'processed_analysis.file_hashes.{hash_type}': value for hash_type in hash_types}
@@ -217,7 +263,8 @@ class DatabaseRoutes(ComponentBase):
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)
 
-    def _get_items_from_binary_search_request(self, req):
+    @staticmethod
+    def _get_items_from_binary_search_request(req):
         yara_rule_file = None
         if req.files.get('file'):
             _, yara_rule_file = get_file_name_and_binary_from_request(req)
@@ -280,7 +327,7 @@ class DatabaseRoutes(ComponentBase):
                 'firmware_tags': search_term,
             }
         }
-        return redirect(url_for('browse_database', query=json.dumps(query)))
+        return redirect(url_for(self.browse_database.__name__, query=json.dumps(query)))
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/graphql', GET)
@@ -288,4 +335,25 @@ class DatabaseRoutes(ComponentBase):
         return render_template(
             'database/database_graphql.html',
             secret=config.frontend.hasura.admin_secret,
+        )
+
+    @roles_accepted(*PRIVILEGES['advanced_search'])
+    @AppRoute('/database/graphql', POST)
+    def post_graphql(self):
+        query_str = request.form.get('textarea')
+        if not query_str:
+            flash('Error: GraphQL query not found in form')
+            return redirect(url_for(self.get_graphql.__name__))
+
+        is_valid, error = validate_gql(query_str)
+        if not is_valid:
+            flash(f'Error: GraphQL syntax error: {error}')
+            return redirect(url_for(self.get_graphql.__name__))
+
+        return redirect(
+            url_for(
+                self.browse_database.__name__,
+                query=json.dumps(query_str),
+                graphql=True,
+            )
         )

@@ -49,11 +49,16 @@
 
         <div class="col-sm-12 px-0">
             <div class="form-group tab-content" id="factDbSearch" style="display: none;">
+                <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
                     <label class="control-label" for="textarea">GraphQL query:</label><br />
-                <div>
-                    <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
-                    class="form-control" id="textarea"></textarea>
-                </div>
+                    <div>
+                        <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
+                                  class="form-control" id="textarea"></textarea>
+                    </div>
+                    <button type="submit" value=submit class="btn btn-primary" id="input_submit">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -61,7 +66,6 @@
           const root = ReactDOM.createRoot(document.getElementById('graphiql'));
           const fetcher = GraphiQL.createFetcher({
             url: 'http://localhost:33333/v1/graphql',
-            // ToDo: fetch the secret from a secured endpoint!
             headers: { 'x-hasura-admin-secret': '{{ secret }}' },
           });
           const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
