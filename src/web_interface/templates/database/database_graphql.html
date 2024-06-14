@@ -23,44 +23,59 @@
     <div class="col-sm-12 mt-4">
         <h3 class="mb-3">Advanced Search with GraphQL</h3>
 
-        <script>
-        </script>
-
-
-        <ul class="nav nav-tabs mb-4">
-            <li class="nav-item">
-                <a class="nav-link active" href="#" onclick="switchTab(event, 'graphiql')">
-                    GraphiQL
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" onclick="switchTab(event, 'factDbSearch')">
-                    FACT Database Search
-                </a>
-            </li>
-        </ul>
-
-
-        <div class="col-sm-12 px-0">
-            <div class="form-group tab-content" id="graphiql" style="display: none;">
-                <div id="graphiql">Loading...</div>
-            </div>
-        </div>
-
-        <div class="col-sm-12 px-0">
-            <div class="form-group tab-content" id="factDbSearch" style="display: none;">
-                <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
-                    <label class="control-label" for="textarea">GraphQL query:</label><br />
-                    <div>
-                        <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
-                                  class="form-control" id="textarea"></textarea>
-                    </div>
-                    <button type="submit" value=submit class="btn btn-primary" id="input_submit">
-                        <i class="fas fa-search"></i> Search
+        <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+            {% for table in tables %}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tableRadio" id="tableRadio{{ loop.index }}"
+                           value="{{ table }}" {% if loop.index == 1 %}checked{% endif %}>
+                    <label class="form-check-label" for="tableRadio{{ loop.index }}">
+                        {{ table }}
+                    </label>
+                    {# help button to open help modal #}
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                            data-target="#{{ table }}Modal" style="border-radius: 50%;">
+                        <i class="fas fa-question"></i>
                     </button>
-                </form>
+                </div>
+            {% endfor %}
+
+            <label class="control-label" for="textarea">GraphQL query $where filter:</label><br />
+            <div>
+                <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
+                          class="form-control" id="textarea" required>
+                    {%- if last_query %}{{ last_query }}{% endif -%}
+                </textarea>
             </div>
-        </div>
+            <button type="submit" value=submit class="btn btn-primary" id="input_submit">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
+
+        {% for table, query in tables.items() %}
+            {# help modal #}
+            <div class="modal fade" id="{{ table }}Modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">{{ table }} query</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            {# ToDo: fix formatting #}
+                            {{ query }}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+
+        <div id="graphiql">Loading...</div>
 
         <script>
           const root = ReactDOM.createRoot(document.getElementById('graphiql'));
@@ -76,21 +91,6 @@
               plugins: [explorerPlugin],
             }),
           );
-
-          // ToDo: refactor merge with binary search switchTab()
-          function switchTab(evt, tabname) {
-              let i, tabcontent, tablinks;
-              tabcontent = document.getElementsByClassName("tab-content");
-              for (i = 0; i < tabcontent.length; i++) {
-                  tabcontent[i].style.display = "none";
-              }
-              tablinks = document.getElementsByClassName("nav-link");
-              for (i = 0; i < tablinks.length; i++) {
-                  tablinks[i].className = tablinks[i].className.replace(" active", "");
-              }
-              document.getElementById(tabname).style.display = "inline";
-              evt.currentTarget.className += " active";
-          }
         </script>
     </div>
 </div>
