@@ -33,7 +33,7 @@
                     </label>
                     {# help button to open help modal #}
                     <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
-                            data-target="#{{ table }}Modal" style="border-radius: 50%;">
+                            data-target="#{{ table }}Modal" style="border-radius: 50%; padding: 2px 6px;">
                         <i class="fas fa-question"></i>
                     </button>
                 </div>
@@ -63,10 +63,14 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            {# ToDo: fix formatting #}
-                            {{ query }}
+                            Start a search in FACT's database on the table {{ table }}. Internally this works with the following GraphQL query:
+                            <pre>
+                                <code id="{{ table }}-example">{{ query }}</code>
+                            </pre>
+                            The only part that you need to provide is the $where part, which is used to filter the results. You can copy the query to GraphiQL and play around with it.
                         </div>
                         <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="copyToClipboard('{{ table }}-example')">Copy to Clipboard</button>
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         </div>
                     </div>
@@ -91,6 +95,13 @@
               plugins: [explorerPlugin],
             }),
           );
+
+        function copyToClipboard(elementId) {
+          const text = document.getElementById(elementId).innerText.trim();
+          navigator.clipboard.writeText(text).then(() => {}, function(err) {
+            console.error('Async: Could not copy to clipboard: ', err);
+          });
+        }
         </script>
     </div>
 </div>
