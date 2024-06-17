@@ -144,6 +144,7 @@ def frontend_config(request, common_config) -> config.Frontend:
             'user_database': 'sqlite:////media/data/fact_auth_data/fact_users.db',
             'password_salt': '5up3r5tr0n6_p455w0rd_5417',
         },
+        'hasura': {'admin_secret': 'admin_secret'},
     }
 
     test_config.update(common_config.model_dump())
