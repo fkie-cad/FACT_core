@@ -20,7 +20,7 @@ from helperFunctions.task_conversion import get_file_name_and_binary_from_reques
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
-from storage.graphql.interface import TABLE_TO_QUERY, GraphQLSearchError, search_gql
+from storage.graphql.interface import TEMPLATE_QUERIES, GraphQLSearchError, search_gql
 from storage.query_conversion import QueryConversionException
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
@@ -347,7 +347,7 @@ class DatabaseRoutes(ComponentBase):
             'database/database_graphql.html',
             secret=config.frontend.hasura.admin_secret,
             port=config.frontend.hasura.port,
-            tables=TABLE_TO_QUERY,
+            tables=TEMPLATE_QUERIES,
             last_query=request.args.get('last_query'),
         )
 
@@ -361,7 +361,7 @@ class DatabaseRoutes(ComponentBase):
             flash(f'Error: JSON decoding error: {error}')
             return redirect(url_for(self.get_graphql.__name__, last_query=where_str))
 
-        table = request.form.get('tableRadio')
+        table = request.form.get('tableSelect')
         if not (where_str or table):
             flash('Error: GraphQL query or table not found in request')
             return redirect(url_for(self.get_graphql.__name__))

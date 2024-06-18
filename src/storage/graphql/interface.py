@@ -59,6 +59,30 @@ TABLE_TO_QUERY = {
     'firmware': FW_QUERY,
     'analysis': ANALYSIS_QUERY,
 }
+# these queries are simplified versions of the ones above that are displayed in the web interface
+TEMPLATE_QUERIES = {
+    'file_object': (
+        'query file_object_query($where: file_object_bool_exp) {\n'
+        '    file_object(where: $where) {\n'
+        '        uid\n'
+        '    }\n'
+        '}'
+    ),
+    'firmware': (
+        'query firmware_query($where: file_object_bool_exp) {\n'
+        '    firmware(where: $where, order_by: {vendor: asc}) {\n'
+        '        uid\n'
+        '    }\n'
+        '}'
+    ),
+    'analysis': (
+        'query analysis_query($where: file_object_bool_exp) {\n'
+        '    analysis(where: $where, distinct_on: uid) {\n'
+        '        uid\n'
+        '    }\n'
+        '}'
+    ),
+}
 
 
 class GraphQLSearchError(Exception):
