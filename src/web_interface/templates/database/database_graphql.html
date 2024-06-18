@@ -22,7 +22,6 @@
           font-weight: 400;
           line-height: 1.5;
           color: #495057;
-          background-color: #fff;
           border: 1px solid #ced4da;
           border-radius: .25rem;
         }
@@ -44,18 +43,60 @@
     <div class="col-sm-12 mt-4">
         <h3>Database Search with GraphQL</h3>
 
-        <div class="m-4">
-            <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
-                <div>
-                    <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
-                              class="form-control" id="textarea" placeholder="GraphQL query"></textarea>
+        <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
+            {% for table in tables %}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tableRadio" id="tableRadio{{ loop.index }}"
+                           value="{{ table }}" {% if loop.index == 1 %}checked{% endif %}>
+                    <label class="form-check-label" for="tableRadio{{ loop.index }}">
+                        {{ table }}
+                    </label>
+                    {# help button to open help modal #}
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                            data-target="#{{ table }}Modal" style="border-radius: 50%; padding: 2px 6px;">
+                        <i class="fas fa-question"></i>
+                    </button>
                 </div>
-                <button type="submit" value=submit class="btn btn-primary" id="input_submit">
-                    <i class="fas fa-search"></i> Search Database
-                </button>
-            </form>
-            <div class="mt-1">Note: You can only search for file_objects, firmware and analyses and your query must include the uid field.</div>
-        </div>
+            {% endfor %}
+
+            <label class="control-label" for="textarea">GraphQL query $where filter:</label><br />
+            <div>
+                <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
+                          class="form-control" id="textarea">
+                    {%- if last_query %}{{ last_query }}{% endif -%}
+                </textarea>
+            </div>
+            <button type="submit" value=submit class="btn btn-primary" id="input_submit">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
+
+        {% for table, query in tables.items() %}
+            {# help modal #}
+            <div class="modal fade" id="{{ table }}Modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">{{ table }} query</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Start a search in FACT's database on the table {{ table }}. Internally this works with the following GraphQL query:
+                            <pre>
+                                <code id="{{ table }}-example">{{ query }}</code>
+                            </pre>
+                            The only part that you need to provide is the $where part, which is used to filter the results. You can copy the query to GraphiQL and play around with it.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="copyToClipboard('{{ table }}-example')">Copy to Clipboard</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
 
         <h5 class="mt-3">GraphiQL query editor:</h5>
         <div id="graphiql">Loading...</div>
@@ -74,9 +115,18 @@
               plugins: [explorerPlugin],
             }),
           );
-          CodeMirror.fromTextArea(document.getElementById('textarea'), {
+          const cm = CodeMirror.fromTextArea(document.getElementById('textarea'), {
 		    lineNumbers: true,
           });
+          function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText.trim();
+            navigator.clipboard.writeText(text).then(() => {}, function(err) {
+              console.error('Async: Could not copy to clipboard: ', err);
+            });
+          }
+          function submitForm(e) {
+
+          }
         </script>
 
         <a href="https://hasura.io/docs/latest/queries/postgres/filters/index/">

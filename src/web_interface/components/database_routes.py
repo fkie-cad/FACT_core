@@ -6,8 +6,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from itertools import chain
+from json import JSONDecodeError
 
 from flask import flash, redirect, render_template, request, url_for
+from gql.transport.exceptions import TransportQueryError
+from graphql import GraphQLSyntaxError
 from sqlalchemy.exc import SQLAlchemyError
 
 import config
@@ -17,7 +20,7 @@ from helperFunctions.task_conversion import get_file_name_and_binary_from_reques
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
-from storage.graphql.interface import search_gql, validate_gql
+from storage.graphql.interface import TABLE_TO_QUERY, GraphQLSearchError, search_gql
 from storage.query_conversion import QueryConversionException
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
@@ -27,18 +30,18 @@ from web_interface.security.privileges import PRIVILEGES
 
 @dataclass
 class SearchParameters:
-    query: dict | str
-    only_firmware: bool
-    inverted: bool
-    search_target: TargetType
-    query_title: str
-
     class TargetType(str, Enum):
         yara = 'YARA'
         graphql = 'GraphQL'
         file = 'File'
         firmware = 'Firmware'
         inverted = 'Inverse Firmware'
+
+    query: dict | str
+    only_firmware: bool
+    inverted: bool
+    search_target: TargetType
+    query_title: str
 
 
 class DatabaseRoutes(ComponentBase):
@@ -59,28 +62,35 @@ class DatabaseRoutes(ComponentBase):
     @AppRoute('/database/browse', GET)
     def browse_database(self, query: str = '{}'):
         page, per_page = extract_pagination_from_request(request)[0:2]
-        search_parameters = self._get_search_parameters(query)
+        offset, limit = per_page * (page - 1), per_page
+        total = None
+        parameters = self._get_search_parameters(query)
 
-        if search_parameters.search_target == 'GraphQL':
-            matches = search_gql(search_parameters.query)
-
-            if not matches:
-                flash('Error: No matches found. Did you forget to include the UID field in the query?')
-                return redirect(url_for(self.get_graphql.__name__))
-
-            # ToDo: move paging to GraphQL
-            search_parameters.query = {'uid': {'$in': matches}}
+        if parameters.search_target == SearchParameters.TargetType.graphql:
+            where = parameters.query.get('where', {})
+            table = parameters.query.get('table')
+            try:
+                matches, total = search_gql(where, table, offset=offset, limit=limit)
+            except (GraphQLSearchError, GraphQLSyntaxError, TransportQueryError) as error:
+                if hasattr(error, 'errors') and error.errors:
+                    error = ', '.join(err.get('message') for err in error.errors if err)
+                message = f'Error during GraphQL search: {error}'
+                logging.exception(message)
+                flash(message)
+                return redirect(url_for(self.get_graphql.__name__, last_query=json.dumps(where)))
+            parameters.query = {'uid': {'$in': matches}}  # update query for "generic search"
+            offset, limit = None, None  # should only be applied once
 
         with get_shared_session(self.db.frontend) as frontend_db:
             try:
                 firmware_list = self._search_database(
-                    search_parameters.query,
-                    skip=per_page * (page - 1),
-                    limit=per_page,
-                    only_firmwares=search_parameters.only_firmware,
-                    inverted=search_parameters.inverted,
+                    parameters.query,
+                    skip=offset,
+                    limit=limit,
+                    only_firmwares=parameters.only_firmware,
+                    inverted=parameters.inverted,
                 )
-                if self._query_has_only_one_result(firmware_list, search_parameters.query):
+                if self._query_has_only_one_result(firmware_list, parameters.query):
                     return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
             except QueryConversionException as exception:
                 error_message = exception.get_message()
@@ -90,9 +100,10 @@ class DatabaseRoutes(ComponentBase):
                 logging.error(error_message + f' due to exception: {err}', exc_info=True)
                 return render_template('error.html', message=error_message)
 
-            total = frontend_db.get_number_of_total_matches(
-                search_parameters.query, search_parameters.only_firmware, inverted=search_parameters.inverted
-            )
+            if not total:
+                total = frontend_db.get_number_of_total_matches(
+                    parameters.query, parameters.only_firmware, parameters.inverted
+                )
             device_classes = frontend_db.get_device_class_list()
             vendors = frontend_db.get_vendor_list()
 
@@ -107,7 +118,7 @@ class DatabaseRoutes(ComponentBase):
             vendors=vendors,
             current_class=str(request.args.get('device_class')),
             current_vendor=str(request.args.get('vendor')),
-            search_parameters=search_parameters,
+            search_parameters=parameters,
         )
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
@@ -335,25 +346,30 @@ class DatabaseRoutes(ComponentBase):
         return render_template(
             'database/database_graphql.html',
             secret=config.frontend.hasura.admin_secret,
+            port=config.frontend.hasura.port,
+            tables=TABLE_TO_QUERY,
+            last_query=request.args.get('last_query'),
         )
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/graphql', POST)
     def post_graphql(self):
-        query_str = request.form.get('textarea')
-        if not query_str:
-            flash('Error: GraphQL query not found in form')
-            return redirect(url_for(self.get_graphql.__name__))
+        where_str = request.form.get('textarea')
+        try:
+            where = json.loads(where_str)
+        except JSONDecodeError as error:
+            flash(f'Error: JSON decoding error: {error}')
+            return redirect(url_for(self.get_graphql.__name__, last_query=where_str))
 
-        is_valid, error = validate_gql(query_str)
-        if not is_valid:
-            flash(f'Error: GraphQL syntax error: {error}')
+        table = request.form.get('tableRadio')
+        if not (where_str or table):
+            flash('Error: GraphQL query or table not found in request')
             return redirect(url_for(self.get_graphql.__name__))
 
         return redirect(
             url_for(
                 self.browse_database.__name__,
-                query=json.dumps(query_str),
+                query=json.dumps({'where': where, 'table': table}),
                 graphql=True,
             )
         )

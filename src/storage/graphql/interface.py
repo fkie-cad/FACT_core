@@ -4,7 +4,6 @@ import logging
 
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport, log
-from graphql import GraphQLSyntaxError
 
 import config
 
@@ -19,21 +18,79 @@ transport = AIOHTTPTransport(url=URL, headers=HEADERS)
 client = Client(transport=transport)
 log.setLevel(logging.WARNING)  # disable noisy gql logs
 
+FO_QUERY = """
+query file_object($where: file_object_bool_exp, $limit: Int, $offset: Int) {
+  file_object_aggregate(where: $where) {
+    aggregate {
+      totalCount: count
+    }
+  }
+  file_object(where: $where, limit: $limit, offset: $offset) {
+    uid
+  }
+}
+"""
+FW_QUERY = """
+query firmware($where: firmware_bool_exp, $limit: Int, $offset: Int) {
+  firmware_aggregate(where: $where) {
+    aggregate {
+      totalCount: count
+    }
+  }
+  firmware(where: $where, limit: $limit, offset: $offset, order_by: {vendor: asc}) {
+    uid
+  }
+}
+"""
+ANALYSIS_QUERY = """
+query analysis($where: analysis_bool_exp, $limit: Int, $offset: Int) {
+  analysis_aggregate(where: $where, distinct_on: uid) {
+    aggregate {
+      totalCount: count
+    }
+  }
+  analysis(where: $where, limit: $limit, offset: $offset, distinct_on: uid) {
+    uid
+  }
+}
+"""
+TABLE_TO_QUERY = {
+    'file_object': FO_QUERY,
+    'firmware': FW_QUERY,
+    'analysis': ANALYSIS_QUERY,
+}
 
-def search_gql(query_str: str) -> list[str]:
-    query = gql(query_str)
-    response = client.execute(query)
-    result = []
-    for value_list in response.values():
-        for dict_ in value_list:
-            if uid := dict_.get('uid', dict_.get('file_uid')):
-                result.append(uid)
-    return result
+
+class GraphQLSearchError(Exception):
+    pass
 
 
-def validate_gql(query_str: str) -> tuple[bool, str]:
-    try:
-        gql(query_str)
-        return True, ''
-    except GraphQLSyntaxError as error:
-        return False, str(error)
+def search_gql(
+    where: dict,
+    table: str,
+    offset: int | None = None,
+    limit: int | None = None,
+) -> tuple[list[str], int]:
+    """
+    Search the database using a GraphQL query.
+
+    :param where: $where part of the query as dict.
+    :param table: name of the table we are searching. Must be one of "file_object", "firmware", "analysis".
+    :param offset: number of items to skip.
+    :param limit: number of items to return.
+    :return: Tuple with a list of matching uids and the total number of matches.
+    """
+    variables = {'where': where}
+    if offset is not None:
+        variables['offset'] = offset
+    if limit is not None:
+        variables['limit'] = limit
+
+    if not (query := TABLE_TO_QUERY[table]):
+        raise GraphQLSearchError(f'Unknown table {table}')
+
+    response = client.execute(gql(query), variable_values=variables)
+    total = response.get(f'{table}_aggregate', {}).get('aggregate', {}).get('totalCount')
+    if not total:
+        raise GraphQLSearchError('Could not determine total result count')
+    return [e['uid'] for e in response.get(table, {})], total
