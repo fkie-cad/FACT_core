@@ -11,7 +11,7 @@ from requests import Response
 try:
     import config
 except ImportError:
-    SRC_DIR = Path(__file__).parent.parent.parent
+    SRC_DIR = Path(__file__).parent.parent.parent.parent
     sys.path.append(str(SRC_DIR))
     import config
 
@@ -33,35 +33,42 @@ RELATIONSHIPS = {
         # table, name, constraint
         ('analysis', 'file_object', 'uid'),
         ('firmware', 'file_object', 'uid'),
-        ('fw_files', 'fileObjectByRootUid', 'root_uid'),
-        ('fw_files', 'fileObjectByFileUid', 'file_uid'),
-        ('fw_files', 'file_object', 'root_uid'),
-        ('included_files', 'fileObjectByParentUid', 'parent_uid'),
-        ('included_files', 'file_object', 'child_uid'),
+        ('fw_files', 'firmware', 'root_uid'),
+        ('fw_files', 'file_object', 'file_uid'),
+        ('included_files', 'parent', 'parent_uid'),
+        ('included_files', 'child', 'child_uid'),
         ('file_object', 'firmware', {'column': 'uid', 'table': {'name': 'firmware', 'schema': 'public'}}),
     ],
     'pg_create_array_relationship': [
-        ('file_object', 'analyses', {'column': 'uid', 'table': {'name': 'analysis', 'schema': 'public'}}),
-        ('file_object', 'fwFilesByRootUid', {'column': 'root_uid', 'table': {'name': 'fw_files', 'schema': 'public'}}),
-        ('file_object', 'fw_files', {'column': 'file_uid', 'table': {'name': 'fw_files', 'schema': 'public'}}),
+        ('file_object', 'analysis', {'column': 'uid', 'table': {'name': 'analysis', 'schema': 'public'}}),
         (
             'file_object',
-            'includedFilesByParentUid',
+            'firmwareFilesByFirmware',
+            {'column': 'root_uid', 'table': {'name': 'fw_files', 'schema': 'public'}},
+        ),
+        (
+            'file_object',
+            'firmwareFilesByFile',
+            {'column': 'file_uid', 'table': {'name': 'fw_files', 'schema': 'public'}},
+        ),
+        (
+            'file_object',
+            'includedFilesByParent',
             {'column': 'parent_uid', 'table': {'name': 'included_files', 'schema': 'public'}},
         ),
         (
             'file_object',
-            'included_files',
+            'includedFilesByChild',
             {'column': 'child_uid', 'table': {'name': 'included_files', 'schema': 'public'}},
         ),
         (
             'file_object',
-            'virtualFilePathsByParentUid',
+            'FilePathsByParent',
             {'column': 'parent_uid', 'table': {'name': 'virtual_file_path', 'schema': 'public'}},
         ),
         (
             'file_object',
-            'virtual_file_paths',
+            'FilePathsByFile',
             {'column': 'file_uid', 'table': {'name': 'virtual_file_path', 'schema': 'public'}},
         ),
     ],

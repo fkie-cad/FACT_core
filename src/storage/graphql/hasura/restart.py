@@ -10,7 +10,7 @@ try:
     import config
     from helperFunctions.install import OperateInDirectory
 except ImportError:
-    SRC_DIR = Path(__file__).parent.parent.parent
+    SRC_DIR = Path(__file__).parent.parent.parent.parent
     sys.path.append(str(SRC_DIR))
     import config
     from helperFunctions.install import OperateInDirectory
