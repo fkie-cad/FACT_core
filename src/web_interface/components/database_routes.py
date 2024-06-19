@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from itertools import chain
-from json import JSONDecodeError
 
+import json5
 from flask import flash, redirect, render_template, request, url_for
 from gql.transport.exceptions import TransportQueryError
 from graphql import GraphQLSyntaxError
@@ -356,9 +357,12 @@ class DatabaseRoutes(ComponentBase):
     def post_graphql(self):
         where_str = request.form.get('textarea')
         try:
-            where = json.loads(where_str)
-        except JSONDecodeError as error:
-            flash(f'Error: JSON decoding error: {error}')
+            where = json5.loads(where_str)
+        except ValueError as error:
+            if where_str == '':
+                flash('Error: Query is empty')
+            else:
+                flash(f'Error: JSON decoding error: {error}')
             return redirect(url_for(self.get_graphql.__name__, last_query=where_str))
 
         table = request.form.get('tableSelect')
@@ -373,3 +377,9 @@ class DatabaseRoutes(ComponentBase):
                 graphql=True,
             )
         )
+
+    @staticmethod
+    def _fix_where_filter(where: str) -> str:
+        # in case someone dumps an unquoted string into the query directly from GraphiQL,
+        # we can try to fix it by adding some quotes
+        return re.sub(r'([{,])([a-zA-Z0-9_]+)(?=:)', r'\g<1>"\g<2>"', where)
