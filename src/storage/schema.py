@@ -7,6 +7,7 @@ from sqlalchemy import (
     Date,
     Float,
     ForeignKey,
+    Index,
     Integer,
     LargeBinary,
     PrimaryKeyConstraint,
@@ -38,7 +39,10 @@ class AnalysisEntry(Base):
 
     file_object = relationship('FileObjectEntry', back_populates='analyses')
 
-    __table_args__ = (PrimaryKeyConstraint('uid', 'plugin', name='_analysis_primary_key'),)
+    __table_args__ = (
+        PrimaryKeyConstraint('uid', 'plugin', name='_analysis_primary_key'),
+        Index('result_gin_index', 'result', postgresql_using='gin'),
+    )
 
     def __repr__(self) -> str:
         return f'AnalysisEntry({self.uid}, {self.plugin}, {self.plugin_version})'
