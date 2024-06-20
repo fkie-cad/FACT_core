@@ -386,13 +386,10 @@ class DatabaseRoutes(ComponentBase):
         """
         excluded_proxy_headers = {'Host', 'Authorization'}
         req_headers = {k: v for (k, v) in request.headers if k not in excluded_proxy_headers}
-        if 'X-Hasura-Admin-Secret' not in req_headers:
-            req_headers['X-Hasura-Admin-Secret'] = config.frontend.hasura.admin_secret
-            req_headers['X-Hasura-Role'] = 'admin'
         response = requests.request(
             method=request.method,
             url=f'http://localhost:{config.frontend.hasura.port}/v1/graphql',
-            headers=req_headers,
+            headers={**req_headers, 'X-Hasura-Role': 'ro_user'},
             data=request.get_data(),
             cookies=request.cookies,
             allow_redirects=False,

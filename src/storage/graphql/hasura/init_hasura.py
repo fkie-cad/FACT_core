@@ -81,6 +81,7 @@ def init_hasura():
         _add_database()
     _track_tables()
     _add_relationships()
+    _add_ro_user_role_to_tables()
     logging.info('Hasura initialization successful')
 
 
@@ -155,6 +156,25 @@ def _db_was_already_added() -> bool:
     if isinstance(data, dict) and 'error' in data:
         return False
     return True
+
+
+def _add_ro_user_role_to_tables():
+    for table in TRACKED_TABLES:
+        query = {
+            'type': 'pg_create_select_permission',
+            'args': {
+                'source': DB_NAME,
+                'table': table,
+                'role': 'ro_user',
+                'permission': {'columns': '*', 'filter': {}},
+            },
+        }
+        response = requests.post(URL, headers=HEADERS, json=query)
+        if response.status_code != HTML_OK:
+            if _was_already_added(response):
+                continue
+            logging.error(f'Failed to role to table {table}: {response.text}')
+            sys.exit(8)
 
 
 if __name__ == '__main__':
