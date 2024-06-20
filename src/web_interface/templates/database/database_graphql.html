@@ -177,10 +177,7 @@
         <script>
           const select = document.getElementById("tableSelect");
           const root = ReactDOM.createRoot(document.getElementById('graphiql'));
-          const fetcher = GraphiQL.createFetcher({
-            url: 'http://localhost:{{ port }}/v1/graphql',
-            headers: { 'x-hasura-admin-secret': '{{ secret }}' },
-          });
+          const fetcher = GraphiQL.createFetcher({url: '/graphql'});
           const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
           const graphiql = React.createElement(GraphiQL, {
               fetcher,

@@ -9,7 +9,8 @@ from enum import Enum
 from itertools import chain
 
 import json5
-from flask import flash, redirect, render_template, request, url_for
+import requests
+from flask import Response, flash, redirect, render_template, request, url_for
 from gql.transport.exceptions import TransportQueryError
 from graphql import GraphQLSyntaxError
 from sqlalchemy.exc import SQLAlchemyError
@@ -347,7 +348,6 @@ class DatabaseRoutes(ComponentBase):
         return render_template(
             'database/database_graphql.html',
             secret=config.frontend.hasura.admin_secret,
-            port=config.frontend.hasura.port,
             tables=TEMPLATE_QUERIES,
             last_query=request.args.get('last_query'),
         )
@@ -383,3 +383,27 @@ class DatabaseRoutes(ComponentBase):
         # in case someone dumps an unquoted string into the query directly from GraphiQL,
         # we can try to fix it by adding some quotes
         return re.sub(r'([{,])([a-zA-Z0-9_]+)(?=:)', r'\g<1>"\g<2>"', where)
+
+    @roles_accepted(*PRIVILEGES['advanced_search'])
+    @AppRoute('/graphql', GET, POST)
+    def proxy_graphql(self):
+        """
+        Creates a proxy for GraphQL so that we have auth and don't need to expose more ports. Since we assume that the
+        user is authenticated to use this endpoint, we add the Hasura headers if they are missing.
+        """
+        excluded_proxy_headers = {'Host', 'Authorization'}
+        req_headers = {k: v for (k, v) in request.headers if k not in excluded_proxy_headers}
+        if 'X-Hasura-Admin-Secret' not in req_headers:
+            req_headers['X-Hasura-Admin-Secret'] = config.frontend.hasura.admin_secret
+            req_headers['X-Hasura-Role'] = 'admin'
+        response = requests.request(
+            method=request.method,
+            url=f'http://localhost:{config.frontend.hasura.port}/v1/graphql',
+            headers=req_headers,
+            data=request.get_data(),
+            cookies=request.cookies,
+            allow_redirects=False,
+        )
+        excluded_headers = {'content-encoding', 'content-length', 'transfer-encoding', 'connection'}
+        headers = {k: v for (k, v) in response.raw.headers.items() if k.lower() not in excluded_headers}
+        return Response(response.content, response.status_code, headers=headers)
