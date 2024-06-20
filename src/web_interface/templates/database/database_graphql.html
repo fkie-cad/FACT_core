@@ -203,6 +203,7 @@
               const code = document.getElementById(elementId).innerText.trim();
               cm.setValue(code);
               select.selectedIndex = selectIndex;
+              updateHelpButtonTarget()
           }
           function updateHelpButtonTarget() {
             const helpButton = document.getElementById("helpButton");
