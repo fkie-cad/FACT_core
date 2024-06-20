@@ -33,23 +33,13 @@ def install_postgres(version: int = 14):
         if process.returncode != 0:
             raise InstallationError(f'Failed to set up PostgreSQL: {process.stderr}')
 
-    # increase the maximum number of concurrent connections (and restart for the change to take effect)
     config_path = f'/etc/postgresql/{version}/main/postgresql.conf'
-    hba_config_path = f'/etc/postgresql/{version}/main/pg_hba.conf'
-    run(f'sudo chmod 644 {hba_config_path}', shell=True, check=True)
-    if '192.168.0.0/16' not in Path(hba_config_path).read_text():
-        # for whatever reason, the local address ranges 10.0.0.0/8 and 192.168.0.0/16 are (contrary to 172.8.0.0/12) not
-        # per default included in the list of allowed peer addresses for postgres, so we need to add it to pg_hba.conf,
-        # so that the DB may be accessed from docker containers which sometimes get an address from this range
-        for ip_range in ['192.168.0.0/16', '10.0.0.0/8 ']:
-            run(f'echo "host all all {ip_range} scram-sha-256" | sudo tee -a {hba_config_path}', shell=True, check=True)
+    # increase the maximum number of concurrent connections
     run(f'sudo sed -i -E "s/max_connections = [0-9]+/max_connections = 999/g" {config_path}', shell=True, check=True)
-    # set listen address from localhost to '*' (0.0.0.0) so that connections from docker containers are accepted
-    run(
-        f"sudo sed -i -E \"s/#? *listen_addresses = 'localhost'/listen_addresses = '\\*'/g\" {config_path}",
-        shell=True,
-        check=True,
-    )
+    hba_config_path = f'/etc/postgresql/{version}/main/pg_hba.conf'
+    # change UNIX domain socket auth mode from peer to user/pw
+    run(f'sudo sed -i -E "s/(local +all +all +)peer/\\1scram-sha-256/g" {hba_config_path}', shell=True, check=True)
+    # restart for the changes to take effect
     run('sudo service postgresql restart', shell=True, check=True)
 
 

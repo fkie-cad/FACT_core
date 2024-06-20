@@ -27,6 +27,13 @@ services:
     depends_on:
       data-connector-agent:
         condition: service_healthy
+    extends:
+      # this is kind of a hack to make mounting a volume optional, see https://github.com/docker/compose/issues/3979
+      file: docker-compose.base.yml
+      service: "postgres-${DB_LOCALITY}"
+#    volumes:
+#      # if your postgres DB does not run on localhost, comment out the following line
+#      - /var/run/postgresql:/var/run/postgresql
   data-connector-agent:
     image: hasura/graphql-data-connector:v2.38.0
     restart: always

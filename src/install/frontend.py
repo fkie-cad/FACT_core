@@ -16,6 +16,7 @@ from helperFunctions.install import (
     read_package_list_from_file,
     run_cmd_with_logging,
 )
+from storage.graphql.util import get_env
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
@@ -143,24 +144,8 @@ def _copy_mime_icons():
 
 
 def _init_graphql():
-    user = config.common.postgres.rw_user
-    pw = config.common.postgres.rw_pw
-    port = config.common.postgres.port
-    server = config.common.postgres.server
-    if server in ('localhost', '127.0.0.1', '::1'):
-        # if postgres is running on the host, the host is available through this special address (which represents the
-        # gateway address of the internal docker network)
-        server = 'host.docker.internal'
     with OperateInDirectory(INSTALL_DIR.parent / 'storage' / 'graphql' / 'hasura'):
-        run_cmd_with_logging(
-            'docker compose up -d',
-            env={
-                **os.environ,
-                'HASURA_ADMIN_SECRET': config.frontend.hasura.admin_secret,
-                'FACT_DB_URL': f'postgresql://{user}:{pw}@{server}:{port}/fact_db',
-                'HASURA_PORT': str(config.frontend.hasura.port),
-            },
-        )
+        run_cmd_with_logging('docker compose up -d', env=get_env())
         run_cmd_with_logging('python3 init_hasura.py')
 
 
