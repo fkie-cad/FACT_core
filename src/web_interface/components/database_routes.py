@@ -394,6 +394,17 @@ class DatabaseRoutes(ComponentBase):
             cookies=request.cookies,
             allow_redirects=False,
         )
-        excluded_headers = {'content-encoding', 'content-length', 'transfer-encoding', 'connection'}
+        excluded_headers = {
+            'connection',
+            'content-encoding',
+            'content-length',
+            'keep-alive',
+            'proxy-authenticate',
+            'proxy-authorization',
+            'te',
+            'trailers',
+            'transfer-encoding',
+            'upgrade',
+        }
         headers = {k: v for (k, v) in response.raw.headers.items() if k.lower() not in excluded_headers}
         return Response(response.content, response.status_code, headers=headers)
