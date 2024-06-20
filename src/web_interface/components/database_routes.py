@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -377,12 +376,6 @@ class DatabaseRoutes(ComponentBase):
                 graphql=True,
             )
         )
-
-    @staticmethod
-    def _fix_where_filter(where: str) -> str:
-        # in case someone dumps an unquoted string into the query directly from GraphiQL,
-        # we can try to fix it by adding some quotes
-        return re.sub(r'([{,])([a-zA-Z0-9_]+)(?=:)', r'\g<1>"\g<2>"', where)
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/graphql', GET, POST)
