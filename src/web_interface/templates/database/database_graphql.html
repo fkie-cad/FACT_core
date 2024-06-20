@@ -27,6 +27,7 @@
           border: 1px solid #ced4da;
           height: auto;
           border-radius: 0.8rem 0.8rem 0 0;
+          min-height: 3.6rem;
         }
         .CodeMirror-focused:not(.cm-s-graphiql) {
           /* from Bootstrap .form-control-focused */
@@ -38,14 +39,6 @@
         .modal-dialog {
           max-width: 800px;
         }
-        .example-json {
-            font-family: 'Deja Vu Sans Mono', monospace;
-            font-size: 0.9em;
-        }
-        .example-comment {
-            color: grey;
-            font-size: 0.9em;
-        }
     </style>
 {% endblock %}
 
@@ -54,35 +47,38 @@
 
 <div class="row justify-content-center" style="font-size: 0.9rem;">
 
-    <div class="col-sm-12 mt-4">
+    <div class="col-xl-6 col-lg-8 col-md-10 col-sm-12 mt-4">
         <h3>Database Search with GraphQL</h3>
 
         <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
             <label class="control-label" for="textarea">GraphQL query $where filter:</label><br />
             <textarea name="textarea" style="resize: vertical; position: relative; z-index: 1;" class="form-control"
-                      id="textarea" placeholder='Enter your $where filter here, e.g. {"file_name": {"_eq": "openssl"}}'>
+                      id="textarea" placeholder='Enter your $where filter here&#10;e.g. {"file_name": {"_eq": "openssl"}}'>
                 {%- if last_query %}{{ last_query }}{% endif -%}
             </textarea>
             <div class="row" style="margin: -1px 0">
-                <div class="col-sm-4 m-0 p-0">
-                    <select id="tableSelect" name="tableSelect" class="form-control form-control-sm"
-                            onchange="updateHelpButtonTarget()" style="border-radius: 0 0 0 0.8rem;">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="tableSelect" style="border-radius: 0 0 0 0.8rem;">
+                            on table:
+                        </label>
+                    </div>
+                    <select id="tableSelect" name="tableSelect" class="form-control"
+                            onchange="updateHelpButtonTarget()">
                         <option selected>file_object</option>
                         <option>firmware</option>
                         <option>analysis</option>
                     </select>
-                </div>
-                <div class="col-sm-4 m-0 p-0">
-                    <button type="button" class="btn btn-primary btn-sm" id="helpButton"
-                            data-toggle="modal" data-target="#file_objectModal" style="width: 100%;">
-                        <i class="fas fa-question"></i> Help
-                    </button>
-                </div>
-                <div class="col-sm-4 m-0 p-0">
-                    <button type="submit" value=submit class="btn btn-success btn-sm" id="input_submit"
-                            style="width: 100%; border-radius: 0 0 0.8rem 0;">
-                        <i class="fas fa-search"></i> Search
-                    </button>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" id="helpButton"
+                                data-toggle="modal" data-target="#file_objectModal" style="width: 150px;">
+                            <i class="fas fa-question"></i> Help
+                        </button>
+                        <button type="submit" value=submit class="btn btn-success" id="input_submit"
+                                style="width: 150px; border-radius: 0 0 0.8rem 0;">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -104,10 +100,17 @@
                             <pre><code id="{{ table }}-example">{{ query }}</code></pre>
                             The only part that you need to provide is the $where part, which is used to filter the results. You can copy the query to GraphiQL and play around with it.
                             You can find documentation on $where filters and available operators here: <a href="https://hasura.io/docs/latest/queries/postgres/filters/index/">Documentation on writing Hasura postgres GraphQL queries</a>
+                            <br><br>
+                            If you need additional information, try clicking on the <i class="fas fa-book"></i>Docs or try playing around with the <i class="far fa-folder-open"></i>Explorer in the menu on the left of GraphiQL below.
+                            If you want to know what fields can be used for queries, try looking up <span class="example-json">"{{ table }}_bool_exp"</span> in the <i class="fas fa-book"></i>Docs of GraphiQL.<br>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="copyToClipboard('{{ table }}-example')">Copy to Clipboard</button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="copyToClipboard('{{ table }}-example')">
+                                <i class="far fa-clipboard"></i> Copy Query to Clipboard
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                <i class="fas fa-xmark"></i> Close
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -116,56 +119,63 @@
 
         <h4 class="mt-4 mb-2">Example queries:</h4>
 
-        <p>
-            On table "firmware":
-            <span class="example-json">{"device_class": {"_eq": "router"}}</span><br />
-            <span class="example-comment">Find firmware with device class "router"</span>
-        </p>
-        <p>
-            On table "firmware":
-            <span class="example-json">{vendor: {_ilike: "%link%"}}</span><br />
-            <span class="example-comment">Find firmware whose vendor name contains the string "link" (case-insensitive substring)</span>
-        </p>
-        <p>
-            On table "firmware":
-            <span class="example-json">{device_name: {_iregex: "fritz.?box 7[0-9]{3}"}}</span><br />
-            <span class="example-comment">Search for firmware with a specific device name using a regex (case-insensitive regular expression)</span>
-        </p>
-        <p>
-            On table "analysis":
-            <span class="example-json">{"plugin": {"_eq": "file_type"}, "result": {"_contains": {"mime": "text/plain"}}}</span><br />
-            <span class="example-comment">Find files with MIME type "text/plain"</span>
-        </p>
-        <p>
-            On table "analysis":
-            <span class="example-json">{"plugin": {"_eq": "software_components"}, "summary": {"_contains": ["OpenSSL 1.0.1e"]}}</span><br />
-            <span class="example-comment">Find files where software OpenSSL matched in version 1.0.1e</span>
-        </p>
-        <p>
-            On table "file_object":
-            <span class="example-json">{"file_name": {"_eq": "busybox"}}</span><br />
-            <span class="example-comment">Find files with file name "busybox"</span>
-        </p>
-        <p>
-            On table "file_object":
-            <span class="example-json">{"FilePathsByFile": {"file_path": {"_like": "/etc/init.d/%"}}}</span><br />
-            <span class="example-comment">Find files whose path starts with "/etc/init.d/"</span>
-        </p>
-        <p>
-            On table "file_object":
-            <span class="example-json">{"is_firmware": {"_eq": true}, "firmwareFilesByFirmware": {"file_object": {"file_name": {"_eq": "busybox"}}}}</span><br />
-            <span class="example-comment">Find firmware that contains a file with the name "busybox"</span>
-        </p>
-        <p>
-            If you need additional information, try clicking on the <i class="fas fa-book"></i>Docs or try playing around with the <i class="far fa-folder-open"></i>Explorer in the menu on the left of GraphiQL below. <br>
-            If you want to know what fields can be used for queries, try looking up <span class="example-json">"analysis_bool_exp"</span>, <span class="example-json">"file_object_bool_exp"</span> or
-            <span class="example-json">"firmware_bool_exp"</span> in the <i class="fas fa-book"></i>Docs of GraphiQL.<br>
-        </p>
+        {% set examples = {
+            "firmware": [
+                (
+                    '{"device_class": {"_eq": "router"}}',
+                    'Find firmware with device class "router"',
+                ),
+                (
+                    '{"vendor": {"_ilike": "%link%"}}',
+                    'Find firmware whose vendor name contains the string "link" (case-insensitive substring)',
+                ),
+            ],
+            "analysis": [
+                (
+                    '{"plugin": {"_eq": "file_type"}, "result": {"_contains": {"mime": "text/plain"}}}',
+                    'Find files with MIME type "text/plain"',
+                ),
+                (
+                    '{"plugin": {"_eq": "software_components"}, "summary": {"_contains": ["OpenSSL 1.0.1e"]}}',
+                    'Find files where software OpenSSL matched in version 1.0.1e',
+                ),
+            ],
+            "file_object": [
+                (
+                    '{"file_name": {"_eq": "busybox"}}',
+                    'Find files with MIME type "text/plain"',
+                ),
+                (
+                    '{"FilePathsByFile": {"file_path": {"_like": "/etc/init.d/%"}}}',
+                    'Find files whose path starts with "/etc/init.d/"',
+                ),
+                (
+                    '{"is_firmware": {"_eq": true}, "firmwareFilesByFirmware": {"file_object": {"file_name": {"_eq": "busybox"}}}}',
+                    'Find firmware that contains a file with the name "busybox"',
+                ),
+            ],
+        } %}
+        {% for table, example_list in examples.items()  %}
+            <h6>On table "{{ table }}":</h6>
+            {% for code, description in example_list %}
+                <p>
+                    {% set _id = "example-" + table + "-" + loop.index | string %}
+                    <span id="{{ _id }}" class="example-json">{{ code | safe }}</span>
+                    <span class="far fa-copy" data-toggle="tooltip" title="copy to query input"
+                          onclick="copyToCodemirror('{{ _id }}', {{ (tables | list).index(table) }})"></span>
+                    <br />
+                    <span class="example-comment">{{ description }}</span>
+                </p>
+            {% endfor %}
+        {% endfor %}
 
+    </div>
+    <div class="col-sm-12 mt-4">
         <h4 class="mt-4 mb-2">GraphiQL query editor:</h4>
         <div id="graphiql">Loading...</div>
 
         <script>
+          const select = document.getElementById("tableSelect");
           const root = ReactDOM.createRoot(document.getElementById('graphiql'));
           const fetcher = GraphiQL.createFetcher({
             url: 'http://localhost:{{ port }}/v1/graphql',
@@ -189,8 +199,12 @@
               console.error('Async: Could not copy to clipboard: ', err);
             });
           }
+          function copyToCodemirror(elementId, selectIndex) {
+              const code = document.getElementById(elementId).innerText.trim();
+              cm.setValue(code);
+              select.selectedIndex = selectIndex;
+          }
           function updateHelpButtonTarget() {
-            const select = document.getElementById("tableSelect");
             const helpButton = document.getElementById("helpButton");
             helpButton.dataset.target = `#${select.value}Modal`;
           }
