@@ -143,13 +143,13 @@ def _copy_mime_icons():
         run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
-def _init_graphql():
+def _init_hasura():
     with OperateInDirectory(INSTALL_DIR.parent / 'storage' / 'graphql' / 'hasura'):
         run_cmd_with_logging('docker compose up -d', env=get_env())
         run_cmd_with_logging('python3 init_hasura.py')
 
 
-def main(skip_docker, radare, nginx, distribution):
+def main(skip_docker, radare, nginx, distribution, skip_hasura):
     if distribution != 'fedora':
         pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-frontend.txt')
         apt_install_packages(*pkgs)
@@ -178,7 +178,8 @@ def main(skip_docker, radare, nginx, distribution):
     if not skip_docker:
         _install_docker_images(radare)
 
-    _init_graphql()
+    if not skip_hasura:
+        _init_hasura()
 
     if not MIME_ICON_DIR.is_dir():
         MIME_ICON_DIR.mkdir()
