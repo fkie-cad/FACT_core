@@ -12,7 +12,7 @@ from requests.adapters import HTTPAdapter, Retry
 try:
     import config
 except ImportError:
-    SRC_DIR = Path(__file__).parent.parent.parent.parent
+    SRC_DIR = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_DIR))
     import config
 
