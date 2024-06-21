@@ -7,15 +7,6 @@ from gql.transport.aiohttp import AIOHTTPTransport, log
 
 import config
 
-config.load()
-URL = f'http://localhost:{config.frontend.hasura.port}/v1/graphql'
-HEADERS = {
-    'Content-Type': 'application/json',
-    'X-Hasura-Role': 'admin',
-    'X-Hasura-Admin-Secret': config.frontend.hasura.admin_secret,
-}
-transport = AIOHTTPTransport(url=URL, headers=HEADERS)
-client = Client(transport=transport)
 log.setLevel(logging.WARNING)  # disable noisy gql logs
 
 FO_QUERY = """
@@ -89,34 +80,48 @@ class GraphQLSearchError(Exception):
     pass
 
 
-def search_gql(
-    where: dict,
-    table: str,
-    offset: int | None = None,
-    limit: int | None = None,
-) -> tuple[list[str], int]:
-    """
-    Search the database using a GraphQL query.
+class GraphQlInterface:
+    def __init__(self):
+        if config.frontend is None:
+            config.load()
+        url = f'http://localhost:{config.frontend.hasura.port}/v1/graphql'
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Hasura-Role': 'admin',
+            'X-Hasura-Admin-Secret': config.frontend.hasura.admin_secret,
+        }
+        transport = AIOHTTPTransport(url=url, headers=headers)
+        self.client = Client(transport=transport)
 
-    :param where: $where part of the query as dict.
-    :param table: name of the table we are searching. Must be one of "file_object", "firmware", "analysis".
-    :param offset: number of items to skip.
-    :param limit: number of items to return.
-    :return: Tuple with a list of matching uids and the total number of matches.
-    """
-    variables = {'where': where}
-    if offset is not None:
-        variables['offset'] = offset
-    if limit is not None:
-        variables['limit'] = limit
+    def search_gql(
+        self,
+        where: dict,
+        table: str,
+        offset: int | None = None,
+        limit: int | None = None,
+    ) -> tuple[list[str], int]:
+        """
+        Search the database using a GraphQL query.
 
-    if not (query := TABLE_TO_QUERY[table]):
-        raise GraphQLSearchError(f'Unknown table {table}')
+        :param where: $where part of the query as dict.
+        :param table: name of the table we are searching. Must be one of "file_object", "firmware", "analysis".
+        :param offset: number of items to skip.
+        :param limit: number of items to return.
+        :return: Tuple with a list of matching uids and the total number of matches.
+        """
+        variables = {'where': where}
+        if offset is not None:
+            variables['offset'] = offset
+        if limit is not None:
+            variables['limit'] = limit
 
-    response = client.execute(gql(query), variable_values=variables)
-    total = response.get(f'{table}_aggregate', {}).get('aggregate', {}).get('totalCount')
-    if total == 0:
-        raise GraphQLSearchError('No results found.')
-    if total is None:
-        raise GraphQLSearchError('Could not determine total result count.')
-    return [e['uid'] for e in response.get(table, {})], total
+        if not (query := TABLE_TO_QUERY[table]):
+            raise GraphQLSearchError(f'Unknown table {table}')
+
+        response = self.client.execute(gql(query), variable_values=variables)
+        total = response.get(f'{table}_aggregate', {}).get('aggregate', {}).get('totalCount')
+        if total == 0:
+            raise GraphQLSearchError('No results found.')
+        if total is None:
+            raise GraphQLSearchError('Could not determine total result count.')
+        return [e['uid'] for e in response.get(table, {})], total
