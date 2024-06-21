@@ -7,6 +7,7 @@ from pathlib import Path
 import docker
 import requests
 from requests import Response
+from requests.adapters import HTTPAdapter, Retry
 
 try:
     import config
@@ -76,6 +77,8 @@ RELATIONSHIPS = {
 
 
 def init_hasura():
+    logging.info('Waiting for Hasura...')
+    _wait_for_hasura()
     logging.info('Initializing Hasura...')
     if not _db_was_already_added():
         _add_database()
@@ -83,6 +86,21 @@ def init_hasura():
     _add_relationships()
     _add_ro_user_role_to_tables()
     logging.info('Hasura initialization successful')
+
+
+def _wait_for_hasura():
+    # Hasura is not ready for connections directly after starting the container so we may need to wait a bit
+    # hasura will return code 200 OK or 500 ERROR on this health check endpoint
+    healthcheck_url = f'http://localhost:{config.frontend.hasura.port}/healthz'
+    session = requests.Session()
+    # retry 5 times with a total of 30 seconds
+    retries = Retry(total=5, backoff_factor=1, status_forcelist=[500])
+    session.mount('http://', HTTPAdapter(max_retries=retries))
+    try:
+        session.get(healthcheck_url)
+    except (ConnectionRefusedError, ConnectionResetError):
+        logging.exception('Could not reach Hasura')
+        sys.exit(1)
 
 
 def _add_database():
