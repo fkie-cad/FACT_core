@@ -78,6 +78,7 @@ autodoc_mock_imports = [
     'flask_security',
     'flask_sqlalchemy',
     'itsdangerous',
+    'json5',
     'lief',
     'magic',
     'markupsafe',
