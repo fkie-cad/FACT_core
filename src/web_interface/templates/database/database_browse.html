@@ -13,7 +13,7 @@
             transition: border-radius 0.35s linear;
         }
         .btn-block:not(.collapsed) {
-            border-radius: 0.75rem 0.75rem 0 0;
+            border-radius: 1.5rem 1.5rem 0 0;
         }
         .btn-block.collapsed {
             border-radius: 0.75rem;
@@ -24,10 +24,16 @@
             margin: 0;
         }
         .match-str-div {
-            border-radius: 0 0 0.75rem 0.75rem;
+            border-radius: 0 0 1.5rem 1.5rem;
             padding: 0;
             background: white;
         }
+        {% if search_parameters.yara_match_data %}
+            .list-group-item {
+                border: 0;
+                border-radius: 0 0 1.5rem 1.5rem;
+            }
+        {% endif %}
     </style>
 {% endblock %}
 
@@ -96,7 +102,7 @@
     <div class="row justify-content-center">
         <div class="col-xl-6 col-lg-8 col-md-10">
             <div class="list-group mt-4">
-                <button data-toggle="collapse" data-target="#search_query" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" style="border: 0;">
+                <button data-toggle="collapse" data-target="#search_query" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" style="border: 0; border-radius: 0;">
                     <i class="fas fa-caret-down"></i>
                     Show Search Query
                     <span class="badge badge-primary">{{ search_parameters.search_target.value }} Search</span>
