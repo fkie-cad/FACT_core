@@ -171,6 +171,7 @@ class SearchCacheEntry(Base):
     uid = mapped_column(UID, primary_key=True)
     query = mapped_column(VARCHAR, nullable=False)  # the query that searches for the files that the YARA rule matched
     yara_rule = mapped_column(VARCHAR, nullable=False)
+    match_data = mapped_column(MutableDict.as_mutable(JSONB), nullable=True)
 
 
 class WebInterfaceTemplateEntry(Base):
