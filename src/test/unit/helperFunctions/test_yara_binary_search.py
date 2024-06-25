@@ -12,6 +12,7 @@ from test.common_helper import get_test_data_dir
 TEST_FILE_1 = 'binary_search_test'
 TEST_FILE_2 = 'binary_search_test_2'
 TEST_FILE_3 = 'binary_search_test_3'
+MATCH_DATA_KEYS = {'condition', 'match', 'offset'}
 
 
 class MockCommonDbInterface:
@@ -37,12 +38,20 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
 
     def test_get_binary_search_result(self):
         result = self.yara_binary_scanner.get_binary_search_result((self.yara_rule, None))
-        assert result == {'test_rule': [TEST_FILE_1]}
+        assert TEST_FILE_1 in result
+        assert 'test_rule' in result[TEST_FILE_1]
+        match_data = result[TEST_FILE_1]['test_rule']
+        assert len(match_data) == 1
+        assert all(k in m for k in MATCH_DATA_KEYS for m in match_data)
 
     def test_get_binary_search_result_for_single_firmware(self):
         yara_rule = b'rule test_rule_2 {strings: $a = "TEST_STRING!" condition: $a}'
         result = self.yara_binary_scanner.get_binary_search_result((yara_rule, 'single_firmware'))
-        assert result == {'test_rule_2': [TEST_FILE_2]}
+        assert TEST_FILE_2 in result
+        assert 'test_rule_2' in result[TEST_FILE_2]
+        match_data = result[TEST_FILE_2]['test_rule_2']
+        assert len(match_data) == 1
+        assert all(k in m for k in MATCH_DATA_KEYS for m in match_data)
 
         result = self.yara_binary_scanner.get_binary_search_result((yara_rule, 'foobar'))
         assert result == {}
@@ -58,15 +67,33 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         assert isinstance(result, str)
         assert 'Error when calling YARA' in result
 
-    def test_eliminate_duplicates(self):
-        test_dict = {1: [1, 2, 3, 3], 2: [1, 1, 2, 3]}
-        self.yara_binary_scanner._eliminate_duplicates(test_dict)
-        assert test_dict == {1: [1, 2, 3], 2: [1, 2, 3]}
-
     def test_parse_raw_result(self):
-        raw_result = 'rule_1 match_1\nrule_1 match_2\nrule_2 match_1'
+        raw_result = (
+            'rule_1 /media/data/fact_fw_data/00/uid1\n'
+            '0x123:$a: foo\n'
+            '0x456:$a: bar\n'
+            'rule_1 /media/data/fact_fw_data/99/uid2\n'
+            '0x321:$b: test123\n'
+            'rule_2 /media/data/fact_fw_data/00/uid1\n'
+            '0x666:$c: deadbeef\n'
+        )
         result = self.yara_binary_scanner._parse_raw_result(raw_result)
-        assert result == {'rule_1': ['match_1', 'match_2'], 'rule_2': ['match_1']}
+        assert result == {
+            'uid1': {
+                'rule_1': [
+                    {'condition': '$a', 'match': 'foo', 'offset': '0x123'},
+                    {'condition': '$a', 'match': 'bar', 'offset': '0x456'},
+                ],
+                'rule_2': [
+                    {'condition': '$c', 'match': 'deadbeef', 'offset': '0x666'},
+                ],
+            },
+            'uid2': {
+                'rule_1': [
+                    {'condition': '$b', 'match': 'test123', 'offset': '0x321'},
+                ],
+            },
+        }
 
     def test_execute_yara_search(self):
         test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')  # noqa: PTH118

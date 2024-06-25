@@ -35,18 +35,20 @@ def test_search_cache_insert(frontend_editing_db, frontend_db):
     result = frontend_db.get_query_from_cache(RULE_UID)
     assert result is None
 
-    result = frontend_editing_db.add_to_search_query_cache('{"foo": "bar"}', 'rule foo{}')
+    match_data = {'some_uid': {'foo': []}}
+    result = frontend_editing_db.add_to_search_query_cache('{"foo": "bar"}', match_data, 'rule foo{}')
     assert result == RULE_UID
 
     result = frontend_db.get_query_from_cache(RULE_UID)
     assert isinstance(result, CachedQuery)
     assert result.query == '{"foo": "bar"}'
     assert result.yara_rule == 'rule foo{}'
+    assert result.match_data == match_data
 
 
 def test_search_cache_update(frontend_editing_db, frontend_db):
-    assert frontend_editing_db.add_to_search_query_cache('{"uid": "some uid"}', 'rule foo{}') == RULE_UID
+    assert frontend_editing_db.add_to_search_query_cache('{"uid": "some uid"}', {}, 'rule foo{}') == RULE_UID
     # update
-    assert frontend_editing_db.add_to_search_query_cache('{"uid": "some other uid"}', 'rule foo{}') == RULE_UID
+    assert frontend_editing_db.add_to_search_query_cache('{"uid": "some other uid"}', {}, 'rule foo{}') == RULE_UID
 
     assert frontend_db.get_query_from_cache(RULE_UID).query == '{"uid": "some other uid"}'
