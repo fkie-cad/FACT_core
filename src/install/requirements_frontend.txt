@@ -16,6 +16,9 @@ quantiphy~=2.20
 uwsgi~=2.0.25.1
 virtualenv~=20.26.1
 
+# FixMe: dependency of matplotlib which does not work with numpy>=2 yet
+numpy<2
+
 # must be below dependent packages (flask, flask-login, flask-restx)
 werkzeug~=3.0.3
 
