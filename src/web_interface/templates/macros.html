@@ -33,3 +33,21 @@
         </div>
     </div>
 {%- endmacro %}
+
+{% macro fw_detail_tabular_field(firmware) %}
+    <li class="list-group-item p-0 li-hover bg-light">
+        <div class="clickable p-2" onclick="location.href='/analysis/{{ firmware.uid }}'">
+            <a href='/analysis/{{ firmware.uid }}'>
+                <div class="d-flex justify-content-between align-items-center hid">
+                    {{ firmware.hid }}
+                    <span>{{ firmware.tags | render_fw_tags(size=11) | safe }}</span>
+                </div>
+            </a>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="footnote text-muted">{{ firmware.submission_date | nice_unix_time | safe }}</span>
+                <a href="/download/{{ firmware.uid }}" class="pull-right"><i class="fas fa-download"></i></a>
+            </div>
+        </div>
+        {{ caller() }}
+    </li>
+{% endmacro %}
