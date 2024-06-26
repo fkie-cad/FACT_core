@@ -128,7 +128,7 @@
                         {# binary search show matching strings button #}
                         {% if search_parameters.yara_match_data and firmware.uid in search_parameters.yara_match_data %}
                             <div class="p-0">
-                                <button type="button" class="btn btn-info btn-sm btn-block collapsed" data-toggle="collapse" aria-expanded="false"
+                                <button type="button" class="btn list-group-item list-group-item-primary btn-block collapsed" data-toggle="collapse" aria-expanded="false"
                                       aria-controls="match-strings-{{ firmware.uid }}" data-target="#match-strings-{{ firmware.uid }}">
                                     show matching strings
                                     <i class="fas fa-caret-down"></i>
