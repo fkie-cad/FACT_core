@@ -1,7 +1,3 @@
-#preview-div pre{
-  border: 1px solid white;
-}
-
 #preview-div pre .line-number {
   color:black;
   display:block;;

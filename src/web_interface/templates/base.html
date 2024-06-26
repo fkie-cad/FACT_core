@@ -54,10 +54,6 @@
             Array.from(document.getElementsByClassName("border-dark")).forEach((element) => {
                 element.classList.toggle('border-light')
             });
-            Array.from(document.getElementsByClassName(isDark ? 'table-head-light' : 'table-head-dark')).forEach((element) => {
-                element.classList.toggle('table-head-dark')
-                element.classList.toggle('table-head-light')
-            });
         }
         document.addEventListener('DOMContentLoaded', (event) => {
             let isDark = localStorage.getItem('darkMode') === 'enabled';
@@ -184,11 +180,17 @@
             background-color: #385779 !important;
             color: #7ebcff !important;
         }
+        body.dark-mode .input-group-text {
+            background-color: var(--secondary) !important;
+            color: var(--text-color-dark) !important;
+            border-color: var(--border-color-dark) !important;
+        }
         body.dark-mode .table-warning {
             background-color: #938457 !important;
             color: #ffe8a4 !important;
         }
-        body.dark-mode :is(.table-bordered td, .table-bordered th, .border-light, .table td, .table th) {
+        body.dark-mode :is(.table-bordered td, .table-bordered th, .border-light, .table td, .table th, .border,
+                .form-control) {
             border-color: var(--border-color-dark) !important;
         }
     </style>
