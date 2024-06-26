@@ -51,7 +51,9 @@ class YaraBinarySearchScanner:
         return [self.fs_organizer.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
 
     @staticmethod
-    def _parse_raw_result(raw_result: str, match_limit: int = 10) -> dict[str, dict[str, list[dict]]]:
+    def _parse_raw_result(
+        raw_result: str, match_limit: int = 20, match_len_limit: int = 50
+    ) -> dict[str, dict[str, list[dict]]]:
         """
         YARA scan results have the following structure:
         <rule_name> <matching_file_path>
@@ -77,6 +79,8 @@ class YaraBinarySearchScanner:
         }
 
         :param raw_result: raw yara scan result
+        :param match_limit: maximum number of stored strings per rule
+        :param match_len_limit: maximum length of stored strings
         :return: dict of matching files, rules and strings
         """
         results = {}
@@ -92,6 +96,8 @@ class YaraBinarySearchScanner:
             for match_line in match_lines:
                 offset, condition, match_str = match_line.split(':', maxsplit=2)
                 match_str = match_str[1:]  # remove the space at the beginning
+                if len(match_str) > match_len_limit:
+                    match_str = match_str[:match_len_limit] + '...'
                 results[uid][rule].append({'offset': offset, 'condition': condition, 'match': match_str})
                 if len(results[uid][rule]) >= match_limit:
                     # only collect at most <match_limit> matching strings to avoid storing loads of unnecessary data

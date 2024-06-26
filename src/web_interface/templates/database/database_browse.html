@@ -28,6 +28,9 @@
             padding: 0;
             background: white;
         }
+        .mono {
+            font-family: "Deja Vu Sans Mono", monospace;
+        }
         {% if search_parameters.yara_match_data %}
             .list-group-item {
                 border: 0;
@@ -146,12 +149,16 @@
                                         {% for rule, match_list in search_parameters.yara_match_data[firmware.uid].items() %}
                                             {% for match in match_list %}
                                                 <tr>
-                                                    <td>{{ rule | safe }}</td>
-                                                    <td>{{ match.offset | safe }}</td>
-                                                    <td>{{ match.condition | safe }}</td>
-                                                    <td>{{ match.match | safe }}</td>
+                                                    <td><samp>{{ rule | safe }}</samp></td>
+                                                    <td><samp>{{ match.offset | safe }}</samp></td>
+                                                    <td><samp>{{ match.condition | safe }}</samp></td>
+                                                    <td><samp>{{ match.match | safe }}</samp></td>
                                                 </tr>
                                             {% endfor %}
+                                            {# if there are more matches than can be displayed... #}
+                                            {% if (match_list | length) == 20 %}
+                                                <td colspan="4" data-toggle="tooltip" data-placement="bottom" title="Only the first 20 matches are displayed per rule">...</td>
+                                            {% endif %}
                                         {% endfor %}
                                     </table>
                                 </div>
