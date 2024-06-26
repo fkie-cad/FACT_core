@@ -5,7 +5,6 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from itertools import chain
 
 import json5
 import requests
@@ -43,6 +42,7 @@ class SearchParameters:
     inverted: bool
     search_target: TargetType
     query_title: str
+    yara_match_data: dict[str, dict[str, list[dict]]] | None
 
 
 class DatabaseRoutes(ComponentBase):
@@ -159,12 +159,14 @@ class DatabaseRoutes(ComponentBase):
         only_firmware = request.args.get('only_firmwares') == 'True'
         inverted = request.args.get('inverted') == 'True'
         query_title = None
+        yara_match_data = None
         if graphql:
             query = json.loads(query_str)
         elif is_uid(query_str):  # cached binary search
             cached_query = self.db.frontend.get_query_from_cache(query_str)
             query = json.loads(cached_query.query)
             query_title = cached_query.yara_rule
+            yara_match_data = cached_query.match_data
         else:  # regular / advanced search
             query = apply_filters_to_query(request, query_str)
             if request.args.get('date'):
@@ -186,6 +188,7 @@ class DatabaseRoutes(ComponentBase):
             only_firmware=only_firmware,
             search_target=search_target,
             query_title=query_title or query,
+            yara_match_data=yara_match_data,
         )
 
     @staticmethod
@@ -304,10 +307,11 @@ class DatabaseRoutes(ComponentBase):
                 error = result
             elif result is not None:
                 yara_rules = make_unicode_string(yara_rules[0])
-                joined_results = self._join_results(result)
-                query_uid = self._store_binary_search_query(joined_results, yara_rules)
+                query_uid = self._store_binary_search_query(result, yara_rules)
                 return redirect(
-                    url_for('browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware'))
+                    url_for(
+                        self.browse_database.__name__, query=query_uid, only_firmwares=request.args.get('only_firmware')
+                    )
                 )
         else:
             error = 'No request ID found'
@@ -320,13 +324,14 @@ class DatabaseRoutes(ComponentBase):
             yara_rules=yara_rules,
         )
 
-    def _store_binary_search_query(self, binary_search_results: list, yara_rules: str) -> str:
-        query = '{"_id": {"$in": ' + str(binary_search_results).replace("'", '"') + '}}'
-        return self.db.editing.add_to_search_query_cache(query, query_title=yara_rules)
-
-    @staticmethod
-    def _join_results(result_dict):
-        return list(set(chain(*result_dict.values())))
+    def _store_binary_search_query(self, binary_search_results: dict, yara_rules: str) -> str:
+        matching_uids = sorted(binary_search_results)
+        query = '{"_id": {"$in": ' + str(matching_uids).replace("'", '"') + '}}'
+        return self.db.editing.add_to_search_query_cache(
+            query,
+            match_data=binary_search_results,
+            query_title=yara_rules,
+        )
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/quick_search', GET)

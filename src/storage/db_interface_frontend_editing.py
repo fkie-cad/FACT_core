@@ -17,12 +17,17 @@ class FrontendEditingDbInterface(ReadWriteDbInterface):
             fo_entry: FileObjectEntry = session.get(FileObjectEntry, uid)
             fo_entry.comments = [comment for comment in fo_entry.comments if comment['time'] != timestamp]
 
-    def add_to_search_query_cache(self, search_query: str, query_title: str | None = None) -> str:
+    def add_to_search_query_cache(self, search_query: str, match_data: dict, query_title: str | None = None) -> str:
         query_uid = create_uid(query_title.encode())
         with self.get_read_write_session() as session:
             old_entry = session.get(SearchCacheEntry, query_uid)
             if old_entry is not None:  # update existing entry
                 session.delete(old_entry)
-            new_entry = SearchCacheEntry(uid=query_uid, query=search_query, yara_rule=query_title)
+            new_entry = SearchCacheEntry(
+                uid=query_uid,
+                query=search_query,
+                yara_rule=query_title,
+                match_data=match_data,
+            )
             session.add(new_entry)
         return query_uid

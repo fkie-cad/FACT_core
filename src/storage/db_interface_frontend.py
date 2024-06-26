@@ -37,6 +37,7 @@ class MetaEntry(NamedTuple):
 class CachedQuery(NamedTuple):
     query: str
     yara_rule: str
+    match_data: dict[str, dict[str, list[dict]]] | None
 
 
 class FrontEndDbInterface(DbInterfaceCommon):
@@ -369,7 +370,11 @@ class FrontEndDbInterface(DbInterfaceCommon):
             entry: SearchCacheEntry = session.get(SearchCacheEntry, query_id)
             if entry is None:
                 return None
-            return CachedQuery(query=entry.query, yara_rule=entry.yara_rule)
+            return CachedQuery(
+                query=entry.query,
+                yara_rule=entry.yara_rule,
+                match_data=entry.match_data,
+            )
 
     def get_total_cached_query_count(self):
         with self.get_read_only_session() as session:
