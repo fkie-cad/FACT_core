@@ -17,14 +17,14 @@ except ImportError:
     from plugins.installer import AbstractPluginInstaller
 
 
-BINWALK_VERSION = '2.3.3'
+BINWALK_VERSION = '2.4.1'
 
 
 class BinwalkInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def build(self):
-        url_binwalk = f'https://github.com/ReFirmLabs/binwalk/archive/refs/tags/v{BINWALK_VERSION}.tar.gz'
+        url_binwalk = f'https://github.com/OSPG/binwalk/archive/refs/tags/v{BINWALK_VERSION}.tar.gz'
         dest_binwalk = f'binwalk-v{BINWALK_VERSION}.tar.gz'
         urllib.request.urlretrieve(url_binwalk, dest_binwalk)
 

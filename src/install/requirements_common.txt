@@ -4,9 +4,9 @@ testresources==2.0.1
 # General python dependencies
 appdirs==1.4.4
 flaky==3.7.0
-lief==0.12.3
+lief==0.14.1
 psutil==5.9.4
-psycopg2-binary==2.9.5
+psycopg2-binary==2.9.9
 pylint==2.15.5
 pytest-cov==4.0.0
 pytest-timeout==2.1.0

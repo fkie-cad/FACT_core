@@ -137,8 +137,8 @@ def welcome():
 
 
 def check_python_version():
-    if sys.version_info.major != 3 or sys.version_info.minor < 6:  # noqa: PLR2004
-        logging.critical(f'Incompatible Python version! You need at least version 3.6! Your Version: {sys.version}')
+    if sys.version_info.major != 3 or sys.version_info.minor < 8:  # noqa: PLR2004
+        logging.critical(f'Incompatible Python version! You need at least version 3.8! Your Version: {sys.version}')
         sys.exit(1)
 
 
