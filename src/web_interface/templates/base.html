@@ -47,16 +47,9 @@
         function toggleDarkMode() {
             let isDark = document.body.classList.toggle('dark-mode');
             localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
-            Array.from(document.getElementsByClassName(isDark ? 'bg-light' : 'bg-dark')).forEach((element) => {
-                element.classList.toggle('bg-light')
-                element.classList.toggle('bg-dark')
-            });
-            Array.from(document.getElementsByClassName("border-dark")).forEach((element) => {
-                element.classList.toggle('border-light')
-            });
         }
         document.addEventListener('DOMContentLoaded', (event) => {
-            let isDark = localStorage.getItem('darkMode') === 'enabled';
+            let isDark = (localStorage.getItem('darkMode') || 'disabled') === 'enabled';
             document.getElementById("darkModeSwitch").checked = isDark;
             if (isDark) {
                 toggleDarkMode();
@@ -174,7 +167,7 @@
             background-color: var(--background-color-dark-element) !important;
             border: 1px solid var(--border-color-dark) !important;
         }
-        body.dark-mode :is(.list-group-flush, .table.table-borderless) {
+        body.dark-mode :is(.list-group-flush, .table.table-borderless, .bg-light) {
             color: var(--text-color-dark) !important;
             background-color: var(--background-color-dark-element) !important;
         }
