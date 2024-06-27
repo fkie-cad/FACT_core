@@ -83,7 +83,9 @@ function updatePluginCard(pluginName, pluginData) {
     const statsElement = document.getElementById(`${pluginName}-stats`);
     if (pluginData.active > 0) {
         activeIndicatorElement.classList.add("fa-spin");
+        activeIndicatorElement.classList.remove("text-muted");
         activeIndicatorElement.classList.add("text-primary");
+        activeElement.classList.remove("text-muted");
         activeElement.classList.add("text-primary");
     } else {
         activeIndicatorElement.classList.remove("fa-spin");
