@@ -57,7 +57,7 @@
     <div class="col-xl-6 col-lg-8 col-md-10 col-sm-12 mt-4">
         <h3>Database Search with GraphQL</h3>
 
-        <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
+        <form class="form-horizontal" action="" method="post" enctype="multipart/form-data" id="searchForm">
             <label class="control-label" for="textarea">GraphQL query $where filter:</label><br />
             <div class="invalid-feedback mb-1" id="checkFeedback"></div>
             <textarea name="textarea" style="resize: vertical; position: relative; z-index: 1;" class="form-control"
@@ -224,11 +224,10 @@
                 let parsed = JSON5.parse(code);
                 cm.setValue(JSON.stringify(parsed, undefined, 4));
             } catch (err) {
-                console.log(err);
-                feedback.innerText = String(err); // .slice(25)
-                feedback.style.display = "block";
-                return false
-              }
+              feedback.innerText = String(err);
+              feedback.style.display = "block";
+              return false
+            }
             return true
           }
           function updateHelpButtonTarget() {
@@ -240,6 +239,12 @@
               form.submit();
             }
           }
+          // also start search on Ctrl+Enter
+          jQuery(document).keydown(function(event) {
+            if(event.ctrlKey && event.keyCode === 13) {
+              submitSearch(document.getElementById("searchForm"));
+            }
+          });
         </script>
     </div>
 </div>
