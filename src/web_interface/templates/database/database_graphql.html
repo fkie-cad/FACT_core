@@ -116,7 +116,9 @@
                             You can find documentation on $where filters and the available operators you can use here: <a href="https://hasura.io/docs/latest/queries/postgres/filters/index/">Documentation on writing Hasura postgres GraphQL queries</a>
                             <br><br>
                             If you need additional information, try clicking on the <i class="fas fa-book"></i>Docs or try playing around with the <i class="far fa-folder-open"></i>Explorer in the menu on the left of GraphiQL below.
-                            If you want to know what fields can be used for queries, try looking up <span class="example-json">"{{ table }}_bool_exp"</span> in the <i class="fas fa-book"></i>Docs of GraphiQL.<br>
+                            If you want to know what fields can be used for queries, try looking up <span class="example-json">"{{ table }}_bool_exp"</span> in the <i class="fas fa-book"></i>Docs of GraphiQL.
+                            <br><br>
+                            Hints: You can use Ctrl+Enter to start the search and the input accepts JSON5 (superset of JSON that allows unquoted keys, trailing commas and single quoted strings), so you can copy the <samp>where: {...}</samp> part directly from your GraphQL query.
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="copyToClipboard('{{ table }}-example')">
@@ -222,6 +224,10 @@
             feedback.style.display = "none";
               try {
                 let parsed = JSON5.parse(code);
+                if ("where" in parsed) {
+                    // remove unnecessary {where: ...} around the filter
+                    parsed = parsed.where;
+                }
                 cm.setValue(JSON.stringify(parsed, undefined, 4));
             } catch (err) {
               feedback.innerText = String(err);
