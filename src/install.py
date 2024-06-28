@@ -74,6 +74,9 @@ def _setup_argparser():
         '-R', '--no_radare', action='store_true', default=False, help='do not install radare view container'
     )
     install_options.add_argument(
+        '-H', '--no-hasura', action='store_true', default=False, help='do not set up hasura for GraphQL'
+    )
+    install_options.add_argument(
         '-U',
         '--statistic_cronjob',
         action='store_true',
@@ -192,10 +195,10 @@ def install():
 def install_fact_components(args, distribution, none_chosen, skip_docker):
     if (args.common or args.frontend or args.backend or none_chosen) and not args.no_common:
         common(distribution)
-    if args.frontend or none_chosen:
-        frontend(skip_docker, not args.no_radare, args.nginx, distribution)
     if args.db or none_chosen:
         db()
+    if args.frontend or none_chosen:
+        frontend(skip_docker, not args.no_radare, args.nginx, distribution, args.no_hasura)
     if args.backend or none_chosen:
         backend(skip_docker, distribution)
 

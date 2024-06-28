@@ -33,9 +33,15 @@ def install_postgres(version: int = 14):
         if process.returncode != 0:
             raise InstallationError(f'Failed to set up PostgreSQL: {process.stderr}')
 
-    # increase the maximum number of concurrent connections (and restart for the change to take effect)
+
+def configure_postgres(version: int = 14):
     config_path = f'/etc/postgresql/{version}/main/postgresql.conf'
+    # increase the maximum number of concurrent connections
     run(f'sudo sed -i -E "s/max_connections = [0-9]+/max_connections = 999/g" {config_path}', shell=True, check=True)
+    hba_config_path = f'/etc/postgresql/{version}/main/pg_hba.conf'
+    # change UNIX domain socket auth mode from peer to user/pw
+    run(f'sudo sed -i -E "s/(local +all +all +)peer/\\1scram-sha-256/g" {hba_config_path}', shell=True, check=True)
+    # restart for the changes to take effect
     run('sudo service postgresql restart', shell=True, check=True)
 
 
@@ -53,6 +59,7 @@ def main():
     else:
         logging.info('Setting up PostgreSQL database')
         install_postgres()
+    configure_postgres()
 
     # initializing DB
     logging.info('Initializing PostgreSQL database')
