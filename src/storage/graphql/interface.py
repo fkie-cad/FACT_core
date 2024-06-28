@@ -60,14 +60,14 @@ TEMPLATE_QUERIES = {
         '}'
     ),
     'firmware': (
-        'query firmware_query($where: file_object_bool_exp) {\n'
+        'query firmware_query($where: firmware_bool_exp) {\n'
         '    firmware(where: $where, order_by: {vendor: asc}) {\n'
         '        uid\n'
         '    }\n'
         '}'
     ),
     'analysis': (
-        'query analysis_query($where: file_object_bool_exp) {\n'
+        'query analysis_query($where: analysis_bool_exp) {\n'
         '    analysis(where: $where, distinct_on: uid) {\n'
         '        uid\n'
         '    }\n'
