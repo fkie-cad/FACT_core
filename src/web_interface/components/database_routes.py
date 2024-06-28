@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from itertools import chain
+from json import JSONDecodeError
 
-import json5
 import requests
 from flask import Response, flash, redirect, render_template, request, url_for
 from gql.transport.exceptions import TransportQueryError
@@ -360,12 +360,12 @@ class DatabaseRoutes(ComponentBase):
     def post_graphql(self):
         where_str = request.form.get('textarea')
         try:
-            where = json5.loads(where_str)
-        except ValueError as error:
+            where = json.loads(where_str)
+        except JSONDecodeError as error:
             if where_str == '':
                 flash('Error: Query is empty')
             else:
-                flash(f'Error: JSON decoding error: {error}')
+                flash(f'JSON decoding error: {error}')
             return redirect(url_for(self.get_graphql.__name__, last_query=where_str))
 
         table = request.form.get('tableSelect')

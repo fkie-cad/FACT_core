@@ -11,6 +11,7 @@
     <script src="{{ url_for('static', filename='node_modules/codemirror/lib/codemirror.js') }}"></script>
     <script src="{{ url_for('static', filename='node_modules/codemirror/addon/display/placeholder.js') }}"></script>
     <script src="{{ url_for('static', filename='node_modules/codemirror/mode/javascript/javascript.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/json5/dist/index.min.js') }}"></script>
 {% endblock %}
 
 {% block styles %}
@@ -42,6 +43,9 @@
         .graphiql-container {
             min-height: 666px;
         }
+        .block-button {
+            width: 110px;
+        }
     </style>
 {% endblock %}
 
@@ -55,6 +59,7 @@
 
         <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
             <label class="control-label" for="textarea">GraphQL query $where filter:</label><br />
+            <div class="invalid-feedback mb-1" id="checkFeedback"></div>
             <textarea name="textarea" style="resize: vertical; position: relative; z-index: 1;" class="form-control"
                       id="textarea" placeholder='Enter your $where filter here&#10;e.g. {"file_name": {"_eq": "openssl"}}'>
                 {%- if last_query %}{{ last_query }}{% endif -%}
@@ -73,12 +78,15 @@
                         <option>analysis</option>
                     </select>
                     <div class="input-group-append">
-                        <button type="button" class="btn btn-primary" id="helpButton"
-                                data-toggle="modal" data-target="#file_objectModal" style="width: 150px;">
+                        <button type="button" class="btn btn-primary block-button" id="helpButton"
+                                data-toggle="modal" data-target="#file_objectModal">
                             <i class="fas fa-question"></i> Help
                         </button>
-                        <button type="submit" value=submit class="btn btn-success" id="input_submit"
-                                style="width: 150px; border-radius: 0 0 0.8rem 0;">
+                        <button type="button" class="btn btn-info block-button" id="checkButton" onclick="checkCode()">
+                            <i class="fas fa-code"></i> Prettify
+                        </button>
+                        <button type="button" class="btn btn-success block-button" id="input_submit"
+                                onclick="submitSearch(this.form);" style="border-radius: 0 0 0.8rem 0;">
                             <i class="fas fa-search"></i> Search
                         </button>
                     </div>
@@ -98,11 +106,14 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            Start a search in FACT's database on the table {{ table }}. Internally this works with the following GraphQL query:
+                            Start a search for {{ "files" if table != "firmware" else "firmwares" }} in FACT's PostgreSQL database on the table {{ table }} using GraphQL.
+                            Internally, the GraphQL query is translated into a SQL query that runs directly on the database.
+                            The search uses the following GraphQL query:
                             <br><br>
                             <pre><code id="{{ table }}-example">{{ query }}</code></pre>
-                            The only part that you need to provide is the $where part, which is used to filter the results. You can copy the query to GraphiQL and play around with it.
-                            You can find documentation on $where filters and available operators here: <a href="https://hasura.io/docs/latest/queries/postgres/filters/index/">Documentation on writing Hasura postgres GraphQL queries</a>
+                            The only part that you need to provide is the $where part, which is used to filter the results.
+                            You can copy the query to GraphiQL and play around with it (you then also need to edit the "variables" part).
+                            You can find documentation on $where filters and the available operators you can use here: <a href="https://hasura.io/docs/latest/queries/postgres/filters/index/">Documentation on writing Hasura postgres GraphQL queries</a>
                             <br><br>
                             If you need additional information, try clicking on the <i class="fas fa-book"></i>Docs or try playing around with the <i class="far fa-folder-open"></i>Explorer in the menu on the left of GraphiQL below.
                             If you want to know what fields can be used for queries, try looking up <span class="example-json">"{{ table }}_bool_exp"</span> in the <i class="fas fa-book"></i>Docs of GraphiQL.<br>
@@ -153,7 +164,7 @@
                     'Find files whose path starts with "/etc/init.d/"',
                 ),
                 (
-                    '{"is_firmware": {"_eq": true}, "firmwareFilesByFirmware": {"file_object": {"file_name": {"_eq": "busybox"}}}}',
+                    '{"is_firmware": {"_eq": true}, "includedFiles": {"file_object": {"file_name": {"_eq": "busybox"}}}}',
                     'Find firmware that contains a file with the name "busybox"',
                 ),
             ],
@@ -200,14 +211,34 @@
             });
           }
           function copyToCodemirror(elementId, selectIndex) {
-              const code = document.getElementById(elementId).innerText.trim();
-              cm.setValue(code);
-              select.selectedIndex = selectIndex;
-              updateHelpButtonTarget()
+            const code = document.getElementById(elementId).innerText.trim();
+            cm.setValue(code);
+            select.selectedIndex = selectIndex;
+            updateHelpButtonTarget()
+          }
+          function checkCode() {
+            const code = cm.getValue();
+            let feedback = document.getElementById("checkFeedback");
+            feedback.style.display = "none";
+              try {
+                let parsed = JSON5.parse(code);
+                cm.setValue(JSON.stringify(parsed, undefined, 4));
+            } catch (err) {
+                console.log(err);
+                feedback.innerText = String(err); // .slice(25)
+                feedback.style.display = "block";
+                return false
+              }
+            return true
           }
           function updateHelpButtonTarget() {
             const helpButton = document.getElementById("helpButton");
             helpButton.dataset.target = `#${select.value}Modal`;
+          }
+          function submitSearch(form) {
+            if (checkCode()) {
+              form.submit();
+            }
           }
         </script>
     </div>

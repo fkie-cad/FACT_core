@@ -11,6 +11,7 @@
     "diff2html": "^3.4.18",
     "graphiql": "^3.2.3",
     "jquery": "^3.5.0",
+    "json5": "^2.2.3",
     "jstree": "^3.3.12",
     "jstree-bootstrap-theme": "^1.0.1",
     "moment": "^2.29.4",
