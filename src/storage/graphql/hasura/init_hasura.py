@@ -31,12 +31,12 @@ RELATIONSHIPS = {
     ],
     'pg_create_array_relationship': [
         ('file_object', 'analysis', 'uid', 'analysis'),
-        ('file_object', 'firmwareFilesByFirmware', 'root_uid', 'fw_files'),
-        ('file_object', 'firmwareFilesByFile', 'file_uid', 'fw_files'),
-        ('file_object', 'includedFilesByParent', 'parent_uid', 'included_files'),
-        ('file_object', 'includedFilesByChild', 'child_uid', 'included_files'),
-        ('file_object', 'FilePathsByParent', 'parent_uid', 'virtual_file_path'),
-        ('file_object', 'FilePathsByFile', 'file_uid', 'virtual_file_path'),
+        ('file_object', 'includedFiles', 'root_uid', 'fw_files'),
+        ('file_object', 'parentFirmwares', 'file_uid', 'fw_files'),
+        ('file_object', 'children', 'parent_uid', 'included_files'),
+        ('file_object', 'parents', 'child_uid', 'included_files'),
+        ('file_object', 'childrenFilePaths', 'parent_uid', 'virtual_file_path'),
+        ('file_object', 'filePaths', 'file_uid', 'virtual_file_path'),
     ],
 }
 
