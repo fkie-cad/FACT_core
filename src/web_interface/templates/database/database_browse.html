@@ -150,14 +150,20 @@
                                             {% for match in match_list %}
                                                 <tr>
                                                     <td><samp>{{ rule | safe }}</samp></td>
-                                                    <td><samp>{{ match.offset | safe }}</samp></td>
+                                                    <td>
+                                                        <a href="/analysis/{{ firmware.uid }}?load_preview={{ match.offset }}">
+                                                            <samp>{{ match.offset | safe }}</samp>
+                                                        </a>
+                                                    </td>
                                                     <td><samp>{{ match.condition | safe }}</samp></td>
                                                     <td><samp>{{ match.match | safe }}</samp></td>
                                                 </tr>
                                             {% endfor %}
                                             {# if there are more matches than can be displayed... #}
                                             {% if (match_list | length) == 20 %}
-                                                <td colspan="4" data-toggle="tooltip" data-placement="bottom" title="Only the first 20 matches are displayed per rule">...</td>
+                                                <td colspan="4">
+                                                    <b>Only the first 20 matches of rule "{{ rule }}" are displayed</b>
+                                                </td>
                                             {% endif %}
                                         {% endfor %}
                                     </table>
