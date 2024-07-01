@@ -17,6 +17,9 @@ class DbConnection:
         self.base = Base
 
         address = config.common.postgres.server
+        if address in ('localhost', '127.0.0.1', '::1'):
+            # local postgres => connect through UNIX domain socket (faster than TCP)
+            address = '/var/run/postgresql'
         port = config.common.postgres.port
         user = getattr(config.common.postgres, user)
         password = getattr(config.common.postgres, password)

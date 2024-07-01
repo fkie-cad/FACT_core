@@ -568,28 +568,30 @@ def test_get_tag_list(frontend_db, backend_db):
 def test_get_query_from_cache(frontend_db, frontend_editing_db):
     assert frontend_db.get_query_from_cache('non-existent') is None
 
-    id_ = frontend_editing_db.add_to_search_query_cache('foo', 'bar')
+    match_data = {'uid': {'rule': []}}
+    id_ = frontend_editing_db.add_to_search_query_cache('foo', match_data, 'bar')
     entry = frontend_db.get_query_from_cache(id_)
     assert isinstance(entry, CachedQuery)
     assert entry.query == 'foo'
     assert entry.yara_rule == 'bar'
+    assert entry.match_data == match_data
 
 
 def test_get_cached_count(frontend_db, frontend_editing_db):
     assert frontend_db.get_total_cached_query_count() == 0
 
-    frontend_editing_db.add_to_search_query_cache('foo', 'bar')
+    frontend_editing_db.add_to_search_query_cache('foo', {}, 'bar')
     assert frontend_db.get_total_cached_query_count() == 1
 
-    frontend_editing_db.add_to_search_query_cache('bar', 'foo')
+    frontend_editing_db.add_to_search_query_cache('bar', {}, 'foo')
     assert frontend_db.get_total_cached_query_count() == 2  # noqa: PLR2004
 
 
 def test_search_query_cache(frontend_db, frontend_editing_db):
     assert frontend_db.search_query_cache(offset=0, limit=10) == []
 
-    id1 = frontend_editing_db.add_to_search_query_cache('foo', 'rule bar{}')
-    id2 = frontend_editing_db.add_to_search_query_cache('bar', 'rule foo{}')
+    id1 = frontend_editing_db.add_to_search_query_cache('foo', {}, 'rule bar{}')
+    id2 = frontend_editing_db.add_to_search_query_cache('bar', {}, 'rule foo{}')
     assert sorted(frontend_db.search_query_cache(offset=0, limit=10)) == [
         (id1, 'rule bar{}', ['bar']),
         (id2, 'rule foo{}', ['foo']),
