@@ -415,15 +415,16 @@ def sort_cve_results(cve_result: dict[str, dict[str, str]]) -> list[tuple[str, d
     return sorted(cve_result.items(), key=_cve_sort_key)
 
 
-def _cve_sort_key(item: tuple[str, dict[str, str]]) -> tuple[float, float, str]:
+def _cve_sort_key(item: tuple[str, dict]) -> tuple[float, float, str]:
     """
-    primary sorting key: -max(v2 score, v3 score)
-    secondary sorting key: -min(v2 score, v3 score)
+    primary sorting key: -max(v2 score, v3.0 score, v3.1 score, v4.0 score, ...)
+    secondary sorting key: -min(v2 score, v3.0 score, v3.1 score, v4.0 score, ...)
     tertiary sorting key: CVE ID
     use negative values so that highest scores come first, and we can also sort by CVE ID
     """
-    v2_score, v3_score = (_cve_score_to_float(item[1].get(key, 0.0)) for key in ['score2', 'score3'])
-    return -max(v2_score, v3_score), -min(v2_score, v3_score), item[0]
+    score_dict = item[1]['scores']
+    scores = {_cve_score_to_float(value) for value in score_dict.values()}
+    return -max(scores or [0.0]), -min(scores or [0.0]), item[0]
 
 
 def _cve_score_to_float(score: float | str) -> float:
@@ -431,6 +432,10 @@ def _cve_score_to_float(score: float | str) -> float:
         return float(score)
     except ValueError:  # "N/A" entries
         return 0.0
+
+
+def get_cvss_versions(cve_result: dict) -> set[str]:
+    return {score_version for entry in cve_result.values() for score_version in entry['scores']}
 
 
 def linter_reformat_issues(issues) -> dict[str, list[dict[str, str]]]:

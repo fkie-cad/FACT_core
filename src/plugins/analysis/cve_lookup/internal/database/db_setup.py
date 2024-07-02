@@ -26,15 +26,11 @@ class DbSetup:
         Create a Cve object from a CveEntry object.
         """
         year = cve_item.cve_id.split('-')[1]
-        score_v2 = cve_item.impact.get('cvssMetricV2', 'N/A')
-        score_v30 = cve_item.impact.get('cvssMetricV30', 'N/A')
-        score_v3 = cve_item.impact.get('cvssMetricV31', score_v30)
         return Cve(
             cve_id=cve_item.cve_id,
             year=year,
             summary=cve_item.summary,
-            cvss_v2_score=score_v2,
-            cvss_v3_score=score_v3,
+            cvss_score=cve_item.impact,
         )
 
     def create_cpe(self, cpe_id: str):

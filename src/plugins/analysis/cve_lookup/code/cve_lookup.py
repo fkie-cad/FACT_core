@@ -20,6 +20,7 @@ except ImportError:
     from lookup import Lookup
 
 DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
+MINIMUM_CRITICAL_SCORE = 9.0
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -31,7 +32,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['software_components']  # noqa: RUF012
-    VERSION = '0.1.0'
+    VERSION = '0.2.0'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
@@ -86,8 +87,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     return
 
     @staticmethod
-    def _entry_has_critical_rating(entry: dict[str, str]) -> bool:
+    def _entry_has_critical_rating(entry: dict[str, dict[str, str]]) -> bool:
         """
         Check if the given entry has a critical rating.
         """
-        return any(entry[key] != 'N/A' and float(entry[key]) >= 9.0 for key in ['score2', 'score3'])  # noqa: PLR2004
+        return any(value != 'N/A' and float(value) >= MINIMUM_CRITICAL_SCORE for value in entry['scores'].values())
