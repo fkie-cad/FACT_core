@@ -193,6 +193,7 @@ class FilterClass:
         self._app.jinja_env.filters['format_duration'] = flt.format_duration
         self._app.jinja_env.filters['format_string_list_with_offset'] = flt.filter_format_string_list_with_offset
         self._app.jinja_env.filters['get_canvas_height'] = flt.get_canvas_height
+        self._app.jinja_env.filters['get_cvss_versions'] = flt.get_cvss_versions
         self._app.jinja_env.filters['get_searchable_crypto_block'] = flt.get_searchable_crypto_block
         self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts
         self._app.jinja_env.filters['hex'] = hex
@@ -207,6 +208,7 @@ class FilterClass:
         self._app.jinja_env.filters['list_to_line_break_string'] = flt.list_to_line_break_string
         self._app.jinja_env.filters['list_to_line_break_string_no_sort'] = flt.list_to_line_break_string_no_sort
         self._app.jinja_env.filters['md5_hash'] = get_md5
+        self._app.jinja_env.filters['max'] = max
         self._app.jinja_env.filters['min'] = min
         self._app.jinja_env.filters['nice_generic'] = flt.generic_nice_representation
         self._app.jinja_env.filters['nice_number'] = flt.nice_number_filter
