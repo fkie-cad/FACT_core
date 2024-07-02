@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String
+from sqlalchemy import JSON, Column, ForeignKey, String
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -27,8 +27,7 @@ class Cve(Base):
     cve_id = Column(String(), primary_key=True)
     year = Column(String())
     summary = Column(String())
-    cvss_v2_score = Column(String())
-    cvss_v3_score = Column(String())
+    cvss_score = Column(JSON())
     cpes = relationship(Association, back_populates='cve')
 
     def __repr__(self) -> str:
