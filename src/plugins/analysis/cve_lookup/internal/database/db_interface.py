@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from sqlalchemy.exc import OperationalError
 
 from ..database.schema import Association, Cpe, Cve
 
@@ -38,5 +41,12 @@ class DbInterface:
         """
         Retrieve a dictionary of CVE objects for the given CVE IDs.
         """
-        cves = self.session.query(Cve).filter(Cve.cve_id.in_(cve_ids)).all()
+        try:
+            cves = self.session.query(Cve).filter(Cve.cve_id.in_(cve_ids)).all()
+        except OperationalError as error:
+            if 'no such column' in str(error):
+                logging.error(
+                    "The DB schema of the cve_lookup plugin has changed. Please re-run the plugin's installation."
+                )
+            raise
         return {cve.cve_id: cve for cve in cves}

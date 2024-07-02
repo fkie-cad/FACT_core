@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import lzma
+import re
 from typing import TYPE_CHECKING
 
 import requests
@@ -42,14 +43,16 @@ def extract_english_summary(descriptions: list) -> str:
 
 def extract_cve_impact(metrics: dict) -> dict[str, str]:
     impact = {}
-    for version in [2, 30, 31]:
-        cvss_key = f'cvssMetricV{version}'
-        if cvss_key in metrics:
-            for entry in metrics[cvss_key]:
-                if entry['type'] == 'Primary':
-                    impact.setdefault(cvss_key, entry['cvssData']['baseScore'])
-                elif cvss_key not in impact:
-                    impact[cvss_key] = entry['cvssData']['baseScore']
+    for cvss_type, cvss_data in metrics.items():
+        key = cvss_type.replace('cvssMetric', '')
+        if re.match(r'V\d\d', key):
+            # V30 / V31 / V40 -> V3.0 / V3.1 / V4.0
+            key = f'{key[:2]}.{key[2:]}'
+        for cvss_dict in cvss_data:
+            if cvss_dict['type'] == 'Primary':
+                impact.setdefault(key, cvss_dict['cvssData']['baseScore'])
+            elif key not in impact:
+                impact[key] = cvss_dict['cvssData']['baseScore']
     return impact
 
 
@@ -57,20 +60,19 @@ def extract_cpe_data(configurations: list) -> list[tuple[str, str, str, str, str
     unique_criteria = {}
     cpe_entries = []
     for configuration in configurations:
-        for node in configuration['nodes']:
-            if 'cpeMatch' in node:
-                for cpe in node['cpeMatch']:
-                    if 'criteria' in cpe and cpe['vulnerable'] and cpe['criteria'] not in unique_criteria:
-                        cpe_entries.append(
-                            (
-                                cpe['criteria'],
-                                cpe.get('versionStartIncluding', ''),
-                                cpe.get('versionStartExcluding', ''),
-                                cpe.get('versionEndIncluding', ''),
-                                cpe.get('versionEndExcluding', ''),
-                            )
+        for node in configuration.get('nodes', []):
+            for cpe in node.get('cpeMatch', []):
+                if 'criteria' in cpe and cpe['vulnerable'] and cpe['criteria'] not in unique_criteria:
+                    cpe_entries.append(
+                        (
+                            cpe['criteria'],
+                            cpe.get('versionStartIncluding', ''),
+                            cpe.get('versionStartExcluding', ''),
+                            cpe.get('versionEndIncluding', ''),
+                            cpe.get('versionEndExcluding', ''),
                         )
-                        unique_criteria[cpe['criteria']] = True
+                    )
+                    unique_criteria[cpe['criteria']] = True
     return cpe_entries
 
 
