@@ -43,7 +43,7 @@ def _get_compatible_entry(dts: str) -> str | None:
 
     compatible = None
 
-    # The yaml output is a bit wired, we have to 'unpack' one level to get to the actual nodes
+    # The yaml output is a bit weird, we have to 'unpack' one level to get to the actual nodes
     for item in dt_yaml:
         if 'cpus' not in item:
             continue
@@ -78,7 +78,7 @@ def construct_result(file_object):
 
     result = {}
     for dt_dict in device_tree_result.get('device_trees', []):
-        dt = dt_dict['device_tree']
+        dt = dt_dict['string']
 
         compatible_entry = _get_compatible_entry(dt)
         if compatible_entry is None:
