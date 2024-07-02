@@ -14,7 +14,7 @@ _mock_device_tree_analysis = {
         'result': {
             'device_trees': [
                 {
-                    'device_tree': dts,
+                    'string': dts,
                 },
             ]
         }
