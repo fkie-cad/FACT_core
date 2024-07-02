@@ -56,8 +56,7 @@ class Lookup:
                 if cve:
                     cpe = cpe_matches.get(association.cpe_id)
                     vulnerabilities[cve.cve_id] = {
-                        'score2': cve.cvss_v2_score,
-                        'score3': cve.cvss_v3_score,
+                        'scores': cve.cvss_score,
                         'cpe_version': self._build_version_string(association, cpe),
                     }
 
