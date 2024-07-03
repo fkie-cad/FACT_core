@@ -20,6 +20,7 @@
 import grp
 import logging
 import os
+import resource
 import sys
 from pathlib import Path
 
@@ -37,6 +38,8 @@ from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
 
+ULIMIT_MIN = 1_024
+
 
 class FactBackend(FactBase):
     PROGRAM_NAME = 'FACT Backend'
@@ -47,6 +50,7 @@ class FactBackend(FactBase):
         super().__init__()
         self.unpacking_lock_manager = UnpackingLockManager()
         self._create_docker_base_dir()
+        _check_ulimit()
 
         try:
             self.analysis_service = AnalysisScheduler(unpacking_locks=self.unpacking_lock_manager)
@@ -108,6 +112,18 @@ class FactBackend(FactBase):
                 self.analysis_service.check_exceptions(),
             )
         )
+
+
+def _check_ulimit():
+    soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    if hard_limit < ULIMIT_MIN:
+        logging.warning(
+            'The open file limit appears to be low. This could lead to "too many open files" errors. Please increase '
+            'the open file hard limit for the process that runs FACT.'
+        )
+    if soft_limit < hard_limit:
+        # we are only allowed to increase the soft limit and not the hard limit
+        resource.setrlimit(resource.RLIMIT_NOFILE, (hard_limit, hard_limit))
 
 
 if __name__ == '__main__':
