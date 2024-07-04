@@ -2,6 +2,7 @@ virtualenv
 
 # Python Libraries for python based installation
 distro==1.8.0
+packaging==23.0
 python-magic==0.4.27
 requests==2.32.2
 # Needed by config.py
