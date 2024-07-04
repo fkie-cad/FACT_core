@@ -49,10 +49,9 @@ def extract_cve_impact(metrics: dict) -> dict[str, str]:
             # V30 / V31 / V40 -> V3.0 / V3.1 / V4.0
             key = f'{key[:2]}.{key[2:]}'
         for cvss_dict in cvss_data:
-            if cvss_dict['type'] == 'Primary':
-                impact.setdefault(key, cvss_dict['cvssData']['baseScore'])
-            elif key not in impact:
-                impact[key] = cvss_dict['cvssData']['baseScore']
+            score = str(cvss_dict['cvssData']['baseScore'])
+            if cvss_dict['type'] == 'Primary' or key not in impact:
+                impact[key] = score
     return impact
 
 
