@@ -6,7 +6,7 @@ from ..internal.helper_functions import CveEntry
 CPE_ID = 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
 CVE_ENTRY = CveEntry(
     cve_id='CVE-2023-1234',
-    impact={'cvssMetricV2': '5.0', 'cvssMetricV30': '6.0', 'cvssMetricV31': '7.0'},
+    impact={'V2': '5.0', 'V3.0': '6.0', 'V3.1': '7.0'},
     summary='This is a test CVE',
     cpe_entries=[
         (
@@ -35,8 +35,7 @@ class TestDbSetup:
         assert cve.cve_id == 'CVE-2023-1234'
         assert cve.year == '2023'
         assert cve.summary == 'This is a test CVE'
-        assert cve.cvss_v2_score == '5.0'
-        assert cve.cvss_v3_score == '7.0'
+        assert cve.cvss_score == {'V2': '5.0', 'V3.0': '6.0', 'V3.1': '7.0'}
 
     def test_create_cpe(self):
         cpe_id = CPE_ID
