@@ -133,7 +133,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if modinfo_data:
                 elf_dict['modinfo'] = modinfo_data
 
-        except (AttributeError, TypeError, lief.bad_file):
+        except (AttributeError, TypeError):
             logging.error(f'Bad file for lief/elf analysis {file_object.uid}.', exc_info=True)
             return elf_dict
 

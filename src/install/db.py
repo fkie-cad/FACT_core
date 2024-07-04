@@ -6,26 +6,12 @@ from subprocess import PIPE, CalledProcessError, run
 
 from helperFunctions.install import InstallationError, OperateInDirectory
 
-CODENAME_TRANSLATION = {
-    'tara': 'bionic',
-    'tessa': 'bionic',
-    'tina': 'bionic',
-    'tricia': 'bionic',
-    'ulyana': 'focal',
-    'ulyssa': 'focal',
-    'uma': 'focal',
-    'una': 'focal',
-}
-
 
 def install_postgres(version: int = 14):
-    codename = run('lsb_release -cs', text=True, shell=True, stdout=PIPE, check=True).stdout.rstrip()
-    codename = CODENAME_TRANSLATION.get(codename, codename)
     # based on https://www.postgresql.org/download/linux/ubuntu/
     command_list = [
-        f'sudo sh -c \'echo "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt {codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list\'',  # noqa: E501
-        'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -',
-        'sudo apt-get update',
+        'sudo apt-get install -y postgresql-common',
+        'sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y',
         f'sudo apt-get -y install postgresql-{version}',
     ]
     for command in command_list:
