@@ -38,6 +38,7 @@ class FactBase:
 
     def __init__(self):
         self.run = True
+        self.main_proc = psutil.Process()
 
         self.args = setup_argparser(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
         config.load(self.args.config_file)
@@ -104,7 +105,7 @@ class FactBase:
             if self.args.testing:
                 break
             if not counter % 12:  # only check every minute
-                _check_memory_usage()
+                self._check_resource_usage()
             counter += 1
         self.shutdown()
 
@@ -117,15 +118,14 @@ class FactBase:
             )
             raise DbInterfaceError('Schema mismatch')
 
-
-def _check_memory_usage():
-    memory_usage = psutil.virtual_memory().percent
-    if memory_usage > 95.0:  # noqa: PLR2004
-        logging.critical(f'System memory is critically low: {memory_usage}%')
-    elif memory_usage > 80.0:  # noqa: PLR2004
-        logging.warning(f'System memory is running low: {memory_usage}%')
-    else:
-        logging.info(f'System memory usage: {memory_usage}%')
+    def _check_resource_usage(self):
+        memory_usage = psutil.virtual_memory().percent
+        if memory_usage > 95.0:  # noqa: PLR2004
+            logging.critical(f'System memory is critically low: {memory_usage}%')
+        elif memory_usage > 80.0:  # noqa: PLR2004
+            logging.warning(f'System memory is running low: {memory_usage}%')
+        else:
+            logging.info(f'System memory usage: {memory_usage}%; open file count: {self.main_proc.num_fds()}')
 
 
 def _is_main_process() -> bool:
