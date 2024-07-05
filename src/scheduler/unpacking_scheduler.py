@@ -107,7 +107,8 @@ class UnpackingScheduler:
         )
         self.stop_containers()
         self._clean_tmp_dirs()
-        self.manager.shutdown()
+        if self.manager:
+            self.manager.shutdown()
         logging.info('Unpacking scheduler offline')
 
     def _clean_tmp_dirs(self):
@@ -138,8 +139,9 @@ class UnpackingScheduler:
             self.worker_tmp_dirs.append(tmp_dir)
 
     def stop_containers(self):
-        with ThreadPoolExecutor(max_workers=len(self.workers)) as pool:
-            pool.map(lambda container: container.stop(), self.workers)
+        if self.workers:
+            with ThreadPoolExecutor(max_workers=len(self.workers)) as pool:
+                pool.map(lambda container: container.stop(), self.workers)
 
     def extraction_loop(self):
         logging.debug(f'Starting unpacking scheduler loop (pid={os.getpid()})')

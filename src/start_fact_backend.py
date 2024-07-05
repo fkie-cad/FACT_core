@@ -127,5 +127,11 @@ def _check_ulimit():
 
 
 if __name__ == '__main__':
-    FactBackend().main()
-    sys.exit(0)
+    backend = FactBackend()
+    try:
+        backend.main()
+        sys.exit(0)
+    except OSError as error:
+        logging.exception(f'Exception during start: {error}')
+        backend.shutdown()
+        sys.exit(1)
