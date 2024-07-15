@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session, backref, declarative_base, mapped_column, re
 Base = declarative_base()
 UID = VARCHAR(78)
 
+
 # primary_key=True implies `unique=True` and `nullable=False`
 
 
@@ -34,8 +35,16 @@ class AnalysisEntry(Base):
         index=True,
         comment='The UID of the file object on which this analysis was performed.',
     )
-    plugin = mapped_column(VARCHAR(64), nullable=False, comment='The name of the analysis plugin (e.g. "file_type").')
-    plugin_version = mapped_column(VARCHAR(16), nullable=False, comment='The version of the analysis plugin.')
+    plugin = mapped_column(
+        VARCHAR(64),
+        nullable=False,
+        comment='The name of the analysis plugin (e.g. "file_type").',
+    )
+    plugin_version = mapped_column(
+        VARCHAR(16),
+        nullable=False,
+        comment='The version of the analysis plugin.',
+    )
     system_version = mapped_column(
         VARCHAR,
         comment=(
@@ -43,7 +52,11 @@ class AnalysisEntry(Base):
             'tools or libraries which may change in version independently of the plugin itself (e.g. YARA).'
         ),
     )
-    analysis_date = mapped_column(Float, nullable=False, comment='The date the analysis was performed.')
+    analysis_date = mapped_column(
+        Float,
+        nullable=False,
+        comment='The date the analysis was performed.',
+    )
     summary = mapped_column(
         ARRAY(VARCHAR, dimensions=1),
         nullable=True,
@@ -67,11 +80,22 @@ class AnalysisEntry(Base):
         comment='The result of the analysis in JSON format.',
     )
 
-    file_object = relationship('FileObjectEntry', back_populates='analyses')
+    file_object = relationship(
+        'FileObjectEntry',
+        back_populates='analyses',
+    )
 
     __table_args__ = (
-        PrimaryKeyConstraint('uid', 'plugin', name='_analysis_primary_key'),
-        Index('result_gin_index', 'result', postgresql_using='gin'),
+        PrimaryKeyConstraint(
+            'uid',
+            'plugin',
+            name='_analysis_primary_key',
+        ),
+        Index(
+            'result_gin_index',
+            'result',
+            postgresql_using='gin',
+        ),
         {
             'comment': (
                 'The analysis table. Each entry represents the result of an analysis plugin that was executed on a '
@@ -135,12 +159,21 @@ fw_files_table = Table(
     ),
 )
 
-
 comparisons_table = Table(
     'compared_files',
     Base.metadata,
-    Column('comparison_id', VARCHAR, ForeignKey('comparison.comparison_id', ondelete='CASCADE'), primary_key=True),
-    Column('file_uid', UID, ForeignKey('file_object.uid', ondelete='CASCADE'), primary_key=True),
+    Column(
+        'comparison_id',
+        VARCHAR,
+        ForeignKey('comparison.comparison_id', ondelete='CASCADE'),
+        primary_key=True,
+    ),
+    Column(
+        'file_uid',
+        UID,
+        ForeignKey('file_object.uid', ondelete='CASCADE'),
+        primary_key=True,
+    ),
 )
 
 
@@ -165,14 +198,26 @@ class FileObjectEntry(Base):
             # FixMe? implying the sha256 is not unique enough lol; maybe we should merge this and the sha256 column
         ),
     )
-    sha256 = mapped_column(CHAR(64), nullable=False, comment='The SHA256 hash of the file.')
-    file_name = mapped_column(VARCHAR, nullable=False, comment='The name of the file.')
+    sha256 = mapped_column(
+        CHAR(64),
+        nullable=False,
+        comment='The SHA256 hash of the file.',
+    )
+    file_name = mapped_column(
+        VARCHAR,
+        nullable=False,
+        comment='The name of the file.',
+    )
     depth = mapped_column(
         Integer,
         nullable=False,
         comment='The depth level where this file was unpacked during the recursive extraction of the firmware.',
     )
-    size = mapped_column(BigInteger, nullable=False, comment='The size of the file in bytes.')
+    size = mapped_column(
+        BigInteger,
+        nullable=False,
+        comment='The size of the file in bytes.',
+    )
     comments = mapped_column(
         MutableList.as_mutable(JSONB),
         comment='A JSON object containing all user comments on this file',
@@ -258,11 +303,31 @@ class FirmwareEntry(Base):
             'from which all others are unpacked.'
         ),
     )
-    submission_date = mapped_column(Float, nullable=False, comment='The date when the firmware was uploaded to FACT.')
-    release_date = mapped_column(Date, nullable=False, comment='The release date of the firmware.')
-    version = mapped_column(VARCHAR, nullable=False, comment='The version of the firmware.')
-    vendor = mapped_column(VARCHAR, nullable=False, comment='The vendor of the device.')
-    device_name = mapped_column(VARCHAR, nullable=False, comment='The name of the device.')
+    submission_date = mapped_column(
+        Float,
+        nullable=False,
+        comment='The date when the firmware was uploaded to FACT.',
+    )
+    release_date = mapped_column(
+        Date,
+        nullable=False,
+        comment='The release date of the firmware.',
+    )
+    version = mapped_column(
+        VARCHAR,
+        nullable=False,
+        comment='The version of the firmware.',
+    )
+    vendor = mapped_column(
+        VARCHAR,
+        nullable=False,
+        comment='The vendor of the device.',
+    )
+    device_name = mapped_column(
+        VARCHAR,
+        nullable=False,
+        comment='The name of the device.',
+    )
     device_class = mapped_column(
         VARCHAR,
         nullable=False,
@@ -340,13 +405,26 @@ class VirtualFilePath(Base):
         ),
     )
 
-    _file_object = relationship('FileObjectEntry', uselist=False, foreign_keys=[file_uid])
+    _file_object = relationship(
+        'FileObjectEntry',
+        uselist=False,
+        foreign_keys=[file_uid],
+    )
     # for cascade deletion:
-    _parent_object = relationship('FileObjectEntry', uselist=False, foreign_keys=[parent_uid])
+    _parent_object = relationship(
+        'FileObjectEntry',
+        uselist=False,
+        foreign_keys=[parent_uid],
+    )
 
     __table_args__ = (
         # unique constraint: each combination of parent + child + path should be unique
-        PrimaryKeyConstraint('parent_uid', 'file_uid', 'file_path', name='_vfp_primary_key'),
+        PrimaryKeyConstraint(
+            'parent_uid',
+            'file_uid',
+            'file_path',
+            name='_vfp_primary_key',
+        ),
         {
             'comment': (
                 'A table that describes what name and path (where applicable) a file had when if was unpacked from '
