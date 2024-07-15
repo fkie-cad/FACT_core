@@ -115,6 +115,13 @@ class FactBackend(FactBase):
 
 
 def _check_ulimit():
+    """
+    Each process has a hard limit and a soft limit for the maximum number of files opened at the same time. Since
+    FACT makes extensive use of multiprocessing features, it uses up a lot of those file descriptors and if we run
+    out, this raises an OSError. To mitigate this, we try to increase the soft limit and print a warning if the
+    hard limit is low. With the default configuration, FACT uses about 560 file descriptors (and potentially many
+    more if you crank up the worker counts).
+    """
     soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
     if hard_limit < ULIMIT_MIN:
         logging.warning(
