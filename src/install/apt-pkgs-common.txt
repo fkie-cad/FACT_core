@@ -5,10 +5,12 @@ autoconf
 automake
 build-essential
 git
+gnupg2
 libtool
 python3
 python3-dev
 unzip
+wget
 
 # general python dependencies
 libfuzzy-dev
