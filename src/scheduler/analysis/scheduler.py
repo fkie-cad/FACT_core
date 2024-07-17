@@ -4,7 +4,7 @@ import logging
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
-from multiprocessing import Lock, Queue, Value
+from multiprocessing import Lock, Manager, Queue, Value
 from pathlib import Path
 from queue import Empty
 from time import sleep
@@ -105,12 +105,14 @@ class AnalysisScheduler:
         db_interface=None,
         unpacking_locks: UnpackingLockManager | None = None,
     ):
+        self.manager = Manager()
         self.analysis_plugins = {}
         self._plugin_runners = {}
 
-        self._load_plugins()
         self.stop_condition = Value('i', 0)
-        self.process_queue = Queue()
+        self.analysis_input_queue = Queue()
+        self.analysis_output_queue = Queue()
+        self._load_plugins()
         self.unpacking_locks = unpacking_locks
         self.scheduling_lock = Lock()
 
@@ -157,7 +159,7 @@ class AnalysisScheduler:
             for future in futures:
                 future.result()  # call result to make sure all threads are finished and there are no exceptions
         stop_processes(self.result_collector_processes, config.backend.block_delay + 1)
-        self.process_queue.close()
+        self.analysis_input_queue.close()
         self.status.shutdown()
         logging.info('Analysis scheduler offline')
 
@@ -229,7 +231,10 @@ class AnalysisScheduler:
                     schemata[plugin.metadata.name] = PluginClass.Schema
                     _sync_view(plugin_module, plugin.metadata.name)
                 elif issubclass(PluginClass, AnalysisBasePlugin):
-                    self.analysis_plugins[PluginClass.NAME] = PluginClass()
+                    self.analysis_plugins[PluginClass.NAME] = PluginClass(
+                        out_queue=self.analysis_output_queue,
+                        manager=self.manager,
+                    )
                     schemata[PluginClass.NAME] = dict
             except Exception:
                 logging.error(f'Could not import analysis plugin {plugin_module.AnalysisPlugin.NAME}', exc_info=True)
@@ -247,7 +252,12 @@ class AnalysisScheduler:
                 process_count=process_count,
                 timeout=plugin.metadata.timeout,
             )
-            runner = PluginRunner(plugin, runner_config, schemata)
+            runner = PluginRunner(
+                plugin=plugin,
+                config=runner_config,
+                schemata=schemata,
+                out_queue=self.analysis_output_queue,
+            )
             self._plugin_runners[plugin.metadata.name] = runner
 
         # FIXME: This is a hack and should be remove once we have unified fixtures for the scheduler
@@ -326,7 +336,7 @@ class AnalysisScheduler:
         logging.debug(f'Started analysis scheduling worker {index} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             try:
-                task = self.process_queue.get(timeout=config.backend.block_delay)
+                task = self.analysis_input_queue.get(timeout=config.backend.block_delay)
             except Empty:
                 pass
             else:
@@ -518,20 +528,13 @@ class AnalysisScheduler:
         logging.debug(f'Started analysis result collector worker {index} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             nop = True
-            for plugin_name, plugin in self.analysis_plugins.items():
-                if isinstance(plugin, AnalysisPluginV0):
-                    runner = self._plugin_runners[plugin.metadata.name]
-                    out_queue = runner.out_queue
-                elif isinstance(plugin, AnalysisBasePlugin):
-                    out_queue = plugin.out_queue
-
-                try:
-                    fw = out_queue.get_nowait()
-                except (Empty, ValueError):
-                    pass
-                else:
-                    nop = False
-                    self._handle_collected_result(fw, plugin_name)
+            try:
+                fw, plugin_name = self.analysis_output_queue.get_nowait()
+            except (Empty, ValueError):
+                pass
+            else:
+                nop = False
+                self._handle_collected_result(fw, plugin_name)
             if nop:
                 sleep(config.backend.block_delay)
         logging.debug(f'Stopped analysis result collector worker {index}')
@@ -549,7 +552,7 @@ class AnalysisScheduler:
             logging.info(f'Analysis Completed: {fw_object.uid}')
             self.status.remove_object(fw_object)
         else:
-            self.process_queue.put(fw_object)
+            self.analysis_input_queue.put(fw_object)
 
     # ---- miscellaneous functions ----
 
@@ -558,7 +561,7 @@ class AnalysisScheduler:
             plugin.in_queue for plugin in self.analysis_plugins.values() if isinstance(plugin, AnalysisBasePlugin)
         ]
         runner_queue_sum = sum([runner.get_queue_len() for runner in self._plugin_runners.values()])
-        return self.process_queue.qsize() + sum(queue.qsize() for queue in plugin_queues) + runner_queue_sum
+        return self.analysis_input_queue.qsize() + sum(queue.qsize() for queue in plugin_queues) + runner_queue_sum
 
     def get_scheduled_workload(self) -> dict:
         """
@@ -583,7 +586,7 @@ class AnalysisScheduler:
         """
         # FixMe: move rest of system status from DB to Redis (CPU, RAM, queues, etc.)
         workload = {
-            'analysis_main_scheduler': self.process_queue.qsize(),
+            'analysis_main_scheduler': self.analysis_input_queue.qsize(),
             'plugins': {},
         }
         for plugin_name, plugin in self.analysis_plugins.items():

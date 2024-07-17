@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euxo pipefail
 
 # cd in this files directory for relative paths to work
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1

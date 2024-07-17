@@ -39,10 +39,10 @@ class TestScheduleInitialAnalysis:
 
     @pytest.mark.SchedulerTestConfig(start_processes=False)
     def test_schedule_firmware_init_no_analysis_selected(self, analysis_scheduler):
-        analysis_scheduler.process_queue = Queue()
+        analysis_scheduler.analysis_input_queue = Queue()
         test_fw = Firmware(binary=b'test')
         analysis_scheduler.start_analysis_of_object(test_fw)
-        test_fw = analysis_scheduler.process_queue.get(timeout=5)
+        test_fw = analysis_scheduler.analysis_input_queue.get(timeout=5)
         assert len(test_fw.scheduled_analysis) == len(MANDATORY_PLUGINS), 'Mandatory Plugins not selected'
         for item in MANDATORY_PLUGINS:
             assert item in test_fw.scheduled_analysis
@@ -436,14 +436,14 @@ def test_combined_analysis_workload(monkeypatch):
     scheduler._plugin_runners = {}
     dummy_plugin = scheduler.analysis_plugins['dummy_plugin'] = PluginMock([])
     dummy_plugin.in_queue = Queue()
-    scheduler.process_queue = Queue()
+    scheduler.analysis_input_queue = Queue()
     try:
         assert scheduler.get_combined_analysis_workload() == 0
-        scheduler.process_queue.put({})
+        scheduler.analysis_input_queue.put({})
         for _ in range(2):
             dummy_plugin.in_queue.put({})
         assert scheduler.get_combined_analysis_workload() == 3  # noqa: PLR2004
     finally:
         sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
-        scheduler.process_queue.close()
+        scheduler.analysis_input_queue.close()
         dummy_plugin.in_queue.close()

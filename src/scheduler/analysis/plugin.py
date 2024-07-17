@@ -56,6 +56,7 @@ class PluginRunner:
     def __init__(
         self,
         plugin: AnalysisPluginV0,
+        out_queue: mp.Queue,
         config: Config,
         schemata: typing.Dict[str, pydantic.BaseModel],
     ):
@@ -65,7 +66,7 @@ class PluginRunner:
 
         self._in_queue: mp.Queue = mp.Queue()
         #: Workers put the ``Task.scheduler_state`` and the finished analysis in the out_queue
-        self.out_queue: mp.Queue = mp.Queue()
+        self.out_queue: mp.Queue = out_queue
 
         self.stats = mp.Array(ctypes.c_float, ANALYSIS_STATS_LIMIT)
         self.stats_count = mp.Value('i', 0)
@@ -262,7 +263,7 @@ class Worker(mp.Process):
 
             fw = task.scheduler_state
             self._write_result_in_file_object(entry, fw)
-            self._out_queue.put(fw)
+            self._out_queue.put((fw, self._plugin.metadata.name))
 
     def _write_result_in_file_object(self, entry: dict, file_object: FileObject):
         """Takes a file_object and an entry as it is returned by :py:func:`Worker.run`

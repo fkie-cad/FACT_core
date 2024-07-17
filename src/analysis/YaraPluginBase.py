@@ -22,7 +22,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
     VERSION = '0.0'
     FILE = None
 
-    def __init__(self, view_updater=None):
+    def __init__(self, *args, **kwargs):
         """
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
@@ -34,7 +34,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
                 plugin=self,
             )
         self.SYSTEM_VERSION = self.get_yara_system_version()
-        super().__init__(view_updater=view_updater)
+        super().__init__(*args, **kwargs)
 
     def get_yara_system_version(self):
         with subprocess.Popen(['yara', '--version'], stdout=subprocess.PIPE) as process:

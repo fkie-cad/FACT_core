@@ -77,17 +77,17 @@ class AnalysisBasePlugin(BasePlugin):
 
     ANALYSIS_STATS_LIMIT = 1000
 
-    def __init__(self, no_multithread=False, view_updater=None):
+    def __init__(self, out_queue: Queue, no_multithread=False, view_updater=None, manager=None):
         super().__init__(plugin_path=self.FILE, view_updater=view_updater)
         self._check_plugin_attributes()
         self.additional_setup()
         self.in_queue = Queue()
-        self.out_queue = Queue()
+        self.out_queue = out_queue
         self.stop_condition = Value('i', 0)
         self.workers = []
         self.thread_count = 1 if no_multithread else self._get_thread_count()
         self.active = [Value('i', 0) for _ in range(self.thread_count)]
-        self.manager = Manager()
+        self.manager = manager or Manager()
         self.analysis_stats = Array(ctypes.c_float, self.ANALYSIS_STATS_LIMIT)
         self.analysis_stats_count = Value('i', 0)
         self.analysis_stats_index = Value('i', 0)
@@ -144,7 +144,7 @@ class AnalysisBasePlugin(BasePlugin):
         elif self._analysis_depth_not_reached_yet(fw_object):
             self.in_queue.put(fw_object)
             return
-        self.out_queue.put(fw_object)
+        self.out_queue.put((fw_object, self.NAME))
 
     def _dependencies_are_unfulfilled(self, fw_object: FileObject):
         # FIXME plugins can be in processed_analysis and could still be skipped, etc. -> need a way to verify that
@@ -225,7 +225,7 @@ class AnalysisBasePlugin(BasePlugin):
 
         processed_analysis_entry = result_fo.processed_analysis.pop(self.NAME)
         result_fo.processed_analysis[self.NAME] = sanitize_processed_analysis(processed_analysis_entry)
-        self.out_queue.put(result_fo)
+        self.out_queue.put((result_fo, self.NAME))
 
     def _update_duration_stats(self, duration):
         with self.analysis_stats.get_lock():
