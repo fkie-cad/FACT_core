@@ -9,21 +9,21 @@ from ipc_analysis.decompile import decompile_function
 from ipc_analysis.helper_functions import iter_array, string_is_printable
 
 
-def get_key_strings(path):
+def load_input_data(path):
     """
     Tries to open the key_file for the software_component plugin
 
-    :path: str
-    :return: None/list
+    :type path: str
+    :rtype: None | dict
     """
     try:
         with open(path + '/key_file', 'r') as key_file:
-            key_strings = json.loads(key_file.read())
+            data = json.loads(key_file.read())
     except IOError:
-        logging.info('key string file not found')
+        logging.info('input data file not found')
         return None
-    logging.info('key: {}'.format(repr(key_strings)))
-    return key_strings
+    logging.info('input data: {}'.format(repr(data)))
+    return data
 
 
 def get_format_string_version(ghidra_analysis, key_string):
