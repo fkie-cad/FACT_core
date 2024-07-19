@@ -39,8 +39,10 @@ class AnalysisPlugin(YaraBasePlugin):
         if 'NetUSB' in software_components_results:
             matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
 
-        # CVE-2024-3094 XZ Backdoor
-        if 'liblzma' in software_components_results:
+        # CVE-2024-3094 XZ Backdoor secondary detection
+        if 'liblzma' in software_components_results and not any(
+            bv[0] == 'xz_backdoor' for bv in binary_vulnerabilities
+        ):
             matched_vulnerabilities.extend(_check_xz_backdoor(software_components_results))
 
         for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
@@ -135,7 +137,9 @@ def _check_xz_backdoor(software_results: dict) -> list[tuple[str, dict]]:
                 {
                     'description': 'CVE-2024-3094: a malicious backdoor was planted into the xz compression library',
                     'score': 'high',
-                    'reliability': 90,
+                    # the vulnerability is only contained in certain versions built for debian; a more reliable
+                    # yara rule is in the signatures files
+                    'reliability': 20,
                     'link': 'https://nvd.nist.gov/vuln/detail/CVE-2024-3094',
                     'short_name': 'XZ Backdoor',
                     'additional_data': {},

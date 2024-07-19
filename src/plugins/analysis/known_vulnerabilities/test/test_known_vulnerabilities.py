@@ -92,7 +92,15 @@ class TestAnalysisPluginsKnownVulnerabilities:
         result = analysis_plugin._check_netusb_vulnerability(test_file.binary)
         assert len(result) == 0
 
-    def test_xz_backdoor(self, analysis_plugin):
+    def test_xz_backdoor_1st(self, analysis_plugin):
+        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'xz_backdoor_test_file'))
+        assert test_file.binary is not None
+        fo = analysis_plugin.process_object(test_file)
+        result = fo.processed_analysis['known_vulnerabilities']
+        assert 'xz_backdoor' in result
+        assert 'xz_backdoor' in result['summary']
+
+    def test_xz_backdoor_2nd(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'empty'))
         assert test_file.binary is not None
         test_file.processed_analysis['software_components'] = {'result': {'liblzma': {'meta': {'version': ['5.6.1']}}}}
