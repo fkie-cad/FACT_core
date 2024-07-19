@@ -97,6 +97,7 @@ TYPE_CATEGORY_TO_ICON = {
     'image/': f'/{ICON_URL_BASE}/mimetypes/image-x-generic.svg',
     'text/': f'/{ICON_URL_BASE}/mimetypes/text-x-generic.svg',
     'video/': f'/{ICON_URL_BASE}/mimetypes/video-x-generic.svg',
+    'linux/': f'/{ICON_URL_BASE}/linux.svg',
 }
 
 
