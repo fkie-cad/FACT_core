@@ -131,19 +131,6 @@ class FilterClass:
             file_tree_paths=file_tree_paths,
         )
 
-    @staticmethod
-    def _split_user_and_password_type_entry(result: dict):
-        new_result = {}
-        for key, value in result.items():
-            if ':' in key:
-                *user_elements, password_type = key.split(':')
-                user = ':'.join(user_elements)
-            else:  # for backward compatibility
-                user = key
-                password_type = 'unix'
-            new_result.setdefault(user, {})[password_type] = value
-        return new_result
-
     def check_auth(self, _):
         return config.frontend.authentication.enabled
 
@@ -234,7 +221,6 @@ class FilterClass:
                 ),
                 'sort_roles': flt.sort_roles_by_number_of_privileges,
                 'sort_users': flt.sort_users_by_name,
-                'split_user_and_password_type': self._split_user_and_password_type_entry,
                 'str_to_hex': flt.str_to_hex,
                 'text_highlighter': flt.text_highlighter,
                 'uids_to_link': flt.uids_to_link,
