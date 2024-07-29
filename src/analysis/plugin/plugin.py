@@ -12,6 +12,10 @@ if typing.TYPE_CHECKING:
     import io
 
 
+class AnalysisFailedError(Exception):
+    ...
+
+
 class Tag(BaseModel):
     """A dataclass for tags that is more convenient than dictionaries.
     The structure of the dict is defined in the docs for :py:attr:`objects.FileObject.analysis_tags`.
