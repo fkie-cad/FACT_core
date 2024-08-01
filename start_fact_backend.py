@@ -24,13 +24,9 @@ import resource
 import sys
 from pathlib import Path
 
-try:
-    from fact.fact_base import FactBase
-except (ImportError, ModuleNotFoundError):
-    sys.exit(1)
-
 from fact import config
 from fact.analysis.PluginBase import PluginInitException
+from fact.fact_base import FactBase
 from fact.helperFunctions.process import complete_shutdown
 from fact.intercom.back_end_binding import InterComBackEndBinding
 from fact.scheduler.analysis import AnalysisScheduler

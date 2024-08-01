@@ -26,14 +26,9 @@ import sys
 import tempfile
 from shlex import split
 from subprocess import Popen, TimeoutExpired
-
-try:
-    from fact.fact_base import FactBase
-except (ImportError, ModuleNotFoundError):
-    sys.exit(1)
-
 from typing import Optional
 
+from fact.fact_base import FactBase
 from fact.helperFunctions.fileSystem import get_config_dir, get_src_dir
 from fact.helperFunctions.install import run_cmd_with_logging
 
