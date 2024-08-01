@@ -1,8 +1,11 @@
 [tool.pytest.ini_options]
-addopts = "-v"
+addopts = [
+    "--import-mode=prepend",
+    "-v",
+]
 testpaths = [
-    "src/test",
-    "src/plugins/**/test",
+    "tests",
+    "fact/plugins/**/test",
 ]
 markers = [
     "AnalysisPluginTestConfig: Configure the analysis_plugin fixture",
