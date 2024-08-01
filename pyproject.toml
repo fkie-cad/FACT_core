@@ -103,3 +103,123 @@ docstring-quotes = "double"
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.poetry]
+name = "fact"
+version = "0.1.0"
+description = ""
+authors = ["Marten Ringwelski <git@maringuu.de>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.pre_install.dependencies]
+# XXX What are these?!
+# Aren't they simply dependencies of the installer?
+
+# Python Libraries for python based installation
+distro = "1.8.0"
+python-magic = "0.4.27"
+requests = "2.32.2"
+# Needed by config.py
+pydantic = "2.4.0"
+werkzeug = "~3.0.3"
+toml = "0.10.2"
+
+common_helper_files = { git = "https://github.com/fkie-cad/common_helper_files.git" }
+
+
+
+[tool.poetry.group.common.dependencies]
+# General build stuff
+testresources = "2.0.1"
+
+# General python dependencies
+appdirs = "1.4.4"
+flaky = "3.7.0"
+lief = "0.14.1"
+psutil = "5.9.4"
+psycopg2-binary = "2.9.9"
+pylint = "2.15.5"
+pytest-cov = "4.0.0"
+pytest-timeout = "2.1.0"
+pytest = "7.2.0"
+python-magic = "0.4.27"
+python-tlsh = "4.5.0"
+redis = "4.5.4"
+requests = "2.32.2"
+rich = "12.6.0"
+sqlalchemy = "~2.0.30"
+ssdeep = "3.4"
+xmltodict = "0.13.0"
+yara-python = "4.5.0"
+
+# Config validation
+pydantic = "2.4.0"
+# Config parsing
+toml = "0.10.2"
+
+fact_helper_file = { git = "https://github.com/fkie-cad/fact_helper_file.git" }
+
+# Common code modules
+common_helper_files = { git = "https://github.com/fkie-cad/common_helper_files.git" }
+common_helper_filter = { git = "https://github.com/fkie-cad/common_helper_filter.git" }
+common_helper_encoder = { git = "https://github.com/mass-project/common_helper_encoder.git" }
+
+# database migration
+alembic = "1.10.2"
+
+
+
+[tool.poetry.group.frontend.dependencies]
+bcrypt = "~4.1.3"
+email-validator = "~2.1.1"
+flask-login = "~0.6.3"
+flask-paginate = "~2024.4.12"
+flask-security-too = "~5.4.3"
+flask-wtf = "~1.2.1"
+flask = "~3.0.3"
+flask-restx = "~1.3.0"
+flask-sqlalchemy = "~3.1.1"
+itsdangerous = "~2.2.0"
+matplotlib = "~3.7.5"
+more-itertools = "~10.2.0"
+prompt-toolkit = "~3.0.43"
+python-dateutil = "~2.9.0"
+quantiphy = "~2.20"
+uwsgi = "~2.0.25.1"
+virtualenv = "~20.26.1"
+
+# must be below dependent packages (flask, flask-login, flask-restx)
+werkzeug = "~3.0.3"
+
+# Used for username validation by flask-security
+bleach = "~6.1.0"
+
+# Figuring out if the analysis is outdated
+semver = "~3.0.2"
+
+
+[tool.poetry.group.backend.dependencies]
+cryptography = "42.0.5"
+docker = "~7.1.0"
+MarkupSafe = "2.1.1"
+networkx = "2.6.3"
+Pillow = "10.3.0"
+pyopenssl = "~24.1.0"
+pyyaml = "6.0.1"
+
+# FIXME This is only needed by the compare/file_header plugin
+#       See Issue #832
+flask = "~3.0.3"
+
+common_helper_yara = { git = "https://github.com/fkie-cad/common_helper_yara.git" }
+
+# For plugin definition
+semver = "~3.0.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

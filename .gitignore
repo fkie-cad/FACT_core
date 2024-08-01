@@ -1,3 +1,6 @@
+# Poetry artifacts
+dist
+
 # Logging
 install.log
 fact/install.log
