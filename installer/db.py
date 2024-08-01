@@ -4,7 +4,7 @@ from pathlib import Path
 from shlex import split
 from subprocess import PIPE, CalledProcessError, run
 
-from fact.helperFunctions.install import InstallationError, OperateInDirectory
+from .helperFunctions import InstallationError, OperateInDirectory
 
 
 def install_postgres(version: int = 14):

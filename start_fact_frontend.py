@@ -30,7 +30,7 @@ from typing import Optional
 
 from fact.fact_base import FactBase
 from fact.helperFunctions.fileSystem import get_config_dir, get_src_dir
-from fact.helperFunctions.install import run_cmd_with_logging
+from installer.helperFunctions import run_cmd_with_logging
 
 COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 

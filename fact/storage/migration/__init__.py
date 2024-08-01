@@ -6,7 +6,7 @@ from alembic.runtime import migration
 from sqlalchemy import inspect
 
 from fact.helperFunctions.fileSystem import get_src_dir
-from fact.helperFunctions.install import OperateInDirectory
+from installer.helperFunctions import OperateInDirectory
 from fact.storage.db_connection import AdminConnection
 
 ALEMBIC_CFG_PATH = Path(__file__).parent.parent.parent / 'alembic.ini'

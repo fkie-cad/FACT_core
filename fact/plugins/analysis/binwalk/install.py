@@ -5,7 +5,7 @@ import urllib.request
 from pathlib import Path
 
 try:
-    from fact.helperFunctions.install import OperateInDirectory, check_distribution, is_virtualenv, run_cmd_with_logging
+    from installer.helperFunctions import OperateInDirectory, check_distribution, is_virtualenv, run_cmd_with_logging
     from fact.plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
@@ -13,7 +13,7 @@ except ImportError:
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from fact.helperFunctions.install import OperateInDirectory, check_distribution, is_virtualenv, run_cmd_with_logging
+    from installer.helperFunctions import OperateInDirectory, check_distribution, is_virtualenv, run_cmd_with_logging
     from fact.plugins.installer import AbstractPluginInstaller
 
 

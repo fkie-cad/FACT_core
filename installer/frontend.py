@@ -5,8 +5,7 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-from fact import config
-from fact.helperFunctions.install import (
+from .helperFunctions import (
     InstallationError,
     OperateInDirectory,
     apt_install_packages,
@@ -35,7 +34,8 @@ def execute_commands_and_raise_on_return_code(commands, error=None):
 def _create_directory_for_authentication():
     logging.info('Creating directory for authentication')
 
-    dburi = config.frontend.authentication.user_database
+    # XXX
+    dburi = "sqlite://:memory:"
 
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
@@ -158,7 +158,7 @@ def main(skip_docker, radare, nginx, distribution):
     install_pip_packages(PIP_DEPENDENCIES)
 
     # npm does not allow us to install packages to a specific directory
-    with OperateInDirectory('../../src/web_interface/static'):
+    with OperateInDirectory('../fact/web_interface/static'):
         # EBADENGINE can probably be ignored because we probably don't need node.
         run_cmd_with_logging('npm install --no-fund .')
 

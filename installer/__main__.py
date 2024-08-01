@@ -26,15 +26,14 @@ from pathlib import Path
 from subprocess import PIPE, STDOUT
 
 try:
-    from fact import config
-    from fact.helperFunctions.install import OperateInDirectory, check_distribution
-    from fact.install.backend import _install_docker_images as backend_install_docker_images
-    from fact.install.backend import fact.install_plugin_docker_images as backend_install_plugin_docker_images
-    from fact.install.backend import main as backend
-    from fact.install.common import main as common
-    from fact.install.db import main as db
-    from fact.install.frontend import _install_docker_images as frontend_install_docker_images
-    from fact.install.frontend import main as frontend
+    from .helperFunctions import OperateInDirectory, check_distribution
+    from .backend import _install_docker_images as backend_install_docker_images
+    from .backend import install_plugin_docker_images as backend_install_plugin_docker_images
+    from .backend import main as backend
+    from .common import main as common
+    from .db import main as db
+    from .frontend import _install_docker_images as frontend_install_docker_images
+    from .frontend import main as frontend
 except ImportError:
     logging.critical('Could not import install dependencies. Please (re-)run install/pre_install.sh', exc_info=True)
     sys.exit(1)
@@ -159,7 +158,6 @@ def install_statistic_cronjob():
 
 
 def install():
-    config.load()
     check_python_version()
     args = _setup_argparser()
     _setup_logging(args)
@@ -173,7 +171,7 @@ def install():
     # When just pulling the docker images we don't depend on anything distribution specific
     distribution = check_distribution(allow_unsupported=only_docker)
 
-    installation_directory = get_directory_of_current_file() / 'install'
+    installation_directory = get_directory_of_current_file()
 
     with OperateInDirectory(str(installation_directory)):
         if not only_docker:

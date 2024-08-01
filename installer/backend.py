@@ -7,10 +7,9 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-from fact import config
 from fact.compile_yara_signatures import main as compile_signatures
 from fact.helperFunctions.fileSystem import get_src_dir
-from fact.helperFunctions.install import (
+from .helperFunctions import (
     InstallationError,
     OperateInDirectory,
     apt_install_packages,
@@ -88,7 +87,7 @@ def install_plugin_docker_images():
 def _create_firmware_directory():
     logging.info('Creating firmware directory')
 
-    data_dir_name = config.backend.firmware_file_storage_directory
+    data_dir_name = "/XXX/XXX"
     mkdir_process = subprocess.run(
         f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
@@ -113,7 +112,7 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
         plugin_name = install_script.parent.name
         plugin_type = install_script.parent.parent.name
 
-        plugin = importlib.import_module(f'plugins.{plugin_type}.{plugin_name}.install')
+        plugin = importlib.import_module(f'fact.plugins.{plugin_type}.{plugin_name}.install')
 
         plugin_installer = plugin.Installer(distribution, skip_docker=skip_docker)
         logging.info(f'Installing {plugin_name} plugin.')
