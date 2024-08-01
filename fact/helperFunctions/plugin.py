@@ -30,7 +30,7 @@ def _import_plugins(plugin_type):
 
         # The module name has to be the name in the FACT import tree.
         # If it isn't we can't do relative imports of the `internal` modules
-        module_name = str(plugin_file).replace('/', '.')[len(src_dir + '/') : -len('.py')]
+        module_name = "fact." + str(plugin_file).replace('/', '.')[len(src_dir + '/') : -len('.py')]
 
         loader = SourceFileLoader(module_name, str(plugin_file))
         spec = importlib.util.spec_from_loader(loader.name, loader)

@@ -21,7 +21,7 @@ class PluginRoutes(ComponentBase):
                     self._import_module_routes(plugin, plugin_type)
 
     def _import_module_routes(self, plugin, plugin_type):
-        module = importlib.import_module(f'plugins.{plugin_type}.{plugin}.{ROUTES_MODULE_NAME}.{ROUTES_MODULE_NAME}')
+        module = importlib.import_module(f'fact.plugins.{plugin_type}.{plugin}.{ROUTES_MODULE_NAME}.{ROUTES_MODULE_NAME}')
         if hasattr(module, 'PluginRoutes'):
             module.PluginRoutes(self._app, db=self.db, intercom=self.intercom, status=self.status)
         if hasattr(module, 'PluginRestRoutes'):
