@@ -5,9 +5,9 @@ import pytest
 
 from fact.intercom.back_end_binding import InterComBackEndBinding
 from fact.storage.db_interface_backend import BackendDbInterface
-from fact.test.common_helper import create_test_firmware, store_binary_on_file_system
-from fact.test.integration.intercom import fact.test_backend_scheduler
-from fact.test.integration.web_interface.rest.base import RestTestBase
+from tests.common_helper import create_test_firmware, store_binary_on_file_system
+from tests.integration.intercom import test_backend_scheduler
+from tests.integration.web_interface.rest.base import RestTestBase
 
 
 @pytest.mark.usefixtures('database_interfaces')

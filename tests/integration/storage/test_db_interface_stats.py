@@ -4,7 +4,7 @@ import pytest
 
 from fact.storage.db_interface_stats import StatsDbViewer, count_occurrences
 from fact.storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
-from fact.test.common_helper import (
+from tests.common_helper import (
     create_test_file_object,
     create_test_firmware,
     generate_analysis_entry,

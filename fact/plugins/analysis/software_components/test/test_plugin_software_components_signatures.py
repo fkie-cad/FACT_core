@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fact.test.yara_signature_testing import SignatureTestingMatching, SignatureTestingMeta
+from tests.yara_signature_testing import SignatureTestingMatching, SignatureTestingMeta
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 SIGNATURE_PATH = Path(__file__).parent.parent / 'signatures/'

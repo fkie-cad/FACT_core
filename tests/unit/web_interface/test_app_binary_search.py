@@ -3,7 +3,7 @@ from io import BytesIO
 import pytest
 
 from fact.storage.db_interface_frontend import CachedQuery, MetaEntry
-from fact.test.common_helper import CommonDatabaseMock
+from tests.common_helper import CommonDatabaseMock
 
 QUERY_CACHE_UID = 'deadbeef01234567deadbeef01234567deadbeef01234567deadbeef01234567_123'
 

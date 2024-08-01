@@ -10,7 +10,7 @@ import pytest
 from fact.analysis.YaraPluginBase import YaraBasePlugin, _parse_meta_data, _split_output_in_rules_and_matches
 from fact.helperFunctions.fileSystem import get_src_dir
 from fact.objects.file import FileObject
-from fact.test.common_helper import get_test_data_dir
+from tests.common_helper import get_test_data_dir
 
 YARA_TEST_OUTPUT = Path(get_test_data_dir(), 'yara_matches').read_text()
 

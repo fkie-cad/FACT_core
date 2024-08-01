@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from fact.helperFunctions import yara_binary_search
-from fact.test.common_helper import get_test_data_dir
+from tests.common_helper import get_test_data_dir
 
 TEST_FILE_1 = 'binary_search_test'
 TEST_FILE_2 = 'binary_search_test_2'

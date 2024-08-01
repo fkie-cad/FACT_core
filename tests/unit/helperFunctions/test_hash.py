@@ -10,7 +10,7 @@ from fact.helperFunctions.hash import (
     get_tlsh,
     normalize_lief_items,
 )
-from fact.test.common_helper import create_test_file_object, get_test_data_dir
+from tests.common_helper import create_test_file_object, get_test_data_dir
 
 TEST_STRING = 'test string'
 TEST_SHA256 = 'd5579c46dfcc7f18207013e65b44e4cb4e2c2298f4ac457ba8f82743f31e930b'

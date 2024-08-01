@@ -1,8 +1,8 @@
 import pytest
 
 from fact.objects.firmware import Firmware
-from fact.test.common_helper import get_test_data_dir
-from fact.test.integration.common import MockDbInterface
+from tests.common_helper import get_test_data_dir
+from tests.integration.common import MockDbInterface
 
 
 class TestFileAddition:

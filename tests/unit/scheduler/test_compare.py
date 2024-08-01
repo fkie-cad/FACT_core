@@ -3,7 +3,7 @@ from time import sleep
 import pytest
 
 from fact.compare.PluginBase import CompareBasePlugin
-from fact.test.common_helper import CommonDatabaseMock, create_test_file_object
+from tests.common_helper import CommonDatabaseMock, create_test_file_object
 
 
 @pytest.fixture(autouse=True)

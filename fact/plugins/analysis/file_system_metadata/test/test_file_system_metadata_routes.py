@@ -5,7 +5,7 @@ from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
-from fact.test.common_helper import create_test_file_object, create_test_firmware
+from tests.common_helper import create_test_file_object, create_test_firmware
 
 from ..code.file_system_metadata import AnalysisPlugin
 from ..routes import routes

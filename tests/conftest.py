@@ -23,8 +23,8 @@ from fact.storage.db_interface_view_sync import ViewUpdater
 from fact.storage.db_setup import DbSetup
 from fact.storage.fsorganizer import FSOrganizer
 from fact.storage.unpacking_locks import UnpackingLockManager
-from fact.test.common_helper import clear_test_tables, setup_test_tables
-from fact.test.integration.common import MockDbInterface as BackEndDbInterfaceMock
+from tests.common_helper import clear_test_tables, setup_test_tables
+from tests.integration.common import MockDbInterface as BackEndDbInterfaceMock
 
 T = TypeVar('T')
 
@@ -164,7 +164,7 @@ def _database_interfaces():  # noqa: PT005
         config._replace_hyphens_with_underscores(sections)
         common_cfg = ConfigCommonMock(**sections)
 
-        mpk.setattr('config._common', common_cfg)
+        mpk.setattr('fact.config._common', common_cfg)
 
         db_setup = DbSetup()
 
@@ -319,9 +319,9 @@ def analysis_scheduler(
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """
 
-    monkeypatch.setattr('plugins.base.ViewUpdater', test_config.view_updater_class)
-    monkeypatch.setattr('scheduler.analysis.scheduler.ViewUpdater', test_config.view_updater_class)
-    monkeypatch.setattr('scheduler.analysis.plugin.FSOrganizer', test_config.fs_organizer_class)
+    monkeypatch.setattr('fact.plugins.base.ViewUpdater', test_config.view_updater_class)
+    monkeypatch.setattr('fact.scheduler.analysis.scheduler.ViewUpdater', test_config.view_updater_class)
+    monkeypatch.setattr('fact.scheduler.analysis.plugin.FSOrganizer', test_config.fs_organizer_class)
     _analysis_scheduler = AnalysisScheduler(
         post_analysis=lambda *_: None,
         unpacking_locks=_unpacking_lock_manager,

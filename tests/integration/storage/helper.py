@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from fact.test.common_helper import create_test_file_object, create_test_firmware
+from tests.common_helper import create_test_file_object, create_test_firmware
 
 if TYPE_CHECKING:
     from fact.objects.file import FileObject

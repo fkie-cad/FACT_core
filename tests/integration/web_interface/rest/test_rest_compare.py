@@ -1,7 +1,7 @@
 import pytest
 
-from fact.test.common_helper import create_test_firmware
-from fact.test.integration.web_interface.rest.base import RestTestBase
+from tests.common_helper import create_test_firmware
+from tests.integration.web_interface.rest.base import RestTestBase
 
 TEST_UID = 'deadbeef' * 8 + '_1'
 

@@ -9,8 +9,8 @@ from fact.analysis.PluginBase import AnalysisBasePlugin
 from fact.objects.firmware import Firmware
 from fact.scheduler.analysis import AnalysisScheduler
 from fact.scheduler.task_scheduler import MANDATORY_PLUGINS
-from fact.test.common_helper import MockFileObject, get_test_data_dir
-from fact.test.mock import mock_patch, mock_spy
+from tests.common_helper import MockFileObject, get_test_data_dir
+from tests.mock import mock_patch, mock_spy
 
 
 class ViewUpdaterMock:

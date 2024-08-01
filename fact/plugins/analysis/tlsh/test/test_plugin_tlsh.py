@@ -1,8 +1,8 @@
 import pytest
 
 from fact.plugins.analysis.tlsh.code.tlsh import AnalysisPlugin
-from fact.test.common_helper import create_test_file_object
-from fact.test.mock import mock_patch
+from tests.common_helper import create_test_file_object
+from tests.mock import mock_patch
 
 HASH_0 = '9A355C07B5A614FDC5A2847046EF92B7693174A642327DBF3C88D6303F42E746B1ABE1'
 HASH_1 = '0CC34B06B1B258BCC16689308A67D671AB747E5053223B3E3684F7342F56E6F1F0DAB1'

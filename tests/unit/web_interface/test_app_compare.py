@@ -1,6 +1,6 @@
 from flask import session
 
-from fact.test.common_helper import COMPARISON_ID, TEST_FW, TEST_FW_2
+from tests.common_helper import COMPARISON_ID, TEST_FW, TEST_FW_2
 
 
 def test_add_firmwares_to_compare(test_client):

@@ -3,8 +3,8 @@ from math import isclose
 import pytest
 
 from fact.statistic.update import StatsUpdater
-from fact.test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
-from fact.test.integration.storage.helper import create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
+from tests.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
+from tests.integration.storage.helper import create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
 
 
 @pytest.fixture

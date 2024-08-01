@@ -1,8 +1,8 @@
 import pytest
 
 from fact.plugins.compare.file_coverage.code.file_coverage import ComparePlugin, generate_similarity_sets
-from fact.test.common_helper import CommonDatabaseMock
-from fact.test.unit.compare.compare_plugin_test_class import ComparePluginTest
+from tests.common_helper import CommonDatabaseMock
+from tests.unit.compare.compare_plugin_test_class import ComparePluginTest
 
 
 class DbMock:

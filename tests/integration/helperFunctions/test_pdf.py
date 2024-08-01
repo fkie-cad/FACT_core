@@ -5,7 +5,7 @@ from pathlib import Path
 from fact_helper_file import get_file_type_from_binary
 
 from fact.helperFunctions.pdf import build_pdf_report
-from fact.test.common_helper import TEST_FW
+from tests.common_helper import TEST_FW
 
 
 def test_build_pdf_report():

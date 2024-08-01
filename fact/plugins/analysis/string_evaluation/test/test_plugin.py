@@ -1,6 +1,6 @@
 import pytest
 
-from fact.test.common_helper import create_test_file_object
+from tests.common_helper import create_test_file_object
 
 from ..code.string_eval import AnalysisPlugin
 

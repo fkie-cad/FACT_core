@@ -2,7 +2,7 @@ import os
 
 import magic
 
-from fact.test.common_helper import get_test_data_dir
+from tests.common_helper import get_test_data_dir
 from fact.unpacker.tar_repack import TarRepack
 
 

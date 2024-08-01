@@ -21,7 +21,7 @@ from fact.intercom.back_end_binding import (
     InterComBackEndTarRepackTask,
 )
 from fact.intercom.front_end_binding import InterComFrontEndBinding
-from fact.test.common_helper import create_test_firmware
+from tests.common_helper import create_test_firmware
 
 
 class AnalysisServiceMock:

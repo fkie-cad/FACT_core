@@ -2,7 +2,7 @@ import io
 
 import pytest
 
-from fact.test.common_helper import get_test_data_dir
+from tests.common_helper import get_test_data_dir
 
 from ..code.file_type import AnalysisPlugin
 

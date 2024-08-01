@@ -2,7 +2,7 @@ import magic
 import pytest
 
 from fact.storage.binary_service import BinaryService
-from fact.test.common_helper import create_test_firmware, store_binary_on_file_system
+from tests.common_helper import create_test_firmware, store_binary_on_file_system
 
 TEST_FW = create_test_firmware()
 

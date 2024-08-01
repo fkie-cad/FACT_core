@@ -1,7 +1,7 @@
 import pytest
 
 from fact.objects.firmware import Firmware
-from fact.test.common_helper import get_test_data_dir
+from tests.common_helper import get_test_data_dir
 
 uid_of_key_file = '530bf2f1203b789bfe054d3118ebd29a04013c587efd22235b3b9677cee21c0e_2048'
 

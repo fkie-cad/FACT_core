@@ -1,6 +1,6 @@
 import pytest
 
-from fact.test.acceptance.conftest import fact.test_fw_a, test_fw_c, upload_test_firmware
+from tests.acceptance.conftest import test_fw_a, test_fw_c, upload_test_firmware
 
 
 class TestAcceptanceCompareFirmwares:

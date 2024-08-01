@@ -2,7 +2,7 @@ import tempfile
 
 import pytest
 
-from fact.test.common_helper import TEST_FW
+from tests.common_helper import TEST_FW
 
 from ..code import cve_lookup
 from ..internal.database.db_connection import DbConnection

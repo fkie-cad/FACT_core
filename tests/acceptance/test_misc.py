@@ -7,8 +7,8 @@ import pytest
 
 from fact.statistic.update import StatsUpdater
 from fact.statistic.work_load import WorkLoadStatistic
-from fact.test.acceptance.conftest import fact.test_fw_a, test_fw_c
-from fact.test.common_helper import get_test_data_dir
+from tests.acceptance.conftest import test_fw_a, test_fw_c
+from tests.common_helper import get_test_data_dir
 
 
 @pytest.fixture(autouse=True)

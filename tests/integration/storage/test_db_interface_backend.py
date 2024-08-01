@@ -3,7 +3,7 @@ from copy import deepcopy
 import pytest
 
 from fact.storage.db_interface_base import DbInterfaceError
-from fact.test.common_helper import create_test_file_object, create_test_firmware
+from tests.common_helper import create_test_file_object, create_test_firmware
 
 from .helper import TEST_FO, TEST_FW, add_included_file, create_fw_with_child_fo, create_fw_with_parent_and_child
 

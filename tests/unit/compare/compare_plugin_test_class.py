@@ -1,7 +1,7 @@
 import gc
 from configparser import ConfigParser
 
-from fact.test.common_helper import CommonDatabaseMock, create_test_firmware
+from tests.common_helper import CommonDatabaseMock, create_test_firmware
 
 
 class ComparePluginTest:

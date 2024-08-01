@@ -3,7 +3,7 @@ from multiprocessing import Event, Manager
 import pytest
 
 from fact.objects.firmware import Firmware
-from fact.test.common_helper import get_test_data_dir
+from tests.common_helper import get_test_data_dir
 
 
 class MockDb:

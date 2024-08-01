@@ -1,6 +1,6 @@
 import pytest
 
-from fact.test.common_helper import TEST_FW, CommonDatabaseMock
+from tests.common_helper import TEST_FW, CommonDatabaseMock
 
 
 def test_app_download_raw_invalid(test_client):

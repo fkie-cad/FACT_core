@@ -1,6 +1,6 @@
 import pytest
 
-from fact.test.common_helper import CommonDatabaseMock
+from tests.common_helper import CommonDatabaseMock
 
 PLUGIN = 'existing_plugin'
 UID = 'existing_uid'

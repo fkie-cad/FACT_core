@@ -1,7 +1,7 @@
 import json
 
-from fact.test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
-from fact.test.integration.web_interface.rest.base import RestTestBase
+from tests.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
+from tests.integration.web_interface.rest.base import RestTestBase
 
 
 class TestRestMissingAnalyses(RestTestBase):

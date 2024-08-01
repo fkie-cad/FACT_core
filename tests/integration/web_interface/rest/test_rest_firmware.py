@@ -3,8 +3,8 @@ from base64 import standard_b64encode
 
 import pytest
 
-from fact.test.common_helper import create_test_firmware
-from fact.test.integration.web_interface.rest.base import RestTestBase
+from tests.common_helper import create_test_firmware
+from tests.integration.web_interface.rest.base import RestTestBase
 
 UPLOAD_DATA = {
     'binary': standard_b64encode(b'test_file_content').decode(),

@@ -3,7 +3,7 @@ from base64 import standard_b64encode
 
 import pytest
 
-from fact.test.common_helper import create_test_firmware
+from tests.common_helper import create_test_firmware
 
 test_fw = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
 

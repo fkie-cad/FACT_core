@@ -1,5 +1,5 @@
 from fact.storage.db_interface_frontend import CachedQuery
-from fact.test.common_helper import create_test_file_object
+from tests.common_helper import create_test_file_object
 
 RULE_UID = 'decd4f7805e81c4730fc97cc65e10c53519dbbc65730e477685ee05ad105e319_10'
 

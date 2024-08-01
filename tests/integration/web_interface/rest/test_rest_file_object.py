@@ -1,7 +1,7 @@
 import pytest
 
-from fact.test.common_helper import create_test_file_object
-from fact.test.integration.web_interface.rest.base import RestTestBase
+from tests.common_helper import create_test_file_object
+from tests.integration.web_interface.rest.base import RestTestBase
 
 
 @pytest.mark.usefixtures('database_interfaces')

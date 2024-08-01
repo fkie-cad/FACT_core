@@ -1,5 +1,5 @@
 from fact.helperFunctions.data_conversion import make_bytes
-from fact.test.common_helper import TEST_FW
+from tests.common_helper import TEST_FW
 
 
 class TestAppReAnalyze:

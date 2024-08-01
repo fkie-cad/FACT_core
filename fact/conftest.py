@@ -14,8 +14,8 @@ from pydantic.v1.utils import deep_update
 from fact import config
 from fact.analysis.plugin import AnalysisPluginV0
 from fact.analysis.PluginBase import AnalysisBasePlugin
-from fact.test.common_helper import CommonDatabaseMock
-from fact.test.conftest import merge_markers
+from tests.common_helper import CommonDatabaseMock
+from tests.conftest import merge_markers
 
 
 @pytest.fixture

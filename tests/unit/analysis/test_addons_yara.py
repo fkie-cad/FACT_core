@@ -7,7 +7,7 @@ from fact.analysis.plugin.addons import Yara
 from fact.analysis.plugin.compat import yara_match_to_dict
 from fact.analysis.YaraPluginBase import YaraBasePlugin
 from fact.helperFunctions.fileSystem import get_src_dir
-from fact.test.common_helper import create_test_file_object
+from tests.common_helper import create_test_file_object
 
 signature_file = str(Path(get_src_dir()) / 'test/unit/analysis/test.yara')
 test_target = str(Path(get_src_dir()) / 'test/data/files/get_files_test/testfile1')

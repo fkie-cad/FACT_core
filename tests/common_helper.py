@@ -16,7 +16,7 @@ def get_test_data_dir():
     """
     Returns the absolute path of the test data directory
     """
-    return os.path.join(get_src_dir(), 'test/data')  # noqa: PTH118
+    return str(Path(get_src_dir()).parent / 'tests/data')  # noqa: PTH118
 
 
 def create_test_firmware(

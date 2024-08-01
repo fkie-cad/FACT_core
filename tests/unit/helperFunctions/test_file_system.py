@@ -10,7 +10,7 @@ from fact.helperFunctions.fileSystem import (
     get_src_dir,
     get_template_dir,
 )
-from fact.test.common_helper import get_test_data_dir
+from tests.common_helper import get_test_data_dir
 
 TEST_DATA_DIR = Path(get_test_data_dir())
 

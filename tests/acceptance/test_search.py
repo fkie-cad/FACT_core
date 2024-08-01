@@ -1,6 +1,6 @@
 import pytest
 
-from fact.test.common_helper import create_test_firmware
+from tests.common_helper import create_test_firmware
 
 
 @pytest.fixture(autouse=True)

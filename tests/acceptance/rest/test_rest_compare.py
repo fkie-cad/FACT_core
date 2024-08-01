@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from fact.test.acceptance.conftest import fact.test_fw_a, test_fw_c
-from fact.test.common_helper import get_test_data_dir
+from tests.acceptance.conftest import test_fw_a, test_fw_c
+from tests.common_helper import get_test_data_dir
 
 
 class TestRestCompareFirmware:

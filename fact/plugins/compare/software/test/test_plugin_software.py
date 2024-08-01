@@ -1,4 +1,4 @@
-from fact.test.unit.compare.compare_plugin_test_class import ComparePluginTest
+from tests.unit.compare.compare_plugin_test_class import ComparePluginTest
 
 from ..code.software import ComparePlugin
 

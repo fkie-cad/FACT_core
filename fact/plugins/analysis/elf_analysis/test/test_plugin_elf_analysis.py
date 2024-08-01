@@ -5,7 +5,7 @@ import pytest
 
 from fact.helperFunctions.tag import TagColor
 from fact.objects.file import FileObject
-from fact.test.common_helper import get_test_data_dir
+from tests.common_helper import get_test_data_dir
 
 from ..code.elf_analysis import AnalysisPlugin
 

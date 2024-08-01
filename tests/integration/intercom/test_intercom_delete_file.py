@@ -3,8 +3,8 @@ import logging
 import pytest
 
 from fact.intercom.back_end_binding import InterComBackEndDeleteFile
-from fact.test.common_helper import CommonDatabaseMock
-from fact.test.integration.common import MockFSOrganizer
+from tests.common_helper import CommonDatabaseMock
+from tests.integration.common import MockFSOrganizer
 
 
 class UnpackingLockMock:
