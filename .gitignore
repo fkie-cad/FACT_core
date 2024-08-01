@@ -1,23 +1,23 @@
 # Logging
 install.log
-src/install.log
+fact/install.log
 
 # Plugin artifacts
-src/analysis/signatures/
-src/plugins/*/*/bin
-src/plugins/analysis/crypto_hints/signatures/crypto_signatures.yar
-src/plugins/analysis/cve_lookup/internal/database/cve_cpe.db
-src/plugins/analysis/qemu_exec/test/data/test_tmp_dir
-src/plugins/analysis/qemu_exec/test/data/test_tmp_dir_2
-src/plugins/analysis/users_and_passwords/internal/passwords/10k-most-common.txt
+fact/analysis/signatures/
+fact/plugins/*/*/bin
+fact/plugins/analysis/crypto_hints/signatures/crypto_signatures.yar
+fact/plugins/analysis/cve_lookup/internal/database/cve_cpe.db
+fact/plugins/analysis/qemu_exec/test/data/test_tmp_dir
+fact/plugins/analysis/qemu_exec/test/data/test_tmp_dir_2
+fact/plugins/analysis/users_and_passwords/internal/passwords/10k-most-common.txt
 
 # Misc
 __pycache__
 docsrc/_build/
 docs/.buildinfo/
-src/bin
-src/web_interface/static/node_modules
-src/web_interface/static/file_icons
+fact/bin
+fact/web_interface/static/node_modules
+fact/web_interface/static/file_icons
 
 # pytest
 .pytest_cache
