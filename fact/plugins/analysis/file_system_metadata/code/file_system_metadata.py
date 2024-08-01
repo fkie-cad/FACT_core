@@ -13,11 +13,11 @@ from typing import TYPE_CHECKING, List, NamedTuple, Optional
 from docker.types import Mount
 from pydantic import BaseModel, Field
 
-import config
-from analysis.plugin import AnalysisPluginV0, Tag
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
-from helperFunctions.docker import run_docker_container
-from helperFunctions.tag import TagColor
+from fact import config
+from fact.analysis.plugin import AnalysisPluginV0, Tag
+from fact.analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+from fact.helperFunctions.docker import run_docker_container
+from fact.helperFunctions.tag import TagColor
 
 if TYPE_CHECKING:
     from io import FileIO

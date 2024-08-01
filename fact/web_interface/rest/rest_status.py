@@ -1,9 +1,9 @@
 from flask_restx import Namespace
 
-from web_interface.rest.helper import error_message, success_message
-from web_interface.rest.rest_resource_base import RestResourceBase
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.web_interface.rest.helper import error_message, success_message
+from fact.web_interface.rest.rest_resource_base import RestResourceBase
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 api = Namespace('rest/status', description="Request FACT's system status")
 

@@ -4,15 +4,15 @@ from common_helper_encoder import ReportEncoder
 from flask import make_response
 from flask_restx import Api
 
-from web_interface.rest.rest_analysis import api as analysis_api
-from web_interface.rest.rest_binary import api as binary_api
-from web_interface.rest.rest_binary_search import api as binary_search_api
-from web_interface.rest.rest_compare import api as compare_api
-from web_interface.rest.rest_file_object import api as file_object_api
-from web_interface.rest.rest_firmware import api as firmware_api
-from web_interface.rest.rest_missing_analyses import api as missing_analyses_api
-from web_interface.rest.rest_statistics import api as statistics_api
-from web_interface.rest.rest_status import api as status_api
+from fact.web_interface.rest.rest_analysis import api as analysis_api
+from fact.web_interface.rest.rest_binary import api as binary_api
+from fact.web_interface.rest.rest_binary_search import api as binary_search_api
+from fact.web_interface.rest.rest_compare import api as compare_api
+from fact.web_interface.rest.rest_file_object import api as file_object_api
+from fact.web_interface.rest.rest_firmware import api as firmware_api
+from fact.web_interface.rest.rest_missing_analyses import api as missing_analyses_api
+from fact.web_interface.rest.rest_statistics import api as statistics_api
+from fact.web_interface.rest.rest_status import api as status_api
 
 
 class RestBase:

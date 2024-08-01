@@ -1,6 +1,6 @@
 import logging
 
-from helperFunctions.logging import ColoringFormatter, TerminalColors, color_string
+from fact.helperFunctions.logging import ColoringFormatter, TerminalColors, color_string
 
 TEST_STRING = 'test 123'
 

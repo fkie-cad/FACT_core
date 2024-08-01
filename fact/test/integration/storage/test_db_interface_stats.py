@@ -2,9 +2,9 @@ from math import isclose
 
 import pytest
 
-from storage.db_interface_stats import StatsDbViewer, count_occurrences
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
-from test.common_helper import (
+from fact.storage.db_interface_stats import StatsDbViewer, count_occurrences
+from fact.storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
+from fact.test.common_helper import (
     create_test_file_object,
     create_test_firmware,
     generate_analysis_entry,

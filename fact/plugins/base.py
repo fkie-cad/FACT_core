@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from storage.db_interface_view_sync import ViewUpdater
+from fact.storage.db_interface_view_sync import ViewUpdater
 
 
 class BasePlugin:

@@ -7,18 +7,18 @@ from typing import TYPE_CHECKING
 from common_helper_filter.time import time_format
 from flask import render_template
 
-import config
-import web_interface.filter as flt
-from helperFunctions.data_conversion import none_to_none
-from helperFunctions.database import get_shared_session
-from helperFunctions.hash import get_md5
-from helperFunctions.uid import is_list_of_uids
-from helperFunctions.web_interface import cap_length_of_element, get_color_list
-from web_interface.filter import elapsed_time, random_collapse_id
+import fact.web_interface.filter as flt
+from fact import config
+from fact.helperFunctions.data_conversion import none_to_none
+from fact.helperFunctions.database import get_shared_session
+from fact.helperFunctions.hash import get_md5
+from fact.helperFunctions.uid import is_list_of_uids
+from fact.helperFunctions.web_interface import cap_length_of_element, get_color_list
+from fact.web_interface.filter import elapsed_time, random_collapse_id
 
 if TYPE_CHECKING:
-    from storage.db_interface_frontend import MetaEntry
-    from web_interface.frontend_database import FrontendDatabase
+    from fact.storage.db_interface_frontend import MetaEntry
+    from fact.web_interface.frontend_database import FrontendDatabase
 
 
 class FilterClass:

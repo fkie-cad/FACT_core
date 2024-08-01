@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from sqlalchemy import select
 
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.hash import get_tlsh_comparison
-from storage.db_interface_base import ReadOnlyDbInterface
-from storage.schema import AnalysisEntry
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.hash import get_tlsh_comparison
+from fact.storage.db_interface_base import ReadOnlyDbInterface
+from fact.storage.schema import AnalysisEntry
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

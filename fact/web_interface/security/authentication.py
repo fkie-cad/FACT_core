@@ -8,8 +8,8 @@ from werkzeug.local import LocalProxy
 from wtforms import StringField
 from wtforms.validators import DataRequired
 
-from web_interface.security.privileges import PRIVILEGES
-from web_interface.security.user_role_db_interface import UserRoleDbInterface
+from fact.web_interface.security.privileges import PRIVILEGES
+from fact.web_interface.security.user_role_db_interface import UserRoleDbInterface
 
 
 def add_flask_security_to_app(app):

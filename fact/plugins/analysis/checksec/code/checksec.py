@@ -5,8 +5,8 @@ import subprocess
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.fileSystem import get_src_dir
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.fileSystem import get_src_dir
 
 SHELL_SCRIPT = Path(get_src_dir()) / 'bin' / 'checksec'
 

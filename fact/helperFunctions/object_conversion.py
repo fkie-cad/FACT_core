@@ -1,5 +1,5 @@
-from objects.file import FileObject
-from objects.firmware import Firmware
+from fact.objects.file import FileObject
+from fact.objects.firmware import Firmware
 
 
 def _add_firmware_only_fields(fo, meta):

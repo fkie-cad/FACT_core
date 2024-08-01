@@ -1,6 +1,6 @@
-from objects.file import FileObject
-from objects.firmware import Firmware
-from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
+from fact.objects.file import FileObject
+from fact.objects.firmware import Firmware
+from fact.test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 
 from .helper import (
     TEST_FO,

@@ -2,8 +2,8 @@ from time import sleep
 
 import pytest
 
-from compare.PluginBase import CompareBasePlugin
-from test.common_helper import CommonDatabaseMock, create_test_file_object
+from fact.compare.PluginBase import CompareBasePlugin
+from fact.test.common_helper import CommonDatabaseMock, create_test_file_object
 
 
 @pytest.fixture(autouse=True)

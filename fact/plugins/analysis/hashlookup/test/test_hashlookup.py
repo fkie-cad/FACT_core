@@ -1,6 +1,6 @@
 import pytest
 
-from test.common_helper import create_test_file_object
+from fact.test.common_helper import create_test_file_object
 
 from ..code.hashlookup import AnalysisPlugin
 

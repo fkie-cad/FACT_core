@@ -1,6 +1,6 @@
 import pytest
 
-from storage.entry_conversion import sanitize
+from fact.storage.entry_conversion import sanitize
 
 
 @pytest.mark.parametrize(

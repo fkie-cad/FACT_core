@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from storage.fsorganizer import FSOrganizer
-from test.acceptance.conftest import test_fw_a, upload_test_firmware
+from fact.storage.fsorganizer import FSOrganizer
+from fact.test.acceptance.conftest import fact.test_fw_a, upload_test_firmware
 
 
 def _upload_firmware_get(test_client, intercom):

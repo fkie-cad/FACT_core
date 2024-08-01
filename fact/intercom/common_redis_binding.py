@@ -5,8 +5,8 @@ from typing import Any
 
 from redis.exceptions import RedisError
 
-from helperFunctions.hash import get_sha256
-from storage.redis_interface import RedisInterface
+from fact.helperFunctions.hash import get_sha256
+from fact.storage.redis_interface import RedisInterface
 
 
 def generate_task_id(input_data: Any) -> str:

@@ -12,12 +12,12 @@ import gridfs
 from pymongo import MongoClient, errors
 from sqlalchemy.exc import StatementError
 
-import config
-from helperFunctions.data_conversion import convert_time_to_str
-from objects.file import FileObject
-from objects.firmware import Firmware
-from storage.db_interface_backend import BackendDbInterface
-from storage.db_interface_comparison import ComparisonDbInterface
+from fact import config
+from fact.helperFunctions.data_conversion import convert_time_to_str
+from fact.objects.file import FileObject
+from fact.objects.firmware import Firmware
+from fact.storage.db_interface_backend import BackendDbInterface
+from fact.storage.db_interface_comparison import ComparisonDbInterface
 
 try:
     from rich.progress import BarColumn, Progress, TimeElapsedColumn

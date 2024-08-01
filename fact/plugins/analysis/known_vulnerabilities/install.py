@@ -5,14 +5,14 @@ import logging
 from pathlib import Path
 
 try:
-    from plugins.installer import AbstractPluginInstaller
+    from fact.plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
 
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from plugins.installer import AbstractPluginInstaller
+    from fact.plugins.installer import AbstractPluginInstaller
 
 
 class KnownVulnerabilitiesInstaller(AbstractPluginInstaller):

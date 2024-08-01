@@ -4,7 +4,7 @@ import argparse
 import sqlite3
 import uuid
 
-import config
+from fact import config
 
 
 def upgrade(cur):

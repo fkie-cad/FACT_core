@@ -3,10 +3,10 @@ from __future__ import annotations  # noqa: N999
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-from plugins.base import BasePlugin
+from fact.plugins.base import BasePlugin
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 
 class CompareBasePlugin(BasePlugin):

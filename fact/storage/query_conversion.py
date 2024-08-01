@@ -7,7 +7,7 @@ from sqlalchemy import func, or_, select, type_coerce
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+from fact.storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
 if TYPE_CHECKING:
     from sqlalchemy.sql import Select

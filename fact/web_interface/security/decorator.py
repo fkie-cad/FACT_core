@@ -2,7 +2,7 @@ from functools import wraps
 
 from flask_security import roles_accepted as original_decorator
 
-import config
+from fact import config
 
 
 def roles_accepted(*roles):

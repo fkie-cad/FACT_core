@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
     from .database.schema import Cve
 

@@ -1,6 +1,6 @@
 import pytest
 
-from web_interface.components.dependency_graph import (
+from fact.web_interface.components.dependency_graph import (
     DepGraphData,
     create_data_graph_edges,
     create_data_graph_nodes_and_groups,

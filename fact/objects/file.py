@@ -6,10 +6,10 @@ from typing import Optional
 
 from common_helper_files import get_binary_from_file
 
-from helperFunctions.data_conversion import make_bytes, make_unicode_string
-from helperFunctions.hash import get_sha256
-from helperFunctions.uid import create_uid
-from helperFunctions.virtual_file_path import get_some_vfp
+from fact.helperFunctions.data_conversion import make_bytes, make_unicode_string
+from fact.helperFunctions.hash import get_sha256
+from fact.helperFunctions.uid import create_uid
+from fact.helperFunctions.virtual_file_path import get_some_vfp
 
 
 class FileObject:

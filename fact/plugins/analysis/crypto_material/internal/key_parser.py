@@ -5,7 +5,7 @@ import OpenSSL
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
 
-from helperFunctions.data_conversion import make_unicode_string
+from fact.helperFunctions.data_conversion import make_unicode_string
 
 TLV_KNOWN_STARTS = [0x30]
 

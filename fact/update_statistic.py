@@ -19,9 +19,9 @@
 
 import sys
 
-import config
-from helperFunctions.program_setup import setup_argparser, setup_logging
-from statistic.update import StatsUpdater
+from fact import config
+from fact.helperFunctions.program_setup import setup_argparser, setup_logging
+from fact.statistic.update import StatsUpdater
 
 PROGRAM_NAME = 'FACT Statistic Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'

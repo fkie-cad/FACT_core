@@ -2,14 +2,14 @@ import unittest
 
 import pytest
 
-from helperFunctions import tag
-from helperFunctions.task_conversion import (
+from fact.helperFunctions import tag
+from fact.helperFunctions.task_conversion import (
     _get_tag_list,
     _get_uid_of_analysis_task,
     check_for_errors,
     convert_analysis_task_to_fw_obj,
 )
-from objects.firmware import Firmware
+from fact.objects.firmware import Firmware
 
 TEST_TASK = {
     'binary': b'this is a test',

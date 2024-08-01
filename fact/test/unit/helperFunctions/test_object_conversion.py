@@ -1,5 +1,5 @@
-from helperFunctions.object_conversion import create_meta_dict
-from test.common_helper import create_test_file_object, create_test_firmware
+from fact.helperFunctions.object_conversion import create_meta_dict
+from fact.test.common_helper import create_test_file_object, create_test_firmware
 
 
 def test_create_meta_dict_fw():

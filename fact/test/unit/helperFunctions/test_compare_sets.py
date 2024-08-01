@@ -1,6 +1,6 @@
 import pytest
 
-from helperFunctions.compare_sets import (
+from fact.helperFunctions.compare_sets import (
     _remove_duplicates_from_unhashable,
     remove_duplicates_from_list,
     substring_is_in_list,

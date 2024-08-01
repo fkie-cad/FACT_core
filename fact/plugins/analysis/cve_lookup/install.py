@@ -4,22 +4,22 @@ import os
 from pathlib import Path
 
 try:
-    from helperFunctions.install import check_distribution
-    from plugins.analysis.cve_lookup.internal.data_parsing import parse_data
-    from plugins.analysis.cve_lookup.internal.database.db_connection import DbConnection
-    from plugins.analysis.cve_lookup.internal.database.db_setup import DbSetup
-    from plugins.installer import AbstractPluginInstaller
+    from fact.helperFunctions.install import check_distribution
+    from fact.plugins.analysis.cve_lookup.internal.data_parsing import parse_data
+    from fact.plugins.analysis.cve_lookup.internal.database.db_connection import DbConnection
+    from fact.plugins.analysis.cve_lookup.internal.database.db_setup import DbSetup
+    from fact.plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
 
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from helperFunctions.install import check_distribution
-    from plugins.analysis.cve_lookup.internal.data_parsing import parse_data
-    from plugins.analysis.cve_lookup.internal.database.db_connection import DbConnection
-    from plugins.analysis.cve_lookup.internal.database.db_setup import DbSetup
-    from plugins.installer import AbstractPluginInstaller
+    from fact.helperFunctions.install import check_distribution
+    from fact.plugins.analysis.cve_lookup.internal.data_parsing import parse_data
+    from fact.plugins.analysis.cve_lookup.internal.database.db_connection import DbConnection
+    from fact.plugins.analysis.cve_lookup.internal.database.db_setup import DbSetup
+    from fact.plugins.installer import AbstractPluginInstaller
 
 
 class CveLookupInstaller(AbstractPluginInstaller):

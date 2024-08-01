@@ -6,11 +6,11 @@ from flask import request
 from flask_restx import Namespace, fields
 from flask_restx.fields import MarshallingError
 
-from helperFunctions.object_conversion import create_meta_dict
-from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
-from objects.firmware import Firmware
-from storage.db_interface_base import DbInterfaceError
-from web_interface.rest.helper import (
+from fact.helperFunctions.object_conversion import create_meta_dict
+from fact.helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
+from fact.objects.firmware import Firmware
+from fact.storage.db_interface_base import DbInterfaceError
+from fact.web_interface.rest.helper import (
     error_message,
     get_boolean_from_request,
     get_paging,
@@ -18,9 +18,9 @@ from web_interface.rest.helper import (
     get_update,
     success_message,
 )
-from web_interface.rest.rest_resource_base import RestResourceBase
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.web_interface.rest.rest_resource_base import RestResourceBase
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
 

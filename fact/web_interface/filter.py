@@ -21,12 +21,12 @@ import semver
 from common_helper_files import human_readable_file_size
 from flask import render_template
 
-from helperFunctions.compare_sets import remove_duplicates_from_list
-from helperFunctions.data_conversion import make_unicode_string
-from helperFunctions.tag import TagColor
-from helperFunctions.web_interface import get_alternating_color_list
-from web_interface.security.authentication import user_has_privilege
-from web_interface.security.privileges import PRIVILEGES
+from fact.helperFunctions.compare_sets import remove_duplicates_from_list
+from fact.helperFunctions.data_conversion import make_unicode_string
+from fact.helperFunctions.tag import TagColor
+from fact.helperFunctions.web_interface import get_alternating_color_list
+from fact.web_interface.security.authentication import user_has_privilege
+from fact.web_interface.security.privileges import PRIVILEGES
 
 
 def generic_nice_representation(i):  # noqa: PLR0911

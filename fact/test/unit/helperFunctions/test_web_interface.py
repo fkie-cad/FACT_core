@@ -2,14 +2,14 @@ import pytest
 from flask_security.core import AnonymousUser, RoleMixin, UserMixin
 from werkzeug.local import LocalProxy
 
-from helperFunctions.web_interface import (
+from fact.helperFunctions.web_interface import (
     _format_si_prefix,
     cap_length_of_element,
     filter_out_illegal_characters,
     format_time,
     password_is_legal,
 )
-from web_interface.security.authentication import user_has_privilege
+from fact.web_interface.security.authentication import user_has_privilege
 
 
 @pytest.mark.parametrize(

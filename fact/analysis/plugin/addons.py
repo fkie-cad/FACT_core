@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING
 
 import yara
 
-from helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.fileSystem import get_src_dir
 
 if TYPE_CHECKING:
     import io
 
-    from analysis.plugin import AnalysisPluginV0
+    from fact.analysis.plugin import AnalysisPluginV0
 
 
 class Yara:

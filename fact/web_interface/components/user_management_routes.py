@@ -6,10 +6,10 @@ from flask_security import current_user
 from flask_security.utils import hash_password
 from sqlalchemy.exc import SQLAlchemyError
 
-from helperFunctions.web_interface import password_is_legal
-from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES, ROLES
+from fact.helperFunctions.web_interface import password_is_legal
+from fact.web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES, ROLES
 
 
 class UserManagementRoutes(ComponentBase):

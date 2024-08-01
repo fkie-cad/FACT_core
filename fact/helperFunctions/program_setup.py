@@ -24,9 +24,9 @@ from contextlib import suppress
 
 from common_helper_files import create_dir_for_file
 
-import config
-from helperFunctions.logging import ColoringFormatter
-from version import __VERSION__
+from fact import config
+from fact.helperFunctions.logging import ColoringFormatter
+from fact.version import __VERSION__
 
 
 def setup_argparser(name, description, command_line_options=sys.argv, version=__VERSION__):

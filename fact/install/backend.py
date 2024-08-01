@@ -7,11 +7,10 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-from compile_yara_signatures import main as compile_signatures
-
-import config
-from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.install import (
+from fact import config
+from fact.compile_yara_signatures import main as compile_signatures
+from fact.helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.install import (
     InstallationError,
     OperateInDirectory,
     apt_install_packages,

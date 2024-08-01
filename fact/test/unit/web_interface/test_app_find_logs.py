@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-import helperFunctions.fileSystem
-from test.unit.conftest import CommonIntercomMock
+import fact.helperFunctions.fileSystem
+from fact.test.unit.conftest import CommonIntercomMock
 
 
 class MockIntercom(CommonIntercomMock):
@@ -27,7 +27,11 @@ class TestShowLogs:
         assert b'String1' in rv.data
 
     @pytest.mark.common_config_overwrite(
-        {'logging': {'file_frontend': str(Path(helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs_frontend')}}
+        {
+            'logging': {
+                'file_frontend': str(Path(fact.helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs_frontend')
+            }
+        }
     )
     def test_frontend_logs(self, test_client):
         rv = test_client.get('/admin/logs')

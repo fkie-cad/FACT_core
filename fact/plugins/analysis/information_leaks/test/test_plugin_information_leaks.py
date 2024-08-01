@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from test.common_helper import MockFileObject
+from fact.test.common_helper import MockFileObject
 
 from ..code.information_leaks import AnalysisPlugin, _check_file_path, _check_for_directories, _check_for_files
 

@@ -3,11 +3,11 @@ from multiprocessing import Queue
 
 import pytest
 
-from intercom.back_end_binding import InterComBackEndBinding
-from storage.db_interface_backend import BackendDbInterface
-from test.common_helper import create_test_firmware, store_binary_on_file_system
-from test.integration.intercom import test_backend_scheduler
-from test.integration.web_interface.rest.base import RestTestBase
+from fact.intercom.back_end_binding import InterComBackEndBinding
+from fact.storage.db_interface_backend import BackendDbInterface
+from fact.test.common_helper import create_test_firmware, store_binary_on_file_system
+from fact.test.integration.intercom import fact.test_backend_scheduler
+from fact.test.integration.web_interface.rest.base import RestTestBase
 
 
 @pytest.mark.usefixtures('database_interfaces')

@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from helperFunctions.tag import TagColor
-from objects.file import FileObject
-from test.common_helper import get_test_data_dir
+from fact.helperFunctions.tag import TagColor
+from fact.objects.file import FileObject
+from fact.test.common_helper import get_test_data_dir
 
 from ..code.elf_analysis import AnalysisPlugin
 

@@ -1,8 +1,8 @@
 import pytest
 from flask import render_template_string
 
-from storage.db_interface_frontend import MetaEntry
-from web_interface.components.jinja_filter import FilterClass
+from fact.storage.db_interface_frontend import MetaEntry
+from fact.web_interface.components.jinja_filter import FilterClass
 
 
 @pytest.fixture

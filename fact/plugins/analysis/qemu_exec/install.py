@@ -6,16 +6,16 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 try:
-    from helperFunctions.install import OperateInDirectory, run_cmd_with_logging
-    from plugins.installer import AbstractPluginInstaller
+    from fact.helperFunctions.install import OperateInDirectory, run_cmd_with_logging
+    from fact.plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
 
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from helperFunctions.install import OperateInDirectory, run_cmd_with_logging
-    from plugins.installer import AbstractPluginInstaller
+    from fact.helperFunctions.install import OperateInDirectory, run_cmd_with_logging
+    from fact.plugins.installer import AbstractPluginInstaller
 
 
 class QemuExecInstaller(AbstractPluginInstaller):

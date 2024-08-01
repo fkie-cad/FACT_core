@@ -4,17 +4,17 @@ import re
 import string
 from typing import TYPE_CHECKING
 
-import config
-from analysis.YaraPluginBase import YaraBasePlugin
-from helperFunctions.data_conversion import make_unicode_string
-from helperFunctions.tag import TagColor
-from plugins.analysis.software_components.bin import OS_LIST
-from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+from fact import config
+from fact.analysis.YaraPluginBase import YaraBasePlugin
+from fact.helperFunctions.data_conversion import make_unicode_string
+from fact.helperFunctions.tag import TagColor
+from fact.plugins.analysis.software_components.bin import OS_LIST
+from fact.plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 from ..internal.resolve_version_format_string import extract_data_from_ghidra
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 
 class AnalysisPlugin(YaraBasePlugin):

@@ -1,6 +1,6 @@
 import yara
 
-from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
+from fact.statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 
 
 class AnalysisBasePluginAdapterMixin:

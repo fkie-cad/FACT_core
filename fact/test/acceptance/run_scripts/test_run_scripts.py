@@ -3,11 +3,11 @@ import os
 import subprocess
 from subprocess import PIPE, STDOUT
 
-import init_postgres
 import pytest
-import update_statistic
 
-from helperFunctions.fileSystem import get_src_dir
+import fact.init_postgres
+import fact.update_statistic
+from fact.helperFunctions.fileSystem import get_src_dir
 
 
 @pytest.mark.parametrize(
@@ -47,7 +47,7 @@ def test_start_script_help_and_version(script, expected_str):
     gc.collect()
 
 
-@pytest.mark.parametrize('script', [update_statistic, init_postgres])
+@pytest.mark.parametrize('script', [fact.update_statistic, fact.init_postgres])
 def test_start_scripts_with_main(script):
     assert script.main([script.__name__, '-t']) == 0, 'script did not run successfully'
     gc.collect()

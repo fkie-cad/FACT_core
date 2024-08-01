@@ -5,9 +5,9 @@ from alembic import command, config, script
 from alembic.runtime import migration
 from sqlalchemy import inspect
 
-from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.install import OperateInDirectory
-from storage.db_connection import AdminConnection
+from fact.helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.install import OperateInDirectory
+from fact.storage.db_connection import AdminConnection
 
 ALEMBIC_CFG_PATH = Path(__file__).parent.parent.parent / 'alembic.ini'
 ALEMBIC_CFG = config.Config(ALEMBIC_CFG_PATH)

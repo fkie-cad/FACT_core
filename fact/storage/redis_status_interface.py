@@ -1,6 +1,6 @@
 import json
 
-from storage.redis_interface import RedisInterface
+from fact.storage.redis_interface import RedisInterface
 
 ANALYSIS_STATUS_REDIS_KEY = '__fact_analysis_status__'
 

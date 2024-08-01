@@ -6,9 +6,9 @@ from flask import request
 from flask_restx import Model, Resource, marshal
 
 if TYPE_CHECKING:
-    from intercom.front_end_binding import InterComFrontEndBinding
-    from storage.redis_status_interface import RedisStatusInterface
-    from web_interface.frontend_database import FrontendDatabase
+    from fact.intercom.front_end_binding import InterComFrontEndBinding
+    from fact.storage.redis_status_interface import RedisStatusInterface
+    from fact.web_interface.frontend_database import FrontendDatabase
 
 
 class RestResourceBase(Resource):

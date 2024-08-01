@@ -1,9 +1,9 @@
 import logging
 from hashlib import algorithms_guaranteed
 
-import config
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.hash import get_hash, get_imphash, get_ssdeep, get_tlsh
+from fact import config
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.hash import get_hash, get_imphash, get_ssdeep, get_tlsh
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

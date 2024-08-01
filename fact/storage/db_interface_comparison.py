@@ -6,14 +6,14 @@ from time import time
 from sqlalchemy import func, select, type_coerce
 from sqlalchemy.dialects.postgresql import JSONB
 
-from helperFunctions.data_conversion import (
+from fact.helperFunctions.data_conversion import (
     convert_compare_id_to_list,
     convert_uid_list_to_compare_id,
     normalize_compare_id,
 )
-from storage.db_interface_base import ReadWriteDbInterface
-from storage.db_interface_common import DbInterfaceCommon
-from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
+from fact.storage.db_interface_base import ReadWriteDbInterface
+from fact.storage.db_interface_common import DbInterfaceCommon
+from fact.storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry, fw_files_table
 
 
 class FactComparisonException(Exception):  # noqa: N818

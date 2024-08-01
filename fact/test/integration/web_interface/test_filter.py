@@ -2,8 +2,8 @@ from unittest import mock
 
 import pytest
 
-from web_interface.filter import list_group_collapse, render_analysis_tags, render_fw_tags
-from web_interface.frontend_main import WebFrontEnd
+from fact.web_interface.filter import list_group_collapse, render_analysis_tags, render_fw_tags
+from fact.web_interface.frontend_main import WebFrontEnd
 
 
 @pytest.fixture

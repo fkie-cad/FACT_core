@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from analysis.PluginBase import AnalysisBasePlugin
-from storage.fsorganizer import FSOrganizer
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.storage.fsorganizer import FSOrganizer
 
 from ..internal import dt, elf, kconfig, metadata
 

@@ -3,9 +3,9 @@ from __future__ import annotations
 import re
 from re import Pattern
 
-import config
-from analysis.PluginBase import AnalysisBasePlugin
-from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
+from fact import config
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

@@ -1,6 +1,6 @@
 import pytest
 
-from test.common_helper import CommonDatabaseMock
+from fact.test.common_helper import CommonDatabaseMock
 
 
 class DbMock(CommonDatabaseMock):

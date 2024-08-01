@@ -5,10 +5,10 @@ from typing import Type
 import pytest
 from pydantic import BaseModel
 
-from test.common_helper import TEST_FW, TEST_TEXT_FILE, CommonDatabaseMock
-from test.conftest import merge_markers
-from web_interface.frontend_main import WebFrontEnd
-from web_interface.security.authentication import add_flask_security_to_app
+from fact.test.common_helper import TEST_FW, TEST_TEXT_FILE, CommonDatabaseMock
+from fact.test.conftest import merge_markers
+from fact.web_interface.frontend_main import WebFrontEnd
+from fact.web_interface.security.authentication import add_flask_security_to_app
 
 
 class CommonIntercomMock:

@@ -1,6 +1,6 @@
 import pytest
 
-from storage.db_setup import DbSetup
+from fact.storage.db_setup import DbSetup
 
 
 @pytest.fixture

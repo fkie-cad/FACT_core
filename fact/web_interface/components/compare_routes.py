@@ -6,17 +6,17 @@ from typing import NamedTuple
 
 from flask import redirect, render_template, render_template_string, request, session, url_for
 
-from helperFunctions.data_conversion import (
+from fact.helperFunctions.data_conversion import (
     convert_compare_id_to_list,
     convert_uid_list_to_compare_id,
     normalize_compare_id,
 )
-from helperFunctions.database import get_shared_session
-from helperFunctions.web_interface import get_template_as_string
-from web_interface.components.component_base import GET, AppRoute, ComponentBase
-from web_interface.pagination import extract_pagination_from_request, get_pagination
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.helperFunctions.database import get_shared_session
+from fact.helperFunctions.web_interface import get_template_as_string
+from fact.web_interface.components.component_base import GET, AppRoute, ComponentBase
+from fact.web_interface.pagination import extract_pagination_from_request, get_pagination
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 
 class FileDiffData(NamedTuple):

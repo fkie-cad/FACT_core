@@ -2,7 +2,7 @@ from urllib.parse import quote
 
 import pytest
 
-from test.common_helper import TEST_TEXT_FILE, CommonDatabaseMock
+from fact.test.common_helper import TEST_TEXT_FILE, CommonDatabaseMock
 
 
 class DbMock(CommonDatabaseMock):

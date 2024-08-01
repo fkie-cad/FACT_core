@@ -9,7 +9,7 @@ from matplotlib import cm, colors
 from passlib.context import CryptContext
 from quantiphy import Quantity
 
-from helperFunctions.fileSystem import get_template_dir
+from fact.helperFunctions.fileSystem import get_template_dir
 
 SPECIAL_CHARACTERS = (
     'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒē'

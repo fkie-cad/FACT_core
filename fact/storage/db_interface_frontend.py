@@ -6,13 +6,13 @@ from typing import Any, NamedTuple, Optional
 from sqlalchemy import Column, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
 
-from helperFunctions.data_conversion import get_value_of_first_key
-from helperFunctions.tag import TagColor
-from helperFunctions.virtual_file_path import get_some_vfp
-from objects.firmware import Firmware
-from storage.db_interface_common import DbInterfaceCommon
-from storage.query_conversion import build_generic_search_query, build_query_from_dict, query_parent_firmware
-from storage.schema import (
+from fact.helperFunctions.data_conversion import get_value_of_first_key
+from fact.helperFunctions.tag import TagColor
+from fact.helperFunctions.virtual_file_path import get_some_vfp
+from fact.objects.firmware import Firmware
+from fact.storage.db_interface_common import DbInterfaceCommon
+from fact.storage.query_conversion import build_generic_search_query, build_query_from_dict, query_parent_firmware
+from fact.storage.schema import (
     AnalysisEntry,
     FileObjectEntry,
     FirmwareEntry,
@@ -20,9 +20,9 @@ from storage.schema import (
     fw_files_table,
     included_files_table,
 )
-from web_interface.components.dependency_graph import DepGraphData
-from web_interface.file_tree.file_tree import FileTreeData, VirtualPathFileTree
-from web_interface.file_tree.file_tree_node import FileTreeNode
+from fact.web_interface.components.dependency_graph import DepGraphData
+from fact.web_interface.file_tree.file_tree import FileTreeData, VirtualPathFileTree
+from fact.web_interface.file_tree.file_tree_node import FileTreeNode
 
 RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
 

@@ -3,8 +3,8 @@ import io
 import pydantic
 from pydantic import Field
 
-from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+from fact.analysis.plugin import AnalysisPluginV0
+from fact.analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 
 
 class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):

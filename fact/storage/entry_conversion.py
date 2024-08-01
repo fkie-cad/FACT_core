@@ -4,10 +4,10 @@ import logging
 from datetime import datetime
 from time import time
 
-from helperFunctions.data_conversion import convert_time_to_str
-from objects.file import FileObject
-from objects.firmware import Firmware
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
+from fact.helperFunctions.data_conversion import convert_time_to_str
+from fact.objects.file import FileObject
+from fact.objects.firmware import Firmware
+from fact.storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
 
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:

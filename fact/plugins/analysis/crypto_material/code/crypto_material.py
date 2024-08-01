@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, NamedTuple
 
-from analysis.YaraPluginBase import YaraBasePlugin
-from helperFunctions.tag import TagColor
+from fact.analysis.YaraPluginBase import YaraBasePlugin
+from fact.helperFunctions.tag import TagColor
 
 from ..internal.key_parser import read_asn1_key, read_pkcs_cert, read_ssl_cert
 

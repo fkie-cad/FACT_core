@@ -7,7 +7,7 @@ from typing import Iterable
 import pytest
 from flask import url_for
 
-from helperFunctions.fileSystem import get_src_dir, get_template_dir
+from fact.helperFunctions.fileSystem import get_src_dir, get_template_dir
 
 URL_FOR_REGEX = re.compile(r'url_for\([\'"]\.?static[\'"], filename ?= ?[\'"]([^\'"]+)[\'"]\)')
 SRC_DIR = Path(get_src_dir())

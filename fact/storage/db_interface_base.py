@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from storage.db_connection import DbConnection, ReadOnlyConnection, ReadWriteConnection
+from fact.storage.db_connection import DbConnection, ReadOnlyConnection, ReadWriteConnection
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

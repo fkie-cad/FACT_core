@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
-from storage.schema import WebInterfaceTemplateEntry
+from fact.storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
+from fact.storage.schema import WebInterfaceTemplateEntry
 
 
 class ViewUpdater(ReadWriteDbInterface):

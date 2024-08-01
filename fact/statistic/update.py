@@ -5,9 +5,9 @@ from time import time
 
 from common_helper_filter.time import time_format
 
-from statistic.time_stats import build_stats_entry_from_date_query
-from storage.db_interface_stats import RelativeStats, Stats, StatsUpdateDbInterface, count_occurrences
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+from fact.statistic.time_stats import build_stats_entry_from_date_query
+from fact.storage.db_interface_stats import RelativeStats, Stats, StatsUpdateDbInterface, count_occurrences
+from fact.storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
 
 class StatsUpdater:

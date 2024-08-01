@@ -21,9 +21,9 @@ import pickle
 import sys
 from pathlib import Path
 
-import config
-from helperFunctions.program_setup import setup_logging
-from web_interface.frontend_main import WebFrontEnd
+from fact import config
+from fact.helperFunctions.program_setup import setup_logging
+from fact.web_interface.frontend_main import WebFrontEnd
 
 
 def create_web_interface():

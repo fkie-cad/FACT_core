@@ -1,8 +1,8 @@
 import re
 
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.data_conversion import make_unicode_string
-from objects.file import FileObject
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.data_conversion import make_unicode_string
+from fact.objects.file import FileObject
 
 FILE_IGNORES = ['README', 'README.md', 'README.txt', 'INSTALL', 'VERSION']
 

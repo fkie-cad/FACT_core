@@ -13,27 +13,27 @@ from typing import TYPE_CHECKING, Optional
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
-import config
-from analysis.plugin import AnalysisPluginV0
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.compare_sets import substring_is_in_list
-from helperFunctions.logging import TerminalColors, color_string
-from helperFunctions.plugin import discover_analysis_plugins
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
-from scheduler.analysis_status import AnalysisStatus
-from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
-from statistic.analysis_stats import get_plugin_stats
-from storage.db_interface_backend import BackendDbInterface
-from storage.db_interface_view_sync import ViewUpdater
-from storage.fsorganizer import FSOrganizer
+from fact import config
+from fact.analysis.plugin import AnalysisPluginV0
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.compare_sets import substring_is_in_list
+from fact.helperFunctions.logging import TerminalColors, color_string
+from fact.helperFunctions.plugin import discover_analysis_plugins
+from fact.helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from fact.scheduler.analysis_status import AnalysisStatus
+from fact.scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
+from fact.statistic.analysis_stats import get_plugin_stats
+from fact.storage.db_interface_backend import BackendDbInterface
+from fact.storage.db_interface_view_sync import ViewUpdater
+from fact.storage.fsorganizer import FSOrganizer
 
 from .plugin import PluginRunner, Worker
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from objects.file import FileObject
-    from storage.unpacking_locks import UnpackingLockManager
+    from fact.objects.file import FileObject
+    from fact.storage.unpacking_locks import UnpackingLockManager
 
 
 class AnalysisScheduler:

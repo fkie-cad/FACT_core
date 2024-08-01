@@ -7,22 +7,22 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from objects.firmware import Firmware
-from storage.db_interface_base import DbInterfaceError, DbSerializationError, ReadWriteDbInterface
-from storage.db_interface_common import DbInterfaceCommon
-from storage.entry_conversion import (
+from fact.objects.firmware import Firmware
+from fact.storage.db_interface_base import DbInterfaceError, DbSerializationError, ReadWriteDbInterface
+from fact.storage.db_interface_common import DbInterfaceCommon
+from fact.storage.entry_conversion import (
     create_analysis_entries,
     create_file_object_entry,
     create_firmware_entry,
     create_vfp_entries,
     sanitize,
 )
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath, included_files_table
+from fact.storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath, included_files_table
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 
 class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):

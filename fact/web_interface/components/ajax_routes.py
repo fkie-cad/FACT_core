@@ -4,17 +4,17 @@ import html
 
 from flask import jsonify, render_template
 
-from helperFunctions.data_conversion import none_to_none
-from helperFunctions.database import get_shared_session
-from objects.firmware import Firmware
-from web_interface.components.component_base import GET, AppRoute, ComponentBase
-from web_interface.components.hex_highlighting import preview_data_as_hex
-from web_interface.file_tree.file_tree import remove_virtual_path_from_root
-from web_interface.file_tree.file_tree_node import FileTreeNode
-from web_interface.file_tree.jstree_conversion import convert_to_jstree_node
-from web_interface.filter import bytes_to_str_filter, encode_base64_filter
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.helperFunctions.data_conversion import none_to_none
+from fact.helperFunctions.database import get_shared_session
+from fact.objects.firmware import Firmware
+from fact.web_interface.components.component_base import GET, AppRoute, ComponentBase
+from fact.web_interface.components.hex_highlighting import preview_data_as_hex
+from fact.web_interface.file_tree.file_tree import remove_virtual_path_from_root
+from fact.web_interface.file_tree.file_tree_node import FileTreeNode
+from fact.web_interface.file_tree.jstree_conversion import convert_to_jstree_node
+from fact.web_interface.filter import bytes_to_str_filter, encode_base64_filter
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 
 class AjaxRoutes(ComponentBase):
@@ -68,7 +68,7 @@ class AjaxRoutes(ComponentBase):
 
     @staticmethod
     def _get_root_uid(candidate, compare_id):
-        # feature_id contains an UID in individual case, in all case simply take first uid from compare
+        # feature_id contains an UID in individual case, in all case simply take first uid from fact.compare
         if candidate != 'all':
             return candidate
         return compare_id.split(';')[0]

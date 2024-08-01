@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING
 from flask import redirect, render_template, request, url_for
 from flask_security import login_required
 
-import config
-from helperFunctions.database import get_shared_session
-from helperFunctions.web_interface import format_time
-from statistic.update import StatsUpdater
-from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact import config
+from fact.helperFunctions.database import get_shared_session
+from fact.helperFunctions.web_interface import format_time
+from fact.statistic.update import StatsUpdater
+from fact.web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 if TYPE_CHECKING:
     from collections.abc import Sized

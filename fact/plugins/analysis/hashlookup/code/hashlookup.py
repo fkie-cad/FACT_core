@@ -3,9 +3,9 @@ import logging
 
 import requests
 
-from analysis.PluginBase import AnalysisBasePlugin
-from objects.file import FileObject
-from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED, MIME_BLACKLIST_NON_EXECUTABLE
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.objects.file import FileObject
+from fact.plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED, MIME_BLACKLIST_NON_EXECUTABLE
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

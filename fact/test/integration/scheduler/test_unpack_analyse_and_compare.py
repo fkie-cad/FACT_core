@@ -1,9 +1,9 @@
 import pytest
 
-from helperFunctions.data_conversion import normalize_compare_id
-from objects.firmware import Firmware
-from storage.db_interface_backend import BackendDbInterface
-from test.common_helper import get_test_data_dir
+from fact.helperFunctions.data_conversion import normalize_compare_id
+from fact.objects.firmware import Firmware
+from fact.storage.db_interface_backend import BackendDbInterface
+from fact.test.common_helper import get_test_data_dir
 
 _expected_result = {
     'File_Coverage': {'files_in_common': {'all': [], 'collapse': False}},

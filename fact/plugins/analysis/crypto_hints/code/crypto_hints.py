@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List
 
 import pydantic
 
-from analysis.plugin import AnalysisPluginV0, addons, compat
+from fact.analysis.plugin import AnalysisPluginV0, addons, compat
 
 if TYPE_CHECKING:
     import io

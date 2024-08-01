@@ -2,8 +2,8 @@ from multiprocessing import Event, Manager
 
 import pytest
 
-from objects.firmware import Firmware
-from test.common_helper import get_test_data_dir
+from fact.objects.firmware import Firmware
+from fact.test.common_helper import get_test_data_dir
 
 
 class MockDb:

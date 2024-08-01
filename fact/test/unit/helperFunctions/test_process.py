@@ -3,7 +3,7 @@ from time import sleep
 
 import pytest
 
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
+from fact.helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
 
 
 def breaking_process(wait: bool = False):

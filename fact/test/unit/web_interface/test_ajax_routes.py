@@ -1,6 +1,6 @@
 import pytest
 
-from web_interface.components.ajax_routes import AjaxRoutes
+from fact.web_interface.components.ajax_routes import AjaxRoutes
 
 
 @pytest.mark.parametrize(

@@ -3,9 +3,9 @@ import logging
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-from web_interface.components import user_management_routes
-from web_interface.components.user_management_routes import UserManagementRoutes
-from web_interface.security.privileges import ROLES
+from fact.web_interface.components import user_management_routes
+from fact.web_interface.components.user_management_routes import UserManagementRoutes
+from fact.web_interface.security.privileges import ROLES
 
 roles = sorted(ROLES)
 

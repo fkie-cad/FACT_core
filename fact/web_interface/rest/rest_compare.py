@@ -1,13 +1,13 @@
 from flask import request
 from flask_restx import Namespace, fields
 
-from helperFunctions.data_conversion import convert_compare_id_to_list, normalize_compare_id
-from helperFunctions.database import get_shared_session
-from helperFunctions.uid import is_uid
-from web_interface.rest.helper import error_message, success_message
-from web_interface.rest.rest_resource_base import RestResourceBase
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.helperFunctions.data_conversion import convert_compare_id_to_list, normalize_compare_id
+from fact.helperFunctions.database import get_shared_session
+from fact.helperFunctions.uid import is_uid
+from fact.web_interface.rest.helper import error_message, success_message
+from fact.web_interface.rest.rest_resource_base import RestResourceBase
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 api = Namespace('rest/compare', description='Start comparisons and retrieve results')
 

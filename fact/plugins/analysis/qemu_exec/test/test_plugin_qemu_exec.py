@@ -9,8 +9,8 @@ from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
-from test.common_helper import TEST_FW, create_test_firmware, get_test_data_dir
-from test.mock import mock_patch
+from fact.test.common_helper import TEST_FW, create_test_firmware, get_test_data_dir
+from fact.test.mock import mock_patch
 
 from ..code import qemu_exec
 from ..code.qemu_exec import EXECUTABLE, AnalysisPlugin

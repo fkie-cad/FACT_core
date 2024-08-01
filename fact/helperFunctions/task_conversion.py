@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, Any
 
 from markupsafe import escape
 
-from helperFunctions.uid import create_uid
-from objects.firmware import Firmware
+from fact.helperFunctions.uid import create_uid
+from fact.objects.firmware import Firmware
 
 if TYPE_CHECKING:
     from flask import Request

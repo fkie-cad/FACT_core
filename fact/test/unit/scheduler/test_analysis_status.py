@@ -3,9 +3,9 @@ from time import time
 
 import pytest
 
-from objects.file import FileObject
-from objects.firmware import Firmware
-from scheduler.analysis_status import RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC, AnalysisStatus, FwAnalysisStatus
+from fact.objects.file import FileObject
+from fact.objects.firmware import Firmware
+from fact.scheduler.analysis_status import RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC, AnalysisStatus, FwAnalysisStatus
 
 ROOT_UID = 'root_uid'
 

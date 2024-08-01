@@ -3,10 +3,10 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from objects.file import FileObject
-from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import create_test_file_object, get_test_data_dir
-from unpacker.unpack import Unpacker
+from fact.objects.file import FileObject
+from fact.storage.unpacking_locks import UnpackingLockManager
+from fact.test.common_helper import create_test_file_object, get_test_data_dir
+from fact.unpacker.unpack import Unpacker
 
 TEST_DATA_DIR = Path(get_test_data_dir())
 EXTRACTION_DIR = TEST_DATA_DIR / 'files'

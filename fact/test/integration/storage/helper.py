@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from test.common_helper import create_test_file_object, create_test_firmware
+from fact.test.common_helper import create_test_file_object, create_test_firmware
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
-    from objects.firmware import Firmware
+    from fact.objects.file import FileObject
+    from fact.objects.firmware import Firmware
 
 TEST_FO = create_test_file_object()
 TEST_FO_2 = create_test_file_object(bin_path='get_files_test/testfile2')

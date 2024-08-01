@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from compare.PluginBase import CompareBasePlugin
-from helperFunctions.compare_sets import iter_element_and_rest
+from fact.compare.PluginBase import CompareBasePlugin
+from fact.helperFunctions.compare_sets import iter_element_and_rest
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 
 class ComparePlugin(CompareBasePlugin):

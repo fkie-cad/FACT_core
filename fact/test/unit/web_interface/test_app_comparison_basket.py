@@ -1,7 +1,7 @@
 from flask import session
 
-from test.common_helper import TEST_FW, TEST_FW_2
-from web_interface.components.compare_routes import CompareRoutes, get_comparison_uid_dict_from_session
+from fact.test.common_helper import TEST_FW, TEST_FW_2
+from fact.web_interface.components.compare_routes import CompareRoutes, get_comparison_uid_dict_from_session
 
 
 def test_get_comparison_uid_list_dict_session(web_frontend):

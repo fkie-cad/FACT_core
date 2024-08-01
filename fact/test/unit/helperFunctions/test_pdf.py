@@ -4,8 +4,8 @@ from subprocess import CompletedProcess
 
 import pytest
 
-from helperFunctions.pdf import _find_pdf, _initialize_subfolder, build_pdf_report
-from test.common_helper import TEST_FW
+from fact.helperFunctions.pdf import _find_pdf, _initialize_subfolder, build_pdf_report
+from fact.test.common_helper import TEST_FW
 
 
 @pytest.fixture

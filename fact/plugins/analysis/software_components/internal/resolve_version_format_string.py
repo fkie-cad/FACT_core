@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 from docker.errors import DockerException
 from docker.types import Mount
 
-from helperFunctions.docker import run_docker_container
+from fact.helperFunctions.docker import run_docker_container
 
 CONTAINER_TARGET_PATH = '/work'
 DOCKER_IMAGE = 'fact/format_string_resolver'

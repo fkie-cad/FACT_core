@@ -6,10 +6,10 @@ from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 
-from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.tag import TagColor
-from objects.file import FileObject
-from objects.firmware import Firmware
+from fact.helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.tag import TagColor
+from fact.objects.file import FileObject
+from fact.objects.firmware import Firmware
 
 
 def get_test_data_dir():

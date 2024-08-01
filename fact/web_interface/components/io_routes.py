@@ -9,13 +9,13 @@ import requests
 from fact_helper_file import get_file_type_from_binary
 from flask import Response, make_response, redirect, render_template, request
 
-import config
-from helperFunctions.database import get_shared_session
-from helperFunctions.pdf import build_pdf_report
-from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
-from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact import config
+from fact.helperFunctions.database import get_shared_session
+from fact.helperFunctions.pdf import build_pdf_report
+from fact.helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
+from fact.web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 
 class IORoutes(ComponentBase):

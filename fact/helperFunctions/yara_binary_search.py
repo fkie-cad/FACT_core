@@ -8,9 +8,9 @@ from tempfile import NamedTemporaryFile
 
 import yara
 
-import config
-from storage.db_interface_common import DbInterfaceCommon
-from storage.fsorganizer import FSOrganizer
+from fact import config
+from fact.storage.db_interface_common import DbInterfaceCommon
+from fact.storage.fsorganizer import FSOrganizer
 
 
 class YaraBinarySearchScanner:

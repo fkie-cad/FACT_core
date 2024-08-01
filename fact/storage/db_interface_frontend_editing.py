@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from helperFunctions.uid import create_uid
-from storage.db_interface_base import ReadWriteDbInterface
-from storage.schema import FileObjectEntry, SearchCacheEntry
+from fact.helperFunctions.uid import create_uid
+from fact.storage.db_interface_base import ReadWriteDbInterface
+from fact.storage.schema import FileObjectEntry, SearchCacheEntry
 
 
 class FrontendEditingDbInterface(ReadWriteDbInterface):

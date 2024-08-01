@@ -7,8 +7,8 @@ from tempfile import TemporaryDirectory
 
 from common_helper_files import get_binary_from_file
 
-import config
-from unpacker.unpack_base import UnpackBase
+from fact import config
+from fact.unpacker.unpack_base import UnpackBase
 
 
 class TarRepack(UnpackBase):

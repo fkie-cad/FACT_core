@@ -1,7 +1,7 @@
 import pytest
 
-from test.common_helper import CommonDatabaseMock
-from web_interface.components.compare_routes import (
+from fact.test.common_helper import CommonDatabaseMock
+from fact.web_interface.components.compare_routes import (
     CompareRoutes,
     _add_plugin_views_to_compare_view,
     _get_compare_view,

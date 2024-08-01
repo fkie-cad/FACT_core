@@ -1,6 +1,6 @@
 import pytest
 
-from test.common_helper import CommonDatabaseMock
+from fact.test.common_helper import CommonDatabaseMock
 
 BACKEND_STATS = {'system': {'cpu_percentage': 13.37}, 'analysis': {'current_analyses': [None, None]}}
 

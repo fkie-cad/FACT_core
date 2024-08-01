@@ -11,19 +11,19 @@ from typing import TYPE_CHECKING
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
 
-import config
-from helperFunctions.process import (
+from fact import config
+from fact.helperFunctions.process import (
     ExceptionSafeProcess,
     check_worker_exceptions,
     start_single_worker,
     stop_processes,
     terminate_process_and_children,
 )
-from helperFunctions.tag import TagColor
-from plugins.base import BasePlugin
+from fact.helperFunctions.tag import TagColor
+from fact.plugins.base import BasePlugin
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 META_KEYS = {
     'tags',

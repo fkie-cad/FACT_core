@@ -1,8 +1,8 @@
 import pytest
 
-from helperFunctions.data_conversion import normalize_compare_id
-from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
-from test.mock import mock_patch
+from fact.helperFunctions.data_conversion import normalize_compare_id
+from fact.test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
+from fact.test.mock import mock_patch
 
 
 class DbMock(CommonDatabaseMock):

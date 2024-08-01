@@ -3,7 +3,7 @@ import os
 import pytest
 from common_helper_files import get_dir_of_file
 
-from test.common_helper import MockFileObject
+from fact.test.common_helper import MockFileObject
 
 from ..code.hash import AnalysisPlugin
 

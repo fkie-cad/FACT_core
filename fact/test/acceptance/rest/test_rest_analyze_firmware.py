@@ -3,7 +3,7 @@ import urllib.parse
 
 import pytest
 
-from test.common_helper import get_firmware_for_rest_upload_test
+from fact.test.common_helper import get_firmware_for_rest_upload_test
 
 test_container_uid = '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787'
 

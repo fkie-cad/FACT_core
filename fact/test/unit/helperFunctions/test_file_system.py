@@ -3,14 +3,14 @@ from pathlib import Path
 
 import pytest
 
-from helperFunctions.fileSystem import (
+from fact.helperFunctions.fileSystem import (
     file_is_empty,
     get_config_dir,
     get_relative_object_path,
     get_src_dir,
     get_template_dir,
 )
-from test.common_helper import get_test_data_dir
+from fact.test.common_helper import get_test_data_dir
 
 TEST_DATA_DIR = Path(get_test_data_dir())
 

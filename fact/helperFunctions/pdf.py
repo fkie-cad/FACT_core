@@ -7,9 +7,9 @@ from common_helper_encoder import ReportEncoder
 from docker.errors import DockerException
 from docker.types import Mount
 
-from helperFunctions.docker import run_docker_container
-from helperFunctions.object_conversion import create_meta_dict
-from objects.firmware import Firmware
+from fact.helperFunctions.docker import run_docker_container
+from fact.helperFunctions.object_conversion import create_meta_dict
+from fact.objects.firmware import Firmware
 
 
 def build_pdf_report(firmware: Firmware, folder: Path) -> Path:

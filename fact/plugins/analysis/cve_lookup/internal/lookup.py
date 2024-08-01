@@ -16,7 +16,7 @@ from .helper_functions import replace_wildcards
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
     from .database.db_connection import DbConnection
     from .database.schema import Association, Cpe

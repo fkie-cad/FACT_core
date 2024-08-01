@@ -26,15 +26,15 @@ from pathlib import Path
 from subprocess import PIPE, STDOUT
 
 try:
-    import config
-    from helperFunctions.install import OperateInDirectory, check_distribution
-    from install.backend import _install_docker_images as backend_install_docker_images
-    from install.backend import install_plugin_docker_images as backend_install_plugin_docker_images
-    from install.backend import main as backend
-    from install.common import main as common
-    from install.db import main as db
-    from install.frontend import _install_docker_images as frontend_install_docker_images
-    from install.frontend import main as frontend
+    from fact import config
+    from fact.helperFunctions.install import OperateInDirectory, check_distribution
+    from fact.install.backend import _install_docker_images as backend_install_docker_images
+    from fact.install.backend import fact.install_plugin_docker_images as backend_install_plugin_docker_images
+    from fact.install.backend import main as backend
+    from fact.install.common import main as common
+    from fact.install.db import main as db
+    from fact.install.frontend import _install_docker_images as frontend_install_docker_images
+    from fact.install.frontend import main as frontend
 except ImportError:
     logging.critical('Could not import install dependencies. Please (re-)run install/pre_install.sh', exc_info=True)
     sys.exit(1)

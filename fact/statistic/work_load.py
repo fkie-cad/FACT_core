@@ -9,9 +9,9 @@ from time import time
 import distro
 import psutil
 
-import config
-from storage.db_interface_stats import StatsUpdateDbInterface
-from version import __VERSION__
+from fact import config
+from fact.storage.db_interface_stats import StatsUpdateDbInterface
+from fact.version import __VERSION__
 
 
 class WorkLoadStatistic:

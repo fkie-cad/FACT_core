@@ -25,7 +25,7 @@ from tempfile import NamedTemporaryFile
 
 from common_helper_files import get_dirs_in_dir, get_files_in_dir
 
-from helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.fileSystem import get_src_dir
 
 SIGNATURE_DIR = os.path.join(get_src_dir(), 'analysis/signatures')  # noqa: PTH118
 

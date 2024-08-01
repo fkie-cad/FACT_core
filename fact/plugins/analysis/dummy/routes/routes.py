@@ -1,9 +1,9 @@
 from flask_restx import Namespace, Resource
 
-from web_interface.components.component_base import ComponentBase
-from web_interface.rest.helper import success_message
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.web_interface.components.component_base import ComponentBase
+from fact.web_interface.rest.helper import success_message
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 
 class PluginRoutes(ComponentBase):

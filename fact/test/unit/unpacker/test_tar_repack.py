@@ -2,8 +2,8 @@ import os
 
 import magic
 
-from test.common_helper import get_test_data_dir
-from unpacker.tar_repack import TarRepack
+from fact.test.common_helper import get_test_data_dir
+from fact.unpacker.tar_repack import TarRepack
 
 
 def test_tar_repack():

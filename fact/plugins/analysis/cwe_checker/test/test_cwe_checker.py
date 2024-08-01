@@ -1,6 +1,6 @@
 import pytest
 
-from objects.file import FileObject
+from fact.objects.file import FileObject
 
 from ..code.cwe_checker import AnalysisPlugin
 

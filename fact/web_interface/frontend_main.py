@@ -2,23 +2,23 @@ from __future__ import annotations
 
 import logging
 
-from intercom.front_end_binding import InterComFrontEndBinding
-from storage.redis_status_interface import RedisStatusInterface
-from version import __VERSION__
-from web_interface.app import create_app
-from web_interface.components.ajax_routes import AjaxRoutes
-from web_interface.components.analysis_routes import AnalysisRoutes
-from web_interface.components.compare_routes import CompareRoutes
-from web_interface.components.database_routes import DatabaseRoutes
-from web_interface.components.io_routes import IORoutes
-from web_interface.components.jinja_filter import FilterClass
-from web_interface.components.miscellaneous_routes import MiscellaneousRoutes
-from web_interface.components.plugin_routes import PluginRoutes
-from web_interface.components.statistic_routes import StatisticRoutes
-from web_interface.components.user_management_routes import UserManagementRoutes
-from web_interface.frontend_database import FrontendDatabase
-from web_interface.rest.rest_base import RestBase
-from web_interface.security.authentication import add_flask_security_to_app
+from fact.intercom.front_end_binding import InterComFrontEndBinding
+from fact.storage.redis_status_interface import RedisStatusInterface
+from fact.version import __VERSION__
+from fact.web_interface.app import create_app
+from fact.web_interface.components.ajax_routes import AjaxRoutes
+from fact.web_interface.components.analysis_routes import AnalysisRoutes
+from fact.web_interface.components.compare_routes import CompareRoutes
+from fact.web_interface.components.database_routes import DatabaseRoutes
+from fact.web_interface.components.io_routes import IORoutes
+from fact.web_interface.components.jinja_filter import FilterClass
+from fact.web_interface.components.miscellaneous_routes import MiscellaneousRoutes
+from fact.web_interface.components.plugin_routes import PluginRoutes
+from fact.web_interface.components.statistic_routes import StatisticRoutes
+from fact.web_interface.components.user_management_routes import UserManagementRoutes
+from fact.web_interface.frontend_database import FrontendDatabase
+from fact.web_interface.rest.rest_base import RestBase
+from fact.web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd:

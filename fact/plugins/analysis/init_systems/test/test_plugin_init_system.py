@@ -4,8 +4,8 @@ from copy import deepcopy
 import pytest
 from common_helper_files import get_dir_of_file
 
-from objects.file import FileObject
-from plugins.analysis.init_systems.code.init_system import AnalysisPlugin
+from fact.objects.file import FileObject
+from fact.plugins.analysis.init_systems.code.init_system import AnalysisPlugin
 
 _test_init_dir = os.path.join(get_dir_of_file(__file__), 'data')  # noqa: PTH118
 

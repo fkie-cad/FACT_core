@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from objects.file import FileObject
-from test.common_helper import get_test_data_dir
+from fact.objects.file import FileObject
+from fact.test.common_helper import get_test_data_dir
 
 from ..code.hardware_analysis import AnalysisPlugin
 

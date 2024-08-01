@@ -1,5 +1,5 @@
-from plugins.analysis.architecture_detection.internal.kconfig.arm import construct_result as construct_result_arm
-from plugins.analysis.architecture_detection.internal.kconfig.mips import construct_result as construct_result_mips
+from fact.plugins.analysis.architecture_detection.internal.kconfig.arm import construct_result as construct_result_arm
+from fact.plugins.analysis.architecture_detection.internal.kconfig.mips import construct_result as construct_result_mips
 
 
 def construct_result(file_object):

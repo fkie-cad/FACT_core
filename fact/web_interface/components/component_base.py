@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from intercom.front_end_binding import InterComFrontEndBinding
-    from storage.redis_status_interface import RedisStatusInterface
-    from web_interface.frontend_database import FrontendDatabase
+    from fact.intercom.front_end_binding import InterComFrontEndBinding
+    from fact.storage.redis_status_interface import RedisStatusInterface
+    from fact.web_interface.frontend_database import FrontendDatabase
 
 ROUTES_ATTRIBUTE = 'view_routes'
 

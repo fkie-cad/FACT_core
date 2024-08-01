@@ -19,16 +19,16 @@ from docker.types import Mount
 from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
-import config
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.docker import run_docker_container
-from helperFunctions.tag import TagColor
-from helperFunctions.uid import create_uid
-from storage.fsorganizer import FSOrganizer
-from unpacker.unpack_base import UnpackBase
+from fact import config
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.docker import run_docker_container
+from fact.helperFunctions.tag import TagColor
+from fact.helperFunctions.uid import create_uid
+from fact.storage.fsorganizer import FSOrganizer
+from fact.unpacker.unpack_base import UnpackBase
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 TIMEOUT_IN_SECONDS = 15
 EXECUTABLE = 'executable'

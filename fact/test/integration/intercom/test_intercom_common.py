@@ -2,9 +2,9 @@ import os
 
 import pytest
 
-from helperFunctions.data_conversion import convert_str_to_bool
-from intercom.common_redis_binding import InterComListener
-from storage.redis_interface import REDIS_MAX_VALUE_SIZE
+from fact.helperFunctions.data_conversion import convert_str_to_bool
+from fact.intercom.common_redis_binding import InterComListener
+from fact.storage.redis_interface import REDIS_MAX_VALUE_SIZE
 
 
 @pytest.fixture

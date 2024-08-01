@@ -1,7 +1,7 @@
 from common_helper_files import human_readable_file_size
 
-from web_interface.file_tree.file_tree import get_icon_for_mime, get_mime_for_text_file
-from web_interface.file_tree.file_tree_node import FileTreeNode
+from fact.web_interface.file_tree.file_tree import get_icon_for_mime, get_mime_for_text_file
+from fact.web_interface.file_tree.file_tree_node import FileTreeNode
 
 
 def convert_to_jstree_node(node: FileTreeNode):

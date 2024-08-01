@@ -3,7 +3,7 @@ import os
 import pytest
 from common_helper_files import get_dir_of_file
 
-from objects.file import FileObject
+from fact.objects.file import FileObject
 
 from ..code.strings import AnalysisPlugin
 

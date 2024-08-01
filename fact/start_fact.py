@@ -27,17 +27,17 @@ from shlex import split
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
-import config
+from fact import config
 
 try:
-    import fact_base  # noqa: F401
+    import fact.fact_base  # noqa: F401
 except ImportError:
     sys.exit(1)
 
 from typing import TYPE_CHECKING
 
-from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.program_setup import setup_argparser, setup_logging
+from fact.helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.program_setup import setup_argparser, setup_logging
 
 if TYPE_CHECKING:
     import argparse

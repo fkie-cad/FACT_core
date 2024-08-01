@@ -5,16 +5,16 @@ import urllib.request
 from pathlib import Path
 
 try:
-    from helperFunctions.install import check_distribution
-    from plugins.installer import AbstractPluginInstaller
+    from fact.helperFunctions.install import check_distribution
+    from fact.plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
 
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from helperFunctions.install import check_distribution
-    from plugins.installer import AbstractPluginInstaller
+    from fact.helperFunctions.install import check_distribution
+    from fact.plugins.installer import AbstractPluginInstaller
 
 
 class SoftwareComponentsInstaller(AbstractPluginInstaller):

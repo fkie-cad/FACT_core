@@ -1,10 +1,10 @@
 from flask_restx import Namespace
 
-from helperFunctions.database import get_shared_session
-from web_interface.rest.helper import error_message
-from web_interface.rest.rest_resource_base import RestResourceBase
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.helperFunctions.database import get_shared_session
+from fact.web_interface.rest.helper import error_message
+from fact.web_interface.rest.rest_resource_base import RestResourceBase
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 STATISTICS = [
     'architecture',

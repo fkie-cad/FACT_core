@@ -8,8 +8,8 @@ from sqlalchemy import column, func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import InstrumentedAttribute, aliased
 
-from storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
+from fact.storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
+from fact.storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 
 if TYPE_CHECKING:
     from sqlalchemy.sql import Select

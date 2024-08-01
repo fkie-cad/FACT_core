@@ -2,10 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from intercom.back_end_binding import InterComBackEndBinding
-from intercom.front_end_binding import InterComFrontEndBinding
-from test.common_helper import get_test_data_dir
-from web_interface.frontend_main import WebFrontEnd
+from fact.intercom.back_end_binding import InterComBackEndBinding
+from fact.intercom.front_end_binding import InterComFrontEndBinding
+from fact.test.common_helper import get_test_data_dir
+from fact.web_interface.frontend_main import WebFrontEnd
 
 
 @pytest.fixture(autouse=True)

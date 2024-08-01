@@ -164,8 +164,8 @@ def load(path: str | None = None):
     These instances can be accessed via ``config.backend`` after calling this function.
 
     .. important::
-        This function may not be imported by ``from config import load``.
-        It may only be imported by ``import config`` and then used by ``config.load()``.
+        This function may not be imported by ``from fact.config import load``.
+        It may only be imported by ``from fact import config`` and then used by ``config.load()``.
         The reason is that testing code can't patch this function if it was already imported.
         When you only import the ``config`` module the ``load`` function will be looked up at runtime.
         See `this blog entry <https://alexmarandon.com/articles/python_mock_gotchas/>`_ for some more information.

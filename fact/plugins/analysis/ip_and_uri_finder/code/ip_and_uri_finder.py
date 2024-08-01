@@ -9,7 +9,7 @@ from common_analysis_ip_and_uri_finder import CommonAnalysisIPAndURIFinder
 from geoip2.errors import AddressNotFoundError
 from maxminddb.errors import InvalidDatabaseError
 
-from analysis.PluginBase import AnalysisBasePlugin
+from fact.analysis.PluginBase import AnalysisBasePlugin
 
 GEOIP_DATABASE_PATH = Path(__file__).parent.parent / 'bin/GeoLite2-City/GeoLite2-City.mmdb'
 

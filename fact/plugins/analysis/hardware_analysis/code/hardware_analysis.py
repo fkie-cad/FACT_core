@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from analysis.PluginBase import AnalysisBasePlugin
+from fact.analysis.PluginBase import AnalysisBasePlugin
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

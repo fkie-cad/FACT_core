@@ -1,8 +1,8 @@
 import pytest
 from common_helper_files import get_binary_from_file
 
-from objects.firmware import Firmware
-from test.common_helper import get_test_data_dir
+from fact.objects.firmware import Firmware
+from fact.test.common_helper import get_test_data_dir
 
 
 @pytest.mark.parametrize(('input_data', 'expected_count'), [(['a'], 1), (['a', 'b', 'a'], 2)])

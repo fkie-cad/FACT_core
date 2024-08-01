@@ -2,9 +2,9 @@ from http import HTTPStatus
 
 import pytest
 
-from test.common_helper import generate_analysis_entry
-from test.integration.storage.helper import insert_test_fo
-from test.integration.web_interface.rest.base import RestTestBase
+from fact.test.common_helper import generate_analysis_entry
+from fact.test.integration.storage.helper import insert_test_fo
+from fact.test.integration.web_interface.rest.base import RestTestBase
 
 TYPE_RESULT = {'mime': 'mime_type', 'full': 'full type description'}
 

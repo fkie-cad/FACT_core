@@ -1,6 +1,6 @@
 from base64 import standard_b64decode
 
-from test.common_helper import TEST_FW
+from fact.test.common_helper import TEST_FW
 
 
 def test_bad_requests(test_client):

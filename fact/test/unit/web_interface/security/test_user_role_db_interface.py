@@ -4,7 +4,7 @@ from flask import Flask
 from flask_security import Security
 from flask_sqlalchemy import SQLAlchemy
 
-from web_interface.security.authentication import create_user_datastore
+from fact.web_interface.security.authentication import create_user_datastore
 
 
 class TestUserRoleDbInterface(TestCase):

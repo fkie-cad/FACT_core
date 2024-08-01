@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from storage.db_interface_stats import Stats
+    from fact.storage.db_interface_stats import Stats
 
 
 def build_stats_entry_from_date_query(release_date_stats: list[tuple[int, int, int]]) -> Stats:

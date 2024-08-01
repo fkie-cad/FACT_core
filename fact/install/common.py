@@ -7,7 +7,7 @@ from subprocess import PIPE, STDOUT
 
 from pkg_resources import parse_version
 
-from helperFunctions.install import (
+from fact.helperFunctions.install import (
     InstallationError,
     OperateInDirectory,
     apt_install_packages,

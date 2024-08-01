@@ -6,7 +6,7 @@ from urllib.parse import quote
 
 import pytest
 
-from test.common_helper import TEST_FW, CommonDatabaseMock
+from fact.test.common_helper import TEST_FW, CommonDatabaseMock
 
 TEST_FW_PAYLOAD = {
     'binary': standard_b64encode(b'\x01\x23\x45\x67\x89').decode(),

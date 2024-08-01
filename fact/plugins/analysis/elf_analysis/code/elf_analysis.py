@@ -8,9 +8,9 @@ from pathlib import Path
 
 import lief
 
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.hash import normalize_lief_items
-from helperFunctions.tag import TagColor
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.hash import normalize_lief_items
+from fact.helperFunctions.tag import TagColor
 
 LIEF_DATA_ENTRIES = (
     'dynamic_entries',

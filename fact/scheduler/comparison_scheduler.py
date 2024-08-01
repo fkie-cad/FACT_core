@@ -5,12 +5,12 @@ import os
 from multiprocessing import Queue, Value
 from queue import Empty
 
-import config
-from compare.compare import Compare
-from helperFunctions.data_conversion import convert_compare_id_to_list
-from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker
-from storage.db_interface_admin import AdminDbInterface
-from storage.db_interface_comparison import ComparisonDbInterface
+from fact import config
+from fact.compare.compare import Compare
+from fact.helperFunctions.data_conversion import convert_compare_id_to_list
+from fact.helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker
+from fact.storage.db_interface_admin import AdminDbInterface
+from fact.storage.db_interface_comparison import ComparisonDbInterface
 
 
 class ComparisonScheduler:

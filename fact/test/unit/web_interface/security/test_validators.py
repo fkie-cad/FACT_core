@@ -2,7 +2,7 @@ import pytest
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
 
-from web_interface.security.terminal_validators import ActionValidator, ActionValidatorReverse
+from fact.web_interface.security.terminal_validators import ActionValidator, ActionValidatorReverse
 
 TEST_LIST = ['foo', 'bar']
 

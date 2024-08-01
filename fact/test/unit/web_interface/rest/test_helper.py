@@ -1,6 +1,6 @@
 import pytest
 
-from web_interface.rest.helper import (
+from fact.web_interface.rest.helper import (
     error_message,
     get_boolean_from_request,
     get_current_gmt,

@@ -2,10 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
-from helperFunctions.fileSystem import get_src_dir
-from objects.file import FileObject
-from plugins.analysis.dummy.code.dummy import AnalysisPlugin as DummyPlugin
+from fact.analysis.PluginBase import AnalysisBasePlugin, PluginInitException
+from fact.helperFunctions.fileSystem import get_src_dir
+from fact.objects.file import FileObject
+from fact.plugins.analysis.dummy.code.dummy import AnalysisPlugin as DummyPlugin
 
 PLUGIN_PATH = Path(get_src_dir()) / 'plugins' / 'analysis'
 

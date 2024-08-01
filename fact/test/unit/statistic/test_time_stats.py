@@ -1,6 +1,6 @@
 import pytest
 
-from statistic.time_stats import _build_time_dict, _fill_in_time_gaps
+from fact.statistic.time_stats import _build_time_dict, _fill_in_time_gaps
 
 
 def test_build_time_dict():

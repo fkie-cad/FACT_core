@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from helperFunctions.install import (
+from fact.helperFunctions.install import (
     InstallationError,
     OperateInDirectory,
     _run_shell_command_raise_on_return_code,

@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import pytest
 
-from test.common_helper import get_test_data_dir
+from fact.test.common_helper import get_test_data_dir
 
 NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger', '/fs-static/pathfilename']
 REQUEST_FAILS = [b'404 Not Found', b'405 Method Not Allowed', b'The method is not allowed']

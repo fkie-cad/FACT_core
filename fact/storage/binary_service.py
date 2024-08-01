@@ -5,10 +5,10 @@ from pathlib import Path
 
 from common_helper_files.fail_safe_file_operations import get_binary_from_file
 
-from storage.db_interface_base import ReadOnlyDbInterface
-from storage.fsorganizer import FSOrganizer
-from storage.schema import FileObjectEntry
-from unpacker.tar_repack import TarRepack
+from fact.storage.db_interface_base import ReadOnlyDbInterface
+from fact.storage.fsorganizer import FSOrganizer
+from fact.storage.schema import FileObjectEntry
+from fact.unpacker.tar_repack import TarRepack
 
 
 class BinaryService:

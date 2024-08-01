@@ -20,7 +20,7 @@
 import argparse
 import logging
 
-from helperFunctions.yara_signature_testing import SignatureTesting
+from fact.helperFunctions.yara_signature_testing import SignatureTesting
 
 PROGRAM_NAME = 'Component Signature Test Framework (CSTF)'
 PROGRAM_VERSION = '0.2'

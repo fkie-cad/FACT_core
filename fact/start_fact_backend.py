@@ -25,18 +25,18 @@ import sys
 from pathlib import Path
 
 try:
-    from fact_base import FactBase
+    from fact.fact_base import FactBase
 except (ImportError, ModuleNotFoundError):
     sys.exit(1)
 
-import config
-from analysis.PluginBase import PluginInitException
-from helperFunctions.process import complete_shutdown
-from intercom.back_end_binding import InterComBackEndBinding
-from scheduler.analysis import AnalysisScheduler
-from scheduler.comparison_scheduler import ComparisonScheduler
-from scheduler.unpacking_scheduler import UnpackingScheduler
-from storage.unpacking_locks import UnpackingLockManager
+from fact import config
+from fact.analysis.PluginBase import PluginInitException
+from fact.helperFunctions.process import complete_shutdown
+from fact.intercom.back_end_binding import InterComBackEndBinding
+from fact.scheduler.analysis import AnalysisScheduler
+from fact.scheduler.comparison_scheduler import ComparisonScheduler
+from fact.scheduler.unpacking_scheduler import UnpackingScheduler
+from fact.storage.unpacking_locks import UnpackingLockManager
 
 ULIMIT_MIN = 1_024
 

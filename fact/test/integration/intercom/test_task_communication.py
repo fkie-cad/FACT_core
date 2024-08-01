@@ -7,7 +7,7 @@ from time import sleep
 
 import pytest
 
-from intercom.back_end_binding import (
+from fact.intercom.back_end_binding import (
     InterComBackEndAnalysisPlugInsPublisher,
     InterComBackEndAnalysisTask,
     InterComBackEndBinarySearchTask,
@@ -20,8 +20,8 @@ from intercom.back_end_binding import (
     InterComBackEndSingleFileTask,
     InterComBackEndTarRepackTask,
 )
-from intercom.front_end_binding import InterComFrontEndBinding
-from test.common_helper import create_test_firmware
+from fact.intercom.front_end_binding import InterComFrontEndBinding
+from fact.test.common_helper import create_test_firmware
 
 
 class AnalysisServiceMock:

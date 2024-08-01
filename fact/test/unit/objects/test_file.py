@@ -1,7 +1,7 @@
 from common_helper_files import get_binary_from_file
 
-from objects.file import FileObject
-from test.common_helper import get_test_data_dir
+from fact.objects.file import FileObject
+from fact.test.common_helper import get_test_data_dir
 
 
 class TestObjectsFile:

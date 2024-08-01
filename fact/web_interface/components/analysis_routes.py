@@ -10,26 +10,30 @@ from common_helper_files import get_binary_from_file
 from flask import flash, redirect, render_template, render_template_string, request, url_for
 from flask_login.utils import current_user
 
-import config
-from helperFunctions.data_conversion import none_to_none
-from helperFunctions.database import get_shared_session
-from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
-from helperFunctions.web_interface import get_template_as_string
-from objects.firmware import Firmware
-from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
-from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
-from web_interface.components.dependency_graph import (
+from fact import config
+from fact.helperFunctions.data_conversion import none_to_none
+from fact.helperFunctions.database import get_shared_session
+from fact.helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.task_conversion import (
+    check_for_errors,
+    convert_analysis_task_to_fw_obj,
+    create_re_analyze_task,
+)
+from fact.helperFunctions.web_interface import get_template_as_string
+from fact.objects.firmware import Firmware
+from fact.web_interface.components.compare_routes import get_comparison_uid_dict_from_session
+from fact.web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from fact.web_interface.components.dependency_graph import (
     create_data_graph_edges,
     create_data_graph_nodes_and_groups,
     get_graph_colors,
 )
-from web_interface.security.authentication import user_has_privilege
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.web_interface.security.authentication import user_has_privilege
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 
 def get_analysis_view(view_name):

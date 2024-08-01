@@ -2,9 +2,9 @@ from logging.config import fileConfig
 
 from alembic import context
 
-from config import load
-from storage.db_connection import AdminConnection
-from storage.schema import Base
+from fact.config import load
+from fact.storage.db_connection import AdminConnection
+from fact.storage.schema import Base
 
 config = context.config
 if config.config_file_name is not None:

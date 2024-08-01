@@ -1,8 +1,8 @@
 import pytest
 
-from compare.compare import Compare
-from compare.PluginBase import CompareBasePlugin
-from test.common_helper import create_test_file_object, create_test_firmware
+from fact.compare.compare import Compare
+from fact.compare.PluginBase import CompareBasePlugin
+from fact.test.common_helper import create_test_file_object, create_test_firmware
 
 
 @pytest.fixture(autouse=True)

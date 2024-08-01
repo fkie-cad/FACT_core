@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict, Optional
 
-from analysis.plugin import AnalysisPluginV0, Tag
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
-from helperFunctions.tag import TagColor
-from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
+from fact.analysis.plugin import AnalysisPluginV0, Tag
+from fact.analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+from fact.helperFunctions.tag import TagColor
+from fact.plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
 from ..internal.schema import DeviceTree, IllegalDeviceTreeError, Schema
 

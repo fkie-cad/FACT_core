@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from test.common_helper import COMPARISON_ID, TEST_FW, TEST_FW_2
+from fact.test.common_helper import COMPARISON_ID, TEST_FW, TEST_FW_2
 
 UID_1 = 'deadbeef' * 8 + '_1'
 UID_2 = 'decafbad' * 8 + '_2'

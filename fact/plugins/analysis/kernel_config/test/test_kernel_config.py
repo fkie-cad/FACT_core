@@ -3,7 +3,7 @@ from subprocess import CompletedProcess
 
 import pytest
 
-from objects.file import FileObject
+from fact.objects.file import FileObject
 
 from ..code.kernel_config import AnalysisPlugin
 from ..internal.checksec_check_kernel import check_kernel_config

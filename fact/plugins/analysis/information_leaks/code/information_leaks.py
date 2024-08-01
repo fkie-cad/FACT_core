@@ -4,10 +4,10 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from analysis.PluginBase import AnalysisBasePlugin
+from fact.analysis.PluginBase import AnalysisBasePlugin
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 PATH_REGEX = {
     'user_paths': re.compile(rb'/home/[^%\n:) \x00]+'),

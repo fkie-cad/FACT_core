@@ -4,12 +4,12 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.tag import TagColor
-from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.tag import TagColor
+from fact.plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 try:
     from ..internal.database.db_connection import DbConnection

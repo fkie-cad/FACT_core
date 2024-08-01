@@ -2,7 +2,7 @@ import binascii
 
 from markupsafe import Markup
 
-from compare.PluginBase import CompareBasePlugin
+from fact.compare.PluginBase import CompareBasePlugin
 
 ASCII_RANGE = (32, 127)
 BYTES_TO_SHOW = 512

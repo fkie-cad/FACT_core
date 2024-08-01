@@ -15,13 +15,13 @@ import psutil
 import pydantic
 from pydantic import BaseModel, ConfigDict
 
-import config
-from objects.file import FileObject  # noqa: TCH001  # needed by pydantic
-from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
-from storage.fsorganizer import FSOrganizer
+from fact import config
+from fact.objects.file import FileObject  # noqa: TCH001  # needed by pydantic
+from fact.statistic.analysis_stats import ANALYSIS_STATS_LIMIT
+from fact.storage.fsorganizer import FSOrganizer
 
 if typing.TYPE_CHECKING:
-    from analysis.plugin import AnalysisPluginV0
+    from fact.analysis.plugin import AnalysisPluginV0
 
 
 class PluginRunner:

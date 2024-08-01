@@ -8,19 +8,19 @@ from pathlib import Path
 from time import sleep
 from typing import TYPE_CHECKING
 
-import config
-from helperFunctions.process import stop_processes
-from helperFunctions.yara_binary_search import YaraBinarySearchScanner
-from intercom.common_redis_binding import InterComListener, InterComListenerAndResponder, InterComRedisInterface
-from storage.binary_service import BinaryService
-from storage.db_interface_common import DbInterfaceCommon
-from storage.fsorganizer import FSOrganizer
+from fact import config
+from fact.helperFunctions.process import stop_processes
+from fact.helperFunctions.yara_binary_search import YaraBinarySearchScanner
+from fact.intercom.common_redis_binding import InterComListener, InterComListenerAndResponder, InterComRedisInterface
+from fact.storage.binary_service import BinaryService
+from fact.storage.db_interface_common import DbInterfaceCommon
+from fact.storage.fsorganizer import FSOrganizer
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from objects.firmware import Firmware
-    from storage.unpacking_locks import UnpackingLockManager
+    from fact.objects.firmware import Firmware
+    from fact.storage.unpacking_locks import UnpackingLockManager
 
 
 class InterComBackEndBinding:

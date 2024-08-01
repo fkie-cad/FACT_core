@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from test.common_helper import TEST_TEXT_FILE, TEST_TEXT_FILE2, CommonDatabaseMock, create_test_firmware
-from test.unit.conftest import CommonIntercomMock, WebInterfaceUnitTestConfig
+from fact.test.common_helper import TEST_TEXT_FILE, TEST_TEXT_FILE2, CommonDatabaseMock, create_test_firmware
+from fact.test.unit.conftest import CommonIntercomMock, WebInterfaceUnitTestConfig
 
 
 class MockInterCom(CommonIntercomMock):

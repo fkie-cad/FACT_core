@@ -8,10 +8,10 @@ import pydantic
 from docker.types import Mount
 from pydantic import Field
 
-from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
-from helperFunctions.docker import run_docker_container
-from helperFunctions.virtual_file_path import get_paths_for_all_parents
+from fact.analysis.plugin import AnalysisPluginV0
+from fact.analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+from fact.helperFunctions.docker import run_docker_container
+from fact.helperFunctions.virtual_file_path import get_paths_for_all_parents
 
 from ..internal import linters
 

@@ -7,8 +7,8 @@ import pydantic
 from fact_helper_file import get_file_type_from_path
 from pydantic import Field
 
-from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
+from fact.analysis.plugin import AnalysisPluginV0
+from fact.analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 
 if typing.TYPE_CHECKING:
     import io

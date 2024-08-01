@@ -1,6 +1,6 @@
 from flask_paginate import Pagination
 
-import config
+from fact import config
 
 
 def get_pagination(**kwargs):

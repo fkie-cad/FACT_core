@@ -1,6 +1,6 @@
 import unittest
 
-from helperFunctions.uid import create_uid, is_list_of_uids, is_uid
+from fact.helperFunctions.uid import create_uid, is_list_of_uids, is_uid
 
 
 class TestHelperFunctionsUID(unittest.TestCase):

@@ -1,5 +1,5 @@
-from analysis.PluginBase import AnalysisBasePlugin
-from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
 from ..internal.string_eval import eval_strings
 

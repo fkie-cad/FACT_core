@@ -1,5 +1,5 @@
-from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.plugin import discover_analysis_plugins
+from fact.helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.plugin import discover_analysis_plugins
 
 TEST_PLUGINS_SRC_DIR = f'{get_src_dir()}/test/data/plugin_system'
 

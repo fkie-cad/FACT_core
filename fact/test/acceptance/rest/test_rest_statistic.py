@@ -1,6 +1,6 @@
 import pytest
 
-from statistic.work_load import WorkLoadStatistic
+from fact.statistic.work_load import WorkLoadStatistic
 
 
 @pytest.fixture

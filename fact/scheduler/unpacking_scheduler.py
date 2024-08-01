@@ -13,23 +13,23 @@ from typing import TYPE_CHECKING
 
 from docker.errors import DockerException
 
-import config
-from helperFunctions.logging import TerminalColors, color_string
-from helperFunctions.process import (
+from fact import config
+from fact.helperFunctions.logging import TerminalColors, color_string
+from fact.helperFunctions.process import (
     ExceptionSafeProcess,
     check_worker_exceptions,
     new_worker_was_started,
     stop_processes,
 )
-from objects.firmware import Firmware
-from storage.db_interface_backend import BackendDbInterface
-from storage.db_interface_base import DbInterfaceError
-from unpacker.extraction_container import ExtractionContainer
-from unpacker.unpack import Unpacker
-from unpacker.unpack_base import ExtractionError
+from fact.objects.firmware import Firmware
+from fact.storage.db_interface_backend import BackendDbInterface
+from fact.storage.db_interface_base import DbInterfaceError
+from fact.unpacker.extraction_container import ExtractionContainer
+from fact.unpacker.unpack import Unpacker
+from fact.unpacker.unpack_base import ExtractionError
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 
 class NoFreeWorker(RuntimeError):  # noqa: N818

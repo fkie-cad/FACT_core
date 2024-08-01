@@ -1,7 +1,7 @@
 import pytest
 
-from test.common_helper import TEST_FW, CommonDatabaseMock
-from test.unit.web_interface.test_dependency_graph import entry_1, entry_2
+from fact.test.common_helper import TEST_FW, CommonDatabaseMock
+from fact.test.unit.web_interface.test_dependency_graph import entry_1, entry_2
 
 
 class DbMock(CommonDatabaseMock):

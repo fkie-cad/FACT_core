@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from helperFunctions.hash import get_md5
-from helperFunctions.tag import TagColor
-from objects.file import FileObject
+from fact.helperFunctions.hash import get_md5
+from fact.helperFunctions.tag import TagColor
+from fact.objects.file import FileObject
 
 
 class Firmware(FileObject):

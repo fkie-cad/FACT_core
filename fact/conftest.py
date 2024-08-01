@@ -11,11 +11,11 @@ import pytest
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.v1.utils import deep_update
 
-import config
-from analysis.plugin import AnalysisPluginV0
-from analysis.PluginBase import AnalysisBasePlugin
-from test.common_helper import CommonDatabaseMock
-from test.conftest import merge_markers
+from fact import config
+from fact.analysis.plugin import AnalysisPluginV0
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.test.common_helper import CommonDatabaseMock
+from fact.test.conftest import merge_markers
 
 
 @pytest.fixture
@@ -170,7 +170,7 @@ def patch_config(monkeypatch, common_config, backend_config, frontend_config):  
     monkeypatch.setattr('config._backend', backend_config)
     monkeypatch.setattr('config._frontend', frontend_config)
     # Disallow code to load the actual, non-testing config
-    # This only works if `load` was not imported by `from config import load`.
+    # This only works if `load` was not imported by `from fact.config import load`.
     # See doc comment of `load`.
     monkeypatch.setattr('config.load', lambda _=None: logging.warning('Code tried to call `config.load`. Ignoring.'))
 

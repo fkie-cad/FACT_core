@@ -1,8 +1,8 @@
 import pytest
 from fact_helper_file import get_file_type_from_binary
 
-from storage.db_interface_comparison import ComparisonDbInterface
-from test.common_helper import create_test_firmware
+from fact.storage.db_interface_comparison import ComparisonDbInterface
+from fact.test.common_helper import create_test_firmware
 
 COMPARE_RESULT = {
     'general': {'a': {'id1': '<empty>', 'id2': '<empty>'}, 'b': {'id1': '<empty>', 'id2': '<empty>'}},

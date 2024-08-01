@@ -1,8 +1,8 @@
 import pytest
 
-from compare.PluginBase import CompareBasePlugin as ComparePlugin
-from compare.PluginBase import _get_unmatched_dependencies
-from test.common_helper import CommonDatabaseMock, create_test_firmware
+from fact.compare.PluginBase import CompareBasePlugin as ComparePlugin
+from fact.compare.PluginBase import _get_unmatched_dependencies
+from fact.test.common_helper import CommonDatabaseMock, create_test_firmware
 
 fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
 fw_two = create_test_firmware(device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True)

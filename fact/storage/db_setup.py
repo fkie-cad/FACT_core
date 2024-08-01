@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from sqlalchemy import inspect, text
 
-import config
-from storage.db_connection import AdminConnection, DbConnection
-from storage.db_interface_base import ReadWriteDbInterface
+from fact import config
+from fact.storage.db_connection import AdminConnection, DbConnection
+from fact.storage.db_interface_base import ReadWriteDbInterface
 
 
 class Privileges:

@@ -1,12 +1,17 @@
 from __future__ import annotations
 
-from storage.db_connection import AdminConnection, ReadOnlyConnection, ReadWriteConnection, ReadWriteDeleteConnection
-from storage.db_interface_admin import AdminDbInterface
-from storage.db_interface_comparison import ComparisonDbInterface
-from storage.db_interface_frontend import FrontEndDbInterface
-from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from storage.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
-from storage.db_interface_view_sync import ViewReader
+from fact.storage.db_connection import (
+    AdminConnection,
+    ReadOnlyConnection,
+    ReadWriteConnection,
+    ReadWriteDeleteConnection,
+)
+from fact.storage.db_interface_admin import AdminDbInterface
+from fact.storage.db_interface_comparison import ComparisonDbInterface
+from fact.storage.db_interface_frontend import FrontEndDbInterface
+from fact.storage.db_interface_frontend_editing import FrontendEditingDbInterface
+from fact.storage.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
+from fact.storage.db_interface_view_sync import ViewReader
 
 
 class FrontendDatabase:

@@ -17,9 +17,9 @@ from collections import defaultdict
 
 from docker.types import Mount
 
-import config
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.docker import run_docker_container
+from fact import config
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.docker import run_docker_container
 
 DOCKER_IMAGE = 'fkiecad/cwe_checker:stable'
 

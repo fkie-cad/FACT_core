@@ -6,7 +6,7 @@ from pathlib import Path
 from subprocess import DEVNULL, PIPE
 from tempfile import NamedTemporaryFile
 
-from helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.fileSystem import get_src_dir
 
 CHECKSEC_PATH = Path(get_src_dir()) / 'bin' / 'checksec'
 

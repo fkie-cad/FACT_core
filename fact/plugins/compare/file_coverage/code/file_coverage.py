@@ -6,14 +6,14 @@ from typing import TYPE_CHECKING
 import networkx
 import ssdeep
 
-import config
-from compare.PluginBase import CompareBasePlugin
-from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_list
-from helperFunctions.data_conversion import convert_uid_list_to_compare_id
-from objects.firmware import Firmware
+from fact import config
+from fact.compare.PluginBase import CompareBasePlugin
+from fact.helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_list
+from fact.helperFunctions.data_conversion import convert_uid_list_to_compare_id
+from fact.objects.firmware import Firmware
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 
 class ComparePlugin(CompareBasePlugin):

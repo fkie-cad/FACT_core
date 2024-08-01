@@ -4,7 +4,7 @@ from os.path import normpath
 from pathlib import Path
 from typing import NamedTuple
 
-from helperFunctions.web_interface import get_color_list
+from fact.helperFunctions.web_interface import get_color_list
 
 
 class DepGraphData(NamedTuple):

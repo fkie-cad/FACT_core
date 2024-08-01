@@ -6,7 +6,7 @@ from collections import namedtuple
 import pytest
 from geoip2.errors import AddressNotFoundError
 
-from objects.file import FileObject
+from fact.objects.file import FileObject
 
 from ..code.ip_and_uri_finder import AnalysisPlugin
 

@@ -7,17 +7,17 @@ from shlex import split
 from subprocess import PIPE, STDOUT, CalledProcessError, run
 from time import sleep
 
-import config
+from fact import config
 
 try:
     import psutil
     import psycopg2  # noqa: F401
 
-    from helperFunctions.program_setup import setup_argparser, setup_logging
-    from statistic.work_load import WorkLoadStatistic
-    from storage.db_interface_base import DbInterfaceError
-    from storage.migration import db_needs_migration
-    from version import __VERSION__
+    from fact.helperFunctions.program_setup import setup_argparser, setup_logging
+    from fact.statistic.work_load import WorkLoadStatistic
+    from fact.storage.db_interface_base import DbInterfaceError
+    from fact.storage.migration import db_needs_migration
+    from fact.version import __VERSION__
 except (ImportError, ModuleNotFoundError):
     logging.exception(
         'Could not load dependencies. Please make sure that you have installed FACT correctly '

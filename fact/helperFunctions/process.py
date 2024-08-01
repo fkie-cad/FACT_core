@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 
 import psutil
 
-import config
-from helperFunctions.logging import TerminalColors, color_string
+from fact import config
+from fact.helperFunctions.logging import TerminalColors, color_string
 
 if TYPE_CHECKING:
     from collections.abc import Callable

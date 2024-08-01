@@ -4,8 +4,8 @@ from itertools import chain
 from flask import Flask
 from flask_restx import Api
 
-from helperFunctions.fileSystem import get_src_dir
-from web_interface.components.plugin_routes import (
+from fact.helperFunctions.fileSystem import get_src_dir
+from fact.web_interface.components.plugin_routes import (
     PLUGIN_CATEGORIES,
     PluginRoutes,
     _find_plugins,

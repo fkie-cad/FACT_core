@@ -5,8 +5,8 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-import config
-from helperFunctions.install import (
+from fact import config
+from fact.helperFunctions.install import (
     InstallationError,
     OperateInDirectory,
     apt_install_packages,

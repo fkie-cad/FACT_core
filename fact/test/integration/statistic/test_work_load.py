@@ -3,8 +3,8 @@ from time import time
 
 import pytest
 
-from statistic.work_load import WorkLoadStatistic
-from storage.db_interface_stats import StatsDbViewer
+from fact.statistic.work_load import WorkLoadStatistic
+from fact.storage.db_interface_stats import StatsDbViewer
 
 
 @pytest.fixture

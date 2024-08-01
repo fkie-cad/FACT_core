@@ -6,10 +6,10 @@ from tempfile import TemporaryDirectory
 from docker.errors import DockerException
 from docker.types import Mount
 
-import config
-from analysis.YaraPluginBase import YaraBasePlugin
-from helperFunctions.docker import run_docker_container
-from helperFunctions.tag import TagColor
+from fact import config
+from fact.analysis.YaraPluginBase import YaraBasePlugin
+from fact.helperFunctions.docker import run_docker_container
+from fact.helperFunctions.tag import TagColor
 
 from ..internal.rulebook import evaluate, vulnerabilities
 

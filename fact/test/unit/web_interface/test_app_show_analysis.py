@@ -2,8 +2,8 @@ from http import HTTPStatus
 
 import pytest
 
-from helperFunctions.data_conversion import make_bytes
-from test.common_helper import (
+from fact.helperFunctions.data_conversion import make_bytes
+from fact.test.common_helper import (
     TEST_FW,
     TEST_FW_2,
     TEST_TEXT_FILE,
@@ -11,7 +11,7 @@ from test.common_helper import (
     create_test_file_object,
     generate_analysis_entry,
 )
-from test.unit.conftest import CommonIntercomMock
+from fact.test.unit.conftest import CommonIntercomMock
 
 FAILED_FO = create_test_file_object(
     uid='failed_uid',

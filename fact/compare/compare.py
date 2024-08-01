@@ -3,14 +3,14 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from helperFunctions.plugin import discover_compare_plugins
-from helperFunctions.virtual_file_path import get_paths_for_all_parents
-from objects.firmware import Firmware
-from storage.binary_service import BinaryService
+from fact.helperFunctions.plugin import discover_compare_plugins
+from fact.helperFunctions.virtual_file_path import get_paths_for_all_parents
+from fact.objects.firmware import Firmware
+from fact.storage.binary_service import BinaryService
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
-    from storage.db_interface_comparison import ComparisonDbInterface
+    from fact.objects.file import FileObject
+    from fact.storage.db_interface_comparison import ComparisonDbInterface
 
 
 class Compare:

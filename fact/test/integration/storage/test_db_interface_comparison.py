@@ -2,9 +2,9 @@ from time import time
 
 import pytest
 
-from storage.schema import ComparisonEntry
-from test.common_helper import create_test_firmware, generate_analysis_entry
-from test.integration.storage.helper import create_fw_with_child_fo
+from fact.storage.schema import ComparisonEntry
+from fact.test.common_helper import create_test_firmware, generate_analysis_entry
+from fact.test.integration.storage.helper import create_fw_with_child_fo
 
 
 def test_comparison_exists(comparison_db, backend_db):

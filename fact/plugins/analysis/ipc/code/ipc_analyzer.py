@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING
 
 from docker.types import Mount
 
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.docker import run_docker_container
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.docker import run_docker_container
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 DOCKER_IMAGE = 'ipc'
 

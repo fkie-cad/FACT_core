@@ -28,14 +28,14 @@ from shlex import split
 from subprocess import Popen, TimeoutExpired
 
 try:
-    from fact_base import FactBase
+    from fact.fact_base import FactBase
 except (ImportError, ModuleNotFoundError):
     sys.exit(1)
 
 from typing import Optional
 
-from helperFunctions.fileSystem import get_config_dir, get_src_dir
-from helperFunctions.install import run_cmd_with_logging
+from fact.helperFunctions.fileSystem import get_config_dir, get_src_dir
+from fact.helperFunctions.install import run_cmd_with_logging
 
 COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 

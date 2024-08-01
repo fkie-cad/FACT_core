@@ -6,10 +6,10 @@ import os
 from shlex import split
 from subprocess import CalledProcessError, check_output
 
-import config
-from helperFunctions.program_setup import setup_logging
-from storage.db_setup import DbSetup
-from storage.migration import alembic_table_exists, create_alembic_table, set_alembic_revision
+from fact import config
+from fact.helperFunctions.program_setup import setup_logging
+from fact.storage.db_setup import DbSetup
+from fact.storage.migration import alembic_table_exists, create_alembic_table, set_alembic_revision
 
 
 def execute_psql_command(

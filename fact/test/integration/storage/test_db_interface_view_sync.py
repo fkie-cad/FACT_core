@@ -1,4 +1,4 @@
-from storage.db_interface_view_sync import ViewReader, ViewUpdater
+from fact.storage.db_interface_view_sync import ViewReader, ViewUpdater
 
 TEST_TEMPLATE = b'<html><body><h1>Test Template</hi></body></html>'
 

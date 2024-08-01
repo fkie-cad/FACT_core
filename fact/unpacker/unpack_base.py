@@ -11,9 +11,9 @@ from common_helper_files import safe_rglob
 from docker.types import Mount
 from requests import ReadTimeout, exceptions
 
-import config
-from helperFunctions.docker import run_docker_container
-from unpacker.extraction_container import EXTRACTOR_DOCKER_IMAGE, ExtractionContainer
+from fact import config
+from fact.helperFunctions.docker import run_docker_container
+from fact.unpacker.extraction_container import EXTRACTOR_DOCKER_IMAGE, ExtractionContainer
 
 WORKER_TIMEOUT = 600  # in seconds
 

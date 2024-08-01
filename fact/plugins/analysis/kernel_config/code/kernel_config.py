@@ -3,14 +3,14 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from analysis.PluginBase import AnalysisBasePlugin
-from plugins.analysis.kernel_config.internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
-from plugins.analysis.kernel_config.internal.decomp import decompress
-from plugins.analysis.kernel_config.internal.kernel_config_hardening_check import check_kernel_hardening
-from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.plugins.analysis.kernel_config.internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
+from fact.plugins.analysis.kernel_config.internal.decomp import decompress
+from fact.plugins.analysis.kernel_config.internal.kernel_config_hardening_check import check_kernel_hardening
+from fact.plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 MAGIC_WORD = b'IKCFG_ST\037\213'
 

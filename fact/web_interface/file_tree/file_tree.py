@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable, NamedTuple, Optional
 
-from web_interface.file_tree.file_tree_node import FileTreeNode
+from fact.web_interface.file_tree.file_tree_node import FileTreeNode
 
 WEB_BASE_PATH = Path(__file__).parent.parent
 ICON_URL_BASE = 'static/file_icons'

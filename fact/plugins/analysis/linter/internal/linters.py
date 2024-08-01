@@ -8,7 +8,7 @@ from subprocess import PIPE, STDOUT
 
 from docker.types import Mount
 
-from helperFunctions.docker import run_docker_container
+from fact.helperFunctions.docker import run_docker_container
 
 
 def run_eslint(file_path):

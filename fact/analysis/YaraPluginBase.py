@@ -8,8 +8,8 @@ from pathlib import Path
 import yaml
 from yaml.parser import ParserError
 
-from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
-from helperFunctions.fileSystem import get_src_dir
+from fact.analysis.PluginBase import AnalysisBasePlugin, PluginInitException
+from fact.helperFunctions.fileSystem import get_src_dir
 
 
 class YaraBasePlugin(AnalysisBasePlugin):

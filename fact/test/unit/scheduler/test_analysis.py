@@ -5,12 +5,12 @@ from unittest import mock
 
 import pytest
 
-from analysis.PluginBase import AnalysisBasePlugin
-from objects.firmware import Firmware
-from scheduler.analysis import AnalysisScheduler
-from scheduler.task_scheduler import MANDATORY_PLUGINS
-from test.common_helper import MockFileObject, get_test_data_dir
-from test.mock import mock_patch, mock_spy
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.objects.firmware import Firmware
+from fact.scheduler.analysis import AnalysisScheduler
+from fact.scheduler.task_scheduler import MANDATORY_PLUGINS
+from fact.test.common_helper import MockFileObject, get_test_data_dir
+from fact.test.mock import mock_patch, mock_spy
 
 
 class ViewUpdaterMock:

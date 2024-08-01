@@ -1,6 +1,6 @@
 import pytest
 
-from web_interface.components.jinja_filter import FilterClass
+from fact.web_interface.components.jinja_filter import FilterClass
 
 
 def test_split_user_and_password_type_entry():

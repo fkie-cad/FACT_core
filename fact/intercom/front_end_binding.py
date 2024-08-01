@@ -4,8 +4,8 @@ import logging
 from time import sleep, time
 from typing import Any
 
-import config
-from intercom.common_redis_binding import InterComRedisInterface, generate_task_id
+from fact import config
+from fact.intercom.common_redis_binding import InterComRedisInterface, generate_task_id
 
 
 class InterComFrontEndBinding(InterComRedisInterface):

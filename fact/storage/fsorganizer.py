@@ -3,7 +3,7 @@ from pathlib import Path
 
 from common_helper_files import delete_file, write_binary_to_file
 
-import config
+from fact import config
 
 
 class FSOrganizer:

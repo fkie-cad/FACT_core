@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from storage.db_interface_stats import StatsUpdateDbInterface
-from test.integration.web_interface.rest.base import RestTestBase
+from fact.storage.db_interface_stats import StatsUpdateDbInterface
+from fact.test.integration.web_interface.rest.base import RestTestBase
 
 
 @pytest.mark.usefixtures('database_interfaces')

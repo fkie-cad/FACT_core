@@ -5,16 +5,16 @@ import logging
 from pathlib import Path
 
 try:
-    from plugins.analysis.software_components.internal.extract_os_names import extract_names
-    from plugins.installer import AbstractPluginInstaller
+    from fact.plugins.analysis.software_components.internal.extract_os_names import extract_names
+    from fact.plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
 
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from plugins.analysis.software_components.internal.extract_os_names import extract_names
-    from plugins.installer import AbstractPluginInstaller
+    from fact.plugins.analysis.software_components.internal.extract_os_names import extract_names
+    from fact.plugins.installer import AbstractPluginInstaller
 
 
 class SoftwareComponentsInstaller(AbstractPluginInstaller):

@@ -2,9 +2,9 @@ import logging
 
 import pytest
 
-from intercom.back_end_binding import InterComBackEndDeleteFile
-from test.common_helper import CommonDatabaseMock
-from test.integration.common import MockFSOrganizer
+from fact.intercom.back_end_binding import InterComBackEndDeleteFile
+from fact.test.common_helper import CommonDatabaseMock
+from fact.test.integration.common import MockFSOrganizer
 
 
 class UnpackingLockMock:

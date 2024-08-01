@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 from typing import AnyStr
 
-from helperFunctions.data_conversion import make_bytes
-from helperFunctions.hash import get_sha256
+from fact.helperFunctions.data_conversion import make_bytes
+from fact.helperFunctions.hash import get_sha256
 
 UID_REGEX = re.compile(r'[a-f0-9]{64}_[0-9]+')
 

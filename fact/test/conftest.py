@@ -7,24 +7,24 @@ from typing import List, NamedTuple, Type, TypeVar
 import pytest
 from pydantic import BaseModel, ConfigDict
 
-import config
-from scheduler.analysis import AnalysisScheduler
-from scheduler.comparison_scheduler import ComparisonScheduler
-from scheduler.unpacking_scheduler import UnpackingScheduler
-from storage.db_connection import ReadOnlyConnection, ReadWriteConnection
-from storage.db_interface_admin import AdminDbInterface
-from storage.db_interface_backend import BackendDbInterface
-from storage.db_interface_common import DbInterfaceCommon
-from storage.db_interface_comparison import ComparisonDbInterface
-from storage.db_interface_frontend import FrontEndDbInterface
-from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from storage.db_interface_stats import StatsUpdateDbInterface
-from storage.db_interface_view_sync import ViewUpdater
-from storage.db_setup import DbSetup
-from storage.fsorganizer import FSOrganizer
-from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import clear_test_tables, setup_test_tables
-from test.integration.common import MockDbInterface as BackEndDbInterfaceMock
+from fact import config
+from fact.scheduler.analysis import AnalysisScheduler
+from fact.scheduler.comparison_scheduler import ComparisonScheduler
+from fact.scheduler.unpacking_scheduler import UnpackingScheduler
+from fact.storage.db_connection import ReadOnlyConnection, ReadWriteConnection
+from fact.storage.db_interface_admin import AdminDbInterface
+from fact.storage.db_interface_backend import BackendDbInterface
+from fact.storage.db_interface_common import DbInterfaceCommon
+from fact.storage.db_interface_comparison import ComparisonDbInterface
+from fact.storage.db_interface_frontend import FrontEndDbInterface
+from fact.storage.db_interface_frontend_editing import FrontendEditingDbInterface
+from fact.storage.db_interface_stats import StatsUpdateDbInterface
+from fact.storage.db_interface_view_sync import ViewUpdater
+from fact.storage.db_setup import DbSetup
+from fact.storage.fsorganizer import FSOrganizer
+from fact.storage.unpacking_locks import UnpackingLockManager
+from fact.test.common_helper import clear_test_tables, setup_test_tables
+from fact.test.integration.common import MockDbInterface as BackEndDbInterfaceMock
 
 T = TypeVar('T')
 

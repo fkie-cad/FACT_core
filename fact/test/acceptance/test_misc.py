@@ -5,10 +5,10 @@ from urllib.parse import quote
 
 import pytest
 
-from statistic.update import StatsUpdater
-from statistic.work_load import WorkLoadStatistic
-from test.acceptance.conftest import test_fw_a, test_fw_c
-from test.common_helper import get_test_data_dir
+from fact.statistic.update import StatsUpdater
+from fact.statistic.work_load import WorkLoadStatistic
+from fact.test.acceptance.conftest import fact.test_fw_a, test_fw_c
+from fact.test.common_helper import get_test_data_dir
 
 
 @pytest.fixture(autouse=True)

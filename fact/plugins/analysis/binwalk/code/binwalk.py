@@ -8,8 +8,8 @@ from pathlib import Path
 from subprocess import PIPE, STDOUT
 from tempfile import TemporaryDirectory
 
-import config
-from analysis.PluginBase import AnalysisBasePlugin
+from fact import config
+from fact.analysis.PluginBase import AnalysisBasePlugin
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

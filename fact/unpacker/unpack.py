@@ -8,16 +8,16 @@ from typing import TYPE_CHECKING, Optional
 
 from fact_helper_file import get_file_type_from_path
 
-import config
-from analysis.PluginBase import sanitize_processed_analysis
-from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
-from helperFunctions.tag import TagColor
-from objects.file import FileObject
-from storage.fsorganizer import FSOrganizer
-from unpacker.unpack_base import ExtractionError, UnpackBase
+from fact import config
+from fact.analysis.PluginBase import sanitize_processed_analysis
+from fact.helperFunctions.fileSystem import file_is_empty, get_relative_object_path
+from fact.helperFunctions.tag import TagColor
+from fact.objects.file import FileObject
+from fact.storage.fsorganizer import FSOrganizer
+from fact.unpacker.unpack_base import ExtractionError, UnpackBase
 
 if TYPE_CHECKING:
-    from unpacker.extraction_container import ExtractionContainer
+    from fact.unpacker.extraction_container import ExtractionContainer
 
 
 class Unpacker(UnpackBase):

@@ -10,12 +10,12 @@ from queue import Empty
 from time import time
 from typing import TYPE_CHECKING, Dict, Set
 
-from helperFunctions.process import stop_process
-from objects.firmware import Firmware
-from storage.redis_status_interface import RedisStatusInterface
+from fact.helperFunctions.process import stop_process
+from fact.objects.firmware import Firmware
+from fact.storage.redis_status_interface import RedisStatusInterface
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 UPDATE_INTERVAL = 4.5  # a bit less than the update interval on the system health page, FixMe: -> configuration
 RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC = 300

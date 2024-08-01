@@ -1,4 +1,4 @@
-from analysis.PluginBase import AnalysisBasePlugin
+from fact.analysis.PluginBase import AnalysisBasePlugin
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

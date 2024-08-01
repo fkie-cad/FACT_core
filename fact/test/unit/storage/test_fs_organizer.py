@@ -3,8 +3,8 @@ import os
 import pytest
 from common_helper_files import get_binary_from_file
 
-from objects.file import FileObject
-from storage.fsorganizer import FSOrganizer
+from fact.objects.file import FileObject
+from fact.storage.fsorganizer import FSOrganizer
 
 
 @pytest.fixture

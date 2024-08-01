@@ -6,7 +6,7 @@ import sys
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
-from helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.fileSystem import get_src_dir
 
 
 def discover_analysis_plugins() -> list:

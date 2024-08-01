@@ -9,14 +9,14 @@ from flask_security import hash_password
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 
-import config
-from helperFunctions.fileSystem import get_config_dir
-from helperFunctions.web_interface import password_is_legal
-from version import __VERSION__
-from web_interface.app import create_app
-from web_interface.security.authentication import add_flask_security_to_app
-from web_interface.security.privileges import ROLES
-from web_interface.security.terminal_validators import ActionValidator, ActionValidatorReverse
+from fact import config
+from fact.helperFunctions.fileSystem import get_config_dir
+from fact.helperFunctions.web_interface import password_is_legal
+from fact.version import __VERSION__
+from fact.web_interface.app import create_app
+from fact.web_interface.security.authentication import add_flask_security_to_app
+from fact.web_interface.security.privileges import ROLES
+from fact.web_interface.security.terminal_validators import ActionValidator, ActionValidatorReverse
 
 FACT_ASCII_ART = """
                                                       ***********.

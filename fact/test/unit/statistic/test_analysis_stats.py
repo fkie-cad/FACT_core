@@ -1,8 +1,8 @@
 import pytest
 
-from analysis.PluginBase import AnalysisBasePlugin
-from statistic.analysis_stats import get_plugin_stats
-from test.common_helper import create_test_firmware
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.statistic.analysis_stats import get_plugin_stats
+from fact.test.common_helper import create_test_firmware
 
 
 class MockPlugin(AnalysisBasePlugin):

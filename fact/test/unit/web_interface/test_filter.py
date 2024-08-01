@@ -5,7 +5,7 @@ from zlib import compress
 
 import pytest
 
-import web_interface.filter as flt
+import fact.web_interface.filter as flt
 
 UNSORTABLE_LIST = [[], ()]
 

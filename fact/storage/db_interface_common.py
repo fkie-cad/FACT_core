@@ -9,11 +9,11 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
 
-from objects.firmware import Firmware
-from storage.db_interface_base import ReadOnlyDbInterface
-from storage.entry_conversion import analysis_entry_to_dict, file_object_from_entry, firmware_from_entry
-from storage.query_conversion import build_query_from_dict
-from storage.schema import (
+from fact.objects.firmware import Firmware
+from fact.storage.db_interface_base import ReadOnlyDbInterface
+from fact.storage.entry_conversion import analysis_entry_to_dict, file_object_from_entry, firmware_from_entry
+from fact.storage.query_conversion import build_query_from_dict
+from fact.storage.schema import (
     AnalysisEntry,
     FileObjectEntry,
     FirmwareEntry,
@@ -25,7 +25,7 @@ from storage.schema import (
 if TYPE_CHECKING:
     from sqlalchemy.sql import Select
 
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
     'crypto_material',

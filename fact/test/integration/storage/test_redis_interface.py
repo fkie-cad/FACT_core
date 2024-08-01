@@ -2,7 +2,7 @@ from os import urandom
 
 import pytest
 
-from storage.redis_interface import CHUNK_MAGIC, RedisInterface
+from fact.storage.redis_interface import CHUNK_MAGIC, RedisInterface
 
 CHUNK_SIZE = 1_000
 

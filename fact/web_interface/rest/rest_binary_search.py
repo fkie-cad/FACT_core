@@ -1,11 +1,11 @@
 from flask import request
 from flask_restx import Namespace, fields
 
-from helperFunctions.yara_binary_search import is_valid_yara_rule_file
-from web_interface.rest.helper import error_message, success_message
-from web_interface.rest.rest_resource_base import RestResourceBase
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.helperFunctions.yara_binary_search import is_valid_yara_rule_file
+from fact.web_interface.rest.helper import error_message, success_message
+from fact.web_interface.rest.rest_resource_base import RestResourceBase
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 api = Namespace(
     'rest/binary_search', description='Initiate a binary search on the binary database and fetch the results'

@@ -3,7 +3,7 @@ import os
 from flask import Flask
 from flask_security import uia_username_mapper
 
-import config
+from fact import config
 
 
 def create_app():

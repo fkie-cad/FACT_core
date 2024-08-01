@@ -4,11 +4,11 @@ import logging
 
 from sqlalchemy import select
 
-from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_connection import DbConnection, ReadWriteDeleteConnection
-from storage.db_interface_base import ReadWriteDbInterface
-from storage.db_interface_common import DbInterfaceCommon
-from storage.schema import ComparisonEntry, FileObjectEntry
+from fact.intercom.front_end_binding import InterComFrontEndBinding
+from fact.storage.db_connection import DbConnection, ReadWriteDeleteConnection
+from fact.storage.db_interface_base import ReadWriteDbInterface
+from fact.storage.db_interface_common import DbInterfaceCommon
+from fact.storage.schema import ComparisonEntry, FileObjectEntry
 
 
 class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):

@@ -7,7 +7,7 @@ from typing import Any
 
 from redis.client import Redis
 
-import config
+from fact import config
 
 REDIS_MAX_VALUE_SIZE = 512_000_000  # 512 MB (not to be confused with 512 MiB)
 CHUNK_MAGIC = b'$CHUNKED$'

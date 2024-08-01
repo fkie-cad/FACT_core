@@ -20,13 +20,13 @@ import logging
 import sys
 
 try:
-    from fact_base import FactBase
+    from fact.fact_base import FactBase
 except (ImportError, ModuleNotFoundError):
     sys.exit(1)
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from storage.db_interface_base import ReadOnlyDbInterface
+from fact.storage.db_interface_base import ReadOnlyDbInterface
 
 
 class FactDb(FactBase):

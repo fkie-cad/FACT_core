@@ -1,6 +1,6 @@
 import pytest
 
-from helperFunctions.virtual_file_path import get_paths_for_all_parents
+from fact.helperFunctions.virtual_file_path import get_paths_for_all_parents
 
 
 @pytest.mark.parametrize(

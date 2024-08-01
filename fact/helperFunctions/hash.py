@@ -10,10 +10,10 @@ import lief
 import ssdeep
 import tlsh
 
-from helperFunctions.data_conversion import make_bytes
+from fact.helperFunctions.data_conversion import make_bytes
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 ELF_MIME_TYPES = [
     'application/x-executable',

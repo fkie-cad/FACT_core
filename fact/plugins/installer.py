@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from helperFunctions.install import (
+from fact.helperFunctions.install import (
     check_distribution,
     install_pip_packages,
     read_package_list_from_file,

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from objects.file import FileObject
+from fact.objects.file import FileObject
 
 from ..code.password_file_analyzer import AnalysisPlugin, crack_hash, parse_john_output
 

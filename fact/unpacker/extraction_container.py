@@ -13,7 +13,7 @@ from docker.errors import APIError, DockerException
 from docker.types import Mount
 from requests.adapters import HTTPAdapter, Retry
 
-import config
+from fact import config
 
 if TYPE_CHECKING:
     import multiprocessing

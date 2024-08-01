@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from objects.firmware import Firmware
-from test.common_helper import get_test_data_dir
+from fact.objects.firmware import Firmware
+from fact.test.common_helper import get_test_data_dir
 
 if TYPE_CHECKING:
     from multiprocessing import Queue

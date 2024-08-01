@@ -1,12 +1,12 @@
 from flask import request
 from flask_restx import Namespace
 
-from helperFunctions.object_conversion import create_meta_dict
-from storage.db_interface_base import DbInterfaceError
-from web_interface.rest.helper import error_message, get_paging, get_query, success_message
-from web_interface.rest.rest_resource_base import RestResourceBase
-from web_interface.security.decorator import roles_accepted
-from web_interface.security.privileges import PRIVILEGES
+from fact.helperFunctions.object_conversion import create_meta_dict
+from fact.storage.db_interface_base import DbInterfaceError
+from fact.web_interface.rest.helper import error_message, get_paging, get_query, success_message
+from fact.web_interface.rest.rest_resource_base import RestResourceBase
+from fact.web_interface.security.decorator import roles_accepted
+from fact.web_interface.security.privileges import PRIVILEGES
 
 api = Namespace('rest/file_object', description='Browse the file database or request specific file')
 

@@ -3,7 +3,7 @@ from time import sleep
 
 import pytest
 
-from intercom.back_end_binding import InterComBackEndBinding
+from fact.intercom.back_end_binding import InterComBackEndBinding
 
 # This number must be changed, whenever a listener is added or removed
 NUMBER_OF_LISTENERS = 12

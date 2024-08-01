@@ -1,4 +1,4 @@
-from web_interface.components.hex_highlighting import preview_data_as_hex
+from fact.web_interface.components.hex_highlighting import preview_data_as_hex
 
 
 def test_hex_preview_merge():

@@ -1,7 +1,7 @@
 import pytest
 
-from storage.db_interface_frontend import MetaEntry
-from test.common_helper import TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
+from fact.storage.db_interface_frontend import MetaEntry
+from fact.test.common_helper import TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
 
 
 class DbMock(CommonDatabaseMock):

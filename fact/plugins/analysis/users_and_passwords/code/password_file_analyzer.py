@@ -10,16 +10,16 @@ from typing import TYPE_CHECKING
 
 from docker.types import Mount
 
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.docker import run_docker_container
-from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.tag import TagColor
-from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.docker import run_docker_container
+from fact.helperFunctions.fileSystem import get_src_dir
+from fact.helperFunctions.tag import TagColor
+from fact.plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from objects.file import FileObject
+    from fact.objects.file import FileObject
 
 JOHN_PATH = Path(__file__).parent.parent / 'bin' / 'john'
 JOHN_POT = Path(__file__).parent.parent / 'bin' / 'john.pot'

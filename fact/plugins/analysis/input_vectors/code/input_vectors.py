@@ -7,10 +7,10 @@ from docker.errors import DockerException
 from docker.types import Mount
 from requests.exceptions import ReadTimeout
 
-import config
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.docker import run_docker_container
-from objects.file import FileObject
+from fact import config
+from fact.analysis.PluginBase import AnalysisBasePlugin
+from fact.helperFunctions.docker import run_docker_container
+from fact.objects.file import FileObject
 
 DOCKER_IMAGE = 'input-vectors:latest'
 TIMEOUT_IN_SECONDS = 120

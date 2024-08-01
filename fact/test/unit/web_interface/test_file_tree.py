@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from web_interface.file_tree.file_tree import (
+from fact.web_interface.file_tree.file_tree import (
     FileTreeData,
     VirtualPathFileTree,
     _root_is_virtual,
@@ -10,7 +10,7 @@ from web_interface.file_tree.file_tree import (
     get_mime_for_text_file,
     remove_virtual_path_from_root,
 )
-from web_interface.file_tree.file_tree_node import FileTreeNode
+from fact.web_interface.file_tree.file_tree_node import FileTreeNode
 
 NON_VIRTUAL_TREE_ROOT = {
     'a_attr': {'href': '/analysis/someUID/ro/someUID'},

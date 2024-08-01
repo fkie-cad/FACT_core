@@ -1,4 +1,4 @@
-from web_interface.frontend_main import WebFrontEnd
+from fact.web_interface.frontend_main import WebFrontEnd
 
 
 class RestTestBase:
