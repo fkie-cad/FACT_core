@@ -90,7 +90,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 f' it is not JSON-serializable: {uid}\n{analysis_dict}'
             )
         except DbInterfaceError as error:
-            logging.error(f'Could not store analysis result of {plugin} on {uid}: {error!s}')
+            logging.error(f'Could not store analysis result of {plugin} on {uid}: {error!s}\n{analysis_dict}')
         except ValueError as error:
             logging.error(f'Bad value in analysis result of {plugin} on {uid}: {error!s}\n{analysis_dict}')
             raise
@@ -200,7 +200,10 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             entry.analysis_date = analysis_data['analysis_date']
             entry.summary = analysis_data.get('summary')
             entry.tags = analysis_data.get('tags')
-            entry.result = analysis_data.get('result', {})
+            result = analysis_data.get('result', {})
+            if result is not None:
+                sanitize(result)
+            entry.result = result
 
     def update_file_object_parents(self, file_uid: str, root_uid: str, parent_uid):
         with self.get_read_write_session() as session:
