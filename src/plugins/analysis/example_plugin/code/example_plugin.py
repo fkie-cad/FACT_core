@@ -11,12 +11,14 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     class Schema(pydantic.BaseModel):
         """Here goes the toplevel description of the plugin result"""
 
+        # fmt: off
         number: int = Field(
             description=(
-                # fmt: off
-                'This is a description of the field number.\n' 'In an actual plugin all fields must have a description.'
+                'This is a description of the field number.\n'
+                'In an actual plugin all fields must have a description.'
             ),
         )
+        # fmt: on
         name: str
         first_byte: str
         virtual_file_path: dict
