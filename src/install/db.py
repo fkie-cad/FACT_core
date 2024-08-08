@@ -4,14 +4,15 @@ from pathlib import Path
 from shlex import split
 from subprocess import PIPE, CalledProcessError, run
 
-from helperFunctions.install import InstallationError, OperateInDirectory
+from helperFunctions.install import InstallationError, OperateInDirectory, check_distribution
 
 
-def install_postgres(version: int = 14):
+def install_postgres(version: int = 16):
     # based on https://www.postgresql.org/download/linux/ubuntu/
+    codename = check_distribution()
     command_list = [
         'sudo apt-get install -y postgresql-common',
-        'sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y',
+        f'sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y {codename}',
         f'sudo apt-get -y install postgresql-{version}',
     ]
     for command in command_list:
