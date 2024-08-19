@@ -120,8 +120,6 @@ class GraphQlInterface:
 
         response = self.client.execute(gql(query), variable_values=variables)
         total = response.get(f'{table}_aggregate', {}).get('aggregate', {}).get('totalCount')
-        if total == 0:
-            raise GraphQLSearchError('No results found.')
         if total is None:
             raise GraphQLSearchError('Could not determine total result count.')
         return [e['uid'] for e in response.get(table, {})], total
