@@ -169,9 +169,7 @@ class HasuraSetup:
         if response.status_code not in {HTML_OK, HTML_BAD_REQUEST}:
             raise HasuraInitError('No connection to Hasura API. Is it running?')
         data = response.json()
-        if isinstance(data, dict) and 'error' in data:
-            return False
-        return True
+        return not (isinstance(data, dict) and 'error' in data)
 
     def _add_ro_user_role_to_tables(self):
         for table in TRACKED_TABLES:

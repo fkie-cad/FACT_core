@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -79,6 +80,8 @@ class DatabaseRoutes(ComponentBase):
             except (GraphQLSearchError, GraphQLSyntaxError, TransportQueryError) as error:
                 if hasattr(error, 'errors') and error.errors:
                     error = ', '.join(err.get('message') for err in error.errors if err)
+                if 'not found in type' in error:
+                    error = self._format_wrong_table_error(error)
                 message = f'Error during GraphQL search: {error}'
                 logging.exception(message)
                 flash(message)
@@ -125,6 +128,16 @@ class DatabaseRoutes(ComponentBase):
             current_vendor=str(request.args.get('vendor')),
             search_parameters=parameters,
         )
+
+    @staticmethod
+    def _format_wrong_table_error(error: str) -> str:
+        # special case where the user usually searched on the wrong table (or there is a typo in their request)
+        match = re.search(r"field '(.+)' not found in type: '(.+)'", error)
+        if match:
+            field, expression = match.groups()
+            table = expression.replace('_bool_exp', '')
+            error = f'Table "{table}" has no field "{field}". Did you search on the wrong table?'
+        return error
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/browse_binary_search_history', GET)
