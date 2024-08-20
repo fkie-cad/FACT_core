@@ -6,7 +6,7 @@
         title="{{ tooltip | replace_underscore }}"
     {%- endif %}
     {% if uid -%}
-        onclick="location.href='http://localhost:5000/analysis/{{ uid }}/{{ plugin }}/ro/{{ root_uid }}?load_summary=true'"
+        onclick="location.href='/analysis/{{ uid }}/{{ plugin }}/ro/{{ root_uid }}?load_summary=true'"
     {%- endif %}
 >
     {{ value }}
