@@ -131,12 +131,12 @@ class DatabaseRoutes(ComponentBase):
 
     @staticmethod
     def _format_wrong_table_error(error: str) -> str:
-        # special case where the user usually searched on the wrong table (or there is a typo in their request)
+        # special case where the user usually selected the wrong table (or there is a typo in their request)
         match = re.search(r"field '(.+)' not found in type: '(.+)'", error)
         if match:
             field, expression = match.groups()
             table = expression.replace('_bool_exp', '')
-            error = f'Table "{table}" has no field "{field}". Did you search on the wrong table?'
+            error = f'Table "{table}" has no field "{field}". Did you search in the wrong table?'
         return error
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
