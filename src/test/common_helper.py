@@ -4,12 +4,17 @@ import os
 from base64 import standard_b64encode
 from contextlib import contextmanager
 from copy import deepcopy
+from http import HTTPStatus
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from objects.firmware import Firmware
+
+if TYPE_CHECKING:
+    from werkzeug.test import TestResponse
 
 
 def get_test_data_dir():
@@ -315,3 +320,14 @@ def generate_analysis_entry(
         'tags': tags or {},
         'result': analysis_result or {},
     }
+
+
+def assert_search_result(response: TestResponse, included: list[FileObject], excluded: list[FileObject]):
+    assert response.status_code == HTTPStatus.OK
+    html = response.data.decode()
+    assert 'Browse Firmware Database' in html, 'wrong page'
+    assert 'Please enter a valid search request' not in html, 'error in query'
+    for fo in included:
+        assert f"href='/analysis/{fo.uid}'" in html, f'file {fo.uid} should be included in the result'
+    for fo in excluded:
+        assert f"href='/analysis/{fo.uid}'" not in html, f'file {fo.uid} should not be included in the result'

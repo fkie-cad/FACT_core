@@ -48,8 +48,6 @@ class DatabaseRoutes(ComponentBase):
                     only_firmwares=search_parameters['only_firmware'],
                     inverted=search_parameters['inverted'],
                 )
-                if self._query_has_only_one_result(firmware_list, search_parameters['query']):
-                    return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
             except QueryConversionException as exception:
                 error_message = exception.get_message()
                 return render_template('error.html', message=error_message)
@@ -125,10 +123,6 @@ class DatabaseRoutes(ComponentBase):
         if request.args.get('date'):
             search_parameters['query'] = self._add_date_to_query(search_parameters['query'], request.args.get('date'))
         return search_parameters
-
-    @staticmethod
-    def _query_has_only_one_result(result_list, query):
-        return len(result_list) == 1 and query != '{}'
 
     def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):
         meta_list = self.db.frontend.generic_search(
