@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import difflib
 import logging
+from multiprocessing import Manager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -38,6 +39,7 @@ class InterComBackEndBinding:
         self.compare_service = compare_service
         self.unpacking_service = unpacking_service
         self.unpacking_locks = unpacking_locks
+        self.manager = Manager()
         self.listeners = [
             InterComBackEndAnalysisTask(self.unpacking_service.add_task),
             InterComBackEndReAnalyzeTask(self.unpacking_service.add_task),
@@ -52,7 +54,10 @@ class InterComBackEndBinding:
                 unpacking_locks=self.unpacking_locks,
                 db_interface=DbInterfaceCommon(),
             ),
-            InterComBackEndSingleFileTask(self.analysis_service.update_analysis_of_single_object),
+            InterComBackEndSingleFileTask(
+                self.analysis_service.update_analysis_of_single_object,
+                manager=self.manager,
+            ),
             InterComBackEndPeekBinaryTask(),
             InterComBackEndLogsTask(),
         ]
@@ -66,6 +71,7 @@ class InterComBackEndBinding:
     def shutdown(self):
         for listener in self.listeners:
             listener.shutdown()
+        self.manager.shutdown()
         stop_processes(
             [listener.process for listener in self.listeners if listener],
             config.backend.intercom_poll_delay + 1,
@@ -102,8 +108,31 @@ class InterComBackEndUpdateTask(InterComBackEndReAnalyzeTask):
     CONNECTION_TYPE = 'update_task'
 
 
-class InterComBackEndSingleFileTask(InterComBackEndReAnalyzeTask):
+class InterComBackEndSingleFileTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'single_file_task'
+    OUTGOING_CONNECTION_TYPE = 'single_file_task_resp'
+
+    def __init__(self, *args, manager: Manager):
+        super().__init__(*args)
+        self.manager = manager
+        self.events = self.manager.dict()
+
+    def pre_process(self, task: Firmware, task_id):
+        analysis_finished_event = self.manager.Event()
+        self.events[task.uid] = analysis_finished_event
+        task.callback = analysis_finished_event.set
+        return super().pre_process(task, task_id)
+
+    def get_response(self, task: Firmware):
+        try:
+            event = self.events.pop(task.uid)
+            event.wait(timeout=60)
+            if not event.is_set():
+                raise TimeoutError
+            return True
+        except (TimeoutError, KeyError):
+            logging.exception('Single file update failed.')
+            return False
 
 
 class InterComBackEndCompareTask(InterComListener):
