@@ -554,6 +554,7 @@ class AnalysisScheduler:
         if not fw_object.scheduled_analysis:
             logging.info(f'Analysis Completed: {fw_object.uid}')
             self.status.remove_object(fw_object)
+            self._do_callback(fw_object)
         elif (
             isinstance(fw_object, Firmware)
             or fw_object.root_uid is None  # this should only be true if we are dealing with a "single file analysis"
@@ -565,6 +566,14 @@ class AnalysisScheduler:
                 f'Removing {fw_object.uid} from analysis scheduling because analysis of FW {fw_object.root_uid} '
                 f'was cancelled.'
             )
+
+    @staticmethod
+    def _do_callback(fw_object: FileObject):
+        if fw_object.callback is not None:
+            try:
+                fw_object.callback()
+            except Exception as error:
+                logging.exception(f'Callback failed for {fw_object.uid}: {error}')
 
     # ---- miscellaneous functions ----
 

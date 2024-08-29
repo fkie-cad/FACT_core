@@ -4,6 +4,7 @@ import logging
 import os
 import pickle
 from multiprocessing import Process, Value
+from threading import Thread
 from time import sleep, time
 from typing import Any, Callable
 
@@ -84,10 +85,15 @@ class InterComListenerAndResponder(InterComListener):
 
     def pre_process(self, task, task_id):
         logging.debug(f'request received: {self.CONNECTION_TYPE} -> {task_id}')
+        # fetch the response in a different thread so that the listener is not blocked while waiting for the result
+        tread = Thread(target=self._get_response_asynchronously, args=(task, task_id))
+        tread.start()
+        return task
+
+    def _get_response_asynchronously(self, task, task_id):
         response = self.get_response(task)
         self.redis.set(task_id, response)
-        logging.debug(f'response send: {self.OUTGOING_CONNECTION_TYPE} -> {task_id}')
-        return task
+        logging.debug(f'response sent: {self.OUTGOING_CONNECTION_TYPE} -> {task_id}')
 
     def get_response(self, task):
         """

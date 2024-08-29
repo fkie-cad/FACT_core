@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Manager
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from time import sleep
@@ -69,7 +70,7 @@ class TestInterComTaskCommunication:
         assert Path(task.file_path).exists(), 'file does not exist'
 
     def test_single_file_task(self, intercom_frontend):
-        task_listener = InterComBackEndSingleFileTask()
+        task_listener = InterComBackEndSingleFileTask(manager=Manager())
         test_fw = create_test_firmware()
         test_fw.file_path = None
         test_fw.scheduled_analysis = ['binwalk']
