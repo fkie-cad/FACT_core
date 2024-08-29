@@ -35,6 +35,16 @@
         const selected_analysis = "{{ selected_analysis }}";
     </script>
     <script src="{{ url_for('static', filename='js/file_tree.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_single_update.js') }}"></script>
+    <script>
+        window.addEventListener('load', function() {
+            // add highlighting animation if analysis was updated
+            if (localStorage.getItem('analysisUpdated') === `${selected_analysis}-${uid}`) {
+                document.getElementById('show-analysis-table').classList.add('updated-analysis');
+                localStorage.setItem('analysisUpdated', 'false');
+            }
+        });
+    </script>
 
     <style>
         {# styling for file preview line lumbers #}
@@ -48,6 +58,13 @@
         }
         .hljs-ln-code {
             padding-left: 10px !important;
+        }
+        @keyframes updated-analysis {
+            from { box-shadow: 0 0 10px 5px rgba(0, 105, 217, 0.5); }
+            to { box-shadow: none; }
+        }
+        .updated-analysis {
+            animation: updated-analysis 2s ease-in-out;
         }
     </style>
 {% endblock %}
@@ -280,8 +297,8 @@
                         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
                     </div>
 
-                    <div class="modal-body">
-                        <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+                    <div class="modal-body" id="modal-body">
+                        <form class="form-horizontal" id="modal-form" action="" method=post enctype=multipart/form-data>
                             <p>Add new analysis</p>
                             {% for system in available_plugins.unused | sort %}
                                 <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
@@ -307,6 +324,19 @@
                 </div>
             </div>
         </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // overwrites the submit action of the "Run additional analysis" modal button
+                // and waits for the result before refreshing the page
+                const form = document.getElementById('modal-form');
+                const modalBody = document.getElementById('modal-body');
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+                    waitForAnalysis(form.action, modalBody, formData);
+                });
+            });
+        </script>
 
         {# Showing analysis section #}
 
@@ -326,7 +356,7 @@
                     <div id="summary-div">
                         <div class="mb-3 border" id="loading-summary-gif" style="display: none; padding: 5px; text-align: center">
                             <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading gif">
-                            <p>Loading summary for included files ..</p>
+                            <p>Loading summary for included files...</p>
                         </div>
                     </div>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_summary.js') }}"></script>

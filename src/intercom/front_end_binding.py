@@ -27,7 +27,7 @@ class InterComFrontEndBinding:
             self._add_to_redis_queue('update_task', fw, fw.uid)
 
     def add_single_file_task(self, fw):
-        self._add_to_redis_queue('single_file_task', fw, fw.uid)
+        return self._request_response_listener(fw, 'single_file_task', 'single_file_task_resp')
 
     def add_compare_task(self, compare_id, force=False):
         self._add_to_redis_queue('compare_task', (compare_id, force), compare_id)

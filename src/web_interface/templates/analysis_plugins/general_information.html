@@ -2,7 +2,7 @@
 
 {% block analysis_result %}
 
-    <table class="table table-bordered" style="table-layout: fixed">
+    <table id="show-analysis-table" class="table table-bordered"  style="table-layout: fixed">
         <colgroup>
             <col style="width: 12.5%">
             <col style="width: 87.5%">
@@ -72,12 +72,21 @@
         {% else %}
             <tr>
                 <td class="table-warning">Analysis outdated</td>
-                <td>
+                <td id="analysis-outdated-td">
                     The backend plugin version ({{ version_backend | string }}) is incompatible with
                     the version ({{ version_database | string }}) of the analysis result.
 
-                    Please update the analysis.
+                    <button class="btn btn-primary btn-sm" onclick="startSingleAnalysis()">
+                        Update Analysis
+                    </button>
                 </td>
+                <script>
+                    function startSingleAnalysis() {
+                        const url = `/analysis/single-update/${uid}/${selected_analysis}`;
+                        let element = document.getElementById("analysis-outdated-td");
+                        waitForAnalysis(url, element);
+                    }
+                </script>
             </tr>
         {% endif %}
         </tbody>

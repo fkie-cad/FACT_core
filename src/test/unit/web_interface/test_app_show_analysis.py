@@ -80,9 +80,11 @@ class TestAppShowAnalysis:
             f'/analysis/{TEST_FW.uid}',
             content_type='multipart/form-data',
             data={'analysis_systems': ['plugin_a', 'plugin_b']},
+            follow_redirects=True,
         )
 
-        assert post_new.status_code == HTTPStatus.FOUND
+        assert post_new.status_code == HTTPStatus.OK
+        assert 'success' in post_new.json
         assert intercom_task_list
         assert intercom_task_list[0].scheduled_analysis == ['plugin_a', 'plugin_b']
 
