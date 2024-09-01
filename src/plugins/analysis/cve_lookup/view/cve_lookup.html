@@ -9,22 +9,33 @@
             {% else %}
                 <td class="p-0 m-0">
                     <table class="table table-bordered m-0" style="width: 100%;">
+                        {% set cvss_versions = result | get_cvss_versions %}
                         <tr>
-                            <th>CVE ID</th>
-                            <th style="width: 130px">CVSS v2 score</th>
-                            <th style="width: 130px">CVSS v3 score</th>
-                            <th style="width: 200px">Affected versions</th>
+                            <th class="text-right" rowspan="2" style="min-width: 200px">CVE ID</th>
+                            <th class="text-center" colspan="{{ cvss_versions | length | max(1) }}" style="min-width: 200px">CVSS scores</th>
+                            <th class="text-left" rowspan="2" style="width: 100%;">Affected versions</th>
+                        </tr>
+                        <tr>
+                            {% if (cvss_versions | length) > 0 %}
+                                {% for version in cvss_versions | sort %}
+                                    <th class="text-center" style="width: 75px;">{{ version }}</th>
+                                {% endfor %}
+                            {% else %}
+                                {# if there is no entry with a CVSS score, display a row of "N/A" #}
+                                <th class="text-center" style="width: 75px;">N/A</th>
+                            {% endif %}
                         </tr>
                         {% for cve_id, entry in result | sort_cve() %}
                         <tr>
-                            <td>
+                            <td class="text-right">
                                 <a href="https://nvd.nist.gov/vuln/detail/{{ cve_id }}" target="_blank" rel="noopener noreferrer">{{ cve_id }} </a>
                             </td>
-                            {% for score in [entry.get("score2", "N/A"), entry.get("score3", "N/A")] %}
+                            {% for version in (cvss_versions or ["N/A"]) | sort %}
+                                {% set score = entry.scores.get(version, "N/A") %}
                                 {% set class = "secondary" if score == "N/A" else ("success" if score|float < 4 else ("warning" if score|float < 7 else "danger")) %}
-                                <td><span class="badge badge-{{ class }}" style="font-size: 100%;">{{ score }}</span></td>
+                                <td class="text-center"><span class="badge badge-{{ class }}" style="font-size: 100%;">{{ score }}</span></td>
                             {% endfor %}
-                            <td>{{ entry.get("cpe_version", "N/A") }}</td>
+                            <td class="text-left">{{ entry.get("cpe_version", "N/A") }}</td>
                         </tr>
                         {% endfor %}
                     </table>
