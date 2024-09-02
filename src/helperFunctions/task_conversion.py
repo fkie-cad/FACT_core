@@ -133,18 +133,3 @@ def _get_uid_of_analysis_task(analysis_task: dict) -> str | None:
     if analysis_task['binary']:
         return create_uid(analysis_task['binary'])
     return None
-
-
-def check_for_errors(analysis_task: dict) -> dict[str, str]:
-    """
-    Check an analysis task for missing fields and return a dict with error messages (that are intended to be displayed
-    in the webinterface).
-
-    :param analysis_task: The analysis task data.
-    :return: A dictionary containing error messages in the form `{task_key: error_message}`.
-    """
-    return {
-        key: f"""Please specify the {key.replace('_', ' ')}"""
-        for key in analysis_task
-        if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS
-    }
