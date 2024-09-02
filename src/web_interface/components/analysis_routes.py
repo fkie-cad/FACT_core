@@ -9,12 +9,13 @@ from typing import TYPE_CHECKING
 from common_helper_files import get_binary_from_file
 from flask import flash, redirect, render_template, render_template_string, request, url_for
 from flask_login.utils import current_user
+from werkzeug.exceptions import BadRequestKeyError
 
 import config
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
+from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import get_template_as_string
 from objects.firmware import Firmware
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
@@ -166,11 +167,12 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', POST)
     def post_update_analysis(self, uid, re_do=False):
-        analysis_task = create_re_analyze_task(request, uid=uid)
+        try:
+            analysis_task = create_re_analyze_task(request, uid=uid)
+        except BadRequestKeyError as error:
+            logging.warning(f'Received invalid update analysis request: Key {KeyError.__str__(error)} is missing!')
+            raise
         force_reanalysis = request.form.get('force_reanalysis') == 'true'
-        error = check_for_errors(analysis_task)
-        if error:
-            return self.get_update_analysis(uid=uid, re_do=re_do, error=error)
         self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
         return render_template('upload/upload_successful.html', uid=uid)
 
