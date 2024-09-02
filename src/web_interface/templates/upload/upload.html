@@ -6,20 +6,30 @@
 {%- set is_reanalysis = True if firmware else False -%}
 
 {% block head %}
-    
+
     <script>
-        var device_names = {{ device_names | safe }};
-        var plugin_dict = {{ analysis_plugin_dict | dict_to_json | safe }};
+        const device_names = {{ device_names | safe }};
+        const plugin_dict = {{ analysis_plugin_dict | dict_to_json | safe }};
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/loading.js') }}"></script>
     <script>
-        $(window).bind("pageshow", function(event) {
-          // if we come back to the page make sure that the loading gif is not covering up the form
-          hideImg();
+        $(window).bind("pageshow", function (event) {
+            // if we come back to the page make sure that the loading gif is not covering up the form
+            hideImg();
         });
     </script>
+    <style>
+        .upload-label {
+            justify-content: center;
+            width: 135px;
+        }
 
+        .upload-icon {
+            justify-content: center;
+            width: 45px;
+        }
+    </style>
 {% endblock %}
 
 {%- block styles -%}
@@ -28,180 +38,163 @@
 
 {%- block body -%}
 
-<div class="row justify-content-center">
-    <div class="col-xl-6 col-lg-8 mt-4">
-        {%- if is_reanalysis %}
-            <h3 class="mb-3">{{ title }} of {{ firmware.uid | replace_uid_with_hid }}</h3>
-        {%- else %}
-            <h3 class="mb-3">Upload Firmware</h3>
-        {%- endif %}
-       
-        <div id="form">
-            <form class="form-horizontal" action="" method=post enctype=multipart/form-data onsubmit="return showImg()">
+    <div class="row justify-content-center">
+        <div class="col-xl-6 col-lg-8 mt-4">
+            {%- if is_reanalysis %}
+                <h3 class="mb-1">{{ title }} of</h3>
+                <h5 class="mb-3">{{ firmware.uid | replace_uid_with_hid }}</h5>
+            {%- else %}
+                <h3 class="mb-3">Upload Firmware</h3>
+            {%- endif %}
 
-                {# File #}
-                {%- if not is_reanalysis %}
-                    {% call macros.upload_input("file", "File", error) %}
-                        <input class="form-control-file" id="file" type="file" name=file required>
-                    {% endcall %}
-                {%- else %}
-                    <input type="hidden" name="file_name" id="file_name" value="{{ firmware.file_name }}">
-                {%- endif %}
+            <div id="form">
+                <form class="form-horizontal" action="" method=post enctype=multipart/form-data
+                      onsubmit="return showImg()">
 
-                {# Device Class #}
-                {%- call macros.upload_input("device_class", "Device Class", error) %}
-                    <select class="form-control" id="device_class" name='device_class_dropdown' size="4" required
-                            onchange="update_text_input(this, document.getElementById('class_text')); update_device_names();">
-                    {%- if is_reanalysis %}
-                        <option value='{{ firmware.device_class }}' selected>{{ firmware.device_class }}</option>
-                    {%- endif -%}
-                    {%- for class in device_classes | sort %}
-                        <option value='{{ class }}'>{{ class }}</option>
-                    {%- endfor %}
-                        <option value='new entry'>new entry</option>
-                    </select>
-                    <input type="text" name="device_class" class="form-control" id="class_text" placeholder="New Device Class" style="display: none;">
-                {%- endcall %}
-
-                {# Vendor #}
-                {%- call macros.upload_input("vendor", "Vendor", error) %}
-                    <select class="form-control" id="vendor" name='vendor_dropdown' size="4" required
-                            onchange="update_text_input(this, document.getElementById('vendor_text')); update_device_names()">
-                    {%- if is_reanalysis %}
-                        <option value='{{ firmware.vendor }}' selected>{{ firmware.vendor }}</option>
-                    {%- endif -%}
-                    {% for vendor in vendors | sort %}
-                        <option value='{{ vendor }}'>{{ vendor }}</option>
-                    {% endfor %}
-                        <option value='new entry'>new entry</option>
-                    </select>
-                    <input type="text" name="vendor" class="form-control" id="vendor_text" placeholder="New Vendor" style="display: none;">
-                {%- endcall %}
-
-                {# Device Name #}
-                {%- call macros.upload_input("device_name", "Device Name", error) %}
-                    <select
-                            class="form-control"
-                            id="device_name"
-                            name='device_name_dropdown'
-                            size="4"
-                            onchange="update_text_input(this, document.getElementById('device_name_text'));
-                                      if (this.selectedIndex != -1){document.getElementById('device_part').disabled = false;}"
-                            required
-                            {%- if not is_reanalysis %} disabled {% endif %}
-                    >
-                        {% if not is_reanalysis %}
-                            <option value='new entry'>Please select device class and vendor</option>
-                        {% else %}
-                            <option value='{{ firmware.device_name }}' selected>{{ firmware.device_name }}</option>
-                            <option value='new entry'>new entry</option>
-                        {% endif %}
-                    </select>
-                    <input type="text" name="device_name" class="form-control" id="device_name_text" placeholder="New Device Name" style="display: none;">
-                {%- endcall %}
-
-                {# Device Part #}
-                {%- call macros.upload_input("device_part", "Device Part", error) %}
-                    <select
-                            class="form-control"
-                            id="device_part"
-                            name='device_part_dropdown'
-                            size="4"
-                            onchange="update_text_input(this, document.getElementById('device_part_text'));"
-                            required
-                    >
-                            <option value='complete' selected>complete</option>
-                            <option value='kernel'>kernel</option>
-                            <option value='bootloader'>bootloader</option>
-                            <option value='root-fs'>root-fs</option>
-                            <option value='new entry'>new entry</option>
-                        {%- if is_reanalysis and firmware.part %}
-                            <option value='{{ firmware.part }}' selected>{{ firmware.part }}</option>
+                    {# File #}
+                    <div class="input-group mb-3">
+                        {%- if not is_reanalysis %}
+                            <div class="input-group-prepend">
+                                <span class="input-group-text upload-label">
+                                    File
+                                </span>
+                            </div>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="file" name=file required>
+                                <label class="custom-file-label" for="customFile">
+                                    Choose file...
+                                </label>
+                            </div>
+                        {%- else %}
+                            <input type="hidden" name="file_name" id="file_name" value="{{ firmware.file_name }}">
                         {%- endif %}
-                    </select>
-                    <input type="text" name="device_part" class="form-control" id="device_part_text" placeholder="New Device Part" style="display: none;">
-                {%- endcall %}
-
-                {# Version #}
-                {%- call macros.upload_input("version", "Version", error) %}
-                    <input type="text" name="version" class="form-control" id="version" required
-                           {%- if is_reanalysis %} value="{{ firmware.version }}" {% else %} placeholder="Version" {% endif -%}>
-                {%- endcall %}
-
-                {# Release Date #}
-                {%- call macros.upload_input("release_date", "Release Date", error, additional_classes='input-group') %}
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                     </div>
-                    <input type="text" name="release_date" class="form-control" id="release_date"
-                           {%- if is_reanalysis %} value="{{ firmware.release_date }}"{% else %} placeholder="Release Date" {% endif %}>
+                    <script>
+                        $(".custom-file-input").on("change", function () {
+                            const fileName = $(this).val().split("\\").pop();
+                            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+                        });
+                    </script>
 
-                {%- endcall %}
+                    {# Device Class #}
+                    {%- call macros.upload_input("device_class", "Device Class") %}
+                        <input type="text" name="device_class" class="form-control" id="device_class"
+                                {%- if is_reanalysis %} value="{{ firmware.device_class }}" {%- endif -%}
+                               placeholder="Select device class..." required>
 
-                {# Tags #}
-                <label class="control-label" for="tags">Tags:</label>
-                <div class="form-group">
-                    <div>
+                        {{ macros.upload_dropdown("device_class", device_classes, True, True) }}
+                    {%- endcall %}
+
+                    {# Vendor #}
+                    {%- call macros.upload_input("vendor", "Vendor") %}
+                        <input type="text" name="vendor" class="form-control" id="vendor"
+                                {%- if is_reanalysis %} value="{{ firmware.vendor }}" {%- endif -%}
+                               placeholder="Select vendor..." required>
+
+                        {{ macros.upload_dropdown("vendor", vendors, True, True) }}
+                    {%- endcall %}
+
+                    {# Device Name #}
+                    {%- call macros.upload_input("device_name", "Device Name") %}
+                        <input type="text" name="device_name" class="form-control" id="device_name"
+                                {%- if is_reanalysis %} value="{{ firmware.device_name }}" {%- endif -%}
+                               placeholder="Select device name..." required>
+
+                        <div class="input-group-append">
+                            <button type="button" id="device_class_select_button" disabled
+                                    class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <div class="dropdown-menu" id="device_name_list">
+                            </div>
+                        </div>
+                    {%- endcall %}
+
+                    {# Device Part #}
+                    {%- call macros.upload_input("device_part", "Device Part") %}
+                        <input type="text" name="device_part" class="form-control" id="device_part"
+                                {%- if is_reanalysis and firmware.part %} value="{{ firmware.part }}" {%- endif -%}
+                               value="complete" required>
+
+                        {{ macros.upload_dropdown("device_part", ["complete", "kernel", "bootloader", "root-fs"]) }}
+                    {%- endcall %}
+
+                    {# Version #}
+                    {%- call macros.upload_input("version", "Version") %}
+                        <input type="text" name="version" class="form-control" id="version"
+                                {%- if is_reanalysis %} value="{{ firmware.version }}" {%- endif -%}
+                               placeholder="Select version..." required>
+                    {%- endcall %}
+
+                    {# Release Date #}
+                    {%- call macros.upload_input("release_date", "Release Date") %}
+                        <input type="text" name="release_date" class="form-control" id="release_date"
+                                {%- if is_reanalysis %} value="{{ firmware.release_date }}"{% else %}
+                               placeholder="Release Date" {% endif %}>
+                    {%- endcall %}
+
+                    {# Tags #}
+                    {%- call macros.upload_input("tags", "Tags") %}
                         <input type="text" name="tags" class="form-control" id="tags"
-                               {%- if is_reanalysis %} value="{{ ','.join(firmware.tags.keys()) }}"{% else %} placeholder="tags"{% endif %}>
-                        <span class="help-block">Optional: Comma separated list (e.g: flashdump,partial)</span>
-                    </div>
-                </div>
+                                {%- if is_reanalysis %} value="{{ ','.join(firmware.tags.keys()) }}"{% else %}
+                               placeholder="Optional: Comma separated list (e.g: flashdump,partial)"{% endif %}>
+                    {%- endcall %}
 
-                {# Analysis Preset #}
-                <label class="control-label">Analysis Preset:</label>
-                <div class="form-group">
-                    <div class="col-lg-12 px-0">
-                        <select class="form-control" name='analysis_dropdown' id="analysis" onchange="change_selected_plugins(this.value);">
+                    {# Analysis Preset #}
+                    {%- call macros.upload_input("analysis", "Analysis Preset") %}
+                        <select class="custom-select" id="analysis" name="analysis_dropdown"
+                                onchange="change_selected_plugins(this.value);">
                             {% for preset in analysis_presets %}
                                 <option value="{{ preset }}">{{ preset }}</option>
                             {% endfor %}
                         </select>
-                    </div>
-                    <div class="col-lg-12 mt-4 px-0" style="column-count: 2;column-rule: 1px hidden black; column-gap:50px">
-                        {% for system in analysis_plugin_dict.keys() | sort %}
-                            {% if not analysis_plugin_dict[system][1] %}
-                                {# show if plug-in is not mandatory #}
-                                <div id="{{ system }}">
-                                    <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
-                                        {% if analysis_plugin_dict[system][2][plugin_set] %}
-                                            <input type=checkbox name="analysis_systems" value="{{ system }}" checked>
-                                        {% endif %}
-                                        {% if not analysis_plugin_dict[system][2][plugin_set] %}
-                                            <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>
-                                        {% endif %}
-                                        <font face="courier">{{ system | replace_underscore }}</font>
-                                        <br>
-                                    </label>
-                                </div>
-                            {%- endif %}
-                        {%- endfor %}
-                    </div>
-                </div>
+                    {%- endcall %}
 
-                <button type="submit" value=submit class="btn btn-primary" id="input_submit">
-                    {%- if is_reanalysis %}
-                        <i class="fas fa-redo-alt"></i> {{ title }}
-                    {%- else %}
-                        <i class="fas fa-upload"></i> Submit
+                    <div class="form-group">
+                        <div class="col-lg-12 mt-4 px-0"
+                             style="column-count: 2;column-rule: 1px hidden black; column-gap:50px">
+                            {% for system, (title, mandatory, presets) in analysis_plugin_dict.items() | sort %}
+                                {% if not mandatory %}
+                                    <div id="{{ system }}">
+                                        <label class="checkbox-inline" data-toggle="tooltip"
+                                               title="{{ title | safe }}">
+                                            <input type=checkbox name="analysis_systems"
+                                                   value="{{ system }}" {% if presets[selected_preset] %}checked{% endif %}>
+                                            <span style="font-family: courier,monospace;">{{ system | replace_underscore }}</span>
+                                            <br>
+                                        </label>
+                                    </div>
+                                {%- endif %}
+                            {%- endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" value=submit class="btn btn-primary" id="input_submit">
+                        {%- if is_reanalysis %}
+                            <i class="fas fa-redo-alt"></i> {{ title }}
+                        {%- else %}
+                            <i class="fas fa-upload"></i> Submit
+                        {%- endif %}
+                    </button>
+
+                    {%- if is_reanalysis and "re-do" not in title %}
+                        <div class="checkbox m-0 pl-2" style="display: inline;">
+                            <label style="padding: 2px">
+                                <input
+                                        type="checkbox" value="true" id="force_reanalysis" style="margin-top: 2px;"
+                                        data-toggle="tooltip" title="deactivate smart scheduling"
+                                        name="force_reanalysis"
+                                > Force Analysis Update
+                            </label>
+                        </div>
                     {%- endif %}
-                </button>
+                </form>
+            </div>
 
-                {%- if is_reanalysis and "re-do" not in title %}
-                    <div class="checkbox m-0 pl-2" style="display: inline;">
-                        <label style="padding: 2px">
-                            <input
-                                type="checkbox" value="true" id="force_reanalysis" style="margin-top: 2px;"
-                                data-toggle="tooltip" title="deactivate smart scheduling" name="force_reanalysis"
-                            > Force Analysis Update
-                        </label>
-                    </div>
-                {%- endif %}
-            </form>
+            <img id="loading_img" src="{{ url_for('.static', filename='Pacman.gif') }}"
+                 style="display: none; margin: auto;"/>
         </div>
-
-        <img id="loading_img" src="{{ url_for('.static', filename='Pacman.gif') }}" style="display: none; margin: auto;"/>
     </div>
-</div>
 
 {%- endblock -%}

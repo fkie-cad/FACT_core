@@ -1,51 +1,72 @@
-$(function () {
+$(() => {
     $('#release_date').datepicker({
         format: 'yyyy-mm-dd',
         todayHighlight: true
     });
 });
+
 function add_device_class_options(selected_device_class, selected_vendor, data) {
-    $('#device_name').empty();
+    const deviceClassButton = document.getElementById("device_class_select_button");
+    let deviceNameList = $('#device_name_list');
+    deviceNameList.empty();
     if (data.hasOwnProperty(selected_device_class)) {
         if (data[selected_device_class].hasOwnProperty(selected_vendor)) {
-            var device_classes = data[selected_device_class][selected_vendor];
+            let device_classes = data[selected_device_class][selected_vendor];
+            // remove duplicates
+            device_classes = [...new Set(device_classes)];
             device_classes.sort();
-            for (var key in device_classes) {
-                if (device_classes.hasOwnProperty(key)) {
-                    $('#device_name').append('<option>' + device_classes[key] + '</option>');
+            if (device_classes.length > 0) {
+                for (let index in device_classes) {
+                    deviceNameList.append(`
+                        <a class="dropdown-item" href="#" onClick="updateInput('device_name', this)">
+                            ${device_classes[index]}
+                        </a>
+                    `);
                 }
+                deviceClassButton.disabled = false;
+                return;
             }
         }
     }
-    $('#device_name').append('<option>' + 'new entry' + '</option>');
+    deviceClassButton.disabled = true;
 }
-function update_text_input(element, this_text_input) {
-    if (element.options[element.selectedIndex].value == 'new entry') {
-        this_text_input.style.display = 'initial';
-        this_text_input.value = '';
-    } else {
-        this_text_input.style.display = 'none';
-        this_text_input.value = element.options[element.selectedIndex].value;
-    }
-}
+
 function update_device_names() {
-    var vendor_dropdown = document.getElementById('vendor');
-    var device_class_dropdown = document.getElementById('device_class');
-    if ((vendor_dropdown.selectedIndex != -1) && (device_class_dropdown.selectedIndex != -1)) {
-        document.getElementById('device_name').disabled = false;
-        var selected_device_class = device_class_dropdown.options[device_class_dropdown.selectedIndex].value;
-        var selected_vendor = vendor_dropdown.options[vendor_dropdown.selectedIndex].value;
-        add_device_class_options(selected_device_class, selected_vendor, device_names);
+    const deviceClassInput = document.getElementById("device_class");
+    const vendorInput = document.getElementById("vendor");
+    const vendor = vendorInput.value.trim();
+    const device_class = deviceClassInput.value.trim();
+    if (vendor.length > 0 && device_class.length > 0) {
+        add_device_class_options(device_class, vendor, device_names);
     }
 }
-function change_selected_plugins(selected_theme) {
-    for (var plugin in plugin_dict) {
-        if (plugin_dict.hasOwnProperty(plugin)) {
-            plugin_checkbox = document.getElementById(plugin);
-            if (plugin_checkbox != null) {
-                plugin_in_theme = plugin_dict[plugin][2][selected_theme];
-                plugin_checkbox.firstElementChild.firstElementChild.checked = plugin_in_theme;
-            }
+
+function change_selected_plugins(preset_name) {
+    for (const [plugin_name, plugin_data] of Object.entries(plugin_dict)) {
+        const plugin_checkbox = document.getElementById(plugin_name);
+        if (plugin_checkbox != null) {
+            // plugin_data is a tuple, and the third element is the dict containing preset info
+            let [_, __, preset] = plugin_data;
+            plugin_checkbox.firstElementChild.firstElementChild.checked = preset[preset_name];
         }
     }
+}
+
+function updateInput(input_id, element, do_update = false) {
+    const input = document.getElementById(input_id);
+    input.value = element.innerText;
+    if (do_update) {
+        update_device_names();
+    }
+}
+
+function filterFunction(input) {
+    let filter = input.value.toLowerCase();
+    input.parentElement.querySelectorAll(".dropdown-item").forEach(element => {
+        if (!element.innerText.toLowerCase().includes(filter)) {
+            element.style.display = "none";
+        } else {
+            element.style.display = "";
+        }
+    });
 }
