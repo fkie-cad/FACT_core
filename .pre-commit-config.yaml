@@ -1,5 +1,5 @@
 default_stages: [ pre-commit, pre-push ]
-exclude: ^src/bin/
+exclude: ^src/(bin/|web_interface/static/package-lock.json)
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
