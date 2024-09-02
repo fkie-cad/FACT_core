@@ -39,22 +39,22 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', GET)
-    def get_upload(self, error=None):
-        error = error or {}
+    def get_upload(self):
         with get_shared_session(self.db.frontend) as frontend_db:
             device_class_list = frontend_db.get_device_class_list()
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
-        analysis_plugins = self.intercom.get_available_analysis_plugins()
+        analysis_plugins = {
+            k: t[:3] for k, t in self.intercom.get_available_analysis_plugins().items() if k != 'unpacker'
+        }
         return render_template(
             'upload/upload.html',
             device_classes=device_class_list,
             vendors=vendor_list,
-            error=error,
             analysis_presets=list(config.frontend.analysis_preset),
             device_names=json.dumps(device_name_dict, sort_keys=True),
             analysis_plugin_dict=analysis_plugins,
-            plugin_set='default',
+            selected_preset='default',
         )
 
     # ---- file download
