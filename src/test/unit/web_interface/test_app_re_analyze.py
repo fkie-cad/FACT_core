@@ -9,10 +9,11 @@ class TestAppReAnalyze:
 
     def test_app_re_analyze_get_valid_firmware(self, test_client):
         rv = test_client.get(f'/update-analysis/{TEST_FW.uid}')
-        assert b'<h3 class="mb-3">update analysis of TEST_FW_HID</h3>' in rv.data
+        assert b'<h3 class="mb-1">update analysis of</h3>' in rv.data
+        assert b'<h5 class="mb-3">TEST_FW_HID</h5>' in rv.data
         assert (
-            b'value="default_plugin" unchecked' in rv.data
-        ), 'plugins that did not run for TEST_FW should be unchecked'
+            b'value="default_plugin" checked' not in rv.data
+        ), 'plugins that did not run for TEST_FW should not be checked'
         assert b'value="mandatory_plugin"' not in rv.data, 'mandatory plugins should not be listed'
         assert (
             b'value="optional_plugin" checked' in rv.data
