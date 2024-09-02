@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -8,11 +9,12 @@ from time import sleep
 import requests
 from fact_helper_file import get_file_type_from_binary
 from flask import Response, make_response, redirect, render_template, request
+from werkzeug.exceptions import BadRequestKeyError
 
 import config
 from helperFunctions.database import get_shared_session
 from helperFunctions.pdf import build_pdf_report
-from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
+from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj, create_analysis_task
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -24,10 +26,12 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', POST)
     def post_upload(self):
-        analysis_task = create_analysis_task(request)
-        error = check_for_errors(analysis_task)
-        if error:
-            return self.get_upload(error=error)
+        try:
+            analysis_task = create_analysis_task(request)
+        except BadRequestKeyError as error:
+            # we don't want this to fail silently; we want to know what's wrong with the request
+            logging.warning(f'Received invalid upload request: Key {KeyError.__str__(error)} is missing!')
+            raise
         fw = convert_analysis_task_to_fw_obj(analysis_task)
         self.intercom.add_analysis_task(fw)
         return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
