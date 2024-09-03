@@ -3,7 +3,6 @@
 {%- import 'macros.html' as macros -%}
 
 {%- set active_page = "Upload" -%}
-{%- set is_reanalysis = True if firmware else False -%}
 {%- set device_part_options = ["complete", "kernel", "bootloader", "root-fs"] -%}
 
 {% block head %}
@@ -80,49 +79,49 @@
                     {# Device Class #}
                     {%- call macros.upload_input("device_class", "Device Class", True) %}
                         <input type="text" name="device_class" class="form-control" id="device_class"
-                                {%- if is_reanalysis %} value="{{ firmware.device_class }}" {%- endif -%}
+                                {%- if firmware %} value="{{ firmware.device_class }}" {%- endif -%}
                                placeholder="Select device class..." autocomplete="off" required>
                     {%- endcall %}
 
                     {# Vendor #}
                     {%- call macros.upload_input("vendor", "Vendor", True) %}
                         <input type="text" name="vendor" class="form-control" id="vendor"
-                                {%- if is_reanalysis %} value="{{ firmware.vendor }}" {%- endif -%}
+                                {%- if firmware %} value="{{ firmware.vendor }}" {%- endif -%}
                                placeholder="Select vendor..." autocomplete="off" required>
                     {%- endcall %}
 
                     {# Device Name #}
                     {%- call macros.upload_input("device_name", "Device Name", True) %}
                         <input type="text" name="device_name" class="form-control" id="device_name"
-                                {%- if is_reanalysis %} value="{{ firmware.device_name }}" {%- endif -%}
+                                {%- if firmware %} value="{{ firmware.device_name }}" {%- endif -%}
                                placeholder="Select device name..." autocomplete="off" required>
                     {%- endcall %}
 
                     {# Device Part #}
                     {%- call macros.upload_input("device_part", "Device Part", True) %}
                         <input type="text" name="device_part" class="form-control" id="device_part"
-                                {%- if is_reanalysis and firmware.part %} value="{{ firmware.part }}" {%- endif -%}
+                                {%- if firmware and firmware.part %} value="{{ firmware.part }}" {%- endif -%}
                                value="complete" required>
                     {%- endcall %}
 
                     {# Version #}
                     {%- call macros.upload_input("version", "Version") %}
                         <input type="text" name="version" class="form-control" id="version"
-                                {%- if is_reanalysis %} value="{{ firmware.version }}" {%- endif -%}
+                                {%- if firmware %} value="{{ firmware.version }}" {%- endif -%}
                                placeholder="Select version..." required>
                     {%- endcall %}
 
                     {# Release Date #}
                     {%- call macros.upload_input("release_date", "Release Date") %}
                         <input type="text" name="release_date" class="form-control" id="release_date"
-                                {%- if is_reanalysis %} value="{{ firmware.release_date }}"{% else %}
+                                {%- if firmware %} value="{{ firmware.release_date }}"{% else %}
                                placeholder="Release Date" {% endif %}>
                     {%- endcall %}
 
                     {# Tags #}
                     {%- call macros.upload_input("tags", "Tags") %}
                         <input type="text" name="tags" class="form-control" id="tags"
-                                {%- if is_reanalysis %} value="{{ ','.join(firmware.tags.keys()) }}"{% else %}
+                                {%- if firmware %} value="{{ ','.join(firmware.tags.keys()) }}"{% else %}
                                placeholder="Optional: Comma separated list (e.g: flashdump,partial)"{% endif %}>
                     {%- endcall %}
 
