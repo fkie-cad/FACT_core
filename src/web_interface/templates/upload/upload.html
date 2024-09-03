@@ -24,10 +24,16 @@
             justify-content: center;
             width: 135px;
         }
-
         .upload-icon {
             justify-content: center;
             width: 45px;
+        }
+        @keyframes updated {
+            from { box-shadow: 0 0 10px 5px rgba(0, 105, 217, 0.5); }
+            to { box-shadow: none; }
+        }
+        .updated {
+            animation: updated 2s ease-in-out;
         }
     </style>
 {% endblock %}
@@ -60,7 +66,8 @@
                                 </span>
                             </div>
                             <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="file" name=file required>
+                                <input type="file" class="custom-file-input" id="file" name=file
+                                       onchange="updateFileLabel(this);" required>
                                 <label class="custom-file-label" for="customFile">
                                     Choose file...
                                 </label>
@@ -69,12 +76,26 @@
                             <input type="hidden" name="file_name" id="file_name" value="{{ firmware.file_name }}">
                         {%- endif %}
                     </div>
-                    <script>
-                        $(".custom-file-input").on("change", function () {
-                            const fileName = $(this).val().split("\\").pop();
-                            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
-                        });
-                    </script>
+
+                    {%- if not is_reanalysis %}
+                        {# Meta File #}
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text upload-label">
+                                    Metadata File
+                                </span>
+                            </div>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="metaFile" name=metaFile
+                                       onchange="updateFileLabel(this); loadMetaFromFile(this);"
+                                       data-toggle="tooltip" data-placement="bottom"
+                                       title='Load meta data from JSON file. Supported keys: "device_class", "vendor", "device_name", "device_part", "version", "release_date" (all optional)'>
+                                <label class="custom-file-label" for="customFile">
+                                    Optional: load meta data from JSON file...
+                                </label>
+                            </div>
+                        </div>
+                    {%- endif %}
 
                     {# Device Class #}
                     {%- call macros.upload_input("device_class", "Device Class") %}

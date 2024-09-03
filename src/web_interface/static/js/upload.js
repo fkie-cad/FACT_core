@@ -70,3 +70,31 @@ function filterFunction(input) {
         }
     });
 }
+
+function updateFileLabel(input) {
+    const fileName = input.value.split("\\").pop();
+    $(input).siblings(".custom-file-label").addClass("selected").html(fileName);
+}
+
+function loadMetaFromFile(fileInput) {
+    const file = fileInput.files[0];
+    const elementIds = ["device_class", "vendor", "device_name", "device_part", "version", "release_date"];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                elementIds.forEach((value) => {
+                    if (data.hasOwnProperty(value)) {
+                        element = document.getElementById(value);
+                        element.value = data[value].toString();
+                        element.classList.add('updated');
+                    }
+                });
+            } catch (error) {
+                console.error('Error while parsing the metadata:', error);
+            }
+        };
+        reader.readAsText(file);
+    }
+}
