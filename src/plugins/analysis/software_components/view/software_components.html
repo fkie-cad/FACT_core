@@ -2,41 +2,46 @@
 
 {% block analysis_result_details %}
 
-    </table>
-    <table class="table table-bordered">
-        <colgroup>
-            <col style="width: 50px">
-            <col style="width: 150px">
-            <col style="width: 600px">
-        </colgroup>
-        <tbody class="table-analysis">
-            {% for key in analysis_result %}
-                <tr>
-                    <td rowspan=5>{{ loop.index - 1 }}</td>
-                    <td>Software Name</td>
-                    <td>{{ analysis_result[key]['meta']['software_name'] }}</td>
-                </tr>
-                <tr>
-                    <td>Version</td>
-                    <td>
-                    {% for version in analysis_result[key]['meta']['version'] %}
-                        {{ version }}
-                    {% endfor %}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Description</td>
-                    <td>{{ analysis_result[key]['meta']['description'] }}</td>
-                </tr>
-                <tr>
-                    <td>Website</td>
-                    <td><a href="{{ analysis_result[key]['meta']['website'] }}">{{ analysis_result[key]['meta']['website'] }}</a></td>
-                </tr>
-                <tr>
-                    <td>Matched Sequence</td>
-                    <td>{{ analysis_result[key]['strings'] }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
+    {% for key in analysis_result %}
+        <tr>
+            <td>{{ loop.index - 1 }}</td>
+            <td class="p-0 m-0">
+                <table class="table table-bordered m-0">
+                    <colgroup>
+                        <col style="width: 150px">
+                        <col style="width: 600px">
+                    </colgroup>
+                    <tbody class="table-analysis">
+                    <tr>
+                        <td>Software Name</td>
+                        <td>{{ analysis_result[key]['meta']['software_name'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Version</td>
+                        <td>
+                            {% for version in analysis_result[key]['meta']['version'] %}
+                                {{ version }}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>{{ analysis_result[key]['meta']['description'] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Website</td>
+                        <td>
+                            <a href="{{ analysis_result[key]['meta']['website'] }}">{{ analysis_result[key]['meta']['website'] }}</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Matched Sequence</td>
+                        <td>{{ analysis_result[key]['strings'] }}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    {% endfor %}
 
 {% endblock %}
