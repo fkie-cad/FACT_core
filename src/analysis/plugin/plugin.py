@@ -55,11 +55,11 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         #: It MUST be a `semver <https://semver.org/>`_ version.
         #: Here is a quick summary how semver relates to plugins.
         #: * MAJOR: The plugin schema changed.
-        #: * MINOR: The schema din't change but might contain more data.
+        #: * MINOR: The schema didn't change but might contain more data.
         #: * PATCH: A bug was fixed e.g. a crash on some files.
         #:
         #: Note that any version change leads to rescheduling the analysis.
-        #: But backwards compatible results will still be shown in the fronfrontend.
+        #: But backwards compatible results will still be shown in the frontend.
         version: semver.Version
         #: The version of the backing analysis system.
         #: E.g. for yara plugins this would be the yara version.
@@ -88,10 +88,9 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
     # The type MetaData.Schema
     Schema = typing.TypeVar('Schema')
 
-    @abc.abstractmethod
-    def summarize(self, result: Schema) -> list[str]:
+    def summarize(self, result: Schema) -> list[str]:  # noqa: ARG002
         """
-        The summary is a list of categories in which the result can be grouped.
+        The summary is an optional list of categories in which the result can be grouped.
         In the FACT_core frontend if you view the analysis of a container the
         summary is used to group files included in it.
 
@@ -105,6 +104,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
 
         :param result: The analysis as returned by :py:func:`analyze`
         """
+        return []
 
     @abc.abstractmethod
     def analyze(
