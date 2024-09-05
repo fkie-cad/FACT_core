@@ -1,0 +1,14 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+    {% for key, value in analysis_result.items() | sort %}
+        {% if value %}
+            <tr>
+                <td>{{ key }}</td>
+                <td style="font-family: monospace">{{ value }}</td>
+            </tr>
+        {% endif %}
+    {% endfor %}
+
+{% endblock %}
