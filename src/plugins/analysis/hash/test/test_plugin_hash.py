@@ -1,13 +1,21 @@
 import os
+from pathlib import Path
 
 import pytest
-from common_helper_files import get_dir_of_file
 
-from test.common_helper import MockFileObject
+from ..code.hash import AnalysisPlugin, get_imphash, get_ssdeep, get_tlsh
 
-from ..code.hash import AnalysisPlugin
+TEST_DATA_DIR = Path(__file__).parent / 'data'
+TEST_FILE = TEST_DATA_DIR / 'ls'
+MD5_LEN = 32
+TEST_STRING = b'test string'
 
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')  # noqa: PTH118
+
+class MockTypeResultSchema:
+    mime = 'application/x-executable'
+
+
+ANALYSIS_RESULT = {'file_type': MockTypeResultSchema()}
 
 
 @pytest.mark.backend_config_overwrite(
@@ -23,20 +31,34 @@ TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')  # noqa: PTH118
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginHash:
     def test_all_hashes(self, analysis_plugin):
-        result = analysis_plugin.process_object(MockFileObject()).processed_analysis[analysis_plugin.NAME]
+        with TEST_FILE.open('rb') as fp:
+            result = analysis_plugin.analyze(fp, {}, ANALYSIS_RESULT)
 
-        assert 'md5' in result, 'md5 not in result'
-        assert 'sha1' in result, 'sha1 not in result'
-        assert 'foo' not in result, 'foo in result but not available'
-        assert result['md5'] == '6f8db599de986fab7a21625b7916589c', 'hash not correct'
-        assert 'ssdeep' in result, 'ssdeep not in result'
-        assert 'imphash' in result, 'imphash not in result'
+        assert result.md5 is not None
+        assert result.sha1 is not None
+        assert result.ssdeep is not None
+        assert result.imphash is not None
+        assert result.md5 == '87b02c9bea4be534649d3ab0b6f040a0', 'hash not correct'
 
     def test_imphash(self, analysis_plugin):
-        file_path = os.path.join(TEST_DATA_DIR, 'ls')  # noqa: PTH118
-        result = analysis_plugin.process_object(MockFileObject(file_path=file_path)).processed_analysis[
-            analysis_plugin.NAME
-        ]
+        with TEST_FILE.open('rb') as fp:
+            result = analysis_plugin.analyze(fp, {}, ANALYSIS_RESULT)
 
-        assert isinstance(result['imphash'], str), 'imphash should be a string'
-        assert len(result['imphash']) == 32, 'imphash does not look like an md5'
+        assert isinstance(result.imphash, str), 'imphash should be a string'
+        assert len(result.imphash) == MD5_LEN, 'imphash does not look like an md5'
+        assert result.imphash == 'd9eccd5f72564ac07601458b26040259'
+
+
+def test_get_ssdeep():
+    assert get_ssdeep(TEST_STRING) == '3:Hv2:HO', 'not correct from string'
+
+
+def test_imphash_bad_file():
+    this_file = Path(__file__)
+    with this_file.open('rb') as fp:
+        assert get_imphash(fp, MockTypeResultSchema()) is None
+
+
+def test_get_tlsh():
+    assert get_tlsh(b'foobar') is None  # make sure the result is not 'TNULL'
+    assert get_tlsh(os.urandom(2**7)) not in [None, '']  # the new tlsh version should work for smaller inputs
