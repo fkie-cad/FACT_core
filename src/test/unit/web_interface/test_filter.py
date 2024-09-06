@@ -304,6 +304,17 @@ def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
 
 
 @pytest.mark.parametrize(
+    ('list_of_dicts', 'key', 'expected_result'),
+    [
+        ([], '', {}),
+        ([{'a': '1'}, {'a': '1'}, {'a': '2'}], 'a', {'1': [{'a': '1'}, {'a': '1'}], '2': [{'a': '2'}]}),
+    ],
+)
+def test_group_dict_list_by_key(list_of_dicts, key, expected_result):
+    assert flt.group_dict_list_by_key(list_of_dicts, key) == expected_result
+
+
+@pytest.mark.parametrize(
     ('function', 'input_data', 'expected_output', 'error_message'),
     [
         (
@@ -512,3 +523,16 @@ def test_octal_to_readable(input_, include_type, expected_result):
 def test_is_text_file_or_image(type_analysis, expected_result):
     fo = create_test_file_object(analyses=type_analysis)
     assert flt.is_text_file_or_image(fo) == expected_result
+
+
+@pytest.mark.parametrize(
+    ('input_', 'expected_result'),
+    [
+        ([], []),
+        ([{'a': 2}, {'a': 1}, {'a': 3}], [{'a': 1}, {'a': 2}, {'a': 3}]),
+        ([{'a': 2}, {'a': 1}, {'b': 3}], [{'b': 3}, {'a': 1}, {'a': 2}]),
+        ([{'a': 'b'}, {'a': 'c'}, {'a': 'a'}], [{'a': 'a'}, {'a': 'b'}, {'a': 'c'}]),
+    ],
+)
+def test_sort_dict_list_by_key(input_, expected_result):
+    assert flt.sort_dict_list_by_key(input_, 'a') == expected_result
