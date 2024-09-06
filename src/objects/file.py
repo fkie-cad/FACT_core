@@ -165,13 +165,13 @@ class FileObject:
         This usually is the file name for extracted files.
         :return: String representing a human-readable identifier for this file.
         """
-        try:
-            return get_some_vfp(self.virtual_file_path)
-        except IndexError:
-            # this should normally not happen outside of tests as file objects are initialized with a "virtual file
-            # path" during unpacking
-            logging.warning(f'Virtual file paths of {self.uid} are emtpy: {self.virtual_file_path}')
-            return self.file_name
+        vfp = get_some_vfp(self.virtual_file_path)
+        if vfp is not None:
+            return vfp
+        # this should normally not happen outside of tests as file objects are initialized with a "virtual file
+        # path" during unpacking
+        logging.warning(f'Virtual file paths of {self.uid} are emtpy: {self.virtual_file_path}')
+        return self.file_name or 'unknown'
 
     def _create_from_file(self, file_path: str):
         self.set_binary(get_binary_from_file(file_path))
@@ -190,6 +190,8 @@ class FileObject:
 
         :param file_object: File that was extracted from the current file
         """
+        if self.uid is None or file_object.uid is None:
+            raise ValueError(f'UID should never be None while adding file {file_object} to {self}')
         file_object.parents.append(self.uid)
         file_object.root_uid = self.root_uid
         file_object.depth = self.depth + 1

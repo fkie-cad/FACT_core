@@ -13,6 +13,8 @@ import tlsh
 from helperFunctions.data_conversion import make_bytes
 
 if TYPE_CHECKING:
+    from typing import Any, AnyStr
+
     from objects.file import FileObject
 
 ELF_MIME_TYPES = [
@@ -23,41 +25,39 @@ ELF_MIME_TYPES = [
 ]
 
 
-def get_hash(hash_function, binary):
+def get_hash(hash_function: str, binary: AnyStr) -> str:
     """
     Hashes binary with hash_function.
 
     :param hash_function: The hash function to use. See hashlib for more
     :param binary: The data to hash, either as string or array of Integers
-    :return: The hash as hexstring
+    :return: The hash as hex string
     """
-    binary = make_bytes(binary)
     raw_hash = new(hash_function)
-    raw_hash.update(binary)
+    raw_hash.update(make_bytes(binary))
     return raw_hash.hexdigest()
 
 
-def get_sha256(code):
+def get_sha256(code: AnyStr) -> str:
     return get_hash('sha256', code)
 
 
-def get_md5(code):
+def get_md5(code: AnyStr) -> str:
     return get_hash('md5', code)
 
 
-def get_ssdeep(code):
-    binary = make_bytes(code)
+def get_ssdeep(code: AnyStr) -> str:
     raw_hash = ssdeep.Hash()
-    raw_hash.update(binary)
+    raw_hash.update(make_bytes(code))
     return raw_hash.digest()
 
 
-def get_tlsh(code):
+def get_tlsh(code: AnyStr) -> str:
     tlsh_hash = tlsh.hash(make_bytes(code))
     return tlsh_hash if tlsh_hash != 'TNULL' else ''
 
 
-def get_tlsh_comparison(first, second):
+def get_tlsh_comparison(first: str, second: str) -> int:
     return tlsh.diff(first, second)
 
 
@@ -83,7 +83,7 @@ def _is_elf_file(file_object: FileObject) -> bool:
     return file_object.processed_analysis['file_type']['result']['mime'] in ELF_MIME_TYPES
 
 
-def normalize_lief_items(functions):
+def normalize_lief_items(functions: list[Any]) -> list[str]:
     """
     Shorthand to convert a list of objects to a list of strings
     """
@@ -101,7 +101,7 @@ def _suppress_stdout():
     writer = _StandardOutWriter()
 
     stdout, stderr = sys.stdout, sys.stderr
-    sys.stdout, sys.stderr = writer, writer
+    sys.stdout, sys.stderr = writer, writer  # type: ignore[assignment]
 
     yield
 
