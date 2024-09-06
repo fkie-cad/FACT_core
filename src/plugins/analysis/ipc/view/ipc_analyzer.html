@@ -2,40 +2,47 @@
 
 {% block analysis_result_details %}
 
-<table class="table table-bordered">
-    <colgroup>
-        <col style="width: 50px">
-        <col style="width: 150px">
-        <col style="width: 600px">
-    </colgroup>
-    <tbody class="table-analysis">
-        <tr>
-            <td class="table-head-light"><b>Target</b></td>
-            <td class="table-head-light"><b>Type</b></td>
-            <td class="table-head-light"><b>Arguments</b></td>
-        </tr>
-        {% set ipc_calls = analysis_result['full']['ipcCalls'] %}
-        {% for target in ipc_calls.keys()|sort %}
-            {% set row_count = 1 + ipc_calls[target]|length %}
-            <tr>
-                <td rowspan={{ row_count }}>{{ target }}</td>
-            </tr>
-            {% for ipc_call in ipc_calls[target] %}
-                <tr>
-                    <td>{{ ipc_call['type'] }}</td>
-                    <td>
-                        <ul class="m-0">
-                            {% for arg in ipc_call['arguments'] %}
-                                {% if arg %}
-                                    <li>{{ arg }}</li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-                    </td>
-                </tr>
-            {% endfor %}
-        {% endfor %}
-    </tbody>
-</table>
+    <tr>
+        <td colspan="2" class="p-0">
+
+            <table class="table table-bordered mb-0">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col style="width: 150px">
+                    <col style="width: 600px">
+                </colgroup>
+                <thead class="table-head-light">
+                    <tr>
+                        <th>Type</th>
+                        <th>Target</th>
+                        <th>Arguments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for type, call_list in (analysis_result['calls'] | group_dict_list_by_key('name')).items() %}
+                        {% set row_count = 1 + call_list | length %}
+                        <tr>
+                            <td rowspan="{{ row_count }}" style="font-family: monospace;">{{ type }}</td>
+                        </tr>
+                        {% for call_dict in call_list | sort_dict_list('target') %}
+                            <tr>
+                                <td style="font-family: monospace;">{{ call_dict.target }}</td>
+                                <td>
+                                    <ul class="m-0">
+                                        {% for arg in call_dict.arguments %}
+                                            {% if arg %}
+                                                <li style="font-family: monospace;">{{ arg }}</li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </td>
+    </tr>
 
 {% endblock %}

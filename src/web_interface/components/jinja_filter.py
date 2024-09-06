@@ -179,6 +179,7 @@ class FilterClass:
                 'get_cvss_versions': flt.get_cvss_versions,
                 'get_searchable_crypto_block': flt.get_searchable_crypto_block,
                 'get_unique_keys_from_list_of_dicts': flt.get_unique_keys_from_list_of_dicts,
+                'group_dict_list_by_key': flt.group_dict_list_by_key,
                 'hex': hex,
                 'hide_dts_binary_data': flt.hide_dts_binary_data,
                 'infection_color': flt.infection_color,
@@ -219,6 +220,7 @@ class FilterClass:
                 'sort_chart_list_by_value': flt.sort_chart_list_by_value,
                 'sort_comments': flt.sort_comments,
                 'sort_cve': flt.sort_cve_results,
+                'sort_dict_list': flt.sort_dict_list_by_key,
                 'sort_privileges': (
                     lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
                 ),

@@ -14,7 +14,7 @@ from operator import itemgetter
 from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import TYPE_CHECKING, Iterable, Union
+from typing import TYPE_CHECKING, Any, Iterable, Union
 
 import packaging.version
 import semver
@@ -369,6 +369,13 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: list[dict]):
     return unique_keys
 
 
+def group_dict_list_by_key(dict_list: list[dict], key: Any) -> dict[str, list[dict]]:
+    result = {}
+    for dictionary in dict_list:
+        result.setdefault(dictionary.get(key), []).append(dictionary)
+    return result
+
+
 def random_collapse_id():
     return ''.join(random.choice(ascii_letters) for _ in range(10))
 
@@ -439,6 +446,10 @@ def _cve_score_to_float(score: float | str) -> float:
 
 def get_cvss_versions(cve_result: dict) -> set[str]:
     return {score_version for entry in cve_result.values() for score_version in entry['scores']}
+
+
+def sort_dict_list_by_key(dict_list: list[dict], key: Any) -> list[dict]:
+    return sorted(dict_list, key=lambda d: str(d.get(key, '')))
 
 
 def linter_reformat_issues(issues) -> dict[str, list[dict[str, str]]]:

@@ -2,31 +2,31 @@ from pathlib import Path
 
 import pytest
 
-from objects.file import FileObject
-
 from ..code.ipc_analyzer import AnalysisPlugin
 
 TEST_DIR = Path(__file__).parent / 'data'
 
-
 EXPECTED_SYSTEM_RESULT = {
-    'whoami': [{'type': 'system', 'arguments': ['']}],
-    'ls': [{'type': 'system', 'arguments': ['-l']}],
-    'echo': [{'type': 'system', 'arguments': ['hello']}],
-    'id': [{'type': 'system', 'arguments': ['']}],
-    'pwd': [{'type': 'system', 'arguments': ['']}],
+    'calls': [
+        {'arguments': [''], 'name': 'system', 'target': 'whoami'},
+        {'arguments': ['-l'], 'name': 'system', 'target': 'ls'},
+        {'arguments': ['hello'], 'name': 'system', 'target': 'echo'},
+        {'arguments': [''], 'name': 'system', 'target': 'id'},
+        {'arguments': [''], 'name': 'system', 'target': 'pwd'},
+    ]
 }
 
 EXPECTED_WRITE_RESULT = {
-    'data.dat': [
-        {'type': 'open', 'arguments': ['', ['O_RDWR | O_CREAT'], ['0666L']]},
+    'calls': [
+        {'arguments': ['', ['O_RDWR | O_CREAT'], ['0666L']], 'name': 'open', 'target': 'data.dat'},
         {
-            'type': 'write',
             'arguments': [
                 '',
-                ['Now is the winter of our discontent\\nMade glorious summer by this sun of York\\n'],
+                ['Now is the winter of our discontent\\nMade ' 'glorious summer by this sun of York\\n'],
                 [77],
             ],
+            'name': 'write',
+            'target': 'data.dat',
         },
     ]
 }
@@ -40,8 +40,10 @@ EXPECTED_WRITE_RESULT = {
         ('ipc_shared_files_test_bin', EXPECTED_WRITE_RESULT, ['open', 'write']),
     ],
 )
-def test_ipc_system(analysis_plugin, test_file, expected_result, expected_summary):
-    test_object = FileObject(file_path=str((TEST_DIR / test_file).resolve()))
-    result = analysis_plugin.process_object(test_object)
-    assert result.processed_analysis['ipc_analyzer']['full']['ipcCalls'] == expected_result
-    assert result.processed_analysis['ipc_analyzer']['summary'] == expected_summary
+def test_ipc_analyze_summary(analysis_plugin, test_file, expected_result, expected_summary):
+    with (TEST_DIR / test_file).open('rb') as fp:
+        result = analysis_plugin.analyze(fp, {}, {})
+    as_dict = result.model_dump()
+    assert as_dict == expected_result
+    summary = analysis_plugin.summarize(result)
+    assert summary == expected_summary
