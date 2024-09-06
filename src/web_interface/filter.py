@@ -14,7 +14,7 @@ from operator import itemgetter
 from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import Iterable, Union
+from typing import Any, Iterable, Union
 
 import packaging.version
 import semver
@@ -366,6 +366,13 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: list[dict]):
     return unique_keys
 
 
+def group_dict_list_by_key(dict_list: list[dict], key: Any) -> dict[str, list[dict]]:
+    result = {}
+    for dictionary in dict_list:
+        result.setdefault(dictionary.get(key), []).append(dictionary)
+    return result
+
+
 def random_collapse_id():
     return ''.join(random.choice(ascii_letters) for _ in range(10))
 
@@ -431,6 +438,13 @@ def _cve_score_to_float(score: float | str) -> float:
         return float(score)
     except ValueError:  # "N/A" entries
         return 0.0
+
+
+def sort_dict_list_by_key(dict_list: list[dict], key: Any) -> list[dict]:
+    types = {type(d.get(key)) for d in dict_list if key in d}
+    if types not in [set(), {str}, {int}]:
+        raise ValueError(f'Dict values must be of the same type, not {types}')
+    return sorted(dict_list, key=lambda d: d.get(key, -9999 if types == {int} else ''))
 
 
 def linter_reformat_issues(issues) -> dict[str, list[dict[str, str]]]:

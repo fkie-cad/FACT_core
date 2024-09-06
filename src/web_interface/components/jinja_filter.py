@@ -195,6 +195,7 @@ class FilterClass:
         self._app.jinja_env.filters['get_canvas_height'] = flt.get_canvas_height
         self._app.jinja_env.filters['get_searchable_crypto_block'] = flt.get_searchable_crypto_block
         self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts
+        self._app.jinja_env.filters['group_dict_list_by_key'] = flt.group_dict_list_by_key
         self._app.jinja_env.filters['hex'] = hex
         self._app.jinja_env.filters['hide_dts_binary_data'] = flt.hide_dts_binary_data
         self._app.jinja_env.filters['infection_color'] = flt.infection_color
@@ -233,6 +234,7 @@ class FilterClass:
         self._app.jinja_env.filters['sort_chart_list_by_value'] = flt.sort_chart_list_by_value
         self._app.jinja_env.filters['sort_comments'] = flt.sort_comments
         self._app.jinja_env.filters['sort_cve'] = flt.sort_cve_results
+        self._app.jinja_env.filters['sort_dict_list'] = flt.sort_dict_list_by_key
         self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(
             privileges, key=lambda role: len(privileges[role]), reverse=True
         )
