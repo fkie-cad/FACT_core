@@ -1,3 +1,4 @@
+import re
 from io import BytesIO
 
 
@@ -5,9 +6,9 @@ class TestAppUpload:
     def test_app_upload_get(self, test_client):
         rv = test_client.get('/upload')
         assert b'<h3 class="mb-3">Upload Firmware</h3>' in rv.data
-        assert b'value="default_plugin" checked' in rv.data
+        assert re.search(rb'value="default_plugin"\s+checked>', rv.data)
         assert b'value="mandatory_plugin"' not in rv.data
-        assert b'value="optional_plugin" >' in rv.data
+        assert re.search(rb'value="optional_plugin"\s+>', rv.data)
 
     def test_app_upload_invalid_firmware(self, test_client, intercom_task_list):
         rv = test_client.post(

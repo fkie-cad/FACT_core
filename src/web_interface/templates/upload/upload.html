@@ -4,36 +4,37 @@
 
 {%- set active_page = "Upload" -%}
 {%- set is_reanalysis = True if firmware else False -%}
+{%- set device_part_options = ["complete", "kernel", "bootloader", "root-fs"] -%}
 
 {% block head %}
-
     <script>
-        const device_names = {{ device_names | safe }};
+        const allDeviceNames = {{ device_names | safe }};
+        let deviceNames = [];
         const plugin_dict = {{ analysis_plugin_dict | dict_to_json | safe }};
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/loading.js') }}"></script>
     <script>
-        $(window).bind("pageshow", function (event) {
-            // if we come back to the page make sure that the loading gif is not covering up the form
+        $(window).bind("pageshow", function (_) {
+            // if we come back to the page, make sure that the loading gif is not covering up the form
             hideImg();
         });
+        $(document).ready(() => {
+            autocompleteInput('device_class', {{ device_classes | tojson | safe }});
+            autocompleteInput('vendor', {{ vendors | tojson | safe }});
+            autocompleteInput('device_part', {{ device_part_options | tojson | safe }});
+            autocompleteInput('device_name', deviceNames);
+        });
     </script>
-    <style>
-        .upload-label {
-            justify-content: center;
-            width: 135px;
-        }
-
-        .upload-icon {
-            justify-content: center;
-            width: 45px;
-        }
-    </style>
 {% endblock %}
 
 {%- block styles -%}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/upload.css') }}">
+    <style>
+        .click-through {
+            pointer-events: none;
+        }
+    </style>
 {%- endblock -%}
 
 {%- block body -%}
@@ -77,47 +78,31 @@
                     </script>
 
                     {# Device Class #}
-                    {%- call macros.upload_input("device_class", "Device Class") %}
+                    {%- call macros.upload_input("device_class", "Device Class", True) %}
                         <input type="text" name="device_class" class="form-control" id="device_class"
                                 {%- if is_reanalysis %} value="{{ firmware.device_class }}" {%- endif -%}
-                               placeholder="Select device class..." required>
-
-                        {{ macros.upload_dropdown("device_class", device_classes, True, True) }}
+                               placeholder="Select device class..." autocomplete="off" required>
                     {%- endcall %}
 
                     {# Vendor #}
-                    {%- call macros.upload_input("vendor", "Vendor") %}
+                    {%- call macros.upload_input("vendor", "Vendor", True) %}
                         <input type="text" name="vendor" class="form-control" id="vendor"
                                 {%- if is_reanalysis %} value="{{ firmware.vendor }}" {%- endif -%}
-                               placeholder="Select vendor..." required>
-
-                        {{ macros.upload_dropdown("vendor", vendors, True, True) }}
+                               placeholder="Select vendor..." autocomplete="off" required>
                     {%- endcall %}
 
                     {# Device Name #}
-                    {%- call macros.upload_input("device_name", "Device Name") %}
+                    {%- call macros.upload_input("device_name", "Device Name", True) %}
                         <input type="text" name="device_name" class="form-control" id="device_name"
                                 {%- if is_reanalysis %} value="{{ firmware.device_name }}" {%- endif -%}
-                               placeholder="Select device name..." required>
-
-                        <div class="input-group-append">
-                            <button type="button" id="device_class_select_button" disabled
-                                    class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="sr-only">Toggle Dropdown</span>
-                            </button>
-                            <div class="dropdown-menu" id="device_name_list">
-                            </div>
-                        </div>
+                               placeholder="Select device name..." autocomplete="off" required>
                     {%- endcall %}
 
                     {# Device Part #}
-                    {%- call macros.upload_input("device_part", "Device Part") %}
+                    {%- call macros.upload_input("device_part", "Device Part", True) %}
                         <input type="text" name="device_part" class="form-control" id="device_part"
                                 {%- if is_reanalysis and firmware.part %} value="{{ firmware.part }}" {%- endif -%}
                                value="complete" required>
-
-                        {{ macros.upload_dropdown("device_part", ["complete", "kernel", "bootloader", "root-fs"]) }}
                     {%- endcall %}
 
                     {# Version #}
@@ -160,7 +145,8 @@
                                         <label class="checkbox-inline" data-toggle="tooltip"
                                                title="{{ title | safe }}">
                                             <input type=checkbox name="analysis_systems"
-                                                   value="{{ system }}" {% if presets[selected_preset] %}checked{% endif %}>
+                                                   value="{{ system }}"
+                                                   {% if presets[selected_preset] %}checked{% endif %}>
                                             <span style="font-family: courier,monospace;">{{ system | replace_underscore }}</span>
                                             <br>
                                         </label>
@@ -193,7 +179,7 @@
             </div>
 
             <img id="loading_img" src="{{ url_for('.static', filename='Pacman.gif') }}"
-                 style="display: none; margin: auto;"/>
+                 alt="loading..." style="display: none; margin: auto;"/>
         </div>
     </div>
 
