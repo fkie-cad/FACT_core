@@ -1,3 +1,5 @@
+import re
+
 from helperFunctions.data_conversion import make_bytes
 from test.common_helper import TEST_FW
 
@@ -12,11 +14,11 @@ class TestAppReAnalyze:
         assert b'<h3 class="mb-1">update analysis of</h3>' in rv.data
         assert b'<h5 class="mb-3">TEST_FW_HID</h5>' in rv.data
         assert (
-            b'value="default_plugin" checked' not in rv.data
+            re.search(rb'value="default_plugin"\s+checked>', rv.data) is None
         ), 'plugins that did not run for TEST_FW should not be checked'
         assert b'value="mandatory_plugin"' not in rv.data, 'mandatory plugins should not be listed'
-        assert (
-            b'value="optional_plugin" checked' in rv.data
+        assert re.search(
+            rb'value="optional_plugin"\s+checked>', rv.data
         ), 'optional plugins that did run for TEST_FW should be checked'
 
     def test_app_re_analyze_post_valid(self, test_client, intercom_task_list):
