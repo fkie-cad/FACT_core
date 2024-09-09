@@ -22,38 +22,24 @@
     </tr>
 {%- endmacro %}
 
-{% macro upload_input(key, label) %}
+{% macro upload_input(key, label, dropdown=False) %}
     <div class="input-group mb-3">
         <div class="input-group-prepend">
-            <label class="input-group-text upload-label" for="{{ label_target }}">
+            <label class="input-group-text upload-label" for="{{ key }}">
                 {{ label }}
             </label>
         </div>
 
         {{ caller() }}
-    </div>
-{%- endmacro %}
 
-{% macro upload_dropdown(input_id, options, update_device_list=False, include_filter=False) %}
-    <div class="input-group-append">
-        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="sr-only">Toggle Dropdown</span>
-        </button>
-        {% if include_filter %}
-            <div class="dropdown-menu" style="padding-top: 0;">
-            <input class="form-control-sm" type="text" placeholder="filter..."
-                   onkeyup="filterFunction(this)">
-        {% else %}
-            <div class="dropdown-menu">
+        {% if dropdown %}
+            <div class="input-group-append">
+                <button type="button" id="{{ key }}-button" class="btn btn-outline-secondary"
+                        tabindex="-1" {% if key == "device_name" %}disabled{% endif %}>
+                    <i class="fas fa-caret-down click-through"></i>
+                </button>
+            </div>
         {% endif %}
-        {% for option in options | sort %}
-            <a class="dropdown-item" href="#"
-               onclick="updateInput('{{ input_id }}', this, {{ update_device_list | tojson }})">
-                {{ option }}
-            </a>
-        {% endfor %}
-        </div>
     </div>
 {%- endmacro %}
 

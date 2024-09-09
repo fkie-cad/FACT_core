@@ -1,7 +1,21 @@
-.search {
-    text-align: right;
+.upload-label {
+    justify-content: center;
+    width: 135px;
 }
-.btn-file {
-    position: relative;
-    overflow: hidden;
+.upload-icon {
+    justify-content: center;
+    width: 45px;
+}
+.autocomplete-items {
+    position: absolute;
+    z-index: 99;
+    top: 100%;
+    left: 135px; /* upload-label width */
+    right: 35px; /* dropdown button width */
+    font-family: monospace;
+}
+.autocomplete-items li {
+    cursor: pointer;
+    padding: 5px 5px 5px 10px;
+    border: none;
 }
