@@ -35,36 +35,36 @@ def make_unicode_string(code: Any) -> str:
     return code.__str__()
 
 
-def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
+def convert_uid_list_to_comparison_id(uid_list: Iterable[str]) -> str:
     """
-    Convert a list of UIDs to a compare ID (which is a unique string consisting of UIDs separated by semi-colons, used
+    Convert a list of UIDs to a comparison ID (which is a unique string consisting of UIDs separated by semicolons, used
     to identify a FACT `Firmware` or `FileObject` comparison).
 
     :param uid_list: A list of `FileObject` or `Firmware` UIDs.
-    :return: The compare ID.
+    :return: The comparison ID.
     """
     return ';'.join(sorted(uid_list))
 
 
-def convert_compare_id_to_list(compare_id: str) -> list[str]:
+def convert_comparison_id_to_list(comparison_id: str) -> list[str]:
     """
-    Convert a compare ID back to a list of UIDs.
+    Convert a comparison ID back to a list of UIDs.
 
-    :param compare_id: The compare ID.
+    :param comparison_id: The comparison ID.
     :return: The according UID list.
     """
-    return compare_id.split(';')
+    return comparison_id.split(';')
 
 
-def normalize_compare_id(compare_id: str) -> str:
+def normalize_comparison_id(comparison_id: str) -> str:
     """
-    Sort the UIDs in a compare ID (so that it is unique) and return it.
+    Sort the UIDs in a comparison ID (so that it is unique) and return it.
 
-    :param compare_id: The compare ID.
-    :return: The according unique compare ID with reordered UIDs.
+    :param comparison_id: The comparison ID.
+    :return: The according unique comparison ID with reordered UIDs.
     """
-    uids = convert_compare_id_to_list(compare_id)
-    return convert_uid_list_to_compare_id(uids)
+    uids = convert_comparison_id_to_list(comparison_id)
+    return convert_uid_list_to_comparison_id(uids)
 
 
 def get_value_of_first_key(input_dict: dict[_KT, _VT]) -> _VT | None:

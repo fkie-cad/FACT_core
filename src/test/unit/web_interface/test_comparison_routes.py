@@ -1,10 +1,10 @@
 import pytest
 
 from test.common_helper import CommonDatabaseMock
-from web_interface.components.compare_routes import (
-    CompareRoutes,
-    _add_plugin_views_to_compare_view,
-    _get_compare_view,
+from web_interface.components.comparison_routes import (
+    ComparisonRoutes,
+    _add_plugin_views_to_comparison_view,
+    _get_comparison_view,
     _insert_plugin_into_view_at_index,
 )
 
@@ -18,36 +18,36 @@ class TemplateDbMock(CommonDatabaseMock):
 
 
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=TemplateDbMock)
-def test_get_compare_plugin_views(web_frontend):
-    compare_result = {'plugins': {}}
-    result = CompareRoutes._get_compare_plugin_views(web_frontend, compare_result)
+def test_get_comparison_plugin_views(web_frontend):
+    comparison_result = {'plugins': {}}
+    result = ComparisonRoutes._get_comparison_plugin_views(web_frontend, comparison_result)
     assert result == ([], [])
 
-    compare_result = {'plugins': {'plugin_1': None, 'plugin_2': None}}
-    plugin_views, plugins_without_view = CompareRoutes._get_compare_plugin_views(web_frontend, compare_result)
+    comparison_result = {'plugins': {'plugin_1': None, 'plugin_2': None}}
+    plugin_views, plugins_without_view = ComparisonRoutes._get_comparison_plugin_views(web_frontend, comparison_result)
     assert plugin_views == [('plugin_1', b'<plugin 1 view>')]
     assert plugins_without_view == ['plugin_2']
 
 
-def test_get_compare_view():
-    result = _get_compare_view([])
+def test_get_comparison_view():
+    result = _get_comparison_view([])
     assert '>General information<' in result
     assert '--- plugin results ---' in result
 
 
 def test_add_views_missing_key():
     plugin_views = [('plugin_1', b'<plugin view 1>'), ('plugin_2', b'<plugin view 2>')]
-    compare_view = 'xxxxxyyyyy'
-    result = _add_plugin_views_to_compare_view(compare_view, plugin_views)
-    assert result == compare_view
+    comparison_view = 'xxxxxyyyyy'
+    result = _add_plugin_views_to_comparison_view(comparison_view, plugin_views)
+    assert result == comparison_view
 
 
 def test_add_plugin_views():
     plugin_views = [('plugin_1', b'<plugin view 1>'), ('plugin_2', b'<plugin view 2>')]
     key = '{# individual plugin views #}'
-    compare_view = f'xxxxx{key}yyyyy'
-    key_index = compare_view.find(key)
-    result = _add_plugin_views_to_compare_view(compare_view, plugin_views)
+    comparison_view = f'xxxxx{key}yyyyy'
+    key_index = comparison_view.find(key)
+    result = _add_plugin_views_to_comparison_view(comparison_view, plugin_views)
 
     for plugin, view in plugin_views:
         assert f"elif plugin == '{plugin}'" in result
