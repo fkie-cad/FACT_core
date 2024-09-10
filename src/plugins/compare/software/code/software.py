@@ -18,12 +18,7 @@ class ComparePlugin(CompareBasePlugin):
     DEPENDENCIES = ['software_components']  # noqa: RUF012
     FILE = __file__
 
-    def compare_function(self, fo_list):
-        """
-        This function must be implemented by the plug-in.
-        'fo_list' is a list with file_objects including analysis and all summaries
-        this function should return a dictionary
-        """
+    def compare_function(self, fo_list, dependency_results: dict[str, dict]):  # noqa: ARG002
         compare_result = {
             'software_in_common': self._get_intersection_of_software(fo_list),
             'exclusive_software': self._get_exclusive_software(fo_list),

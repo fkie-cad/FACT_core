@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import binascii
 
 from markupsafe import Markup
@@ -24,7 +26,7 @@ class ComparePlugin(CompareBasePlugin):
     DEPENDENCIES = []  # noqa: RUF012
     FILE = __file__
 
-    def compare_function(self, fo_list):
+    def compare_function(self, fo_list, dependency_results: dict[str, dict]):  # noqa: ARG002
         binaries = [fo.binary for fo in fo_list]
         lower_bound = min(*(len(binary) for binary in binaries), BYTES_TO_SHOW)
 

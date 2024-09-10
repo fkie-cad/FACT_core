@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import pytest
 
-from compare.compare import Compare
+from compare.compare import Compare, schedule_comparison_plugins
 from compare.PluginBase import CompareBasePlugin
 from test.common_helper import create_test_file_object, create_test_firmware
 
@@ -75,3 +77,48 @@ def test_create_general_section_dict(compare_system):
 def test_plugin_system(compare_system):
     assert len(compare_system.compare_plugins) > 0, 'no compare plugin found'
     assert 'File_Coverage' in compare_system.compare_plugins, 'File Coverage module not found'
+
+
+class MockPlugin:
+    def __init__(self, name: str, deps: list[str]):
+        self.NAME = name
+        self.COMPARISON_DEPS = deps
+
+
+@pytest.mark.parametrize(
+    ('plugins', 'expected_order'),
+    [
+        (
+            [
+                MockPlugin('a', ['b', 'c']),
+                MockPlugin('b', ['d']),
+                MockPlugin('c', ['b', 'd']),
+                MockPlugin('d', []),
+            ],
+            ['d', 'b', 'c', 'a'],
+        ),
+        (
+            [
+                MockPlugin('a', ['b']),
+                MockPlugin('d', []),
+                MockPlugin('b', ['c']),  # c is missing -> cannot be scheduled -> a can also not be scheduled
+            ],
+            ['d'],
+        ),
+        (
+            [
+                MockPlugin('a', ['b']),
+                MockPlugin('b', ['c']),
+                MockPlugin('c', ['a']),  # circular dependency between a, b and c
+                MockPlugin('d', []),
+                MockPlugin('e', ['b']),  # can also not be scheduled because b is skipped
+            ],
+            ['d'],
+        ),
+    ],
+)
+def test_schedule_comparison_plugins(plugins, expected_order):
+    plugin_dict = {p.NAME: p for p in plugins}
+    scheduled = schedule_comparison_plugins(plugin_dict)
+    assert len(scheduled) == len(expected_order), 'plugins should have been skipped'
+    assert [p.NAME for p in scheduled] == expected_order, 'plugin order incorrect'
