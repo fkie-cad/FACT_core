@@ -186,9 +186,6 @@ class CommonDatabaseMock:
     def get_device_class_list(self):
         return ['test class']
 
-    def page_compare_results(self):
-        return []
-
     def get_vendor_list(self):
         return ['test vendor']
 
@@ -251,8 +248,8 @@ class CommonDatabaseMock:
         return None
 
     @staticmethod
-    def objects_exist(compare_id):
-        return compare_id in ['existing_id', 'uid1;uid2', COMPARISON_ID]
+    def objects_exist(comparison_id):
+        return comparison_id in ['existing_id', 'uid1;uid2', COMPARISON_ID]
 
     @staticmethod
     def get_hid_dict(uid_set, root_uid):  # noqa: ARG004
