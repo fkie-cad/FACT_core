@@ -9,6 +9,7 @@ from objects.firmware import Firmware
 from storage.binary_service import BinaryService
 
 if TYPE_CHECKING:
+    from compare.PluginBase import CompareBasePlugin
     from objects.file import FileObject
     from storage.db_interface_comparison import ComparisonDbInterface
 
@@ -87,5 +88,37 @@ class Compare:
             except Exception:
                 logging.error(f'Could not import comparison plugin {plugin.AnalysisPlugin.NAME}', exc_info=True)
 
-    def _execute_compare_plugins(self, fo_list):
-        return {name: plugin.compare(fo_list) for name, plugin in self.compare_plugins.items()}
+    def _execute_compare_plugins(self, fo_list: list[FileObject]) -> dict[str, dict]:
+        comparison_results = {}
+        for plugin in schedule_comparison_plugins(self.compare_plugins):
+            comparison_results[plugin.NAME] = plugin.compare(fo_list, comparison_results)
+        return comparison_results
+
+
+def schedule_comparison_plugins(plugin_dict: dict[str, CompareBasePlugin]) -> list[CompareBasePlugin]:
+    # we use a reverse topological sort for scheduling the plugins while considering their dependencies
+    # see also: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+    visited = set()
+    temp_mark = set()
+    sorted_plugins = []
+
+    def visit(plugin_):
+        if plugin_.NAME in temp_mark:
+            raise ValueError('Cyclic dependency or dependency cannot be scheduled')
+        if plugin_.NAME not in visited:
+            temp_mark.add(plugin_.NAME)
+            for dependency in plugin_.COMPARISON_DEPS:
+                if dependency not in plugin_dict:
+                    raise ValueError(f'Unknown dependency: {dependency}')
+                visit(plugin_dict[dependency])
+            temp_mark.remove(plugin_.NAME)
+            visited.add(plugin_.NAME)
+            sorted_plugins.append(plugin_)
+
+    for plugin in plugin_dict.values():
+        try:
+            visit(plugin)
+        except ValueError as error:
+            logging.error(f'Error: cannot schedule comparison plugin {plugin.NAME}: {error}')
+
+    return sorted_plugins

@@ -29,7 +29,7 @@ class ComparePlugin(CompareBasePlugin):
         super().__init__(*args, **kwargs)
         self.ssdeep_ignore_threshold = config.backend.ssdeep_ignore
 
-    def compare_function(self, fo_list):
+    def compare_function(self, fo_list, dependency_results: dict[str, dict]):  # noqa: ARG002
         compare_result = {
             'files_in_common': self._get_intersection_of_files(fo_list),
             'exclusive_files': self._get_exclusive_files(fo_list),
