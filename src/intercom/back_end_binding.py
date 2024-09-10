@@ -34,19 +34,19 @@ class InterComBackEndBinding:
     def __init__(
         self,
         analysis_service=None,
-        compare_service=None,
+        comparison_service=None,
         unpacking_service=None,
         unpacking_locks=None,
     ):
         self.analysis_service = analysis_service
-        self.compare_service = compare_service
+        self.comparison_service = comparison_service
         self.unpacking_service: UnpackingScheduler = unpacking_service
         self.unpacking_locks = unpacking_locks
         self.manager = Manager()
         self.listeners = [
             InterComBackEndAnalysisTask(self.unpacking_service.add_task),
             InterComBackEndReAnalyzeTask(self.unpacking_service.add_task),
-            InterComBackEndCompareTask(self.compare_service.add_task),
+            InterComBackEndComparisonTask(self.comparison_service.add_task),
             InterComBackEndRawDownloadTask(),
             InterComBackEndFileDiffTask(),
             InterComBackEndTarRepackTask(),
@@ -144,8 +144,8 @@ class InterComBackEndSingleFileTask(InterComListenerAndResponder):
             return False
 
 
-class InterComBackEndCompareTask(InterComListener):
-    CONNECTION_TYPE = 'compare_task'
+class InterComBackEndComparisonTask(InterComListener):
+    CONNECTION_TYPE = 'comparison_task'
 
 
 class InterComBackEndCancelTask(InterComListener):

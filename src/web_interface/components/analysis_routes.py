@@ -19,7 +19,7 @@ from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import get_template_as_string
 from objects.firmware import Firmware
-from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
+from web_interface.components.comparison_routes import get_comparison_uid_dict_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.components.dependency_graph import (
     create_data_graph_edges,

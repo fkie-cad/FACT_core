@@ -7,8 +7,8 @@ TEST_UID = 'deadbeef' * 8 + '_1'
 
 
 @pytest.mark.usefixtures('database_interfaces')
-class TestRestStartCompare(RestTestBase):
-    def test_rest_start_compare_valid(self, backend_db):
+class TestRestStartComparison(RestTestBase):
+    def test_rest_start_comparison_valid(self, backend_db):
         test_firmware_1 = create_test_firmware(
             device_class='test class', device_name='test device', vendor='test vendor'
         )
@@ -20,13 +20,13 @@ class TestRestStartCompare(RestTestBase):
 
         data = {'uid_list': [test_firmware_1.uid, test_firmware_2.uid], 'redo': True}
         rv = self.test_client.put('/rest/compare', json=data, follow_redirects=True)
-        assert b'Compare started.' in rv.data
+        assert b'Comparison started.' in rv.data
 
-    def test_rest_start_compare_invalid_uid(self):
+    def test_rest_start_comparison_invalid_uid(self):
         rv = self.test_client.put('/rest/compare', json={'uid_list': ['123', '456']}, follow_redirects=True)
         assert b'not found in the database' in rv.data
 
-    def test_rest_start_compare_invalid_data(self, backend_db):
+    def test_rest_start_comparison_invalid_data(self, backend_db):
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         backend_db.add_object(test_firmware)
 
@@ -46,7 +46,7 @@ class TestRestStartCompare(RestTestBase):
         backend_db.add_object(test_firmware_2)
 
         rv = self.test_client.get(f'/rest/compare/{test_firmware_1.uid};{test_firmware_2.uid}', follow_redirects=True)
-        assert b'Compare not found in database.' in rv.data
+        assert b'Comparison not found in database.' in rv.data
 
     def test_rest_get_compare_invalid_uid(self):
         rv = self.test_client.get(f'/rest/compare/{TEST_UID};{TEST_UID}', follow_redirects=True)

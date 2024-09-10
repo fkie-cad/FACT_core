@@ -1,8 +1,8 @@
 import pytest
 
-from plugins.compare.file_coverage.code.file_coverage import ComparePlugin, generate_similarity_sets
+from plugins.comparison.file_coverage.code.file_coverage import ComparisonPlugin, generate_similarity_sets
 from test.common_helper import CommonDatabaseMock
-from test.unit.compare.compare_plugin_test_class import ComparePluginTest
+from test.unit.comparison.comparison_plugin_test_class import ComparisonPluginTest
 
 
 class DbMock:
@@ -20,17 +20,17 @@ class DbMock:
         return {}
 
 
-class TestComparePluginFileCoverage(ComparePluginTest):
+class TestComparisonPluginFileCoverage(ComparisonPluginTest):
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'File_Coverage'
-    PLUGIN_CLASS = ComparePlugin
+    PLUGIN_CLASS = ComparisonPlugin
 
     def setup_plugin(self):
         """
         This function must be overwritten by the test instance.
         In most cases it is sufficient to copy this function.
         """
-        return ComparePlugin(db_interface=DbMock(), view_updater=CommonDatabaseMock())
+        return ComparisonPlugin(db_interface=DbMock(), view_updater=CommonDatabaseMock())
 
     def test_get_intersection_of_files(self):
         self.fw_one.list_of_all_included_files.append('foo')
@@ -65,7 +65,7 @@ class TestComparePluginFileCoverage(ComparePluginTest):
     def test_run_compare_plugin(self):
         self.fw_one.list_of_all_included_files.append('foo')
         self.fw_two.list_of_all_included_files.append('foo')
-        result = self.c_plugin.compare_function([self.fw_one, self.fw_two], {})
+        result = self.c_plugin.compare_objects([self.fw_one, self.fw_two], {})
         assert len(result.keys()) == 5
 
     def test_find_changed_text_files(self):
@@ -95,7 +95,7 @@ class TestComparePluginFileCoverage(ComparePluginTest):
     ],
 )
 def test_get_similarity_value(similar_files, similarity_dict, expected_output):
-    assert ComparePlugin._get_similarity_value(similar_files, similarity_dict) == expected_output
+    assert ComparisonPlugin._get_similarity_value(similar_files, similarity_dict) == expected_output
 
 
 @pytest.mark.parametrize(

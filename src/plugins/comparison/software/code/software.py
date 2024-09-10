@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from compare.PluginBase import CompareBasePlugin
+from comparison.comparison_base_plugin import ComparisonBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest
 
 if TYPE_CHECKING:
     from objects.file import FileObject
 
 
-class ComparePlugin(CompareBasePlugin):
+class ComparisonPlugin(ComparisonBasePlugin):
     """
     Compares Software
     """
@@ -18,16 +18,16 @@ class ComparePlugin(CompareBasePlugin):
     DEPENDENCIES = ['software_components']  # noqa: RUF012
     FILE = __file__
 
-    def compare_function(self, fo_list, dependency_results: dict[str, dict]):  # noqa: ARG002
-        compare_result = {
+    def compare_objects(self, fo_list, dependency_results: dict[str, dict]):  # noqa: ARG002
+        comparison_result = {
             'software_in_common': self._get_intersection_of_software(fo_list),
             'exclusive_software': self._get_exclusive_software(fo_list),
         }
         if len(fo_list) > 2:  # noqa: PLR2004
-            compare_result[
+            comparison_result[
                 'software_in_more_than_one_but_not_in_all'
-            ] = self._get_software_in_more_than_one_but_not_in_all(fo_list, compare_result)
-        return compare_result
+            ] = self._get_software_in_more_than_one_but_not_in_all(fo_list, comparison_result)
+        return comparison_result
 
     def _get_exclusive_software(self, fo_list: list[FileObject]) -> dict:
         result = {'collapse': True}

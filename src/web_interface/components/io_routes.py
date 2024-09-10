@@ -90,15 +90,15 @@ class IORoutes(ComponentBase):
         return mime or magic.from_buffer(binary, mime=True)
 
     @roles_accepted(*PRIVILEGES['download'])
-    @AppRoute('/ida-download/<compare_id>', GET)
-    def download_ida_file(self, compare_id):
+    @AppRoute('/ida-download/<comparison_id>', GET)
+    def download_ida_file(self, comparison_id):
         # FixMe: IDA comparison plugin must not add binary strings to the result (not JSON compatible)
-        result = self.db.comparison.get_comparison_result(compare_id)
+        result = self.db.comparison.get_comparison_result(comparison_id)
         if result is None:
-            return render_template('error.html', message=f'Comparison with ID {compare_id} not found')
+            return render_template('error.html', message=f'Comparison with ID {comparison_id} not found')
         binary = result['plugins']['Ida_Diff_Highlighting']['idb_binary']
         response = make_response(binary)
-        response.headers['Content-Disposition'] = f'attachment; filename={compare_id[:8]}.idb'
+        response.headers['Content-Disposition'] = f'attachment; filename={comparison_id[:8]}.idb'
         return response
 
     @roles_accepted(*PRIVILEGES['download'])
