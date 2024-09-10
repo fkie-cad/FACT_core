@@ -26,7 +26,7 @@
     <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
 
         <table class="table table-sm table-hover">
-            {% for id, hids, submission_date in compare_list %}
+            {% for id, hids, submission_date in comparison_list %}
                 <tr>
                     {% if pagination is defined %}
                         <th>{{ loop.index + (page - 1) * per_page }}</th>

@@ -31,13 +31,13 @@ class InterComBackEndBinding:
     def __init__(
         self,
         analysis_service=None,
-        compare_service=None,
+        comparison_service=None,
         unpacking_service=None,
         unpacking_locks=None,
         testing=False,  # noqa: ARG002
     ):
         self.analysis_service = analysis_service
-        self.compare_service = compare_service
+        self.comparison_service = comparison_service
         self.unpacking_service = unpacking_service
         self.unpacking_locks = unpacking_locks
         self.poll_delay = config.backend.intercom_poll_delay
@@ -49,7 +49,7 @@ class InterComBackEndBinding:
         InterComBackEndAnalysisPlugInsPublisher(analysis_service=self.analysis_service)
         self._start_listener(InterComBackEndAnalysisTask, self.unpacking_service.add_task)
         self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
-        self._start_listener(InterComBackEndCompareTask, self.compare_service.add_task)
+        self._start_listener(InterComBackEndComparisonTask, self.comparison_service.add_task)
         self._start_listener(InterComBackEndRawDownloadTask)
         self._start_listener(InterComBackEndFileDiffTask)
         self._start_listener(InterComBackEndTarRepackTask)
@@ -131,8 +131,8 @@ class InterComBackEndSingleFileTask(InterComBackEndReAnalyzeTask):
     CONNECTION_TYPE = 'single_file_task'
 
 
-class InterComBackEndCompareTask(InterComListener):
-    CONNECTION_TYPE = 'compare_task'
+class InterComBackEndComparisonTask(InterComListener):
+    CONNECTION_TYPE = 'comparison_task'
 
 
 class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
