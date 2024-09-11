@@ -432,7 +432,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             .filter(AnalysisEntry.plugin == 'elf_analysis')
         )
         return {
-            uid: elf_analysis_result.get('Output', {}).get('libraries', [])
+            uid: elf_analysis_result.get('libraries', [])
             for uid, elf_analysis_result in session.execute(elf_analysis_query)
             if elf_analysis_result is not None
         }

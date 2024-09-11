@@ -2,43 +2,56 @@ from collections import namedtuple
 from pathlib import Path
 
 import pytest
+from lief import Function
 
+from analysis.plugin import Tag
 from helperFunctions.tag import TagColor
-from objects.file import FileObject
-from test.common_helper import get_test_data_dir
 
-from ..code.elf_analysis import AnalysisPlugin
-
-TEST_DATA = get_test_data_dir() / 'test_data_file.bin'
+from ..code.elf_analysis import (
+    AnalysisPlugin,
+    ElfHeader,
+    _behaviour_class_applies,
+    _get_behavior_classes,
+    _get_symbols_version_entries,
+)
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
-
 
 LiefResult = namedtuple(
     'LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions', 'sections']
 )
 
-MOCK_DATA = (
-    '{"header": {"entrypoint": 109724, "file_type": "DYNAMIC", "header_size": 52, "identity_class": "CLASS32", "identity_data": "LSB", "identity_os_abi": "SYSTEMV"},'  # noqa: E501
-    '"dynamic_entries": [{"library": "libdl.so.2", "tag": "NEEDED", "value": 1}, {"library": "libc.so.6", "tag": "NEEDED", "value": 137}, {"tag": "INIT", "value": 99064}],'  # noqa: E501
-    '"sections": [{"alignment": 0, "entry_size": 0, "flags": [], "information": 0, "link": 0, "name": "", "offset": 0, "size": 0, "type": "NULL", "virtual_address": 0}],'  # noqa: E501
-    '"segments": [{"alignment": 4, "file_offset": 2269, "flags": 4, "physical_address": 2269, "physical_size": 8, '
-    '"sections": [".ARM.exidx"], "type": "ARM_EXIDX", "virtual_address": 2269, "virtual_size": 8}],'
-    '"symbols_version": [{"value": 0}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}]}'  # noqa: E501
-)
-
-MOCK_LIEF_RESULT = LiefResult(
-    libraries=['libdl.so.2', 'libc.so.6'],
-    imported_functions=['fdopen', 'calloc', 'strstr', 'raise', 'gmtime_r', 'strcmp'],
-    symbols_version=[],
-    exported_functions=['SHA256_Transform', 'GENERAL_NAMES_free', 'i2d_RSAPrivateKey', 'd2i_OCSP_REQUEST'],
+MOCK_RESULT = AnalysisPlugin.Schema(
+    header=ElfHeader(
+        entrypoint=0,
+        file_type='test',
+        header_size=52,
+        identity_abi_version=0,
+        identity_class='CLASS32',
+        identity_data='LSB',
+        identity_os_abi='SYSTEMV',
+        identity_version='',
+        machine_type='',
+        numberof_sections=1,
+        numberof_segments=0,
+        object_file_version='',
+        processor_flag=0,
+        program_header_size=0,
+        program_headers_offset=0,
+        section_header_size=0,
+        section_headers_offset=0,
+        section_name_table_idx=0,
+    ),
     sections=[],
+    segments=[],
+    dynamic_entries=[],
+    exported_functions=[],
+    imported_functions=[],
+    libraries=[],
+    mod_info=None,
+    note_sections=[],
+    behavior_classes=['crypto', 'network'],
 )
-
-
-@pytest.fixture
-def stub_object():
-    return FileObject(file_path=str(TEST_DATA))
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
@@ -58,42 +71,30 @@ class TestElfAnalysis:
         assert analysis_plugin._get_color_codes(tag) == tag_color
 
     @pytest.mark.parametrize(
-        ('indicators', 'behaviour_class', 'libraries', 'tags', 'expected'),
+        ('indicators', 'functions', 'libraries', 'should_apply'),
         [
-            (['a'], 'b', ['c'], [], []),
-            (['a', 'b', 'c'], 'b', ['c'], [], ['b']),
-            (['a', 'b', 'c'], 'b', ['c'], ['b'], ['b', 'b']),
-            (['a', 'b', 'c'], 'b', ['c', 'a'], [], ['b', 'b']),
-            (['a', 'b', 'c'], 'b', ['d', 'e'], [], []),
-            (['a', 'b', 'c'], 'b', ['d', 'e'], ['x'], ['x']),
+            ([], [], [], False),
+            (['foo'], [], ['test1234'], False),
+            (['foo', 'test'], [], ['test1234'], True),  # for libraries, any substring match is OK
+            (['foo'], ['test1234'], [], False),
+            (['test'], ['test1234'], [], False),  # for function names, the coverage must be at least 85%
+            (['foobar123'], ['foobar1234'], [], True),
         ],
     )
-    def test_get_tags_from_library_list(self, analysis_plugin, indicators, behaviour_class, libraries, tags, expected):
-        analysis_plugin._get_tags_from_library_list(libraries, behaviour_class, indicators, tags)
-        assert tags == expected
+    def test_behaviour_class_applies(self, indicators, functions, libraries, should_apply):
+        assert _behaviour_class_applies(functions, libraries, indicators) == should_apply
 
-    @pytest.mark.parametrize(
-        ('functions', 'behaviour_class', 'indicators', 'tags', 'expected_result'),
-        [
-            ([], '', [], [], []),
-            (['a'], 'c', ['b'], [], []),
-            (['a'], 'c', ['b'], ['d'], ['d']),
-            (['a', 'b'], 'c', ['b'], ['d'], ['d', 'c']),
-            (['a', 'b', 'x', 'y'], 'c', ['o', 'p', 'y'], [], ['c']),
-            (['a', 'b'], 'c', ['b'], ['d', 'e'], ['d', 'e', 'c']),
-        ],
-    )
-    def test_get_tags_from_function_list(
-        self, analysis_plugin, functions, behaviour_class, indicators, tags, expected_result
-    ):
-        analysis_plugin._get_tags_from_function_list(functions, behaviour_class, indicators, tags)
-        assert tags == expected_result
-
-    def test_get_tags(self, analysis_plugin, monkeypatch):
+    def test_get_behavior_classes(self, analysis_plugin, monkeypatch):
         behaviour_classes = {'one': ['x', 'y'], 'two': ['z', 'a'], 'three': ['f', 'u']}
         monkeypatch.setattr('plugins.analysis.elf_analysis.code.elf_analysis.BEHAVIOUR_CLASSES', behaviour_classes)
-        tags = analysis_plugin._get_tags(libraries=['a', 'b', 'c'], functions=['d', 'e', 'f'])
-        assert sorted(tags) == ['three', 'two']
+        elf = LiefResult(
+            libraries=['a', 'b', 'c'],
+            imported_functions=[Function('d'), Function('e'), Function('f')],
+            symbols_version=[],
+            exported_functions=[],
+            sections=[],
+        )
+        assert set(_get_behavior_classes(elf)) == {'three', 'two'}
 
     @pytest.mark.parametrize(
         ('symbol_versions', 'expected'),
@@ -105,66 +106,37 @@ class TestElfAnalysis:
         ],
     )
     def test_get_symbols_version_entries(self, analysis_plugin, symbol_versions, expected):
-        assert sorted(analysis_plugin._get_symbols_version_entries(symbol_versions)) == sorted(expected)
+        assert sorted(_get_symbols_version_entries(symbol_versions)) == sorted(expected)
 
-    def test_create_tags(self, analysis_plugin, stub_object):
-        stub_object.processed_analysis[analysis_plugin.NAME] = {}
-        stub_result = LiefResult(
-            libraries=['recvmsg', 'unknown'],
-            imported_functions=[],
-            symbols_version=[],
-            exported_functions=[],
-            sections=[],
-        )
-        analysis_plugin.create_tags(stub_result, stub_object)
+    def test_get_tags(self, analysis_plugin):
+        tags = analysis_plugin.get_tags(MOCK_RESULT, [])
+        assert len(tags) == 2
+        assert Tag(name='crypto', value='crypto', color='danger', propagate=False) in tags
 
-        assert 'network' in stub_object.processed_analysis[analysis_plugin.NAME]['tags']
-        assert stub_object.processed_analysis[analysis_plugin.NAME]['tags']['network']['color'] == 'warning'
-
-    def test_analyze_elf_bad_file(self, analysis_plugin, stub_object, tmpdir):
+    def test_analyze_elf_bad_file(self, analysis_plugin, tmpdir):
         random_file = Path(tmpdir.dirname, 'random')
         random_file.write_bytes(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
-        stub_object.file_path = str(random_file.absolute())
+        with pytest.raises(ValueError, match='not a valid ELF file'), random_file.open('rb') as fp:
+            analysis_plugin.analyze(fp, {}, {})
 
-        result = analysis_plugin._analyze_elf(stub_object)
-        assert result == {}
+    def test_analyze_summarize(self, analysis_plugin):
+        test_file = TEST_DATA_DIR / 'x-pie-executable'
+        with test_file.open('rb') as fp:
+            result = analysis_plugin.analyze(fp, {}, {})
+        assert result is not None
+        assert result.header.machine_type == 'i386'
+        assert len(result.sections) == 36
+        assert result.sections[2].type == 'NOTE'
+        assert len(result.segments) == 12
+        assert result.segments[0].flags == ['read']
+        assert result.behavior_classes == ['stringops', 'libc']
+        assert any(f.name == 'puts' for f in result.imported_functions)
 
-    final_analysis_test_data = [({}, {}, 0), ({'header': [], 'segments': [1, 2], 'a': []}, {}, 1)]  # noqa: RUF012
-
-    @pytest.mark.parametrize(('binary_json_dict', 'elf_dict', 'expected'), final_analysis_test_data)
-    def test_get_final_analysis_dict(self, analysis_plugin, binary_json_dict, elf_dict, expected):
-        analysis_plugin.get_final_analysis_dict(binary_json_dict, elf_dict)
-        assert len(elf_dict) == expected
-
-    def test_pie(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'x-pie-executable'))
-        elf_dict, _ = analysis_plugin._analyze_elf(test_file)
-        assert elf_dict != {}
-
-    def test_plugin(self, analysis_plugin, stub_object, monkeypatch):
-        monkeypatch.setattr('lief.parse', lambda _: MOCK_LIEF_RESULT)
-        monkeypatch.setattr('lief.to_json', lambda _: MOCK_DATA)
-
-        analysis_plugin.process_object(stub_object)
-
-        output = stub_object.processed_analysis[analysis_plugin.NAME]['Output']
-        assert output != {}
-        result_summary = sorted(stub_object.processed_analysis[analysis_plugin.NAME]['summary'])
-        assert result_summary == [
-            'dynamic_entries',
-            'exported_functions',
-            'header',
-            'imported_functions',
-            'libraries',
-            'sections',
-            'segments',
-            'symbols_version',
-        ]
-        assert 'strcmp' in output['imported_functions']
-        assert output['segments'][0]['virtual_address'].startswith('0x'), 'addresses should be converted to hex'
+        summary = analysis_plugin.summarize(result)
+        assert summary == ['sections', 'dynamic_entries', 'exported_functions', 'imported_functions', 'note_sections']
 
     def test_modinfo(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'test_data.ko'))
-        _, binary = analysis_plugin._analyze_elf(test_file)
-        result = analysis_plugin.filter_modinfo(binary)
-        assert result[0] == 'this are test data\n'
+        test_file = TEST_DATA_DIR / 'test_data.ko'
+        with test_file.open('rb') as fp:
+            result = analysis_plugin.analyze(fp, {}, {})
+        assert result.mod_info == {'foo': 'bar', 'key': 'value'}

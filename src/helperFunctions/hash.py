@@ -30,10 +30,3 @@ def get_md5(code: bytes | str) -> str:
 
 def get_tlsh_comparison(first, second):
     return tlsh.diff(first, second)
-
-
-def normalize_lief_items(functions):
-    """
-    Shorthand to convert a list of objects to a list of strings
-    """
-    return [str(function) for function in functions]
