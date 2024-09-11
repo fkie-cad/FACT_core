@@ -2,61 +2,72 @@
 
 {% block analysis_result_details %}
 
-{% set analysis = analysis_result['Output'] %}
-{% for key in analysis.keys() | sort %}
+{% set analysis = analysis_result %}
+{% for key, value in analysis.items() | sort %}
     <tr>
         <td>
             {{ key }}
         </td>
-        <td class="m-0 p-0">
-            <div class="clickable pt-2 pl-3" data-toggle="collapse" data-target="#{{ key }}">
-                <i class="fas fa-angle-down mb-2 pt-2"></i>
-            </div>
-
-            <div class="collapse w-100" id="{{ key }}">
-                <table class="table table-bordered mb-0 pb-0">
-                    {% if analysis[key] | is_list %}
-                        {% if not analysis[key] %}
-                            <tr>
-                                <td style="padding: 5px">None</td>
-                            </tr>
-                        {% elif analysis[key][0] is string %}
-                                {% for element in analysis[key] %}
+        {% if not value %}
+            <td>None</td>
+        {% else %}
+            <td class="m-0 p-0">
+                <div class="clickable pt-2 pl-3" data-toggle="collapse" data-target="#{{ key }}">
+                    <i class="fas fa-angle-down mb-2 pt-2"></i>
+                </div>
+                {# FixMe: sort data by offset/name #}
+                <div class="collapse w-100" id="{{ key }}">
+                    <table class="table table-bordered mb-0 pb-0">
+                        {% if value | is_list %}
+                            {% if value[0] is string %}
+                                {% for element in value %}
                                     <tr>
                                         <td style="padding: 5px">{{ element }}</td>
                                     </tr>
                                 {% endfor %}
-                        {% else %}
-                            <tr>
-                                {% for unique_key in analysis[key] | get_unique_keys_from_list_of_dicts | sort %}
-                                    <th style="padding: 5px">{{ unique_key }}</th>
-                                {% endfor %}
-                            </tr>
-                            {% for dictionary in analysis[key] %}
+                            {% else %}
+                                {% set unique_keys = value | get_unique_keys_from_list_of_dicts | sort %}
                                 <tr>
-                                    {% for unique_key in analysis[key] | get_unique_keys_from_list_of_dicts | sort %}
-                                        {% if unique_key in dictionary.keys() %}
-                                            <td style="padding: 5px">{{ dictionary[unique_key] }}</td>
-                                        {% else %}
-                                            <td></td>
-                                        {% endif %}
+                                    {% for unique_key in unique_keys %}
+                                        <th style="padding: 5px">{{ unique_key }}</th>
                                     {% endfor %}
+                                </tr>
+                                {% for dictionary in value %}
+                                    <tr>
+                                        {% for unique_key in unique_keys %}
+                                            {% if unique_key in dictionary and dictionary[unique_key] is not none %}
+                                                {% if "offset" in unique_key %}
+                                                    <td style="padding: 5px">
+                                                        {{ dictionary[unique_key] | hex }} ({{ dictionary[unique_key] }})
+                                                    </td>
+                                                {% elif dictionary[unique_key] | is_list %}
+                                                    <td style="padding: 5px">{{ ', '.join(dictionary[unique_key]) }}</td>
+                                                {% else %}
+                                                    <td style="padding: 5px">{{ dictionary[unique_key] }}</td>
+                                                {% endif %}
+                                            {% else %}
+                                                <td></td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                        {% elif value %}
+                            {% for k, v in value.items() %}
+                                <tr>
+                                    <td style="padding: 5px">{{ k }}</td>
+                                    {% if "offset" in k or "entrypoint" in k %}
+                                        <td style="padding: 5px">{{ v | hex }} ({{ v }})</td>
+                                    {% else %}
+                                        <td style="padding: 5px">{{ v }}</td>
+                                    {% endif %}
                                 </tr>
                             {% endfor %}
                         {% endif %}
-                    {% elif analysis[key] %}
-                        {% for k, v in analysis[key].items() %}
-                            <tr>
-                                <td style="padding: 5px">{{ k }}</td>
-                                <td style="padding: 5px">{{ v }}</td>
-                            </tr>
-                        {% endfor %}
-                    {% endif %}
-
-                </table>
-            </div>
-
-        </td>
+                    </table>
+                </div>
+            </td>
+        {% endif %}
     </tr>
 {% endfor %}
 
