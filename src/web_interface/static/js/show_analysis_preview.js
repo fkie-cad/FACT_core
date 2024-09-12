@@ -15,7 +15,7 @@ function highlight_code() {
 }
 function load_preview() {
     let resourcePath;
-    document.getElementById("preview_button").onclick = () => { false };
+    document.getElementById("preview_button").onclick = () => { return false; };
     if (isTextOrImage) {
         resourcePath = `/ajax_get_binary/${mimeType}/${uid}`;
     } else {
@@ -37,3 +37,31 @@ function load_preview() {
     $("#preview-content").load(resourcePath, init_preview);
 }
 document.getElementById("preview_button").onclick = load_preview;
+let rawIsVisible = false;
+let rawResultIsHighlighted = false;
+
+function toggleRawResult() {
+    const analysisTable = document.getElementById("analysis-table-body");
+    const rawResultRow = document.getElementById("raw-result");
+    // filter out meta rows
+    const analysisRows = Array.from(analysisTable.children)
+        .filter(child => !child.classList.contains("analysis-meta"));
+    if (rawIsVisible) {
+        analysisRows.forEach((element) => {
+            element.style.visibility = "visible";
+        });
+        rawResultRow.style.visibility = "collapse";
+    } else {
+        analysisRows.forEach((element) => {
+            element.style.visibility = "collapse";
+        });
+        rawResultRow.style.visibility = "visible";
+    }
+    rawIsVisible = !rawIsVisible;
+
+    if (!rawResultIsHighlighted) {
+        rawResultIsHighlighted = true;
+        let rawResult = document.getElementById('raw-analysis');
+        hljs.highlightBlock(rawResult);
+    }
+}
