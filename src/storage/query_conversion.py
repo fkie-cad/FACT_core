@@ -155,7 +155,7 @@ def _get_array_filter(field, key, value):
             column = func.array_to_string(field, ',')
             return _dict_key_to_filter(column, key, value)
         if '$contains' in value:
-            return field.contains(_to_list(value['$contains']))
+            return field.contains(value['$contains'])
         if '$overlap' in value:
             return field.overlap(_to_list(value['$overlap']))
         raise QueryConversionException(f'Unsupported search option for ARRAY field: {value}')
