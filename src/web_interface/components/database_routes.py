@@ -7,9 +7,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from itertools import chain
+from json import JSONDecodeError
 
-import json5
-from flask import flash, redirect, render_template, request, url_for
+import requests
+from flask import Response, flash, redirect, render_template, request, url_for
 from gql.transport.exceptions import TransportQueryError
 from graphql import GraphQLSyntaxError
 from sqlalchemy.exc import SQLAlchemyError
@@ -21,7 +22,7 @@ from helperFunctions.task_conversion import get_file_name_and_binary_from_reques
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
-from storage.graphql.interface import TEMPLATE_QUERIES, GraphQLSearchError, search_gql
+from storage.graphql.interface import TEMPLATE_QUERIES, GraphQlInterface, GraphQLSearchError
 from storage.query_conversion import QueryConversionException
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
@@ -46,6 +47,10 @@ class SearchParameters:
 
 
 class DatabaseRoutes(ComponentBase):
+    def __init__(self, *args, **kwargs):
+        self.gql_interface = GraphQlInterface()
+        super().__init__(*args, **kwargs)
+
     @staticmethod
     def _add_date_to_query(query, date):
         try:
@@ -71,10 +76,12 @@ class DatabaseRoutes(ComponentBase):
             where = parameters.query.get('where', {})
             table = parameters.query.get('table')
             try:
-                matches, total = search_gql(where, table, offset=offset, limit=limit)
+                matches, total = self.gql_interface.search_gql(where, table, offset=offset, limit=limit)
             except (GraphQLSearchError, GraphQLSyntaxError, TransportQueryError) as error:
                 if hasattr(error, 'errors') and error.errors:
                     error = ', '.join(err.get('message') for err in error.errors if err)
+                if 'not found in type' in error:
+                    error = self._format_wrong_table_error(error)
                 message = f'Error during GraphQL search: {error}'
                 logging.exception(message)
                 flash(message)
@@ -121,6 +128,16 @@ class DatabaseRoutes(ComponentBase):
             current_vendor=str(request.args.get('vendor')),
             search_parameters=parameters,
         )
+
+    @staticmethod
+    def _format_wrong_table_error(error: str) -> str:
+        # special case where the user usually selected the wrong table (or there is a typo in their request)
+        match = re.search(r"field '(.+)' not found in type: '(.+)'", error)
+        if match:
+            field, expression = match.groups()
+            table = expression.replace('_bool_exp', '')
+            error = f'Table "{table}" has no field "{field}". Did you search in the wrong table?'
+        return error
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/browse_binary_search_history', GET)
@@ -347,7 +364,6 @@ class DatabaseRoutes(ComponentBase):
         return render_template(
             'database/database_graphql.html',
             secret=config.frontend.hasura.admin_secret,
-            port=config.frontend.hasura.port,
             tables=TEMPLATE_QUERIES,
             last_query=request.args.get('last_query'),
         )
@@ -357,12 +373,12 @@ class DatabaseRoutes(ComponentBase):
     def post_graphql(self):
         where_str = request.form.get('textarea')
         try:
-            where = json5.loads(where_str)
-        except ValueError as error:
+            where = json.loads(where_str)
+        except JSONDecodeError as error:
             if where_str == '':
                 flash('Error: Query is empty')
             else:
-                flash(f'Error: JSON decoding error: {error}')
+                flash(f'JSON decoding error: {error}')
             return redirect(url_for(self.get_graphql.__name__, last_query=where_str))
 
         table = request.form.get('tableSelect')
@@ -378,8 +394,34 @@ class DatabaseRoutes(ComponentBase):
             )
         )
 
-    @staticmethod
-    def _fix_where_filter(where: str) -> str:
-        # in case someone dumps an unquoted string into the query directly from GraphiQL,
-        # we can try to fix it by adding some quotes
-        return re.sub(r'([{,])([a-zA-Z0-9_]+)(?=:)', r'\g<1>"\g<2>"', where)
+    @roles_accepted(*PRIVILEGES['advanced_search'])
+    @AppRoute('/graphql', GET, POST)
+    def proxy_graphql(self):
+        """
+        Creates a proxy for GraphQL so that we have auth and don't need to expose more ports. Since we assume that the
+        user is authenticated to use this endpoint, we add the Hasura headers if they are missing.
+        """
+        excluded_proxy_headers = {'Host', 'Authorization'}
+        req_headers = {k: v for (k, v) in request.headers if k not in excluded_proxy_headers}
+        response = requests.request(
+            method=request.method,
+            url=f'http://localhost:{config.frontend.hasura.port}/v1/graphql',
+            headers={**req_headers, 'X-Hasura-Role': 'ro_user'},
+            data=request.get_data(),
+            cookies=request.cookies,
+            allow_redirects=False,
+        )
+        excluded_headers = {
+            'connection',
+            'content-encoding',
+            'content-length',
+            'keep-alive',
+            'proxy-authenticate',
+            'proxy-authorization',
+            'te',
+            'trailers',
+            'transfer-encoding',
+            'upgrade',
+        }
+        headers = {k: v for (k, v) in response.raw.headers.items() if k.lower() not in excluded_headers}
+        return Response(response.content, response.status_code, headers=headers)

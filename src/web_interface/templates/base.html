@@ -49,62 +49,69 @@
     {% endblock %}
 
     <style>
-            a:link{
-                color:#2b669a;
-                text-decoration:none;
-            }
-            .clickable {
-                cursor:pointer;
-            }
-            .bg-fact {
-                  background-color: #255e54 !important;
-            }
-            .navbar-light .navbar-brand, .navbar-light .navbar-nav > li > a {
-                color: #ddd;
-            }
-            .navbar-light .navbar-brand:hover, .navbar-light .navbar-nav > li > a:hover {
-                color: #fff;
-            }
+        a:link{
+            color:#2b669a;
+            text-decoration:none;
+        }
+        .clickable {
+            cursor:pointer;
+        }
+        .bg-fact {
+              background-color: #255e54 !important;
+        }
+        .navbar-light .navbar-brand, .navbar-light .navbar-nav > li > a {
+            color: #ddd;
+        }
+        .navbar-light .navbar-brand:hover, .navbar-light .navbar-nav > li > a:hover {
+            color: #fff;
+        }
+        .tooltip > .tooltip-inner {
+            background-color: #2b669a;
+            color: #FFFFFF;
+            border: 1px solid #2b669a;
+            padding: 5px;
+            font-size: 15px;
+        }
+        .tooltip.top > .tooltip-arrow {
+            border-top: 5px solid #2b669a;
+        }
 
-            .tooltip > .tooltip-inner {
-                background-color: #2b669a;
-                color: #FFFFFF;
-                border: 1px solid #2b669a;
-                padding: 5px;
-                font-size: 15px;
-            }
-            .tooltip.top > .tooltip-arrow {
-                border-top: 5px solid #2b669a;
-            }
-
-            .table-head-light,
-            .table-head-light > th,
-            .table-head-light > td {
-                background-color: #e9ecef;
-            }
-            .table-hover .table-head-light:hover {
-                background-color: #d6d8db;
-            }
-            .table-hover .table-head-light:hover > td,
-            .table-hover .table-head-light:hover > th {
-                background-color: #d6d8db;
-            }
-            .li-hover {
-                box-shadow: 0 0 0 rgba(0,0,0,.125);
-            }
-            .li-hover:hover {
-                box-shadow: 5px 5px 20px rgba(0,0,0,.125);
-                z-index: 1;
-                border-top: 0;
-                transition: box-shadow 0.3s ease-in-out;
-            }
-            .table-analysis {
-                font-size: 15px;
-            }
-            .footnote {
-                font-family: 'Courier New', Courier, monospace;
-                font-size: 10px;
-            }
+        .table-head-light,
+        .table-head-light > th,
+        .table-head-light > td {
+            background-color: #e9ecef;
+        }
+        .table-hover .table-head-light:hover {
+            background-color: #d6d8db;
+        }
+        .table-hover .table-head-light:hover > td,
+        .table-hover .table-head-light:hover > th {
+            background-color: #d6d8db;
+        }
+        .li-hover {
+            box-shadow: 0 0 0 rgba(0,0,0,.125);
+        }
+        .li-hover:hover {
+            box-shadow: 5px 5px 20px rgba(0,0,0,.125);
+            z-index: 1;
+            border-top: 0;
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .table-analysis {
+            font-size: 15px;
+        }
+        .footnote {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10px;
+        }
+        .example-json {
+            font-family: 'Deja Vu Sans Mono', monospace;
+            font-size: 0.9em;
+        }
+        .example-comment {
+            color: grey;
+            font-size: 0.9em;
+        }
     </style>
     {% block styles %}{% endblock %}
 </head>
