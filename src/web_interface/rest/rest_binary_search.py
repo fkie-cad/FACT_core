@@ -74,4 +74,11 @@ class RestBinarySearchGet(RestResourceBase):
         if result is None:
             return error_message('The result is not ready yet or it has already been fetched', self.URL)
 
-        return success_message({'binary_search_results': result}, self.URL)
+        # the "new" binary search result has the structure {<uid>: {<rule>: [<str_match_data>]}}
+        # we convert it back to the "old" structure {<rule>: [<uid>]} in order to maintain compatibility
+        transposed_result = {}
+        for uid, uid_result in result.items():
+            for rule in uid_result:
+                transposed_result.setdefault(rule, []).append(uid)
+
+        return success_message({'binary_search_results': transposed_result}, self.URL)

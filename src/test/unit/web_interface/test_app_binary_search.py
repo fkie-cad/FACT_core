@@ -22,7 +22,7 @@ class DbMock(CommonDatabaseMock):
     @staticmethod
     def get_query_from_cache(query_id):
         if query_id == QUERY_CACHE_UID:
-            return CachedQuery(query='{"uid": {"$in": ["test_uid"]}}', yara_rule='some yara rule')
+            return CachedQuery(query='{"uid": {"$in": ["test_uid"]}}', yara_rule='some yara rule', match_data={})
         return None
 
 
