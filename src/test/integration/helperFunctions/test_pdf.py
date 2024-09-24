@@ -2,8 +2,7 @@ import grp
 import os
 from pathlib import Path
 
-from fact_helper_file import get_file_type_from_binary
-
+from helperFunctions import magic
 from helperFunctions.pdf import build_pdf_report
 from test.common_helper import TEST_FW
 
@@ -21,5 +20,5 @@ def test_build_pdf_report():
 
     pdf_path = build_pdf_report(TEST_FW, docker_mount_base_dir)
 
-    assert get_file_type_from_binary(pdf_path.read_bytes())['mime'] == 'application/pdf'
+    assert magic.from_buffer(pdf_path.read_bytes(), mime=True) == 'application/pdf'
     assert pdf_path.name == f"{TEST_FW.device_name.replace(' ', '_')}_analysis_report.pdf"

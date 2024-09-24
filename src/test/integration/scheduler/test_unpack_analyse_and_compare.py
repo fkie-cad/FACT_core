@@ -7,7 +7,7 @@ from test.common_helper import get_test_data_dir
 
 _expected_result = {
     'File_Coverage': {'files_in_common': {'all': [], 'collapse': False}},
-    'Software': {'Compare Skipped': {'all': 'Required analysis not present: software_components'}},
+    'Software': {'Compare Skipped': {'all': 'Required analyses not present: software_components'}},
 }
 
 

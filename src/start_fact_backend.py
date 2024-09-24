@@ -20,6 +20,7 @@
 import grp
 import logging
 import os
+import resource
 import sys
 from pathlib import Path
 
@@ -37,6 +38,8 @@ from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
 
+ULIMIT_MIN = 1_024
+
 
 class FactBackend(FactBase):
     PROGRAM_NAME = 'FACT Backend'
@@ -47,6 +50,7 @@ class FactBackend(FactBase):
         super().__init__()
         self.unpacking_lock_manager = UnpackingLockManager()
         self._create_docker_base_dir()
+        _check_ulimit()
 
         try:
             self.analysis_service = AnalysisScheduler(unpacking_locks=self.unpacking_lock_manager)
@@ -110,6 +114,64 @@ class FactBackend(FactBase):
         )
 
 
+def _check_ulimit():
+    """
+    2024-07-16 - the numbers are prone to change over time
+
+    Each process has a hard limit and a soft limit for the maximum number of file descriptors (FDs) opened at the same
+    time. Since FACT makes extensive use of multiprocessing features, it uses up a lot of those FDs and if we run out,
+    this raises an OSError. To mitigate this, we try to increase the soft limit and print a warning if the hard limit
+    is low. With the default configuration, FACT uses 556 FDs (and potentially many more if you crank up the worker
+    counts).
+
+    The FD number is distributed among the individual backend components as follows:
+
+    | component              | init | start | sum |
+    | ---------------------- | ---- | ----- | --- |
+    | fact_base              | 7    | -     | 7   |
+    | unpacking_lock_manager | 2    | -     | 2   |
+    | analysis_service       | 200  | 294   | 494 |
+    | unpacking_service      | 2    | 20    | 22  |
+    | compare_service        | 3    | 4     | 7   |
+    | intercom               | -    | 24    | 24  |
+    | total                  |      |       | 556 |
+
+    Most of this stems from the analysis_service. The analysis service in turn looks like this:
+
+    | component                | init | start | sum |
+    | ------------------------ | ---- | ----- | --- |
+    | plugins                  | 196  | 268   |     |
+    | process queue            | 2    | -     |     |
+    | AnalysisStatus           | 2    | 2     |     |
+    | AnalysisTaskScheduler    | -    | -     |     |
+    | FSOrganizer              | -    | -     |     |
+    | BackendDbInterface       | -    | -     |     |
+    | scheduler processes (4x) | -    | 16    |     |
+    | collector processes (2x) | -    | 8     |     |
+    | total                    | 200  | 294   | 494 |
+
+    The 29 plugins are the main source of used FDs. Many FDs are used during initialization. The main reason for this
+    are input and output queues. Each queue contributes two FDs. In addition to that, there are the manager processes
+    for passing data between processes which also consume two FDs. Then there are some more multiprocessing objects
+    (Values, Arrays, etc.) that add some more. Even more are used when the worker processes are started.
+    """
+    soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    if hard_limit < ULIMIT_MIN:
+        logging.warning(
+            'The open file limit appears to be low. This could lead to "too many open files" errors. Please increase '
+            'the open file hard limit for the process that runs FACT.'
+        )
+    if soft_limit < hard_limit:
+        # we are only allowed to increase the soft limit and not the hard limit
+        resource.setrlimit(resource.RLIMIT_NOFILE, (hard_limit, hard_limit))
+
+
 if __name__ == '__main__':
-    FactBackend().main()
-    sys.exit(0)
+    backend = FactBackend()
+    try:
+        backend.main()
+        sys.exit(0)
+    except OSError as error:
+        logging.exception(f'Exception during start: {error}')
+        backend.shutdown()
+        sys.exit(1)

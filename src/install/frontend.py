@@ -139,6 +139,7 @@ def _copy_mime_icons():
         ('places/folder-brown.svg', 'folder.svg'),
         ('status/dialog-error.svg', 'not_analyzed.svg'),
         ('emblems/emblem-symbolic-link.svg', 'mimetypes/inode-symlink.svg'),
+        ('apps/tux.svg', 'linux.svg'),
     ]:
         run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 

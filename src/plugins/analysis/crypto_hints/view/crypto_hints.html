@@ -38,7 +38,7 @@
                 <tr>
                     <td>Matches</td>
                     <td class="p-0 m-0">
-                        <table class="table table-bordered" style="margin:0px;">
+                        <table class="table table-bordered" style="margin:0;">
                             <colgroup>
                                 <col style="width: 75px">
                                 <col style="width: 525px">
@@ -46,13 +46,15 @@
                             <tr>
                                 <td class="table-head-light">offset</td>
                                 <td class="table-head-light">name</td>
-                                <td class="table-head-light" style="width: 90%">matched value</td>
+                                <td class="table-head-light" style="width: 30%;">value</td>
+                                <td class="table-head-light" style="width: 60%;">value hex</td>
                             </tr>
                             {% for offset, name, matched_string in match_dict['strings'] %}
                                 <tr>
                                     <td> 0x{{ '0%x' % offset }} </td>
                                     <td> {{ name[1:] }} </td>
                                     <td> {{ matched_string }} </td>
+                                    <td style="font-family: monospace;"> {{ matched_string | str_to_hex }} </td>
                                 </tr>
                             {% endfor %}
                         </table>

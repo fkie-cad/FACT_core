@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import string
 
 from more_itertools import chunked
@@ -45,7 +46,7 @@ def _get_hex_and_str_preview(line: list[int]) -> tuple[str, str]:
             hex_content += span
             str_preview += span
         hex_content += f' {_chr_to_hex(char)}'
-        str_preview += f'{chr(char)}' if char in PRINTABLE else '.'
+        str_preview += html.escape(chr(char)) if char in PRINTABLE else '.'
         last_highlighting_class = highlighting_class
     if last_highlighting_class is not None:  # close last span
         hex_content += CLOSING_SPAN

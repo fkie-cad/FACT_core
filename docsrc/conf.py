@@ -69,7 +69,6 @@ autodoc_mock_imports = [
     'docker',
     'docker-compose',
     'email-validator',
-    'fact_helper_file',
     'flaky',
     'flask',
     'flask_login',

@@ -239,6 +239,7 @@ class FilterClass:
         self._app.jinja_env.filters['sort_roles'] = flt.sort_roles_by_number_of_privileges
         self._app.jinja_env.filters['sort_users'] = flt.sort_users_by_name
         self._app.jinja_env.filters['split_user_and_password_type'] = self._split_user_and_password_type_entry
+        self._app.jinja_env.filters['str_to_hex'] = flt.str_to_hex
         self._app.jinja_env.filters['text_highlighter'] = flt.text_highlighter
         self._app.jinja_env.filters['uids_to_link'] = flt.uids_to_link
         self._app.jinja_env.filters['user_has_role'] = flt.user_has_role

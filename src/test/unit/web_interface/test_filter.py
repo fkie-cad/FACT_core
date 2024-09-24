@@ -477,3 +477,14 @@ def test_as_ascii_table():
     # Makes the pytest output more readable
     output = output.replace(' ', '.')
     assert output == 'left       right     \nfoo        bar       \n'.replace(' ', '.')
+
+
+@pytest.mark.parametrize(
+    ('input_', 'expected_result'),
+    [
+        ('', ''),
+        ('abc123', '616263313233'),
+    ],
+)
+def test_str_to_hex(input_, expected_result):
+    assert flt.str_to_hex(input_) == expected_result

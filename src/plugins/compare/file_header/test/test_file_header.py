@@ -10,7 +10,7 @@ class TestComparePluginFileHeader(ComparePluginTest):
     PLUGIN_CLASS = ComparePlugin
 
     def test_compare(self):
-        result = self.c_plugin.compare_function([self.fw_one, self.fw_two, self.fw_three])
+        result = self.c_plugin.compare_function([self.fw_one, self.fw_two, self.fw_three], {})
 
         assert all(key in result for key in ['hexdiff', 'ascii', 'offsets']), 'not all result keys given'
         assert all(

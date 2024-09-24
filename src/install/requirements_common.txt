@@ -5,9 +5,9 @@ testresources==2.0.1
 appdirs==1.4.4
 docker~=7.1.0
 flaky==3.7.0
-lief==0.12.3
+lief==0.14.1
 psutil==5.9.4
-psycopg2-binary==2.9.5
+psycopg2-binary==2.9.9
 pylint==2.15.5
 pytest-cov==4.0.0
 pytest-timeout==2.1.0
@@ -26,8 +26,6 @@ yara-python==4.5.0
 pydantic==2.4.0
 # Config parsing
 toml==0.10.2
-
-git+https://github.com/fkie-cad/fact_helper_file.git
 
 # Common code modules
 git+https://github.com/fkie-cad/common_helper_files.git

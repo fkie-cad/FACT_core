@@ -1,4 +1,4 @@
-cryptography==42.0.4
+cryptography==43.0.1
 MarkupSafe==2.1.1
 networkx==2.6.3
 Pillow==10.3.0
