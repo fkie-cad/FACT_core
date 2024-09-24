@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% import 'macros.html' as macros %}
+
 {% set active_page = "Database" %}
 
 
@@ -25,12 +27,6 @@
             border-radius: 0 0 0.75rem 0.75rem;
             padding: 0;
             background: white;
-        }
-        .hid {
-            width: 100%;
-            height: 100%;
-            font-size: 14px;
-            color: #515151;
         }
     </style>
 {% endblock %}
@@ -119,19 +115,8 @@
                 {% for firmware in firmware_list %}
 
                     {# single search result #}
-                    <li class="list-group-item p-0 li-hover bg-light">
-                        <div class="clickable p-2" onclick="location.href='/analysis/{{ firmware.uid }}'">
-                            <a href='/analysis/{{ firmware.uid }}'>
-                                <div class="d-flex justify-content-between align-items-center hid">
-                                    {{ firmware.hid }}
-                                    <span>{{ firmware.tags | render_fw_tags(size=11) | safe }}</span>
-                                </div>
-                            </a>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="footnote text-muted">{{ firmware.submission_date | nice_unix_time | safe }}</span>
-                                <a href="/download/{{ firmware.uid }}" class="pull-right"><i class="fas fa-download"></i></a>
-                            </div>
-                        </div>
+                    {% call macros.fw_detail_tabular_field(firmware) %}
+
                         {# binary search show matching strings button #}
                         {% if search_parameters.yara_match_data and firmware.uid in search_parameters.yara_match_data %}
                             <div class="p-0">
@@ -174,7 +159,7 @@
                                 </div>
                             </div>
                         {% endif %}
-                    </li>
+                    {% endcall %}
                 {% endfor %}
             </ul>
         {% else %}
