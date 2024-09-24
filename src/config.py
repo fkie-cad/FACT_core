@@ -108,6 +108,13 @@ class Frontend(Common):
 
     radare2_url: str
 
+    hasura: Frontend.Hasura
+
+    class Hasura(BaseModel):
+        model_config = ConfigDict(extra='forbid')
+        admin_secret: str
+        port: int = 33_333
+
 
 class Backend(Common):
     model_config = ConfigDict(extra='forbid')

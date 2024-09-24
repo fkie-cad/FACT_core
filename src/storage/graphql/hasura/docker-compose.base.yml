@@ -1,0 +1,5 @@
+  services:
+    postgres-local:
+      volumes:
+        - /var/run/postgresql:/var/run/postgresql
+    postgres-remote:
