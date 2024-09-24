@@ -450,12 +450,16 @@
             radare_form.submit();
         }
         document.addEventListener("DOMContentLoaded", function() {
-            // auto load summary if URL parameter "load_summary=true" is set
             const urlParams = new URLSearchParams(window.location.search);
             const summary = urlParams.get('load_summary');
+            const preview = urlParams.get('load_preview') || false;
             const has_children = {{ "true" if firmware.files_included | length > 0  else "false" }};
             if (summary === "true" && has_children && selected_analysis !== "None") {
+                // automatically load summary if URL parameter "load_summary=true" is set
                 load_summary(uid, selected_analysis, focus=true);
+            } else if (preview !== false) {
+                // automatically load preview at address xyz if URL parameter "load_preview=xyz" is set
+                load_preview(preview, true);
             }
         });
     </script>
