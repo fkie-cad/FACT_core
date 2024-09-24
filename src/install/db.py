@@ -33,6 +33,8 @@ def install_postgres(version: int = 14):
         if process.returncode != 0:
             raise InstallationError(f'Failed to set up PostgreSQL: {process.stderr}')
 
+
+def configure_postgres(version: int = 14):
     config_path = f'/etc/postgresql/{version}/main/postgresql.conf'
     # increase the maximum number of concurrent connections
     run(f'sudo sed -i -E "s/max_connections = [0-9]+/max_connections = 999/g" {config_path}', shell=True, check=True)
@@ -57,6 +59,7 @@ def main():
     else:
         logging.info('Setting up PostgreSQL database')
         install_postgres()
+    configure_postgres()
 
     # initializing DB
     logging.info('Initializing PostgreSQL database')
