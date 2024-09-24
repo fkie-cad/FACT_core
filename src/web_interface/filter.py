@@ -521,3 +521,7 @@ def as_ascii_table(data: dict) -> str:
 
 def octal_to_readable(octal: str) -> str:
     return stat.filemode(int(octal, 8)).lstrip('?')
+
+
+def str_to_hex(string: str) -> str:
+    return string.encode(errors='replace').hex()

@@ -46,6 +46,12 @@ def main(distribution):
 
     BIN_DIR.mkdir(exist_ok=True)
 
+    run_cmd_with_logging(
+        f'wget -O {BIN_DIR / "firmware.xz"} https://github.com/fkie-cad/firmware-magic-database/releases/download/v0.2.1/firmware.xz'
+    )
+    run_cmd_with_logging(f'unxz --force {BIN_DIR / "firmware.xz"}')
+    run_cmd_with_logging(f'cp --force {INSTALL_DIR / "internal_symlink_magic"} {BIN_DIR}')
+
     apt_packages_path = INSTALL_DIR / 'apt-pkgs-common.txt'
     dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-common.txt'
 

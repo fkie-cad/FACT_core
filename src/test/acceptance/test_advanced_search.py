@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import json
 from urllib.parse import quote
 
 import pytest
 
 from test.common_helper import (
+    assert_search_result,
     create_test_file_object,
     create_test_firmware,
     generate_analysis_entry,
@@ -32,36 +35,32 @@ class TestAcceptanceAdvancedSearch:
         assert b'<h3 class="mb-3">Advanced Search</h3>' in rv.data
 
     def test_advanced_search(self, test_client):
-        rv = test_client.post(
+        response = test_client.post(
             '/database/advanced_search',
             content_type='multipart/form-data',
             data={'advanced_search': '{}'},
             follow_redirects=True,
         )
-        assert b'Please enter a valid search request' not in rv.data
-        assert parent_fw.uid.encode() in rv.data
-        assert child_fo.uid.encode() not in rv.data
+        assert_search_result(response, included=[parent_fw], excluded=[child_fo])
 
     @pytest.mark.usefixtures('intercom_backend_binding')
     def test_advanced_search_file_object(self, test_client):
-        rv = test_client.post(
+        response = test_client.post(
             '/database/advanced_search',
             content_type='multipart/form-data',
             data={'advanced_search': json.dumps({'uid': child_fo.uid})},
             follow_redirects=True,
         )
-        assert b'Please enter a valid search request' not in rv.data
-        assert b'<strong>UID:</strong> ' + parent_fw.uid.encode() not in rv.data
-        assert b'<strong>UID:</strong> ' + child_fo.uid.encode() in rv.data
+        assert_search_result(response, included=[child_fo], excluded=[parent_fw])
 
     def test_advanced_search_only_firmwares(self, test_client):
-        query = {'advanced_search': json.dumps({'uid': child_fo.uid}), 'only_firmwares': 'True'}
         response = test_client.post(
-            '/database/advanced_search', content_type='multipart/form-data', data=query, follow_redirects=True
-        ).data.decode()
-        assert 'Please enter a valid search request' not in response
-        assert child_fo.uid not in response
-        assert parent_fw.uid in response
+            '/database/advanced_search',
+            content_type='multipart/form-data',
+            data={'advanced_search': json.dumps({'uid': child_fo.uid}), 'only_firmwares': 'True'},
+            follow_redirects=True,
+        )
+        assert_search_result(response, included=[parent_fw], excluded=[child_fo])
 
     def test_advanced_search_inverse_only_firmware(self, test_client):
         query = {
@@ -71,11 +70,8 @@ class TestAcceptanceAdvancedSearch:
         }
         response = test_client.post(
             '/database/advanced_search', content_type='multipart/form-data', follow_redirects=True, data=query
-        ).data.decode()
-        assert 'Please enter a valid search request' not in response
-        assert child_fo.uid not in response
-        assert f'<strong>UID:</strong> {parent_fw.uid}' not in response
-        assert f'<strong>UID:</strong> {other_fw.uid}' in response
+        )
+        assert_search_result(response, included=[other_fw], excluded=[child_fo, parent_fw])
 
     def test_rest_recursive_firmware_search(self, test_client):
         query = quote(json.dumps({'file_name': child_fo.file_name}))

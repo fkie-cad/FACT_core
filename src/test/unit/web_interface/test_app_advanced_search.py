@@ -1,7 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 
 from storage.db_interface_frontend import MetaEntry
-from test.common_helper import TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
+from test.common_helper import TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock, assert_search_result
+
+if TYPE_CHECKING:
+    from werkzeug.test import TestResponse
 
 
 class DbMock(CommonDatabaseMock):
@@ -36,29 +43,28 @@ class DbMock(CommonDatabaseMock):
 class TestAppAdvancedSearch:
     def test_advanced_search(self, test_client):
         response = _do_advanced_search(test_client, {'advanced_search': '{}'})
-        assert TEST_FW_2.uid in response
-        assert TEST_TEXT_FILE.uid not in response
+        assert_search_result(response, included=[TEST_FW_2], excluded=[TEST_TEXT_FILE])
 
     def test_advanced_search_firmware(self, test_client):
         response = _do_advanced_search(test_client, {'advanced_search': f'{{"_id": "{TEST_FW_2.uid}"}}'})
-        assert TEST_FW_2.uid in response
-        assert TEST_TEXT_FILE.uid not in response
+        assert_search_result(response, included=[TEST_FW_2], excluded=[TEST_TEXT_FILE])
 
     def test_advanced_search_file_object(self, test_client):
         response = _do_advanced_search(test_client, {'advanced_search': f'{{"_id": "{TEST_TEXT_FILE.uid}"}}'})
-        assert TEST_FW_2.uid not in response
-        assert TEST_TEXT_FILE.uid in response
+        assert_search_result(response, included=[TEST_TEXT_FILE], excluded=[TEST_FW_2])
 
     def test_advanced_search_only_firmwares(self, test_client):
         response = _do_advanced_search(
             test_client,
             {'advanced_search': f'{{"_id": "{TEST_TEXT_FILE.uid}"}}', 'only_firmwares': 'True'},
         )
-        assert TEST_FW_2.uid in response
-        assert TEST_TEXT_FILE.uid not in response
+        assert_search_result(response, included=[TEST_FW_2], excluded=[TEST_TEXT_FILE])
 
 
-def _do_advanced_search(test_client, query: dict) -> str:
+def _do_advanced_search(test_client, query: dict) -> TestResponse:
     return test_client.post(
-        '/database/advanced_search', data=query, content_type='multipart/form-data', follow_redirects=True
-    ).data.decode()
+        '/database/advanced_search',
+        data=query,
+        content_type='multipart/form-data',
+        follow_redirects=True,
+    )

@@ -65,7 +65,7 @@ class TestComparePluginFileCoverage(ComparePluginTest):
     def test_run_compare_plugin(self):
         self.fw_one.list_of_all_included_files.append('foo')
         self.fw_two.list_of_all_included_files.append('foo')
-        result = self.c_plugin.compare_function([self.fw_one, self.fw_two])
+        result = self.c_plugin.compare_function([self.fw_one, self.fw_two], {})
         assert len(result.keys()) == 5  # noqa: PLR2004
 
     def test_find_changed_text_files(self):

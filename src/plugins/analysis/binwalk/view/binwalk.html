@@ -4,15 +4,48 @@
 {% block analysis_result_details %}
     <tr>
         <td> Signature Analysis</td>
-        <td class="bg-dark">
-            <pre class="border-0 p-2 text-white" style="white-space: pre-wrap;">{{ analysis_result["signature_analysis"] | safe }}</pre>
+        <td class="p-0">
+            <table class="table table-sm w-100 m-0">
+                <tr>
+                    <th>Offset</th>
+                    <th>Offset (hex)</th>
+                    <th>Description</th>
+                </tr>
+                {%- for item in analysis_result.signature_analysis -%}
+                    <tr>
+                        <td>{{ item.offset }}</td>
+                        <td>{{ item.offset | hex }}</td>
+                        <td>
+                            {%- if "," in item.description -%}
+                                {%- set outer_loop = loop -%}
+                                {%- for element in item.description.split(",") -%}
+                                    {%- if loop.first -%}
+                                    {{ element }}
+                                    <button type="button" class="btn btn-outline-primary btn-sm collapsed"
+                                            data-toggle="collapse" data-target="#bw-{{ outer_loop.index }}">
+                                        ... <i class="fas fa-caret-down"></i>
+                                    </button>
+                                    <ul id="bw-{{ outer_loop.index }}" class="collapse">
+                                    {%- else -%}
+                                        <li>{{ element }}</li>
+                                    {%- endif -%}
+                                {%- endfor -%}
+                                </ul>
+                            {%- else -%}
+                                {{ item.description }}
+                            {%- endif -%}
+                        </td>
+                    </tr>
+                {%- endfor -%}
+            </table>
         </td>
     </tr>
 
     <tr>
         <td>Entropy Graph</td>
         <td class="p-0 m-0">
-            <img style="max-width:100%;" src="data:image/png;base64,{{ analysis_result['entropy_analysis_graph'] }}" width="1024px" />
+            <img style="max-width:100%;" src="data:image/png;base64,{{ analysis_result.entropy_analysis_graph }}"
+                 width="1024px" alt="binwalk entropy graph" />
         </td>
     </tr>
 {% endblock %}
