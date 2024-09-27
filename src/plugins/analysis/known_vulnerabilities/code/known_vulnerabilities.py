@@ -20,7 +20,7 @@ class AnalysisPlugin(YaraBasePlugin):
     NAME = 'known_vulnerabilities'
     DESCRIPTION = 'Rule based detection of known vulnerabilities like Heartbleed'
     DEPENDENCIES = ['file_hashes', 'software_components']  # noqa: RUF012
-    VERSION = '0.2.1'
+    VERSION = '0.2.2'
     FILE = __file__
 
     def process_object(self, file_object):
@@ -34,7 +34,7 @@ class AnalysisPlugin(YaraBasePlugin):
 
         # CVE-2021-45608 NetUSB
         if 'NetUSB' in file_object.processed_analysis.get('software_components', {}).get('result', {}):
-            matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
+            matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.file_path))
 
         for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
             file_object.processed_analysis[self.NAME][name] = vulnerability
@@ -86,11 +86,9 @@ class AnalysisPlugin(YaraBasePlugin):
 
         return matched_vulnerabilities
 
-    def _check_netusb_vulnerability(self, input_file_data: bytes):
+    def _check_netusb_vulnerability(self, file_path: str):
         with TemporaryDirectory(prefix='known_vulns_', dir=config.backend.docker_mount_base_dir) as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
-            ghidra_input_file = tmp_dir_path / 'ghidra_input'
-            ghidra_input_file.write_bytes(input_file_data)
             with suppress(DockerException, TimeoutError):
                 run_docker_container(
                     'fact/known-vulnerabilities',
@@ -98,6 +96,7 @@ class AnalysisPlugin(YaraBasePlugin):
                     timeout=60,
                     mounts=[
                         Mount('/io', tmp_dir, type='bind'),
+                        Mount('/io/ghidra_input', file_path, type='bind', read_only=True),
                     ],
                 )
 
