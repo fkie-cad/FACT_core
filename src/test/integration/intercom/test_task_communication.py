@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Manager
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from time import sleep
@@ -8,7 +9,6 @@ from time import sleep
 import pytest
 
 from intercom.back_end_binding import (
-    InterComBackEndAnalysisPlugInsPublisher,
     InterComBackEndAnalysisTask,
     InterComBackEndBinarySearchTask,
     InterComBackEndCompareTask,
@@ -20,6 +20,7 @@ from intercom.back_end_binding import (
     InterComBackEndSingleFileTask,
     InterComBackEndTarRepackTask,
 )
+from intercom.common_redis_binding import publish_available_analysis_plugins
 from intercom.front_end_binding import InterComFrontEndBinding
 from test.common_helper import create_test_firmware
 
@@ -67,7 +68,7 @@ class TestInterComTaskCommunication:
         assert Path(task.file_path).exists(), 'file does not exist'
 
     def test_single_file_task(self, intercom_frontend):
-        task_listener = InterComBackEndSingleFileTask()
+        task_listener = InterComBackEndSingleFileTask(manager=Manager())
         test_fw = create_test_firmware()
         test_fw.file_path = None
         test_fw.scheduled_analysis = ['binwalk']
@@ -92,10 +93,11 @@ class TestInterComTaskCommunication:
         assert result == ('valid_id', False)
 
     def test_analysis_plugin_publication(self, intercom_frontend):
-        _ = InterComBackEndAnalysisPlugInsPublisher(analysis_service=AnalysisServiceMock())
+        plugin_dict = {'test_plugin': ('test plugin description', True, {}, '1.0.0', [], [], [], 2)}
+        publish_available_analysis_plugins(plugin_dict)
         plugins = intercom_frontend.get_available_analysis_plugins()
         assert len(plugins) == 1, 'Not all plug-ins found'
-        assert plugins == {'dummy': 'dummy description'}, 'content not correct'
+        assert plugins == plugin_dict, 'content not correct'
 
     def test_analysis_plugin_publication_not_available(self, intercom_frontend):
         with pytest.raises(RuntimeError):

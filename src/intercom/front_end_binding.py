@@ -5,13 +5,17 @@ from time import sleep, time
 from typing import Any
 
 import config
-from intercom.common_redis_binding import InterComRedisInterface, generate_task_id
+from intercom.common_redis_binding import generate_task_id
+from storage.redis_interface import RedisInterface
 
 
-class InterComFrontEndBinding(InterComRedisInterface):
+class InterComFrontEndBinding:
     """
     Internal Communication FrontEnd Binding
     """
+
+    def __init__(self):
+        self.redis = RedisInterface()
 
     def add_analysis_task(self, fw):
         self._add_to_redis_queue('analysis_task', fw, fw.uid)
@@ -23,7 +27,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
             self._add_to_redis_queue('update_task', fw, fw.uid)
 
     def add_single_file_task(self, fw):
-        self._add_to_redis_queue('single_file_task', fw, fw.uid)
+        return self._request_response_listener(fw, 'single_file_task', 'single_file_task_resp')
 
     def add_compare_task(self, compare_id, force=False):
         self._add_to_redis_queue('compare_task', (compare_id, force), compare_id)
@@ -73,7 +77,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
             timeout = time() + int(config.frontend.communication_timeout)
         while timeout > time():
             output_data = self.redis.get(request_id)
-            if output_data:
+            if output_data is not None:
                 logging.debug(f'Response received: {response_connection} -> {request_id}')
                 break
             logging.debug(f'No response yet: {response_connection} -> {request_id}')
