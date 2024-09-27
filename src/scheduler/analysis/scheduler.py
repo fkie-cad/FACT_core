@@ -41,25 +41,26 @@ class AnalysisScheduler:
     The analysis scheduler is responsible for
 
     * initializing analysis plugins
-    * scheduling tasks based on user decision and built-in dependencies
+    * scheduling tasks based on the user's decision and built-in dependencies
     * deciding if tasks should run or may be skipped
     * running the tasks
     * and storing the new results of analysis tasks in the database
 
-    Plugin initialization is mostly handled by the plugins, the scheduler only provides an attachment point and offers
-    a single point of reference for introspection and runtime information.
+    Plugins handle initialization mostly themselves.
+    The scheduler only provides an attachment point
+    and offers a single point of reference for introspection and runtime information.
 
     The scheduler offers three entry points:
 
     #. Start the analysis of a file object (start_analysis_of_object)
     #. Start the analysis of a file object without context (update_analysis_of_single_object)
-    #. Start an update of a firmware file and all it's children (update_analysis_of_object_and_children)
+    #. Start an update of a firmware file and all its children (update_analysis_of_object_and_children)
 
-    Entry point 1. is used by the unpacking scheduler and is trigger for each file object after the unpacking has been
-    processed. Entry points 2. and 3. are independent of the unpacking process and can be triggered by the user using
+    Entry point 1. is used by the unpacking scheduler and is where each file object is sent after being unpacked.
+    Entry points 2. and 3. are independent of the unpacking process and can be triggered by the user using
     the Web-UI or REST-API. 2. is used to update analyses for a single file. 3. is used to update analyses for all files
     contained inside a given firmware. The difference between 1. and 2. is that the single file update (2.) will not be
-    considered in the current analysis introspection.
+    considered in the "current analyses" introspection.
 
     Scheduling of tasks is made with the following considerations:
 
@@ -88,14 +89,13 @@ class AnalysisScheduler:
               │ Yes                                                          │
               └──────────────────────────────────────────────────────────────┘
 
-    Running the analysis tasks is achieved through (multiprocessing.Queue)s. Each plugin has an in-queue, triggered
-    by the scheduler using the `add_job` function, and an out-queue that is processed by the result collector. The
-    actual analysis process is out of scope. Database interaction happens before (pre_analysis) and after
-    (post_analysis) the running of a task, to store intermediate results for live updates, and final results.
+    Passing objects between processes is done using instances of ``multiprocessing.Queue``.
+    Each plugin has an in-queue, which is filled by the scheduler using the ``add_job()`` function,
+    and an out-queue that is processed by the result collector. The actual analysis process is out of scope.
+    The results are stored in the database using ``post_analysis()`` after each analysis is completed.
 
-    :param pre_analysis: A database callback to execute before running an analysis task.
-    :param post_analysis: A database callback to execute after running an analysis task.
-    :param db_interface: An object reference to an instance of BackEndDbInterface.
+    :param post_analysis: A database function to call after running an analysis task.
+    :param db_interface: An instance of BackEndDbInterface.
     :param unpacking_locks: An instance of UnpackingLockManager.
     """
 
@@ -134,7 +134,7 @@ class AnalysisScheduler:
     def shutdown(self):
         """
         Shutdown the runner process, the result collector and all plugin processes. A multiprocessing.Value is set to
-        notify all attached processes of the impending shutdown. Afterwards queues are closed once it's safe.
+        notify all attached processes of the impending shutdown. Afterward, queues are closed once it's safe.
         """
         logging.debug('Shutting down analysis scheduler')
         self.stop_condition.value = 1
@@ -155,7 +155,7 @@ class AnalysisScheduler:
             for plugin in self.analysis_plugins.values():
                 futures.append(pool.submit(plugin.shutdown))
             for future in futures:
-                future.result()  # call result to make sure all threads are finished and there are no exceptions
+                future.result()  # call result() to make sure all threads are finished and there are no exceptions
         stop_processes(self.result_collector_processes, config.backend.block_delay + 1)
         self.process_queue.close()
         self.status.shutdown()
@@ -169,11 +169,11 @@ class AnalysisScheduler:
         :param fo: The root file that is to be analyzed
         """
         included_files = self.db_backend_service.get_list_of_all_included_files(fo)
-        self.db_backend_service.update_object(fo)  # metadata of FW could have changed -> update in DB
+        self.db_backend_service.update_object(fo)  # metadata of FW could have changed → update in DB
         self.unpacking_locks.release_unpacking_lock(fo.uid)
         self.status.add_update(fo, included_files)
         for child_fo in self.db_backend_service.get_objects_by_uid_list(included_files):
-            child_fo.root_uid = fo.uid  # set correct root_uid so that "current analysis stats" work correctly
+            child_fo.root_uid = fo.uid  # set the correct root_uid so that "current analysis stats" work correctly
             child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
             self.task_scheduler.schedule_analysis_tasks(child_fo, fo.scheduled_analysis)
             self._check_further_process_or_complete(child_fo)
@@ -192,7 +192,7 @@ class AnalysisScheduler:
 
     def update_analysis_of_single_object(self, fo: FileObject):
         """
-        This function is used to add analysis tasks for a single file. This function has no side effects so the object
+        This function is used to add analysis tasks for a single file. This function has no side effects, so the object
         is simply iterated until all scheduled analyses are processed or skipped.
 
         :param fo: The file that is to be analyzed
@@ -256,7 +256,7 @@ class AnalysisScheduler:
 
     def get_plugin_dict(self) -> dict:
         """
-        Get information regarding all loaded plugins in form of a dictionary with the following form:
+        Get information regarding all loaded plugins in the form of a dictionary with the following form:
 
         .. code-block:: python
 
@@ -434,8 +434,9 @@ class AnalysisScheduler:
 
     def _dependencies_are_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
         """
-        If there is dependency result that is newer than this analysis, it may be different from the dependency result
-        that was the basis of this analysis, and therefore this analysis should run again.
+        If an analysis result of a dependency was updated (i.e., it is newer than this analysis),
+        it could have changed and in turn change the outcome of this analysis.
+        Therefore, this analysis should also run again.
         """
         for dependency in analysis_plugin.DEPENDENCIES:
             dependency_entry = self.db_backend_service.get_analysis(uid, dependency)
@@ -514,7 +515,7 @@ class AnalysisScheduler:
             process.start()
 
     def _result_collector(self, index: int = 0):
-        # Collects the results form plugins and writes them in FileObject.processed_analysis
+        # Collects the results from the plugins and writes them in FileObject.processed_analysis
         logging.debug(f'Started analysis result collector worker {index} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             nop = True
@@ -562,7 +563,8 @@ class AnalysisScheduler:
 
     def get_scheduled_workload(self) -> dict:
         """
-        Get the current workload of this scheduler. The workload is represented through
+        Get the current workload of this scheduler.
+        The workload is represented by
         - the general in-queue,
         - the currently running analyses in each plugin and the plugin in-queues,
         - the progress for each currently analyzed firmware and
@@ -620,8 +622,8 @@ class AnalysisScheduler:
 
 
 def _fix_system_version(system_version: str | None) -> str:
-    # the system version is optional -> return '0' if it is '' or None
-    # YARA plugins used an invalid system version x.y_z (may still be in DB) -> replace all underscores with dashes
+    # the system version is optional → return '0' if it is an empty string or ``None``
+    # YARA plugins used an invalid system version x.y_z (may still be in DB) → replace all underscores with dashes
     return system_version.replace('_', '-') if system_version else '0'
 
 
