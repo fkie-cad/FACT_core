@@ -25,7 +25,7 @@ from ..internal.resolve_version_format_string import (
 )
 def test_extract_data_from_ghidra(backend_config, test_file, input_data, expected_output):
     test_file = Path(__file__).parent / 'data' / test_file
-    result = extract_data_from_ghidra(test_file.read_bytes(), input_data, str(backend_config.docker_mount_base_dir))
+    result = extract_data_from_ghidra(str(test_file), input_data, str(backend_config.docker_mount_base_dir))
     assert len(result) == 1
     assert result == expected_output
 
