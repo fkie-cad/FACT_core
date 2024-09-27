@@ -79,7 +79,7 @@ class AnalysisPlugin(YaraBasePlugin):
             key_strings = [s for _, _, s in result['strings'] if '%s' in s]
             if key_strings:
                 versions.update(
-                    extract_data_from_ghidra(file_object.binary, key_strings, config.backend.docker_mount_base_dir)
+                    extract_data_from_ghidra(file_object.file_path, key_strings, config.backend.docker_mount_base_dir)
                 )
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')
