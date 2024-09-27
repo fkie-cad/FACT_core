@@ -32,18 +32,7 @@ class AnalysisPlugin(YaraBasePlugin):
         file_object.processed_analysis[self.NAME] = {}
 
         binary_vulnerabilities = self._post_process_yara_results(yara_results)
-        matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
-
-        # CVE-2021-45608 NetUSB
-        software_components_results = file_object.processed_analysis.get('software_components', {}).get('result', {})
-        if 'NetUSB' in software_components_results:
-            matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
-
-        # CVE-2024-3094 XZ Backdoor secondary detection
-        if 'liblzma' in software_components_results and not any(
-            bv[0] == 'xz_backdoor' for bv in binary_vulnerabilities
-        ):
-            matched_vulnerabilities.extend(_check_xz_backdoor(software_components_results))
+        matched_vulnerabilities = self.get_matched_vulnerabilities(binary_vulnerabilities, file_object)
 
         for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
             file_object.processed_analysis[self.NAME][name] = vulnerability
@@ -55,6 +44,19 @@ class AnalysisPlugin(YaraBasePlugin):
         self.add_tags(file_object, binary_vulnerabilities + matched_vulnerabilities)
 
         return file_object
+
+    def get_matched_vulnerabilities(self, yara_result: list[tuple[str, dict]], file_object) -> list[tuple[str, dict]]:
+        software_components_results = file_object.processed_analysis.get('software_components', {}).get('result', {})
+        matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
+
+        # CVE-2021-45608 NetUSB
+        if 'NetUSB' in software_components_results:
+            matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
+
+        # CVE-2024-3094 XZ Backdoor secondary detection
+        if 'liblzma' in software_components_results and not any(vuln == 'xz_backdoor' for vuln, _ in yara_result):
+            matched_vulnerabilities.extend(_check_xz_backdoor(software_components_results))
+        return matched_vulnerabilities
 
     def add_tags(self, file_object, vulnerability_list):
         for name, details in vulnerability_list:

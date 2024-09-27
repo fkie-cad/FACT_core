@@ -408,10 +408,10 @@ def find_version_strings(input_data, ghidra_analysis, result_path):
     elif mode == 'version_function':
         # the elf file contains a special function just for returning its version
         function_name = input_data.get('function_name')
-        result_list = find_function_ref_strings(function_name)
         if not function_name:
             print("Error: Function name not found.")
             return 1
+        result_list = find_function_ref_strings(function_name)
     else:
         print("Error: Invalid mode.")
         return 1
