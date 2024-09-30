@@ -142,3 +142,30 @@ class Firmware(FileObject):
 
     def __repr__(self) -> str:
         return self.__str__()
+
+    def to_json(self, vfp_parent_filter: set[str] | None = None) -> dict:
+        json = super().to_json(vfp_parent_filter)
+        json.update(
+            {
+                'device_class': self.device_class,
+                'device_name': self.device_name,
+                'part': self.part,
+                'release_date': self.release_date,
+                'tags': self.tags,
+                'vendor': self.vendor,
+                'version': self.version,
+            }
+        )
+        return json
+
+    @classmethod
+    def from_json(cls, json: dict):
+        instance = super().from_json(json)
+        instance.device_class = json.get('device_class')
+        instance.device_name = json.get('device_name')
+        instance.part = json.get('part')
+        instance.release_date = json.get('release_date')
+        instance.tags = json.get('tags')
+        instance.vendor = json.get('vendor')
+        instance.version = json.get('version')
+        return instance

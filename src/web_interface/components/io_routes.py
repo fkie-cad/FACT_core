@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
+from typing import TYPE_CHECKING
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import requests
 from flask import Response, make_response, redirect, render_template, request
@@ -13,9 +16,13 @@ from helperFunctions import magic
 from helperFunctions.database import get_shared_session
 from helperFunctions.pdf import build_pdf_report
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
+from storage.migration import get_current_revision
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+if TYPE_CHECKING:
+    from storage.db_interface_frontend import FrontEndDbInterface
 
 
 class IORoutes(ComponentBase):
@@ -74,8 +81,7 @@ class IORoutes(ComponentBase):
         if result is None:
             return render_template('error.html', message='timeout')
         binary, file_name = result
-        response = make_response(binary)
-        response.headers['Content-Disposition'] = f'attachment; filename={file_name}'
+        response = self._make_file_response(binary, file_name)
         response.headers['Content-Type'] = 'application/gzip' if packed else self._get_file_download_mime(binary, uid)
         return response
 
@@ -92,9 +98,7 @@ class IORoutes(ComponentBase):
         if result is None:
             return render_template('error.html', message=f'Comparison with ID {compare_id} not found')
         binary = result['plugins']['Ida_Diff_Highlighting']['idb_binary']
-        response = make_response(binary)
-        response.headers['Content-Disposition'] = f'attachment; filename={compare_id[:8]}.idb'
-        return response
+        return self._make_file_response(binary, f'{compare_id[:8]}.idb')
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/radare-view/<uid>', GET)
@@ -130,11 +134,39 @@ class IORoutes(ComponentBase):
         try:
             with TemporaryDirectory(dir=config.frontend.docker_mount_base_dir) as folder:
                 pdf_path = build_pdf_report(firmware, Path(folder))
-                binary = pdf_path.read_bytes()
+                return self._make_file_response(pdf_path.read_bytes(), pdf_path.name)
         except RuntimeError as error:
             return render_template('error.html', message=str(error))
 
-        response = make_response(binary)
-        response.headers['Content-Disposition'] = f'attachment; filename={pdf_path.name}'
-
+    @staticmethod
+    def _make_file_response(content: bytes, file_name: str) -> Response:
+        response = make_response(content)
+        response.headers['Content-Disposition'] = f'attachment; filename={file_name}'
         return response
+
+    @roles_accepted(*PRIVILEGES['download'])
+    @AppRoute('/export/<string:uid>', GET)
+    def export_firmware(self, uid: str):
+        with get_shared_session(self.db.frontend) as frontend_db:
+            if not frontend_db.is_firmware(uid):
+                return render_template('uid_not_found.html', uid=uid)
+            json_data = self._prepare_data_for_export(frontend_db, uid)
+
+        zipped = self.intercom.get_zipped_files_from_fw(uid)
+        with BytesIO(zipped) as buffer:
+            with ZipFile(buffer, 'a', ZIP_DEFLATED) as zip_file:
+                zip_file.writestr('data.json', json.dumps(json_data))
+            return self._make_file_response(buffer.getvalue(), f'FACT_export_{uid}.zip')
+
+    @staticmethod
+    def _prepare_data_for_export(frontend_db: FrontEndDbInterface, uid: str) -> dict:
+        all_files = frontend_db.get_all_files_in_fw(uid)
+        return {
+            'db_revision': get_current_revision(),
+            'files': [
+                fo.to_json(vfp_parent_filter=all_files.union(uid))
+                for fo in frontend_db.get_objects_by_uid_list(all_files)
+            ],
+            'firmware': frontend_db.get_object(uid).to_json(),
+            'uid': uid,
+        }

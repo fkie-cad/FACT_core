@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
+from io import BytesIO
 from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
 
 from common_helper_files.fail_safe_file_operations import get_binary_from_file
 
@@ -45,6 +47,15 @@ class BinaryService:
         tar = repack_service.tar_repack(self.fs_organizer.generate_path_from_uid(uid))
         name = f'{file_name}.tar.gz'
         return tar, name
+
+    def get_files_as_zip(self, uid_list: list[str]) -> bytes:
+        """Zips files in memory and returns the whole shebang as byte string"""
+        with BytesIO() as buffer:
+            with ZipFile(buffer, 'w', ZIP_DEFLATED) as zip_file:
+                for uid in uid_list:
+                    file_path = self.fs_organizer.generate_path_from_uid(uid)
+                    zip_file.writestr(f'files/{uid}', Path(file_path).read_bytes())
+            return buffer.getvalue()
 
 
 class BinaryServiceDbInterface(ReadOnlyDbInterface):

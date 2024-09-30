@@ -49,6 +49,9 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def get_repacked_binary_and_file_name(self, uid: str):
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
 
+    def get_zipped_files_from_fw(self, uid: str):
+        return self._request_response_listener(uid, 'pack_fw_files_task', 'pack_fw_files_task_resp')
+
     def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: str | None = None):
         request_id = generate_task_id(yara_rule_binary)
         self._add_to_redis_queue('binary_search_task', (yara_rule_binary, firmware_uid), request_id)

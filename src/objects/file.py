@@ -9,7 +9,7 @@ from common_helper_files import get_binary_from_file
 from helperFunctions.data_conversion import make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
-from helperFunctions.virtual_file_path import get_some_vfp
+from helperFunctions.virtual_file_path import filter_vpf_dict, get_some_vfp
 
 
 class FileObject:
@@ -213,3 +213,36 @@ class FileObject:
 
     def __repr__(self) -> str:
         return self.__str__()
+
+    def to_json(self, vfp_parent_filter: set[str] | None = None) -> dict:
+        """
+        Get a FileObject as JSON. `vfp_parent_filter` can be used to filter the entries with a UID whitelist.
+        """
+        return {
+            'comments': self.comments,
+            'depth': self.depth,
+            'file_name': self.file_name,
+            'files_included': list(self.files_included),
+            'processed_analysis': self.processed_analysis,
+            'sha256': self.sha256,
+            'size': self.size,
+            'uid': self.uid,
+            'virtual_file_path': (
+                filter_vpf_dict(self.virtual_file_path, vfp_parent_filter)
+                if vfp_parent_filter is not None
+                else self.virtual_file_path
+            ),
+        }
+
+    @classmethod
+    def from_json(cls, json_dict: dict) -> FileObject:
+        fo = cls(file_name=json_dict['file_name'])
+        fo.comments = json_dict.get('comments')
+        fo.depth = json_dict.get('depth')
+        fo.files_included = json_dict.get('files_included')
+        fo.processed_analysis = json_dict.get('processed_analysis')
+        fo.sha256 = json_dict.get('sha256')
+        fo.size = json_dict.get('size')
+        fo.uid = json_dict.get('uid')
+        fo.virtual_file_path = json_dict.get('virtual_file_path')
+        return fo

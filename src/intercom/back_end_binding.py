@@ -46,6 +46,8 @@ class InterComBackEndBinding:
         self.process_list = []
 
     def start(self):
+        db_interface = DbInterfaceCommon()
+
         InterComBackEndAnalysisPlugInsPublisher(analysis_service=self.analysis_service)
         self._start_listener(InterComBackEndAnalysisTask, self.unpacking_service.add_task)
         self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
@@ -53,13 +55,14 @@ class InterComBackEndBinding:
         self._start_listener(InterComBackEndRawDownloadTask)
         self._start_listener(InterComBackEndFileDiffTask)
         self._start_listener(InterComBackEndTarRepackTask)
+        self._start_listener(InterComBackEndZipFwFilesTask, db_interface=db_interface)
         self._start_listener(InterComBackEndBinarySearchTask)
         self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
 
         self._start_listener(
             InterComBackEndDeleteFile,
             unpacking_locks=self.unpacking_locks,
-            db_interface=DbInterfaceCommon(),
+            db_interface=db_interface,
         )
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
         self._start_listener(InterComBackEndPeekBinaryTask)
@@ -192,6 +195,20 @@ class InterComBackEndTarRepackTask(InterComListenerAndResponder):
 
     def get_response(self, task):
         return self.binary_service.get_repacked_binary_and_file_name(task)
+
+
+class InterComBackEndZipFwFilesTask(InterComListenerAndResponder):
+    CONNECTION_TYPE = 'pack_fw_files_task'
+    OUTGOING_CONNECTION_TYPE = 'pack_fw_files_task_resp'
+
+    def __init__(self, db_interface):
+        super().__init__()
+        self.binary_service = BinaryService()
+        self.db = db_interface
+
+    def get_response(self, task):
+        all_files = self.db.get_all_files_in_fw(task).union({task})
+        return self.binary_service.get_files_as_zip(all_files)
 
 
 class InterComBackEndBinarySearchTask(InterComListenerAndResponder):
