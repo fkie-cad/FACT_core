@@ -20,6 +20,7 @@ TEST_FW_PAYLOAD = {
     'tags': 'tag1,tag2',
     'requested_analysis_systems': ['file_type'],
 }
+DELETED_FILES = 1337
 
 
 class DbMock(CommonDatabaseMock):
@@ -38,6 +39,12 @@ class DbMock(CommonDatabaseMock):
         fw = deepcopy(TEST_FW)
         fw.processed_analysis['dummy']['summary'] = {'included_files': 'summary'}
         return fw if uid == fw.uid else None
+
+    def is_firmware(self, uid):
+        return uid == TEST_FW.uid
+
+    def delete_firmware(self, uid):
+        return DELETED_FILES, DELETED_FILES
 
 
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
@@ -171,3 +178,14 @@ class TestRestFirmware:
         result = test_client.get(f'/rest/firmware/{TEST_FW.uid}?summary=true').json
         assert 'firmware' in result
         assert 'summary' in result['firmware']['analysis']['dummy'], 'included file summaries should be included'
+
+    def test_delete_success(self, test_client):
+        result = test_client.delete(f'/rest/firmware/{TEST_FW.uid}').json
+        assert 'error_message' not in result
+        assert 'deleted_files' in result
+        assert result['deleted_files'] == DELETED_FILES
+
+    def test_delete_unknown_uid(self, test_client):
+        result = test_client.delete('/rest/firmware/foobar').json
+        assert 'error_message' in result
+        assert result['error_message'] == 'No firmware with UID foobar found'

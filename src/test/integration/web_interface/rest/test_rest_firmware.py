@@ -144,3 +144,11 @@ class TestRestFirmware(RestTestBase):
             f'/rest/firmware/{test_firmware.uid}?summary=true', follow_redirects=True
         )
         assert test_firmware.processed_analysis['dummy']['summary'][0].encode() in request_with_summary.data
+
+    def test_rest_delete(self, backend_db):
+        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
+        backend_db.add_object(test_firmware)
+        assert backend_db.is_firmware(test_firmware.uid)
+
+        self.test_client.delete(f'/rest/firmware/{test_firmware.uid}')
+        assert backend_db.is_firmware(test_firmware.uid) is False
