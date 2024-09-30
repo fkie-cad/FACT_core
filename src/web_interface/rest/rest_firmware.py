@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import binascii
 import logging
 from base64 import standard_b64decode
@@ -214,3 +216,14 @@ class RestFirmwareGetWithUid(RestResourceBase):
         if unpack:
             update.append('unpacker')
         return success_message({}, self.URL, {'uid': uid, 'update': update})
+
+    @roles_accepted(*PRIVILEGES['delete'])
+    def delete(self, uid: str) -> tuple[dict, int]:
+        """
+        Delete existing firmware including all unique unpacked files (i.e. all files not occurring in other firmware)
+        and all analyses.
+        """
+        if not self.db.frontend.is_firmware(uid):
+            return error_message(f'No firmware with UID {uid} found', self.URL, {'uid': uid})
+        _, deleted_files = self.db.admin.delete_firmware(uid)
+        return success_message({'deleted_files': deleted_files}, self.URL, {'uid': uid})
