@@ -97,21 +97,21 @@ class TestFileSystemMetadataRoutesStatic:
         result = mock_plugin.get_analysis_results_for_included_uid('foo')
 
         assert result is not None
-        assert result != {}, 'result should not be empty'
+        assert result != [], 'result should not be empty'
         assert len(result) == 1, 'wrong number of results'
-        assert 'some_file' in result, 'files missing from result'
+        assert 'some_file' in result[0], 'files missing from result'
 
     def test_get_analysis_results_for_included_uid__uid_not_found(self, mock_plugin):
         result = mock_plugin.get_analysis_results_for_included_uid('not_found')
 
         assert result is not None
-        assert result == {}, 'result should be empty'
+        assert result == [], 'result should be empty'
 
     def test_get_analysis_results_for_included_uid__parent_not_found(self, mock_plugin):
         result = mock_plugin.get_analysis_results_for_included_uid('bar')
 
         assert result is not None
-        assert result == {}, 'result should be empty'
+        assert result == [], 'result should be empty'
 
 
 class DbMock:
@@ -151,11 +151,12 @@ class TestFileSystemMetadataRoutesRest:
     def test_get_rest(self):
         result = self.test_client.get('/plugins/file_system_metadata/rest/foo').json
         assert AnalysisPlugin.NAME in result
-        assert 'some_file' in result[AnalysisPlugin.NAME]
-        assert 'mode' in result[AnalysisPlugin.NAME]['some_file']
-        assert result[AnalysisPlugin.NAME]['some_file']['mode'] == '1337'
+        assert 'some_file' in result[AnalysisPlugin.NAME][0]
+        assert 'mode' in result[AnalysisPlugin.NAME][0]['some_file']
+        assert result[AnalysisPlugin.NAME][0]['some_file']['mode'] == '1337'
 
     def test_get_rest__no_result(self):
         result = self.test_client.get('/plugins/file_system_metadata/rest/not_found').json
+        assert result, 'result should not be empty'
         assert AnalysisPlugin.NAME in result
-        assert result[AnalysisPlugin.NAME] == {}
+        assert result[AnalysisPlugin.NAME] == []
