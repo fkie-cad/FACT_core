@@ -159,8 +159,8 @@ class Firmware(FileObject):
         return json
 
     @classmethod
-    def from_json(cls, json: dict):
-        instance = super().from_json(json)
+    def from_json(cls, json: dict, root_uid: str | None = None):
+        instance = super().from_json(json, root_uid)
         instance.device_class = json.get('device_class')
         instance.device_name = json.get('device_name')
         instance.part = json.get('part')

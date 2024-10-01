@@ -14,6 +14,7 @@ PRIVILEGES = {
     'manage_users': ['superuser'],
     'view_profile': ['superuser', 'senior_analyst', 'analyst'],
     'view_logs': ['superuser'],
+    'import': ['superuser'],
 }
 
 for privilege in PRIVILEGES:

@@ -27,7 +27,9 @@ def get_current_revision():
 
 
 def _get_current_head():
-    return script.ScriptDirectory.from_config(ALEMBIC_CFG).get_current_head()
+    # alembic must be executed from src for paths to line up
+    with OperateInDirectory(get_src_dir()):
+        return script.ScriptDirectory.from_config(ALEMBIC_CFG).get_current_head()
 
 
 def db_needs_migration():

@@ -66,6 +66,7 @@ def _populate_fo_data(
     file_object.parents = fo_entry.get_parent_uids() if parents is None else parents
     file_object.files_included = fo_entry.get_included_uids() if included_files is None else included_files
     file_object.parent_firmware_uids = fo_entry.get_parent_fw_uids() if parent_fw is None else parent_fw
+    file_object.sha256 = fo_entry.sha256
 
 
 def _collect_analysis_tags(analysis_dict: dict) -> dict:

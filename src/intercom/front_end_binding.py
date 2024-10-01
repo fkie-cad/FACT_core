@@ -28,6 +28,9 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def add_compare_task(self, compare_id, force=False):
         self._add_to_redis_queue('compare_task', (compare_id, force), compare_id)
 
+    def import_firmware(self, zip_file_data: bytes):
+        return self._request_response_listener(zip_file_data, 'import_task', 'import_task_resp')
+
     def delete_file(self, uid_list: set[str]):
         self._add_to_redis_queue('file_delete_task', uid_list)
 

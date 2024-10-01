@@ -1,25 +1,30 @@
 from __future__ import annotations
 
 import difflib
+import json
 import logging
 import os
+from io import BytesIO
 from multiprocessing import Process, Value
 from pathlib import Path
 from time import sleep
 from typing import TYPE_CHECKING
 
+from distlib.compat import ZipFile
+
 import config
 from helperFunctions.process import stop_processes
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_redis_binding import InterComListener, InterComListenerAndResponder, InterComRedisInterface
+from objects.file import FileObject
+from objects.firmware import Firmware
 from storage.binary_service import BinaryService
-from storage.db_interface_common import DbInterfaceCommon
+from storage.db_interface_backend import BackendDbInterface
 from storage.fsorganizer import FSOrganizer
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from objects.firmware import Firmware
     from storage.unpacking_locks import UnpackingLockManager
 
 
@@ -46,7 +51,7 @@ class InterComBackEndBinding:
         self.process_list = []
 
     def start(self):
-        db_interface = DbInterfaceCommon()
+        db_interface = BackendDbInterface()
 
         InterComBackEndAnalysisPlugInsPublisher(analysis_service=self.analysis_service)
         self._start_listener(InterComBackEndAnalysisTask, self.unpacking_service.add_task)
@@ -56,6 +61,7 @@ class InterComBackEndBinding:
         self._start_listener(InterComBackEndFileDiffTask)
         self._start_listener(InterComBackEndTarRepackTask)
         self._start_listener(InterComBackEndZipFwFilesTask, db_interface=db_interface)
+        self._start_listener(InterComBackEndImportTask, db_interface=db_interface)
         self._start_listener(InterComBackEndBinarySearchTask)
         self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
 
@@ -136,6 +142,53 @@ class InterComBackEndSingleFileTask(InterComBackEndReAnalyzeTask):
 
 class InterComBackEndCompareTask(InterComListener):
     CONNECTION_TYPE = 'compare_task'
+
+
+class InterComBackEndImportTask(InterComListenerAndResponder):
+    CONNECTION_TYPE = 'import_task'
+    OUTGOING_CONNECTION_TYPE = 'import_task_resp'
+
+    def __init__(self, db_interface):
+        super().__init__()
+        self.fs_organizer = FSOrganizer()
+        self.db: BackendDbInterface = db_interface
+
+    def get_response(self, task: bytes) -> tuple[int, int]:
+        imported_objects = 0
+        imported_files = 0
+        with ZipFile(BytesIO(task), 'r') as archive:
+            for file in archive.namelist():
+                if not file.startswith('files/'):
+                    if file == 'data.json':
+                        imported_objects += self._import_objects(json.loads(archive.read('data.json')))
+                    continue
+                self.fs_organizer.store_file(FileObject(binary=archive.read(file)))
+                imported_files += 1
+        logging.info(f'Imported firmware with {imported_files} files and {imported_objects} objects')
+        return imported_objects, imported_files
+
+    def _import_objects(self, data: dict) -> int:
+        firmware = Firmware.from_json(data['firmware'])
+        file_objects = {fo_data['uid']: FileObject.from_json(fo_data, firmware.uid) for fo_data in data['files']}
+        self.db.add_object(firmware)
+        return self._insert_objects_hierarchically(file_objects, firmware.uid)
+
+    def _insert_objects_hierarchically(self, fo_dict: dict[str, FileObject], root_uid: str) -> int:
+        already_added = {root_uid}
+        all_uids = already_added.union(fo_dict)
+        orphans = {uid for uid, fo in fo_dict.items() if any(parent not in all_uids for parent in fo.parents)}
+        for uid in orphans:
+            fo_dict.pop(uid)
+            logging.warning(f'FW import contains orphaned object {uid} (ignored)')
+        while fo_dict:
+            addable_uids = set()
+            for fo in fo_dict.values():
+                if all(parent in already_added for parent in fo.parents):
+                    addable_uids.add(fo.uid)
+            for uid in addable_uids:
+                self.db.add_object(fo_dict.pop(uid))
+                already_added.add(uid)
+        return len(already_added)
 
 
 class InterComBackEndRawDownloadTask(InterComListenerAndResponder):

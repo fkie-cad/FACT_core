@@ -235,14 +235,17 @@ class FileObject:
         }
 
     @classmethod
-    def from_json(cls, json_dict: dict) -> FileObject:
+    def from_json(cls, json_dict: dict, root_uid: str | None = None) -> FileObject:
         fo = cls(file_name=json_dict['file_name'])
         fo.comments = json_dict.get('comments')
         fo.depth = json_dict.get('depth')
         fo.files_included = json_dict.get('files_included')
         fo.processed_analysis = json_dict.get('processed_analysis')
-        fo.sha256 = json_dict.get('sha256')
+        fo.sha256 = json_dict.get('sha256') or json_dict.get('uid').split('_')[0]
         fo.size = json_dict.get('size')
         fo.uid = json_dict.get('uid')
         fo.virtual_file_path = json_dict.get('virtual_file_path')
+        # these entries are necessary for correctly filling the included_files_table and fw_files_table
+        fo.parent_firmware_uids = [root_uid] if root_uid else []
+        fo.parents = list(fo.virtual_file_path)
         return fo

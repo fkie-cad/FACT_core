@@ -6,10 +6,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
 from typing import TYPE_CHECKING
-from zipfile import ZIP_DEFLATED, ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile, is_zipfile
 
 import requests
-from flask import Response, make_response, redirect, render_template, request
+from flask import Response, flash, make_response, redirect, render_template, request, url_for
 
 import config
 from helperFunctions import magic
@@ -164,9 +164,61 @@ class IORoutes(ComponentBase):
         return {
             'db_revision': get_current_revision(),
             'files': [
-                fo.to_json(vfp_parent_filter=all_files.union(uid))
+                fo.to_json(vfp_parent_filter=all_files.union({uid}))
                 for fo in frontend_db.get_objects_by_uid_list(all_files)
             ],
             'firmware': frontend_db.get_object(uid).to_json(),
             'uid': uid,
         }
+
+    @roles_accepted(*PRIVILEGES['import'])
+    @AppRoute('/import', GET)
+    def import_firmware_get(self):
+        return render_template('import.html.jinja')
+
+    @roles_accepted(*PRIVILEGES['import'])
+    @AppRoute('/import', POST)
+    def import_firmware_post(self):
+        if request.files['file']:
+            with BytesIO(request.files['file'].read()) as content:
+                if is_zipfile(content):
+                    if response := self._import_firmware_data(content):
+                        return response
+                else:
+                    flash('Error: uploaded import file is not a ZIP file', 'danger')
+        else:
+            flash('Error: import file not found', 'danger')
+        return render_template('import.html.jinja')
+
+    def _import_firmware_data(self, content: BytesIO) -> Response | None:
+        with ZipFile(content, 'r') as zip_file:
+            if 'data.json' not in zip_file.namelist():
+                flash('Error: data.json not found in uploaded import file', 'danger')
+                return None
+            try:
+                data = json.loads(zip_file.read('data.json'))
+            except json.JSONDecodeError:
+                flash('Error: data.json is not a valid JSON file', 'danger')
+                return None
+            if not all(k in data for k in ['db_revision', 'files', 'firmware', 'uid']):
+                flash('Error: data.json is missing mandatory keys', 'danger')
+                return None
+            if self.db.frontend.is_firmware(data['uid']):
+                flash(f'Error: firmware with UID {data["uid"]} is already in the DB', 'danger')
+                return None
+            current_revision = get_current_revision()
+            if data['db_revision'] == current_revision:
+                response = self.intercom.import_firmware(content.getvalue())
+                if response is not None:
+                    imported_objects, imported_files = response
+                    flash(f'Successfully imported {imported_files} files and {imported_objects} DB entries', 'success')
+                    return redirect(url_for('show_analysis', uid=data['uid'], root_uid=data['uid']))
+                flash('Timeout during import. The import may still be running. Please check the main page', 'danger')
+            else:
+                flash(
+                    f'Error: import file was created with a different DB revision: '
+                    f'{data["db_revision"]} (current revision is {current_revision}). '
+                    f'Please upgrade/downgrade to a compatible revision.',
+                    'danger',
+                )
+            return None
