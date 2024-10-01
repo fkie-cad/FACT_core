@@ -1,18 +1,20 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
 
 import requests
 from flask import Response, make_response, redirect, render_template, request
+from werkzeug.exceptions import BadRequestKeyError
 
 import config
 from helperFunctions import magic
 from helperFunctions.database import get_shared_session
 from helperFunctions.pdf import build_pdf_report
-from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
+from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj, create_analysis_task
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -24,32 +26,34 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', POST)
     def post_upload(self):
-        analysis_task = create_analysis_task(request)
-        error = check_for_errors(analysis_task)
-        if error:
-            return self.get_upload(error=error)
+        try:
+            analysis_task = create_analysis_task(request)
+        except BadRequestKeyError as error:
+            # we don't want this to fail silently; we want to know what's wrong with the request
+            logging.warning(f'Received invalid upload request: Key {KeyError.__str__(error)} is missing!')
+            raise
         fw = convert_analysis_task_to_fw_obj(analysis_task)
         self.intercom.add_analysis_task(fw)
         return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', GET)
-    def get_upload(self, error=None):
-        error = error or {}
+    def get_upload(self):
         with get_shared_session(self.db.frontend) as frontend_db:
             device_class_list = frontend_db.get_device_class_list()
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
-        analysis_plugins = self.intercom.get_available_analysis_plugins()
+        analysis_plugins = {
+            k: t[:3] for k, t in self.intercom.get_available_analysis_plugins().items() if k != 'unpacker'
+        }
         return render_template(
             'upload/upload.html',
             device_classes=device_class_list,
             vendors=vendor_list,
-            error=error,
             analysis_presets=list(config.frontend.analysis_preset),
             device_names=json.dumps(device_name_dict, sort_keys=True),
             analysis_plugin_dict=analysis_plugins,
-            plugin_set='default',
+            selected_preset='default',
         )
 
     # ---- file download
