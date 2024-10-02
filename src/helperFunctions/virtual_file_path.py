@@ -16,3 +16,12 @@ def get_some_vfp(vfp_dict: dict[str, list[str]]) -> str | None:
     for vfp_list in vfp_dict.values():
         return vfp_list[0]
     return None
+
+
+def filter_vpf_dict(vfp_dict: dict[str, list[str]], parent_uids: set[str]) -> dict[str, list[str]]:
+    """
+    Get only VFPs from parent files that are contained in `parent_uids`.
+    :param vfp_dict: A virtual file path dict
+    :param parent_uids: A set of allowed parent UIDs (VFPs from other parent files are filtered out)
+    """
+    return {k: v for k, v in vfp_dict.items() if k in parent_uids}
