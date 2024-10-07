@@ -75,7 +75,7 @@
 
     {% elif feature == 'changed_text_files' %}
         <tr>
-            <td data-toggle="tooltip" data-placement="right" title="text files with identical paths but different content">diverging text files</td>
+            <td data-toggle="tooltip" data-placement="right" title="text files with identical paths but different content">changed text files</td>
             <td colspan="{{ uid_list | length }}">
                 <div class="list-group">
                     <div role="button" data-toggle="collapse" data-target="#changed_text_files" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" aria-expanded="false">
@@ -83,27 +83,7 @@
                     </div>
                     <div id="changed_text_files" class="collapse">
                         <div class="list-group list-group-flush">
-                            <div class="list-group-item list-group-item-action border-top p-0">
-                                <table class="internal-table table-sm" style="width: 100%;">
-                                    {% for path, uid_tuple_list in result['plugins'][plugin][feature].items() | sort %}
-                                        {% for (uid_1, uid_2) in uid_tuple_list %}
-                                            <tr>
-                                                <td style="width: 50%;">
-                                                    <a href="/analysis/{{ uid_1 }}" target="_blank" rel="noopener noreferrer">{{ path }}</a>
-                                                </td>
-                                                <td>
-                                                    <a href="/analysis/{{ uid_2 }}" target="_blank" rel="noopener noreferrer">{{ path }}</a>
-                                                </td>
-                                                <td style="width: 140px; text-align: right;">
-                                                    <button class="btn btn-primary" onclick=" window.open('/comparison/text_files/{{ uid_1 }}/{{ uid_2 }}','_blank')">
-                                                        show file diff
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    {% endfor %}
-                                </table>
-                            </div>
+                            {{ result['plugins'][plugin][feature] | group_changed_text_files | render_changed_text_files | safe }}
                         </div>
                     </div>
                 </div>

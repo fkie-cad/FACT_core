@@ -3,6 +3,7 @@ from __future__ import annotations
 import binascii
 import json
 import logging
+import os
 import random
 import re
 import stat
@@ -25,6 +26,7 @@ from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.tag import TagColor
 from helperFunctions.web_interface import get_alternating_color_list
+from web_interface.file_tree.file_tree import get_icon_for_mime, get_mime_for_text_file
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.privileges import PRIVILEGES
 
@@ -376,6 +378,20 @@ def group_dict_list_by_key(dict_list: list[dict], key: Any) -> dict[str, list[di
     return result
 
 
+def group_path_dict_by_dirs(data: dict[str, list[tuple]]) -> dict:
+    # groups paths into folders, resulting in a tree structure
+    result = {}
+    for path, value in data.items():
+        current = result
+        # path is expected to be of structure /dir1/dir2/.../file
+        *folders, file = path.split('/')
+        for dir_name in folders:
+            if dir_name:
+                current = current.setdefault(dir_name, {})
+        current[file] = value
+    return result
+
+
 def random_collapse_id():
     return ''.join(random.choice(ascii_letters) for _ in range(10))
 
@@ -395,6 +411,66 @@ def elapsed_time(start_time: float) -> int:
 
 def format_duration(duration: float) -> str:
     return str(timedelta(seconds=duration))
+
+
+def render_changed_text_files(changed_text_files: dict) -> str:
+    elements = []
+    for key, value in sorted(changed_text_files.items()):
+        icon = get_icon_for_mime(get_mime_for_text_file(key))
+        if isinstance(value, list):
+            # file tuple list (represents a leaf/file in the file tree)
+            lines = ['<table class="internal-table table-sm" style="width: 100%;">']
+            for uid_1, uid_2 in value:
+                lines.extend(
+                    [
+                        '<tr>',
+                        '  <td style="width: 50%;">',
+                        f'    <img src="{icon}" alt="">',
+                        f'    <a href="/analysis/{uid_1}" target="_blank" rel="noopener noreferrer">{key}</a>',
+                        '  </td>',
+                        '  <td>',
+                        f'    <img src="{icon}" alt="">',
+                        f'    <a href="/analysis/{uid_2}" target="_blank" rel="noopener noreferrer">{key}</a>',
+                        '  </td>',
+                        '  <td style="width: 150px; text-align: right;">',
+                        f'    <button class="btn btn-primary" onclick=" '
+                        f"            window.open('/comparison/text_files/{uid_1}/{uid_2}','_blank')\">",
+                        '      show file diff',
+                        '    </button>',
+                        '  </td>',
+                        '</tr>',
+                    ]
+                )
+            lines.append('</table>')
+            element = '\n'.join(lines)
+        else:
+            # directory dict (represents an inner node/folder in the file tree)
+            inner = render_changed_text_files(value)
+            id_ = f'ctf-{os.urandom(8).hex()}'
+            count = _count_changed_files(value)
+            element = (
+                f'<div class="p-1" data-toggle="collapse" data-target="#{id_}">'
+                f'  ╰ <img src="/static/file_icons/folder.svg"> {key} <i class="fas fa-caret-down"></i>'
+                f' <span class="badge badge-pill badge-secondary">{count}</span>'
+                f'</div>\n'
+                f'<div id="{id_}" class="collapse list-group list-group-flush">\n'
+                f'  {inner}\n'
+                '</div>\n'
+            )
+        elements.append(
+            f'<div class="list-group-item border-top" style="padding: 0 0 0 25px">\n' f'{element}\n' '</div>'
+        )
+    return '\n'.join(elements)
+
+
+def _count_changed_files(ctf_dict: dict) -> int:
+    count = 0
+    for value in ctf_dict.values():
+        if isinstance(value, dict):
+            count += _count_changed_files(value)
+        elif isinstance(value, list):
+            count += len(value)
+    return count
 
 
 def render_query_title(query_title: None | str | dict):

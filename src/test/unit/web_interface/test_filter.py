@@ -315,6 +315,18 @@ def test_group_dict_list_by_key(list_of_dicts, key, expected_result):
 
 
 @pytest.mark.parametrize(
+    ('input_dict', 'expected_result'),
+    [
+        ({}, {}),
+        ({'a': 1}, {'a': 1}),
+        ({'/a/b/c': 1, '/a/b/d': 2, '/a/e': 3}, {'a': {'b': {'c': 1, 'd': 2}, 'e': 3}}),
+    ],
+)
+def test_grp_changed_text_file_data(input_dict, expected_result):
+    assert flt.group_path_dict_by_dirs(input_dict) == expected_result
+
+
+@pytest.mark.parametrize(
     ('function', 'input_data', 'expected_output', 'error_message'),
     [
         (
