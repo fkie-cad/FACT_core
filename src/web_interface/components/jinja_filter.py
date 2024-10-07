@@ -195,6 +195,7 @@ class FilterClass:
         self._app.jinja_env.filters['get_canvas_height'] = flt.get_canvas_height
         self._app.jinja_env.filters['get_searchable_crypto_block'] = flt.get_searchable_crypto_block
         self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts
+        self._app.jinja_env.filters['group_changed_text_files'] = flt.group_path_dict_by_dirs
         self._app.jinja_env.filters['hex'] = hex
         self._app.jinja_env.filters['hide_dts_binary_data'] = flt.hide_dts_binary_data
         self._app.jinja_env.filters['infection_color'] = flt.infection_color
@@ -221,6 +222,7 @@ class FilterClass:
         self._app.jinja_env.filters['remaining_time'] = elapsed_time
         self._app.jinja_env.filters['render_analysis_tags'] = flt.render_analysis_tags
         self._app.jinja_env.filters['render_general_information'] = self._render_general_information_table
+        self._app.jinja_env.filters['render_changed_text_files'] = flt.render_changed_text_files
         self._app.jinja_env.filters['render_query_title'] = flt.render_query_title
         self._app.jinja_env.filters['render_fw_tags'] = flt.render_fw_tags
         self._app.jinja_env.filters['replace_comparison_uid_with_hid'] = self._filter_replace_comparison_uid_with_hid
