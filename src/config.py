@@ -123,6 +123,9 @@ class Backend(Common):
         delay: float
         base_port: int
 
+    class BinarySearch(BaseModel):
+        max_strings_per_match: int = 10
+
     class PluginDefaults(BaseModel):
         processes: int
 
@@ -135,6 +138,7 @@ class Backend(Common):
     collector_worker_count: int = 2
 
     unpacking: Backend.Unpacking
+    binary_search: Backend.BinarySearch
 
     firmware_file_storage_directory: str
 
