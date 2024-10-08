@@ -98,6 +98,10 @@ base-port = 9900
 # if you experience FileNotFound errors during unpacking, increasing this value slightly might help
 delay = 0.0
 
+[backend.binary-search]
+# maximum number of matching strings stored per match
+max-strings-per-match = 10
+
 
 [[backend.plugin]]
 name = "cpu_architecture"

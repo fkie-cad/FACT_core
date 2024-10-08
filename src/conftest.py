@@ -117,6 +117,7 @@ def backend_config(request, common_config, _firmware_file_storage_directory) -> 
             'delay': 0.0,
             'base_port': 9900,
         },
+        'binary_search': {'max_strings_per_match': 10},
         'plugin': {
             'cpu_architecture': {'name': 'cpu_architecture', 'processes': 4},
             'cve_lookup': {'name': 'cve_lookup', 'processes': 2},
