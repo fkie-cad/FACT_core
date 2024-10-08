@@ -82,7 +82,7 @@ class DatabaseRoutes(ComponentBase):
             device_classes = frontend_db.get_device_class_list()
             vendors = frontend_db.get_vendor_list()
 
-        pagination = get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares')
+        pagination = get_pagination(page=page, per_page=per_page, total=total)
         return render_template(
             'database/database_browse.html',
             firmware_list=firmware_list,
