@@ -11,6 +11,20 @@ rule libFLAC
         $a and no_text_file
 }
 
+rule liblzma {
+	meta:
+		software_name = "xz"
+		open_source = true
+		website = "https://tukaani.org/xz/"
+		description = "XZ-format compression library"
+		_version_function = "lzma_version_string"
+    strings:
+        $a = "lzma_version_number"
+        $b = "lzma_version_string"
+    condition:
+        $a and $b and no_text_file
+}
+
 rule libogg
 {
 	meta:

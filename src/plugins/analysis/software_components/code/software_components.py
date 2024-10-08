@@ -29,7 +29,7 @@ class AnalysisPlugin(YaraBasePlugin):
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
-    VERSION = '0.4.2'
+    VERSION = '0.5.0'
     FILE = __file__
 
     def process_object(self, file_object):
@@ -75,12 +75,20 @@ class AnalysisPlugin(YaraBasePlugin):
             match = matched_string[2]
             match = make_unicode_string(match)
             versions.add(self.get_version(match, result['meta']))
-        if result['meta'].get('format_string'):
-            key_strings = [s for _, _, s in result['strings'] if '%s' in s]
-            if key_strings:
-                versions.update(
-                    extract_data_from_ghidra(file_object.binary, key_strings, config.backend.docker_mount_base_dir)
-                )
+        if any(k in result['meta'] for k in ('format_string', '_version_function')):
+            if result['meta'].get('format_string'):
+                input_data = {
+                    'mode': 'format_string',
+                    'key_string_list': [s for _, _, s in result['strings'] if '%s' in s],
+                }
+            else:
+                input_data = {
+                    'mode': 'version_function',
+                    'function_name': result['meta']['_version_function'],
+                }
+            versions.update(
+                extract_data_from_ghidra(file_object.binary, input_data, config.backend.docker_mount_base_dir)
+            )
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')
         result['meta']['version'] = list(versions)

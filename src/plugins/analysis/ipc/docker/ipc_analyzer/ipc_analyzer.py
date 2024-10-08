@@ -9,7 +9,9 @@ import sys
 from collections import OrderedDict
 
 from ghidra.app.decompiler import DecompileOptions, DecompInterface
+from ghidra.program.model.symbol import RefType
 from ghidra.util.task import ConsoleTaskMonitor
+
 from ipc_analysis.analyze import analyze_function_call_site
 from ipc_analysis.helper_functions import get_call_site_pcode_ops, get_relevant_sources
 from resolve_format_strings.format_strings import (
@@ -17,7 +19,7 @@ from resolve_format_strings.format_strings import (
     get_format_specifier_indices,
     get_format_string_version,
     get_format_types,
-    get_key_strings,
+    load_input_data,
 )
 
 
@@ -88,7 +90,7 @@ class GhidraAnalysis:
 
 def get_result_path():
     """
-    :return: str
+    :rtype: str
     """
     script_args = getScriptArgs()
     if len(script_args) == 1:
@@ -209,7 +211,7 @@ def openflags_to_symbols(openflags):
     """
     Converts open flags to symbol
 
-    :param openflags: int
+    :type openflags: int
     :return: str
     """
     open_symbols = []
@@ -251,10 +253,10 @@ def add_json_call(ipc, func_name, arg_values):
     """
     Adds an ipc call to the JSON file
 
-    :param ipc: dict
-    :param func_name: str
-    :param arg_values: list
-    :return: None
+    :type ipc: dict
+    :type func_name: str
+    :type arg_values: list
+    :rtype: None
     """
     first_arg = arg_values[0]
     rest_args = arg_values[1:]
@@ -273,10 +275,10 @@ def write_to_file(file_name, result, result_path):
     """
     Writes the json to file
 
-    :param file_name: dict
-    :param result: str
-    :param result_path: str
-    :return: None
+    :type file_name: str
+    :type result: list[str]
+    :type result_path: str
+    :rtype: None
     """
     print('\nWriting {}'.format(result_path + '/' + file_name))
     with open(result_path + '/' + file_name, 'wb') as output_file:
@@ -288,8 +290,8 @@ def write_to_file(file_name, result, result_path):
 def resolve_version_format_string(ghidra_analysis, key_string_list):
     """
     :param ghidra_analysis: instance of GhidraAnalysis
-    :param key_string_list: list[str]
-    :return: list
+    :type key_string_list: set[str]
+    :rtype: list[str]
     """
     result = []
     call_args = {}
@@ -300,13 +302,48 @@ def resolve_version_format_string(ghidra_analysis, key_string_list):
     return result
 
 
+def find_function_ref_strings(function_name):
+    """
+    Get all strings that are referenced in function `function_name`.
+
+    :param function_name: The name of the function.
+    :type function_name: str
+    :return: a list of strings referenced in the function
+    :rtype: list[str]
+    """
+    listing = currentProgram.getListing()
+
+    try:
+        function = getGlobalFunctions(function_name)[0]
+    except (IndexError, TypeError):
+        print("Error: Function {} not found.".format(function_name))
+        return []
+
+    # string constants are usually in the .rodata section
+    rodata_section = getMemoryBlock(".rodata")
+    if not rodata_section:
+        print("Error: .rodata section not found.")
+        return []
+
+    # iterate over all instructions of the function and find referenced strings
+    instructions = listing.getInstructions(function.getBody(), True)
+    strings = []
+    while instructions.hasNext():
+        instruction = instructions.next()
+        for ref in instruction.getReferencesFrom():
+            if ref.getReferenceType() == RefType.DATA and rodata_section.contains(ref.getToAddress()):
+                strings.append(listing.getDataAt(ref.getToAddress()).getValue())
+    return strings
+
+
 def get_fstring_from_functions(ghidra_analysis, key_string, call_args, called_fstrings):
     """
     :param ghidra_analysis: instance of GhidraAnalysis
-    :param key_string: str
-    :param call_args: dict
-    :param called_fstrings: dict
-    :return: list[str]
+    :param key_string: the format string we are looking for
+    :type key_string: str
+    :type call_args: dict
+    :type called_fstrings: dict
+    :rtype: list[str]
     """
     result = []
     for func, calls in called_fstrings.items():
@@ -328,11 +365,11 @@ def get_fstring_from_functions(ghidra_analysis, key_string, call_args, called_fs
 def get_fstring_from_call(ghidra_analysis, key_string, call_args, func, call, sources):
     """
     :param ghidra_analysis: instance of GhidraAnalysis
-    :param key_string: str
-    :param call_args: dict
-    :param func: ghidra.program.database.function.FunctionDB
-    :param call: ghidra.program.model.pcode.PcodeOpAST
-    :param sources: ghidra.program.model.pcode.PcodeOpAST
+    :type key_string: str 
+    :type call_args: dict 
+    :type func: ghidra.program.database.function.FunctionDB
+    :type call: ghidra.program.model.pcode.PcodeOpAST
+    :type sources: ghidra.program.model.pcode.PcodeOpAST
     """
     if call in call_args:
         arg_values = call_args[call]
@@ -353,6 +390,35 @@ def get_fstring_from_call(ghidra_analysis, key_string, call_args, func, call, so
     return filter_relevant_indices(start, arg_values, indices, format_types)
 
 
+def find_version_strings(input_data, ghidra_analysis, result_path):
+    """
+    :type input_data: dict
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param result_path: the path of the output data file
+    :type result_path: str
+    :rtype: int
+    """
+    mode = input_data.get('mode')
+    if mode == 'format_string':
+        key_string_list = input_data.get('key_string_list')
+        if not key_string_list:
+            print("Error: key_string_list not found.")
+            return 1
+        result_list = resolve_version_format_string(ghidra_analysis, set(key_string_list))
+    elif mode == 'version_function':
+        # the elf file contains a special function just for returning its version
+        function_name = input_data.get('function_name')
+        if not function_name:
+            print("Error: Function name not found.")
+            return 1
+        result_list = find_function_ref_strings(function_name)
+    else:
+        print("Error: Invalid mode.")
+        return 1
+    write_to_file('ghidra_output.json', result_list, result_path)
+    return 0
+
+
 def main():
     """
     :return: int
@@ -361,12 +427,9 @@ def main():
     ghidra_analysis = GhidraAnalysis()
 
     # Resolve version format string
-    key_string_list = get_key_strings(result_path)
-    if key_string_list:
-        key_string_list = set(key_string_list)
-        result_list = resolve_version_format_string(ghidra_analysis, key_string_list)
-        write_to_file('ghidra_output.json', result_list, result_path)
-        return 0
+    input_data = load_input_data(result_path)
+    if input_data:
+        return find_version_strings(input_data, ghidra_analysis, result_path)
 
     # IPC Analysis
     ipc = {'ipcCalls': {}}

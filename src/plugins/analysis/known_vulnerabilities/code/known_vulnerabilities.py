@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from contextlib import suppress
 from pathlib import Path
@@ -20,7 +22,7 @@ class AnalysisPlugin(YaraBasePlugin):
     NAME = 'known_vulnerabilities'
     DESCRIPTION = 'Rule based detection of known vulnerabilities like Heartbleed'
     DEPENDENCIES = ['file_hashes', 'software_components']  # noqa: RUF012
-    VERSION = '0.2.1'
+    VERSION = '0.3.0'
     FILE = __file__
 
     def process_object(self, file_object):
@@ -30,11 +32,7 @@ class AnalysisPlugin(YaraBasePlugin):
         file_object.processed_analysis[self.NAME] = {}
 
         binary_vulnerabilities = self._post_process_yara_results(yara_results)
-        matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
-
-        # CVE-2021-45608 NetUSB
-        if 'NetUSB' in file_object.processed_analysis.get('software_components', {}).get('result', {}):
-            matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
+        matched_vulnerabilities = self.get_matched_vulnerabilities(binary_vulnerabilities, file_object)
 
         for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
             file_object.processed_analysis[self.NAME][name] = vulnerability
@@ -46,6 +44,19 @@ class AnalysisPlugin(YaraBasePlugin):
         self.add_tags(file_object, binary_vulnerabilities + matched_vulnerabilities)
 
         return file_object
+
+    def get_matched_vulnerabilities(self, yara_result: list[tuple[str, dict]], file_object) -> list[tuple[str, dict]]:
+        software_components_results = file_object.processed_analysis.get('software_components', {}).get('result', {})
+        matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
+
+        # CVE-2021-45608 NetUSB
+        if 'NetUSB' in software_components_results:
+            matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
+
+        # CVE-2024-3094 XZ Backdoor secondary detection
+        if 'liblzma' in software_components_results and not any(vuln == 'xz_backdoor' for vuln, _ in yara_result):
+            matched_vulnerabilities.extend(_check_xz_backdoor(software_components_results))
+        return matched_vulnerabilities
 
     def add_tags(self, file_object, vulnerability_list):
         for name, details in vulnerability_list:
@@ -86,7 +97,7 @@ class AnalysisPlugin(YaraBasePlugin):
 
         return matched_vulnerabilities
 
-    def _check_netusb_vulnerability(self, input_file_data: bytes):
+    def _check_netusb_vulnerability(self, input_file_data: bytes) -> list[tuple[str, dict]]:
         with TemporaryDirectory(prefix='known_vulns_', dir=config.backend.docker_mount_base_dir) as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
             ghidra_input_file = tmp_dir_path / 'ghidra_input'
@@ -118,3 +129,23 @@ class AnalysisPlugin(YaraBasePlugin):
                 ]
             except (json.JSONDecodeError, FileNotFoundError):
                 return []
+
+
+def _check_xz_backdoor(software_results: dict) -> list[tuple[str, dict]]:
+    if any(v in software_results['liblzma']['meta']['version'] for v in ['5.6.0', '5.6.1']):
+        return [
+            (
+                'XZ Backdoor',
+                {
+                    'description': 'CVE-2024-3094: a malicious backdoor was planted into the xz compression library',
+                    'score': 'high',
+                    # the vulnerability is only contained in certain versions built for debian; a more reliable
+                    # yara rule is in the signatures files
+                    'reliability': 20,
+                    'link': 'https://nvd.nist.gov/vuln/detail/CVE-2024-3094',
+                    'short_name': 'XZ Backdoor',
+                    'additional_data': {},
+                },
+            )
+        ]
+    return []

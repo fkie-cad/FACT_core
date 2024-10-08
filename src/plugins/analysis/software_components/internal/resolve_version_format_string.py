@@ -19,14 +19,14 @@ TIMEOUT = 300
 KEY_FILE = 'key_file'
 
 
-def extract_data_from_ghidra(input_file_data: bytes, key_strings: list[str], path: str) -> list[str]:
+def extract_data_from_ghidra(input_file_data: bytes, input_data: dict, path: str) -> list[str]:
     with TemporaryDirectory(prefix='FSR_', dir=path) as tmp_dir:
         tmp_dir_path = Path(tmp_dir)
         ghidra_input_file = tmp_dir_path / 'ghidra_input'
-        (tmp_dir_path / KEY_FILE).write_text(json.dumps(key_strings))
+        (tmp_dir_path / KEY_FILE).write_text(json.dumps(input_data))
         ghidra_input_file.write_bytes(input_file_data)
         with suppress(DockerException, TimeoutError):
-            run_docker_container(
+            proc = run_docker_container(
                 DOCKER_IMAGE,
                 logging_label='FSR',
                 timeout=TIMEOUT,
@@ -35,6 +35,8 @@ def extract_data_from_ghidra(input_file_data: bytes, key_strings: list[str], pat
                     Mount(CONTAINER_TARGET_PATH, tmp_dir, type='bind'),
                 ],
             )
+            if 'Traceback' in proc.stderr:
+                logging.warning(f'error during FSR analysis: {proc.stderr}')
 
         try:
             output_file = (tmp_dir_path / DOCKER_OUTPUT_FILE).read_text()
