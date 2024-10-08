@@ -156,10 +156,6 @@ class DatabaseRoutes(ComponentBase):
             yara_match_data=yara_match_data,
         )
 
-    @staticmethod
-    def _query_has_only_one_result(result_list, query):
-        return len(result_list) == 1 and query != '{}'
-
     def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):
         meta_list = self.db.frontend.generic_search(
             query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted, as_meta=True
