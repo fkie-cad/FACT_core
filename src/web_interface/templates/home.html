@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% import 'macros.html' as macros %}
+
 {% set active_page = "Home" %}
 
 {% block head %}
@@ -97,7 +99,8 @@
                     <h4 class="card-title mb-3">Latest Firmware Submissions</h4>
                     <ul class="list-group-flush px-0 mb-0">
                         {% for firmware in latest_firmware_submissions %}
-                            {{ firmware | firmware_detail_tabular_field | safe }}
+                            {% call macros.fw_detail_tabular_field(firmware) %}
+                            {% endcall %}
                         {% endfor %}
                     </ul>
                 </div>

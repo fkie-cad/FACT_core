@@ -4,7 +4,7 @@ import config
 
 
 def get_pagination(**kwargs):
-    kwargs.setdefault('record_name', 'records')
+    kwargs.setdefault('record_name', 'results')
     return Pagination(
         css_framework='bootstrap4',
         link_size='sm',

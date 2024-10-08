@@ -117,10 +117,6 @@ class FilterClass:
         )
 
     @staticmethod
-    def _render_firmware_detail_tabular_field(firmware_meta_data):
-        return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
-
-    @staticmethod
     def _render_general_information_table(
         firmware: MetaEntry, root_uid: str, other_versions, selected_analysis, file_tree_paths
     ):
@@ -188,7 +184,6 @@ class FilterClass:
         ] = flt.data_to_chart_with_value_percentage_pairs
         self._app.jinja_env.filters['decompress'] = flt.decompress
         self._app.jinja_env.filters['dict_to_json'] = json.dumps
-        self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._render_firmware_detail_tabular_field
         self._app.jinja_env.filters['fix_cwe'] = flt.fix_cwe
         self._app.jinja_env.filters['format_duration'] = flt.format_duration
         self._app.jinja_env.filters['format_string_list_with_offset'] = flt.filter_format_string_list_with_offset
