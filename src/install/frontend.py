@@ -142,6 +142,29 @@ def _copy_mime_icons():
         run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
+def _install_npm_packages():
+    # npm does not allow us to install packages to a specific directory
+    with OperateInDirectory('../web_interface/static'):
+        # EBADENGINE can probably be ignored because we probably don't need node.
+        run_cmd_with_logging('npm install --no-fund .')
+
+
+def _patch_bootstrap():
+    """Adds a "xxl" grid class to bootstrap with a break point of 1900px and recompiles the scss files"""
+    bootstrap_dir = Path(__file__).parent.parent / 'web_interface' / 'static' / 'node_modules' / 'bootstrap'
+    if not bootstrap_dir.is_dir():
+        logging.error('Could not patch bootstrap: Bootstrap directory not found.')
+        return
+    with OperateInDirectory(bootstrap_dir):
+        for command in (
+            r'sed -i "s/xl: 1200px/xl: 1200px,\n  xxl: 1900px/g" scss/_variables.scss',
+            r'sed -i "s/xl: 1140px/xl: 1140px,\n  xxl: 1800px/g" scss/_variables.scss',
+            'npm run css-compile',
+            'npm run css-minify',
+        ):
+            run_cmd_with_logging(command)
+
+
 def main(skip_docker, radare, nginx, distribution):
     if distribution != 'fedora':
         pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-frontend.txt')
@@ -157,10 +180,9 @@ def main(skip_docker, radare, nginx, distribution):
 
     install_pip_packages(PIP_DEPENDENCIES)
 
-    # npm does not allow us to install packages to a specific directory
-    with OperateInDirectory('../../src/web_interface/static'):
-        # EBADENGINE can probably be ignored because we probably don't need node.
-        run_cmd_with_logging('npm install --no-fund .')
+    _install_npm_packages()
+
+    _patch_bootstrap()
 
     # create user database
     _create_directory_for_authentication()
