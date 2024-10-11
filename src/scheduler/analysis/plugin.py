@@ -116,6 +116,8 @@ class PluginRunner:
             # Try to convert to the schema defined by the plugin
             result = file_object.processed_analysis[dependency]['result']
             dependencies[dependency] = Schema(**result)
+        # also allow plugins to access unpacking results (which cannot be defined as dependency and have no schema)
+        dependencies['unpacker'] = file_object.processed_analysis.get('unpacker', {}).get('result')
 
         logging.debug(f'Queueing analysis for {file_object.uid}')
         self._in_queue.put(

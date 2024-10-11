@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import stat
 import tarfile
 import zlib
 from base64 import b64encode
+from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, List, NamedTuple, Optional
@@ -47,6 +49,8 @@ FS_MIME_TYPES = [
     'filesystem/xfs',
     'filesystem/squashfs',
 ]
+YAFFS_REGEX = re.compile(r'([rwxtTsS?-]{10}) +\d+ (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) ([^\n]+)')
+REVERSE_FILEMODE_LOOKUP = [{char: mode for mode, char in row} for row in stat._filemode_table]
 
 
 class StatResult(NamedTuple):
@@ -68,16 +72,20 @@ class FileMetadata(BaseModel):
     path: str = Field(
         description="The file's path",
     )
-    user: str = Field(
+    user: Optional[str] = Field(
+        default=None,
         description="The user name of the file's owner",
     )
-    uid: int = Field(
+    uid: Optional[int] = Field(
+        default=None,
         description="The user ID of the file's owner",
     )
-    group: str = Field(
+    group: Optional[str] = Field(
+        default=None,
         description="The group name of the file's owner",
     )
-    gid: int = Field(
+    gid: Optional[int] = Field(
+        default=None,
         description="The group ID of the file's owner",
     )
     modification_time: float = Field(
@@ -120,7 +128,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
             description=(
                 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
             ),
-            version='1.0.0',
+            version='1.1.0',
             Schema=self.Schema,
             timeout=30,
         )
@@ -129,15 +137,47 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
         del virtual_file_path
         file_type = analyses['file_type'].mime
-        result = self._extract_metadata(file_handle, file_type)
+        result = self._extract_metadata(file_handle, file_type, analyses)
         return self.Schema(files=result)
 
-    def _extract_metadata(self, file_handle: FileIO, file_type: str) -> list[FileMetadata]:
+    def _extract_metadata(self, file_handle: FileIO, file_type: str, analyses) -> list[FileMetadata]:
         if file_type in FS_MIME_TYPES:
             return self._extract_metadata_from_file_system(file_handle)
         if file_type in ARCHIVE_MIME_TYPES:
             return _extract_metadata_from_tar(file_handle)
+        if file_type == 'filesystem/yaffs':
+            return self._extract_metadata_from_yaffs(analyses)
         return []
+
+    def _extract_metadata_from_yaffs(self, analyses) -> list[FileMetadata]:
+        result = []
+        unpacker_result = analyses.get('unpacker')
+        if not unpacker_result or unpacker_result['plugin_used'] != 'YAFFS':
+            return result
+        """
+        the output of unyaffs from the unpacker log has the following structure:
+        brw-r-----  31,   4 2014-07-19 01:28 dev/mtdblock4
+        -rw-r--r--       38 2014-07-19 01:31 build.prop
+        drwxr-xr-x        0 2016-10-11 03:12 sbin
+        lrwxrwxrwx        0 2014-07-19 01:28 sbin/ifconfig -> ../bin/busybox
+        we ignore directories and symlinks
+        """
+        for match in YAFFS_REGEX.finditer(unpacker_result['output']):
+            mode_str, date, path = match.groups()
+            mode = oct(_filemode_str_to_int(mode_str))
+            result.append(
+                FileMetadata(
+                    mode=mode,
+                    name=Path(path).name,
+                    path=f'/{path}',
+                    modification_time=datetime.fromisoformat(date).timestamp(),
+                    suid_bit=_file_mode_contains_bit(mode, SUID_BIT),
+                    sgid_bit=_file_mode_contains_bit(mode, SGID_BIT),
+                    sticky_bit=_file_mode_contains_bit(mode, STICKY_BIT),
+                    key=b64encode(path.encode()).decode(),
+                )
+            )
+        return result
 
     def _extract_metadata_from_file_system(self, file_handle: FileIO) -> list[FileMetadata]:
         with TemporaryDirectory(dir=config.backend.docker_mount_base_dir) as tmp_dir:
@@ -270,3 +310,10 @@ def _get_tar_file_mode_str(file_info: tarfile.TarInfo) -> str:
 
 def _has_correct_type(mime_type: str) -> bool:
     return mime_type in ARCHIVE_MIME_TYPES + FS_MIME_TYPES
+
+
+def _filemode_str_to_int(filemode: str) -> int:
+    result = 0
+    for char, lookup in zip(filemode, REVERSE_FILEMODE_LOOKUP):
+        result += lookup.get(char, 0)
+    return result
