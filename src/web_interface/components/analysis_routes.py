@@ -93,6 +93,7 @@ class AnalysisRoutes(ComponentBase):
             available_plugins=self._get_used_and_unused_plugins(
                 file_obj.processed_analysis, [x for x in analysis_plugins if x != 'unpacker']
             ),
+            link_target=self._get_link_target(file_obj, root_uid) if self._is_link(file_obj) else None,
         )
 
     def _get_correct_template(self, selected_analysis: str | None, fw_object: Firmware | FileObject):
@@ -231,6 +232,25 @@ class AnalysisRoutes(ComponentBase):
             root_uid=root_uid,
             colors=colors,
         )
+
+    @staticmethod
+    def _is_link(file_obj: FileObject) -> bool:
+        type_analysis = file_obj.processed_analysis.get('file_type', {}).get('result', {})
+        mime = type_analysis.get('mime')
+        full_type = type_analysis.get('full', '')
+        return mime == 'inode/symlink' and full_type.startswith('symbolic link to')
+
+    def _get_link_target(self, file_obj: FileObject, root_uid: str) -> str | None:
+        if not root_uid:
+            return None
+        try:
+            full_type = file_obj.processed_analysis['file_type']['result']['full']
+            # if FO is a symlink, file_type analysis "full" will be something like "symbolic link to 'busybox'"
+            target_path = full_type.split("'")[1]
+        except (IndexError, KeyError):
+            return None
+        target_uid = self.db.frontend.find_link_target(file_obj.virtual_file_path, root_uid, target_path)
+        return f'<a href="/analysis/{target_uid}/ro/{root_uid}">{full_type}</a>' if target_uid else None
 
 
 def _add_preset_from_firmware(plugin_dict, fw: Firmware):
