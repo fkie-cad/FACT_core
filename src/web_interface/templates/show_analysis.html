@@ -142,7 +142,11 @@
         {# Header section #}
         <div class="header mb-4" style="word-wrap: break-word">
             <h3>
-                {{ firmware.uid | replace_uid_with_hid(root_uid=root_uid) | safe }}<br />
+                {{ firmware.uid | replace_uid_with_hid(root_uid=root_uid) | safe }}
+                {% if link_target %}
+                    ({{ link_target | safe }})
+                {% endif %}
+                <br />
                 {% if firmware.analysis_tags or firmware.tags %}
                     {{ firmware.analysis_tags | render_analysis_tags(uid, root_uid) | safe }}{{ firmware.tags | render_fw_tags | safe }}<br />
                 {% endif %}
