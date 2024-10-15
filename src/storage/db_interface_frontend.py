@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import os.path
 import re
+from pathlib import Path
 from typing import Any, NamedTuple, Optional
 
 from sqlalchemy import Column, func, or_, select
@@ -17,6 +19,7 @@ from storage.schema import (
     FileObjectEntry,
     FirmwareEntry,
     SearchCacheEntry,
+    VirtualFilePath,
     fw_files_table,
     included_files_table,
 )
@@ -453,3 +456,33 @@ class FrontEndDbInterface(DbInterfaceCommon):
             meta_dict['path'].lstrip('/'): meta_dict['mode']
             for meta_dict in fs_metadata.get('result', {}).get('files', [])
         }
+
+    def find_link_target(self, virtual_file_path: dict[str, list[str]], root_uid: str, target_path: str) -> str | None:
+        if target_path.startswith('/'):
+            candidate_paths = {target_path}
+        else:
+            candidate_paths = {
+                # we need to resolve stuff like /sbin/../bin/busybox to /bin/busybox
+                # there is currently no equivalent to os.path.normpath in pathlib
+                # (and no, Path.resolve() is not equivalent!)
+                os.path.normpath(Path(path).parent / target_path)
+                for path_list in virtual_file_path.values()
+                for path in path_list
+            }
+        with self.get_read_only_session() as session:
+            parents = list(virtual_file_path)
+            query = (
+                select(VirtualFilePath.file_uid)
+                .join(fw_files_table, fw_files_table.c.root_uid == root_uid)
+                .filter(
+                    or_(
+                        VirtualFilePath.parent_uid == fw_files_table.c.file_uid,
+                        VirtualFilePath.parent_uid == root_uid,  # special case: parent is also root
+                    )
+                )
+                .filter(VirtualFilePath.parent_uid.in_(parents))
+                .filter(VirtualFilePath.file_path.in_(candidate_paths))
+            )
+            for uid in session.execute(query.limit(1)).scalars():
+                return uid
+        return None
