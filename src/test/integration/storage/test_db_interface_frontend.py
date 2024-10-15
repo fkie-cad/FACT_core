@@ -9,6 +9,7 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 from .helper import (
     TEST_FO,
     TEST_FW,
+    add_included_file,
     create_fw_with_child_fo,
     create_fw_with_parent_and_child,
     get_fo_with_2_root_fw,
@@ -634,3 +635,26 @@ def test_get_root_uid(frontend_db, backend_db):
     backend_db.insert_multiple_objects(parent_fw, child_fo)
     assert frontend_db.get_root_uid(child_fo.uid) == parent_fw.uid
     assert frontend_db.get_root_uid(parent_fw.uid) == parent_fw.uid
+
+
+def test_find_link_target(frontend_db, backend_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    child_fo.virtual_file_path[parent_fo.uid].append('/usr/bin/foo')
+    link_to_fo = create_test_file_object(uid='deadbeef_1')
+    add_included_file(link_to_fo, parent_fo, fw, ['/usr/sbin/bar'])
+    backend_db.insert_multiple_objects(fw, parent_fo, child_fo, link_to_fo)
+
+    result = frontend_db.find_link_target(link_to_fo.virtual_file_path, fw.uid, '../bin/foo')
+    assert result == child_fo.uid
+
+
+def test_find_link_parent_is_root(frontend_db, backend_db):
+    # special case: parent is also root
+    child_fo, parent_fw = create_fw_with_child_fo()
+    child_fo.virtual_file_path[parent_fw.uid].append('/usr/bin/foo')
+    link_to_fo = create_test_file_object(uid='deadbeef_1')
+    add_included_file(link_to_fo, parent_fw, parent_fw, ['/usr/sbin/bar'])
+    backend_db.insert_multiple_objects(parent_fw, child_fo, link_to_fo)
+
+    result = frontend_db.find_link_target(link_to_fo.virtual_file_path, parent_fw.uid, '../bin/foo')
+    assert result == child_fo.uid
