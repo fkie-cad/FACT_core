@@ -55,7 +55,7 @@ def test_initialize_subfolder(tmpdir):
 def test_build_pdf_report(tmpdir, monkeypatch):
     def create_stub_file(*_, **__):
         Path(str(tmpdir), 'pdf', 'any.pdf').write_bytes(b'\x00')
-        return CompletedProcess(args=None, stdout='', stderr=None, returncode=0)
+        return CompletedProcess(args=(), stdout='', stderr=None, returncode=0)
 
     monkeypatch.setattr('helperFunctions.pdf.run_docker_container', create_stub_file)
 
@@ -68,7 +68,7 @@ def test_build_pdf_report(tmpdir, monkeypatch):
 def test_build_pdf_error(tmpdir, monkeypatch):
     monkeypatch.setattr(
         'helperFunctions.pdf.run_docker_container',
-        lambda *_, **__: CompletedProcess(args=None, stdout='', stderr=None, returncode=1),
+        lambda *_, **__: CompletedProcess(args=(), stdout='', stderr=None, returncode=1),
     )
 
     with pytest.raises(RuntimeError):
