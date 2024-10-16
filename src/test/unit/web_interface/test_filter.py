@@ -303,6 +303,17 @@ def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
 
 
 @pytest.mark.parametrize(
+    ('list_of_dicts', 'key', 'expected_result'),
+    [
+        ([], '', {}),
+        ([{'a': '1'}, {'a': '1'}, {'a': '2'}], 'a', {'1': [{'a': '1'}, {'a': '1'}], '2': [{'a': '2'}]}),
+    ],
+)
+def test_group_dict_list_by_key(list_of_dicts, key, expected_result):
+    assert flt.group_dict_list_by_key(list_of_dicts, key) == expected_result
+
+
+@pytest.mark.parametrize(
     ('function', 'input_data', 'expected_output', 'error_message'),
     [
         (
@@ -488,3 +499,21 @@ def test_as_ascii_table():
 )
 def test_str_to_hex(input_, expected_result):
     assert flt.str_to_hex(input_) == expected_result
+
+
+@pytest.mark.parametrize(
+    ('input_', 'expected_result'),
+    [
+        ([], []),
+        ([{'a': 2}, {'a': 1}, {'a': 3}], [{'a': 1}, {'a': 2}, {'a': 3}]),
+        ([{'a': 2}, {'a': 1}, {'b': 3}], [{'b': 3}, {'a': 1}, {'a': 2}]),
+        ([{'a': 'b'}, {'a': 'c'}, {'a': 'a'}], [{'a': 'a'}, {'a': 'b'}, {'a': 'c'}]),
+    ],
+)
+def test_sort_dict_list_by_key(input_, expected_result):
+    assert flt.sort_dict_list_by_key(input_, 'a') == expected_result
+
+
+def test_sort_dict_list_by_key_error():
+    with pytest.raises(ValueError, match='Dict values must be of the same type'):
+        flt.sort_dict_list_by_key([{'a': 2}, {'a': '1'}, {'a': {}}], 'a')
