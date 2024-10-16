@@ -13,8 +13,8 @@
 {% macro stats_table_row(label, value, percent=False, link=None, tooltip=None) %}
     <tr>
         <td style="text-align: left; padding:5px"
-            {%- if link %} onclick="location.href='{{ link }}'"{% endif -%}
-            {%- if tooltip %} data-toggle="tooltip" title="{{ tooltip }}"{% endif -%}
+                {%- if link %} onclick="location.href='{{ link }}'"{% endif -%}
+                {%- if tooltip %} data-toggle="tooltip" title="{{ tooltip }}"{% endif -%}
         >
             {{ label }}
         </td>
@@ -22,14 +22,23 @@
     </tr>
 {%- endmacro %}
 
-{% macro upload_input(key, label, error, additional_classes='') %}
-    <label class="control-label" for="{{ key }}">{{ label }}:</label>
-    <div class="form-group">
-        <div class="{{ additional_classes }}">
-            {{ caller() }}
-            {% if key in error %}
-                <span class="form-text text-danger">{{ error[key] }}</span>
-            {% endif %}
+{% macro upload_input(key, label, dropdown=False) %}
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <label class="input-group-text upload-label" for="{{ key }}">
+                {{ label }}
+            </label>
         </div>
+
+        {{ caller() }}
+
+        {% if dropdown %}
+            <div class="input-group-append">
+                <button type="button" id="{{ key }}-button" class="btn btn-outline-secondary"
+                        tabindex="-1" {% if key == "device_name" %}disabled{% endif %}>
+                    <i class="fas fa-caret-down click-through"></i>
+                </button>
+            </div>
+        {% endif %}
     </div>
 {%- endmacro %}
