@@ -21,27 +21,29 @@
     <div class="col-xl-6 col-lg-8 col-md-10">
         <form>
             <div class="form-row">
-                <div class="form-group col-md-5">
-                    <label class="control-label" for="device_class_dropdown">Device Class:</label>
-                    <select class="form-control form-control-sm" id="device_class_dropdown" name='device_class_dropdown'
-                            onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'device_class', this.value), 'page', '')">
-                        <option value=''></option>
-                        {% for class in device_classes | sort %}
-                            <option {% if class in current_class %}selected{% endif %} value='{{ class }}'>{{ class }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                {% if search_parameters.search_target not in [search_parameters.TargetType.yara, search_parameters.TargetType.graphql] %}
+                    <div class="form-group col-md-5">
+                        <label class="control-label" for="device_class_dropdown">Device Class:</label>
+                        <select class="form-control form-control-sm" id="device_class_dropdown" name='device_class_dropdown'
+                                onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'device_class', this.value), 'page', '')">
+                            <option value=''></option>
+                            {% for class in device_classes | sort %}
+                                <option {% if class in current_class %}selected{% endif %} value='{{ class }}'>{{ class }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                <div class="form-group col-md-5">
-                    <label class="control-label" for="vendor_dropdown">Vendor:</label>
-                    <select class="form-control form-control-sm" id="vendor_dropdown" name='vendor_dropdown'
-                            onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'vendor', this.value), 'page', '')">
-                        <option value=''></option>
-                        {% for vendor in vendors | sort %}
-                            <option {% if vendor in current_vendor %}selected{% endif %} value='{{ vendor }}' style="font-size: 14px;">{{ vendor }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                    <div class="form-group col-md-5">
+                        <label class="control-label" for="vendor_dropdown">Vendor:</label>
+                        <select class="form-control form-control-sm" id="vendor_dropdown" name='vendor_dropdown'
+                                onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'vendor', this.value), 'page', '')">
+                            <option value=''></option>
+                            {% for vendor in vendors | sort %}
+                                <option {% if vendor in current_vendor %}selected{% endif %} value='{{ vendor }}' style="font-size: 14px;">{{ vendor }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
 
                 <div class="form-group col-md-2">
                     <label class="control-label" for="pp_dropdown">Per page:</label>
@@ -65,16 +67,15 @@
     </div>
 </div>
 
-{% if search_parameters['query_title'] %}
+{% if search_parameters.query_title %}
     <div class="row justify-content-center">
         <div class="col-xl-6 col-lg-8 col-md-10">
             <div class="list-group mt-4">
                 <button data-toggle="collapse" data-target="#search_query" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" style="border: 0;">
-                    {% set search_target = "File" if not search_parameters['only_firmware'] else "Firmware" if not search_parameters['inverted'] else "Inverse Firmware" %}
-                    Show Search Query <span class="badge badge-primary">{{ search_target }} Search</span>
+                    Show Search Query <span class="badge badge-primary">{{ search_parameters.search_target.value }} Search</span>
                 </button>
                 <div id="search_query" class="collapse list-group-item p-0 border-0">
-                    <pre class="bg-light p-2 mb-0 rounded-bottom">{{ search_parameters['query_title'] | render_query_title }}</pre>
+                    <pre class="bg-light p-2 mb-0 rounded-bottom">{{ search_parameters.query_title | render_query_title }}</pre>
                 </div>
             </div>
         </div>

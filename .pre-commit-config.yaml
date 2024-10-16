@@ -27,6 +27,7 @@ repos:
 
     -   id: pretty-format-json
         args: [--autofix]
+        exclude: ^src/web_interface/static/package-lock.json
 
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 2.1.5

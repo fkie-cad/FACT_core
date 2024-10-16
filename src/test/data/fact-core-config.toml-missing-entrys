@@ -113,3 +113,7 @@ communication-timeout = 60
 enabled = false
 user-database = "sqlite:////media/data/fact_auth_data/fact_users.db"
 password-salt = "5up3r5tr0n6_p455w0rd_5417"
+
+
+[frontend.hasura]
+admin-secret = "4dM1n_S3cR3T_changemeplz"
