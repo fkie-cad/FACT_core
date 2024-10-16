@@ -83,7 +83,7 @@ def _is_elf_file(file_object: FileObject) -> bool:
     return file_object.processed_analysis['file_type']['result']['mime'] in ELF_MIME_TYPES
 
 
-def normalize_lief_items(functions):
+def normalize_lief_items(functions) -> list[str]:
     """
     Shorthand to convert a list of objects to a list of strings
     """
