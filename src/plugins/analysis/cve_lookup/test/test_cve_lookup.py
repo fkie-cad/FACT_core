@@ -82,7 +82,7 @@ class TestCveLookup:
     @pytest.mark.parametrize(('cve_score', 'should_be_tagged'), [('9.9', True), ('5.5', False)])
     def test_add_tags(self, analysis_plugin, cve_score, should_be_tagged):
         TEST_FW.processed_analysis['cve_lookup'] = {}
-        cve_results = {'component': {'cve_id': {'score2': cve_score, 'score3': 'N/A'}}}
+        cve_results = {'component': {'cve_id': {'scores': {'V2': cve_score, 'V3.1': 'N/A'}}}}
         analysis_plugin.add_tags(cve_results, TEST_FW)
         if should_be_tagged:
             assert 'tags' in TEST_FW.processed_analysis['cve_lookup']
@@ -96,13 +96,13 @@ class TestCveLookup:
         ('cve_results_dict', 'expected_output'),
         [
             ({}, []),
-            ({'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}, ['component']),
-            ({'component': {'cve_id': {'score2': '9.4', 'score3': 'N/A'}}}, ['component (CRITICAL)']),
+            ({'component': {'cve_id': {'scores': {'V2': '6.4', 'V3.1': 'N/A'}}}}, ['component']),
+            ({'component': {'cve_id': {'scores': {'V2': '9.4', 'V3.1': 'N/A'}}}}, ['component (CRITICAL)']),
             (
                 {
                     'component': {
-                        'cve_id': {'score2': '1.1', 'score3': '9.9'},
-                        'cve_id2': {'score2': '1.1', 'score3': '0.0'},
+                        'cve_id': {'scores': {'V2': '1.1', 'V3.1': '9.9'}},
+                        'cve_id2': {'scores': {'V2': '1.1', 'V3.1': '0.0'}},
                     }
                 },
                 ['component (CRITICAL)'],
