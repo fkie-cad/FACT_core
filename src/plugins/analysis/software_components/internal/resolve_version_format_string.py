@@ -12,27 +12,27 @@ from docker.types import Mount
 
 from helperFunctions.docker import run_docker_container
 
-CONTAINER_TARGET_PATH = '/work'
+CONTAINER_TARGET_PATH = Path('/work')
+INPUT_PATH = CONTAINER_TARGET_PATH / 'ghidra_input'
 DOCKER_IMAGE = 'fact/format_string_resolver'
 DOCKER_OUTPUT_FILE = 'ghidra_output.json'
 TIMEOUT = 300
 KEY_FILE = 'key_file'
 
 
-def extract_data_from_ghidra(input_file_data: bytes, input_data: dict, path: str) -> list[str]:
+def extract_data_from_ghidra(file_path: str, input_data: dict, path: str) -> list[str]:
     with TemporaryDirectory(prefix='FSR_', dir=path) as tmp_dir:
         tmp_dir_path = Path(tmp_dir)
-        ghidra_input_file = tmp_dir_path / 'ghidra_input'
         (tmp_dir_path / KEY_FILE).write_text(json.dumps(input_data))
-        ghidra_input_file.write_bytes(input_file_data)
         with suppress(DockerException, TimeoutError):
             proc = run_docker_container(
                 DOCKER_IMAGE,
                 logging_label='FSR',
                 timeout=TIMEOUT,
-                command=f'/work/ghidra_input {CONTAINER_TARGET_PATH}',
+                command=f'{INPUT_PATH} {CONTAINER_TARGET_PATH}',
                 mounts=[
-                    Mount(CONTAINER_TARGET_PATH, tmp_dir, type='bind'),
+                    Mount(str(CONTAINER_TARGET_PATH), tmp_dir, type='bind'),
+                    Mount(str(INPUT_PATH), file_path, type='bind', read_only=True),
                 ],
             )
             if 'Traceback' in proc.stderr:

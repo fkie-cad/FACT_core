@@ -87,7 +87,7 @@ class AnalysisPlugin(YaraBasePlugin):
                     'function_name': result['meta']['_version_function'],
                 }
             versions.update(
-                extract_data_from_ghidra(file_object.binary, input_data, config.backend.docker_mount_base_dir)
+                extract_data_from_ghidra(file_object.file_path, input_data, config.backend.docker_mount_base_dir)
             )
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')

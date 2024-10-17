@@ -51,7 +51,7 @@ class AnalysisPlugin(YaraBasePlugin):
 
         # CVE-2021-45608 NetUSB
         if 'NetUSB' in software_components_results:
-            matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
+            matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.file_path))
 
         # CVE-2024-3094 XZ Backdoor secondary detection
         if 'liblzma' in software_components_results and not any(vuln == 'xz_backdoor' for vuln, _ in yara_result):
@@ -97,11 +97,9 @@ class AnalysisPlugin(YaraBasePlugin):
 
         return matched_vulnerabilities
 
-    def _check_netusb_vulnerability(self, input_file_data: bytes) -> list[tuple[str, dict]]:
+    def _check_netusb_vulnerability(self, file_path: str) -> list[tuple[str, dict]]:
         with TemporaryDirectory(prefix='known_vulns_', dir=config.backend.docker_mount_base_dir) as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
-            ghidra_input_file = tmp_dir_path / 'ghidra_input'
-            ghidra_input_file.write_bytes(input_file_data)
             with suppress(DockerException, TimeoutError):
                 run_docker_container(
                     'fact/known-vulnerabilities',
@@ -109,6 +107,7 @@ class AnalysisPlugin(YaraBasePlugin):
                     timeout=60,
                     mounts=[
                         Mount('/io', tmp_dir, type='bind'),
+                        Mount('/io/ghidra_input', file_path, type='bind', read_only=True),
                     ],
                 )
 
@@ -140,7 +139,7 @@ def _check_xz_backdoor(software_results: dict) -> list[tuple[str, dict]]:
                     'description': 'CVE-2024-3094: a malicious backdoor was planted into the xz compression library',
                     'score': 'high',
                     # the vulnerability is only contained in certain versions built for debian; a more reliable
-                    # yara rule is in the signatures files
+                    # yara rule is in the signature files
                     'reliability': 20,
                     'link': 'https://nvd.nist.gov/vuln/detail/CVE-2024-3094',
                     'short_name': 'XZ Backdoor',
