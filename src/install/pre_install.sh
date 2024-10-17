@@ -82,10 +82,6 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
-# Setup npm repository as described in https://github.com/nodesource/distributions#debian-and-ubuntu-based-distributions
-curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg --batch --yes
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-
 IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
 PREFIX=""
 if [[ $IS_VENV == "False" ]]
