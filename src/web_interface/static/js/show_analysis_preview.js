@@ -15,7 +15,7 @@ function highlight_code() {
 }
 function load_preview() {
     let resourcePath;
-    document.getElementById("preview_button").onclick = () => { return false; };
+    document.getElementById("preview_button").onclick = () => false;
     if (isTextOrImage) {
         resourcePath = `/ajax_get_binary/${mimeType}/${uid}`;
     } else {
