@@ -266,11 +266,12 @@ class TestFileSystemMetadata:
         }
         result = analysis_plugin.analyze(FileIO(self.test_file_fs), {}, analysis)
         assert isinstance(result, analysis_plugin.Schema)
-        assert len(result.files) == 4  # noqa: PLR2004
+        assert len(result.files) == 5  # noqa: PLR2004
         file_results = {r.name: r for r in result.files}
         assert 'busybox' in file_results
         assert file_results['busybox'].path == '/bin/busybox'
         assert file_results['busybox'].suid_bit is True
+        assert file_results['ifconfig'].path == '/sbin/ifconfig'
 
 
 def _b64_encode(string):
