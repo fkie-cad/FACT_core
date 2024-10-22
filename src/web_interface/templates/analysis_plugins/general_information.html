@@ -14,10 +14,12 @@
                         <span>
                             Showing Analysis: {{ selected_analysis | replace_underscore }}
                         </span>
-                        <button class="btn btn-secondary btn-sm mb-0" onclick="toggleRawResult();">
-                            <i class="fas fa-code"></i>
-                            Show Raw Result (JSON)
-                        </button>
+                        <div class="custom-control custom-switch">
+                          <input type="checkbox" class="custom-control-input" id="rawResultSwitch">
+                          <label class="custom-control-label" for="rawResultSwitch" style="font-weight: normal;">
+                              Show Raw Result (JSON)
+                          </label>
+                        </div>
                     </div>
                 </th>
             </tr>

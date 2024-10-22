@@ -37,31 +37,36 @@ function load_preview() {
     $("#preview-content").load(resourcePath, init_preview);
 }
 document.getElementById("preview_button").onclick = load_preview;
-let rawIsVisible = false;
 let rawResultIsHighlighted = false;
+const toggleSwitch = document.getElementById("rawResultSwitch");
 
-function toggleRawResult() {
+toggleSwitch.addEventListener('change', function() {
     const analysisTable = document.getElementById("analysis-table-body");
     const rawResultRow = document.getElementById("raw-result");
-    // filter out meta rows
     const analysisRows = Array.from(analysisTable.children)
         .filter(child => !child.classList.contains("analysis-meta"));
-    if (rawIsVisible) {
-        analysisRows.forEach((element) => {
-            element.style.visibility = "visible";
-        });
-        rawResultRow.style.visibility = "collapse";
-    } else {
+
+    if (toggleSwitch.checked) {
         analysisRows.forEach((element) => {
             element.style.visibility = "collapse";
         });
         rawResultRow.style.visibility = "visible";
+    } else {
+        analysisRows.forEach((element) => {
+            element.style.visibility = "visible";
+        });
+        rawResultRow.style.visibility = "collapse";
     }
-    rawIsVisible = !rawIsVisible;
 
-    if (!rawResultIsHighlighted) {
+    if (!rawResultIsHighlighted && toggleSwitch.checked) {
+        // highlight the result lazily and only once
         rawResultIsHighlighted = true;
         let rawResult = document.getElementById('raw-analysis');
         hljs.highlightBlock(rawResult);
     }
-}
+});
+
+window.onload = function() {
+    // make sure the switch is off when the page is reloaded
+    toggleSwitch.checked = false;
+};
