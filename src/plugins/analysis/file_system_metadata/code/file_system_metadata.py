@@ -134,13 +134,15 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
         )
         super().__init__(metadata=metadata)
 
-    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
+    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel | dict]) -> Schema:
         del virtual_file_path
         file_type = analyses['file_type'].mime
         result = self._extract_metadata(file_handle, file_type, analyses)
         return self.Schema(files=result)
 
-    def _extract_metadata(self, file_handle: FileIO, file_type: str, analyses) -> list[FileMetadata]:
+    def _extract_metadata(
+        self, file_handle: FileIO, file_type: str, analyses: dict[str, BaseModel | dict]
+    ) -> list[FileMetadata]:
         if file_type in FS_MIME_TYPES:
             return self._extract_metadata_from_file_system(file_handle)
         if file_type in ARCHIVE_MIME_TYPES:
@@ -149,10 +151,10 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
             return self._extract_metadata_from_yaffs(analyses)
         return []
 
-    def _extract_metadata_from_yaffs(self, analyses) -> list[FileMetadata]:
+    def _extract_metadata_from_yaffs(self, analyses: dict[str, BaseModel | dict]) -> list[FileMetadata]:
         result = []
         unpacker_result = analyses.get('unpacker')
-        if not unpacker_result or unpacker_result['plugin_used'] != 'YAFFS':
+        if not isinstance(unpacker_result, dict) or unpacker_result['plugin_used'] != 'YAFFS':
             return result
         """
         the output of unyaffs from the unpacker log has the following structure:
