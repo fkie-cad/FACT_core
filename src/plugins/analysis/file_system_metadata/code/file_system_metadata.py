@@ -49,7 +49,7 @@ FS_MIME_TYPES = [
     'filesystem/xfs',
     'filesystem/squashfs',
 ]
-YAFFS_REGEX = re.compile(r'([rwxtTsS?-]{10}) +\d+ (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) ([^\n]+)')
+YAFFS_REGEX = re.compile(r'([rwxtTsSl?-]{10}) +\d+ (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) ([^\n]+)')
 REVERSE_FILEMODE_LOOKUP = [{char: mode for mode, char in row} for row in stat._filemode_table]
 
 
@@ -162,11 +162,14 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
         -rw-r--r--       38 2014-07-19 01:31 build.prop
         drwxr-xr-x        0 2016-10-11 03:12 sbin
         lrwxrwxrwx        0 2014-07-19 01:28 sbin/ifconfig -> ../bin/busybox
-        we ignore directories and symlinks
+        we ignore directories and block devices
         """
         for match in YAFFS_REGEX.finditer(unpacker_result['output']):
             mode_str, date, path = match.groups()
             mode = oct(_filemode_str_to_int(mode_str))
+            if '->' in path:
+                # symlink entries have a " -> [target]" after their path (see comment above)
+                path = path.split('->')[0].strip()
             result.append(
                 FileMetadata(
                     mode=mode,
