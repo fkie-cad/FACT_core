@@ -488,3 +488,15 @@ def test_as_ascii_table():
 )
 def test_str_to_hex(input_, expected_result):
     assert flt.str_to_hex(input_) == expected_result
+
+
+@pytest.mark.parametrize(
+    ('input_', 'expected_result'),
+    [
+        ('755', '0o755 (rwxr-xr-x)'),
+        ('104666', '0o4666 (-rwSrw-rw-, regular file)'),
+        ('40777', '0o777 (drwxrwxrwx, directory)'),
+    ],
+)
+def test_render_file_mode(input_, expected_result):
+    assert flt.render_file_mode(input_) == expected_result
