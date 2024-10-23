@@ -70,3 +70,9 @@ window.onload = function() {
     // make sure the switch is off when the page is reloaded
     toggleSwitch.checked = false;
 };
+
+function copyRawAnalysis() {
+    const code = document.getElementById("raw-analysis");
+    // Copy the raw analysis data to clipboard
+    navigator.clipboard.writeText(code.textContent);
+}
