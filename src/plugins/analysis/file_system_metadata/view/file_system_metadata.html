@@ -12,7 +12,7 @@
 {% endif %}
 {% for metadata in metadata_list %}
     <tr>
-        <td>{{ metadata['path'] }}</td>
+        <td style="overflow-wrap: anywhere;">{{ metadata['path'] }}</td>
         <td class="p-0">
             {# this should be the same as in ../routes/ajax_view.html #}
             <table class="table table-bordered table-sm mb-0">
@@ -28,9 +28,9 @@
                     <td class="text-left" style="width: 25%">{{ metadata.creation_time | nice_unix_time | safe }}</td>
                 </tr>
                 <tr>
-                    <td class="text-right">permissions</td>
+                    <td class="text-right">file mode</td>
                     <td class="text-left">
-                        {{ metadata.mode | safe }} ({{ metadata.mode | octal_to_readable }})
+                        {{ metadata.mode | render_file_mode }}
                     </td>
                     <td class="text-right">modification time</td>
                     <td class="text-left">{{ metadata.modification_time | nice_unix_time | safe }}</td>
