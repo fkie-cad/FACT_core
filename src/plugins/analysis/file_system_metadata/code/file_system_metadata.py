@@ -64,7 +64,10 @@ class StatResult(NamedTuple):
 
 class FileMetadata(BaseModel):
     mode: str = Field(
-        description="The file's permissions as octal number",
+        description=(
+            "The file's type and permissions as octal number (see https://docs.python.org/3.13/library/stat.html for"
+            'information on how to interpret the value)'
+        ),
     )
     name: str = Field(
         description="The file's name",
@@ -128,7 +131,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
             description=(
                 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
             ),
-            version='1.1.0',
+            version='1.2.0',
             Schema=self.Schema,
             timeout=30,
         )
@@ -306,7 +309,7 @@ def _file_mode_contains_bit(file_mode: str, bit: int) -> bool:
 
 
 def _get_mounted_file_mode(stats: StatResult) -> str:
-    return oct(stat.S_IMODE(stats.mode))[2:]
+    return oct(stats.mode)[2:]
 
 
 def _get_tar_file_mode_str(file_info: tarfile.TarInfo) -> str:
