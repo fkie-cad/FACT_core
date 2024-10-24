@@ -104,6 +104,10 @@ name = "cpu_architecture"
 processes = 4
 
 [[backend.plugin]]
+name = "uefi"
+processes = 4
+
+[[backend.plugin]]
 name = "cve_lookup"
 processes = 4
 
