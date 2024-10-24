@@ -27,12 +27,14 @@ class FileTreeNode:
         mime_type=None,
         has_children=False,
         not_analyzed=False,
+        mode: str | None = None,
     ):
         self.uid = uid
         self.root_uid = root_uid
         self.virtual = virtual
         self.name = name
         self.size = size
+        self.mode = mode
         self.type = mime_type
         self.has_children = has_children
         self.not_analyzed = not_analyzed
