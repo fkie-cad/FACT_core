@@ -108,6 +108,7 @@ class FileTreeData(NamedTuple):
     virtual_file_path: dict[str, list[str]]
     mime: str
     included_files: set[str]
+    file_mode_data: dict | None = None
 
 
 def get_mime_for_text_file(filename: str) -> str:
@@ -201,20 +202,21 @@ class VirtualPathFileTree:
             yield self._get_node_for_real_file()
         else:
             for path in self.virtual_file_paths:
-                yield self._create_node_from_virtual_path(path.lstrip('/').split('/'))
+                mode = self.fo_data.file_mode_data.get(path.lstrip('/'))
+                yield self._create_node_from_virtual_path(path.lstrip('/').split('/'), mode)
 
-    def _create_node_from_virtual_path(self, current_virtual_path: list[str]) -> FileTreeNode:
+    def _create_node_from_virtual_path(self, current_virtual_path: list[str], mode: str | None = None) -> FileTreeNode:
         if len(current_virtual_path) > 1:
-            return self._get_node_for_virtual_file(current_virtual_path)
-        return self._get_node_for_real_file(current_virtual_path[0])
+            return self._get_node_for_virtual_file(current_virtual_path, mode)
+        return self._get_node_for_real_file(current_virtual_path[0], mode)
 
-    def _get_node_for_virtual_file(self, current_virtual_path: list[str]) -> FileTreeNode:
+    def _get_node_for_virtual_file(self, current_virtual_path: list[str], mode: str | None) -> FileTreeNode:
         current_element, *rest_of_virtual_path = current_virtual_path
         node = FileTreeNode(uid=None, root_uid=self.root_uid, virtual=True, name=current_element)
-        node.add_child_node(self._create_node_from_virtual_path(rest_of_virtual_path))
+        node.add_child_node(self._create_node_from_virtual_path(rest_of_virtual_path, mode))
         return node
 
-    def _get_node_for_real_file(self, virtual_path: str | None = None) -> FileTreeNode:
+    def _get_node_for_real_file(self, virtual_path: str | None = None, mode: str | None = None) -> FileTreeNode:
         return FileTreeNode(
             self.uid,
             self.root_uid,
@@ -223,6 +225,7 @@ class VirtualPathFileTree:
             size=self.fo_data.size,
             mime_type=self.fo_data.mime,
             has_children=self._has_children(),
+            mode=mode,
         )
 
     def _get_file_name(self, current_virtual_path: list[str]) -> str:

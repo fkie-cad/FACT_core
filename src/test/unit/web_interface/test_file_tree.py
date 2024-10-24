@@ -148,6 +148,7 @@ class TestVirtualPathFileTree:
         'size': 1,
         'mime': 'footype',
         'included_files': set(),
+        'file_mode_data': {},
     }
 
     def test_multiple_paths(self):
