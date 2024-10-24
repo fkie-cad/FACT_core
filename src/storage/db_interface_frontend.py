@@ -249,7 +249,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def generate_file_tree_nodes_for_uid_list(
         self, uid_list: list[str], root_uid: str, parent_uid: str | None, whitelist: list[str] | None = None
     ):
-        file_tree_data = self.get_file_tree_data(uid_list)
+        file_tree_data = self.get_file_tree_data(uid_list, parent_uid)
         for entry in file_tree_data:
             yield from self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry)
 
@@ -262,13 +262,14 @@ class FrontEndDbInterface(DbInterfaceCommon):
         data: FileTreeData | None = None,
     ):
         if data is None:
-            data = self.get_file_tree_data([uid])[0]
+            data = self.get_file_tree_data([uid], parent_uid)[0]
         try:
             yield from VirtualPathFileTree(root_uid, parent_uid, data, whitelist).get_file_tree_nodes()
         except (KeyError, TypeError):  # the file has not been analyzed yet
             yield FileTreeNode(uid, root_uid, not_analyzed=True, name=f'{uid} (not analyzed yet)')
 
-    def get_file_tree_data(self, uid_list: list[str]) -> list[FileTreeData]:
+    def get_file_tree_data(self, uid_list: list[str], parent_uid: str | None) -> list[FileTreeData]:
+        mode_data = self._get_mode_dict(parent_uid)
         with self.get_read_only_session() as session:
             # get included files in a separate query because it is way faster than FileObjectEntry.get_included_uids()
             included_files = self._get_included_files_for_uid_list(session, uid_list)
@@ -282,7 +283,13 @@ class FrontEndDbInterface(DbInterfaceCommon):
             ).filter(FileObjectEntry.uid.in_(uid_list))
             return [
                 FileTreeData(
-                    uid, file_name, size, vfp_data.get(uid), type_analyses.get(uid), included_files.get(uid, set())
+                    uid,
+                    file_name,
+                    size,
+                    vfp_data.get(uid),
+                    type_analyses.get(uid),
+                    included_files.get(uid, set()),
+                    mode_data,
                 )
                 for uid, file_name, size in session.execute(query)
             ]
@@ -437,3 +444,12 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 )
             )
             return session.execute(query.limit(1)).scalar() or ''
+
+    def _get_mode_dict(self, parent_uid: str | None) -> dict[str, str]:
+        fs_metadata = self.get_analysis(parent_uid, 'file_system_metadata') if parent_uid else None
+        if not fs_metadata:
+            return {}
+        return {
+            meta_dict['path'].lstrip('/'): meta_dict['mode']
+            for meta_dict in fs_metadata.get('result', {}).get('files', [])
+        }
