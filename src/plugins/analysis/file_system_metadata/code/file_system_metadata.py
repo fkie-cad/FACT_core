@@ -9,6 +9,8 @@ import zlib
 from base64 import b64encode
 from datetime import datetime
 from pathlib import Path
+from shlex import split
+from subprocess import run
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, List, NamedTuple, Optional
 
@@ -33,8 +35,11 @@ ARCHIVE_MIME_TYPES = [
     'application/x-bzip2',
     'application/x-tar',
 ]
+SEVEN_ZIP_TYPES = [
+    'filesystem/squashfs',
+]
 FS_MIME_TYPES = [
-    'filesystem/btrfs',
+    'filesystem/btrl fs',
     'filesystem/cramfs',
     'filesystem/dosmbr',
     'filesystem/ext2',
@@ -47,7 +52,6 @@ FS_MIME_TYPES = [
     'filesystem/romfs',
     'filesystem/udf',
     'filesystem/xfs',
-    'filesystem/squashfs',
 ]
 YAFFS_REGEX = re.compile(r'([rwxtTsSl?-]{10}) +\d+ (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) ([^\n]+)')
 REVERSE_FILEMODE_LOOKUP = [{char: mode for mode, char in row} for row in stat._filemode_table]
@@ -143,6 +147,8 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
     def _extract_metadata(
         self, file_handle: FileIO, file_type: str, analyses: dict[str, BaseModel | dict]
     ) -> list[FileMetadata]:
+        if file_type in SEVEN_ZIP_TYPES:
+            return _extract_metadata_with_7z(file_handle.name)
         if file_type in FS_MIME_TYPES:
             return self._extract_metadata_from_file_system(file_handle)
         if file_type in ARCHIVE_MIME_TYPES:
@@ -151,7 +157,8 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
             return self._extract_metadata_from_yaffs(analyses)
         return []
 
-    def _extract_metadata_from_yaffs(self, analyses: dict[str, BaseModel | dict]) -> list[FileMetadata]:
+    @staticmethod
+    def _extract_metadata_from_yaffs(analyses: dict[str, BaseModel | dict]) -> list[FileMetadata]:
         result = []
         unpacker_result = analyses.get('unpacker')
         if not isinstance(unpacker_result, dict) or unpacker_result['plugin_used'] != 'YAFFS':
@@ -321,4 +328,52 @@ def _filemode_str_to_int(filemode: str) -> int:
     result = 0
     for char, lookup in zip(filemode, REVERSE_FILEMODE_LOOKUP):
         result += lookup.get(char, 0)
+    return result
+
+
+def _extract_metadata_with_7z(path: str) -> list[FileMetadata]:
+    """
+    The output of 7z should look something like this:
+    Path = etc/init.d/sysctl
+    Folder = -
+    Size = 258
+    Packed Size = 0
+    Modified = 2015-09-15 13:41:05
+    [Accessed = 2015-09-15 12:20:40.000000]
+    [Created = 2015-09-15 12:20:40.000000]
+    [Metadata Changed = 2016-06-01 19:03:43.944854]
+    Mode = -rwxrwxr-x
+    User ID = 0
+    Group ID = 0
+
+    Path = etc/init.d/sysntpd
+    ...
+    """
+    # TODO: parsing of optional entries
+    proc = run(split(f'7z l -slt {path}'), capture_output=True, check=False, text=True)
+    if proc.returncode != 0:
+        return []
+
+    regex = (
+        r'Path = (?P<path>.+?)\nFolder = .+\nSize = .+\nPacked Size = .+\nModified = (?P<modified>.+?)\n'
+        r'Mode = (?P<mode>.+?)\nUser ID = (?P<user_id>\d+)\nGroup ID = (?P<group_id>\d+)'
+    )
+    result = []
+    for match in re.finditer(regex, proc.stdout, re.MULTILINE):
+        match_dict = match.groupdict()
+        mode = oct(_filemode_str_to_int(match_dict['mode']))
+        result.append(
+            FileMetadata(
+                mode=mode,
+                name=Path(match_dict['path']).name,
+                path=match_dict['path'],
+                uid=match_dict['user_id'],
+                gid=match_dict['group_id'],
+                modification_time=datetime.fromisoformat(match_dict['modified']).timestamp(),
+                suid_bit=_file_mode_contains_bit(mode, SUID_BIT),
+                sgid_bit=_file_mode_contains_bit(mode, SGID_BIT),
+                sticky_bit=_file_mode_contains_bit(mode, STICKY_BIT),
+                key=b64encode(match_dict['path'].encode()).decode(),
+            )
+        )
     return result
