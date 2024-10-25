@@ -28,15 +28,28 @@
     <script src="{{ url_for('static', filename='node_modules/@highlightjs/cdn-assets/highlight.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/@highlightjs/cdn-assets/styles/github.min.css') }}" />
 
-    {# line_numbering.js import #}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/line_numbering.js') }}"></script>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/line_numbering.css') }}" />
+    <script src="{{ url_for('static', filename='node_modules/highlightjs-line-numbers.js/dist/highlightjs-line-numbers.min.js') }}"></script>
 
     <script>
         const uid = "{{ uid | safe }}";
         const selected_analysis = "{{ selected_analysis }}";
     </script>
     <script src="{{ url_for('static', filename='js/file_tree.js') }}"></script>
+
+    <style>
+        {# styling for file preview line lumbers #}
+        .hljs-ln-numbers {
+            user-select: none;
+            text-align: center;
+            color: gray;
+            border-right: 1px solid gray;
+            vertical-align: top;
+            padding-right: 5px !important;
+        }
+        .hljs-ln-code {
+            padding-left: 10px !important;
+        }
+    </style>
 {% endblock %}
 
 
