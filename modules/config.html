@@ -60,6 +60,10 @@
 <li class="toctree-l1"><a class="reference internal" href="analysis.html">analysis</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">config</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#config.Backend"><code class="docutils literal notranslate"><span class="pre">Backend</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#config.Backend.BinarySearch"><code class="docutils literal notranslate"><span class="pre">Backend.BinarySearch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.Backend.BinarySearch.max_strings_per_match"><code class="docutils literal notranslate"><span class="pre">Backend.BinarySearch.max_strings_per_match</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Backend.Plugin"><code class="docutils literal notranslate"><span class="pre">Backend.Plugin</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#config.Backend.Plugin.name"><code class="docutils literal notranslate"><span class="pre">Backend.Plugin.name</span></code></a></li>
 </ul>
@@ -78,6 +82,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#config.Backend.Unpacking.whitelist"><code class="docutils literal notranslate"><span class="pre">Backend.Unpacking.whitelist</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#config.Backend.binary_search"><code class="docutils literal notranslate"><span class="pre">Backend.binary_search</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Backend.block_delay"><code class="docutils literal notranslate"><span class="pre">Backend.block_delay</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Backend.collector_worker_count"><code class="docutils literal notranslate"><span class="pre">Backend.collector_worker_count</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Backend.firmware_file_storage_directory"><code class="docutils literal notranslate"><span class="pre">Backend.firmware_file_storage_directory</span></code></a></li>
@@ -207,6 +212,28 @@
 </dd>
 </dl>
 <dl class="py class">
+<dt class="sig sig-object py" id="config.Backend.BinarySearch">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">BinarySearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.Backend.BinarySearch" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Backend.BinarySearch.max_strings_per_match">
+<span class="sig-name descname"><span class="pre">max_strings_per_match</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#config.Backend.BinarySearch.max_strings_per_match" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="config.Backend.Plugin">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Plugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.Backend.Plugin" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
@@ -301,6 +328,11 @@
 <dd></dd></dl>
 
 </dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Backend.binary_search">
+<span class="sig-name descname"><span class="pre">binary_search</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#config.Backend.BinarySearch" title="config.Backend.BinarySearch"><span class="pre">Backend.BinarySearch</span></a></em><a class="headerlink" href="#config.Backend.binary_search" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="config.Backend.block_delay">
