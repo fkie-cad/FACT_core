@@ -90,10 +90,7 @@ class AjaxRoutes(ComponentBase):
         mime_type = mime_type.replace('_', '/')
         binary = self.intercom.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
-            return (
-                '<pre class="line_numbering" style="white-space: pre-wrap">'
-                f'{html.escape(bytes_to_str_filter(binary))}</pre>'
-            )
+            return f'<pre style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
         if 'image/' in mime_type:
             return (
                 '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; '
