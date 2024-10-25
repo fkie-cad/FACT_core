@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import re
 import subprocess
-from os.path import basename
 from pathlib import Path
 from subprocess import PIPE, STDOUT, CalledProcessError
 from tempfile import NamedTemporaryFile
@@ -37,7 +37,8 @@ class YaraBinarySearchScanner:
         :return: The output from the yara scan.
         """
         compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b'YARA') else ''
-        command = f'yara -r {compiled_flag} {rule_file_path} {target_path or self.db_path}'
+        # -r: recursive, -s: print strings, -N: no follow symlinks
+        command = f'yara -r -s -N {compiled_flag} {rule_file_path} {target_path or self.db_path}'
         yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
         return yara_process.stdout
 
@@ -50,24 +51,55 @@ class YaraBinarySearchScanner:
         return [self.fs_organizer.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
 
     @staticmethod
-    def _parse_raw_result(raw_result: str) -> dict[str, list[str]]:
+    def _parse_raw_result(raw_result: str) -> dict[str, dict[str, list[dict]]]:
         """
+        YARA scan results have the following structure:
+        <rule_name> <matching_file_path>
+        <offset>:<condition>: <matching_string>
+        <offset>:<condition>: <matching_string>
+        ...
+        <rule_name> <matching_file_path>
+        ...
+
+        We parse the results and put them into a dictionary of the following form:
+        {
+            <uid:str>: {
+                <rule:str>: [
+                    {
+                        "offset": <offset in hex:str>,
+                        "condition": <condition name:str>,
+                        "match": <matching string:str>,
+                    },
+                    ... (max match_limit)
+                ]
+            },
+            ...
+        }
+
         :param raw_result: raw yara scan result
-        :return: dict of matching rules with lists of matched UIDs as values
+        :return: dict of matching files, rules and strings
         """
         results = {}
-        for line in raw_result.split('\n'):
-            if line and 'warning' not in line:
-                rule, match = line.split(' ')
-                results.setdefault(rule, []).append(basename(match))  # noqa: PTH119
+        for result_str in re.findall(
+            # <rule_name>            <path>     <offset>    <condition>      <string>
+            r'[a-zA-Z_][a-zA-Z0-9_]+ [^\n]+\n(?:0x[0-9a-f]+:\$[a-zA-Z0-9_]+: .+\n)+',
+            raw_result,
+        ):
+            rule_str, *match_lines = result_str.splitlines()
+            rule, path_str = rule_str.split(' ', maxsplit=1)
+            uid = Path(path_str).name
+            results.setdefault(uid, {}).setdefault(rule, [])
+            for match_line in match_lines:
+                offset, condition, match_str = match_line.split(':', maxsplit=2)
+                match_str = match_str[1:]  # remove the space at the beginning
+                results[uid][rule].append({'offset': offset, 'condition': condition, 'match': match_str})
+                if len(results[uid][rule]) >= config.backend.binary_search.max_strings_per_match:
+                    # only collect at most <match_limit> matching strings to avoid storing loads of unnecessary data
+                    # in case of very general rules with lots of matches
+                    break
         return results
 
-    @staticmethod
-    def _eliminate_duplicates(result_dict: dict[str, list[str]]):
-        for key in result_dict:
-            result_dict[key] = sorted(set(result_dict[key]))
-
-    def get_binary_search_result(self, task: tuple[bytes, str | None]) -> dict[str, list[str]] | str:
+    def get_binary_search_result(self, task: tuple[bytes, str | None]) -> dict[str, dict[str, list[dict]]] | str:
         """
         Perform a yara search on the files in the database.
 
@@ -80,9 +112,7 @@ class YaraBinarySearchScanner:
             try:
                 self._prepare_temp_rule_file(temp_rule_file, yara_rules)
                 raw_result = self._get_raw_result(firmware_uid, temp_rule_file)
-                results = self._parse_raw_result(raw_result)
-                self._eliminate_duplicates(results)
-                return results
+                return self._parse_raw_result(raw_result)
             except yara.SyntaxError as yara_error:
                 return f'There seems to be an error in the rule file:\n{yara_error}'
             except CalledProcessError as process_error:

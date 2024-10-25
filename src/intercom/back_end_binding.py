@@ -200,8 +200,8 @@ class InterComBackEndBinarySearchTask(InterComListenerAndResponder):
 
     def get_response(self, task):
         yara_binary_searcher = YaraBinarySearchScanner()
-        uid_list = yara_binary_searcher.get_binary_search_result(task)
-        return uid_list, task
+        search_result = yara_binary_searcher.get_binary_search_result(task)
+        return search_result, task
 
 
 class InterComBackEndDeleteFile(InterComListenerAndResponder):

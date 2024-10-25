@@ -1,10 +1,34 @@
 {% extends "base.html" %}
 
+{% import 'macros.html' as macros %}
+
 {% set active_page = "Database" %}
 
 
 {% block styles %}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pagination.css') }}">
+    <style>
+        .btn-block {
+            padding: 1px;
+            transition: border-radius 0.35s linear;
+        }
+        .btn-block:not(.collapsed) {
+            border-radius: 0.75rem 0.75rem 0 0;
+        }
+        .btn-block.collapsed {
+            border-radius: 0.75rem;
+        }
+        .table-sm {
+            font-size: small;
+            text-align: center;
+            margin: 0;
+        }
+        .match-str-div {
+            border-radius: 0 0 0.75rem 0.75rem;
+            padding: 0;
+            background: white;
+        }
+    </style>
 {% endblock %}
 
 
@@ -65,13 +89,15 @@
     </div>
 </div>
 
-{% if search_parameters['query_title'] %}
+{# show query button #}
+{% if search_parameters.query_title %}
     <div class="row justify-content-center">
         <div class="col-xl-6 col-lg-8 col-md-10">
             <div class="list-group mt-4">
                 <button data-toggle="collapse" data-target="#search_query" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" style="border: 0;">
-                    {% set search_target = "File" if not search_parameters['only_firmware'] else "Firmware" if not search_parameters['inverted'] else "Inverse Firmware" %}
-                    Show Search Query <span class="badge badge-primary">{{ search_target }} Search</span>
+                    <i class="fas fa-caret-down"></i>
+                    Show Search Query
+                    <span class="badge badge-primary">{{ search_parameters.search_target.value }} Search</span>
                 </button>
                 <div id="search_query" class="collapse list-group-item p-0 border-0">
                     <pre class="bg-light p-2 mb-0 rounded-bottom">{{ search_parameters['query_title'] | render_query_title }}</pre>
@@ -81,12 +107,59 @@
     </div>
 {% endif %}
 
+{# search results #}
 <div class="row justify-content-center">
     <div class="mt-4 col-xl-6 col-lg-8 col-md-10">
         {% if firmware_list %}
             <ul class="list-group-flush p-3 bg-light">
                 {% for firmware in firmware_list %}
-                    {{ firmware | firmware_detail_tabular_field | safe }}
+
+                    {# single search result #}
+                    {% call macros.fw_detail_tabular_field(firmware) %}
+
+                        {# binary search show matching strings button #}
+                        {% if search_parameters.yara_match_data and firmware.uid in search_parameters.yara_match_data %}
+                            <div class="p-0">
+                                <button type="button" class="btn btn-info btn-sm btn-block collapsed" data-toggle="collapse" aria-expanded="false"
+                                      aria-controls="match-strings-{{ firmware.uid }}" data-target="#match-strings-{{ firmware.uid }}">
+                                    show matching strings
+                                    <i class="fas fa-caret-down"></i>
+                                </button>
+
+                                {# binary search matching strings #}
+                                <div class="match-str-div collapse" id="match-strings-{{ firmware.uid }}">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th>Rule</th>
+                                            <th>Offset</th>
+                                            <th>Condition</th>
+                                            <th>Matching String</th>
+                                        </tr>
+                                        {% for rule, match_list in search_parameters.yara_match_data[firmware.uid].items() %}
+                                            {% for match in match_list %}
+                                                <tr>
+                                                    <td><samp>{{ rule | safe }}</samp></td>
+                                                    <td>
+                                                        <a href="/analysis/{{ firmware.uid }}?load_preview={{ match.offset }}">
+                                                            <samp>{{ match.offset | safe }}</samp>
+                                                        </a>
+                                                    </td>
+                                                    <td><samp>{{ match.condition | safe }}</samp></td>
+                                                    <td><samp>{{ match.match | safe }}</samp></td>
+                                                </tr>
+                                            {% endfor %}
+                                            {# if there are more matches than can be displayed... #}
+                                            {% if (match_list | length) == 20 %}
+                                                <td colspan="4">
+                                                    <b>Only the first 20 matches of rule "{{ rule }}" are displayed</b>
+                                                </td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </table>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endcall %}
                 {% endfor %}
             </ul>
         {% else %}

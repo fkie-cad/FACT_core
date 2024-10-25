@@ -114,7 +114,7 @@ class CompareRoutes(ComponentBase):
 
             total = comparison_db.get_total_number_of_results()
 
-        pagination = get_pagination(page=page, per_page=per_page, total=total, record_name='compare results')
+        pagination = get_pagination(page=page, per_page=per_page, total=total)
         return render_template(
             'database/compare_browse.html',
             compare_list=compare_list,
