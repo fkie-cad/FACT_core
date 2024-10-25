@@ -26,13 +26,13 @@ VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 class ParentAnalysisLookupMixin:
     db: FrontendDatabase
 
-    def get_analysis_results_for_included_uid(self, uid: str) -> dict:
-        results = {}
+    def get_analysis_results_for_included_uid(self, uid: str) -> list:
+        results = []
         with get_shared_session(self.db.frontend) as db:
             vfp = db.get_vfps(uid)
             for parent_uid in vfp:
                 parent_analysis = db.get_analysis(parent_uid, AnalysisPlugin.NAME) or {}
-                results.update(_get_results_from_parent_fo(parent_analysis.get('result', {}), parent_uid, vfp))
+                results.append(_get_results_from_parent_fo(parent_analysis.get('result', {}), parent_uid, vfp))
         return results
 
 

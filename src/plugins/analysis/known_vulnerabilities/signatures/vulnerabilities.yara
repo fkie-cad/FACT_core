@@ -50,4 +50,20 @@ rule WPA_Key_Hardcoded {
     strings:
         $a = /\swpa_passphrase=\S+/ nocase ascii wide
     condition: $a
-} 
+}
+
+rule xz_backdoor {
+    meta:
+        description = "CVE-2024-3094: a malicious backdoor was planted into the xz compression library"
+        reliability = "80"
+        score = "high"
+        link = "https://nvd.nist.gov/vuln/detail/CVE-2024-3094"
+    strings:
+        $a = {f30f1efa554889f54c89ce5389fb81e7000000804883ec28488954241848894c2410}
+        $b = {488d7c2408f3ab488d4424084889d14c89c74889c2e8????????89c2}
+        $c = {4d8b6c2408458b3c244c8b6310898578f1ffff31c083bd78f1ffff00f3ab7907}
+        $d = {31c04989ffb9160000004d89c5488d7c24484d89cef3ab488d442448}
+        $e = "yolAbejyiejuvnup=Evjtgvsh5okmkAvj"
+    condition:
+        any of them
+}
