@@ -519,12 +519,12 @@ def as_ascii_table(data: dict) -> str:
     return ''.join([f'{k:<10} {v!s:<10}\n' for k, v in data.items()])
 
 
-def render_file_mode(octal: str) -> str:
+def octal_to_readable(octal: str, include_type: bool = False) -> str:
     mode = int(octal, 8)
-    permissions = stat.S_IMODE(mode)
-    mode_as_str = stat.filemode(mode).lstrip('?')
-    file_type = _file_mode_to_type(mode) if mode > 0o7777 else ''  # noqa: PLR2004
-    return f'{oct(permissions)} ({mode_as_str}{file_type})'
+    mode_str = stat.filemode(mode).lstrip('?')
+    if include_type:
+        return f'{mode_str}{_file_mode_to_type(mode)}'
+    return mode_str
 
 
 STAT_FUNCTIONS = {
@@ -542,6 +542,8 @@ STAT_FUNCTIONS = {
 
 
 def _file_mode_to_type(mode: int) -> str:
+    if not stat.S_IFMT(mode):  # the mode does not include a file type part (i.e. the mode is <= 0o7777)
+        return ''
     for is_type_fun, file_type in STAT_FUNCTIONS.items():
         if is_type_fun(mode):
             return f', {file_type}'
