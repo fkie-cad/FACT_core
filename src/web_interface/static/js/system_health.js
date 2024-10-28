@@ -1,6 +1,3 @@
-const BOOTSTRAP_DANGER_COLOR = "#dc3545";
-const BOOTSTRAP_PRIMARY_COLOR = "#007bff";
-
 function change_button(button_id) {
     element = document.getElementById(button_id);
     ["fa-caret-down", "fa-caret-up"].forEach(class_name => element.classList.toggle(class_name));
@@ -86,23 +83,33 @@ function updatePluginCard(pluginName, pluginData) {
     const statsElement = document.getElementById(`${pluginName}-stats`);
     if (pluginData.active > 0) {
         activeIndicatorElement.classList.add("fa-spin");
-        activeIndicatorElement.style.color = BOOTSTRAP_PRIMARY_COLOR;
-        activeElement.style.color = BOOTSTRAP_PRIMARY_COLOR;
+        activeIndicatorElement.classList.remove("text-muted");
+        activeIndicatorElement.classList.add("text-primary");
+        activeElement.classList.remove("text-muted");
+        activeElement.classList.add("text-primary");
     } else {
         activeIndicatorElement.classList.remove("fa-spin");
-        activeIndicatorElement.style.color = "darkgrey";
-        activeElement.style.color = "darkgrey";
+        activeIndicatorElement.classList.remove("text-primary");
+        activeIndicatorElement.classList.add("text-muted");
+        activeElement.classList.remove("text-primary");
+        activeElement.classList.add("text-muted");
     }
     activeElement.innerText = pluginData.active.toString();
     if (pluginData.queue > 100) {
-        queueIndicatorElement.style.color = BOOTSTRAP_DANGER_COLOR;
-        queueElement.style.color = BOOTSTRAP_DANGER_COLOR;
+        queueIndicatorElement.classList.remove("text-muted");
+        queueIndicatorElement.classList.add("text-danger");
+        queueElement.classList.remove("text-muted");
+        queueElement.classList.add("text-danger");
     } else if (pluginData.queue > 0) {
-        queueIndicatorElement.style.color = "black";
-        queueElement.style.color = "black";
+        queueIndicatorElement.classList.remove("text-muted");
+        queueIndicatorElement.classList.remove("text-danger");
+        queueElement.classList.remove("text-muted");
+        queueElement.classList.remove("text-danger");
     } else {
-        queueIndicatorElement.style.color = "darkgrey";
-        queueElement.style.color = "darkgrey";
+        queueIndicatorElement.classList.remove("text-danger");
+        queueIndicatorElement.classList.add("text-muted");
+        queueElement.classList.remove("text-danger");
+        queueElement.classList.add("text-muted");
     }
     queueElement.innerText = pluginData.queue.toString();
     outQueueElement.innerText = pluginData.out_queue.toString();
