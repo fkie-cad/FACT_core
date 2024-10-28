@@ -28,7 +28,7 @@
                         <tr>
                             <td class="text-right">permissions</td>
                             <td class="text-left">
-                                {{ metadata.mode | render_file_mode }}
+                                {{ metadata.mode | safe }} ({{ metadata.mode | octal_to_readable(include_type=True) }})
                             </td>
                             <td class="text-right">modification time</td>
                             <td class="text-left">{{ metadata.modification_time | nice_unix_time | safe }}</td>

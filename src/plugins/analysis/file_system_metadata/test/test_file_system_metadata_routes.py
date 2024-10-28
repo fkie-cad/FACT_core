@@ -123,8 +123,8 @@ class TestFileSystemMetadataRoutes:
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
-        for filter_ in ('replace_uid_with_hid', 'nice_unix_time', 'render_file_mode'):
-            app.jinja_env.filters[filter_] = lambda x: x
+        for filter_ in ('replace_uid_with_hid', 'nice_unix_time', 'octal_to_readable'):
+            app.jinja_env.filters[filter_] = lambda x, **_: x
         self.plugin_routes = routes.PluginRoutes(app, db=DbMock, intercom=None, status=None)
         self.test_client = app.test_client()
 

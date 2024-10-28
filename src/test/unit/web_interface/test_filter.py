@@ -491,12 +491,15 @@ def test_str_to_hex(input_, expected_result):
 
 
 @pytest.mark.parametrize(
-    ('input_', 'expected_result'),
+    ('input_', 'include_type', 'expected_result'),
     [
-        ('755', '0o755 (rwxr-xr-x)'),
-        ('104666', '0o4666 (-rwSrw-rw-, regular file)'),
-        ('40777', '0o777 (drwxrwxrwx, directory)'),
+        ('755', True, 'rwxr-xr-x'),
+        ('755', False, 'rwxr-xr-x'),
+        ('104666', True, '-rwSrw-rw-, regular file'),
+        ('104666', False, '-rwSrw-rw-'),
+        ('40777', True, 'drwxrwxrwx, directory'),
+        ('40777', False, 'drwxrwxrwx'),
     ],
 )
-def test_render_file_mode(input_, expected_result):
-    assert flt.render_file_mode(input_) == expected_result
+def test_octal_to_readable(input_, include_type, expected_result):
+    assert flt.octal_to_readable(input_, include_type=include_type) == expected_result
