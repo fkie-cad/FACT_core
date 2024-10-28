@@ -42,15 +42,30 @@
 
             initQuickSearch();
         });
+
+        function toggleDarkMode() {
+            let isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+        }
+        document.addEventListener('DOMContentLoaded', (event) => {
+            let isDark = (localStorage.getItem('darkMode') || 'disabled') === 'enabled';
+            document.getElementById("darkModeSwitch").checked = isDark;
+            if (isDark) {
+                toggleDarkMode();
+            }
+        });
     </script>
 
     {% block head %}
     {% endblock %}
 
     <style>
-        a:link{
-            color:#2b669a;
-            text-decoration:none;
+        a {
+            color: inherit;
+        }
+        a:link {
+            color: #2b669a;
+            text-decoration: none;
         }
         .clickable {
             cursor:pointer;
@@ -115,8 +130,107 @@
             width: 100%;
             height: 100%;
             font-size: 14px;
-            color: #515151;
             overflow-wrap: anywhere;
+        }
+        :root {
+          --background-color-light: #fff;
+          --text-color-light: #212529;
+          --background-color-dark: #2e3339;
+          --border-color-dark: #454d55;
+          --background-color-dark-element: #343a40;
+          --text-color-dark: #ccc;
+        }
+        body {
+            background-color: var(--background-color-light);
+            color: var(--text-color-light);
+        }
+        .dark-mode {
+            background-color: var(--background-color-dark);
+            color: var(--text-color-dark);
+        }
+        body.dark-mode :is(.list-group-item, .dropdown-item) {
+            color: var(--text-color-dark) !important;
+            border-color: var(--border-color-dark) !important;
+            background-color: inherit !important;
+        }
+        body.dark-mode a.nav-link.active {
+            color: inherit !important;
+            background-color: inherit !important;
+            border-color: var(--border-color-dark) var(--border-color-dark) var(--background-color-dark) !important;
+        }
+        body.dark-mode :is(pre, a, a:link, .pagination-page-info b) {
+            color: var(--text-color-dark) !important;
+        }
+        body.dark-mode :is(div.card, .dropdown-menu, select, input, .list-group-item-action, .modal-content,
+                .table:not(.table-borderless), a.page-link, span.page-link, .btn-light, textarea) {
+            color: var(--text-color-dark) !important;
+            background-color: var(--background-color-dark-element) !important;
+            border: 1px solid var(--border-color-dark) !important;
+        }
+        body.dark-mode :is(.list-group-flush, .table.table-borderless, .bg-light) {
+            color: var(--text-color-dark) !important;
+            background-color: var(--background-color-dark-element) !important;
+        }
+        body.dark-mode :is(th) {
+            color: inherit !important;
+            background-color: inherit !important;
+        }
+        body.dark-mode :is(.input-group-text, .thead-light, .table-head-light) {
+            background-color: var(--secondary) !important;
+            color: var(--text-color-dark) !important;
+            border-color: var(--border-color-dark) !important;
+        }
+        body.dark-mode :is(.table-primary, .list-group-item-primary) {
+            background-color: #385779 !important;
+            color: #7ebcff !important;
+        }
+        body.dark-mode :is(.alert-success, .table-success, .table-success > td) {
+            background-color: #405945 !important;
+            color: #d4edda !important;
+        }
+        body.dark-mode :is(.alert-warning, .table-warning, .table-warning > td) {
+            background-color: #938457 !important;
+            color: #ffe8a4 !important;
+        }
+        body.dark-mode :is(.alert-danger, .table-danger, .table-danger > td) {
+            background-color: #774c4e !important;
+            color: #f5c6cb !important;
+        }
+        body.dark-mode :is(.table-bordered td, .table-bordered th, .border-light, .table td, .table th, .border,
+                .form-control) {
+            border-color: var(--border-color-dark) !important;
+        }
+        body.dark-mode .nav-tabs {
+            border-bottom: 1px solid var(--border-color-dark) !important;
+        }
+        body.dark-mode .hljs {
+            background: inherit;
+            color: var(--text-color-dark);
+        }
+        body.dark-mode .hljs-string {
+            color: #58c5b2;
+        }
+        body.dark-mode .jumbotron {
+            background-color: #343a40;
+        }
+        body.dark-mode .close {
+            color: var(--text-color-dark);
+        }
+        body.dark-mode input[type="checkbox"] {
+            /* This is a bit of a hack: For whatever reason, you can't change the background color of checkboxes.
+               We can invert the color with CSS, though... */
+            filter: invert(75%) hue-rotate(180deg);
+        }
+        body.dark-mode :is(.table-hover td:hover, .table-hover th:hover, .table-hover tr:hover,
+                .list-group-item-action:hover, .dropdown-item:hover) {
+            background-color: var(--secondary) !important;
+            color: var(--text-color-dark) !important;
+        }
+        body.dark-mode .li-hover {
+            box-shadow: 0 0 0 rgba(0,123,255,.15);
+        }
+        body.dark-mode .li-hover:hover {
+            box-shadow: 5px 5px 20px rgba(0,123,255,.35);
         }
     </style>
     {% block styles %}{% endblock %}
@@ -221,6 +335,15 @@
             {% endif %}
             {% endfor %}
         </ul>
+
+        {# dark mode switch #}
+        <div class="custom-control custom-switch">
+            <i class="far fa-sun" style="color: #fff; margin-left: -38px; margin-right: 38px;"></i>
+            <input type="checkbox" class="custom-control-input" id="darkModeSwitch" onchange="toggleDarkMode()">
+            <label class="custom-control-label" for="darkModeSwitch">
+                <i class="fas fa-moon" style="color: #fff;"></i>
+            </label>
+        </div>
 
         <!-- Navbar Quick Search Input -->
         <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-block">

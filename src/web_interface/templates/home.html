@@ -18,7 +18,7 @@
 
         <div class="p-0 m-2">
             <center>
-                <img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}" style="max-width: 445px;">
+                <img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo_invertible.svg') }}" style="max-width: 445px;">
 
                 <br /><br />
 
@@ -124,7 +124,7 @@
                                             {{ comment.comment }}
                                         </div>
                                         <div class="footnote">
-                                            <span style="color: #000;">{{ comment.author }}</span> ‒ <span class="text-muted">{{ comment.time | int | nice_unix_time }}</span>
+                                            {{ comment.author }} ‒ <span class="text-muted">{{ comment.time | int | nice_unix_time }}</span>
                                         </div>
                                     </div>
                                 </a>
@@ -143,7 +143,7 @@
                     <ul class="list-group list-group-flush px-0">
                         {% for id, hids, submission_date in latest_comparison_results %}
                             <li class="list-group-item bg-light p-2 clickable li-hover" onclick="location.href='/compare/{{ id }}'">
-                                <a href="/compare/{{ id }}" style="color: #515151;">
+                                <a href="/compare/{{ id }}">
                                     <div class="p-1" style="width: 100%; height: 100%; font-size: 14px;">
                                         {% for uid in hids %}
                                             {{ hids[uid] }}

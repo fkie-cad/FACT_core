@@ -84,19 +84,19 @@
                     <td style="width: 46px;">{{ threads }}</td>
 
                     <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Currently processing">
-                        <i class="fas fa-cog" style="color: darkgrey" id="{{ plugin_name }}-active-indicator"></i>
+                        <i class="fas fa-cog text-muted" id="{{ plugin_name }}-active-indicator"></i>
                     </td>
-                    <td style="width: 46px;" id="{{ plugin_name }}-active"></td>
+                    <td class="text-muted" style="width: 46px;" id="{{ plugin_name }}-active"></td>
 
                     <td style="width: 20px;" data-toggle="tooltip" data-placement="bottom" title="Pending tasks">
-                        <i class="fas fa-sign-in-alt" style="color: darkgrey" id="{{ plugin_name }}-queue-indicator"></i>
+                        <i class="fas fa-sign-in-alt text-muted" id="{{ plugin_name }}-queue-indicator"></i>
                     </td>
-                    <td id="{{ plugin_name }}-queue"></td>
+                    <td class="text-muted" id="{{ plugin_name }}-queue"></td>
 
                     <td style="width: 20px;" data-toggle="tooltip" data-placement="bottom" title="Finished tasks ready for collection">
-                        <i class="fas fa-sign-out-alt" style="color: darkgrey" id="{{ plugin_name }}-out-queue-indicator"></i>
+                        <i class="fas fa-sign-out-alt text-muted" id="{{ plugin_name }}-out-queue-indicator"></i>
                     </td>
-                    <td id="{{ plugin_name }}-out-queue"></td>
+                    <td class="text-muted" id="{{ plugin_name }}-out-queue"></td>
                 </tr>
             </table>
 
