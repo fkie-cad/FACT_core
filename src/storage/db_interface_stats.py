@@ -295,7 +295,9 @@ def count_occurrences(result_list: list[str]) -> Stats:
 
 def _sort_tuples(query_result: Stats) -> Stats:
     # Sort stats tuples by count in ascending order
-    return sorted(_convert_to_tuples(query_result), key=lambda e: (e[1], e[0]))
+    return sorted(
+        _convert_to_tuples(query_result), key=lambda e: (e[1], e[0]) if not isinstance(e[0], dict) else (e[1],)
+    )
 
 
 def _convert_to_tuples(query_result) -> Iterator[tuple[str, int]]:

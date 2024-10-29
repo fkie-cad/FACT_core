@@ -8,7 +8,6 @@
             <td>
                 {% if key == "ips_v4" %}IPv4
                 {% elif key == "ips_v6" %}IPv6
-                {% elif key == "ips" %}IP
                 {% else %}URI{% endif %}
             </td>
             <td class="p-0">
@@ -16,20 +15,16 @@
                     {% for item in value %}
                         {% if key == "ips_v6" or  key == "ips_v4" %}
                             <li class="list-group-item d-flex justify-content-between align-items-center rounded-0">
-                                {{ item[0] }}
-                                {% if item[1] %}
-                                    <a href="https://www.google.de/maps/place/{{ item[1] }}">
+                                {{ item.address }}
+                                {% if item.location %}
+                                    <a href="https://www.google.de/maps/place/{{ item.location.latitude }},{{ item.location.longitude }}">
                                         <i class="fas fa-map-marker-alt"></i>
                                     </a>
                                 {% endif %}
                             </li>
                         {% else %}
                             <li class="list-group-item rounded-0">
-                                {% if key != 'ips' %}
-                                    <a href="{{ item }}">{{ item }}</a>
-                                {% else %}
-                                    {{ item }}
-                                {% endif %}
+                                <a href="{{ item }}">{{ item }}</a>
                             </li>
                         {% endif %}
                     {% endfor %}
@@ -40,4 +35,3 @@
     {% endfor %}
 
 {% endblock %}
-
