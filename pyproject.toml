@@ -75,7 +75,7 @@ ignore = [
 fixable = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
-"test*.py" = ["ARG002"]
+"test*.py" = ["ARG002", "PLR2004"]
 "conftest.py" = ["ARG002"]
 
 [tool.ruff.lint.isort]
