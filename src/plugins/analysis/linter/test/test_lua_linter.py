@@ -22,7 +22,7 @@ def test_do_analysis(monkeypatch):
     )
     result = run_luacheck('any/path')
     assert result
-    assert len(result) == 10  # noqa: PLR2004
+    assert len(result) == 10
     assert result[0] == {'message': "unused variable 'select'", 'line': 88, 'column': 7, 'symbol': 'W211'}
 
 

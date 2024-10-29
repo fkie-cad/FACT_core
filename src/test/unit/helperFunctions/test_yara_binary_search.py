@@ -110,6 +110,6 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
 
     def test_get_file_paths_of_files_included_in_fo(self):
         result = self.yara_binary_scanner._get_file_paths_of_files_included_in_fw('single_firmware')
-        assert len(result) == 2  # noqa: PLR2004
+        assert len(result) == 2
         assert path.basename(result[0]) == TEST_FILE_2  # noqa: PTH119
         assert path.basename(result[1]) == TEST_FILE_3  # noqa: PTH119

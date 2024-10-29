@@ -88,7 +88,7 @@ class TestFileSystemMetadataRoutesStatic:
 
         assert results is not None
         assert results != {}, 'result should not be empty'
-        assert len(results) == 3, 'wrong number of results'  # noqa: PLR2004
+        assert len(results) == 3, 'wrong number of results'
         assert all(f in results for f in file_names), 'files missing from result'
         assert 'result' in results[file_names[0]], 'analysis result is missing'
         assert results[file_names[0]]['result'] == 'value', 'wrong value of analysis result'

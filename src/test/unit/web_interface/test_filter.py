@@ -50,7 +50,7 @@ def test_get_all_uids_in_string():
         "'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080'}"
     )
     result = flt.get_all_uids_in_string(test_string)
-    assert len(result) == 3, 'not all uids found'  # noqa: PLR2004
+    assert len(result) == 3, 'not all uids found'
     assert 'd41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24' in result, 'first uid not found'
     assert 'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25' in result, 'second uid not found'
     assert 'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080' in result, 'third uid not found'

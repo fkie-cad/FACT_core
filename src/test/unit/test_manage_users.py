@@ -34,7 +34,7 @@ def prompt(monkeypatch):
             input=pipe,
             output=DummyOutput(),
         )
-        if session.input.fileno() >= 1024:  # noqa: PLR2004
+        if session.input.fileno() >= 1024:
             pytest.skip('FixMe: Skipping because of too many open files')
         yield Prompt(session, pipe)
 

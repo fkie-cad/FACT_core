@@ -98,7 +98,7 @@ class TestFileSystemMetadata:
         assert result[testfile_sticky_key].group == 'root'
         assert result[testfile_sticky_key].uid == 0
         assert result[testfile_sticky_key].gid == 0
-        assert result[testfile_sticky_key].modification_time == 1518167842.0  # noqa: PLR2004
+        assert result[testfile_sticky_key].modification_time == 1518167842.0
 
     def test_extract_metadata_from_file_system__unmountable(self, analysis_plugin):
         with pytest.raises(RuntimeError, match='Mounting the file system failed'):
@@ -141,7 +141,7 @@ class TestFileSystemMetadata:
         assert result[testfile_sticky_key].group == 'root'
         assert result[testfile_sticky_key].uid == 0
         assert result[testfile_sticky_key].gid == 0
-        assert result[testfile_sticky_key].modification_time == 1518167842  # noqa: PLR2004
+        assert result[testfile_sticky_key].modification_time == 1518167842
 
     def test_extract_metadata_from_tar_gz(self):
         metadata = _extract_metadata_from_tar(FileIO(TEST_DATA_DIR / 'test.tar.gz'))
@@ -179,7 +179,7 @@ class TestFileSystemMetadata:
 
     def test_extract_metadata_from_tar__eof_error(self):
         result = _extract_metadata_from_tar(FileIO(TEST_DATA_DIR / 'broken.tar.gz'))
-        assert 0 < len(result) < 5, 'Some files should be found but not all'  # noqa: PLR2004
+        assert 0 < len(result) < 5, 'Some files should be found but not all'
 
     @pytest.mark.parametrize(
         ('mode', 'expected'),
@@ -266,7 +266,7 @@ class TestFileSystemMetadata:
         }
         result = analysis_plugin.analyze(FileIO(self.test_file_fs), {}, analysis)
         assert isinstance(result, analysis_plugin.Schema)
-        assert len(result.files) == 5  # noqa: PLR2004
+        assert len(result.files) == 5
         file_results = {r.name: r for r in result.files}
         assert 'busybox' in file_results
         assert file_results['busybox'].path == '/bin/busybox'

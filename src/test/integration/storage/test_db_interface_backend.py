@@ -140,7 +140,7 @@ def test_update_duplicate_same_fw(backend_db, frontend_db):
 
     db_fo = frontend_db.get_object(fo.uid)
     assert list(db_fo.virtual_file_path) == [fw.uid]
-    assert len(db_fo.virtual_file_path[fw.uid]) == 2  # noqa: PLR2004
+    assert len(db_fo.virtual_file_path[fw.uid]) == 2
     assert db_fo.parents == {fw.uid}
 
 

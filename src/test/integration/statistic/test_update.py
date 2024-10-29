@@ -22,7 +22,7 @@ def test_get_general_stats(stats_updater, backend_db):
     backend_db.add_object(child_fo)
     stats = stats_updater.get_general_stats()
     assert stats['number_of_firmwares'] == 1, 'number of firmwares not correct'
-    assert stats['number_of_unique_files'] == 3, 'number of files not correct'  # noqa: PLR2004
+    assert stats['number_of_unique_files'] == 3, 'number of files not correct'
 
 
 def test_get_mitigation_stats(stats_updater, backend_db):

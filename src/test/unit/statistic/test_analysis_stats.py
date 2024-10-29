@@ -46,10 +46,10 @@ def test_update_duration_stats(mock_plugin):
     for _ in range(4):
         mock_plugin.add_job(fw)
         mock_plugin.out_queue.get(timeout=1)
-    assert mock_plugin.analysis_stats_count.value == mock_plugin.analysis_stats_index.value == 4  # noqa: PLR2004
+    assert mock_plugin.analysis_stats_count.value == mock_plugin.analysis_stats_index.value == 4
     mock_plugin.add_job(fw)
     mock_plugin.out_queue.get(timeout=1)
-    assert mock_plugin.analysis_stats_count.value == 5  # noqa: PLR2004
+    assert mock_plugin.analysis_stats_count.value == 5
     assert mock_plugin.analysis_stats_index.value == 0, 'index should start at 0 when max count is reached'
 
     assert get_plugin_stats(mock_plugin.analysis_stats, mock_plugin.analysis_stats_count) is not None

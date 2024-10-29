@@ -55,7 +55,7 @@ def test_get_stats_list(stats_update_db, stats_viewer):
 
     result = stats_viewer.get_stats_list('foo', 'bar')
 
-    assert len(result) == 2  # noqa: PLR2004
+    assert len(result) == 2
     expected_results = [
         {'_id': 'foo', 'foo': 'bar'},
         {'_id': 'bar', 'bar': 'foo'},
@@ -76,7 +76,7 @@ def test_get_sum(stats_update_db, backend_db):
     backend_db.add_object(fw2)
 
     result = stats_update_db.get_sum(FileObjectEntry.size, firmware=True)
-    assert result == 100  # noqa: PLR2004
+    assert result == 100
 
 
 def test_get_fw_count(stats_update_db, backend_db):
@@ -92,7 +92,7 @@ def test_get_fw_count(stats_update_db, backend_db):
     fw2.uid = 'fw2'
     backend_db.add_object(fw2)
 
-    assert stats_update_db.get_count(firmware=True) == 2  # noqa: PLR2004
+    assert stats_update_db.get_count(firmware=True) == 2
 
 
 def test_get_fo_count(stats_update_db, backend_db):
@@ -102,7 +102,7 @@ def test_get_fo_count(stats_update_db, backend_db):
     backend_db.add_object(parent_fo)
     assert stats_update_db.get_count(firmware=False) == 1
     backend_db.add_object(child_fo)
-    assert stats_update_db.get_count(firmware=False) == 2  # noqa: PLR2004
+    assert stats_update_db.get_count(firmware=False) == 2
 
 
 def test_get_included_sum(stats_update_db, backend_db):
@@ -113,7 +113,7 @@ def test_get_included_sum(stats_update_db, backend_db):
     backend_db.add_object(child_fo)
 
     result = stats_update_db.get_sum(FileObjectEntry.size, firmware=False)
-    assert result == 200  # noqa: PLR2004
+    assert result == 200
 
 
 def test_filtered_included_sum(stats_update_db, backend_db):
@@ -135,16 +135,10 @@ def test_filtered_included_sum(stats_update_db, backend_db):
     backend_db.add_object(fw2)
     backend_db.add_object(fo2)
 
-    assert stats_update_db.get_sum(FileObjectEntry.size, firmware=False) == 100  # noqa: PLR2004
-    assert (
-        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=False) == 30  # noqa: PLR2004
-    )
-    assert (
-        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw2.vendor}, firmware=False) == 70  # noqa: PLR2004
-    )
-    assert (
-        stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=True) == 1337  # noqa: PLR2004
-    )
+    assert stats_update_db.get_sum(FileObjectEntry.size, firmware=False) == 100
+    assert stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=False) == 30
+    assert stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw2.vendor}, firmware=False) == 70
+    assert stats_update_db.get_sum(FileObjectEntry.size, q_filter={'vendor': fw.vendor}, firmware=True) == 1337
 
 
 def test_get_avg(stats_update_db, backend_db):
@@ -158,7 +152,7 @@ def test_get_avg(stats_update_db, backend_db):
     backend_db.add_object(fw2)
 
     result = stats_update_db.get_avg(FileObjectEntry.size, firmware=True)
-    assert round(result) == 50  # noqa: PLR2004
+    assert round(result) == 50
 
 
 def test_count_distinct_values(backend_db, stats_update_db):

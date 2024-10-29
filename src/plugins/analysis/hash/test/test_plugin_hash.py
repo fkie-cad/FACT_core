@@ -39,4 +39,4 @@ class TestAnalysisPluginHash:
         ]
 
         assert isinstance(result['imphash'], str), 'imphash should be a string'
-        assert len(result['imphash']) == 32, 'imphash does not look like an md5'  # noqa: PLR2004
+        assert len(result['imphash']) == 32, 'imphash does not look like an md5'

@@ -48,9 +48,9 @@ def test_do_analysis(monkeypatch):
     result = run_shellcheck('any/path')
 
     assert result
-    assert len(result) == 2, 'info issue should be discarded'  # noqa: PLR2004
+    assert len(result) == 2, 'info issue should be discarded'
 
-    assert len(result[0].keys()) == 5  # noqa: PLR2004
+    assert len(result[0].keys()) == 5
     assert result[0]['type'] == 'warning'
 
 

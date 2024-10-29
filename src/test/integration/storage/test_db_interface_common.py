@@ -108,7 +108,7 @@ def test_get_objects_by_uid_list(backend_db, common_db):
     fo, fw = create_fw_with_child_fo()
     backend_db.insert_multiple_objects(fw, fo)
     result = common_db.get_objects_by_uid_list([fo.uid, fw.uid])
-    assert len(result) == 2  # noqa: PLR2004
+    assert len(result) == 2
     objects_by_uid = {fo.uid: fo for fo in result}
     assert fo.uid in objects_by_uid
     assert fw.uid in objects_by_uid
@@ -173,8 +173,8 @@ def test_get_firmware_number(backend_db, common_db):
 
     fw_2 = create_test_firmware(bin_path='container/test.7z')
     backend_db.insert_object(fw_2)
-    assert common_db.get_firmware_number(query={}) == 2  # noqa: PLR2004
-    assert common_db.get_firmware_number(query={'device_class': 'Router'}) == 2  # noqa: PLR2004
+    assert common_db.get_firmware_number(query={}) == 2
+    assert common_db.get_firmware_number(query={'device_class': 'Router'}) == 2
     assert common_db.get_firmware_number(query={'uid': TEST_FW.uid}) == 1
     assert common_db.get_firmware_number(query={'sha256': TEST_FW.sha256}) == 1
 
@@ -188,7 +188,7 @@ def test_get_file_object_number(backend_db, common_db):
     assert common_db.get_file_object_number(query={}, zero_on_empty_query=True) == 0
 
     backend_db.insert_object(TEST_FO_2)
-    assert common_db.get_file_object_number(query={}, zero_on_empty_query=False) == 2  # noqa: PLR2004
+    assert common_db.get_file_object_number(query={}, zero_on_empty_query=False) == 2
     assert common_db.get_file_object_number(query={'uid': TEST_FO.uid}) == 1
 
 
@@ -264,7 +264,7 @@ def test_collect_child_tags_unique_tags(backend_db, common_db):
     fo_2.parent_firmware_uids.add(fw.uid)
     backend_db.insert_multiple_objects(fw, fo, fo_2)
 
-    assert len(common_db._collect_analysis_tags_from_children(fw.uid)['software_components']) == 2  # noqa: PLR2004
+    assert len(common_db._collect_analysis_tags_from_children(fw.uid)['software_components']) == 2
 
 
 def test_collect_analysis_tags(backend_db, frontend_db):
@@ -305,7 +305,7 @@ def test_get_file_tree_path(common_db, backend_db):
     assert parent_path == {parent_fo.uid: [[fw.uid, parent_fo.uid]]}
 
     combined = common_db.get_file_tree_path_for_uid_list([parent_fo.uid, child_fo.uid])
-    assert len(combined) == 2  # noqa: PLR2004
+    assert len(combined) == 2
 
 
 def test_get_vfps_for_uid_list(common_db, backend_db):
@@ -351,7 +351,7 @@ def test_tree_path_with_root_uid(common_db, backend_db):
     backend_db.insert_multiple_objects(fw, fw2, parent_fo, child_fo)
 
     result = sorted(common_db.get_file_tree_path_for_uid_list([child_fo.uid], root_uid=None).get(child_fo.uid))
-    assert len(result) == 2  # noqa: PLR2004
+    assert len(result) == 2
     assert result[0] == [fw.uid, parent_fo.uid, child_fo.uid]
     assert result[1] == [fw2.uid, child_fo.uid]
 

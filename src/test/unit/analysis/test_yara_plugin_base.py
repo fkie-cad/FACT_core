@@ -33,7 +33,7 @@ class TestAnalysisYaraBasePlugin:
         test_file.processed_analysis.update({analysis_plugin.NAME: []})
         processed_file = analysis_plugin.process_object(test_file)
         results = processed_file.processed_analysis[analysis_plugin.NAME]
-        assert len(results) == 2, 'not all matches found'  # noqa: PLR2004
+        assert len(results) == 2, 'not all matches found'
         assert 'testRule' in results, 'testRule match not found'
         assert results['summary'] == ['testRule']
 
@@ -53,7 +53,7 @@ def test_parse_yara_output():
     assert matches['PgpPublicKeyBlock']['strings'][0][0] == 0, 'first block should start at 0x0'
     assert 'r_libjpeg8_8d12b1_0' in matches
     assert matches['r_libjpeg8_8d12b1_0']['meta']['description'] == 'foo [bar]'
-    assert len(matches) == 7, 'not all matches found'  # noqa: PLR2004
+    assert len(matches) == 7, 'not all matches found'
 
 
 def test_get_signature_file_name():

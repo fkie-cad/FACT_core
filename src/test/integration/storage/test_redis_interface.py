@@ -39,7 +39,7 @@ def test_queue_put_and_get(redis):
     values = [1, '2', b'3']
     for value in values:
         redis.queue_put('key', value)
-    assert redis.redis.llen('key') == 3  # redis list length  # noqa: PLR2004
+    assert redis.redis.llen('key') == 3  # redis list length
     for value in values:
         assert redis.queue_get('key') == value
     assert redis.queue_get('key') is None

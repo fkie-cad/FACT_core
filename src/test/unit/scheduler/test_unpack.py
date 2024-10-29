@@ -44,7 +44,7 @@ class TestUnpackScheduler:
             extracted_files[file.uid] = file
 
         assert test_fw.uid in extracted_files
-        assert len(extracted_files[test_fw.uid].files_included) == 2, 'not all children of fw found'  # noqa: PLR2004
+        assert len(extracted_files[test_fw.uid].files_included) == 2, 'not all children of fw found'
         assert (
             included_files[0] in extracted_files[test_fw.uid].files_included
         ), 'included container not extracted. Unpacker tar.gz module broken?'

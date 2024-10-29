@@ -28,7 +28,7 @@ class CommunicationBackendMock:
 
     def get_next_task(self):
         self.counter.value += 1
-        return 'test_task' if self.counter.value < 2 else None  # noqa: PLR2004
+        return 'test_task' if self.counter.value < 2 else None
 
     def shutdown(self):
         pass

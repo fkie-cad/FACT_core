@@ -46,7 +46,7 @@ def test_check_collision(
     assert unpacking_finished_event.wait(timeout=25)
 
     fo_from_db = frontend_db.get_object(TARGET_UID)
-    assert len(fo_from_db.virtual_file_path) == 2, 'fo should have two parents'  # noqa: PLR2004
+    assert len(fo_from_db.virtual_file_path) == 2, 'fo should have two parents'
     assert FIRST_ROOT_ID in fo_from_db.virtual_file_path
     assert fo_from_db.virtual_file_path[FIRST_ROOT_ID] == ['/test']
     assert SECOND_ROOT_ID in fo_from_db.virtual_file_path
