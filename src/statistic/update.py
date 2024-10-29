@@ -192,12 +192,14 @@ class StatsUpdater:
 
     @staticmethod
     def _remove_location_info(ip_stats: dict[str, Stats]):
-        # IP data can contain location info -> just use the IP string (which is the first element in a list)
         for key in ['ips_v4', 'ips_v6']:
             for index, (ip, count) in enumerate(ip_stats[key]):
                 if isinstance(ip, list):
+                    # FixMe: deprecated format of the old plugin version => remove in future release
                     ip_without_gps_info = ip[0]
                     ip_stats[key][index] = (ip_without_gps_info, count)
+                elif isinstance(ip, dict):
+                    ip_stats[key][index] = (ip['address'], count)
 
     def get_time_stats(self):
         release_date_stats = self.db.get_release_date_stats(q_filter=self.match)

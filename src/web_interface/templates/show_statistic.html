@@ -209,7 +209,7 @@
         {% call macros.stats_panel("IPv4 Addresses (Top {}/{})".format([10, ips_v4_num] | min, ips_v4_num), "globe") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for ip, count in (stats["ip_and_uri_stats"]["ips_v4"] | sort_chart_list_by_value)[:10] %}
-                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$contains": ip}} %}
+                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$contains": [{"address": ip}]}} %}
                 {{ macros.stats_table_row(ip, count, link=query_url + query | json_dumps | urlencode) }}
             {% endfor %}
             </table>
@@ -221,7 +221,7 @@
         {% call macros.stats_panel("IPv6 Addresses (Top {}/{})".format([10, ips_v6_num] | min, ips_v6_num), "globe") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for ip, count in (stats["ip_and_uri_stats"]["ips_v6"] | sort_chart_list_by_value)[:10] %}
-                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$contains": ip}} %}
+                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$contains": [{"address": ip}]}} %}
                 {{ macros.stats_table_row(ip, count, link=query_url + query | json_dumps | urlencode) }}
             {% endfor %}
             </table>
