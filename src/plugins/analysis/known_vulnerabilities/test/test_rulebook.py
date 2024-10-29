@@ -35,7 +35,7 @@ def test_get_dotted_path_from_dictionary():
     abc = {'a': {'b': {'c': 5}}}
     assert _get_dotted_path_from_dictionary(abc, 'a') == {'b': {'c': 5}}
     assert _get_dotted_path_from_dictionary(abc, 'a.b') == {'c': 5}
-    assert _get_dotted_path_from_dictionary(abc, 'a.b.c') == 5  # noqa: PLR2004
+    assert _get_dotted_path_from_dictionary(abc, 'a.b.c') == 5
 
 
 def test_get_value():

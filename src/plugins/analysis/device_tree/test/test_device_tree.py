@@ -27,10 +27,10 @@ def test_analyze(analysis_plugin):
 @pytest.mark.parametrize('file', [TEST_EMBEDDED, TEST_IMAGE])
 def test_multiple_device_trees(file, analysis_plugin):
     result = analysis_plugin.analyze(io.FileIO(file), {}, {})
-    assert len(result.device_trees) == 2  # noqa: PLR2004
+    assert len(result.device_trees) == 2
     for device_tree in result.device_trees:
         assert 'foo = "bar";' in device_tree.string
-        assert device_tree.header.version == 17  # noqa: PLR2004
+        assert device_tree.header.version == 17
         assert device_tree.model in ['DeviceTreeTest-1', 'FooBar 1.0']
 
 

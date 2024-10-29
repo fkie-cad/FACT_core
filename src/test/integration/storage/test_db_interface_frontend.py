@@ -33,7 +33,7 @@ def test_get_last_added_firmwares(frontend_db, backend_db):
     backend_db.insert_object(fw4)
 
     result = frontend_db.get_last_added_firmwares(limit=3)
-    assert len(result) == 3  # noqa: PLR2004
+    assert len(result) == 3
     # fw4 was uploaded last and should be first in the list and so forth
     assert [fw.uid for fw in result] == ['fw4', 'fw3', 'fw2']
     assert 'foobar' in result[0].tags, 'unpacker tag should be set'
@@ -81,7 +81,7 @@ def test_get_data_for_nice_list(frontend_db, backend_db):
     backend_db.insert_multiple_objects(fw, fo)
 
     nice_list_data = frontend_db.get_data_for_nice_list(uid_list, uid_list[0])
-    assert len(nice_list_data) == 2  # noqa: PLR2004
+    assert len(nice_list_data) == 2
     expected_result = ['current_virtual_path', 'file_name', 'mime-type', 'size', 'uid']
     assert sorted(nice_list_data[0].keys()) == expected_result
     assert nice_list_data[0]['uid'] == TEST_FW.uid
@@ -408,11 +408,9 @@ def test_get_latest_comments(frontend_db, backend_db):
     fo2.comments = [{'author': 'foo', 'comment': 'comment2', 'time': '2'}]
     backend_db.insert_object(fo2)
 
-    assert (
-        len(frontend_db.get_latest_comments(limit=10)) == 3  # noqa: PLR2004
-    ), 'we added 3 comments, so we expect that many here'
+    assert len(frontend_db.get_latest_comments(limit=10)) == 3, 'we added 3 comments, so we expect that many here'
     result = frontend_db.get_latest_comments(limit=2)
-    assert len(result) == 2  # noqa: PLR2004
+    assert len(result) == 2
     assert result[0]['time'] == '3', 'the first entry should have the newest timestamp'
     assert result[1]['time'] == '2'
     assert result[1]['comment'] == 'comment2'
@@ -447,7 +445,7 @@ def test_get_file_tree_data(frontend_db, backend_db):
     backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
 
     result = frontend_db.get_file_tree_data([fw.uid, parent_fo.uid, child_fo.uid], fw.uid)
-    assert len(result) == 3  # noqa: PLR2004
+    assert len(result) == 3
     result_by_uid = {r.uid: r for r in result}
     assert result_by_uid[parent_fo.uid].uid == parent_fo.uid
     assert result_by_uid[parent_fo.uid].file_name == parent_fo.file_name
@@ -584,7 +582,7 @@ def test_get_cached_count(frontend_db, frontend_editing_db):
     assert frontend_db.get_total_cached_query_count() == 1
 
     frontend_editing_db.add_to_search_query_cache('bar', {}, 'foo')
-    assert frontend_db.get_total_cached_query_count() == 2  # noqa: PLR2004
+    assert frontend_db.get_total_cached_query_count() == 2
 
 
 def test_search_query_cache(frontend_db, frontend_editing_db):

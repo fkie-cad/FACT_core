@@ -27,10 +27,10 @@ def test_success_message_succeeds():
     message, code = success_message({'my': 'response'}, '/any/url')
     assert message['my'] == 'response'
     assert message['status'] == 0
-    assert code == 200  # noqa: PLR2004
+    assert code == 200
 
     _, code = success_message({'my': 'response'}, '/any/url', return_code=202)
-    assert code == 202  # noqa: PLR2004
+    assert code == 202
 
 
 def test_error_message_bad_type():
@@ -45,10 +45,10 @@ def test_error_message_succeeds():
     message, code = error_message('my error response', '/any/url')
     assert message['error_message'] == 'my error response'
     assert message['status'] == 1
-    assert code == 400  # noqa: PLR2004
+    assert code == 400
 
     _, code = error_message('my error response', '/any/url', return_code=304)
-    assert code == 304  # noqa: PLR2004
+    assert code == 304
 
 
 def test_messages_with_request_data():

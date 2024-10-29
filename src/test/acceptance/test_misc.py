@@ -70,7 +70,7 @@ class TestAcceptanceMisc:
         assert b'backend cpu load' in rv.data
         assert b'test comment' in rv.data
         assert (
-            rv.data.count(f'onclick="location.href=\'/analysis/{test_fw_a.uid}\'"'.encode()) == 2  # noqa: PLR2004
+            rv.data.count(f'onclick="location.href=\'/analysis/{test_fw_a.uid}\'"'.encode()) == 2
         ), 'There should be two analysis links: one for latest comments and one for latest submissions'
 
     def _show_system_monitor(self, test_client):

@@ -66,14 +66,14 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         self.fw_one.list_of_all_included_files.append('foo')
         self.fw_two.list_of_all_included_files.append('foo')
         result = self.c_plugin.compare_function([self.fw_one, self.fw_two], {})
-        assert len(result.keys()) == 5  # noqa: PLR2004
+        assert len(result.keys()) == 5
 
     def test_find_changed_text_files(self):
         result = self.c_plugin._find_changed_text_files([self.fw_one, self.fw_two], common_files=[])
         assert '/foo' in result
         assert '/bar' in result
         assert result['/foo'] == [('uid_1', 'uid_4')]
-        assert len(result['/bar']) == 2  # noqa: PLR2004
+        assert len(result['/bar']) == 2
 
 
 @pytest.mark.parametrize(

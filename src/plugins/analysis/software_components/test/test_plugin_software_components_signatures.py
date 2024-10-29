@@ -18,7 +18,7 @@ class TestSoftwareSignatureMeta:
 
     def test_check_meta_fields_missing(self):
         missing_fields = self.sigTest.check_meta_fields(TEST_SIGNATURE_PATH)
-        assert len(missing_fields) == 3  # noqa: PLR2004
+        assert len(missing_fields) == 3
         assert all(
             entry in missing_fields
             for entry in ['website in missing_meta_1', 'description in missing_meta_1', 'ALL in missing_meta_2']

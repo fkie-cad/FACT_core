@@ -16,7 +16,7 @@ class TestAnalysisPluginPasswordFileAnalyzer:
         processed_object = analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[analysis_plugin.NAME]
 
-        assert len(results) == 15  # noqa: PLR2004
+        assert len(results) == 15
         for item in [
             'vboxadd:unix',
             'mongodb:unix',
@@ -55,7 +55,7 @@ class TestAnalysisPluginPasswordFileAnalyzer:
         processed_object = analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[analysis_plugin.NAME]
 
-        assert len(results) == 4  # noqa: PLR2004
+        assert len(results) == 4
         for item in ['johndoe:unix', 'max:htpasswd']:
             assert item in results
             assert item in results['summary']

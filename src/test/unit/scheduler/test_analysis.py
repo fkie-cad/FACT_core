@@ -56,7 +56,7 @@ class TestScheduleInitialAnalysis:
         analysis_results = [
             {'uid': uid, 'plugin': plugin, 'result': result} for uid, plugin, result in analysis_results
         ]
-        assert len(analysis_results) == 3, 'analysis not done'  # noqa: PLR2004
+        assert len(analysis_results) == 3, 'analysis not done'
         assert analysis_results[0]['plugin'] == 'file_type'
         assert analysis_results[1]['plugin'] == 'dummy_plugin_for_testing_only'
         assert analysis_results[2]['plugin'] == 'file_hashes'
@@ -442,7 +442,7 @@ def test_combined_analysis_workload(monkeypatch):
         scheduler.process_queue.put({})
         for _ in range(2):
             dummy_plugin.in_queue.put({})
-        assert scheduler.get_combined_analysis_workload() == 3  # noqa: PLR2004
+        assert scheduler.get_combined_analysis_workload() == 3
     finally:
         sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
         scheduler.process_queue.close()

@@ -98,7 +98,7 @@ class TestPluginQemuExec:
         analysis_plugin.root_path = tmp_dir.name
         analysis_plugin.unpacker.set_tmp_dir(tmp_dir)
         result = sorted(analysis_plugin._find_relevant_files(Path(tmp_dir.name)))
-        assert len(result) == 4  # noqa: PLR2004
+        assert len(result) == 4
 
         path_list, mime_types = list(zip(*result))
         for path in ['/lib/ld.so.1', '/lib/libc.so.6', '/test_mips_static', '/usr/bin/test_mips']:
@@ -154,7 +154,7 @@ class TestPluginQemuExec:
         analysis_plugin.process_object(test_fw)
         result = test_fw.processed_analysis[analysis_plugin.NAME]
         assert 'files' in result
-        assert len(result['files']) == 4  # noqa: PLR2004
+        assert len(result['files']) == 4
         assert any(result['files'][uid]['executable'] for uid in result['files'])
 
     @pytest.mark.timeout(15)
@@ -166,7 +166,7 @@ class TestPluginQemuExec:
         analysis_plugin.process_object(test_fw)
         result = test_fw.processed_analysis[analysis_plugin.NAME]
         assert 'files' in result
-        assert len(result['files']) == 3  # noqa: PLR2004
+        assert len(result['files']) == 3
         assert result['files'][test_file_uid]['executable'] is True
 
     @pytest.mark.timeout(10)
@@ -346,7 +346,7 @@ def test_merge_similar_entries():
         'option_5': {'a': 'x', 'b': 'x', 'c': 'x'},
     }
     qemu_exec.merge_identical_results(test_dict)
-    assert len(test_dict) == 3  # noqa: PLR2004
+    assert len(test_dict) == 3
     assert any(all(option in k for option in ['option_1', 'option_2', 'option_5']) for k in test_dict)
 
 

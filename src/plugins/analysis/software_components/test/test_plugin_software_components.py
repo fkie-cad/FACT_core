@@ -16,7 +16,7 @@ class TestAnalysisPluginsSoftwareComponents:
 
         processed_file = analysis_plugin.process_object(test_file)
         results = processed_file.processed_analysis[analysis_plugin.NAME]
-        assert len(results) == 2, 'incorrect number of software components found'  # noqa: PLR2004
+        assert len(results) == 2, 'incorrect number of software components found'
         assert 'MyTestRule' in results, 'test Rule match not found'
         assert (
             results['MyTestRule']['meta']['software_name'] == 'Test Software'

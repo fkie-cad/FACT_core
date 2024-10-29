@@ -35,7 +35,7 @@ class TestUserRoleDbInterface(TestCase):
                 self.db_interface.create_user(email=user, password='foobar')
 
             user_list = self.db_interface.list_users()
-        assert len(user_list) == 3  # noqa: PLR2004
+        assert len(user_list) == 3
         assert all(user in [u.email for u in user_list] for user in test_users)
 
     def test_change_password(self):

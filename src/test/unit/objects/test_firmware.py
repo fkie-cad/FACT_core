@@ -31,7 +31,7 @@ def test_create_firmware_container_raw():
 def test_create_firmware_from_file():
     test_object = Firmware(file_path=f'{get_test_data_dir()}/test_data_file.bin')
     assert test_object.device_name is None
-    assert test_object.size == 19  # noqa: PLR2004
+    assert test_object.size == 19
     assert test_object.binary == b'test string in file'
     assert test_object.sha256 == '268d870ffa2b21784e4dc955d8e8b8eb5f3bcddd6720a1e6d31d2cf84bd1bff8'
     assert test_object.file_name == 'test_data_file.bin'

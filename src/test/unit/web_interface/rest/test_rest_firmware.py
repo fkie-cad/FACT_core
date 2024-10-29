@@ -46,7 +46,7 @@ class TestRestFirmware:
         response = test_client.get('/rest/firmware').json
         assert 'error_message' not in response
         assert 'uids' in response
-        assert len(response['uids']) == 10  # noqa: PLR2004
+        assert len(response['uids']) == 10
 
     def test_request_with_query(self, test_client):
         query = {'vendor': 'no real vendor'}

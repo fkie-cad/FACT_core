@@ -105,7 +105,7 @@ class TestFileTree:
         assert list(parent_node.children.keys()) == [child_node_folder_1.get_id()]
         assert child_node_folder_1 in parent_node
         assert child_node_folder_2 in parent_node
-        assert len(parent_node.children[child_node_folder_1.get_id()].get_list_of_child_nodes()) == 2  # noqa: PLR2004
+        assert len(parent_node.children[child_node_folder_1.get_id()].get_list_of_child_nodes()) == 2
         folder_id = child_node_folder_1.get_id()
         assert child_node_file_1 in parent_node.children[folder_id]
         assert child_node_file_2 in parent_node.children[folder_id]
@@ -154,7 +154,7 @@ class TestVirtualPathFileTree:
     def test_multiple_paths(self):
         fo_data = {**self.tree_data, 'virtual_file_path': {'root_uid': ['/dir1/file1', '/dir2/file2']}}
         nodes = self._nodes_by_name(VirtualPathFileTree('root_uid', 'root_uid', FileTreeData(**fo_data)))
-        assert len(nodes) == 2, 'wrong number of nodes created'  # noqa: PLR2004
+        assert len(nodes) == 2, 'wrong number of nodes created'
         assert 'dir1' in nodes
         assert 'dir2' in nodes
         assert len(nodes['dir1'].children) == 1

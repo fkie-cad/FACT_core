@@ -20,9 +20,7 @@ class TestAnalysisPluginsKnownVulnerabilities:
 
         results = analysis_plugin.process_object(test_file).processed_analysis[analysis_plugin.NAME]
 
-        assert (
-            len(results) == 4  # noqa: PLR2004
-        ), 'incorrect number of vulnerabilities found (summary + tag + one result)'
+        assert len(results) == 4, 'incorrect number of vulnerabilities found (summary + tag + one result)'
         assert 'DLink_Bug' in results, 'test match not found'
         assert results['DLink_Bug']['score'] == 'high', 'incorrect or no score found in meta data'
 
@@ -36,9 +34,7 @@ class TestAnalysisPluginsKnownVulnerabilities:
 
         results = analysis_plugin.process_object(test_file).processed_analysis[analysis_plugin.NAME]
 
-        assert (
-            len(results) == 3  # noqa: PLR2004
-        ), 'incorrect number of vulnerabilities found (summary + tag + one result)'
+        assert len(results) == 3, 'incorrect number of vulnerabilities found (summary + tag + one result)'
         assert 'Heartbleed' in results, 'test match not found'
         assert results['Heartbleed']['score'] == 'high', 'incorrect or no score found in meta data'
 
@@ -61,9 +57,7 @@ class TestAnalysisPluginsKnownVulnerabilities:
 
         results = analysis_plugin.process_object(test_file).processed_analysis[analysis_plugin.NAME]
 
-        assert (
-            len(results) == 3  # noqa: PLR2004
-        ), 'incorrect number of vulnerabilities found (summary + tag + one result)'
+        assert len(results) == 3, 'incorrect number of vulnerabilities found (summary + tag + one result)'
         assert 'Netgear_CGI' in results, 'test match not found'
         assert results['Netgear_CGI']['score'] == 'medium', 'incorrect or no score found in meta data'
 

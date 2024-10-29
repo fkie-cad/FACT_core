@@ -27,7 +27,7 @@ class TestAnalysisStatus:
         assert result.completed_files == set()
         assert result.unpacked_files_count == 1
         assert result.analyzed_files_count == 0
-        assert result.total_files_count == 3  # noqa: PLR2004
+        assert result.total_files_count == 3
 
     def test_add_file_to_current_analyses(self):
         self.status._worker.currently_running = {
@@ -50,9 +50,9 @@ class TestAnalysisStatus:
         result = self.status._worker.currently_running[ROOT_UID]
         assert sorted(result.files_to_unpack) == ['new']
         assert sorted(result.files_to_analyze) == ['bar', 'foo']
-        assert result.unpacked_files_count == 2  # noqa: PLR2004
-        assert result.total_files_count == 3  # noqa: PLR2004
-        assert result.total_files_with_duplicates == 3  # noqa: PLR2004
+        assert result.unpacked_files_count == 2
+        assert result.total_files_count == 3
+        assert result.total_files_with_duplicates == 3
 
     def test_add_duplicate_file_to_current_analyses(self):
         self.status._worker.currently_running = {
@@ -76,7 +76,7 @@ class TestAnalysisStatus:
         result = self.status._worker.currently_running[ROOT_UID]
         assert sorted(result.files_to_unpack) == []
         assert sorted(result.files_to_analyze) == ['duplicate', 'foo']
-        assert result.total_files_count == 2  # noqa: PLR2004
+        assert result.total_files_count == 2
 
     def test_remove_partial_from_current_analyses(self):
         self.status._worker.currently_running = {
@@ -137,7 +137,7 @@ class TestAnalysisStatus:
 
         assert self.status._worker.currently_running == {}
         assert ROOT_UID in self.status._worker.recently_finished
-        assert self.status._worker.recently_finished[ROOT_UID]['total_files_count'] == 2  # noqa: PLR2004
+        assert self.status._worker.recently_finished[ROOT_UID]['total_files_count'] == 2
 
     def test_remove_but_still_unpacking(self):
         self.status._worker.currently_running = {
@@ -160,7 +160,7 @@ class TestAnalysisStatus:
         assert ROOT_UID in result
         assert result[ROOT_UID].files_to_analyze == set()
         assert result[ROOT_UID].files_to_unpack == {'bar'}
-        assert result[ROOT_UID].analyzed_files_count == 2  # noqa: PLR2004
+        assert result[ROOT_UID].analyzed_files_count == 2
 
     @pytest.mark.parametrize(
         ('time_finished_delay', 'expected_result'), [(0, True), (RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC + 1, False)]

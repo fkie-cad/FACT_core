@@ -19,7 +19,7 @@ def test_load(monkeypatch):
     assert config.backend is not None, 'backend global was not set'
     assert config.frontend is not None, 'frontend global was not set'
     assert config.common.temp_dir_path == '/tmp', 'default value was not set'
-    assert config.backend.plugin['cpu_architecture'].processes == 4  # noqa: PLR2004
+    assert config.backend.plugin['cpu_architecture'].processes == 4
 
 
 def test_load_missing_entries():

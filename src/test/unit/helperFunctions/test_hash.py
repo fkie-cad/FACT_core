@@ -35,7 +35,7 @@ def test_imphash():
     fo.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
     imphash = get_imphash(fo)
     assert isinstance(imphash, str), 'imphash should be a string'
-    assert len(imphash) == 32, 'imphash does not seem to be an md5'  # noqa: PLR2004
+    assert len(imphash) == 32, 'imphash does not seem to be an md5'
 
 
 def test_imphash_bad_file():
