@@ -488,3 +488,18 @@ def test_as_ascii_table():
 )
 def test_str_to_hex(input_, expected_result):
     assert flt.str_to_hex(input_) == expected_result
+
+
+@pytest.mark.parametrize(
+    ('input_', 'include_type', 'expected_result'),
+    [
+        ('755', True, 'rwxr-xr-x'),
+        ('755', False, 'rwxr-xr-x'),
+        ('104666', True, '-rwSrw-rw-, regular file'),
+        ('104666', False, '-rwSrw-rw-'),
+        ('40777', True, 'drwxrwxrwx, directory'),
+        ('40777', False, 'drwxrwxrwx'),
+    ],
+)
+def test_octal_to_readable(input_, include_type, expected_result):
+    assert flt.octal_to_readable(input_, include_type=include_type) == expected_result

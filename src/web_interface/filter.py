@@ -519,8 +519,35 @@ def as_ascii_table(data: dict) -> str:
     return ''.join([f'{k:<10} {v!s:<10}\n' for k, v in data.items()])
 
 
-def octal_to_readable(octal: str) -> str:
-    return stat.filemode(int(octal, 8)).lstrip('?')
+def octal_to_readable(octal: str, include_type: bool = False) -> str:
+    mode = int(octal, 8)
+    mode_str = stat.filemode(mode).lstrip('?')
+    if include_type:
+        return f'{mode_str}{_file_mode_to_type(mode)}'
+    return mode_str
+
+
+STAT_FUNCTIONS = {
+    stat.S_ISDIR: 'directory',
+    stat.S_ISCHR: 'character device',
+    stat.S_ISBLK: 'block device',
+    stat.S_ISREG: 'regular file',
+    stat.S_ISFIFO: 'fifo (named pipe)',
+    stat.S_ISLNK: 'symbolic link',
+    stat.S_ISSOCK: 'socket file',
+    stat.S_ISDOOR: 'door',
+    stat.S_ISPORT: 'event port',
+    stat.S_ISWHT: 'whiteout',
+}
+
+
+def _file_mode_to_type(mode: int) -> str:
+    if not stat.S_IFMT(mode):  # the mode does not include a file type part (i.e. the mode is <= 0o7777)
+        return ''
+    for is_type_fun, file_type in STAT_FUNCTIONS.items():
+        if is_type_fun(mode):
+            return f', {file_type}'
+    return ''
 
 
 def str_to_hex(string: str) -> str:

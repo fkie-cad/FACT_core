@@ -77,11 +77,11 @@ class TestFileSystemMetadata:
             for key in [testfile_sticky_key, testfile_sgid_key, testfile_suid_key, testfile_all_key, testfile_none_key]
         )
 
-        assert result[testfile_sticky_key].mode == '1777'
-        assert result[testfile_sgid_key].mode == '2777'
-        assert result[testfile_suid_key].mode == '4777'
-        assert result[testfile_all_key].mode == '7777'
-        assert result[testfile_none_key].mode == '777'
+        assert result[testfile_sticky_key].mode == '101777'
+        assert result[testfile_sgid_key].mode == '102777'
+        assert result[testfile_suid_key].mode == '104777'
+        assert result[testfile_all_key].mode == '107777'
+        assert result[testfile_none_key].mode == '100777'
 
         assert result[testfile_sticky_key].sticky_bit is True
         assert result[testfile_sgid_key].sgid_bit is True

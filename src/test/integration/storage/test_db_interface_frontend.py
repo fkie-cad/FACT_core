@@ -446,7 +446,7 @@ def test_get_file_tree_data(frontend_db, backend_db):
     child_fo.processed_analysis = {}  # simulate that file_type did not run yet
     backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
 
-    result = frontend_db.get_file_tree_data([fw.uid, parent_fo.uid, child_fo.uid])
+    result = frontend_db.get_file_tree_data([fw.uid, parent_fo.uid, child_fo.uid], fw.uid)
     assert len(result) == 3  # noqa: PLR2004
     result_by_uid = {r.uid: r for r in result}
     assert result_by_uid[parent_fo.uid].uid == parent_fo.uid
