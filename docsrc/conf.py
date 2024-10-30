@@ -79,7 +79,6 @@ autodoc_mock_imports = [
     'gql',
     'graphql',
     'itsdangerous',
-    'json5',
     'lief',
     'magic',
     'markupsafe',

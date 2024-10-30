@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+"""
+This is a script for (re)starting Hasura (the GraphQL server which enables GraphQL Search in FACT).
+It is necessary, because apart from running `docker compose up`, many environment variables need to be set (which
+makes it almost infeasible to do this by hand). After starting, the Hasura web interface can be reached under the
+address http://localhost:33333/ on the host system.
+"""
+
 import sys
 from pathlib import Path
 from shlex import split
