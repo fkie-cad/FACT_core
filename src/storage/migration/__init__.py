@@ -18,15 +18,25 @@ def alembic_table_exists():
         return inspect(connection).has_table('alembic_version', None)
 
 
-def db_needs_migration():
+def get_current_revision():
     # alembic must be executed from src for paths to line up
     with OperateInDirectory(get_src_dir()), AdminConnection().engine.connect().engine.begin() as connection:
         logging.getLogger('alembic.runtime.migration').setLevel(logging.WARNING)  # hide alembic log messages
         context = migration.MigrationContext.configure(connection)
-        current_revision = context.get_current_revision()
-        current_head = script.ScriptDirectory.from_config(ALEMBIC_CFG).get_current_head()
-        logging.info(f'Alembic DB revision:  head: {current_head}, current: {current_revision}')
-        return current_revision != current_head
+        return context.get_current_revision()
+
+
+def _get_current_head():
+    # alembic must be executed from src for paths to line up
+    with OperateInDirectory(get_src_dir()):
+        return script.ScriptDirectory.from_config(ALEMBIC_CFG).get_current_head()
+
+
+def db_needs_migration():
+    current_revision = get_current_revision()
+    current_head = _get_current_head()
+    logging.info(f'Alembic DB revision:  head: {current_head}, current: {current_revision}')
+    return current_revision != current_head
 
 
 def create_alembic_table():
