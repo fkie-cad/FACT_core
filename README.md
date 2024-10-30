@@ -68,6 +68,22 @@ FACT provides an optional basic authentication, role and user management. More i
   * [FACT Search and Download](https://github.com/fkie-cad/FACT_Search_and_Download)
   * [PDF Report Generator](https://github.com/fkie-cad/fact_pdf_report)
 
+### Import/Export of Results
+
+The script `src/firmware_import_export.py` can be used to export unpacked files and analysis results and import them
+into another FACT instance. The data is stored as a ZIP archive and this is also the format the scripts expects during
+import. To export files and analysis data of analyzed firmware images simply run
+
+```shell
+python3 firmware_import_export.py export FW_UID [FW_UID_2 ...] [-o OUTPUT_DIR]
+```
+
+After this, you can import the exported files with
+
+```shell
+python3 firmware_import_export.py import FW.zip [FW_2.zip ...]
+```
+
 ## Vagrant
 We provide monthly and ready-to-use vagrant boxes of our master branch. [Vagrant](https://www.vagrantup.com/) is an easy and convenient way to get started with FACT without having to install it on your machine. Just setup vagrant and import our provided box into VirtualBox. Our boxes can be found [here](https://app.vagrantup.com/fact-cad/boxes/FACT-master)!
 

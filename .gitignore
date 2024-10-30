@@ -18,6 +18,7 @@ docs/.buildinfo/
 src/bin
 src/web_interface/static/node_modules
 src/web_interface/static/file_icons
+FACT_export
 
 # pytest
 .pytest_cache
