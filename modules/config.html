@@ -146,9 +146,15 @@
 <li class="toctree-l4"><a class="reference internal" href="#config.Frontend.Authentication.user_database"><code class="docutils literal notranslate"><span class="pre">Frontend.Authentication.user_database</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#config.Frontend.Hasura"><code class="docutils literal notranslate"><span class="pre">Frontend.Hasura</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.Frontend.Hasura.admin_secret"><code class="docutils literal notranslate"><span class="pre">Frontend.Hasura.admin_secret</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.Frontend.Hasura.port"><code class="docutils literal notranslate"><span class="pre">Frontend.Hasura.port</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Frontend.ajax_stats_reload_time"><code class="docutils literal notranslate"><span class="pre">Frontend.ajax_stats_reload_time</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Frontend.authentication"><code class="docutils literal notranslate"><span class="pre">Frontend.authentication</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Frontend.communication_timeout"><code class="docutils literal notranslate"><span class="pre">Frontend.communication_timeout</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.Frontend.hasura"><code class="docutils literal notranslate"><span class="pre">Frontend.hasura</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Frontend.max_elements_per_chart"><code class="docutils literal notranslate"><span class="pre">Frontend.max_elements_per_chart</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Frontend.number_of_latest_firmwares_to_display"><code class="docutils literal notranslate"><span class="pre">Frontend.number_of_latest_firmwares_to_display</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Frontend.radare2_url"><code class="docutils literal notranslate"><span class="pre">Frontend.radare2_url</span></code></a></li>
@@ -663,6 +669,33 @@
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="config.Frontend.Hasura">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Hasura</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.Frontend.Hasura" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Frontend.Hasura.admin_secret">
+<span class="sig-name descname"><span class="pre">admin_secret</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#config.Frontend.Hasura.admin_secret" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Frontend.Hasura.port">
+<span class="sig-name descname"><span class="pre">port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">33333</span></em><a class="headerlink" href="#config.Frontend.Hasura.port" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="config.Frontend.ajax_stats_reload_time">
 <span class="sig-name descname"><span class="pre">ajax_stats_reload_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#config.Frontend.ajax_stats_reload_time" title="Permalink to this definition"></a></dt>
@@ -676,6 +709,11 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="config.Frontend.communication_timeout">
 <span class="sig-name descname"><span class="pre">communication_timeout</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">60</span></em><a class="headerlink" href="#config.Frontend.communication_timeout" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Frontend.hasura">
+<span class="sig-name descname"><span class="pre">hasura</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#config.Frontend.Hasura" title="config.Frontend.Hasura"><span class="pre">Frontend.Hasura</span></a></em><a class="headerlink" href="#config.Frontend.hasura" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
