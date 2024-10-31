@@ -3,6 +3,7 @@ testresources==2.0.1
 
 # General python dependencies
 appdirs==1.4.4
+docker~=7.1.0
 flaky==3.7.0
 lief==0.14.1
 psutil==5.9.4

@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block head %}
+    <script src="{{ url_for('static', filename='node_modules/react/umd/react.development.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/react-dom/umd/react-dom.development.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/graphiql/graphiql.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/@graphiql/plugin-explorer/dist/index.umd.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/codemirror/lib/codemirror.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/codemirror/addon/display/placeholder.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/codemirror/mode/javascript/javascript.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/json5/dist/index.min.js') }}"></script>
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/graphiql/graphiql.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/@graphiql/plugin-explorer/dist/style.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/codemirror/lib/codemirror.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/codemirror/theme/material.css') }}"/>
+    <style>
+        .CodeMirror:not(.cm-s-graphiql) {
+          /* from Bootstrap .form-control */
+          font-size: 1rem;
+          font-weight: 400;
+          line-height: 1.5;
+          border: 1px solid #ced4da;
+          height: auto;
+          border-radius: 0.8rem 0.8rem 0 0;
+          min-height: 3.6rem;
+        }
+        .CodeMirror-focused:not(.cm-s-graphiql) {
+          /* from Bootstrap .form-control-focused */
+          border-color: #66afe9;
+          outline: 0;
+          box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+          transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+        }
+        .modal-dialog {
+          max-width: 800px;
+        }
+        .graphiql-container {
+            min-height: 666px;
+        }
+        .block-button {
+            width: 110px;
+        }
+    </style>
+{% endblock %}
+
+
+{% block body %}
+
+<div class="row justify-content-center" style="font-size: 0.9rem;">
+
+    <div class="col-xl-6 col-lg-8 col-md-10 col-sm-12 mt-4">
+        <h3>Database Search with GraphQL</h3>
+
+        <form class="form-horizontal" action="" method="post" enctype="multipart/form-data" id="searchForm">
+            <label class="control-label" for="textarea">GraphQL query $where filter:</label><br />
+            <div class="invalid-feedback mb-1" id="checkFeedback"></div>
+            <textarea name="textarea" style="resize: vertical; position: relative; z-index: 1;" class="form-control"
+                      id="textarea" placeholder='Enter your $where filter here&#10;e.g. {"file_name": {"_eq": "openssl"}}'>
+                {%- if last_query %}{{ last_query }}{% endif -%}
+            </textarea>
+            <div class="row" style="margin: -1px 0">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="tableSelect" style="border-radius: 0 0 0 0.8rem;">
+                            on table:
+                        </label>
+                    </div>
+                    <select id="tableSelect" name="tableSelect" class="form-control"
+                            onchange="updateHelpButtonTarget()">
+                        <option selected>file_object</option>
+                        <option>firmware</option>
+                        <option>analysis</option>
+                    </select>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary block-button" id="helpButton"
+                                data-toggle="modal" data-target="#file_objectModal">
+                            <i class="fas fa-question"></i> Help
+                        </button>
+                        <button type="button" class="btn btn-info block-button" id="checkButton" onclick="checkCode()">
+                            <i class="fas fa-code"></i> Prettify
+                        </button>
+                        <button type="button" class="btn btn-success block-button" id="input_submit"
+                                onclick="submitSearch(this.form);" style="border-radius: 0 0 0.8rem 0;">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        {% for table, query in tables.items() %}
+            {# help modal #}
+            <div class="modal fade" id="{{ table }}Modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">{{ table }} query</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Start a search for {{ "files" if table != "firmware" else "firmwares" }} in FACT's PostgreSQL database on the table {{ table }} using GraphQL.
+                            Internally, the GraphQL query is translated into a SQL query that runs directly on the database.
+                            The search uses the following GraphQL query:
+                            <br><br>
+                            <pre><code id="{{ table }}-example">{{ query }}</code></pre>
+                            The only part that you need to provide is the $where part, which is used to filter the results.
+                            You can copy the query to GraphiQL and play around with it (you then also need to edit the "variables" part).
+                            You can find documentation on $where filters and the available operators you can use here: <a href="https://hasura.io/docs/latest/queries/postgres/filters/index/">Documentation on writing Hasura postgres GraphQL queries</a>
+                            <br><br>
+                            If you need additional information, try clicking on the <i class="fas fa-book"></i>Docs or try playing around with the <i class="far fa-folder-open"></i>Explorer in the menu on the left of GraphiQL below.
+                            If you want to know what fields can be used for queries, try looking up <span class="example-json">"{{ table }}_bool_exp"</span> in the <i class="fas fa-book"></i>Docs of GraphiQL.
+                            <br><br>
+                            Hints: You can use Ctrl+Enter to start the search and the input accepts JSON5 (superset of JSON that allows unquoted keys, trailing commas and single quoted strings), so you can copy the <samp>where: {...}</samp> part directly from your GraphQL query.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="copyToClipboard('{{ table }}-example')">
+                                <i class="far fa-clipboard"></i> Copy Query to Clipboard
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                <i class="fas fa-xmark"></i> Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <h4 class="mt-4 mb-2">Example queries:</h4>
+
+        {% set examples = {
+            "firmware": [
+                (
+                    '{"device_class": {"_eq": "router"}}',
+                    'Find firmware with device class "router"',
+                ),
+                (
+                    '{"vendor": {"_ilike": "%link%"}}',
+                    'Find firmware whose vendor name contains the string "link" (case-insensitive substring)',
+                ),
+            ],
+            "analysis": [
+                (
+                    '{"plugin": {"_eq": "file_type"}, "result": {"_contains": {"mime": "text/plain"}}}',
+                    'Find files with MIME type "text/plain"',
+                ),
+                (
+                    '{"plugin": {"_eq": "software_components"}, "summary": {"_contains": ["OpenSSL 1.0.1e"]}}',
+                    'Find files where software OpenSSL matched in version 1.0.1e',
+                ),
+            ],
+            "file_object": [
+                (
+                    '{"file_name": {"_eq": "busybox"}}',
+                    'Find files with MIME type "text/plain"',
+                ),
+                (
+                    '{"FilePathsByFile": {"file_path": {"_like": "/etc/init.d/%"}}}',
+                    'Find files whose path starts with "/etc/init.d/"',
+                ),
+                (
+                    '{"is_firmware": {"_eq": true}, "includedFiles": {"file_object": {"file_name": {"_eq": "busybox"}}}}',
+                    'Find firmware that contains a file with the name "busybox"',
+                ),
+            ],
+        } %}
+        {% for table, example_list in examples.items()  %}
+            <h6>On table "{{ table }}":</h6>
+            {% for code, description in example_list %}
+                <p>
+                    {% set _id = "example-" + table + "-" + loop.index | string %}
+                    <span id="{{ _id }}" class="example-json">{{ code | safe }}</span>
+                    <span class="far fa-copy" data-toggle="tooltip" title="copy to query input"
+                          onclick="copyToCodemirror('{{ _id }}', {{ (tables | list).index(table) }})"></span>
+                    <br />
+                    <span class="example-comment">{{ description }}</span>
+                </p>
+            {% endfor %}
+        {% endfor %}
+
+    </div>
+    <div class="col-sm-12 mt-4">
+        <h4 class="mt-4 mb-2">GraphiQL query editor:</h4>
+        <div id="graphiql">Loading...</div>
+
+        <script>
+          const select = document.getElementById("tableSelect");
+          const root = ReactDOM.createRoot(document.getElementById('graphiql'));
+          const fetcher = GraphiQL.createFetcher({url: '/graphql'});
+          const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
+          const graphiql = React.createElement(GraphiQL, {
+              fetcher,
+              defaultEditorToolsVisibility: true,
+              plugins: [explorerPlugin],
+          });
+          root.render(graphiql);
+          const cm = CodeMirror.fromTextArea(document.getElementById('textarea'), {
+            lineNumbers: true,
+            mode: { name: "javascript", json: true },
+            theme: "material",
+          });
+          function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText.trim();
+            navigator.clipboard.writeText(text).then(() => {}, function(err) {
+              console.error('Async: Could not copy to clipboard: ', err);
+            });
+          }
+          function copyToCodemirror(elementId, selectIndex) {
+            const code = document.getElementById(elementId).innerText.trim();
+            cm.setValue(code);
+            select.selectedIndex = selectIndex;
+            updateHelpButtonTarget()
+          }
+          function checkCode() {
+            const code = cm.getValue();
+            let feedback = document.getElementById("checkFeedback");
+            feedback.style.display = "none";
+              try {
+                let parsed = JSON5.parse(code);
+                if ("where" in parsed) {
+                    // remove unnecessary {where: ...} around the filter
+                    parsed = parsed.where;
+                }
+                cm.setValue(JSON.stringify(parsed, undefined, 4));
+            } catch (err) {
+              feedback.innerText = String(err);
+              feedback.style.display = "block";
+              return false
+            }
+            return true
+          }
+          function updateHelpButtonTarget() {
+            const helpButton = document.getElementById("helpButton");
+            helpButton.dataset.target = `#${select.value}Modal`;
+          }
+          function submitSearch(form) {
+            if (checkCode()) {
+              form.submit();
+            }
+          }
+          // also start search on Ctrl+Enter
+          jQuery(document).keydown(function(event) {
+            if(event.ctrlKey && event.keyCode === 13) {
+              submitSearch(document.getElementById("searchForm"));
+            }
+          });
+        </script>
+    </div>
+</div>
+
+{% endblock %}

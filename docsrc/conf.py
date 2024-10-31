@@ -76,6 +76,8 @@ autodoc_mock_imports = [
     'flask_restx',
     'flask_security',
     'flask_sqlalchemy',
+    'gql',
+    'graphql',
     'itsdangerous',
     'lief',
     'magic',
