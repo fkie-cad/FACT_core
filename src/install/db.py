@@ -1,4 +1,5 @@
 import logging
+import re
 from contextlib import suppress
 from pathlib import Path
 from shlex import split
@@ -6,8 +7,10 @@ from subprocess import PIPE, CalledProcessError, run
 
 from helperFunctions.install import InstallationError, OperateInDirectory, check_distribution
 
+POSTGRES_VERSION = 16
 
-def install_postgres(version: int = 16):
+
+def install_postgres(version: int = POSTGRES_VERSION):
     # based on https://www.postgresql.org/download/linux/ubuntu/
     codename = check_distribution()
     command_list = [
@@ -21,7 +24,7 @@ def install_postgres(version: int = 16):
             raise InstallationError(f'Failed to set up PostgreSQL: {process.stderr}')
 
 
-def configure_postgres(version: int = 14):
+def configure_postgres(version: int = POSTGRES_VERSION):
     config_path = f'/etc/postgresql/{version}/main/postgresql.conf'
     # increase the maximum number of concurrent connections
     run(f'sudo sed -i -E "s/max_connections = [0-9]+/max_connections = 999/g" {config_path}', shell=True, check=True)
@@ -40,8 +43,24 @@ def postgres_is_installed():
         return False
 
 
+def postgres_is_up_to_date():
+    with suppress(CalledProcessError, FileNotFoundError):
+        proc = run(split('psql --version'), text=True, capture_output=True, check=False)
+        match = re.search(r'PostgreSQL\)? (\d+).\d+', proc.stdout)
+        if match:
+            return int(match.groups()[0]) >= POSTGRES_VERSION
+    logging.warning('PostgreSQL version could not be identified. Is it installed?')
+    return True
+
+
 def main():
     if postgres_is_installed():
+        if not postgres_is_up_to_date():
+            logging.warning(
+                'PostgreSQL is installed but the version is not up to date. Please see '
+                'https://github.com/fkie-cad/FACT_core/wiki/Upgrading-the-PostgreSQL-Database for information on how'
+                'to upgrade your PostgreSQL version.'
+            )
         logging.info('Skipping PostgreSQL installation. Reason: Already installed.')
     else:
         logging.info('Setting up PostgreSQL database')
