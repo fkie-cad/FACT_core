@@ -68,6 +68,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#objects.firmware.Firmware"><code class="docutils literal notranslate"><span class="pre">Firmware</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.device_class"><code class="docutils literal notranslate"><span class="pre">Firmware.device_class</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.device_name"><code class="docutils literal notranslate"><span class="pre">Firmware.device_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.from_json"><code class="docutils literal notranslate"><span class="pre">Firmware.from_json()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.get_hid"><code class="docutils literal notranslate"><span class="pre">Firmware.get_hid()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.part"><code class="docutils literal notranslate"><span class="pre">Firmware.part</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.release_date"><code class="docutils literal notranslate"><span class="pre">Firmware.release_date</span></code></a></li>
@@ -75,6 +76,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.set_part_name"><code class="docutils literal notranslate"><span class="pre">Firmware.set_part_name()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.set_tag"><code class="docutils literal notranslate"><span class="pre">Firmware.set_tag()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.tags"><code class="docutils literal notranslate"><span class="pre">Firmware.tags</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.to_json"><code class="docutils literal notranslate"><span class="pre">Firmware.to_json()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.vendor"><code class="docutils literal notranslate"><span class="pre">Firmware.vendor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.version"><code class="docutils literal notranslate"><span class="pre">Firmware.version</span></code></a></li>
 </ul>
@@ -174,6 +176,19 @@ Can be freely defined during upload.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.from_json">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.from_json" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>json</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>root_uid</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.get_hid">
 <span class="sig-name descname"><span class="pre">get_hid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.get_hid" title="Permalink to this definition"></a></dt>
 <dd><p>See <a class="reference internal" href="objects.file.html#objects.file.FileObject.get_hid" title="objects.file.FileObject.get_hid"><code class="xref py py-meth docutils literal notranslate"><span class="pre">objects.file.FileObject.get_hid()</span></code></a>.</p>
@@ -239,6 +254,20 @@ FACT provides a preset of frequently used values: <cite>complete</cite>, <cite>k
 <dd><p>User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {‘tag’: <a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor" title="helperFunctions.tag.TagColor"><code class="xref py py-class docutils literal notranslate"><span class="pre">helperFunctions.tag.TagColor</span></code></a>} dictionary.  # noqa: E501
 It is important to understand that these tags are <strong>separately stored</strong> from the <a class="reference internal" href="objects.file.html#objects.file.FileObject.analysis_tags" title="objects.file.FileObject.analysis_tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">objects.file.FileObject.analysis_tags</span></code></a>, which are propagated by analysis plugins.  # noqa: E501</p>
 <p>This attribute is <strong>optional</strong>, the dict may be empty.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.to_json">
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vfp_parent_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.to_json" title="Permalink to this definition"></a></dt>
+<dd><p>Get a FileObject as JSON. <cite>vfp_parent_filter</cite> can be used to filter the entries with a UID whitelist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vfp_parent_filter</strong> (<em>set</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">

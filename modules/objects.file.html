@@ -75,6 +75,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.file_name"><code class="docutils literal notranslate"><span class="pre">FileObject.file_name</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.file_path"><code class="docutils literal notranslate"><span class="pre">FileObject.file_path</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.files_included"><code class="docutils literal notranslate"><span class="pre">FileObject.files_included</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.from_json"><code class="docutils literal notranslate"><span class="pre">FileObject.from_json()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.get_hid"><code class="docutils literal notranslate"><span class="pre">FileObject.get_hid()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.get_virtual_paths_for_all_uids"><code class="docutils literal notranslate"><span class="pre">FileObject.get_virtual_paths_for_all_uids()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.list_of_all_included_files"><code class="docutils literal notranslate"><span class="pre">FileObject.list_of_all_included_files</span></code></a></li>
@@ -87,6 +88,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.sha256"><code class="docutils literal notranslate"><span class="pre">FileObject.sha256</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.size"><code class="docutils literal notranslate"><span class="pre">FileObject.size</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.temporary_data"><code class="docutils literal notranslate"><span class="pre">FileObject.temporary_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.to_json"><code class="docutils literal notranslate"><span class="pre">FileObject.to_json()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.uid"><code class="docutils literal notranslate"><span class="pre">FileObject.uid</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.file.FileObject.virtual_file_path"><code class="docutils literal notranslate"><span class="pre">FileObject.virtual_file_path</span></code></a></li>
 </ul>
@@ -236,6 +238,22 @@ Only lists the next layer, not recursively included files on lower extraction la
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="objects.file.FileObject.from_json">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.from_json" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>json_dict</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>root_uid</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#objects.file.FileObject" title="objects.file.FileObject">FileObject</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="objects.file.FileObject.get_hid">
 <span class="sig-name descname"><span class="pre">get_hid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_hid" title="Permalink to this definition"></a></dt>
 <dd><p>Get a human-readable identifier for the given file.
@@ -347,6 +365,20 @@ Additionally, set binary related metadata (size, hash) and compute uid after tha
 <span class="sig-name descname"><span class="pre">temporary_data</span></span><a class="headerlink" href="#objects.file.FileObject.temporary_data" title="Permalink to this definition"></a></dt>
 <dd><p>This field can be used for arbitrary temporary storage.
 It will not be persisted to the database, so it dies after the analysis cycle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="objects.file.FileObject.to_json">
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vfp_parent_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.to_json" title="Permalink to this definition"></a></dt>
+<dd><p>Get a FileObject as JSON. <cite>vfp_parent_filter</cite> can be used to filter the entries with a UID whitelist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vfp_parent_filter</strong> (<em>set</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">

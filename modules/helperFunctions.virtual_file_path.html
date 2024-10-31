@@ -80,6 +80,7 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.task_conversion.html">helperFunctions.task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.virtual_file_path module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.filter_vpf_dict"><code class="docutils literal notranslate"><span class="pre">filter_vpf_dict()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.get_paths_for_all_parents"><code class="docutils literal notranslate"><span class="pre">get_paths_for_all_parents()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.virtual_file_path.get_some_vfp"><code class="docutils literal notranslate"><span class="pre">get_some_vfp()</span></code></a></li>
 </ul>
@@ -121,6 +122,25 @@
              
   <section id="module-helperFunctions.virtual_file_path">
 <span id="helperfunctions-virtual-file-path-module"></span><h1>helperFunctions.virtual_file_path module<a class="headerlink" href="#module-helperFunctions.virtual_file_path" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.virtual_file_path.filter_vpf_dict">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">filter_vpf_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vfp_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_uids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.filter_vpf_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Get only VFPs from parent files that are contained in <cite>parent_uids</cite>.
+:param vfp_dict: A virtual file path dict
+:param parent_uids: A set of allowed parent UIDs (VFPs from other parent files are filtered out)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vfp_dict</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>parent_uids</strong> (<em>set</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[str, list[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.virtual_file_path.get_paths_for_all_parents">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.virtual_file_path.</span></span><span class="sig-name descname"><span class="pre">get_paths_for_all_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vfp_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.virtual_file_path.get_paths_for_all_parents" title="Permalink to this definition"></a></dt>
