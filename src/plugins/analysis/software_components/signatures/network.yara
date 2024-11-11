@@ -273,7 +273,7 @@ rule OpenSSH
 		website = "http://www.openssh.com"
 		description = "SSH library"
     strings:
-        $a = /OpenSSH(_\d+\.\d+(\.\d)?\x00)?/ nocase ascii wide
+        $a = /OpenSSH(_\d+\.\d+(\.\d)?(p\d)?[ \x00])?/ nocase ascii wide
     condition:
         $a and no_text_file
 }
