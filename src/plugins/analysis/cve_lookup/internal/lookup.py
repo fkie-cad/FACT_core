@@ -25,9 +25,10 @@ VALID_VERSION_REGEX = re.compile(r'v?(\d+!)?\d+(\.\d+)*([.-]?(a(lpha)?|b(eta)?|c
 
 
 class Lookup:
-    def __init__(self, file_object: FileObject, connection: DbConnection):
+    def __init__(self, file_object: FileObject, connection: DbConnection, match_any: bool = False):
         self.file_object = file_object
         self.db_interface = DbInterface(connection)
+        self.match_any = match_any
 
     def lookup_vulnerabilities(
         self,
@@ -38,10 +39,8 @@ class Lookup:
         Look up vulnerabilities for a given product and requested version.
         """
         vulnerabilities = {}
-        product_terms, version = (
-            self._generate_search_terms(product_name),
-            replace_wildcards([requested_version])[0],
-        )
+        product_terms = self._generate_search_terms(product_name)
+        version = replace_wildcards([requested_version])[0]
         cpe_matches = self.db_interface.match_cpes(product_terms)
         if len(cpe_matches) == 0:
             logging.debug(f'No CPEs were found for product {product_name}')
@@ -106,6 +105,8 @@ class Lookup:
                     association.version_end_excluding,
                 ]
             ):
+                if self.match_any and association.cpe.version == 'ANY':
+                    association_matches.append(association)
                 continue
             if self._is_version_in_boundaries(association, requested_version):
                 association_matches.append(association)
