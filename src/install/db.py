@@ -7,7 +7,7 @@ from subprocess import PIPE, CalledProcessError, run
 
 from helperFunctions.install import InstallationError, OperateInDirectory, check_distribution
 
-POSTGRES_VERSION = 16
+POSTGRES_VERSION = 17
 
 
 def install_postgres(version: int = POSTGRES_VERSION):
@@ -35,34 +35,25 @@ def configure_postgres(version: int = POSTGRES_VERSION):
     run('sudo service postgresql restart', shell=True, check=True)
 
 
-def postgres_is_installed():
-    try:
-        run(split('psql --version'), check=True)
-        return True
-    except (CalledProcessError, FileNotFoundError):
-        return False
-
-
 def postgres_is_up_to_date():
-    with suppress(CalledProcessError, FileNotFoundError):
-        proc = run(split('psql --version'), text=True, capture_output=True, check=False)
-        match = re.search(r'PostgreSQL\)? (\d+).\d+', proc.stdout)
-        if match:
-            return int(match.groups()[0]) >= POSTGRES_VERSION
+    proc = run(split('psql --version'), text=True, capture_output=True, check=True)
+    match = re.search(r'PostgreSQL\)? (\d+).\d+', proc.stdout)
+    if match:
+        return int(match.groups()[0]) >= POSTGRES_VERSION
     logging.warning('PostgreSQL version could not be identified. Is it installed?')
     return True
 
 
 def main():
-    if postgres_is_installed():
+    try:
         if not postgres_is_up_to_date():
             logging.warning(
                 'PostgreSQL is installed but the version is not up to date. Please see '
-                'https://github.com/fkie-cad/FACT_core/wiki/Upgrading-the-PostgreSQL-Database for information on how'
+                '"https://github.com/fkie-cad/FACT_core/wiki/Upgrading-the-PostgreSQL-Database" for information on how'
                 'to upgrade your PostgreSQL version.'
             )
         logging.info('Skipping PostgreSQL installation. Reason: Already installed.')
-    else:
+    except (CalledProcessError, FileNotFoundError):  # psql binary was not found
         logging.info('Setting up PostgreSQL database')
         install_postgres()
     configure_postgres()
