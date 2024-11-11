@@ -37,6 +37,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def additional_setup(self):
         self.min_crit_score = getattr(config.backend.plugin.get(self.NAME, {}), 'min-critical-score', 9.0)
+        self.match_any = getattr(config.backend.plugin.get(self.NAME, {}), 'match-any', False)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         """
@@ -44,7 +45,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         """
         cves = {'cve_results': {}}
         connection = DbConnection(f'sqlite:///{DB_PATH}')
-        lookup = Lookup(file_object, connection)
+        lookup = Lookup(file_object, connection, match_any=self.match_any)
         for value in file_object.processed_analysis['software_components']['result'].values():
             product = value['meta']['software_name']
             version = value['meta']['version'][0]

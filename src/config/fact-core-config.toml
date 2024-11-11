@@ -113,6 +113,8 @@ name = "cve_lookup"
 processes = 4
 # CVE scores greater or equal to this value are shown as "critical"
 min-critical-score = 9.0
+# match CVE entries without versions constraints (`false` by default due to the high risk of false positives)
+match-any = false
 
 [[backend.plugin]]
 name = "cwe_checker"
