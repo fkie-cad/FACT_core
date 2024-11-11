@@ -29,7 +29,7 @@ class AnalysisPlugin(YaraBasePlugin):
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
-    VERSION = '0.5.0'
+    VERSION = '0.5.1'
     FILE = __file__
 
     def process_object(self, file_object):
@@ -72,7 +72,7 @@ class AnalysisPlugin(YaraBasePlugin):
     def get_version_for_component(self, result, file_object: FileObject):
         versions = set()
         for matched_string in result['strings']:
-            match = matched_string[2]
+            match = matched_string[2].strip()
             match = make_unicode_string(match)
             versions.add(self.get_version(match, result['meta']))
         if any(k in result['meta'] for k in ('format_string', '_version_function')):
