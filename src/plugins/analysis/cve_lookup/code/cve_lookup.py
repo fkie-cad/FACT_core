@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.tag import TagColor
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
@@ -31,8 +32,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['software_components']  # noqa: RUF012
-    VERSION = '0.1.0'
+    VERSION = '0.2.0'
     FILE = __file__
+
+    def additional_setup(self):
+        self.match_any = getattr(config.backend.plugin.get(self.NAME, {}), 'match-any', False)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         """
@@ -40,7 +44,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         """
         cves = {'cve_results': {}}
         connection = DbConnection(f'sqlite:///{DB_PATH}')
-        lookup = Lookup(file_object, connection)
+        lookup = Lookup(file_object, connection, match_any=self.match_any)
         for value in file_object.processed_analysis['software_components']['result'].values():
             product = value['meta']['software_name']
             version = value['meta']['version'][0]
