@@ -100,3 +100,22 @@ docstring-quotes = "double"
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.coverage.run]
+omit = [
+    # ignore install scripts
+    "src/install.py",
+    "src/install/*",
+    # ignore alembic migration scripts
+    "src/storage/migration/**",
+    # ignore files only run inside docker
+    "src/plugins/analysis/*/docker/**",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    # exclude type checking blocks which are not executed during runtime
+    "if TYPE_CHECKING:",
+    # also don't complain about abstract methods (as they're also not run)
+    "@(abc\\.)?abstractmethod",
+]
