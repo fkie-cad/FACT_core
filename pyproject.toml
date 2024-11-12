@@ -76,7 +76,12 @@ fixable = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
 "test*.py" = ["ARG002", "PLR2004"]
-"conftest.py" = ["ARG002"]
+"conftest.py" = ["ARG001", "ARG002"]
+"common_helper.py" = ["ARG002"]
+# ignore prints in CLI scripts
+"migrate_db_to_postgresql.py" = ["T201"]
+"manage_users.py" = ["T201"]
+"migrate_database.py" = ["T201"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["analysis", "compare", "helperFunctions", "install", "intercom", "objects", "plugins", "scheduler",

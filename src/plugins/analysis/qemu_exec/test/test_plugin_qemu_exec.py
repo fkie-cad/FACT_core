@@ -474,5 +474,5 @@ class MockFSOrganizer:
     @staticmethod
     def generate_path(fo):
         if fo.uid != 'foo':
-            return os.path.join(get_test_data_dir(), 'container/test.zip')  # noqa: PTH118
+            return str(get_test_data_dir() / 'container/test.zip')
         return None

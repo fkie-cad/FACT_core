@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 from helperFunctions.hash import (
     _suppress_stdout,
@@ -31,7 +30,7 @@ def test_get_ssdeep():
 
 
 def test_imphash():
-    fo = create_test_file_object(bin_path=str(Path(get_test_data_dir(), 'test_executable')))
+    fo = create_test_file_object(bin_path=str(get_test_data_dir() / 'test_executable'))
     fo.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
     imphash = get_imphash(fo)
     assert isinstance(imphash, str), 'imphash should be a string'

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from contextlib import suppress
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from common_helper_files import get_binary_from_file
@@ -33,9 +33,7 @@ if TYPE_CHECKING:
 
 
 def get_analysis_view(view_name):
-    view_path = os.path.join(  # noqa: PTH118
-        get_src_dir(), f'web_interface/templates/analysis_plugins/{view_name}.html'
-    )
+    view_path = Path(get_src_dir()) / f'web_interface/templates/analysis_plugins/{view_name}.html'
     return get_binary_from_file(view_path).decode('utf-8')
 
 

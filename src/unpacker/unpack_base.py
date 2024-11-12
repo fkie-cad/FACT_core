@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 import shutil
-from os import getgid, getuid, makedirs
+from http import HTTPStatus
+from os import getgid, getuid
 from pathlib import Path
 from subprocess import CalledProcessError
 
@@ -47,7 +48,7 @@ class UnpackBase:
     @staticmethod
     def _initialize_shared_folder(tmp_dir):
         for subpath in ['files', 'reports', 'input']:
-            makedirs(str(Path(tmp_dir, subpath)), exist_ok=True)  # noqa: PTH103
+            Path(tmp_dir, subpath).mkdir(exist_ok=True)
 
     @staticmethod
     def _extract_with_worker(file_path: str, container: ExtractionContainer, tmp_dir: str):
@@ -57,7 +58,7 @@ class UnpackBase:
             raise ExtractionError('Timeout during extraction.') from error
         except requests.exceptions.ConnectionError as error:
             raise ExtractionError('Extraction container could not be reached.') from error
-        if response.status_code != 200:  # noqa: PLR2004
+        if response.status_code != HTTPStatus.OK:
             logging.error(response.text, response.status_code)
             raise ExtractionError(f'Extraction of {file_path} failed')
 

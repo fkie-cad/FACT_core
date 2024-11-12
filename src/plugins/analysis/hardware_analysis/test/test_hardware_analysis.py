@@ -1,13 +1,8 @@
-from pathlib import Path
-
 import pytest
 
 from objects.file import FileObject
-from test.common_helper import get_test_data_dir
 
 from ..code.hardware_analysis import AnalysisPlugin
-
-TEST_DATA = Path(get_test_data_dir())
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)

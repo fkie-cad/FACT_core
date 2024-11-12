@@ -1,4 +1,3 @@
-import os
 from multiprocessing import Queue
 from time import sleep
 from unittest import mock
@@ -49,7 +48,7 @@ class TestScheduleInitialAnalysis:
 
     @pytest.mark.SchedulerTestConfig(start_processes=True)
     def test_whole_run_analysis_selected(self, analysis_scheduler, post_analysis_queue):
-        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))  # noqa: PTH118
+        test_fw = Firmware(file_path=get_test_data_dir() / 'get_files_test/testfile1')
         test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
         analysis_scheduler.start_analysis_of_object(test_fw)
         analysis_results = [post_analysis_queue.get(timeout=10) for _ in range(3)]
@@ -113,7 +112,7 @@ class TestScheduleInitialAnalysis:
         ), 'version not correct'
 
     def test_process_next_analysis_unknown_plugin(self, analysis_scheduler):
-        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))  # noqa: PTH118
+        test_fw = Firmware(file_path=get_test_data_dir() / 'get_files_test/testfile1')
         test_fw.scheduled_analysis = ['unknown_plugin']
 
         with mock_spy(analysis_scheduler, '_start_or_skip_analysis') as spy:
@@ -131,7 +130,7 @@ class TestScheduleInitialAnalysis:
         }
     )
     def test_skip_analysis_because_whitelist(self, analysis_scheduler, post_analysis_queue):
-        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))  # noqa: PTH118
+        test_fw = Firmware(file_path=get_test_data_dir() / 'get_files_test/testfile1')
         test_fw.scheduled_analysis = ['file_hashes']
         test_fw.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
         analysis_scheduler._start_or_skip_analysis('dummy_plugin_for_testing_only', test_fw)

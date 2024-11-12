@@ -12,7 +12,7 @@ from helperFunctions.fileSystem import (
 )
 from test.common_helper import get_test_data_dir
 
-TEST_DATA_DIR = Path(get_test_data_dir())
+TEST_DATA_DIR = get_test_data_dir()
 
 
 @pytest.fixture
@@ -62,4 +62,4 @@ def test_file_is_zero_broken_link():
 
 
 def test_get_config_dir():
-    assert os.path.exists(f'{get_config_dir()}/fact-core-config.toml'), 'main config file not found'  # noqa: PTH110
+    assert Path(f'{get_config_dir()}/fact-core-config.toml').exists(), 'main config file not found'

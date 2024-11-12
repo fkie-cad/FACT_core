@@ -148,7 +148,7 @@ def _install_yara():
         raise InstallationError(f'Error on yara extraction.\n{unzip_process.stdout}')
     yara_folder = [p for p in Path().iterdir() if p.name.startswith('yara-')][0]
     with OperateInDirectory(yara_folder.name, remove=True):
-        os.chmod('bootstrap.sh', 0o775)  # noqa: PTH101
+        Path('bootstrap.sh').chmod(0o775)
         for command in ['./bootstrap.sh', './configure --enable-magic', 'make -j$(nproc)', 'sudo make install']:
             cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
             if cmd_process.returncode != 0:

@@ -6,7 +6,7 @@ from test.common_helper import get_test_data_dir
 
 
 class ArgumentMock:
-    config_file = get_test_data_dir() + '/load_cfg_test'
+    config_file = f'{get_test_data_dir()}/load_cfg_test'
     log_file = '/tmp/fact_test_argument_log_file.log'
     log_level = 'DEBUG'
     silent = False

@@ -29,7 +29,7 @@ class TestAnalysisYaraBasePlugin:
         assert f'{intended_signature_path.rstrip("/")}.yc' == analysis_plugin.signature_path, 'signature path is wrong'
 
     def test_process_object(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'yara_test_file'))  # noqa: PTH118
+        test_file = FileObject(file_path=str(get_test_data_dir() / 'yara_test_file'))
         test_file.processed_analysis.update({analysis_plugin.NAME: []})
         processed_file = analysis_plugin.process_object(test_file)
         results = processed_file.processed_analysis[analysis_plugin.NAME]
@@ -38,7 +38,7 @@ class TestAnalysisYaraBasePlugin:
         assert results['summary'] == ['testRule']
 
     def test_process_object_nothing_found(self, analysis_plugin):
-        test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'zero_byte'))  # noqa: PTH118
+        test_file = FileObject(file_path=str(get_test_data_dir() / 'zero_byte'))
         test_file.processed_analysis.update({analysis_plugin.NAME: []})
         processed_file = analysis_plugin.process_object(test_file)
         assert len(processed_file.processed_analysis[analysis_plugin.NAME]) == 1, 'result present but should not'

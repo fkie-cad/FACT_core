@@ -1,12 +1,10 @@
-from pathlib import Path
-
 import pytest
 
 from test.common_helper import get_test_data_dir
 
 from ..code.binwalk import AnalysisPlugin
 
-TEST_FILE = Path(get_test_data_dir()) / 'container' / 'test.zip'
+TEST_FILE = get_test_data_dir() / 'container' / 'test.zip'
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
