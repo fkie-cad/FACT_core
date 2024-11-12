@@ -3,7 +3,6 @@
 import argparse
 import getpass
 import sys
-from pathlib import Path
 
 from flask_security import hash_password
 from prompt_toolkit import PromptSession
@@ -58,7 +57,7 @@ class Actions:
 
     @staticmethod
     def help():
-        print(  # noqa: T201
+        print(
             '\nOne of the following actions can be chosen:\n'
             '\n\t[add_role_to_user]\tadd existing role to an existing user'
             '\n\t[create_role]\t\tcreate new role'
@@ -94,7 +93,7 @@ class Actions:
         while True:
             password = getpass.getpass('password: ')
             if not password_is_legal(password):
-                print('Password is not legal. Please choose another password.')  # noqa: T201
+                print('Password is not legal. Please choose another password.')
                 continue
             break
         with self.app.app_context():
@@ -172,14 +171,14 @@ class Actions:
             user = self.store.find_user(email=user)
 
         apikey = user.api_key
-        print(f'key: {apikey}')  # noqa: T201
+        print(f'key: {apikey}')
 
     def list_all_users(self):
         user_list = self.store.list_users()
         for user in user_list:
             user_roles = ', '.join([role.name for role in user.roles])
-            print(f'\n\t{user.email} ({user_roles})')  # noqa: T201
-        print()  # noqa: T201
+            print(f'\n\t{user.email} ({user_roles})')
+        print()
 
     @staticmethod
     def exit():
@@ -198,8 +197,8 @@ def initialise_roles(app, interface, db):
 
 
 def prompt_loop(app, store, db, session):
-    print(FACT_ASCII_ART)  # noqa: T201
-    print('\nWelcome to the FACT User Management (FACTUM)\n')  # noqa: T201
+    print(FACT_ASCII_ART)
+    print('\nWelcome to the FACT User Management (FACTUM)\n')
     initialise_roles(app, store, db)
     actions = Actions(session, app, store, db)
 
@@ -218,13 +217,13 @@ def prompt_loop(app, store, db, session):
             acting_function()
 
         except KeyboardInterrupt:
-            print('returning to action selection')  # noqa: T201
+            print('returning to action selection')
         except AssertionError as assertion_error:
-            print(f'error: {assertion_error}')  # noqa: T201
+            print(f'error: {assertion_error}')
         except EOFError:
             break
 
-    print('\nQuitting ..')  # noqa: T201
+    print('\nQuitting ..')
 
 
 def start_user_management(app, store, db, session):
@@ -235,7 +234,7 @@ def start_user_management(app, store, db, session):
 
 def main():
     args = setup_argparse()
-    config.load(Path(args.config_file))
+    config.load(args.config_file)
     app = create_app()
     user_db, user_datastore = add_flask_security_to_app(app)
 

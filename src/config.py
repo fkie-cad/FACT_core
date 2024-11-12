@@ -186,8 +186,10 @@ def load(path: str | Path | None = None):
     Frontend.model_rebuild()
     if path is None:
         path = Path(__file__).parent / 'config/fact-core-config.toml'
+    elif isinstance(path, str):
+        path = Path(path)
 
-    with open(path, encoding='utf8') as f:  # noqa: PTH123
+    with path.open(encoding='utf8') as f:
         cfg = toml.load(f)
 
     _replace_hyphens_with_underscores(cfg)

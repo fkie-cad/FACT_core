@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from base64 import standard_b64encode
 from contextlib import contextmanager
 from copy import deepcopy
@@ -17,11 +16,11 @@ if TYPE_CHECKING:
     from werkzeug.test import TestResponse
 
 
-def get_test_data_dir():
+def get_test_data_dir() -> Path:
     """
     Returns the absolute path of the test data directory
     """
-    return os.path.join(get_src_dir(), 'test/data')  # noqa: PTH118
+    return Path(get_src_dir()) / 'test/data'
 
 
 def create_test_firmware(
@@ -32,7 +31,7 @@ def create_test_firmware(
     all_files_included_set=False,
     version='0.1',
 ):
-    fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))  # noqa: PTH118
+    fw = Firmware(file_path=str(get_test_data_dir() / bin_path))
     fw.device_class = device_class
     fw.device_name = device_name
     fw.vendor = vendor
@@ -75,7 +74,7 @@ def create_test_firmware(
 
 
 def create_test_file_object(bin_path='get_files_test/testfile1', uid=None, analyses=None):
-    fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))  # noqa: PTH118
+    fo = FileObject(file_path=str(get_test_data_dir() / bin_path))
     processed_analysis = {
         'dummy': {
             'summary': ['sum a', 'file exclusive sum b'],
@@ -145,7 +144,7 @@ class CommonDatabaseMock:
     fo_uid = TEST_TEXT_FILE.uid
     fw2_uid = TEST_FW_2.uid
 
-    def __init__(self, config=None):  # noqa: ARG002
+    def __init__(self, config=None):
         self.tasks = []
         self.locks = []
 
@@ -156,7 +155,7 @@ class CommonDatabaseMock:
     def update_view(self, file_name, content):
         pass
 
-    def get_object(self, uid, analysis_filter=None):  # noqa: ARG002
+    def get_object(self, uid, analysis_filter=None):
         if uid == TEST_FW.uid:
             result = deepcopy(TEST_FW)
             result.processed_analysis = {
@@ -180,7 +179,7 @@ class CommonDatabaseMock:
             return result
         return None
 
-    def get_hid(self, uid, root_uid=None):  # noqa: ARG002
+    def get_hid(self, uid, root_uid=None):
         return 'TEST_FW_HID'
 
     def get_device_class_list(self):
@@ -201,13 +200,13 @@ class CommonDatabaseMock:
     def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
-    def uid_list_exists(self, uid_list):  # noqa: ARG002
+    def uid_list_exists(self, uid_list):
         return set()
 
-    def all_uids_found_in_database(self, uid_list):  # noqa: ARG002
+    def all_uids_found_in_database(self, uid_list):
         return True
 
-    def get_data_for_nice_list(self, input_data, root_uid):  # noqa: ARG002
+    def get_data_for_nice_list(self, input_data, root_uid):
         return [NICE_LIST_DATA]
 
     @staticmethod
@@ -218,7 +217,7 @@ class CommonDatabaseMock:
     def create_analysis_structure():
         return ''
 
-    def get_other_versions_of_firmware(self, fo):  # noqa: ARG002
+    def get_other_versions_of_firmware(self, fo):
         return []
 
     def is_firmware(self, uid):
@@ -238,9 +237,7 @@ class CommonDatabaseMock:
 
     @staticmethod
     def comparison_exists(comparison_id):
-        if comparison_id == COMPARISON_ID:
-            return True
-        return False
+        return comparison_id == COMPARISON_ID
 
     @staticmethod
     def get_comparison_result(comparison_id):
@@ -254,9 +251,7 @@ class CommonDatabaseMock:
 
     @staticmethod
     def objects_exist(compare_id):
-        if compare_id in ['existing_id', 'uid1;uid2', COMPARISON_ID]:
-            return True
-        return False
+        return compare_id in ['existing_id', 'uid1;uid2', COMPARISON_ID]
 
     @staticmethod
     def get_hid_dict(uid_set, root_uid):  # noqa: ARG004
@@ -274,8 +269,8 @@ def fake_exit(self, *args):  # noqa: ARG001
 
 
 def get_firmware_for_rest_upload_test():
-    testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')  # noqa: PTH118
-    with open(testfile_path, 'rb') as fp:  # noqa: PTH123
+    testfile_path = get_test_data_dir() / 'container/test.zip'
+    with testfile_path.open('rb') as fp:
         file_content = fp.read()
     return {
         'binary': standard_b64encode(file_content).decode(),

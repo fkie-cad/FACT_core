@@ -1,6 +1,5 @@
 import urllib.parse
 from base64 import standard_b64encode
-from pathlib import Path
 
 import pytest
 
@@ -10,7 +9,7 @@ from test.common_helper import get_test_data_dir
 
 class TestRestCompareFirmware:
     def _rest_upload_firmware(self, test_client, fw):
-        testfile_path = Path(get_test_data_dir()) / fw.path
+        testfile_path = get_test_data_dir() / fw.path
         file_content = testfile_path.read_bytes()
         data = {
             'binary': standard_b64encode(file_content).decode(),

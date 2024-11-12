@@ -29,7 +29,7 @@ def docker_mount_base_dir() -> str:
 
 
 @pytest.fixture
-def _firmware_file_storage_directory() -> str:  # noqa: PT005
+def firmware_file_storage_directory() -> str:
     with TemporaryDirectory(prefix='fact-firmware-file-storage-directory') as tmp_dir:
         yield tmp_dir
 
@@ -98,11 +98,11 @@ def common_config(request, docker_mount_base_dir) -> config.Common:
 
 
 @pytest.fixture
-def backend_config(request, common_config, _firmware_file_storage_directory) -> config.Backend:
+def backend_config(request, common_config, firmware_file_storage_directory) -> config.Backend:
     overwrite_config = merge_markers(request, 'backend_config_overwrite', dict)
 
     test_config = {
-        'firmware_file_storage_directory': _firmware_file_storage_directory,
+        'firmware_file_storage_directory': firmware_file_storage_directory,
         'block_delay': 0.1,
         'ssdeep_ignore': 1,
         'intercom_poll_delay': 1.0,
@@ -156,7 +156,7 @@ def frontend_config(request, common_config) -> config.Frontend:
 
 
 @pytest.fixture(autouse=True)
-def patch_config(monkeypatch, common_config, backend_config, frontend_config):  # noqa: PT004
+def _patch_config(monkeypatch, common_config, backend_config, frontend_config):
     """This fixture will replace :py:data`config.common`, :py:data:`config.backend` and :py:data:`config.frontend`
     with the default test config.
 
@@ -194,7 +194,7 @@ class AnalysisPluginTestConfig(BaseModel):
 
 
 @pytest.fixture
-def analysis_plugin(request, patch_config):  # noqa: ARG001
+def analysis_plugin(request, _patch_config):
     """Returns an instance of an AnalysisPlugin.
     This fixture can be configured by the supplying an instance of ``AnalysisPluginTestConfig`` as marker of the same
     name.

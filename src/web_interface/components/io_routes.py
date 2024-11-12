@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import http
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -109,7 +110,7 @@ class IORoutes(ComponentBase):
         try:
             host = config.frontend.radare2_url
             response = requests.post(f'{host}/v1/retrieve', data=binary, verify=False)
-            if response.status_code != 200:  # noqa: PLR2004
+            if response.status_code != http.HTTPStatus.OK:
                 raise TimeoutError(response.text)
             target_link = f"{host}{response.json()['endpoint']}m/"
             sleep(1)

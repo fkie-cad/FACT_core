@@ -22,7 +22,7 @@ from storage.db_interface_comparison import ComparisonDbInterface
 try:
     from rich.progress import BarColumn, Progress, TimeElapsedColumn
 except ImportError:
-    print('Error: rich not found. Please install it:\npython3 -m pip install rich')  # noqa: T201
+    print('Error: rich not found. Please install it:\npython3 -m pip install rich')
     sys.exit(1)
 
 PERCENTAGE = '[progress.percentage]{task.percentage:>3.0f}%'
@@ -299,9 +299,9 @@ def main():
                 migrator = DbMigrator(postgres=postgres, mongo=db, progress=progress)
                 migrated_fw_count = migrator.migrate_fw(query={}, root=True, label='firmwares')
                 if not migrated_fw_count:
-                    print('No firmware to migrate')  # noqa: T201
+                    print('No firmware to migrate')
                 else:
-                    print(f'Successfully migrated {migrated_fw_count} firmware DB entries')  # noqa: T201
+                    print(f'Successfully migrated {migrated_fw_count} firmware DB entries')
             migrate_comparisons(db)
     except errors.ServerSelectionTimeoutError:
         logging.error(
@@ -387,9 +387,9 @@ def migrate_comparisons(mongo: MigrationMongoInterface):
             compare_db.insert_comparison(comparison_id, results)
             count += 1
     if not count:
-        print('No firmware comparison entries to migrate')  # noqa: T201
+        print('No firmware comparison entries to migrate')
     else:
-        print(f'Migrated {count} comparison DB entries')  # noqa: T201
+        print(f'Migrated {count} comparison DB entries')
 
 
 if __name__ == '__main__':

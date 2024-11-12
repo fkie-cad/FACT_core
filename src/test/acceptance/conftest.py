@@ -9,7 +9,7 @@ from web_interface.frontend_main import WebFrontEnd
 
 
 @pytest.fixture(autouse=True)
-def _autouse_database_interfaces(database_interfaces):  # noqa: ARG001
+def _autouse_database_interfaces(database_interfaces):
     pass
 
 
@@ -27,12 +27,12 @@ def test_client(web_frontend):
 
 
 @pytest.fixture
-def intercom_backend_binding(_unpacking_lock_manager, analysis_scheduler, comparison_scheduler, unpacking_scheduler):
+def intercom_backend_binding(unpacking_lock_manager, analysis_scheduler, comparison_scheduler, unpacking_scheduler):
     _intercom_backend_binding = InterComBackEndBinding(
         analysis_service=analysis_scheduler,
         compare_service=comparison_scheduler,
         unpacking_service=unpacking_scheduler,
-        unpacking_locks=_unpacking_lock_manager,
+        unpacking_locks=unpacking_lock_manager,
     )
     _intercom_backend_binding.start()
 
@@ -76,7 +76,7 @@ test_fw_c = TestFW(
 
 
 def upload_test_firmware(test_client, test_fw):
-    testfile_path = Path(get_test_data_dir()) / test_fw.path
+    testfile_path = get_test_data_dir() / test_fw.path
     with testfile_path.open('rb') as fp:
         data = {
             'file': (fp, test_fw.file_name),

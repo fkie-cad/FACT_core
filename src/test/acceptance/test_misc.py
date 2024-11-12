@@ -1,5 +1,4 @@
 import json
-import os
 import time
 from urllib.parse import quote
 
@@ -32,8 +31,8 @@ class TestAcceptanceMisc:
         assert b'<h3 class="mb-3">Upload Firmware</h3>' in rv.data, 'upload page not displayed correctly'
 
     def _upload_firmware_put(self, test_client, path, device_name, uid):
-        testfile_path = os.path.join(get_test_data_dir(), path)  # noqa: PTH118
-        with open(testfile_path, 'rb') as fp:  # noqa: PTH123
+        testfile_path = get_test_data_dir() / path
+        with testfile_path.open('rb') as fp:
             data = {
                 'file': fp,
                 'device_name': device_name,

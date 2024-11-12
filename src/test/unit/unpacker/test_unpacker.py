@@ -1,4 +1,3 @@
-from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
@@ -8,7 +7,7 @@ from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import create_test_file_object, get_test_data_dir
 from unpacker.unpack import Unpacker
 
-TEST_DATA_DIR = Path(get_test_data_dir())
+TEST_DATA_DIR = get_test_data_dir()
 EXTRACTION_DIR = TEST_DATA_DIR / 'files'
 
 

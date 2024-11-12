@@ -28,7 +28,7 @@ class YaraBinarySearchScanner:
         self.db = DbInterfaceCommon()
         self.fs_organizer = FSOrganizer()
 
-    def _execute_yara_search(self, rule_file_path: str, target_path: str | None = None) -> str:
+    def _execute_yara_search(self, rule_file_path: str | Path, target_path: str | Path | None = None) -> str:
         """
         Scans the (whole) db directory with the provided rule file and returns the (raw) results.
         Yara-python cannot be used, because it (currently) supports single-file scanning only.

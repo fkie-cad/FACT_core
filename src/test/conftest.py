@@ -285,14 +285,14 @@ def analysis_finished_counter() -> Value:
 
 
 @pytest.fixture
-def _unpacking_lock_manager() -> UnpackingLockManager:  # noqa: PT005
+def unpacking_lock_manager() -> UnpackingLockManager:
     _manager = UnpackingLockManager()
     yield _manager
     _manager.shutdown()
 
 
 @pytest.fixture(name='test_config')
-def _scheduler_test_config(request) -> SchedulerTestConfig:  # noqa: PT005
+def scheduler_test_config(request) -> SchedulerTestConfig:
     return SchedulerTestConfig.get_instance_from_request(request)
 
 
@@ -305,13 +305,13 @@ def _store_file_if_not_exists(fs_organizer, file_object):
 
 
 @pytest.fixture
-def analysis_scheduler(
-    request,  # noqa: ARG001
+def analysis_scheduler(  # noqa: PLR0913
+    request,
     pre_analysis_queue,
     post_analysis_queue,
     analysis_finished_event,
     analysis_finished_counter,
-    _unpacking_lock_manager,
+    unpacking_lock_manager,
     test_config,
     monkeypatch,
 ) -> AnalysisScheduler:
@@ -324,7 +324,7 @@ def analysis_scheduler(
     monkeypatch.setattr('scheduler.analysis.plugin.FSOrganizer', test_config.fs_organizer_class)
     _analysis_scheduler = AnalysisScheduler(
         post_analysis=lambda *_: None,
-        unpacking_locks=_unpacking_lock_manager,
+        unpacking_locks=unpacking_lock_manager,
     )
 
     fs_organizer = test_config.fs_organizer_class()
@@ -392,7 +392,7 @@ def unpacking_finished_counter() -> Value:
 def unpacking_scheduler(
     request,
     post_unpack_queue,
-    _unpacking_lock_manager,
+    unpacking_lock_manager,
     test_config,
     unpacking_finished_event,
     unpacking_finished_counter,
@@ -416,7 +416,7 @@ def unpacking_scheduler(
     _unpacking_scheduler = UnpackingScheduler(
         post_unpack=_post_unpack_hook,
         fs_organizer=fs_organizer,
-        unpacking_locks=_unpacking_lock_manager,
+        unpacking_locks=unpacking_lock_manager,
         db_interface=test_config.backend_db_class,
     )
     add_task = _unpacking_scheduler.add_task
@@ -454,7 +454,7 @@ def comparison_finished_event(request) -> Event:
 
 
 @pytest.fixture
-def comparison_scheduler(request, comparison_finished_event, test_config) -> ComparisonScheduler:  # noqa: ARG001
+def comparison_scheduler(request, comparison_finished_event, test_config) -> ComparisonScheduler:
     """Returns an instance of :py:class:`~scheduler.comparison_scheduler.ComparisonScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
     """

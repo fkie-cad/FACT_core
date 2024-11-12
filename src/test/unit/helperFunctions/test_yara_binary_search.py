@@ -1,5 +1,5 @@
 import unittest
-from os import path
+from pathlib import Path
 from subprocess import CalledProcessError
 from unittest import mock
 from unittest.mock import patch
@@ -28,7 +28,7 @@ def mock_check_output(call, *_, shell=True, stderr=None, **__):  # noqa: ARG001
 
 
 @pytest.mark.backend_config_overwrite(
-    {'firmware_file_storage_directory': path.join(get_test_data_dir(), TEST_FILE_1)},  # noqa: PTH118
+    {'firmware_file_storage_directory': str(get_test_data_dir() / TEST_FILE_1)},
 )
 class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
     @mock.patch('helperFunctions.yara_binary_search.DbInterfaceCommon', MockCommonDbInterface)
@@ -96,20 +96,20 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         }
 
     def test_execute_yara_search(self):
-        test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')  # noqa: PTH118
+        test_rule_path = get_test_data_dir() / 'yara_binary_search_test_rule'
         result = self.yara_binary_scanner._execute_yara_search(test_rule_path)
         assert 'test_rule' in result
 
     def test_execute_yara_search_for_single_file(self):
-        test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')  # noqa: PTH118
+        test_rule_path = get_test_data_dir() / 'yara_binary_search_test_rule'
         result = self.yara_binary_scanner._execute_yara_search(
             test_rule_path,
-            target_path=path.join(get_test_data_dir(), TEST_FILE_1, TEST_FILE_1),  # noqa: PTH118
+            target_path=get_test_data_dir() / TEST_FILE_1 / TEST_FILE_1,
         )
         assert 'test_rule' in result
 
     def test_get_file_paths_of_files_included_in_fo(self):
         result = self.yara_binary_scanner._get_file_paths_of_files_included_in_fw('single_firmware')
         assert len(result) == 2
-        assert path.basename(result[0]) == TEST_FILE_2  # noqa: PTH119
-        assert path.basename(result[1]) == TEST_FILE_3  # noqa: PTH119
+        assert Path(result[0]).name == TEST_FILE_2
+        assert Path(result[1]).name == TEST_FILE_3

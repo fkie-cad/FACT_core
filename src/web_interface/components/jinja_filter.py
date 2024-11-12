@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from storage.db_interface_frontend import MetaEntry
     from web_interface.frontend_database import FrontendDatabase
 
+CHART_ELEMENT_COUNT_LIMIT = 100
+
 
 class FilterClass:
     """
@@ -160,85 +162,85 @@ class FilterClass:
 
     def _get_chart_element_count(self):
         limit = config.frontend.max_elements_per_chart
-        if limit > 100:  # noqa: PLR2004
+        if limit > CHART_ELEMENT_COUNT_LIMIT:
             logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
-            return 100
+            return CHART_ELEMENT_COUNT_LIMIT
         return limit
 
     def data_to_chart(self, data):
         color_list = get_color_list(1) * len(data)
         return self.data_to_chart_limited(data, limit=0, color_list=color_list)
 
-    def _setup_filters(self):  # noqa: PLR0915
+    def _setup_filters(self):
         self._app.jinja_env.add_extension('jinja2.ext.do')
-
-        self._app.jinja_env.filters['all_items_equal'] = lambda data: len({str(value) for value in data.values()}) == 1
-        self._app.jinja_env.filters['as_ascii_table'] = flt.as_ascii_table
-        self._app.jinja_env.filters['auth_enabled'] = self.check_auth
-        self._app.jinja_env.filters['base64_encode'] = flt.encode_base64_filter
-        self._app.jinja_env.filters['bytes_to_str'] = flt.bytes_to_str_filter
-        self._app.jinja_env.filters['data_to_chart'] = self.data_to_chart
-        self._app.jinja_env.filters['data_to_chart_limited'] = self.data_to_chart_limited
-        self._app.jinja_env.filters[
-            'data_to_chart_with_value_percentage_pairs'
-        ] = flt.data_to_chart_with_value_percentage_pairs
-        self._app.jinja_env.filters['decompress'] = flt.decompress
-        self._app.jinja_env.filters['dict_to_json'] = json.dumps
-        self._app.jinja_env.filters['fix_cwe'] = flt.fix_cwe
-        self._app.jinja_env.filters['format_duration'] = flt.format_duration
-        self._app.jinja_env.filters['format_string_list_with_offset'] = flt.filter_format_string_list_with_offset
-        self._app.jinja_env.filters['get_canvas_height'] = flt.get_canvas_height
-        self._app.jinja_env.filters['get_searchable_crypto_block'] = flt.get_searchable_crypto_block
-        self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts
-        self._app.jinja_env.filters['hex'] = hex
-        self._app.jinja_env.filters['hide_dts_binary_data'] = flt.hide_dts_binary_data
-        self._app.jinja_env.filters['infection_color'] = flt.infection_color
-        self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
-        self._app.jinja_env.filters['json_dumps'] = json.dumps
-        self._app.jinja_env.filters['link_cve'] = flt.replace_cve_with_link
-        self._app.jinja_env.filters['link_cwe'] = flt.replace_cwe_with_link
-        self._app.jinja_env.filters['list_group'] = flt.list_group
-        self._app.jinja_env.filters['list_group_collapse'] = flt.list_group_collapse
-        self._app.jinja_env.filters['list_to_line_break_string'] = flt.list_to_line_break_string
-        self._app.jinja_env.filters['list_to_line_break_string_no_sort'] = flt.list_to_line_break_string_no_sort
-        self._app.jinja_env.filters['md5_hash'] = get_md5
-        self._app.jinja_env.filters['min'] = min
-        self._app.jinja_env.filters['nice_generic'] = flt.generic_nice_representation
-        self._app.jinja_env.filters['nice_number'] = flt.nice_number_filter
-        self._app.jinja_env.filters['nice_time'] = time_format
-        self._app.jinja_env.filters['nice_uid_list'] = self._filter_nice_uid_list
-        self._app.jinja_env.filters['nice_unix_time'] = flt.nice_unix_time
-        self._app.jinja_env.filters['nice_virtual_path_list'] = self._nice_virtual_path_list
-        self._app.jinja_env.filters['number_format'] = flt.byte_number_filter
-        self._app.jinja_env.filters['octal_to_readable'] = flt.octal_to_readable
-        self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
-        self._app.jinja_env.filters['regex_meta'] = flt.comment_out_regex_meta_chars
-        self._app.jinja_env.filters['remaining_time'] = elapsed_time
-        self._app.jinja_env.filters['render_analysis_tags'] = flt.render_analysis_tags
-        self._app.jinja_env.filters['render_general_information'] = self._render_general_information_table
-        self._app.jinja_env.filters['render_query_title'] = flt.render_query_title
-        self._app.jinja_env.filters['render_fw_tags'] = flt.render_fw_tags
-        self._app.jinja_env.filters['replace_comparison_uid_with_hid'] = self._filter_replace_comparison_uid_with_hid
-        self._app.jinja_env.filters['replace_uid_with_file_name'] = self._filter_replace_uid_with_file_name
-        self._app.jinja_env.filters['replace_uid_with_hid_link'] = self._filter_replace_uid_with_hid_link
-        self._app.jinja_env.filters['replace_uid_with_hid'] = self._filter_replace_uid_with_hid
-        self._app.jinja_env.filters['replace_underscore'] = flt.replace_underscore_filter
-        self._app.jinja_env.filters['version_is_compatible'] = flt.version_is_compatible
-        self._app.jinja_env.filters['sort_chart_list_by_name'] = flt.sort_chart_list_by_name
-        self._app.jinja_env.filters['sort_chart_list_by_value'] = flt.sort_chart_list_by_value
-        self._app.jinja_env.filters['sort_comments'] = flt.sort_comments
-        self._app.jinja_env.filters['sort_cve'] = flt.sort_cve_results
-        self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(
-            privileges, key=lambda role: len(privileges[role]), reverse=True
+        self._app.jinja_env.filters.update(
+            {
+                'all_items_equal': lambda data: len({str(value) for value in data.values()}) == 1,
+                'as_ascii_table': flt.as_ascii_table,
+                'auth_enabled': self.check_auth,
+                'base64_encode': flt.encode_base64_filter,
+                'bytes_to_str': flt.bytes_to_str_filter,
+                'data_to_chart': self.data_to_chart,
+                'data_to_chart_limited': self.data_to_chart_limited,
+                'data_to_chart_with_value_percentage_pairs': flt.data_to_chart_with_value_percentage_pairs,
+                'decompress': flt.decompress,
+                'dict_to_json': json.dumps,
+                'fix_cwe': flt.fix_cwe,
+                'format_duration': flt.format_duration,
+                'format_string_list_with_offset': flt.filter_format_string_list_with_offset,
+                'get_canvas_height': flt.get_canvas_height,
+                'get_searchable_crypto_block': flt.get_searchable_crypto_block,
+                'get_unique_keys_from_list_of_dicts': flt.get_unique_keys_from_list_of_dicts,
+                'hex': hex,
+                'hide_dts_binary_data': flt.hide_dts_binary_data,
+                'infection_color': flt.infection_color,
+                'is_list': lambda item: isinstance(item, list),
+                'json_dumps': json.dumps,
+                'link_cve': flt.replace_cve_with_link,
+                'link_cwe': flt.replace_cwe_with_link,
+                'list_group': flt.list_group,
+                'list_group_collapse': flt.list_group_collapse,
+                'list_to_line_break_string': flt.list_to_line_break_string,
+                'list_to_line_break_string_no_sort': flt.list_to_line_break_string_no_sort,
+                'md5_hash': get_md5,
+                'min': min,
+                'nice_generic': flt.generic_nice_representation,
+                'nice_number': flt.nice_number_filter,
+                'nice_time': time_format,
+                'nice_uid_list': self._filter_nice_uid_list,
+                'nice_unix_time': flt.nice_unix_time,
+                'nice_virtual_path_list': self._nice_virtual_path_list,
+                'number_format': flt.byte_number_filter,
+                'octal_to_readable': flt.octal_to_readable,
+                'print_program_version': self._filter_print_program_version,
+                'regex_meta': flt.comment_out_regex_meta_chars,
+                'remaining_time': elapsed_time,
+                'render_analysis_tags': flt.render_analysis_tags,
+                'render_general_information': self._render_general_information_table,
+                'render_query_title': flt.render_query_title,
+                'render_fw_tags': flt.render_fw_tags,
+                'replace_comparison_uid_with_hid': self._filter_replace_comparison_uid_with_hid,
+                'replace_uid_with_file_name': self._filter_replace_uid_with_file_name,
+                'replace_uid_with_hid_link': self._filter_replace_uid_with_hid_link,
+                'replace_uid_with_hid': self._filter_replace_uid_with_hid,
+                'replace_underscore': flt.replace_underscore_filter,
+                'version_is_compatible': flt.version_is_compatible,
+                'sort_chart_list_by_name': flt.sort_chart_list_by_name,
+                'sort_chart_list_by_value': flt.sort_chart_list_by_value,
+                'sort_comments': flt.sort_comments,
+                'sort_cve': flt.sort_cve_results,
+                'sort_privileges': (
+                    lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
+                ),
+                'sort_roles': flt.sort_roles_by_number_of_privileges,
+                'sort_users': flt.sort_users_by_name,
+                'split_user_and_password_type': self._split_user_and_password_type_entry,
+                'str_to_hex': flt.str_to_hex,
+                'text_highlighter': flt.text_highlighter,
+                'uids_to_link': flt.uids_to_link,
+                'user_has_role': flt.user_has_role,
+                'version_links': flt.create_firmware_version_links,
+                'vulnerability_class': flt.vulnerability_class,
+                '_linter_reformat_issues': flt.linter_reformat_issues,
+            }
         )
-        self._app.jinja_env.filters['sort_roles'] = flt.sort_roles_by_number_of_privileges
-        self._app.jinja_env.filters['sort_users'] = flt.sort_users_by_name
-        self._app.jinja_env.filters['split_user_and_password_type'] = self._split_user_and_password_type_entry
-        self._app.jinja_env.filters['str_to_hex'] = flt.str_to_hex
-        self._app.jinja_env.filters['text_highlighter'] = flt.text_highlighter
-        self._app.jinja_env.filters['uids_to_link'] = flt.uids_to_link
-        self._app.jinja_env.filters['user_has_role'] = flt.user_has_role
-        self._app.jinja_env.filters['version_links'] = flt.create_firmware_version_links
-        self._app.jinja_env.filters['vulnerability_class'] = flt.vulnerability_class
-
-        self._app.jinja_env.filters['_linter_reformat_issues'] = flt.linter_reformat_issues

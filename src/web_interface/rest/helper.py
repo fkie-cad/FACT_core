@@ -1,15 +1,15 @@
-from __future__ import annotations
-
 """
 This module offers neat wrapper functionality for use in rest endpoints.
 Most wrappers target request and response parsing.
 """
 
-import calendar  # noqa: E402
-import json  # noqa: E402
-import time  # noqa: E402
-from copy import deepcopy  # noqa: E402
-from typing import TYPE_CHECKING  # noqa: E402
+from __future__ import annotations
+
+import calendar
+import json
+import time
+from copy import deepcopy
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from werkzeug.datastructures import ImmutableMultiDict
@@ -81,13 +81,13 @@ def get_paging(request_parameters: ImmutableMultiDict) -> tuple[int, int]:
     """
     try:
         offset = int(request_parameters.get('offset', 0))
-    except (TypeError, ValueError):
-        raise ValueError('Malformed offset parameter')  # noqa: B904
+    except (TypeError, ValueError) as error:
+        raise ValueError('Malformed offset parameter') from error
 
     try:
         limit = int(request_parameters.get('limit', 0))
-    except (TypeError, ValueError):
-        raise ValueError('Malformed limit parameter')  # noqa: B904
+    except (TypeError, ValueError) as error:
+        raise ValueError('Malformed limit parameter') from error
 
     return offset, limit
 
@@ -104,8 +104,8 @@ def get_query(request_parameters: ImmutableMultiDict) -> dict:
         query = json.loads(query if query else '{}')
     except (AttributeError, KeyError):
         return {}
-    except json.JSONDecodeError:
-        raise ValueError('Query must be a json document')  # noqa: B904
+    except json.JSONDecodeError as error:
+        raise ValueError('Query must be a json document') from error
     if not isinstance(query, dict):
         raise ValueError('Query must be a json document')
     return query if query else {}
@@ -125,8 +125,8 @@ def get_boolean_from_request(request_parameters: ImmutableMultiDict, name: str) 
             raise TypeError()
     except (AttributeError, KeyError):
         return False
-    except (json.JSONDecodeError, TypeError):
-        raise ValueError(f'{name} must be true or false')  # noqa: B904
+    except (json.JSONDecodeError, TypeError) as error:
+        raise ValueError(f'{name} must be true or false') from error
     return parameter
 
 
@@ -140,10 +140,10 @@ def get_update(request_parameters: ImmutableMultiDict) -> list:
     """
     try:
         update = json.loads(request_parameters.get('update'))
-    except (AttributeError, KeyError, TypeError):
-        raise ValueError('Malformed or missing parameter: update')  # noqa: B904
-    except json.JSONDecodeError:
-        raise ValueError('Update parameter has to be a list')  # noqa: B904
+    except (AttributeError, KeyError, TypeError) as error:
+        raise ValueError('Malformed or missing parameter: update') from error
+    except json.JSONDecodeError as error:
+        raise ValueError('Update parameter has to be a list') from error
     if not isinstance(update, list):
         raise ValueError('Update must be a list')
     if not update:

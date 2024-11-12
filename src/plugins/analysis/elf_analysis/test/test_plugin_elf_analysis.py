@@ -9,7 +9,7 @@ from test.common_helper import get_test_data_dir
 
 from ..code.elf_analysis import AnalysisPlugin
 
-TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')
+TEST_DATA = get_test_data_dir() / 'test_data_file.bin'
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
