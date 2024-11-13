@@ -21,8 +21,6 @@ class DbConnection:
             # local postgres => connect through UNIX domain socket (faster than TCP)
             address = '/var/run/postgresql'
         port = config.common.postgres.port
-        user = getattr(config.common.postgres, user)
-        password = getattr(config.common.postgres, password)
 
         database = db_name if db_name else config.common.postgres.database
         engine_url = URL.create(
@@ -41,23 +39,23 @@ class DbConnection:
 
 
 class ReadOnlyConnection(DbConnection):
-    def __init__(self, user: str = 'ro_user', password: str = 'ro_pw', **kwargs):
-        super().__init__(user, password, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(config.common.postgres.ro_user, config.common.postgres.ro_pw, **kwargs)
 
 
 class ReadWriteConnection(DbConnection):
-    def __init__(self, user: str = 'rw_user', password: str = 'rw_pw', **kwargs):
-        super().__init__(user, password, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(config.common.postgres.rw_user, config.common.postgres.rw_pw, **kwargs)
 
 
 class ReadWriteDeleteConnection(DbConnection):
-    def __init__(self, user: str = 'del_user', password: str = 'del_pw', **kwargs):
-        super().__init__(user, password, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(config.common.postgres.del_user, config.common.postgres.del_pw, **kwargs)
 
 
 class AdminConnection(DbConnection):
-    def __init__(self, user: str = 'admin_user', password: str = 'admin_pw', **kwargs):
-        super().__init__(user, password, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(config.common.postgres.admin_user, config.common.postgres.admin_pw, **kwargs)
 
     def create_tables(self):
         self.base.metadata.create_all(self.engine)
