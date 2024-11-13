@@ -167,7 +167,7 @@ class Backend(Common):
         return value
 
 
-def load(path: str | None = None):
+def load(path: str | Path | None = None):
     """Load the config file located at ``path``.
     The file must be a toml file and is read into instances of :py:class:`~config.Backend`,
     :py:class:`~config.Frontend` and :py:class:`~config.Common`.
