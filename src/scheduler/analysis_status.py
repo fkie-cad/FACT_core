@@ -10,6 +10,7 @@ from queue import Empty
 from time import time
 from typing import TYPE_CHECKING
 
+import config
 from helperFunctions.process import stop_process
 from objects.firmware import Firmware
 from storage.redis_status_interface import RedisStatusInterface
@@ -17,7 +18,6 @@ from storage.redis_status_interface import RedisStatusInterface
 if TYPE_CHECKING:
     from objects.file import FileObject
 
-UPDATE_INTERVAL = 4.5  # a bit less than the update interval on the system health page, FixMe: -> configuration
 RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC = 300
 
 
@@ -130,11 +130,11 @@ class AnalysisStatusWorker:
                 logging.debug(f'updating status (queue: {self.queue.qsize()})')
                 self._clear_recently_finished()
                 self._store_status()
-                next_update_time = current_time + UPDATE_INTERVAL
+                next_update_time = current_time + config.backend.analysis_status_update_interval
         logging.debug('stopped analysis status worker')
 
     def _update_status(self):
-        update_type, *args = self.queue.get(timeout=UPDATE_INTERVAL)
+        update_type, *args = self.queue.get(timeout=config.backend.analysis_status_update_interval)
         if update_type == _UpdateType.add_update:
             self._add_update(*args)
         elif update_type == _UpdateType.add_firmware:
