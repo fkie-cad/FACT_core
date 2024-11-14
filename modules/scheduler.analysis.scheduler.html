@@ -113,24 +113,25 @@
 <p>The analysis scheduler is responsible for</p>
 <ul class="simple">
 <li><p>initializing analysis plugins</p></li>
-<li><p>scheduling tasks based on user decision and built-in dependencies</p></li>
+<li><p>scheduling tasks based on the user’s decision and built-in dependencies</p></li>
 <li><p>deciding if tasks should run or may be skipped</p></li>
 <li><p>running the tasks</p></li>
 <li><p>and storing the new results of analysis tasks in the database</p></li>
 </ul>
-<p>Plugin initialization is mostly handled by the plugins, the scheduler only provides an attachment point and offers
-a single point of reference for introspection and runtime information.</p>
+<p>Plugins handle initialization mostly themselves.
+The scheduler only provides an attachment point
+and offers a single point of reference for introspection and runtime information.</p>
 <p>The scheduler offers three entry points:</p>
 <ol class="arabic simple">
 <li><p>Start the analysis of a file object (start_analysis_of_object)</p></li>
 <li><p>Start the analysis of a file object without context (update_analysis_of_single_object)</p></li>
-<li><p>Start an update of a firmware file and all it’s children (update_analysis_of_object_and_children)</p></li>
+<li><p>Start an update of a firmware file and all its children (update_analysis_of_object_and_children)</p></li>
 </ol>
-<p>Entry point 1. is used by the unpacking scheduler and is trigger for each file object after the unpacking has been
-processed. Entry points 2. and 3. are independent of the unpacking process and can be triggered by the user using
+<p>Entry point 1. is used by the unpacking scheduler and is where each file object is sent after being unpacked.
+Entry points 2. and 3. are independent of the unpacking process and can be triggered by the user using
 the Web-UI or REST-API. 2. is used to update analyses for a single file. 3. is used to update analyses for all files
 contained inside a given firmware. The difference between 1. and 2. is that the single file update (2.) will not be
-considered in the current analysis introspection.</p>
+considered in the “current analyses” introspection.</p>
 <p>Scheduling of tasks is made with the following considerations:</p>
 <ul class="simple">
 <li><p>New objects need a set of mandatory plugins (e.g. file type and hashes), as these results are used in further
@@ -158,16 +159,15 @@ processing stages</p></li>
       └──────────────────────────────────────────────────────────────┘
 </pre></div>
 </div>
-<p>Running the analysis tasks is achieved through (multiprocessing.Queue)s. Each plugin has an in-queue, triggered
-by the scheduler using the <cite>add_job</cite> function, and an out-queue that is processed by the result collector. The
-actual analysis process is out of scope. Database interaction happens before (pre_analysis) and after
-(post_analysis) the running of a task, to store intermediate results for live updates, and final results.</p>
+<p>Passing objects between processes is done using instances of <code class="docutils literal notranslate"><span class="pre">multiprocessing.Queue</span></code>.
+Each plugin has an in-queue, which is filled by the scheduler using the <code class="docutils literal notranslate"><span class="pre">add_job()</span></code> function,
+and an out-queue that is processed by the result collector. The actual analysis process is out of scope.
+The results are stored in the database using <code class="docutils literal notranslate"><span class="pre">post_analysis()</span></code> after each analysis is completed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pre_analysis</strong> – A database callback to execute before running an analysis task.</p></li>
-<li><p><strong>post_analysis</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>[</em><em>str</em><em>, </em><em>str</em><em>, </em><em>dict</em><em>]</em><em>, </em><em>None</em><em>]</em><em>]</em>) – A database callback to execute after running an analysis task.</p></li>
-<li><p><strong>db_interface</strong> – An object reference to an instance of BackEndDbInterface.</p></li>
+<li><p><strong>post_analysis</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>[</em><em>str</em><em>, </em><em>str</em><em>, </em><em>dict</em><em>]</em><em>, </em><em>None</em><em>]</em><em>]</em>) – A database function to call after running an analysis task.</p></li>
+<li><p><strong>db_interface</strong> – An instance of BackEndDbInterface.</p></li>
 <li><p><strong>unpacking_locks</strong> (<em>UnpackingLockManager</em><em> | </em><em>None</em>) – An instance of UnpackingLockManager.</p></li>
 </ul>
 </dd>
@@ -195,7 +195,7 @@ exceptions are not registered as they are restarted after an exception occurs.</
 <dl class="py method">
 <dt class="sig sig-object py" id="scheduler.analysis.scheduler.AnalysisScheduler.get_plugin_dict">
 <span class="sig-name descname"><span class="pre">get_plugin_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.scheduler.AnalysisScheduler.get_plugin_dict" title="Permalink to this definition"></a></dt>
-<dd><p>Get information regarding all loaded plugins in form of a dictionary with the following form:</p>
+<dd><p>Get information regarding all loaded plugins in the form of a dictionary with the following form:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="n">NAME</span><span class="p">:</span> <span class="p">(</span>
         <span class="nb">str</span><span class="p">:</span> <span class="n">DESCRIPTION</span><span class="p">,</span>
@@ -225,7 +225,8 @@ in the analysis selection.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scheduler.analysis.scheduler.AnalysisScheduler.get_scheduled_workload">
 <span class="sig-name descname"><span class="pre">get_scheduled_workload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.scheduler.AnalysisScheduler.get_scheduled_workload" title="Permalink to this definition"></a></dt>
-<dd><p>Get the current workload of this scheduler. The workload is represented through
+<dd><p>Get the current workload of this scheduler.
+The workload is represented by
 - the general in-queue,
 - the currently running analyses in each plugin and the plugin in-queues,
 - the progress for each currently analyzed firmware and
@@ -255,7 +256,7 @@ in the analysis selection.</p>
 <dt class="sig sig-object py" id="scheduler.analysis.scheduler.AnalysisScheduler.shutdown">
 <span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.scheduler.AnalysisScheduler.shutdown" title="Permalink to this definition"></a></dt>
 <dd><p>Shutdown the runner process, the result collector and all plugin processes. A multiprocessing.Value is set to
-notify all attached processes of the impending shutdown. Afterwards queues are closed once it’s safe.</p>
+notify all attached processes of the impending shutdown. Afterward, queues are closed once it’s safe.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -290,7 +291,7 @@ extraction process. Scheduled analyses are propagated to the included objects.</
 <dl class="py method">
 <dt class="sig sig-object py" id="scheduler.analysis.scheduler.AnalysisScheduler.update_analysis_of_single_object">
 <span class="sig-name descname"><span class="pre">update_analysis_of_single_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.scheduler.AnalysisScheduler.update_analysis_of_single_object" title="Permalink to this definition"></a></dt>
-<dd><p>This function is used to add analysis tasks for a single file. This function has no side effects so the object
+<dd><p>This function is used to add analysis tasks for a single file. This function has no side effects, so the object
 is simply iterated until all scheduled analyses are processed or skipped.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
