@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import time
 from base64 import standard_b64encode
 from contextlib import contextmanager
 from copy import deepcopy
 from http import HTTPStatus
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
@@ -326,3 +327,15 @@ def assert_search_result(response: TestResponse, included: list[FileObject], exc
         assert f"href='/analysis/{fo.uid}'" in html, f'file {fo.uid} should be included in the result'
     for fo in excluded:
         assert f"href='/analysis/{fo.uid}'" not in html, f'file {fo.uid} should not be included in the result'
+
+
+def wait_for_event(
+    expression: Callable[[], bool], timeout: float = 5.0, check_interval: float = 0.1, inverted: bool = False
+) -> bool:
+    check: Callable[[], bool] = expression if not inverted else lambda: not expression()
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        if check():
+            return True
+        time.sleep(check_interval)
+    return check()
