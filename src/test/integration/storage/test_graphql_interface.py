@@ -39,7 +39,7 @@ def test_graphql_search(backend_db, graphql_interface):
     assert result == [fw.uid]
 
     result, count = graphql_interface.search_gql({'vendor': {'_in': [fw.vendor, 'other_vendor']}}, 'test_firmware')
-    assert count == 2  # noqa: PLR2004
+    assert count == 2
 
     result, count = graphql_interface.search_gql(
         {'result': {'_contains': {'foo': 'bar'}}, 'plugin': {'_eq': 'plugin_name'}}, 'test_analysis'
