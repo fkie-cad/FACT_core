@@ -105,7 +105,7 @@ def backend_config(request, common_config, firmware_file_storage_directory) -> c
         'firmware_file_storage_directory': firmware_file_storage_directory,
         'block_delay': 0.1,
         'ssdeep_ignore': 1,
-        'intercom_poll_delay': 1.0,
+        'intercom_poll_delay': 0.1,
         'throw_exceptions': True,  # Always throw exceptions to avoid miraculous timeouts in test cases
         'plugin_defaults': {'processes': 1},
         'unpacking': {
