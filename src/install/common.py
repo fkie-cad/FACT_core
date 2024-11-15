@@ -46,11 +46,7 @@ def main(distribution):
 
     BIN_DIR.mkdir(exist_ok=True)
 
-    run_cmd_with_logging(
-        f'wget -O {BIN_DIR / "firmware.xz"} https://github.com/fkie-cad/firmware-magic-database/releases/download/v0.2.1/firmware.xz'
-    )
-    run_cmd_with_logging(f'unxz --force {BIN_DIR / "firmware.xz"}')
-    run_cmd_with_logging(f'cp --force {INSTALL_DIR / "internal_symlink_magic"} {BIN_DIR}')
+    _install_fw_magic()
 
     apt_packages_path = INSTALL_DIR / 'apt-pkgs-common.txt'
     dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-common.txt'
@@ -77,6 +73,18 @@ def main(distribution):
         Path('start_all_installed_fact_components').symlink_to('src/start_fact.py')
 
     return 0
+
+
+def _install_fw_magic(version: str = 'v0.2.1'):
+    with OperateInDirectory(BIN_DIR):
+        run_cmd_with_logging(
+            f'wget https://github.com/fkie-cad/firmware-magic-database/releases/download/{version}/firmware.xz'
+        )
+        run_cmd_with_logging('unxz --force firmware.xz')
+        run_cmd_with_logging(f'cp --force {INSTALL_DIR / "internal_symlink_magic"} ./')
+        # compile the magic files (results in .mgc suffix) so that we don't get warnings when using them
+        run_cmd_with_logging('file -C -m firmware')
+        run_cmd_with_logging('file -C -m internal_symlink_magic')
 
 
 def _update_submodules():
