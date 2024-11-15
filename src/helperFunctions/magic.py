@@ -13,8 +13,8 @@ from helperFunctions.fileSystem import get_src_dir
 
 # On ubuntu this is provided by the libmagic-mgc package
 _default_magic = os.getenv('MAGIC', '/usr/lib/file/magic.mgc')
-_fact_magic = f'{get_src_dir()}/bin/firmware'
-_internal_symlink_magic = f'{get_src_dir()}/bin/internal_symlink_magic'
+_fact_magic = f'{get_src_dir()}/bin/firmware.mgc'
+_internal_symlink_magic = f'{get_src_dir()}/bin/internal_symlink_magic.mgc'
 _magic_file = f'{_internal_symlink_magic}:{_fact_magic}:{_default_magic}'
 
 _instances = {}
