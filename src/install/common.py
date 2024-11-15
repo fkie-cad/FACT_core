@@ -75,7 +75,7 @@ def main(distribution):
     return 0
 
 
-def _install_fw_magic(version: str = 'v0.2.1'):
+def _install_fw_magic(version: str = 'v0.2.2'):
     with OperateInDirectory(BIN_DIR):
         run_cmd_with_logging(
             f'wget https://github.com/fkie-cad/firmware-magic-database/releases/download/{version}/firmware.xz'
