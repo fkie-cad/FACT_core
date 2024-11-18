@@ -244,13 +244,13 @@ def check_distribution(allow_unsupported=False):
         return 'noble'
     if codename in debian_code_names:
         logging.debug('Debian/Kali detected')
-        return 'debian'
+        return codename
     if distro.id() == 'fedora':
         logging.debug('Fedora detected')
         return 'fedora'
     msg = (
         f'Your Distribution ({distro.id()} {distro.version()}) is not supported. '
-        'FACT Installer requires Ubuntu 20.04/22.04, Debian 11/12 or compatible!'
+        'FACT Installer requires Ubuntu 20.04/22.04/24.04, Debian 11/12 or compatible!'
     )
     if allow_unsupported:
         logging.info(msg)

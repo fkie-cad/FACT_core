@@ -26,7 +26,7 @@ def execute_psql_command(
     # See https://www.postgresql.org/docs/current/auth-methods.html
 
     if host in ['localhost', '127.0.0.1']:
-        shell_cmd = f'sudo runuser -u {user} -- psql -c "{psql_command}"'
+        shell_cmd = f'sudo runuser -u {user} -- psql --port={port} -c "{psql_command}"'
     else:
         shell_cmd = f'psql --host={host} --port={port} --username={user} -c "{psql_command}"'
 

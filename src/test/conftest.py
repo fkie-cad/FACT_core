@@ -150,8 +150,8 @@ def _database_interfaces():  # noqa: PT005
                 'rw-pw': config.common.postgres.rw_pw,
                 'del-user': config.common.postgres.del_user,
                 'del-pw': config.common.postgres.del_pw,
-                'admin-user': config.common.postgres.del_user,
-                'admin-pw': config.common.postgres.del_pw,
+                'admin-user': config.common.postgres.admin_user,
+                'admin-pw': config.common.postgres.admin_pw,
             },
             'redis': {
                 'fact-db': config.common.redis.test_db,  # Note: This is unused in testing
