@@ -169,3 +169,41 @@ class TestAnalysisStatus:
         self.status._worker.recently_finished = {'foo': {'time_finished': time() - time_finished_delay}}
         self.status._worker._clear_recently_finished()
         assert bool('foo' in self.status._worker.recently_finished) == expected_result
+
+    def test_cancel_analysis(self):
+        self.status._worker.currently_running = {
+            ROOT_UID: FwAnalysisStatus(
+                files_to_unpack=set(),
+                files_to_analyze={'foo'},
+                analysis_plugins={},
+                hid='',
+                total_files_count=3,
+            )
+        }
+        self.status._currently_analyzed[ROOT_UID] = True
+        fo = FileObject(binary=b'foo')
+        fo.root_uid = ROOT_UID
+        fo.uid = 'foo'
+        assert self.status.fw_analysis_is_in_progress(fo)
+
+        self.status.cancel_analysis(ROOT_UID)
+        self.status._worker._update_status()
+
+        assert ROOT_UID not in self.status._worker.currently_running
+        assert ROOT_UID not in self.status._currently_analyzed
+        assert not self.status.fw_analysis_is_in_progress(fo)
+
+    def test_cancel_unknown_uid(self):
+        self.status._worker.currently_running = {
+            ROOT_UID: FwAnalysisStatus(
+                files_to_unpack=set(),
+                files_to_analyze={'foo'},
+                analysis_plugins={},
+                hid='',
+                total_files_count=3,
+            )
+        }
+        self.status.cancel_analysis('unknown')
+        self.status._worker._update_status()
+
+        assert ROOT_UID in self.status._worker.currently_running

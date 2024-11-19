@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 
 from helperFunctions.data_conversion import normalize_compare_id
@@ -78,3 +80,10 @@ class TestAppAjaxRoutes:
         result = test_client.get('/ajax_get_hex_preview/some_uid/0/10')
         assert result.data.startswith(b'<pre')
         assert b'foobar' in result.data
+
+    def test_ajax_cancel_analysis(self, test_client, intercom_task_list):
+        uid = 'some_uid'
+        result = test_client.get(f'/ajax/cancel_analysis/{uid}')
+        assert intercom_task_list == [uid], 'task not added to intercom'
+        assert result.data == b'{}\n'
+        assert result.status_code == HTTPStatus.OK

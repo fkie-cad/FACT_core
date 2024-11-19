@@ -10,6 +10,7 @@ import pytest
 from intercom.back_end_binding import (
     InterComBackEndAnalysisTask,
     InterComBackEndBinarySearchTask,
+    InterComBackEndCancelTask,
     InterComBackEndCompareTask,
     InterComBackEndFileDiffTask,
     InterComBackEndLogsTask,
@@ -25,7 +26,8 @@ from test.common_helper import create_test_firmware
 
 
 class AnalysisServiceMock:
-    def get_plugin_dict(self):
+    @staticmethod
+    def get_plugin_dict():
         return {'dummy': 'dummy description'}
 
 
@@ -189,3 +191,10 @@ class TestInterComTaskCommunication:
                 result = result_future.result()
             assert task is None, 'task not correct'
             assert result == expected_result.split()
+
+    def test_cancel_task(self, intercom_frontend):
+        task = InterComBackEndCancelTask()
+        root_uid = 'root_uid'
+        intercom_frontend.cancel_analysis(root_uid)
+        result = task.get_next_task()
+        assert result == root_uid

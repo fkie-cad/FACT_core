@@ -20,6 +20,7 @@ from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from objects.firmware import Firmware
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
@@ -197,6 +198,7 @@ class AnalysisScheduler:
 
         :param fo: The file that is to be analyzed
         """
+        fo.root_uid = None  # for status/scheduling
         self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis)
         self._check_further_process_or_complete(fo)
 
@@ -208,6 +210,9 @@ class AnalysisScheduler:
         for plugin_name in sorted(self.analysis_plugins, key=str.lower):
             plugins.append(f'{plugin_name} {self.analysis_plugins[plugin_name].VERSION}')
         return ', '.join(plugins)
+
+    def cancel_analysis(self, root_uid: str):
+        self.status.cancel_analysis(root_uid)
 
     # ---- plugin initialization ----
 
@@ -549,8 +554,17 @@ class AnalysisScheduler:
         if not fw_object.scheduled_analysis:
             logging.info(f'Analysis Completed: {fw_object.uid}')
             self.status.remove_object(fw_object)
-        else:
+        elif (
+            isinstance(fw_object, Firmware)
+            or fw_object.root_uid is None  # this should only be true if we are dealing with a "single file analysis"
+            or self.status.fw_analysis_is_in_progress(fw_object)
+        ):
             self.process_queue.put(fw_object)
+        else:
+            logging.debug(
+                f'Removing {fw_object.uid} from analysis scheduling because analysis of FW {fw_object.root_uid} '
+                f'was cancelled.'
+            )
 
     # ---- miscellaneous functions ----
 

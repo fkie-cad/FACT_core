@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import html
+import logging
+from http import HTTPStatus
 
 from flask import jsonify, render_template
 
@@ -148,3 +150,10 @@ class AjaxRoutes(ComponentBase):
             'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database'),
             'analysisStatus': self.status.get_analysis_status(),
         }
+
+    @roles_accepted(*PRIVILEGES['cancel_analysis'])
+    @AppRoute('/ajax/cancel_analysis/<root_uid>', GET)
+    def cancel_analysis(self, root_uid: str):
+        logging.info(f'Received analysis cancel request for {root_uid}')
+        self.intercom.cancel_analysis(root_uid=root_uid)
+        return {}, HTTPStatus.OK
