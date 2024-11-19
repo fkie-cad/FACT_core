@@ -1,13 +1,21 @@
-# The Firmware Analysis and Comparison Tool (FACT)
+<h1 align="center">
+  <img src="src/web_interface/static/FACT_smaller.png" />
+  <br/>
+  The Firmware Analysis and Comparison Tool (FACT)
+</h1>
 
-![FACT logo](src/web_interface/static/FACT_smaller.png)
+---
 
-[![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d3910401cb58498a8c2d00be80092080)](https://www.codacy.com/gh/fkie-cad/FACT_core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/FACT_core/community)
-[![CI Build](https://github.com/fkie-cad/FACT_core/actions/workflows/build_ci.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/build_ci.yml)
-[![Ruff](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+<div align="center">
+
+  [![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
+  [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d3910401cb58498a8c2d00be80092080)](https://www.codacy.com/gh/fkie-cad/FACT_core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
+  [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/FACT_core/community)
+  [![CI Build](https://github.com/fkie-cad/FACT_core/actions/workflows/build_ci.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/build_ci.yml)
+  [![Ruff](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml)
+  [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+</div>
 
 ## Contents
 
