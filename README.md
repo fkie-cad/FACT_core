@@ -9,26 +9,64 @@
 [![Ruff](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-The Firmware Analysis and Comparison Tool is intended to automate most of the firmware analysis process.
-It recursively unpacks arbitrary firmware images and runs several analyses on each file.
-Additionally, it can compare several images or single files.
-Furthermore, Unpacking, analysis and comparisons are based on plugins guaranteeing maximal flexibility and
-expandability.  
+## Content
+
+- [Why FACT?](#why-fact)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Documentation](#documentation)
+- [Contribute](#contribute)
+- [Additional plugins](#additional-plugins)
+- [Acknowledgments](#acknowledgments)
+- [Presentations](#presentations)
+- [Social](#social)
+- [License](#license)
+
+## Why FACT?
+
+Firmware analysis can be used to achieve a number of interesting goals.
+Chief among those are identifying functionality, components and potential security weaknesses in black box firmware.
+
+The Firmware Analysis and Comparison Tool (FACT) is intended to automate as much as possible of the manual firmware analysis work.
+FACT combines a growing set of powerful analyses to create a unified interface that brings the user from a an arbitrary firmware sample to a finished analysis.
+Some of the key features of the FACT analysis, is that results are
+- browsable
+- searchable
+- and comparable.
+
+Furthermore, FACT offers multiple ways of navigating and visualizing analysis results and firmware contents for easy accessibility.
+The main FACT interface is a html/js/css-based web Interface that can be hosted locally or shared through the network.
+In addition, FACT offers a REST-like HTTP API that can be explored with an integrated SwaggerUI.
+Some key features of the web interface are
+- easy visualization of firmware by a file tree rendering of all firmware components
+- quick navigation of analysis results by observing summaries of results over all firmware components
+- highlighting of relevant analysis results as tags on top of each page
+- various download options for firmware and components to jump into advanced analysis
+
+While FACT is maintained as a research prototype, the project is well tested, includes a baseline of documentation and offers a multitude of production level features.
+We're always looking for feedback and feature requests.
+
 More details and some screenshots can be found on our [project page](https://fkie-cad.github.io/FACT_core/).
 
-## Requirements
+## Setup
+
+### Requirements
 
 FACT is designed as a multiprocess application, the more Cores and RAM, the better.
 
-| Minimal                                 | Recommended                                |
-|-----------------------------------------|--------------------------------------------|
-| 4 Cores<br>8 GB RAM<br>10 GB disk space | 16 Cores<br>64 GB RAM<br>10* GB disk space |
+| Minimal          | Recommended       |
+|------------------|-------------------|
+| 4 Cores          | 16 Cores          |
+| 8 GB RAM         | 64 GB RAM         |
+| 10 GB disk space | 10* GB disk space |
 
 > ~ 10 GB required to set up FACT code, container and binaries.
 > Additional space is necessary for storage of unpacked files and analysis results.
 > This can be on a separate partition or drive.
 
-It is possible to install FACT on any Linux distribution, but the installer is limited to
+### Local Installation
+
+It's principally possible to install FACT on any Linux distribution, but the installer is limited to
 
 - Debian 11/12 (stable)
 - Ubuntu 20.04/22.04/24.04 (stable)
@@ -38,31 +76,13 @@ It is possible to install FACT on any Linux distribution, but the installer is l
 FACT requires Python 3.9–3.12 (should be the default in all distributions except Ubuntu 20.04 where you can install
 a newer version using `apt`)
 
-:exclamation: **Caution: FACT is not intended to be used as public internet service. The GUI is not a hardened
-WEB-application and it may take your server at risk!**
-
-## Usage
-
-You can start FACT by executing the `start_all_installed_fact_components` script.
-The script detects all installed components automatically.
-
-```sh
-./start_all_installed_fact_components
-```
-
-Afterward, FACT can be accessed on <http://localhost:5000> (default) or <https://localhost> (if FACT is installed with
-nginx).
-
-You can shut down the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_fact_components*
-script.
-
-## Local Installation
-
 The setup process is mostly automated and wrapped in a single script.
 Some features can be selected specifically though.
-For a detailed guid on how to install FACT see [INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md).
+For a detailed guide on how to install FACT see [INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md).
 
-## Alternatives to installing FACT locally
+:exclamation: Note that also making extensive use of containers, FACT still contains a large amount of dependencies.
+(Also there is no _uninstall_ provided)
+If you want to keep your system clean you can try one of the setup options provided in the following.
 
 ### Vagrant
 
@@ -80,8 +100,28 @@ however, deprecated.*
 
 ### Docker
 
-There is also a dockerized version, but it is currently outdated
+There is also a dockerized version, but it is currently unmaintained.
 (see the [FACT_docker](https://github.com/fkie-cad/FACT_docker) repo for more information).
+
+## Usage
+
+You can start FACT by executing the `start_fact.py` script.
+The script detects all installed components automatically.
+
+```sh
+src/start_fact.py
+```
+
+Afterward, FACT can be accessed on <http://localhost:5000> (default) or <https://localhost> (if FACT is installed with
+nginx).
+
+You can shut down the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_fact.py*
+script.
+
+:exclamation: FACT is not intended to be used as public internet service.
+The web interface is not a hardened application.
+We try to keep security issues limited by applying SecDevOps but FACT may still offer vulnerabilities.
+Especially make sure to reset all passwords in the fact configuration if planning to host FACT on not-fully trusted networks.
 
 ## Documentation
 
@@ -109,9 +149,11 @@ Our Developer Manual can be found [here](https://github.com/fkie-cad/FACT_core/w
 
 ## Additional plugins
 
-Additional plugins are available on GitHub:
+Currently available additional plugins:
 
 - [Codescanner](https://github.com/fkie-cad/Codescanner_FACT_plugin) (:warning: different license)
+  - Classification of segments (e.g. ascii / code / high entropy) in arbitrary binaries
+  - Classification of cpu architecture in code segments
 
 ## Import/Export of Results
 
@@ -135,7 +177,7 @@ python3 firmware_import_export.py import FW.zip [FW_2.zip ...]
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and
 others.
 
-## Publications / Presentations
+## Presentations
 
 ### BlackHat Arsenal
 
