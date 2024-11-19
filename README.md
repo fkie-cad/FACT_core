@@ -1,6 +1,6 @@
 # The Firmware Analysis and Comparison Tool (FACT)
 
-![](src/web_interface/static/FACT_smaller.png | width=625)
+![FACT logo](src/web_interface/static/FACT_smaller.png)
 
 [![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d3910401cb58498a8c2d00be80092080)](https://www.codacy.com/gh/fkie-cad/FACT_core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
