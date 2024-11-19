@@ -66,6 +66,7 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 | 8 GB RAM         | 64 GB RAM         |
 | 10 GB disk space | 10* GB disk space |
 
+> [!NOTE]
 > About 10 GB required to set up FACT code, container and binaries.
 > Additional space is necessary for storage of unpacked files and analysis results.
 > This can be on a separate partition or drive.
@@ -86,6 +87,7 @@ The setup process is mostly automated and wrapped in a single script.
 Some features can be selected specifically though.
 For a detailed guide on how to install FACT see [INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md).
 
+> [!IMPORTANT]
 > Note that while making extensive use of containers, FACT still contains a large amount of dependencies (and there is no _uninstall_ provided).
 > If you want to keep your system clean you can try one of the setup options provided in the following.
 
@@ -120,7 +122,7 @@ nginx).
 You can shut down the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_fact.py*
 script.
 
-> **Security**
+> [!CAUTION]
 > FACT is not intended to be used as public internet service.
 > The web interface is not a hardened application.
 > We try to keep security issues limited by applying SecDevOps but FACT may still offer vulnerabilities.
@@ -128,6 +130,7 @@ script.
 
 ## Documentation
 
+> [!TIP]
 > More documentation on how to use FACT can be found on
 our [wiki pages](https://github.com/fkie-cad/FACT_core/wiki/).
 
