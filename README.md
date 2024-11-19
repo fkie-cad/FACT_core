@@ -4,8 +4,6 @@
   The Firmware Analysis and Comparison Tool (FACT)
 </h1>
 
----
-
 <div align="center">
 
   [![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
