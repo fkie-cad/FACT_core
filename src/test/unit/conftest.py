@@ -67,6 +67,9 @@ class CommonIntercomMock:
     def add_re_analyze_task(self, task, unpack=True):
         self.task_list.append(task)
 
+    def cancel_analysis(self, root_uid):
+        self.task_list.append(root_uid)
+
 
 class FrontendDatabaseMock:
     """A class mocking :py:class:`~web_interface.frontend_database.FrontendDatabase`."""

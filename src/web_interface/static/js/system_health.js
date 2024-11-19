@@ -146,48 +146,76 @@ function updateCurrentAnalyses(analysisData) {
     const currentAnalysesElement = document.getElementById("current-analyses");
     const currentAnalysesHTML = [].concat(
         Object.entries(analysisData.current_analyses)
-            .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid, false)),
+            .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid)),
         Object.entries(analysisData.recently_finished_analyses)
             .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid, true)),
+        Object.entries(analysisData.recently_canceled_analyses)
+            .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid, false, true)),
     ).join("\n");
     currentAnalysesElement.innerHTML = currentAnalysesHTML !== "" ? currentAnalysesHTML : "No analysis in progress";
     document.querySelectorAll('div[role=tooltip]').forEach((element) => {element.remove();});
     $("body").tooltip({selector: '[data-toggle="tooltip"]'});  // update tooltips for dynamically created elements
 }
 
-function createCurrentAnalysisItem(data, uid, isFinished) {
+function createCurrentAnalysisItem(data, uid, isFinished=false, isCancelled=false) {
     const timeString = isFinished ? `Finished in ${getDuration(null, data.duration)}` : `${getDuration(data.start_time)}`;
     const total = isFinished ? data.total_files_count : data.total_count;
     const showDetails = Boolean(document.getElementById("ca-show-details").checked);
-    const width = isFinished || !showDetails ? "30px": "50%";
+    const width = isFinished || isCancelled || !showDetails ? "30px": "50%";
     const unpackingIsFinished = isFinished ? null : (data.unpacked_count == data.total_count);
-    const padding = isFinished || !showDetails ? 55 : 211;
+    const padding = isFinished || isCancelled || !showDetails ? 55 : 211;
+    const cancelButton = isFinished || isCancelled ? '' : `
+        <button type="button" class="close" onclick="cancelAnalysis(this, '${uid}')" style="font-size: 1.1rem; color: red; opacity: 1;">
+            <span aria-hidden="true">
+                <i class="fas fa-trash-alt" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Cancel Analysis"></i>
+            </span>
+        </button>
+    `;
+    const elapsedTime = isCancelled ? 'Cancelled' : `
+        <tr>
+            ${createIconCell("clock", "Elapsed Time", width)}
+            <td>
+                <p class="card-text">${timeString}</p>
+            </td>
+        </tr>
+    `;
     return `
-        <a href='/analysis/${uid}/ro/${uid}' style="color: black;">
-            <div class="card clickable mt-2">
-                <h6 class="card-title p-2" style="margin-bottom: 0 !important; padding-bottom: 0 !important;">${data.hid}</h6>
+            <div class="card mt-2">
+                <h6 class="card-title p-2" style="margin-bottom: 0 !important; padding-bottom: 0 !important;">
+                    <a class="clickable" href='/analysis/${uid}/ro/${uid}'>
+                        ${data.hid}
+                    </a>
+                    ${cancelButton}
+                </h6>
                 <div class="card-body p-2">
                     <table class="table table-borderless table-sm mb-0">
-                        <tr>
-                            ${createIconCell("clock", "Elapsed Time", width)}
-                            <td>
-                                <p class="card-text">${timeString}</p>
-                            </td>
-                        </tr>
+                        ${elapsedTime}
                         <tr>
                             ${createIconCell("box-open", "Unpacking Progress", width)}
-                            ${createProgressBarCell(isFinished ? data.total_files_count : data.unpacked_count, total, padding)}
+                            ${createProgressBarCell(isFinished ? data.total_files_count : data.unpacked_count, total, padding, isFinished, isCancelled)}
                         </tr>
                         <tr>
                             ${createIconCell("microscope", "Analysis Progress", width)}
-                            ${createProgressBarCell(isFinished ? data.total_files_count : data.analyzed_count, total, padding)}
+                            ${createProgressBarCell(isFinished ? data.total_files_count : data.analyzed_count, total, padding, isFinished, isCancelled)}
                         </tr>
-                        ${!isFinished && showDetails ? createPluginProgress(data, unpackingIsFinished) : ""}
+                        ${!isFinished && !isCancelled && showDetails ? createPluginProgress(data, unpackingIsFinished) : ""}
                     </table>
                 </div>
             </div>
-        </a>
     `;
+}
+
+function cancelAnalysis(element, root_uid) {
+    element.innerHTML = `
+        <div class="spinner-border text-danger" role="status">
+            <span class="sr-only">Cancelling...</span>
+        </div>
+    `;
+    fetch(`/ajax/cancel_analysis/${root_uid}`).then(response => {
+        if (!response.ok) {
+            console.log(`Error: could not cancel analysis of ${root_uid}`);
+        }
+    });
 }
 
 function createPluginProgress(data, unpackingIsFinished) {
@@ -205,10 +233,10 @@ function createSinglePluginProgress(plugin, count, total, unpackingIsFinished) {
     `;
 }
 
-function createProgressBarCell(count, total, padding_offset=211, unpackingIsFinished=true) {
+function createProgressBarCell(count, total, padding_offset=211, unpackingIsFinished=true, isCancelled=false) {
     const progress = count / total * 100;
     const progressString = `${count} / ${total} (${progress.toFixed(1)}%)`;
-    const divClass = (progress >= 100.0) ? `progress-bar ${unpackingIsFinished ? "bg-success" : "bg-warning"}` : "progress-bar";
+    const divClass = (progress >= 100.0) ? `progress-bar ${unpackingIsFinished ? "bg-success" : "bg-warning"}` : isCancelled ? "bg-danger" : "progress-bar";
     const pStyle = {
         "color": "white",
         "font-size": "0.75rem",

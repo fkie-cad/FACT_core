@@ -8,7 +8,7 @@ from intercom.common_redis_binding import InterComListener
 from intercom.front_end_binding import InterComFrontEndBinding
 
 # This number must be changed, whenever a listener is added or removed
-NUMBER_OF_LISTENERS = 12
+NUMBER_OF_LISTENERS = 13
 
 
 class ServiceMock:

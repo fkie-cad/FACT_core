@@ -1,9 +1,13 @@
-from multiprocessing import Event, Manager
+import logging
+from multiprocessing import Event, Lock, Manager
 
 import pytest
 
+from objects.file import FileObject
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
+
+TEST_FW = Firmware(file_path=f'{get_test_data_dir()}/container/test_zip.tar.gz')
 
 
 class MockDb:
@@ -32,21 +36,20 @@ class MockDb:
 @pytest.mark.SchedulerTestConfig(start_processes=True)
 class TestUnpackScheduler:
     def test_unpack_a_container_including_another_container(self, unpacking_scheduler, post_unpack_queue):
-        test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test_zip.tar.gz')
         included_files = [
             'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227',
             'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28',
         ]
-        unpacking_scheduler.add_task(test_fw)
+        unpacking_scheduler.add_task(TEST_FW)
         extracted_files = {}
         for _ in range(4):
             file = post_unpack_queue.get(timeout=5)
             extracted_files[file.uid] = file
 
-        assert test_fw.uid in extracted_files
-        assert len(extracted_files[test_fw.uid].files_included) == 2, 'not all children of fw found'
+        assert TEST_FW.uid in extracted_files
+        assert len(extracted_files[TEST_FW.uid].files_included) == 2, 'not all children of fw found'
         assert (
-            included_files[0] in extracted_files[test_fw.uid].files_included
+            included_files[0] in extracted_files[TEST_FW.uid].files_included
         ), 'included container not extracted. Unpacker tar.gz module broken?'
         assert all(f in extracted_files for f in included_files)
         assert len(extracted_files[included_files[0]].files_included) == 1
@@ -71,3 +74,24 @@ class TestUnpackScheduler:
         assert unpacking_scheduler.throttle_condition.value == 1, 'unpack load throttle not functional'
 
         unpacking_scheduler.shutdown()
+
+
+def test_cancel_unpacking(unpacking_scheduler, caplog):
+    unpacking_scheduler.sync_lock = Lock()
+    unpacking_scheduler.currently_extracted = {}
+    test_fo = FileObject(binary=b'foo')
+    test_fo.uid = 'foo'
+    test_fo.root_uid = TEST_FW.uid
+
+    # this should not cause an error even if the FW is not currently being unpacked
+    unpacking_scheduler.cancel_unpacking(TEST_FW.uid)
+
+    unpacking_scheduler._init_currently_unpacked(TEST_FW)
+    assert TEST_FW.uid in unpacking_scheduler.currently_extracted
+
+    unpacking_scheduler.cancel_unpacking(TEST_FW.uid)
+    assert TEST_FW.uid not in unpacking_scheduler.currently_extracted
+
+    with caplog.at_level(logging.DEBUG):
+        unpacking_scheduler.work_thread(test_fo, None)
+    assert any('Cancelling unpacking' in m for m in caplog.messages)

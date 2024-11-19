@@ -5,10 +5,10 @@ import logging
 import os
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from multiprocessing import Process, Queue, Value
+from multiprocessing import Manager, Process, Queue, Value
 from queue import Empty
 from time import time
-from typing import TYPE_CHECKING, Dict, Set
+from typing import TYPE_CHECKING
 
 from helperFunctions.process import stop_process
 from objects.firmware import Firmware
@@ -27,17 +27,23 @@ class _UpdateType(Enum):
     add_file = auto()
     add_analysis = auto()
     remove_file = auto()
+    is_currently_analyzed = auto()
+    cancel = auto()
 
 
 class AnalysisStatus:
     def __init__(self):
-        self._worker = AnalysisStatusWorker()
+        self._manager = Manager()
+        # this object tracks only the FW objects and not the status of the individual files
+        self._currently_analyzed = self._manager.dict()
+        self._worker = AnalysisStatusWorker(currently_analyzed_fw=self._currently_analyzed)
 
     def start(self):
         self._worker.start()
 
     def shutdown(self):
         self._worker.shutdown()
+        self._manager.shutdown()
 
     def add_update(self, fw_object: Firmware | FileObject, included_files: list[str] | set[str]):
         self.add_object(fw_object)
@@ -70,25 +76,33 @@ class AnalysisStatus:
     def remove_object(self, fw_object: Firmware | FileObject):
         self._worker.queue.put((_UpdateType.remove_file, fw_object.uid, fw_object.root_uid))
 
+    def fw_analysis_is_in_progress(self, fw_object: Firmware | FileObject) -> bool:
+        return fw_object.root_uid in self._currently_analyzed or fw_object.uid in self._currently_analyzed
+
+    def cancel_analysis(self, root_uid: str):
+        self._worker.queue.put((_UpdateType.cancel, root_uid))
+
 
 @dataclass
 class FwAnalysisStatus:
-    files_to_unpack: Set[str]
-    files_to_analyze: Set[str]
+    files_to_unpack: set[str]
+    files_to_analyze: set[str]
     total_files_count: int
     hid: str
-    analysis_plugins: Dict[str, int]
+    analysis_plugins: dict[str, int]
     start_time: float = field(default_factory=time)
-    completed_files: Set[str] = field(default_factory=set)
+    completed_files: set[str] = field(default_factory=set)
     total_files_with_duplicates: int = 1
     unpacked_files_count: int = 1
     analyzed_files_count: int = 0
 
 
 class AnalysisStatusWorker:
-    def __init__(self):
+    def __init__(self, currently_analyzed_fw: dict):
         self.recently_finished = {}
-        self.currently_running: Dict[str, FwAnalysisStatus] = {}
+        self.recently_canceled = {}
+        self.currently_running: dict[str, FwAnalysisStatus] = {}
+        self.currently_analyzed: dict = currently_analyzed_fw
         self._worker_process = None
         self.queue = Queue()
         self._running = Value('i', 0)
@@ -131,6 +145,8 @@ class AnalysisStatusWorker:
             self._add_analysis(*args)
         elif update_type == _UpdateType.remove_file:
             self._remove_object(*args)
+        elif update_type == _UpdateType.cancel:
+            self._cancel_analysis(*args)
 
     def _add_update(self, fw_uid: str, included_files: set[str]):
         status = self.currently_running[fw_uid]
@@ -149,6 +165,8 @@ class AnalysisStatusWorker:
             hid=hid,
             analysis_plugins={p: 0 for p in scheduled_analyses or []},
         )
+        # This is only for checking if a FW is currently analyzed from *outside* of this class
+        self.currently_analyzed[uid] = True
 
     def _add_included_file(self, uid: str, root_uid: str, included_files: set[str]):
         """
@@ -190,6 +208,7 @@ class AnalysisStatusWorker:
         if len(status.files_to_unpack) == len(status.files_to_analyze) == 0:
             self.recently_finished[root_uid] = self._init_recently_finished(status)
             del self.currently_running[root_uid]
+            self.currently_analyzed.pop(root_uid, None)
             logging.info(f'Analysis of firmware {root_uid} completed')
 
     @staticmethod
@@ -202,14 +221,16 @@ class AnalysisStatusWorker:
         }
 
     def _clear_recently_finished(self):
-        for uid, stats in list(self.recently_finished.items()):
-            if time() - stats['time_finished'] > RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC:
-                self.recently_finished.pop(uid)
+        for status_dict in (self.recently_finished, self.recently_canceled):
+            for uid, stats in list(status_dict.items()):
+                if time() - stats['time_finished'] > RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC:
+                    status_dict.pop(uid)
 
     def _store_status(self):
         status = {
             'current_analyses': self._get_current_analyses_stats(),
             'recently_finished_analyses': self.recently_finished,
+            'recently_canceled_analyses': self.recently_canceled,
         }
         self.redis.set_analysis_status(status)
 
@@ -226,3 +247,15 @@ class AnalysisStatusWorker:
             }
             for uid, status in self.currently_running.items()
         }
+
+    def _cancel_analysis(self, root_uid: str):
+        if root_uid in self.currently_running:
+            status = self.currently_running.pop(root_uid)
+            self.recently_canceled[root_uid] = {
+                'unpacked_count': status.unpacked_files_count,
+                'analyzed_count': status.analyzed_files_count,
+                'total_count': status.total_files_count,
+                'hid': status.hid,
+                'time_finished': time(),
+            }
+            self.currently_analyzed.pop(root_uid, None)

@@ -19,6 +19,7 @@ from storage.fsorganizer import FSOrganizer
 
 if TYPE_CHECKING:
     from objects.firmware import Firmware
+    from scheduler.unpacking_scheduler import UnpackingScheduler
     from storage.unpacking_locks import UnpackingLockManager
 
 
@@ -36,7 +37,7 @@ class InterComBackEndBinding:
     ):
         self.analysis_service = analysis_service
         self.compare_service = compare_service
-        self.unpacking_service = unpacking_service
+        self.unpacking_service: UnpackingScheduler = unpacking_service
         self.unpacking_locks = unpacking_locks
         self.listeners = [
             InterComBackEndAnalysisTask(self.unpacking_service.add_task),
@@ -54,6 +55,7 @@ class InterComBackEndBinding:
             InterComBackEndSingleFileTask(self.analysis_service.update_analysis_of_single_object),
             InterComBackEndPeekBinaryTask(),
             InterComBackEndLogsTask(),
+            InterComBackEndCancelTask(self._cancel_task),
         ]
 
     def start(self):
@@ -70,6 +72,11 @@ class InterComBackEndBinding:
             config.backend.intercom_poll_delay + 1,
         )
         logging.info('Intercom offline')
+
+    def _cancel_task(self, root_uid: str):
+        logging.warning(f'Cancelling unpacking and analysis of {root_uid}.')
+        self.unpacking_service.cancel_unpacking(root_uid)
+        self.analysis_service.cancel_analysis(root_uid)
 
 
 class InterComBackEndAnalysisTask(InterComListener):
@@ -107,6 +114,10 @@ class InterComBackEndSingleFileTask(InterComBackEndReAnalyzeTask):
 
 class InterComBackEndCompareTask(InterComListener):
     CONNECTION_TYPE = 'compare_task'
+
+
+class InterComBackEndCancelTask(InterComListener):
+    CONNECTION_TYPE = 'cancel_task'
 
 
 class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
