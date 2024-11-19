@@ -9,7 +9,7 @@
 [![Ruff](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-## Content
+## Contents
 
 - [Why FACT?](#why-fact)
 - [Setup](#setup)
@@ -60,7 +60,7 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 | 8 GB RAM         | 64 GB RAM         |
 | 10 GB disk space | 10* GB disk space |
 
-> ~ 10 GB required to set up FACT code, container and binaries.
+> About 10 GB required to set up FACT code, container and binaries.
 > Additional space is necessary for storage of unpacked files and analysis results.
 > This can be on a separate partition or drive.
 
@@ -80,9 +80,8 @@ The setup process is mostly automated and wrapped in a single script.
 Some features can be selected specifically though.
 For a detailed guide on how to install FACT see [INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md).
 
-:exclamation: Note that also making extensive use of containers, FACT still contains a large amount of dependencies.
-(Also there is no _uninstall_ provided)
-If you want to keep your system clean you can try one of the setup options provided in the following.
+> Note that while making extensive use of containers, FACT still contains a large amount of dependencies (and there is no _uninstall_ provided).
+> If you want to keep your system clean you can try one of the setup options provided in the following.
 
 ### Vagrant
 
@@ -94,9 +93,6 @@ Our boxes can be found [here](https://app.vagrantup.com/fact-cad/boxes/FACT-mast
 
 Check out on how to get started with FACT and vagrant in
 our [tutorial](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.vagrant.md).
-
-*Thanks to @botlabsDev, who initially provided a [Vagrantfile](https://github.com/botlabsDev/FACTbox) that is now,
-however, deprecated.*
 
 ### Docker
 
@@ -118,14 +114,15 @@ nginx).
 You can shut down the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_fact.py*
 script.
 
-:exclamation: FACT is not intended to be used as public internet service.
-The web interface is not a hardened application.
-We try to keep security issues limited by applying SecDevOps but FACT may still offer vulnerabilities.
-Especially make sure to reset all passwords in the fact configuration if planning to host FACT on not-fully trusted networks.
+> **Security**
+> FACT is not intended to be used as public internet service.
+> The web interface is not a hardened application.
+> We try to keep security issues limited by applying SecDevOps but FACT may still offer vulnerabilities.
+> Especially make sure to reset all passwords in the fact configuration if planning to host FACT on not-fully trusted networks.
 
 ## Documentation
 
-:information_source: More documentation on how to use FACT can be found on
+> More documentation on how to use FACT can be found on
 our [wiki pages](https://github.com/fkie-cad/FACT_core/wiki/).
 
 Our Sphinx documentation can be found [here](https://fkie-cad.github.io/FACT_core/).
@@ -173,6 +170,9 @@ python3 firmware_import_export.py import FW.zip [FW_2.zip ...]
 ```
 
 ## Acknowledgments
+
+Thanks to @botlabsDev, who initially provided a [Vagrantfile](https://github.com/botlabsDev/FACTbox) that is now,
+however, deprecated.
 
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and
 others.
