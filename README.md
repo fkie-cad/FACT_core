@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="src/web_interface/static/FACT_smaller.png" />
+  <img src="src/web_interface/static/FACT_smaller.png" alt="FACT logo with magnifying glass as the C" />
   <br/>
   The Firmware Analysis and Comparison Tool (FACT)
 </h1>
@@ -36,6 +36,7 @@ Chief among those are identifying functionality, components and potential securi
 The Firmware Analysis and Comparison Tool (FACT) is intended to automate as much as possible of the manual firmware analysis work.
 FACT combines a growing set of powerful analyses to create a unified interface that brings the user from a an arbitrary firmware sample to a finished analysis.
 Some of the key features of the FACT analysis, is that results are
+
 - browsable
 - searchable
 - and comparable.
@@ -43,11 +44,12 @@ Some of the key features of the FACT analysis, is that results are
 Furthermore, FACT offers multiple ways of navigating and visualizing analysis results and firmware contents for easy accessibility.
 The main FACT interface is a html/js/css-based web Interface that can be hosted locally or shared through the network.
 In addition, FACT offers a REST-like HTTP API that can be explored with an integrated SwaggerUI.
-Some key features of the web interface are
-- easy visualization of firmware by a file tree rendering of all firmware components
-- quick navigation of analysis results by observing summaries of results over all firmware components
-- highlighting of relevant analysis results as tags on top of each page
-- various download options for firmware and components to jump into advanced analysis
+Some key features of the web interface are:
+
+- Easy visualization of firmware by a file tree rendering of all firmware components.
+- Quick navigation of analysis results by observing summaries of results over all firmware components.
+- Highlighting of relevant analysis results as tags on top of each page.
+- Various download options for firmware and components to jump into advanced analysis.
 
 While FACT is maintained as a research prototype, the project is well tested, includes a baseline of documentation and offers a multitude of production level features.
 We're always looking for feedback and feature requests.
