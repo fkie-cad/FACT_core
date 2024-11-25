@@ -21,7 +21,7 @@
 - [Setup](#setup)
 - [Usage](#usage)
 - [Documentation](#documentation)
-- [Contribute](#contribute)
+- [Contribute](#contributing)
 - [Additional plugins](#additional-plugins)
 - [Acknowledgments](#acknowledgments)
 - [Presentations](#presentations)
@@ -33,8 +33,10 @@
 Firmware analysis can be used to achieve a number of interesting goals.
 Chief among those are identifying functionality, components and potential security weaknesses in black box firmware.
 
-The Firmware Analysis and Comparison Tool (FACT) is intended to automate as much as possible of the manual firmware analysis work.
-FACT combines a growing set of powerful analyses to create a unified interface that brings the user from a an arbitrary firmware sample to a finished analysis.
+The Firmware Analysis and Comparison Tool (FACT) is intended to automate as much as possible of the manual firmware
+analysis work.
+FACT combines a growing set of powerful analyses to create a unified interface that brings the user from an arbitrary
+firmware sample to a finished analysis.
 Some of the key features of the FACT analysis, is that results are
 
 - browsable
@@ -51,7 +53,8 @@ Some key features of the web interface are:
 - Highlighting of relevant analysis results as tags on top of each page.
 - Various download options for firmware and components to jump into advanced analysis.
 
-While FACT is maintained as a research prototype, the project is well tested, includes a baseline of documentation and offers a multitude of production level features.
+While FACT is maintained as a research prototype, the project is well tested, includes a baseline of documentation and
+offers a multitude of production level features.
 We're always looking for feedback and feature requests.
 
 More details and some screenshots can be found on our [project page](https://fkie-cad.github.io/FACT_core/).
@@ -87,11 +90,13 @@ a newer version using `apt`)
 
 The setup process is mostly automated and wrapped in a single script.
 Some features can be selected specifically though.
-For a detailed guide on how to install FACT see [INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md).
+For a detailed guide on how to install FACT see
+[INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md).
 
 > [!IMPORTANT]
-> Note that while making extensive use of containers, FACT still contains a large amount of dependencies (and there is no _uninstall_ provided).
-> If you want to keep your system clean you can try one of the setup options provided in the following.
+> Note that while making extensive use of containers, FACT still contains a large number of dependencies
+> (and there is no _uninstall_ provided).
+> If you want to keep your system clean, you can try one of the setup options provided in the following.
 
 ### Vagrant
 
@@ -121,11 +126,10 @@ src/start_fact.py
 Afterward, FACT can be accessed on <http://localhost:5000> (default) or <https://localhost> (if FACT is installed with
 nginx).
 
-You can shut down the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_fact.py*
-script.
+You can shut down the system by pressing <kbd>Ctrl + c</kbd> or by sending a SIGTERM to the `start_fact.py` script.
 
 > [!CAUTION]
-> FACT is not intended to be used as public internet service.
+> FACT is not intended to be used as a public internet service.
 > The web interface is not a hardened application.
 > We try to keep security issues limited by applying SecDevOps but FACT may still offer vulnerabilities.
 > Especially make sure to reset all passwords in the fact configuration if planning to host FACT on not-fully trusted networks.
@@ -160,14 +164,14 @@ Our Developer Manual can be found [here](https://github.com/fkie-cad/FACT_core/w
 Currently available additional plugins:
 
 - [Codescanner](https://github.com/fkie-cad/Codescanner_FACT_plugin) (:warning: different license)
-  - Classification of segments (e.g. ascii / code / high entropy) in arbitrary binaries
-  - Classification of cpu architecture in code segments
+    - Classification of segments (e.g. ascii / code / high entropy) in arbitrary binaries
+    - Classification of cpu architecture in code segments
 
 ## Import/Export of Results
 
 The script `src/firmware_import_export.py` can be used to export unpacked files and analysis results and import them
 into another FACT instance.
-The data is stored as a ZIP archive, and this is also the format the script expects during import. 
+The data is stored as a ZIP archive, and this is also the format the script expects during import.
 To export files and analysis data of analyzed firmware images, run
 
 ```shell
