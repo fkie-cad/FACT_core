@@ -1,52 +1,59 @@
-default_stages: [commit, push]
+default_stages: [ commit, push ]
 exclude: ^src/bin/
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
     hooks:
-    -   id: check-added-large-files
-        args: [--maxkb=10000]
+      - id: check-added-large-files
+        args: [ --maxkb=10000 ]
 
-    -   id: check-json
+      - id: check-json
 
-    -   id: check-merge-conflict
+      - id: check-merge-conflict
 
-    -   id: check-toml
+      - id: check-toml
 
-    -   id: check-yaml
+      - id: check-yaml
 
-    -   id: fix-encoding-pragma
-        args: [--remove]
+      - id: fix-encoding-pragma
+        args: [ --remove ]
 
-    -   id: file-contents-sorter
+      - id: file-contents-sorter
         files: src/unpacker/passwords|_list.txt
 
-    -   id: forbid-new-submodules
+      - id: forbid-new-submodules
 
-    -   id: no-commit-to-branch
+      - id: no-commit-to-branch
 
-    -   id: pretty-format-json
-        args: [--autofix]
+      - id: pretty-format-json
+        args: [ --autofix ]
         exclude: ^src/web_interface/static/package-lock.json
 
--   repo: https://github.com/jumanjihouse/pre-commit-hooks
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 2.1.5
     hooks:
-    -   id: shellcheck
+      - id: shellcheck
 
--   repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
+  - repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
     rev: v0.1.0
     hooks:
-    -   id: dockerfilelint
+      - id: dockerfilelint
 
--   repo: https://github.com/pre-commit/mirrors-jshint
+  - repo: https://github.com/pre-commit/mirrors-jshint
     rev: v2.13.0
     hooks:
-    -   id: jshint
+      - id: jshint
 
-- repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: 'v0.2.2'
-  hooks:
-    - id: ruff
-      args: [ --fix, --exit-non-zero-on-fix ]
-    - id: ruff-format
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: 'v0.2.2'
+    hooks:
+      - id: ruff
+        args: [ --fix, --exit-non-zero-on-fix ]
+      - id: ruff-format
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.35.0
+    hooks:
+      - id: markdownlint
+        args: [ "--config", ".markdownlint.yaml" ]
+
