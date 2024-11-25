@@ -24,14 +24,14 @@
 - [Contribute](#contributing)
 - [Additional plugins](#additional-plugins)
 - [Analysis Import/Export](#analysis-import--export)
-- [Acknowledgments](#acknowledgments)
 - [Presentations](#presentations)
 - [Social](#social)
+- [Acknowledgments](#acknowledgments)
 - [License](#license)
 
 ## Why FACT?
 
-Firmware analysis can be used to achieve a number of interesting goals.
+Firmware analysis can be used to achieve several interesting goals.
 Chief among those are identifying functionality, components and potential security weaknesses in black box firmware.
 
 The Firmware Analysis and Comparison Tool (FACT) is intended to automate as much as possible of the manual firmware
@@ -73,7 +73,7 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 | 10 GB disk space | 10* GB disk space |
 
 > [!NOTE]
-> About 10 GB required to set up FACT code, container and binaries.
+> About 10 GB required to set up FACT code, container, and binaries.
 > Additional space is necessary for storage of unpacked files and analysis results.
 > This can be on a separate partition or drive.
 
@@ -95,7 +95,7 @@ For a detailed guide on how to install FACT see
 [INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md).
 
 > [!IMPORTANT]
-> Note that while making extensive use of containers, FACT still contains a large number of dependencies
+> Note that while making extensive use of containers, FACT still contains many dependencies
 > (and there is no _uninstall_ provided).
 > If you want to keep your system clean, you can try one of the setup options provided in the following.
 
@@ -133,7 +133,7 @@ You can shut down the system by pressing <kbd>Ctrl + c</kbd> or by sending a SIG
 > FACT is not intended to be used as a public internet service.
 > The web interface is not a hardened application.
 > We try to keep security issues limited by applying SecDevOps but FACT may still offer vulnerabilities.
-> Especially make sure to reset all passwords in the fact configuration if planning to host FACT on not-fully trusted networks.
+> Make sure to reset all passwords in the fact configuration if planning to host FACT on not-fully trusted networks.
 
 ## Documentation
 
@@ -152,7 +152,7 @@ FACT provides a REST API. More information can be found [here](https://github.co
 
 ### User Management
 
-FACT provides an optional basic authentication, role and user management.
+FACT provides an optional basic authentication, role, and user management.
 More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/Authentication).
 
 ## Contributing
@@ -189,14 +189,6 @@ After this, you can import the exported files with
 python3 firmware_import_export.py import FW.zip [FW_2.zip ...]
 ```
 
-## Acknowledgments
-
-Thanks to @botlabsDev, who initially provided a [Vagrantfile](https://github.com/botlabsDev/FACTbox) that is now,
-however, deprecated.
-
-This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and
-others.
-
 ## Presentations
 
 ### BlackHat Arsenal
@@ -221,6 +213,14 @@ We've been happy to show FACT in a number of BlackHat Arsenal sessions.
 
 - [Twitter](https://twitter.com/FAandCTool)
 - [Gitter](https://app.gitter.im/?updated=1.11.30#/room/#FACT_core_community:gitter.im)
+
+## Acknowledgments
+
+Thanks to @botlabsDev, who initially provided a [Vagrantfile](https://github.com/botlabsDev/FACTbox) that is now,
+however, deprecated.
+
+This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and
+others.
 
 ## License
 
