@@ -23,6 +23,7 @@
 - [Documentation](#documentation)
 - [Contribute](#contributing)
 - [Additional plugins](#additional-plugins)
+- [Analysis Import/Export](#analysis-import--export)
 - [Acknowledgments](#acknowledgments)
 - [Presentations](#presentations)
 - [Social](#social)
@@ -167,7 +168,7 @@ Currently available additional plugins:
     - Classification of segments (e.g. ascii / code / high entropy) in arbitrary binaries
     - Classification of cpu architecture in code segments
 
-## Import/Export of Results
+## Analysis Import / Export
 
 The script `src/firmware_import_export.py` can be used to export unpacked files and analysis results and import them
 into another FACT instance.
@@ -177,6 +178,10 @@ To export files and analysis data of analyzed firmware images, run
 ```shell
 python3 firmware_import_export.py export FW_UID [FW_UID_2 ...] [-o OUTPUT_DIR]
 ```
+
+> [!NOTE]
+> The exported archives can take up significant disk space.
+> There is no fixed relation, but it can surpass the size of the original firmware by a factor of 2 - 10.
 
 After this, you can import the exported files with
 
