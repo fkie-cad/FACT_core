@@ -39,7 +39,7 @@ class FileObject:
         #: The list of all recursively included files in this file.
         #: That means files are included that are themselves included in files contained in this file, and so on.
         #: This value is not set by default as it's expensive to aggregate and takes up a lot of memory.
-        self.list_of_all_included_files = None
+        self.list_of_all_included_files: set[str] | None = None
 
         #: List of parent uids.
         #: A parent in this context is the direct predecessor in a firmware tree.
