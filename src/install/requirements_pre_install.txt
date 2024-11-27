@@ -9,6 +9,8 @@ requests==2.32.2
 pydantic==2.4.0
 werkzeug~=3.0.3
 toml==0.10.2
+# needed during installation of cve_lookup plugin
+ijson==3.3.0
 
 git+https://github.com/fkie-cad/common_helper_files.git
 

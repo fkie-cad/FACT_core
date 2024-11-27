@@ -51,20 +51,18 @@ class DbSetup:
             update=update,
         )
 
-    def add_cve_items(self, cve_list: list[CveEntry]):
+    def add_cve_items(self, cve_list: list[CveEntry], chunk_size: int = 2**12):
         """
         Add CVE items to the database.
         """
         existing_cve_ids = set()
         existing_cpe_ids = set()
 
-        cves = []
-        associations = []
-        cpes = []
+        db_objects = []
 
         for cve_item in cve_list:
             if cve_item.cve_id not in existing_cve_ids:
-                cves.append(self.create_cve(cve_item))
+                db_objects.append(self.create_cve(cve_item))
                 for cpe_entry in cve_item.cpe_entries:
                     (
                         cpe_id,
@@ -74,9 +72,9 @@ class DbSetup:
                         version_end_excluding,
                     ) = cpe_entry
                     if cpe_id not in existing_cpe_ids:
-                        cpes.append(self.create_cpe(cpe_id))
+                        db_objects.append(self.create_cpe(cpe_id))
                         existing_cpe_ids.add(cpe_id)
-                    associations.append(
+                    db_objects.append(
                         Association(
                             cve_id=cve_item.cve_id,
                             cpe_id=cpe_id,
@@ -87,5 +85,10 @@ class DbSetup:
                         )
                     )
                 existing_cve_ids.add(cve_item.cve_id)
-        self.session.bulk_save_objects(cves + associations + cpes)
-        self.session.commit()
+            if len(db_objects) >= chunk_size:
+                self.session.bulk_save_objects(db_objects)
+                self.session.commit()
+                db_objects.clear()
+        if db_objects:
+            self.session.bulk_save_objects(db_objects)
+            self.session.commit()
