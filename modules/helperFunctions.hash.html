@@ -69,11 +69,8 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html">helperFunctions.fileSystem module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.hash module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.hash.get_hash"><code class="docutils literal notranslate"><span class="pre">get_hash()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.hash.get_imphash"><code class="docutils literal notranslate"><span class="pre">get_imphash()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.hash.get_md5"><code class="docutils literal notranslate"><span class="pre">get_md5()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.hash.get_sha256"><code class="docutils literal notranslate"><span class="pre">get_sha256()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.hash.get_ssdeep"><code class="docutils literal notranslate"><span class="pre">get_ssdeep()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.hash.get_tlsh"><code class="docutils literal notranslate"><span class="pre">get_tlsh()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.hash.get_tlsh_comparison"><code class="docutils literal notranslate"><span class="pre">get_tlsh_comparison()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.hash.normalize_lief_items"><code class="docutils literal notranslate"><span class="pre">normalize_lief_items()</span></code></a></li>
 </ul>
@@ -134,27 +131,15 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>hash_function</strong> – The hash function to use. See hashlib for more</p></li>
-<li><p><strong>binary</strong> – The data to hash, either as string or array of Integers</p></li>
+<li><p><strong>hash_function</strong> (<em>str</em>) – The hash function to use. See hashlib for more</p></li>
+<li><p><strong>binary</strong> (<em>bytes</em><em> | </em><em>str</em>) – The data to hash, either as string or array of Integers</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The hash as hexstring</p>
+<dd class="field-even"><p>The hash as hex string</p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.hash.get_imphash">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_imphash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_imphash" title="Permalink to this definition"></a></dt>
-<dd><p>Generates and returns the md5 hash of the (sorted) imported functions of an ELF file represented by <cite>file_object</cite>.
-Returns <cite>None</cite> if there are no imports or if an exception occurs.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>file_object</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>FileObject</em></a>) – The FileObject of which the imphash shall be computed</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>str | None</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -162,22 +147,28 @@ Returns <cite>None</cite> if there are no imports or if an exception occurs.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.hash.get_md5">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_md5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_md5" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>code</strong> (<em>bytes</em><em> | </em><em>str</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.hash.get_sha256">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_sha256</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_sha256" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.hash.get_ssdeep">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_ssdeep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_ssdeep" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.hash.get_tlsh">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_tlsh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_tlsh" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>code</strong> (<em>bytes</em><em> | </em><em>str</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.hash.get_tlsh_comparison">

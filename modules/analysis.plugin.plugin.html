@@ -196,10 +196,10 @@ and will be aborted if the timeout is reached.</p>
 It MUST be a <a class="reference external" href="https://semver.org/">semver</a> version.
 Here is a quick summary how semver relates to plugins.
 * MAJOR: The plugin schema changed.
-* MINOR: The schema din’t change but might contain more data.
+* MINOR: The schema didn’t change but might contain more data.
 * PATCH: A bug was fixed e.g. a crash on some files.</p>
 <p>Note that any version change leads to rescheduling the analysis.
-But backwards compatible results will still be shown in the fronfrontend.</p>
+But backwards compatible results will still be shown in the frontend.</p>
 </dd></dl>
 
 </dd></dl>
@@ -270,8 +270,8 @@ May return None if nothing was found.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="analysis.plugin.plugin.AnalysisPluginV0.summarize">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">summarize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.plugin.plugin.AnalysisPluginV0.summarize" title="Permalink to this definition"></a></dt>
-<dd><p>The summary is a list of categories in which the result can be grouped.
+<span class="sig-name descname"><span class="pre">summarize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.plugin.plugin.AnalysisPluginV0.summarize" title="Permalink to this definition"></a></dt>
+<dd><p>The summary is an optional list of categories in which the result can be grouped.
 In the FACT_core frontend if you view the analysis of a container the
 summary is used to group files included in it.</p>
 <p>Some examples of summaries are:</p>
