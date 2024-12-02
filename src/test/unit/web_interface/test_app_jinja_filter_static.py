@@ -47,8 +47,6 @@ class FilterClassMock:
                     {
                         'data': [1696, 207, 9],
                         'backgroundColor': ['#4062fa', '#149df1', '#18cde4'],
-                        'borderColor': '#fff',
-                        'borderWidth': 2,
                     }
                 ],
             },
@@ -62,8 +60,6 @@ class FilterClassMock:
                     {
                         'data': [1696, 207, 9],
                         'backgroundColor': ['#4062fa', '#a0faa1'],
-                        'borderColor': '#fff',
-                        'borderWidth': 2,
                     }
                 ],
             },
