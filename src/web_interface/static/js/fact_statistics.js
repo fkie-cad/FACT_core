@@ -1,38 +1,38 @@
-function get_extended_tooltip(element, data){
+function getExtendedTooltip(element, data) {
     const value = data.datasets[element.datasetIndex].data[element.index];
-    const sum = data.datasets[element.datasetIndex].data.reduce(function(pv, cv) { return pv + cv; }, 0);
+    const sum = data.datasets[element.datasetIndex].data.reduce((pv, cv) => pv + cv, 0);
     const percent = Math.round((value / sum) * 1000) / 10;
-    return value + " (" + percent + "%)";
+    return `${value} (${percent}%)`;
 }
 
-function get_extended_tooltip_value_percentage_pairs(element, data){
+function getExtendedTooltipValuePercentagePairs(element, data) {
     const percent = _round(data.datasets[element.datasetIndex].percentage[element.index], 2);
     const value = data.datasets[element.datasetIndex].data[element.index];
-    return value + " (" + percent + " %)";
+    return `${value} (${percent}%)`;
 }
 
-function _round(value, decimals){
-    return Number(Math.round(value*100+'e'+decimals)+'e-'+decimals);
+function _round(value, decimals) {
+    return Number(Math.round(value * 100 + 'e' + decimals) + 'e-' + decimals);
 }
 
-function _truncate(str){
+function _truncate(str) {
     if (str.length > 20) {
-        return str.substr(0, 17) + '...';
+        return str.slice(0, 17) + '...';
     } else {
         return str;
     }
 }
 
-function get_full_title(tooltipItems, data) {
+function getFullTitle(tooltipItems, data) {
     return data.labels[tooltipItems[0].index];
 }
 
-let chart_options = {
+let chartOptions = {
     legend: {position: "bottom", display: false},
     tooltips: {
         callbacks: {
-            label: get_extended_tooltip,
-            title: get_full_title,
+            label: getExtendedTooltip,
+            title: getFullTitle,
         }
     },
     scales: {
@@ -41,98 +41,173 @@ let chart_options = {
     }
 };
 
-let chart_options_value_percentage_pairs = {
-    legend: {position: "bottom", display: false},
+let chartOptionsValuePercentagePairs = {
+    ...chartOptions,
     tooltips: {
         callbacks: {
-            label: get_extended_tooltip_value_percentage_pairs,
-            title: get_full_title,
+            label: getExtendedTooltipValuePercentagePairs,
+            title: getFullTitle,
         }
     },
-    scales: {
-        xAxes: [{display: false, ticks: {beginAtZero: true}}],
-        yAxes: [{ticks: {callback: _truncate}}],
-    }
 };
 
-function _add(a, b){
+function _add(a, b) {
     return a + b;
 }
 
-function set_links(canvas_id, any_chart, link) {
-
-    document.getElementById(canvas_id).onclick = function(evt){
-        const points = any_chart.getElementsAtEvent(evt);
-        const label = any_chart.data.labels[points[0]._index];
+function setLinks(canvasId, chart, link) {
+    document.getElementById(canvasId).onclick = (evt) => {
+        const points = chart.getElementsAtEvent(evt);
+        const label = chart.data.labels[points[0]._index];
         if ((points[0] !== undefined) && (label !== "rest"))
             window.location = link.replace("PLACEHOLDER", label);
     };
-
 }
 
-function set_links_from_data(canvas_id, chart, link) {
-
-    document.getElementById(canvas_id).onclick = function(evt){
+function setLinksFromData(canvasId, chart, link) {
+    document.getElementById(canvasId).onclick = (evt) => {
         const points = chart.getElementsAtEvent(evt);
         if (chart.data.datasets[0].links !== undefined) {
             const key = chart.data.datasets[0].links[points[0]._index];
             window.location = link.replace("PLACEHOLDER", key);
         }
     };
-
 }
 
-function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percentage_present_flag = false, links_in_data = false) {
-    const ctx = document.getElementById(canvas_id);
-    let chart_opt, max;
+let charts = {};
 
-    if (value_percentage_present_flag) {
-        chart_opt = chart_options_value_percentage_pairs;
-        max = chart_data.datasets[0].data.slice(0, 2).reduce(_add);
+function createHorizontalBarChart(canvasId, chartData, link, isPercentage = false, linksInData = false) {
+    let options, max;
+
+    if (isPercentage) {
+        options = chartOptionsValuePercentagePairs;
+        max = chartData.datasets[0].data.slice(0, 2).reduce(_add);
     } else {
-        chart_opt = chart_options;
-        max = Math.max(...chart_data.datasets[0].data);
+        options = chartOptions;
+        max = Math.max(...chartData.datasets[0].data);
     }
-    chart_opt.scales.xAxes[0].ticks.max = max * 1.05;
+    options.scales.xAxes[0].ticks.max = max * 1.05;
 
     let BarChart = new Chart(
-        ctx, {
+        document.getElementById(canvasId),
+        {
             type: "horizontalBar",
-            data: chart_data,
-            options: chart_opt
+            data: chartData,
+            options: options
         }
     );
 
-    if (links_in_data) {
-        set_links_from_data(canvas_id, BarChart, link);
+    if (linksInData) {
+        setLinksFromData(canvasId, BarChart, link);
     } else {
-        set_links(canvas_id, BarChart, link);
+        setLinks(canvasId, BarChart, link);
     }
-
+    BarChart.options.scales.yAxes[0].ticks.fontColor = getTextColor();
+    charts[canvasId] = BarChart;
     return BarChart;
 }
 
-function create_pie_chart(canvas_id, chart_data, link) {
-    const ctx = document.getElementById(canvas_id);
-
+function createPieChart(canvasId, chartData, link) {
+    chartData.datasets[0].borderColor = getLineColor();
+    chartData.datasets[0].borderWidth = 3;
     let PieChart = new Chart(
-        ctx, {
+        document.getElementById(canvasId),
+        {
             type: "doughnut",
-            data: chart_data,
+            data: chartData,
             options: {
                 legend: {
                     fullWidth: false,
                     position: 'right',
                     labels: {
                         boxWidth: 20,
-                        fontSize: 10
-                    }
-            }
-        }
-        }
+                        fontSize: 10,
+                        fontColor: getTextColor(),
+                    },
+                },
+            },
+        },
     );
-
-    set_links(canvas_id, PieChart, link);
-
+    setLinks(canvasId, PieChart, link);
+    charts[canvasId] = PieChart;
     return PieChart;
 }
+
+function createHistogram(canvasId, chartData) {
+    console.log(`isDark: ${isDark()}`);  // TODO FIXME
+    let options = {
+        legend: {display: false},
+        scales: {
+            xAxes: [{ticks: {fontColor: getTextColor()}}],
+            yAxes: [
+                {
+                    ticks: {
+                        beginAtZero: true,
+                        fontColor: getTextColor(),
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Firmware Releases",
+                        fontColor: getTextColor(),
+                    },
+                },
+            ],
+        },
+    };
+    let dateBarChart = new Chart(
+        document.getElementById(canvasId),
+        {
+            type: "bar",
+            data: chartData,
+            options: options,
+        }
+    );
+    charts[canvasId] = dateBarChart;
+    return dateBarChart;
+}
+
+const lightTextColor = "#212529";
+const darkTextColor = "#ccc";
+const lightLineColor = "#f8f9fa";
+const darkLineColor = "#343a40";
+
+function getTextColor() {
+    return isDark() ? darkTextColor : lightTextColor;
+}
+
+function getLineColor() {
+    return isDark() ? darkLineColor : lightLineColor;
+}
+
+function isDark() {
+    return (
+        document.getElementById("darkModeSwitch").checked ||
+        localStorage.getItem('darkMode') === 'enabled'
+    );
+}
+
+function updateChartColors() {
+    Object.entries(charts).forEach(([id, chart]) => {
+        try {
+            if (chart.config.type === "doughnut") {
+                chart.options.legend.labels.fontColor = getTextColor();
+                chart.data.datasets[0].borderColor = getLineColor();
+            } else if (chart.config.type === "horizontalBar") {
+                chart.options.scales.yAxes[0].ticks.fontColor = getTextColor();
+            } else if (chart.config.type === "bar") {
+                chart.options.scales.yAxes[0].ticks.fontColor = getTextColor();
+                chart.options.scales.yAxes[0].scaleLabel.fontColor = getTextColor();
+                chart.options.scales.xAxes[0].ticks.fontColor = getTextColor();
+            } else {
+                console.log(`Error: unknown chart type ${chart.config.type}!`);
+            }
+            chart.update();
+        } catch (e) {
+            console.log(`Error when changing lightness of ${id} chart: ${e}`);
+        }
+    });
+}
+
+$(document).ready(function () {
+    document.getElementById("darkModeSwitch").addEventListener("change", updateChartColors);
+});

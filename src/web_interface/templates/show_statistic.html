@@ -152,9 +152,9 @@
             {% call macros.stats_panel(title) %}
                 <canvas id="{{ key }}_canvas" width="80%" height="80%"></canvas>
                 <script>
-                    create_pie_chart(
-                        canvas_id="{{ key }}_canvas",
-                        chart_data={{ data_set[key] | sort_chart_list_by_value | data_to_chart_limited | safe }},
+                    createPieChart(
+                        canvasId="{{ key }}_canvas",
+                        chartData={{ data_set[key] | sort_chart_list_by_value | data_to_chart_limited | safe }},
                         link="{{ query_url + query | json_dumps | urlencode }}"
                     );
                 </script>
@@ -171,9 +171,9 @@
         {% call macros.stats_panel("Exploit Mitigations") %}
             <canvas id="exploit_mitigations_canvas" width="100%" height="{{ stats['exploit_mitigations_stats']['exploit_mitigations'] | get_canvas_height }}"></canvas>
             <script>
-                create_horizontal_bar_chart(
-                    canvas_id="exploit_mitigations_canvas",
-                    chart_data={{ stats['exploit_mitigations_stats']['exploit_mitigations'] | data_to_chart_with_value_percentage_pairs(limit=13) | safe }},
+                createHorizontalBarChart(
+                    canvasId="exploit_mitigations_canvas",
+                    chartData={{ stats['exploit_mitigations_stats']['exploit_mitigations'] | data_to_chart_with_value_percentage_pairs(limit=13) | safe }},
                     link="{{ query_url + {'processed_analysis.exploit_mitigations.summary': {'$regex': 'PLACEHOLDER'}} | json_dumps | urlencode }}",
                     expl_mit_flag=true
                 );
@@ -190,11 +190,11 @@
         {% call macros.stats_panel("ELF Executables") %}
             <canvas id="elf_executable_canvas" width="100%" height="{{ stats['elf_executable_stats']['executable_stats'] | get_canvas_height }}"></canvas>
             <script>
-                create_horizontal_bar_chart(
-                    canvas_id="elf_executable_canvas",
-                    chart_data={{ stats["elf_executable_stats"]["executable_stats"] | data_to_chart_with_value_percentage_pairs(limit=11) | safe }},
+                createHorizontalBarChart(
+                    canvasId="elf_executable_canvas",
+                    chartData={{ stats["elf_executable_stats"]["executable_stats"] | data_to_chart_with_value_percentage_pairs(limit=11) | safe }},
                     link="{{ query_url + {'processed_analysis.file_type.full': {'$regex': 'PLACEHOLDER'}} | json_dumps | urlencode }}",
-                    value_percentage_present_flag=true, links_in_data=true
+                    isPercentage=true, linksInData=true
                 );
             </script>
         {% endcall %}
@@ -253,27 +253,16 @@
             <div class="card-text">
                 <canvas id="release_date_canvas"></canvas>
                 <script>
-                    var options = {
-                        legend: {display: false},
-                        scales: {
-                            yAxes: [{
-                                ticks: {beginAtZero: true},
-                                scaleLabel: {display: true, labelString: "Firmware Releases"}
-                            }]
-                        }
-                    };
-
-                    var data = {{ stats["release_date_stats"]["date_histogram_data"] | data_to_chart | safe }};
-                    var ctx = document.getElementById("release_date_canvas");
-                    var DateBarChart = new Chart(ctx, {type: "bar", data: data, options: options});
-
+                    const DateBarChart = createHistogram(
+                        "release_date_canvas",
+                        {{ stats["release_date_stats"]["date_histogram_data"] | data_to_chart | safe }}
+                    );
                     document.getElementById("release_date_canvas").onclick = function(evt){
-                        var points = DateBarChart.getElementsAtEvent(evt);
-                        var date = DateBarChart.data.labels[points[0]._index];
+                        const points = DateBarChart.getElementsAtEvent(evt);
+                        const date = DateBarChart.data.labels[points[0]._index];
                         if (points[0] !== undefined)
                             window.location = "database/browse?date=" + date;
                     };
-
                 </script>
             </div>
         </div>
