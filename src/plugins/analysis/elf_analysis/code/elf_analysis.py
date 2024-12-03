@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import lief
+from lief.ELF import Section
 from pydantic import BaseModel
 from semver import Version
 
@@ -118,6 +119,8 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
         del virtual_file_path, analyses
         elf = lief.parse(file_handle.name)
         json_dict = json.loads(lief.to_json(elf))
+        # for whatever reason, the machine types are all in caps in the new version of lief
+        json_dict['header']['machine_type'] = json_dict['header']['machine_type'].lower()
         _convert_flags(json_dict)
         return self.Schema(
             header=ElfHeader.model_validate(json_dict['header']),
@@ -227,7 +230,7 @@ def _get_active_flags(flags_value: int, flag_dict: dict[str, int]) -> list[str]:
 
 
 def _get_note_sections_content(elf: lief.ELF) -> Iterable[InfoSectionData]:
-    for section in elf.sections:  # type: lief.ELF.Section
-        if section.type == lief.ELF.SECTION_TYPES.NOTE:
+    for section in elf.sections:  # type: Section
+        if section.type == Section.TYPE.NOTE:
             readable_content = bytes([c for c in section.content.tobytes() if c in PRINTABLE_BYTES])
             yield InfoSectionData(name=section.name, contents=readable_content.decode())
