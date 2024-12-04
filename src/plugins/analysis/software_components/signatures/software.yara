@@ -79,9 +79,9 @@ rule OPKG {
 		open_source = true
 		website = "https://openwrt.org/docs/guide-user/additional-software/opkg"
 		description = "Opkg lightweight embedded package manager"
-		// the version is not stored as a number; instead a git commit hash and a date is used: [hash] ([YYYY-MM-DD])
 		version_regex = "[0-9a-z]{40} \\(\\d{4}-\\d{2}-\\d{2}\\)"
 	strings:
+		// the version is not stored as a number; instead a git commit hash and a date is used: [hash] ([YYYY-MM-DD])
 	    // see https://github.com/openwrt/opkg-lede/blob/38eccbb1fd694d4798ac1baf88f9ba83d1eac616/src/opkg-cl.c#L158
 		$a =  "opkg version %s\n" nocase ascii
 		$b =  /[0-9a-z]{40} \(\d{4}-\d{2}-\d{2}\)/ ascii
