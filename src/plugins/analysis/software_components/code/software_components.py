@@ -123,7 +123,11 @@ def get_version_for_component(match: yara.Match, file: FileIO) -> list[str]:
                 'mode': 'version_function',
                 'function_name': match.meta['_version_function'],
             }
-        versions.update(extract_data_from_ghidra(file.name, input_data, config.backend.docker_mount_base_dir))
+        ghidra_data = extract_data_from_ghidra(file.name, input_data, config.backend.docker_mount_base_dir)
+        for version_str in ghidra_data:
+            if version := get_version(version_str, match.meta):
+                versions.add(version)
+        versions.update(ghidra_data)
     return [v for v in versions if v]
 
 
@@ -135,8 +139,26 @@ def get_version(input_string: str, meta_dict: dict) -> str | None:
     pattern = re.compile(regex)
     version = pattern.search(input_string)
     if version is not None:
-        return _strip_leading_zeroes(version.group(0))
+        version_string = version.group(0)
+        if '_sub_regex' in meta_dict and '_sub_replacement' in meta_dict:
+            version_string = _convert_version_str(
+                version_string,
+                meta_dict['_sub_regex'],
+                meta_dict['_sub_replacement'],
+            )
+        else:
+            version_string = _strip_leading_zeroes(version_string)
+        return version_string
     return None
+
+
+def _convert_version_str(version: str, pattern: str, replacement: str) -> str:
+    """
+    Convert a version string to a different form (e.g. insert dots).
+    """
+    if not isinstance(pattern, str) or not isinstance(replacement, str):
+        return version
+    return re.sub(pattern, replacement, version)
 
 
 def _get_strings_from_match(match: yara.Match) -> list[str]:

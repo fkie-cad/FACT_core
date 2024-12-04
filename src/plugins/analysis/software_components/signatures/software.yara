@@ -65,7 +65,8 @@ rule file_libmagic {
 		version_regex = "\\d{3}"
 		_version_function = "magic_version"
 		// sub XYY -> X.YY
-		_sub_regex = "[\"(\\\\d)(\\\\d{2})\", \"\\\\1.\\\\2\"]"
+        _sub_regex = "(\\d)(\\d{2})"
+        _sub_replacement = "\\1.\\2"
 	strings:
 	    // see https://github.com/file/file/blob/f7d05cade99ff4819b4de70445511037000f6b14/src/magic.c#L607
 		$a =  "magic_version" nocase ascii
@@ -79,9 +80,9 @@ rule OPKG {
 		open_source = true
 		website = "https://openwrt.org/docs/guide-user/additional-software/opkg"
 		description = "Opkg lightweight embedded package manager"
-		// the version is not stored as a number; instead a git commit hash and a date is used: [hash] ([YYYY-MM-DD])
 		version_regex = "[0-9a-z]{40} \\(\\d{4}-\\d{2}-\\d{2}\\)"
 	strings:
+		// the version is not stored as a number; instead a git commit hash and a date is used: [hash] ([YYYY-MM-DD])
 	    // see https://github.com/openwrt/opkg-lede/blob/38eccbb1fd694d4798ac1baf88f9ba83d1eac616/src/opkg-cl.c#L158
 		$a =  "opkg version %s\n" nocase ascii
 		$b =  /[0-9a-z]{40} \(\d{4}-\d{2}-\d{2}\)/ ascii
