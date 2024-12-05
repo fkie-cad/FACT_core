@@ -32,7 +32,7 @@ def get_tlsh_comparison(first, second):
     return tlsh.diff(first, second)
 
 
-def normalize_lief_items(functions):
+def normalize_lief_items(functions) -> list[str]:
     """
     Shorthand to convert a list of objects to a list of strings
     """
