@@ -35,6 +35,9 @@ class InterComFrontEndBinding:
     def delete_file(self, uid_list: set[str]):
         self._add_to_redis_queue('file_delete_task', uid_list)
 
+    def cancel_analysis(self, root_uid: str):
+        self._add_to_redis_queue('cancel_task', root_uid)
+
     def get_available_analysis_plugins(self):
         plugin_dict = self.redis.get('analysis_plugins', delete=False)
         if plugin_dict is None:

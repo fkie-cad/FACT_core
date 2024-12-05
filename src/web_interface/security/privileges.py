@@ -9,6 +9,7 @@ PRIVILEGES = {
     'advanced_search': ['superuser', 'senior_analyst', 'analyst'],
     'pattern_search': ['superuser', 'senior_analyst', 'analyst'],
     'submit_analysis': ['superuser', 'senior_analyst'],
+    'cancel_analysis': ['superuser', 'senior_analyst'],
     'download': ['superuser', 'senior_analyst'],
     'delete': ['superuser'],
     'manage_users': ['superuser'],

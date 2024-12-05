@@ -5,16 +5,13 @@ import os
 import pickle
 from multiprocessing import Process, Value
 from time import sleep, time
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable
 
 from redis.exceptions import RedisError
 
 import config
 from helperFunctions.hash import get_sha256
 from storage.redis_interface import RedisInterface
-
-if TYPE_CHECKING:
-    from objects.file import FileObject
 
 
 def generate_task_id(input_data: Any) -> str:
@@ -34,7 +31,7 @@ class InterComListener:
 
     CONNECTION_TYPE = 'test'  # unique for each listener
 
-    def __init__(self, processing_function: Callable[[FileObject], None] | None = None):
+    def __init__(self, processing_function: Callable[[Any], None] | None = None):
         super().__init__()
         self.redis = RedisInterface()
         self.process = None
