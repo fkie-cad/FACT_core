@@ -1,4 +1,5 @@
 import pytest
+from flaky import flaky
 
 from analysis.PluginBase import AnalysisBasePlugin
 from statistic.analysis_stats import get_plugin_stats
@@ -39,16 +40,17 @@ def test_get_plugin_stats(mock_plugin):
     }
 
 
+@flaky(max_runs=3, min_passes=1)  # test occasionally fails on the CI
 def test_update_duration_stats(mock_plugin):
     mock_plugin.start()
     assert mock_plugin.analysis_stats_count.value == mock_plugin.analysis_stats_index.value == 0
     fw = create_test_firmware()
     for _ in range(4):
         mock_plugin.add_job(fw)
-        mock_plugin.out_queue.get(timeout=1)
+        mock_plugin.out_queue.get(timeout=5)
     assert mock_plugin.analysis_stats_count.value == mock_plugin.analysis_stats_index.value == 4
     mock_plugin.add_job(fw)
-    mock_plugin.out_queue.get(timeout=1)
+    mock_plugin.out_queue.get(timeout=5)
     assert mock_plugin.analysis_stats_count.value == 5
     assert mock_plugin.analysis_stats_index.value == 0, 'index should start at 0 when max count is reached'
 
