@@ -12,6 +12,7 @@ from common_analysis_ip_and_uri_finder import CommonAnalysisIPAndURIFinder
 from geoip2.errors import AddressNotFoundError
 from maxminddb.errors import InvalidDatabaseError
 from pydantic import BaseModel
+from semver import Version
 
 from analysis.plugin import AnalysisPluginV0
 from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
@@ -53,12 +54,13 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
             metadata=self.MetaData(
                 name='ip_and_uri_finder',
                 description='Search file for IP addresses and URIs based on regular expressions.',
-                version='1.0.0',
+                version=Version(1, 1, 0),
                 Schema=self.Schema,
                 mime_whitelist=[
                     'text/plain',
                     'application/octet-stream',
                     'application/x-executable',
+                    'application/x-pie-executable',
                     'application/x-object',
                     'application/x-sharedlib',
                     'application/x-dosexec',
