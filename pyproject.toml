@@ -116,6 +116,8 @@ omit = [
     # ignore files only run inside docker
     "src/plugins/analysis/*/docker/**",
 ]
+concurrency = ["multiprocessing"]
+parallel = true
 
 [tool.coverage.report]
 exclude_also = [
