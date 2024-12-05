@@ -11,11 +11,13 @@ src/plugins/analysis/qemu_exec/test/data/test_tmp_dir
 src/plugins/analysis/qemu_exec/test/data/test_tmp_dir_2
 src/plugins/analysis/users_and_passwords/internal/passwords/10k-most-common.txt
 
+
 # Misc
 __pycache__
 docsrc/_build/
 docs/.buildinfo/
 src/bin
+src/web_interface/static/nodeenv/
 src/web_interface/static/node_modules
 src/web_interface/static/file_icons
 FACT_export
