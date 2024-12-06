@@ -96,6 +96,9 @@ class FileObject:
         #: for debugging purposes and as placeholder in UI.
         self.analysis_exception = None
 
+        #: Optional callback method called after the analysis finished in the analysis scheduler
+        self.callback = None
+
         if binary is not None:
             self.set_binary(binary)
         else:
