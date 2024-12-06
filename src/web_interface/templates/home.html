@@ -23,58 +23,56 @@
     <div class="row justify-content-center mt-4">
 
         <div class="col col-xs-12 col-sm-8 col-lg-6 col-xl-4 p-0 m-2 home-block">
-            <div>
-                <img height="auto" src="{{ url_for('static', filename='fact_logo_invertible.svg') }}"
-                     style="max-width: 445px; display: block; margin: auto;" alt="fact_logo_invertible.svg">
+            <img height="auto" src="{{ url_for('static', filename='fact_logo_invertible.svg') }}"
+                 style="max-width: 445px; display: block; margin: auto;" alt="fact_logo_invertible.svg">
 
-                <br /><br />
+            <br /><br />
 
-                <h4 class="mb-3" style="text-align: center">General FACTs</h4>
-                <table class="table table-sm" style="margin: auto; width: auto;">
-                    <tbody>
-                        <tr>
-                            <td style="text-align: left; padding:5px">firmware samples</td>
-                            <td style="text-align: right; padding:5px">{{ general_stats['number_of_firmwares'] | nice_number }}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">firmware total size</td>
-                            <td style="text-align: right; padding:5px">{{ general_stats['total_firmware_size'] | number_format }}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">firmware average size</td>
-                            <td style="text-align: right; padding:5px">{{ general_stats['average_firmware_size'] | number_format }}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">unique included files</td>
-                            <td style="text-align: right; padding:5px">{{ general_stats['number_of_unique_files'] | nice_number }}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">unique included files total size</td>
-                            <td style="text-align: right; padding:5px">{{ general_stats['total_file_size'] | number_format }}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">unique included files average size</td>
-                            <td style="text-align: right; padding:5px">{{ general_stats['average_file_size'] | number_format }}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">statistic generation time</td>
-                            <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">backend cpu load</td>
-                            <td id="cpu_percentage" style="text-align: right; padding:5px">n/a</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">currently analyzed firmware</td>
-                            <td id="currently_running" style="text-align: right; padding:5px">n/a</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <h4 class="mb-3" style="text-align: center">General FACTs</h4>
+            <table class="table table-sm" style="margin: auto; width: auto;">
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; padding:5px">firmware samples</td>
+                        <td style="text-align: right; padding:5px">{{ general_stats['number_of_firmwares'] | nice_number }}</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding:5px">firmware total size</td>
+                        <td style="text-align: right; padding:5px">{{ general_stats['total_firmware_size'] | number_format }}</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding:5px">firmware average size</td>
+                        <td style="text-align: right; padding:5px">{{ general_stats['average_firmware_size'] | number_format }}</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding:5px">unique included files</td>
+                        <td style="text-align: right; padding:5px">{{ general_stats['number_of_unique_files'] | nice_number }}</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding:5px">unique included files total size</td>
+                        <td style="text-align: right; padding:5px">{{ general_stats['total_file_size'] | number_format }}</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding:5px">unique included files average size</td>
+                        <td style="text-align: right; padding:5px">{{ general_stats['average_file_size'] | number_format }}</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding:5px">statistic generation time</td>
+                        <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding:5px">backend cpu load</td>
+                        <td id="cpu_percentage" style="text-align: right; padding:5px">n/a</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; padding:5px">currently analyzed firmware</td>
+                        <td id="currently_running" style="text-align: right; padding:5px">n/a</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         <script>
             function load_ajax_stats(){
-                let system_data = $.getJSON("/ajax/stats/system")
+                $.getJSON("/ajax/stats/system")
                 .done(function(system_data) {
                     document.getElementById("cpu_percentage").innerHTML = system_data.backend_cpu_percentage;
 
