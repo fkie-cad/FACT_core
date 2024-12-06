@@ -49,9 +49,15 @@ function autocompleteInput(inputId, options) {
     let currentFocus;
 
     input.addEventListener("input", populateAutocomplete);
-    dropdownButton.addEventListener("click", () => {
-        input.value = "";
-        populateAutocomplete();
+    dropdownButton.addEventListener("click", (event) => {
+        let autoComplete = getAutocompleteElement(event.target.parentNode.parentNode);
+        if (autoComplete) {
+            // clicked on a dropdown button but a menu already exists => close the menu
+            closeAll();
+        } else {
+            input.value = "";
+            populateAutocomplete();
+        }
     });
 
     input.addEventListener("keydown", (event) => {
@@ -87,7 +93,7 @@ function autocompleteInput(inputId, options) {
         list.setAttribute("class", "autocomplete-items list-group border");
         input.parentNode.appendChild(list);
 
-        let listItem, target;
+        let listItem;
         options.forEach(option => {
             let index = option.toLowerCase().indexOf(input.value.toLowerCase());
             if (!input.value || index !== -1) {
@@ -124,7 +130,14 @@ function autocompleteInput(inputId, options) {
         } else if (currentFocus < 0) {
             currentFocus = (elements.length - 1);
         }
-        elements[currentFocus].classList.add("active");
+        const selectedElement = elements[currentFocus];
+        if (selectedElement) {
+            selectedElement.classList.add("active");
+            // scroll to the element above the selected one
+            selectedElement.parentNode.scroll(
+                0, Math.max(0, selectedElement.offsetTop - selectedElement.clientHeight)
+            );
+        }
     }
 }
 

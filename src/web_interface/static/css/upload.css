@@ -13,6 +13,10 @@
     left: 135px; /* upload-label width */
     right: 35px; /* dropdown button width */
     font-family: monospace;
+    max-height: 40vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-behavior: smooth;
 }
 .autocomplete-items li {
     cursor: pointer;
