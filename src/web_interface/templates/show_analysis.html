@@ -311,7 +311,7 @@
                     </button>
 
                     <div id="summary-div">
-                        <div class="mb-3" id="loading-summary-gif" style="display: none; border: 1px solid #dddddd; padding: 5px; text-align: center">
+                        <div class="mb-3 border" id="loading-summary-gif" style="display: none; padding: 5px; text-align: center">
                             <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading gif">
                             <p>Loading summary for included files ..</p>
                         </div>
@@ -354,7 +354,7 @@
                                 <button type="button" class="btn btn-primary btn-sm" onclick="load_preview();">Update</button>
                             </div>
                         </div>
-                        <div id="preview-loading-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
+                        <div id="preview-loading-gif" class="border" style="display: block; padding: 5px; text-align: center">
                             <img src="{{ url_for('static', filename = 'Pacman.gif') }}" alt="loading...">
                         </div>
                         <div id="preview-content" class="m-0 mt-2 p-0"></div>
@@ -411,7 +411,7 @@
                                 <div>{{ comment.time|int|nice_unix_time }}</div>
                             </td>
                             <td width="80%">
-                                <span style="font-family: monospace; color: #000; font-size: 14px">
+                                <span style="font-family: monospace; font-size: 14px">
                                     {{ comment.comment | urlize }}
                                 </span>
                             </td>
