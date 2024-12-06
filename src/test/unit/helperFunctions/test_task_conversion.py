@@ -6,7 +6,6 @@ from helperFunctions import tag
 from helperFunctions.task_conversion import (
     _get_tag_list,
     _get_uid_of_analysis_task,
-    check_for_errors,
     convert_analysis_task_to_fw_obj,
 )
 from objects.firmware import Firmware
@@ -32,14 +31,6 @@ def test_get_tag_list(input_data, expected):
 
 
 class TestTaskConversion(unittest.TestCase):
-    def test_check_for_errors(self):
-        valid_request = {'a': 'some', 'b': 'some data'}
-        assert len(check_for_errors(valid_request)) == 0, 'errors found but all entries are valid'
-        invalid_request = {'a': 'some_data', 'b': None}
-        result = check_for_errors(invalid_request)
-        assert len(result) == 1, 'number of invalid fields not correct'
-        assert result['b'] == 'Please specify the b'
-
     def test_get_uid_of_analysis_task(self):
         analysis_task = {'binary': b'this is a test'}
         assert (
