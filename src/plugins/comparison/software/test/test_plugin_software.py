@@ -1,12 +1,12 @@
-from test.unit.compare.compare_plugin_test_class import ComparePluginTest
+from test.unit.comparison.comparison_plugin_test_class import ComparisonPluginTest
 
-from ..code.software import ComparePlugin
+from ..code.software import ComparisonPlugin
 
 
-class TestComparePluginSoftware(ComparePluginTest):
+class TestComparePluginSoftware(ComparisonPluginTest):
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'Software'
-    PLUGIN_CLASS = ComparePlugin
+    PLUGIN_CLASS = ComparisonPlugin
 
     def test_get_intersection_of_software(self):
         self.fw_one.processed_analysis['software_components'] = {'summary': {'software a': self.fw_one.uid}}
