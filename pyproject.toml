@@ -107,6 +107,7 @@ docstring-quotes = "double"
 quote-style = "single"
 
 [tool.coverage.run]
+source = ["src"]
 omit = [
     # ignore install scripts
     "src/install.py",
@@ -116,6 +117,8 @@ omit = [
     # ignore files only run inside docker
     "src/plugins/analysis/*/docker/**",
 ]
+multiprocessing = ["thread"]
+parallel = true
 
 [tool.coverage.report]
 exclude_also = [
