@@ -78,7 +78,11 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           python3 -m pip install codecov
-          pytest --cov=.
+          if [ $(git rev-parse --abbrev-ref HEAD) == "master" ];
+          then  # run coverage with multiprocessing but only for the daily master build (for performance reasons)
+            sed -i 's/"thread"/"thread", "multiprocessing"/g' pyproject.toml
+          fi
+          pytest --cov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
