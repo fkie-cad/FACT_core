@@ -1,10 +1,10 @@
-import time
 from pathlib import Path
 
 import pytest
 
 from storage.fsorganizer import FSOrganizer
 from test.acceptance.conftest import test_fw_a, upload_test_firmware
+from test.common_helper import wait_for_event
 
 
 def _upload_firmware_get(test_client, intercom):
@@ -85,8 +85,7 @@ def _delete_firmware(test_client):
     assert b'Deleted 4 file(s) from database' in rv.data, 'deletion success page not shown'
     rv = test_client.get(f'/analysis/{test_fw_a.uid}')
     assert b'File not found in database' in rv.data, 'file is still available after delete'
-    time.sleep(3)
-    assert not local_firmware_path.exists(), 'file not deleted'
+    assert wait_for_event(lambda: not local_firmware_path.exists()), 'file not deleted'
 
 
 @pytest.mark.SchedulerTestConfig(

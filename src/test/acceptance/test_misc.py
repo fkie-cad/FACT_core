@@ -1,5 +1,4 @@
 import json
-import time
 from urllib.parse import quote
 
 import pytest
@@ -110,12 +109,11 @@ class TestAcceptanceMisc:
         for fw in [test_fw_a, test_fw_c]:
             self._upload_firmware_put(test_client, fw.path, fw.name, fw.uid)
         self._show_about(test_client)
-        time.sleep(4)
+        assert analysis_finished_event.wait(timeout=10)
         workload_statistic.update(
             unpacking_workload=unpacking_scheduler.get_scheduled_workload(),
             analysis_workload=analysis_scheduler.get_scheduled_workload(),
         )
-        assert analysis_finished_event.wait(timeout=10)
         self._show_system_monitor(test_client)
 
         stats_updater.update_all_stats()
