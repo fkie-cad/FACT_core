@@ -153,6 +153,7 @@ class Backend(Common):
     ssdeep_ignore: int
 
     intercom_poll_delay: float
+    analysis_status_update_interval: float = 4.5
 
     throw_exceptions: bool
 
