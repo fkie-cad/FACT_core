@@ -110,6 +110,8 @@ processes = 4
 [[backend.plugin]]
 name = "cve_lookup"
 processes = 4
+# CVE scores greater or equal to this value are shown as "critical"
+min-critical-score = 9.0
 
 [[backend.plugin]]
 name = "cwe_checker"

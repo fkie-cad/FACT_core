@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import config
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.tag import TagColor
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
@@ -20,7 +21,6 @@ except ImportError:
     from lookup import Lookup
 
 DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
-MINIMUM_CRITICAL_SCORE = 9.0
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -34,6 +34,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['software_components']  # noqa: RUF012
     VERSION = '0.2.0'
     FILE = __file__
+
+    def additional_setup(self):
+        self.min_crit_score = getattr(config.backend.plugin.get(self.NAME, {}), 'min-critical-score', 9.0)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         """
@@ -86,9 +89,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     self.add_analysis_tag(file_object, 'CVE', 'critical CVE', TagColor.RED, True)
                     return
 
-    @staticmethod
-    def _entry_has_critical_rating(entry: dict[str, dict[str, str]]) -> bool:
+    def _entry_has_critical_rating(self, entry: dict[str, dict[str, str]]) -> bool:
         """
         Check if the given entry has a critical rating.
         """
-        return any(value != 'N/A' and float(value) >= MINIMUM_CRITICAL_SCORE for value in entry['scores'].values())
+        return any(value != 'N/A' and float(value) >= self.min_crit_score for value in entry['scores'].values())
