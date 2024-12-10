@@ -124,6 +124,11 @@ a:hover {
     border: 0;
 }
 
+.btn-input-group-upload {
+    background-color: var(--element-color-secondary-light);
+    border: 1px solid #ced4da;
+}
+
 body {
     background-color: var(--background-color-light);
     color: var(--text-color-light);
@@ -150,6 +155,7 @@ body.dark-mode a.nav-link.active {
 body.dark-mode :is(pre, .pagination-page-info b, .line-number, .list-group-item-action,
         .table:not(.table-borderless), .list-group-flush) {
     color: var(--text-color-dark) !important;
+    background-color: var(--background-color-dark) !important;
 }
 
 body.dark-mode :is(a:link, a:visited, a:active) {
@@ -157,8 +163,8 @@ body.dark-mode :is(a:link, a:visited, a:active) {
 }
 
 body.dark-mode :is(.navbar-light .navbar-nav > li > a, .list-group-item > a, .list-group-item > div > a,
-        .jstree-node > a) {
-    color: var(--text-color-dark);
+        .jstree-node > a, a.text-dark) {
+    color: var(--text-color-dark) !important;
 }
 
 body.dark-mode :is(a:hover, .navbar-light .navbar-nav > li > a:hover) {
@@ -166,7 +172,8 @@ body.dark-mode :is(a:hover, .navbar-light .navbar-nav > li > a:hover) {
 }
 
 body.dark-mode :is(div.card, input, textarea, select, .dropdown-menu, .d2h-wrapper, .d2h-file-wrapper, .d2h-file-header,
-        .d2h-info, .d2h-code-side-linenumber, .modal-content, a.page-link, span.page-link, .btn-light, .jumbotron) {
+        .d2h-info, .d2h-code-side-linenumber, .modal-content, a.page-link, span.page-link, .btn-light, .jumbotron
+        , .custom-file-label) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-element-dark) !important;
     border: 1px solid var(--border-color-dark) !important;
@@ -203,13 +210,15 @@ body.dark-mode :is(th) {
     background-color: inherit !important;
 }
 
-body.dark-mode :is(.input-group-text, .thead-light, .table-head-light, .badge-secondary) {
+body.dark-mode :is(.input-group-text, .thead-light, .table-head-light, .badge-secondary, .custom-file-label:after,
+        .btn-input-group-upload) {
     background-color: var(--element-color-secondary-dark) !important;
     color: var(--text-color-dark) !important;
     border-color: var(--border-color-dark) !important;
 }
 
-body.dark-mode :is(.table-primary, .list-group-item-primary, option:checked, .pagination > li.active > a) {
+body.dark-mode :is(.table-primary, .list-group-item-primary, option:checked, .pagination > li.active > a,
+        .list-group-item-action.active) {
     background-color: var(--element-color-primary-dark) !important;
     color: var(--element-color-primary-light) !important;
     border-color: var(--element-color-primary-light) !important;
