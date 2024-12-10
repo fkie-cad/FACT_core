@@ -1,0 +1,326 @@
+:root {
+    --text-color-light: #212529;
+    --text-color-dark: #ddd;
+    --background-color-light: #fff;
+    --background-color-dark: #2e3339;
+    --border-color-dark: #454d55;
+    --background-color-element-dark: #343a40;
+    --element-color-primary-dark: #385779;
+    --element-color-primary-light: #b8daff;
+    --element-color-secondary-dark: #525359;
+    --element-color-secondary-light: #e9ecef;
+    --element-color-success-dark: #405945;
+    --element-color-success-light: #d4edda;
+    --element-color-warning-dark: #938457;
+    --element-color-warning-light: #ffeeba;
+    --element-color-danger-dark: #774c4e;
+    --element-color-danger-light: #f5c6cb;
+    --link-color-light: #0054b6;
+    --link-color-dark: #4a9fff;
+    --link-color-hover-light: #0277ff;
+    --link-color-hover-dark: #fff;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.bg-fact {
+    background-color: #255e54 !important;
+}
+
+/* links: set unified link text color and remove underline */
+a:link, a:visited, a:active {
+    color: var(--link-color-light);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--link-color-hover-light);
+}
+
+/* remove link color from list group elements (browse DB, latest home, etc.) */
+.list-group-item > a, .list-group-item > div > a, a.dropdown-item {
+    color: var(--text-color-light);
+}
+
+/* remove link color from navbar elements */
+.navbar-light .navbar-nav > li > a {
+    color: var(--text-color-dark);
+}
+
+.navbar-light .navbar-nav > li > a:hover {
+    color: var(--link-color-hover-dark);
+}
+
+.tooltip > .tooltip-inner {
+    background-color: var(--element-color-primary-dark);
+    color: var(--text-color-dark);
+    border: 1px solid var(--element-color-primary-dark);
+    padding: 5px;
+    font-size: 15px;
+}
+
+/* the "arrow" (indicative triangle) of the tooltip */
+.bs-tooltip-top .arrow::before {
+    border-top-color: var(--element-color-primary-dark);
+}
+
+.bs-tooltip-bottom .arrow::before {
+    border-bottom-color: var(--element-color-primary-dark);
+}
+
+.table-head-light,
+.table-head-light > th,
+.table-head-light > td {
+    background-color: var(--element-color-secondary-light);
+}
+
+.table-hover .table-head-light:hover,
+.table-hover .table-head-light:hover > td,
+.table-hover .table-head-light:hover > th,
+.table-hover > tbody > tr > td:hover {
+    background-color: var(--element-color-secondary-light);
+}
+
+.li-hover {
+    box-shadow: 0 0 0 rgba(0, 0, 0, .125);
+}
+
+.li-hover:hover {
+    box-shadow: 5px 5px 20px rgba(0, 0, 0, .125);
+    z-index: 1;
+    border-top: 0;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.table-analysis {
+    font-size: 15px;
+}
+
+.footnote {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10px;
+}
+
+.example-json {
+    font-family: 'Deja Vu Sans Mono', monospace;
+    font-size: 0.9em;
+}
+
+.example-comment {
+    color: grey;
+    font-size: 0.9em;
+}
+
+.hid {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.list-group-item-primary, .alert {
+    border: 0;
+}
+
+.btn-input-group-upload {
+    background-color: var(--element-color-secondary-light);
+    border: 1px solid #ced4da;
+}
+
+body {
+    background-color: var(--background-color-light);
+    color: var(--text-color-light);
+}
+
+/* === DARK MODE CSS === */
+.dark-mode {
+    background-color: var(--background-color-dark);
+    color: var(--text-color-dark);
+}
+
+body.dark-mode :is(.list-group-item, .dropdown-item) {
+    color: var(--text-color-dark) !important;
+    border-color: var(--border-color-dark) !important;
+    background-color: inherit !important;
+}
+
+body.dark-mode a.nav-link.active {
+    color: inherit !important;
+    background-color: inherit !important;
+    border-color: var(--border-color-dark) var(--border-color-dark) var(--background-color-dark) !important;
+}
+
+body.dark-mode :is(pre, .pagination-page-info b, .line-number, .list-group-item-action,
+        .table:not(.table-borderless), .list-group-flush) {
+    color: var(--text-color-dark) !important;
+    background-color: var(--background-color-dark) !important;
+}
+
+body.dark-mode :is(a:link, a:visited, a:active) {
+    color: var(--link-color-dark);
+}
+
+body.dark-mode :is(.navbar-light .navbar-nav > li > a, .list-group-item > a, .list-group-item > div > a,
+        .jstree-node > a, a.text-dark) {
+    color: var(--text-color-dark) !important;
+}
+
+body.dark-mode :is(a:hover, .navbar-light .navbar-nav > li > a:hover) {
+    color: var(--link-color-hover-dark);
+}
+
+body.dark-mode :is(div.card, input, textarea, select, .dropdown-menu, .d2h-wrapper, .d2h-file-wrapper, .d2h-file-header,
+        .d2h-info, .d2h-code-side-linenumber, .modal-content, a.page-link, span.page-link, .btn-light, .jumbotron
+        , .custom-file-label) {
+    color: var(--text-color-dark) !important;
+    background-color: var(--background-color-element-dark) !important;
+    border: 1px solid var(--border-color-dark) !important;
+}
+
+body.dark-mode :is(.table.table-borderless, .bg-light) {
+    color: var(--text-color-dark) !important;
+    background-color: var(--background-color-element-dark) !important;
+}
+
+/* d2h: text file diff */
+body.dark-mode .d2h-del {
+    background-color: #644344 !important;
+}
+
+body.dark-mode del {
+    background-color: #682529 !important;
+}
+
+body.dark-mode .d2h-ins {
+    background-color: #4b644b !important;
+}
+
+body.dark-mode ins {
+    background-color: #2a5c2a !important;
+}
+
+body.dark-mode .d2h-tag {
+    background-color: var(--background-color-dark) !important;
+}
+
+body.dark-mode :is(th) {
+    color: inherit !important;
+    background-color: inherit !important;
+}
+
+body.dark-mode :is(.input-group-text, .thead-light, .table-head-light, .badge-secondary, .custom-file-label:after,
+        .btn-input-group-upload) {
+    background-color: var(--element-color-secondary-dark) !important;
+    color: var(--text-color-dark) !important;
+    border-color: var(--border-color-dark) !important;
+}
+
+body.dark-mode :is(.table-primary, .list-group-item-primary, option:checked, .pagination > li.active > a,
+        .list-group-item-action.active) {
+    background-color: var(--element-color-primary-dark) !important;
+    color: var(--element-color-primary-light) !important;
+    border-color: var(--element-color-primary-light) !important;
+}
+
+body.dark-mode :is(.table-secondary, .list-group-item-secondary, .btn-secondary) {
+    background-color: var(--element-color-secondary-light) !important;
+    color: var(--element-color-secondary-dark) !important;
+    border-color: var(--element-color-secondary-light) !important;
+}
+
+body.dark-mode :is(.btn-outline-secondary) {
+    color: var(--element-color-secondary-light) !important;
+    border-color: var(--element-color-secondary-light) !important;
+}
+
+body.dark-mode :is(.alert-success, .table-success, .table-success > td) {
+    background-color: var(--element-color-success-dark) !important;
+    color: var(--element-color-success-light) !important;
+    border-color: var(--element-color-success-light) !important;
+}
+
+body.dark-mode :is(.alert-warning, .table-warning, .table-warning > td) {
+    background-color: var(--element-color-warning-dark) !important;
+    color: var(--element-color-warning-light) !important;
+    border-color: var(--element-color-warning-light) !important;
+}
+
+body.dark-mode :is(.alert-danger, .table-danger, .table-danger > td) {
+    background-color: var(--element-color-danger-dark) !important;
+    color: var(--element-color-danger-light) !important;
+    border-color: var(--element-color-danger-light) !important;
+}
+
+body.dark-mode :is(.table-bordered, .table-bordered td, .table-bordered th, .border-light, .table td, .table th, .border,
+        .form-control, .CodeMirror:not(.cm-s-graphiql)) {
+    border-color: var(--border-color-dark) !important;
+}
+
+body.dark-mode .nav-tabs {
+    border-bottom: 1px solid var(--border-color-dark) !important;
+}
+
+/* hljs: highlight.js code highlighting */
+body.dark-mode .hljs {
+    background: inherit;
+    color: var(--text-color-dark);
+}
+
+body.dark-mode .hljs-string {
+    color: var(--element-color-primary-light);
+}
+
+body.dark-mode :is(.hljs-attr, .hljs-number, .hljs-meta, .hljs-literal) {
+    color: var(--link-color-dark);
+}
+
+body.dark-mode :is(.hljs-title, .hljs-title.class_) {
+    color: #ad80ff;
+}
+
+body.dark-mode :is(.hljs-keyword, .hljs-variable, .invalid-feedback) {
+    color: #ff5565;
+}
+
+body.dark-mode .hljs-built_in {
+    color: #ffc863;
+}
+
+body.dark-mode .hljs-name {
+    color: #6aff8e;
+}
+
+body.dark-mode .close {
+    color: var(--text-color-dark);
+}
+
+body.dark-mode input[type="checkbox"] {
+    /* This is a bit of a hack: For whatever reason, you can't change the background color of checkboxes.
+       We can invert the color with CSS, though... */
+    filter: invert(75%) hue-rotate(180deg);
+}
+
+body.dark-mode :is(.table-hover td:hover, .table-hover th:hover, .table-hover tr:hover,
+        .list-group-item-action:hover, .dropdown-item:hover) {
+    background-color: var(--element-color-secondary-dark) !important;
+    color: var(--text-color-dark) !important;
+}
+
+/* browse X table hover animation */
+body.dark-mode .li-hover {
+    box-shadow: 0 0 0 rgba(0, 123, 255, .15);
+}
+
+body.dark-mode .li-hover:hover {
+    box-shadow: 5px 5px 20px rgba(0, 123, 255, .35);
+}
+
+body.dark-mode :is(.jstree-hovered, .jstree-clicked) {
+    background: var(--element-color-primary-dark);
+}
+
+body.dark-mode .jstree-search {
+    color: var(--link-color-dark) !important;
+}
