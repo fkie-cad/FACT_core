@@ -29,6 +29,7 @@
             }
         });
     </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/loading.js') }}"></script>
 
     <style>
         {# styling for file preview line lumbers #}
@@ -119,9 +120,11 @@
 
                     <div id="summary-div">
                         <div class="mb-3 border" id="loading-summary-gif" style="display: none; padding: 5px; text-align: center">
-                            <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading gif">
                             <p>Loading summary for included files...</p>
                         </div>
+                        <script>
+                            loadLoadingAnimation('loading-summary-gif');
+                        </script>
                     </div>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_summary.js') }}"></script>
 
