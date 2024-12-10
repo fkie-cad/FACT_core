@@ -1,10 +1,10 @@
-var allConnectedNodes;
-var allNodes;
-var dataset;
-var graphOptions;
-var groupOptions;
-var highlightActive = false;
-var network;
+let allConnectedNodes;
+let allNodes;
+let dataset;
+let graphOptions;
+let groupOptions;
+let highlightActive = false;
+let network;
 
 function dependencyGraph(nodes, edges, groups, colors) {
     let graphCanvas = $("#dependencyGraph")[0];
@@ -15,9 +15,11 @@ function dependencyGraph(nodes, edges, groups, colors) {
     };
 
     // map group names to colors --> {'mime/type': {color: '#...'}}
-    // jshint ignore:start
-    groupOptions = groups.reduce((obj, curr, i) => {return {...obj, [curr]: {color: colors[i]}}}, {});
-    // jshint ignore:end
+    groupOptions = groups.reduce(
+        (obj, curr, i) => {
+            return {...obj, [curr]: {color: colors[i]}};
+        }, {}
+    );
 
     // set the graph options. Most of this is physics model initialization
     graphOptions = {
@@ -25,14 +27,15 @@ function dependencyGraph(nodes, edges, groups, colors) {
             shape: 'dot',
             font: {
                 size: 18,
-                face: 'Tahoma'
-            }
+                face: 'Tahoma',
+                color: getTextColor(),
+            },
         },
         groups: groupOptions,
         edges: {
-            color: { inherit: true },
+            color: {inherit: true},
             width: 0.5,
-            arrows: { to: true },
+            arrows: {to: true},
         },
         interaction: {
             dragNodes: false,
@@ -52,7 +55,7 @@ function dependencyGraph(nodes, edges, groups, colors) {
             timestep: 0.05,
             adaptiveTimestep: true,
             stabilization: {
-              enabled: false
+                enabled: false
             }
         },
         layout: {
@@ -86,12 +89,12 @@ function filterNodesList() {
     try {
         // the filter input supports regex
         var expr = new RegExp($(this).val(), 'i');
-    } catch(SyntaxError) {
+    } catch (SyntaxError) {
         // invalid search
         return;
     }
 
-    $("#nodesList > div").each(function(){
+    $("#nodesList > div").each(function () {
         // hide all nodes in the list that are filtered out, show the rest
         let mime = $(this).find('a')[0].dataset.nodemime;
         let name = $(this).find('a')[0].dataset.nodelabel;
@@ -114,7 +117,15 @@ function drawNodesList() {
         let node = dataset.nodes.get(nodeId);
         let color = groupOptions[node.group].color;
         if (node.label !== undefined) {
-            nodesList.append('<div><span style="color: ' + color + ';">&#9679;</span>&nbsp;<a href="#" class="text-dark" data-nodeid="' + node.id + '" data-nodelabel="' + node.label + '" data-nodemime="' + node.group + '" style="text-decoration: none;">' + node.label + '</a></div>');
+            nodesList.append(`
+                <div>
+                    <span style="color: ${color};">&#9679;</span>&nbsp;
+                    <a href="#" class="text-dark" data-nodeid="${node.id}" data-nodelabel="${node.label}" 
+                       data-nodemime="${node.group}" style="text-decoration: none;">
+                        ${node.label}
+                    </a>
+                </div>
+            `);
         }
     }
 }
@@ -126,7 +137,7 @@ function drawDetails() {
 
     // check if something is selected
     let selected = network.getSelectedNodes();
-    if (selected.length == 0) {
+    if (selected.length === 0) {
         details.append('<div>No node selected</div>');
         return;
     }
@@ -146,21 +157,21 @@ function drawDetails() {
         </div>
         <div>
             <span class="font-weight-bold">Full:&nbsp;</span>${node.full_file_type}
-        </div>`
-    );
+        </div>
+    `);
 }
 
 function drawNetwork(dataset, graphOptions, canvas) {
     // create the network on an empty canvas
-    let network = new vis.Network(canvas, dataset, graphOptions,  main = "Dependency Graph");
-    allNodes = dataset.nodes.get({ returnType: "Object" });
+    let network = new vis.Network(canvas, dataset, graphOptions, main = "Dependency Graph");
+    allNodes = dataset.nodes.get({returnType: "Object"});
 
-    // get a decent stabilization before starting a 60 second timeout that
+    // get a decent stabilization before starting a 60-second timeout that
     // aborts the physics simulation to preserve resources
     network.on("stabilizationIterationsDone", function (params) {
         setTimeout(() => {
             network.stopSimulation();
-            network.setOptions( { physics: false } );
+            network.setOptions({physics: false});
         }, 60000);
     });
     network.stabilize(200);
@@ -189,11 +200,11 @@ function neighbourhoodHighlight(params) {
     // if something is selected:
     if (params.nodes.length > 0) {
         highlightActive = true;
-        var i, j;
-        var selectedNode = params.nodes[0];
-        var degrees = 1;
+        let i, j;
+        const selectedNode = params.nodes[0];
+        const degrees = 1;
         network.focus(selectedNode, {scale: 0.4, animation: {easingFunction: 'easeInOutQuad'}});
- 
+
         // mark all nodes as hard to read.
         for (let nodeId in allNodes) {
             allNodes[nodeId].color = "rgba(200,200,200,0.5)";
@@ -202,10 +213,10 @@ function neighbourhoodHighlight(params) {
                 allNodes[nodeId].label = undefined;
             }
         }
- 
-        var connectedNodes = network.getConnectedNodes(selectedNode);
+
+        const connectedNodes = network.getConnectedNodes(selectedNode);
         allConnectedNodes = [];
- 
+
         // get the second degree nodes
         for (i = 1; i < degrees; i++) {
             for (j = 0; j < connectedNodes.length; j++) {
@@ -214,27 +225,27 @@ function neighbourhoodHighlight(params) {
                 );
             }
         }
- 
+
         // all second degree nodes get a different color and their label back
         for (i = 0; i < allConnectedNodes.length; i++) {
             allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
             if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
                 allNodes[allConnectedNodes[i]].label =
-                allNodes[allConnectedNodes[i]].hiddenLabel;
+                    allNodes[allConnectedNodes[i]].hiddenLabel;
                 allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
             }
         }
- 
+
         // all first degree nodes get their own color and their label back
         for (i = 0; i < connectedNodes.length; i++) {
             allNodes[connectedNodes[i]].color = undefined;
             if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
                 allNodes[connectedNodes[i]].label =
-                allNodes[connectedNodes[i]].hiddenLabel;
+                    allNodes[connectedNodes[i]].hiddenLabel;
                 allNodes[connectedNodes[i]].hiddenLabel = undefined;
             }
         }
- 
+
         // the main node gets its own color and its label back.
         allNodes[selectedNode].color = undefined;
         if (allNodes[selectedNode].hiddenLabel !== undefined) {
@@ -253,7 +264,7 @@ function neighbourhoodHighlight(params) {
         highlightActive = false;
     }
     // transform the object into an array
-    var updateArray = [];
+    let updateArray = [];
     for (let nodeId in allNodes) {
         if (allNodes.hasOwnProperty(nodeId)) {
             updateArray.push(allNodes[nodeId]);
@@ -265,3 +276,20 @@ function neighbourhoodHighlight(params) {
     drawNodesList();
     drawDetails();
 }
+
+function updateNodeTextColor() {
+    console.log("changing color");
+    Object.entries(network.body.nodes).forEach(
+        ([_, node]) => {
+            node.setOptions({
+                font: {
+                    color: getTextColor(),
+                }
+            });
+        }
+    );
+}
+
+$(document).ready(function () {
+    document.getElementById("darkModeSwitch").addEventListener("change", updateNodeTextColor);
+});
