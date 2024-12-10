@@ -110,6 +110,8 @@ processes = 4
 [[backend.plugin]]
 name = "cve_lookup"
 processes = 4
+# match CVE entries without versions constraints (`false` by default due to the high risk of false positives)
+match-any = false
 
 [[backend.plugin]]
 name = "cwe_checker"
