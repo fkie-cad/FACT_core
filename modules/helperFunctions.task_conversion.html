@@ -78,7 +78,6 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.program_setup.html">helperFunctions.program_setup module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.tag.html">helperFunctions.tag module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.task_conversion module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.task_conversion.check_for_errors"><code class="docutils literal notranslate"><span class="pre">check_for_errors()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.task_conversion.convert_analysis_task_to_fw_obj"><code class="docutils literal notranslate"><span class="pre">convert_analysis_task_to_fw_obj()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.task_conversion.create_analysis_task"><code class="docutils literal notranslate"><span class="pre">create_analysis_task()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.task_conversion.create_re_analyze_task"><code class="docutils literal notranslate"><span class="pre">create_re_analyze_task()</span></code></a></li>
@@ -124,24 +123,6 @@
              
   <section id="module-helperFunctions.task_conversion">
 <span id="helperfunctions-task-conversion-module"></span><h1>helperFunctions.task_conversion module<a class="headerlink" href="#module-helperFunctions.task_conversion" title="Permalink to this heading"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.task_conversion.check_for_errors">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">check_for_errors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_task</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.check_for_errors" title="Permalink to this definition"></a></dt>
-<dd><p>Check an analysis task for missing fields and return a dict with error messages (that are intended to be displayed
-in the webinterface).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary containing error messages in the form <cite>{task_key: error_message}</cite>.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict[str, str]</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.task_conversion.convert_analysis_task_to_fw_obj">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">convert_analysis_task_to_fw_obj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_fw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.convert_analysis_task_to_fw_obj" title="Permalink to this definition"></a></dt>
