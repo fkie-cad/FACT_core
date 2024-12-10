@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
 import re
 import string
 from typing import TYPE_CHECKING
+
+from sqlalchemy.testing.plugin.plugin_base import logging
 
 import config
 from analysis.YaraPluginBase import YaraBasePlugin
@@ -50,8 +53,25 @@ class AnalysisPlugin(YaraBasePlugin):
         pattern = re.compile(regex)
         version = pattern.search(input_string)
         if version is not None:
-            return self._strip_leading_zeroes(version.group(0))
+            version_string = version.group(0)
+            if '_sub_regex' in meta_dict:
+                version_string = self._convert_version_str(version_string, meta_dict)
+            else:
+                version_string = self._strip_leading_zeroes(version_string)
+            return version_string
         return ''
+
+    def _convert_version_str(self, version_str: str, meta_dict: dict):
+        """
+        The metadata entry "_sub_regex" can be used to change the version string if it does not have the expected
+        format (e.g. add dots). The entry should contain a regex and replacement for `re.sub()` as JSON string
+        """
+        try:
+            sub_regex, replacement = json.loads(meta_dict['_sub_regex'])
+            return re.sub(sub_regex, replacement, version_str)
+        except json.JSONDecodeError:
+            logging.warning(f'[{self.NAME}]: signature has invalid substitution regex: {meta_dict}')
+            return ''
 
     @staticmethod
     def _get_summary(results: dict) -> list[str]:
@@ -86,9 +106,12 @@ class AnalysisPlugin(YaraBasePlugin):
                     'mode': 'version_function',
                     'function_name': result['meta']['_version_function'],
                 }
-            versions.update(
-                extract_data_from_ghidra(file_object.file_path, input_data, config.backend.docker_mount_base_dir)
+            ghidra_data = extract_data_from_ghidra(
+                file_object.file_path, input_data, config.backend.docker_mount_base_dir
             )
+            for version_str in ghidra_data:
+                if version := self.get_version(version_str, result['meta']):
+                    versions.add(version)
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')
         result['meta']['version'] = list(versions)
