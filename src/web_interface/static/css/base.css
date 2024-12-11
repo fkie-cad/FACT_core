@@ -152,7 +152,7 @@ body.dark-mode a.nav-link.active {
     border-color: var(--border-color-dark) var(--border-color-dark) var(--background-color-dark) !important;
 }
 
-body.dark-mode :is(pre, .pagination-page-info b, .line-number, .list-group-item-action,
+body.dark-mode :is(pre:not(.CodeMirror-line), .pagination-page-info b, .line-number, .list-group-item-action,
         .table:not(.table-borderless), .list-group-flush) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-dark) !important;
