@@ -65,7 +65,7 @@ class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
                     'application/x-sharedlib',
                     'application/x-dosexec',
                 ],
-                system_version=self.ip_and_uri_finder.system_version,
+                system_version=self.ip_and_uri_finder.plugin_version,
             ),
         )
 
