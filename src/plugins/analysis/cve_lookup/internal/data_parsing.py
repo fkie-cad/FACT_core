@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import datetime
+import json
 import re
+from http import HTTPStatus
 from pathlib import Path
 from shlex import split
 from subprocess import run
+from typing import TYPE_CHECKING
 
 import ijson
 import requests
@@ -11,22 +15,44 @@ from requests.adapters import HTTPAdapter, Retry
 
 from ..internal.helper_functions import CveEntry, is_ci
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 # Hack: if this is running on the CI, only load recent CVE entries instead of all
 FILE_NAME = 'CVE-all.json.xz' if not is_ci() else 'CVE-recent.json.xz'
-CVE_URL = f'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/download/{FILE_NAME}'
+VERSION_FILE = Path(__file__).parent / 'database' / 'version.json'
+REPO = 'fkie-cad/nvd-json-data-feeds'
+CVE_URL = f'https://github.com/{REPO}/releases/latest/download/{FILE_NAME}'
+API_URL = f'https://api.github.com/repos/{REPO}/releases/latest'
 DB_DIR = Path(__file__).parent / 'database'
 OUTPUT_FILE = DB_DIR / FILE_NAME
 
 
-def _retrieve_url(download_url: str, target: Path):
+def _retrieve_url(download_url: str, target: Path) -> None:
     adapter = HTTPAdapter(max_retries=Retry(total=5, backoff_factor=0.1))
     with requests.Session() as session:
         session.mount('http://', adapter)
-        with requests.get(download_url, stream=True) as request:
+        with requests.get(download_url, stream=True, timeout=300) as request:
             request.raise_for_status()
             with target.open('wb') as fp:
                 for chunk in request.iter_content(chunk_size=65_536):
                     fp.write(chunk)
+
+
+def _retrieve_latest_version() -> str | None:
+    response = requests.get(API_URL, timeout=5)
+    if response.status_code == HTTPStatus.OK:
+        data = response.json()
+        return data['tag_name']
+    return None
+
+
+def _store_release_data() -> None:
+    data = {
+        'version': _retrieve_latest_version(),
+        'last_updated': datetime.datetime.now().isoformat(),
+    }
+    Path(VERSION_FILE).write_text(json.dumps(data))
 
 
 def download_and_decompress_file() -> Path:
@@ -34,7 +60,7 @@ def download_and_decompress_file() -> Path:
     Downloads data from a URL, saves it to a file, decompresses it, and returns the path.
     """
     _retrieve_url(CVE_URL, OUTPUT_FILE)
-    run(split(f'unxz --force {OUTPUT_FILE.name}'), cwd=DB_DIR, check=True)
+    run(split(f'unxz --force {OUTPUT_FILE.name}'), cwd=DB_DIR, check=True)  # noqa: S603
     return DB_DIR / OUTPUT_FILE.stem  # the .xz suffix was removed during extraction
 
 
@@ -89,7 +115,7 @@ def extract_data_from_cve(cve_item: dict) -> CveEntry:
     return CveEntry(cve_id=cve_id, summary=summary, impact=impact, cpe_entries=cpe_entries)
 
 
-def parse_data() -> list[CveEntry]:
+def parse_data() -> Iterator[CveEntry]:
     """
     Parse the data from the JSON file and return a list of CveEntry objects.
     """
@@ -103,3 +129,4 @@ def parse_data() -> list[CveEntry]:
 
 if __name__ == '__main__':
     parse_data()
+    _store_release_data()
