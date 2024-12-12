@@ -197,6 +197,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         with self.get_read_write_session() as session:
             entry = session.get(AnalysisEntry, (uid, plugin))
             entry.plugin_version = analysis_data['plugin_version']
+            entry.system_version = analysis_data.get('system_version')
             entry.analysis_date = analysis_data['analysis_date']
             entry.summary = analysis_data.get('summary')
             entry.tags = analysis_data.get('tags')
