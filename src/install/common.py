@@ -1,3 +1,4 @@
+import json
 import logging
 import subprocess
 from contextlib import suppress
@@ -85,6 +86,7 @@ def _install_fw_magic(version: str = 'v0.2.2'):
         # compile the magic files (results in .mgc suffix) so that we don't get warnings when using them
         run_cmd_with_logging('file -C -m firmware')
         run_cmd_with_logging('file -C -m internal_symlink_magic')
+        Path('fw_magic_version.json').write_text(json.dumps({'version': version.lstrip('v')}))
 
 
 def _update_submodules():
