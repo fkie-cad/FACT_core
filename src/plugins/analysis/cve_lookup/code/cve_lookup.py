@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import sys
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -20,7 +22,9 @@ except ImportError:
     from database.db_connection import DbConnection
     from lookup import Lookup
 
-DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
+DB_DIR = Path(__file__).parent.parent / 'internal/database'
+DB_PATH = str(DB_DIR / 'cve_cpe.db')
+VERSION_PATH = DB_DIR / 'version.json'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -32,10 +36,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['software_components']  # noqa: RUF012
-    VERSION = '0.2.0'
+    VERSION = '0.2.1'
     FILE = __file__
 
     def additional_setup(self):
+        with suppress(json.JSONDecodeError, FileNotFoundError):
+            self.SYSTEM_VERSION = json.loads(VERSION_PATH.read_text()).get('version')
         self.min_crit_score = getattr(config.backend.plugin.get(self.NAME, {}), 'min-critical-score', 9.0)
 
     def process_object(self, file_object: FileObject) -> FileObject:

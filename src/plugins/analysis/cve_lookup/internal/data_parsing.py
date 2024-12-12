@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import datetime
 import json
 import lzma
 import re
+from http import HTTPStatus
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import requests
@@ -14,7 +17,10 @@ if TYPE_CHECKING:
 from ..internal.helper_functions import CveEntry
 
 FILE_NAME = 'CVE-all.json.xz'
-CVE_URL = f'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/download/{FILE_NAME}'
+VERSION_FILE = Path(__file__).parent / 'database' / 'version.json'
+REPO = 'fkie-cad/nvd-json-data-feeds'
+CVE_URL = f'https://github.com/{REPO}/releases/latest/download/{FILE_NAME}'
+API_URL = f'https://api.github.com/repos/{REPO}/releases/latest'
 
 
 def _retrieve_url(download_url: str) -> Response:
@@ -22,6 +28,22 @@ def _retrieve_url(download_url: str) -> Response:
     with requests.Session() as session:
         session.mount('http://', adapter)
         return session.get(download_url)
+
+
+def _retrieve_latest_version() -> str | None:
+    response = requests.get(API_URL)
+    if response.status_code == HTTPStatus.OK:
+        data = response.json()
+        return data['tag_name']
+    return None
+
+
+def _store_release_data():
+    data = {
+        'version': _retrieve_latest_version(),
+        'last_updated': datetime.datetime.now().isoformat(),
+    }
+    Path(VERSION_FILE).write_text(json.dumps(data))
 
 
 def download_and_decompress_data() -> bytes:
@@ -93,3 +115,4 @@ def parse_data() -> list[CveEntry]:
 
 if __name__ == '__main__':
     parse_data()
+    _store_release_data()
