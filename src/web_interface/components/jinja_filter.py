@@ -183,6 +183,7 @@ class FilterClass:
                 'hide_dts_binary_data': flt.hide_dts_binary_data,
                 'infection_color': flt.infection_color,
                 'is_list': lambda item: isinstance(item, list),
+                'is_text_file_or_image': flt.is_text_file_or_image,
                 'json_dumps': json.dumps,
                 'link_cve': flt.replace_cve_with_link,
                 'link_cwe': flt.replace_cwe_with_link,

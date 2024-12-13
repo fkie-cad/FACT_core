@@ -14,7 +14,7 @@ from operator import itemgetter
 from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import Iterable, Union
+from typing import TYPE_CHECKING, Iterable, Union
 
 import packaging.version
 import semver
@@ -27,6 +27,9 @@ from helperFunctions.tag import TagColor
 from helperFunctions.web_interface import get_alternating_color_list
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.privileges import PRIVILEGES
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
 def generic_nice_representation(i):  # noqa: PLR0911
@@ -557,3 +560,25 @@ def _file_mode_to_type(mode: int) -> str:
 
 def str_to_hex(string: str) -> str:
     return string.encode(errors='replace').hex()
+
+
+KNOWN_TEXT_MIME_TYPES = {  # that don't start with text/
+    'application/javascript',
+    'application/json',
+    'application/pgp-keys',
+    'firmware/intel-hex',
+    'message/news',
+}
+
+
+def is_text_file(mime: str) -> bool:
+    return mime.startswith('text/') or mime in KNOWN_TEXT_MIME_TYPES
+
+
+def is_image(mime: str) -> bool:
+    return mime.startswith('image/')
+
+
+def is_text_file_or_image(fo: FileObject) -> bool:
+    mime = fo.processed_analysis.get('file_type', {}).get('result', {}).get('mime', '')
+    return is_image(mime) or is_text_file(mime)

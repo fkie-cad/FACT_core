@@ -6,6 +6,7 @@ from zlib import compress
 import pytest
 
 import web_interface.filter as flt
+from test.common_helper import create_test_file_object
 
 UNSORTABLE_LIST = [[], ()]
 
@@ -496,3 +497,18 @@ def test_str_to_hex(input_, expected_result):
 )
 def test_octal_to_readable(input_, include_type, expected_result):
     assert flt.octal_to_readable(input_, include_type=include_type) == expected_result
+
+
+@pytest.mark.parametrize(
+    ('type_analysis', 'expected_result'),
+    [
+        ({'file_type': {}}, False),
+        ({'file_type': {'result': {'mime': 'image/png'}}}, True),
+        ({'file_type': {'result': {'mime': 'text/plain'}}}, True),
+        ({'file_type': {'result': {'mime': 'application/octet-stream'}}}, False),
+        ({'file_type': {'result': {'mime': 'application/javascript'}}}, True),
+    ],
+)
+def test_is_text_file_or_image(type_analysis, expected_result):
+    fo = create_test_file_object(analyses=type_analysis)
+    assert flt.is_text_file_or_image(fo) == expected_result

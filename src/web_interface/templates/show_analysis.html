@@ -360,10 +360,8 @@
                         <div id="preview-content" class="m-0 mt-2 p-0"></div>
                     </div>
 
-                    {%- set is_text_preview = firmware.processed_analysis["file_type"]["result"]['mime'][0:5] == "text/" or firmware.processed_analysis["file_type"]["result"]['mime'][0:6] == "image/" %}
-
                     <script>
-                        const isTextOrImage = {{ 'true' if is_text_preview else 'false' }};
+                        const isTextOrImage = {{ 'true' if firmware | is_text_file_or_image else 'false' }};
                         let mimeType = '{{ firmware.processed_analysis["file_type"]["result"]["mime"].replace("/", "_") }}';
                     </script>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_preview.js') }}"></script>

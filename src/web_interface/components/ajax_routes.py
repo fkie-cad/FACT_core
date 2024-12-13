@@ -12,7 +12,12 @@ from web_interface.components.hex_highlighting import preview_data_as_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
 from web_interface.file_tree.file_tree_node import FileTreeNode
 from web_interface.file_tree.jstree_conversion import convert_to_jstree_node
-from web_interface.filter import bytes_to_str_filter, encode_base64_filter
+from web_interface.filter import (
+    bytes_to_str_filter,
+    encode_base64_filter,
+    is_image,
+    is_text_file,
+)
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -89,12 +94,12 @@ class AjaxRoutes(ComponentBase):
     def ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
         binary = self.intercom.get_binary_and_filename(uid)[0]
-        if 'text/' in mime_type:
+        if is_text_file(mime_type):
             return (
                 '<pre class="line_numbering" style="white-space: pre-wrap">'
                 f'{html.escape(bytes_to_str_filter(binary))}</pre>'
             )
-        if 'image/' in mime_type:
+        if is_image(mime_type):
             return (
                 '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; '
                 f'text-align: center"><img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" '
