@@ -381,11 +381,11 @@
                         <th>
                             Comments
                             {# Add Comment Button #}
-                            <form action="/comment/{{ firmware.uid }}" style="float: right; margin-right: 5px;">
-                                <button class="btn btn-primary btn-sm" type="submit">
-                                    <i class="far fa-edit"></i> add comment
-                                </button>
-                            </form>
+                            <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse"
+                                    data-target="#addCommentCell" aria-expanded="false" aria-controls="addCommentCell"
+                                    style="float: right;">
+                                <i class="far fa-edit"></i> add comment
+                            </button>
 
                             {# Show Comments Button #}
                             <form onsubmit="return false;" style="float: right; margin-right: 5px;">
@@ -397,6 +397,45 @@
                         </th>
                     </tr>
                 </thead>
+                <tbody>
+                    <tr class="collapse" id="addCommentCell">
+                        <td>
+                            <div>
+                                <form class="form-horizontal" id="addCommentForm" action="/comment/{{ uid }}" method=post enctype=multipart/form-data>
+
+                                    <div class="form-group row">
+                                        <label class="control-label col-sm-2" for="comment" style="margin-top: 6px;">
+                                            Comment:
+                                        </label>
+                                        <div class="col-xs-12 col-sm-10">
+                                            <textarea name="comment" rows="5" style="resize: vertical; position: relative; z-index: 1;" required autofocus class="form-control" id="comment"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <label class="control-label col-sm-2" for="author" style="margin-top: 6px;">
+                                            Author:
+                                        </label>
+                                        <div class="col-xs-12 col-sm-10">
+                                            <input type="text" name="author" class="form-control" id="author" required
+                                                   style="position: relative; z-index: 1;" value="anonymous">
+                                        </div>
+                                    </div>
+
+                                    {% if current_user.is_authenticated %}
+                                        <script type="text/javascript">
+                                            document.getElementById('author').value = '{{ current_user.email }}';
+                                            document.getElementById('author').setAttribute("readonly", true);
+                                        </script>
+                                    {% endif %}
+                                </form>
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-primary" form="addCommentForm">Add Comment</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
             {% if firmware.comments %}
             <div class="collapse m-0" id="comments">
