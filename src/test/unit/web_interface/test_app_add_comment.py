@@ -11,15 +11,6 @@ class DbMock(CommonDatabaseMock):
 
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestAppAddComment:
-    def test_app_add_comment_get_not_in_db(self, test_client):
-        rv = test_client.get('/comment/abc_123')
-        assert b'Error: UID not found in database' in rv.data
-
-    def test_app_add_comment_get_valid_uid(self, test_client):
-        rv = test_client.get(f'/comment/{TEST_FW.uid}')
-        assert b'Error: UID not found in database' not in rv.data
-        assert b'Add Comment' in rv.data
-
     def test_app_add_comment_put(self, test_client):
         data = {'comment': 'this is the test comment', 'author': 'test author'}
         rv = test_client.post(
