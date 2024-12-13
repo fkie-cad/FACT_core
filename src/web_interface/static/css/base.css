@@ -163,7 +163,7 @@ body.dark-mode :is(a:link, a:visited, a:active) {
 }
 
 body.dark-mode :is(.navbar-light .navbar-nav > li > a, .list-group-item > a, .list-group-item > div > a,
-        .jstree-node > a, a.text-dark) {
+        .jstree-node > a, a.text-dark, .close) {
     color: var(--text-color-dark) !important;
 }
 
@@ -186,19 +186,11 @@ body.dark-mode :is(.table.table-borderless, .bg-light) {
 
 /* d2h: text file diff */
 body.dark-mode .d2h-del {
-    background-color: #644344 !important;
-}
-
-body.dark-mode del {
-    background-color: #682529 !important;
+    background-color: #6c3538 !important;
 }
 
 body.dark-mode .d2h-ins {
-    background-color: #4b644b !important;
-}
-
-body.dark-mode ins {
-    background-color: #2a5c2a !important;
+    background-color: rgb(36, 89, 55) !important;
 }
 
 body.dark-mode .d2h-tag {
@@ -263,37 +255,63 @@ body.dark-mode .nav-tabs {
 }
 
 /* hljs: highlight.js code highlighting */
+/* The default theme is the GitHub light theme. Therefore, these color values mostly come from the GitHub dark theme */
 body.dark-mode .hljs {
     background: inherit;
     color: var(--text-color-dark);
 }
 
-body.dark-mode .hljs-string {
-    color: var(--element-color-primary-light);
+body.dark-mode :is(.hljs-doctag, .hljs-keyword, .hljs-meta .hljs-keyword, .hljs-template-tag, .hljs-template-variable,
+        .hljs-type, .hljs-variable.language_, .invalid-feedback) {
+    color: #ff7b72;
 }
 
-body.dark-mode :is(.hljs-attr, .hljs-number, .hljs-meta, .hljs-literal) {
-    color: var(--link-color-dark);
+body.dark-mode :is(.hljs-title, .hljs-title.class_, .hljs-title.class_.inherited__, .hljs-title.function_) {
+    color: #d2a8ff;
 }
 
-body.dark-mode :is(.hljs-title, .hljs-title.class_) {
-    color: #ad80ff;
+body.dark-mode :is(.hljs-attr, .hljs-attribute, .hljs-literal, .hljs-meta, .hljs-number, .hljs-operator,
+        .hljs-selector-attr, .hljs-selector-class, .hljs-selector-id, .hljs-variable) {
+    color: #79c0ff;
 }
 
-body.dark-mode :is(.hljs-keyword, .hljs-variable, .invalid-feedback) {
-    color: #ff5565;
+body.dark-mode :is(.hljs-meta .hljs-string, .hljs-regexp, .hljs-string) {
+    color: #a5d6ff;
 }
 
-body.dark-mode .hljs-built_in {
-    color: #ffc863;
+body.dark-mode :is(.hljs-built_in, .hljs-symbol) {
+    color: #ffa657;
 }
 
-body.dark-mode .hljs-name {
-    color: #6aff8e;
+body.dark-mode :is(.hljs-code, .hljs-comment, .hljs-formula) {
+    color: #8b949e;
 }
 
-body.dark-mode .close {
+body.dark-mode :is(.hljs-name, .hljs-quote, .hljs-selector-pseudo, .hljs-selector-tag) {
+    color: #7ee787;
+}
+
+body.dark-mode :is(.hljs-subst, .hljs-emphasis, .hljs-strong) {
     color: var(--text-color-dark);
+}
+
+body.dark-mode .hljs-section {
+    color: #1f6feb;
+    font-weight: 700;
+}
+
+body.dark-mode .hljs-bullet {
+    color: #f2cc60;
+}
+
+body.dark-mode :is(.hljs-addition, ins) {
+    color: #aff5b4;
+    background-color: #033a16;
+}
+
+body.dark-mode :is(.hljs-deletion, del) {
+    color: #ffdcd7;
+    background-color: #67060c;
 }
 
 body.dark-mode input[type="checkbox"] {
