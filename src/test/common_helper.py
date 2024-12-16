@@ -294,10 +294,12 @@ def store_binary_on_file_system(tmp_dir: str, test_object: FileObject | Firmware
 
 def setup_test_tables(db_setup):
     db_setup.connection.create_tables()
+    db_setup.create_unpacking_view()
     db_setup.set_table_privileges()
 
 
 def clear_test_tables(db_setup):
+    db_setup.delete_unpacking_view()
     db_setup.connection.base.metadata.drop_all(db_setup.connection.engine)
 
 
