@@ -67,7 +67,7 @@ class TestAppShowAnalysis:
 
     def test_app_show_analysis_invalid_analysis(self, test_client):
         result = test_client.get(f'/analysis/{TEST_FW.uid}/this_analysis_does_not_exist/ro/{TEST_FW.uid}').data
-        assert b'Error!' in result
+        assert b'The requested analysis (this_analysis_does_not_exist) has not run (yet)' in result
 
     def test_app_single_file_analysis(self, test_client, intercom_task_list):
         result = test_client.get(f'/analysis/{TEST_FW.uid}')
