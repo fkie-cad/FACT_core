@@ -549,8 +549,17 @@ class AnalysisScheduler:
         if not fw_object.scheduled_analysis:
             logging.info(f'Analysis Completed: {fw_object.uid}')
             self.status.remove_object(fw_object)
+            self._do_callback(fw_object)
         else:
             self.process_queue.put(fw_object)
+
+    @staticmethod
+    def _do_callback(fw_object: FileObject):
+        if fw_object.callback is not None:
+            try:
+                fw_object.callback()
+            except Exception as error:
+                logging.exception(f'Callback failed for {fw_object.uid}: {error}')
 
     # ---- miscellaneous functions ----
 
