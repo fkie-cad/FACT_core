@@ -58,9 +58,8 @@ class AnalysisRoutes(ComponentBase):
             if not file_obj:
                 return render_template('uid_not_found.html', uid=uid)
             if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
-                return render_template(
-                    'error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)'
-                )
+                flash(f'The requested analysis ({selected_analysis}) has not run (yet)', 'warning')
+                selected_analysis = None
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
                 other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
