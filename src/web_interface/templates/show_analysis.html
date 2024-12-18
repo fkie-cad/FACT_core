@@ -381,11 +381,10 @@
                         <th>
                             Comments
                             {# Add Comment Button #}
-                            <form action="/comment/{{ firmware.uid }}" style="float: right; margin-right: 5px;">
-                                <button class="btn btn-primary btn-sm" type="submit">
-                                    <i class="far fa-edit"></i> add comment
-                                </button>
-                            </form>
+                            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addCommentModal"
+                                    style="float: right;">
+                                <i class="far fa-edit"></i> add comment
+                            </button>
 
                             {# Show Comments Button #}
                             <form onsubmit="return false;" style="float: right; margin-right: 5px;">
@@ -435,6 +434,56 @@
             {% endif %}
         </div>
 
+    </div>
+
+    <!-- Add Comment Modal -->
+    <div class="modal fade" id="addCommentModal" data-backdrop="static" data-keyboard="false" tabindex="-1"
+                     aria-labelledby="addCommentLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCommentLabel">Add a Comment</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal" id="addCommentForm" action="/comment/{{ uid }}" method=post enctype=multipart/form-data>
+
+                        <div class="form-group row">
+                            <label class="control-label col-sm-2" for="comment" style="margin-top: 6px;">
+                                Comment:
+                            </label>
+                            <div class="col-xs-12 col-sm-10">
+                                <textarea name="comment" rows="5" style="resize: vertical; position: relative; z-index: 1;" required autofocus class="form-control" id="comment"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="control-label col-sm-2" for="author" style="margin-top: 6px;">
+                                Author:
+                            </label>
+                            <div class="col-xs-12 col-sm-10">
+                                <input type="text" name="author" class="form-control" id="author" required
+                                       style="position: relative; z-index: 1;" value="anonymous">
+                            </div>
+                        </div>
+
+                        {% if current_user.is_authenticated %}
+                            <script type="text/javascript">
+                                document.getElementById('author').value = '{{ current_user.email }}';
+                                document.getElementById('author').setAttribute("readonly", true);
+                            </script>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" form="addCommentForm">Add Comment</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>

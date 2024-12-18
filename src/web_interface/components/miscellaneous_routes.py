@@ -57,12 +57,6 @@ class MiscellaneousRoutes(ComponentBase):
         self.db.editing.add_comment_to_object(uid, comment, author, round(time()))
         return redirect(url_for('show_analysis', uid=uid))
 
-    @roles_accepted(*PRIVILEGES['comment'])
-    @AppRoute('/comment/<uid>', GET)
-    def show_add_comment(self, uid):
-        error = not self.db.frontend.exists(uid)
-        return render_template('add_comment.html', uid=uid, error=error)
-
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/delete_comment/<uid>/<timestamp>', GET)
     def delete_comment(self, uid, timestamp):
