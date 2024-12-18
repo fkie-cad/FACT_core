@@ -4,82 +4,82 @@
 
     <table class="table table-bordered" style="table-layout: fixed">
         <colgroup>
-             <col style="width: 12.5%">
-             <col style="width: 87.5%">
+            <col style="width: 12.5%">
+            <col style="width: 87.5%">
         </colgroup>
         <thead class="thead-light">
-            <tr>
-                <th colspan="2">
-                    <div class="d-flex justify-content-between align-items-center">
+        <tr>
+            <th colspan="2">
+                <div class="d-flex justify-content-between align-items-center">
                         <span>
                             Showing Analysis: {{ selected_analysis | replace_underscore }}
                         </span>
-                        <div class="custom-control custom-switch">
-                          <input type="checkbox" class="custom-control-input" id="rawResultSwitch">
-                          <label class="custom-control-label" for="rawResultSwitch" style="font-weight: normal;">
-                              Show Raw Result (JSON)
-                          </label>
-                            <button class="btn btn-outline-secondary btn-sm" type="submit" style="padding: 2px 5px;"
-                                    onclick="copyRawAnalysis()" data-toggle="tooltip" title="copy raw result">
-                                <i class="far fa-copy"></i>
-                            </button>
-                        </div>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="rawResultSwitch">
+                        <label class="custom-control-label" for="rawResultSwitch" style="font-weight: normal;">
+                            Show Raw Result (JSON)
+                        </label>
+                        <button class="btn btn-outline-secondary btn-sm" type="submit" style="padding: 2px 5px;"
+                                onclick="copyRawAnalysis()" data-toggle="tooltip" title="copy raw result">
+                            <i class="far fa-copy"></i>
+                        </button>
                     </div>
-                </th>
-            </tr>
+                </div>
+            </th>
+        </tr>
         </thead>
         <tbody class="table-analysis" id="analysis-table-body">
-            {% if analysis_result['skipped'] %}
-                <tr class="analysis-meta">
-                    <td class="table-warning">Analysis was skipped</td>
-                    <td>{{ analysis_metadata['skipped'] }}</td>
-                </tr>
+        {% if analysis_result['skipped'] %}
+            <tr class="analysis-meta">
+                <td class="table-warning">Analysis was skipped</td>
+                <td>{{ analysis_metadata['skipped'] }}</td>
+            </tr>
+        {% endif %}
+        {% if analysis_metadata['analysis_date'] %}
+            <tr class="analysis-meta">
+                <td class="table-head-light">Time of Analysis</td>
+                <td>{{ analysis_metadata['analysis_date'] | nice_unix_time }}</td>
+            </tr>
+        {% endif %}
+        {% if analysis_metadata['plugin_version'] %}
+            <tr class="analysis-meta">
+                <td class="table-head-light">Plugin Version</td>
+                <td>{{ analysis_metadata['plugin_version'] }}</td>
+            </tr>
+        {% endif %}
+        {% if analysis_metadata['system_version'] %}
+            <tr class="analysis-meta">
+                <td class="table-head-light">System Version</td>
+                <td>{{ analysis_metadata['system_version'] }}</td>
+            </tr>
+        {% endif %}
+        <tr id="raw-result" class="analysis-meta" style="visibility: collapse">
+            <td>Raw Analysis Result</td>
+            <td>
+                <pre class="m-0" style="max-height: 50vh; overflow: scroll;"><code id="raw-analysis" class="language-json">{{ analysis_result | dict_to_json(indent=4) }}</code></pre>
+            </td>
+        </tr>
+
+        {% set version_backend = analysis_plugin_dict[selected_analysis][3] %}
+        {% set version_database = analysis_metadata['plugin_version'] %}
+
+        {% if selected_analysis == 'unpacker' or version_database | version_is_compatible(version_backend, True) %}
+            {% if analysis_result is not none and 'skipped' not in analysis_result %}
+                {% block analysis_result_details %}
+
+                {% endblock %}
             {% endif %}
-            {% if analysis_metadata['analysis_date'] %}
-                <tr class="analysis-meta">
-                    <td class="table-head-light">Time of Analysis</td>
-                    <td>{{ analysis_metadata['analysis_date'] | nice_unix_time }}</td>
-                </tr>
-            {% endif %}
-            {% if analysis_metadata['plugin_version'] %}
-                <tr class="analysis-meta">
-                    <td class="table-head-light">Plugin Version</td>
-                    <td>{{ analysis_metadata['plugin_version']}}</td>
-                </tr>
-            {% endif %}
-            {% if analysis_metadata['system_version'] %}
-                <tr class="analysis-meta">
-                    <td class="table-head-light">System Version</td>
-                    <td>{{ analysis_metadata['system_version']}}</td>
-                </tr>
-            {% endif %}
-            <tr id="raw-result" class="analysis-meta" style="visibility: collapse">
-                <td>Raw Analysis Result</td>
+        {% else %}
+            <tr>
+                <td class="table-warning">Analysis outdated</td>
                 <td>
-                    <pre class="m-0"><code id="raw-analysis" class="language-json">{{ analysis_result | dict_to_json(indent=4) }}</code></pre>
+                    The backend plugin version ({{ version_backend | string }}) is incompatible with
+                    the version ({{ version_database | string }}) of the analysis result.
+
+                    Please update the analysis.
                 </td>
             </tr>
-
-            {% set version_backend = analysis_plugin_dict[selected_analysis][3] %}
-            {% set version_database = analysis_metadata['plugin_version'] %}
-
-            {% if selected_analysis == 'unpacker' or version_database | version_is_compatible(version_backend, True) %}
-                {% if analysis_result is not none and 'skipped' not in analysis_result %}
-                    {% block analysis_result_details %}
-
-                    {% endblock %}
-                {% endif %}
-            {% else %}
-                <tr>
-                    <td class="table-warning">Analysis outdated</td>
-                    <td>
-                        The backend plugin version ({{ version_backend | string }}) is incompatible with
-                        the version ({{ version_database | string }}) of the analysis result.
-
-                        Please update the analysis.
-                    </td>
-                </tr>
-            {% endif %}
+        {% endif %}
         </tbody>
     </table>
 
