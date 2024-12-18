@@ -26,16 +26,9 @@ from pathlib import Path
 from shlex import split
 from subprocess import Popen, TimeoutExpired
 from time import sleep
-
-import config
-
-try:
-    import fact_base  # noqa: F401
-except ImportError:
-    sys.exit(1)
-
 from typing import TYPE_CHECKING
 
+import config
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.program_setup import setup_argparser, setup_logging
 

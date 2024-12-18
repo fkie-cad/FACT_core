@@ -24,10 +24,7 @@ import resource
 import sys
 from pathlib import Path
 
-try:
-    from fact_base import FactBase
-except (ImportError, ModuleNotFoundError):
-    sys.exit(1)
+from fact_base import FactBase
 
 import config
 from analysis.PluginBase import PluginInitException
