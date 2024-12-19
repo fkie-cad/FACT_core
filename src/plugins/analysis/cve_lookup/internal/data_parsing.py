@@ -1,35 +1,40 @@
 from __future__ import annotations
 
-import json
-import lzma
 import re
-from typing import TYPE_CHECKING
+from pathlib import Path
+from shlex import split
+from subprocess import run
 
+import ijson
 import requests
 from requests.adapters import HTTPAdapter, Retry
-
-if TYPE_CHECKING:
-    from requests.models import Response
 
 from ..internal.helper_functions import CveEntry
 
 FILE_NAME = 'CVE-all.json.xz'
 CVE_URL = f'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/download/{FILE_NAME}'
+DB_DIR = Path(__file__).parent / 'database'
+OUTPUT_FILE = DB_DIR / FILE_NAME
 
 
-def _retrieve_url(download_url: str) -> Response:
+def _retrieve_url(download_url: str, target: Path):
     adapter = HTTPAdapter(max_retries=Retry(total=5, backoff_factor=0.1))
     with requests.Session() as session:
         session.mount('http://', adapter)
-        return session.get(download_url)
+        with requests.get(download_url, stream=True) as request:
+            request.raise_for_status()
+            with target.open('wb') as fp:
+                for chunk in request.iter_content(chunk_size=65_536):
+                    fp.write(chunk)
 
 
-def download_and_decompress_data() -> bytes:
+def download_and_decompress_file() -> Path:
     """
-    Downloads data from a URL, saves it to a file, decompresses it, and returns the decompressed data.
+    Downloads data from a URL, saves it to a file, decompresses it, and returns the path.
     """
-    response = _retrieve_url(CVE_URL)
-    return lzma.decompress(response.content)
+    _retrieve_url(CVE_URL, OUTPUT_FILE)
+    run(split(f'unxz --force {OUTPUT_FILE.name}'), cwd=DB_DIR, check=True)
+    return DB_DIR / OUTPUT_FILE.stem  # the .xz suffix was removed during extraction
 
 
 def extract_english_summary(descriptions: list) -> str:
@@ -87,8 +92,12 @@ def parse_data() -> list[CveEntry]:
     """
     Parse the data from the JSON file and return a list of CveEntry objects.
     """
-    cve_json = json.loads(download_and_decompress_data())
-    return [extract_data_from_cve(cve_item) for cve_item in cve_json.get('cve_items', [])]
+    cve_path = download_and_decompress_file()
+    with cve_path.open('rb') as fp:
+        # the file is huge, so we use ijson to stream the data
+        for cve_item in ijson.items(fp, 'cve_items.item'):
+            yield extract_data_from_cve(cve_item)
+    cve_path.unlink()  # remove the temporary file after we are done
 
 
 if __name__ == '__main__':
