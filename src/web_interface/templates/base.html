@@ -31,6 +31,7 @@
 
     <script type="text/javascript" src="{{ url_for('static', filename='node_modules/bootstrap-datepicker/dist/js/bootstrap-datepicker.js') }}"></script>
 
+    <script type="text/javascript" src="{{ url_for('static', filename='js/dark_mode.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/quick_search.js') }}"></script>
 
     <script>
@@ -41,18 +42,6 @@
             });
 
             initQuickSearch();
-        });
-
-        function toggleDarkMode() {
-            let isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
-        }
-        document.addEventListener('DOMContentLoaded', (event) => {
-            let isDark = (localStorage.getItem('darkMode') || 'disabled') === 'enabled';
-            document.getElementById("darkModeSwitch").checked = isDark;
-            if (isDark) {
-                toggleDarkMode();
-            }
         });
     </script>
 

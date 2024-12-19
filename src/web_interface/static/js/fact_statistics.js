@@ -166,26 +166,6 @@ function createHistogram(canvasId, chartData) {
     return dateBarChart;
 }
 
-const lightTextColor = "#212529";
-const darkTextColor = "#ccc";
-const lightLineColor = "#f8f9fa";
-const darkLineColor = "#343a40";
-
-function getTextColor() {
-    return isDark() ? darkTextColor : lightTextColor;
-}
-
-function getLineColor() {
-    return isDark() ? darkLineColor : lightLineColor;
-}
-
-function isDark() {
-    return (
-        document.getElementById("darkModeSwitch").checked ||
-        localStorage.getItem('darkMode') === 'enabled'
-    );
-}
-
 function updateChartColors() {
     Object.entries(charts).forEach(([id, chart]) => {
         try {
