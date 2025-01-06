@@ -159,7 +159,7 @@ name.</p>
 </div>
 <p>If this fixture does not fit your needs (which normally should not be necessary) you can define a fixture like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
-<span class="k">def</span> <span class="nf">my_fancy_plugin</span><span class="p">(</span><span class="n">analysis_plugin</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_fancy_plugin</span><span class="p">(</span><span class="n">analysis_plugin</span><span class="p">)</span>
     <span class="c1"># Make sure the marker is defined as expected</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">analysis_plugin</span><span class="p">,</span> <span class="n">MyFancyPlugin</span><span class="p">)</span>
     <span class="c1"># Patch custom things</span>
@@ -177,7 +177,7 @@ like for example TIMEOUT you have to put the following in your test:</p>
     <span class="c1"># Actually don&#39;t start the processes in the fixture</span>
     <span class="n">start_processes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="k">def</span> <span class="nf">my_fancy_test</span><span class="p">(</span><span class="n">analysis_plugin</span><span class="p">,</span> <span class="n">monkeypatch</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_fancy_test</span><span class="p">(</span><span class="n">analysis_plugin</span><span class="p">,</span> <span class="n">monkeypatch</span><span class="p">):</span>
     <span class="n">analysis_plugin</span><span class="o">.</span><span class="n">TIMEOUT</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="c1"># Now start the worker</span>
     <span class="n">analysis_plugin</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
