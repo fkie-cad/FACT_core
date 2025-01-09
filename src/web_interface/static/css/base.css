@@ -157,7 +157,8 @@ body.dark-mode a.nav-link.active {
 }
 
 body.dark-mode :is(pre:not(.CodeMirror-line), .pagination-page-info b, .line-number, .list-group-item-action,
-        .table:not(.table-borderless, .card-table), .list-group-flush, .d2h-file-wrapper) {
+        .table:not(.table-borderless, .card-table), .list-group-flush, .d2h-file-wrapper, .fixed-table-toolbar,
+        .fixed-table-pagination, .bootstrap-table.fullscreen) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-dark) !important;
 }
