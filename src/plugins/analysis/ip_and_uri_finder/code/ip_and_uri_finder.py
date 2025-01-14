@@ -16,6 +16,8 @@ from semver import Version
 
 from analysis.plugin import AnalysisPluginV0
 
+from ..internal.interesting_uris import find_interesting_uris
+
 if TYPE_CHECKING:
     from io import FileIO
 
@@ -40,6 +42,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         ips_v4: List[IpAddress]
         ips_v6: List[IpAddress]
         uris: List[str]
+        interesting_uris: List[str]
 
     def __init__(self):
         self.ip_and_uri_finder = CommonAnalysisIPAndURIFinder()
@@ -53,7 +56,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             metadata=self.MetaData(
                 name='ip_and_uri_finder',
                 description='Search file for IP addresses and URIs based on regular expressions.',
-                version=Version(1, 1, 0),
+                version=Version(1, 2, 0),
                 Schema=self.Schema,
                 mime_whitelist=[
                     'text/plain',
@@ -78,6 +81,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             ips_v4=[IpAddress(address=ip, location=self.find_geo_location(ip)) for ip in ip_v4_results],
             ips_v6=[IpAddress(address=ip, location=self.find_geo_location(ip)) for ip in ip_v6_results],
             uris=uris,
+            interesting_uris=find_interesting_uris([*ip_v4_results, *uris]),
         )
 
     def find_geo_location(self, ip_address: str) -> Location | None:
