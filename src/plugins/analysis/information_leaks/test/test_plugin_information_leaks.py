@@ -1,8 +1,7 @@
+from io import FileIO
 from pathlib import Path
 
 import pytest
-
-from test.common_helper import MockFileObject
 
 from ..code.information_leaks import (
     URL_REGEXES,
@@ -16,64 +15,72 @@ from ..code.information_leaks import (
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
+class MockFile:
+    @staticmethod
+    def read():
+        return b''
+
+
+class MockTypeResult:
+    def __init__(self, mime: str):
+        self.mime = mime
+
+
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginInformationLeaks:
     def test_find_path(self, analysis_plugin):
-        fo = MockFileObject()
-        fo.binary = (TEST_DATA_DIR / 'path_test_file').read_bytes()
-        fo.processed_analysis[analysis_plugin.NAME] = {}
-        fo.processed_analysis['file_type'] = {'result': {'mime': 'application/x-executable'}}
-        fo.virtual_file_path = {}
-        analysis_plugin.process_object(fo)
+        result = analysis_plugin.analyze(
+            file_handle=FileIO(TEST_DATA_DIR / 'path_test_file'),
+            virtual_file_path={},
+            analyses={'file_type': MockTypeResult('application/x-executable')},
+        )
+        summary = analysis_plugin.summarize(result)
 
-        assert 'user_paths' in fo.processed_analysis[analysis_plugin.NAME]
-        assert fo.processed_analysis[analysis_plugin.NAME]['user_paths'] == [
-            '/home/multiple/file.a',
-            '/home/multiple/file.b',
-            '/home/user/test/urandom',
-            '/home/user/urandom',
+        result_dict = result.model_dump()
+        assert result_dict['path_artifacts'] != []
+        assert result_dict['url_artifacts'] == []
+        assert sorted(result_dict['path_artifacts'], key=lambda d: (d['name'], d['path'])) == [
+            {'name': 'root_path', 'path': '/root/user_name/this_directory'},
+            {'name': 'user_paths', 'path': '/home/multiple/file.a'},
+            {'name': 'user_paths', 'path': '/home/multiple/file.b'},
+            {'name': 'user_paths', 'path': '/home/user/test/urandom'},
+            {'name': 'user_paths', 'path': '/home/user/urandom'},
+            {'name': 'www_path', 'path': '/var/www/tmp/me_'},
         ]
 
-        assert 'www_path' in fo.processed_analysis[analysis_plugin.NAME]
-        assert fo.processed_analysis[analysis_plugin.NAME]['www_path'] == ['/var/www/tmp/me_']
-
-        assert 'root_path' in fo.processed_analysis[analysis_plugin.NAME]
-        assert fo.processed_analysis[analysis_plugin.NAME]['root_path'] == ['/root/user_name/this_directory']
-
-        assert 'summary' in fo.processed_analysis[analysis_plugin.NAME]
-        assert sorted(fo.processed_analysis[analysis_plugin.NAME]['summary']) == ['root_path', 'user_paths', 'www_path']
+        assert sorted(summary) == ['root_path', 'user_paths', 'www_path']
 
     def test_find_artifacts(self, analysis_plugin):
-        fo = MockFileObject()
-        fo.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
-        fo.virtual_file_path = {
-            1: [
-                'some_uid|/home/user/project/.git/config',
-                'some_uid|/home/user/some_path/.pytest_cache/some_file',
-                'some_uid|/root/some_directory/some_more/.config/Code/User/settings.json',
-                'some_uid|/some_home/some_user/urandom/42/some_file.uvprojx',
-                'some_uid|some_more_uid|/this_home/this_dict/.zsh_history',
-                'some_uid|some_more_uid|/this_home/this_dict/.random_ambiguous_history',
-                'some_uid|home',
-                'some_uid|',
-                'some_uid|h654qf"§$%74672',
-                'some_uid|vuwreivh54r234/',
-                'some_uid|/vr4242fdsg4%%$',
+        virtual_file_path = {
+            'some_parent_uid': [
+                '/home/user/project/.git/config',
+                '/home/user/some_path/.pytest_cache/some_file',
+                '/root/some_directory/some_more/.config/Code/User/settings.json',
+                '/some_home/some_user/urandom/42/some_file.uvprojx',
+                '/this_home/this_dict/.zsh_history',
+                '/this_home/this_dict/.random_ambiguous_history',
+                'home',
+                '',
+                'h654qf"§$%74672',
+                'vuwreivh54r234/',
+                '/vr4242fdsg4%%$',
             ]
         }
-        analysis_plugin.process_object(fo)
-        expected_result = sorted(
-            [
-                'git_config',
-                'pytest_cache_directory',
-                'vscode_settings',
-                'keil_uvision_config',
-                'zsh_history',
-                'any_history',
-            ]
+        result = analysis_plugin.analyze(
+            file_handle=MockFile(),
+            virtual_file_path=virtual_file_path,
+            analyses={'file_type': MockTypeResult('text/plain')},
         )
-        assert 'summary' in fo.processed_analysis[analysis_plugin.NAME]
-        assert fo.processed_analysis[analysis_plugin.NAME]['summary'] == expected_result
+        summary = analysis_plugin.summarize(result)
+        expected_result = [
+            'any_history',
+            'git_config',
+            'keil_uvision_config',
+            'pytest_cache_directory',
+            'vscode_settings',
+            'zsh_history',
+        ]
+        assert sorted(summary) == expected_result
 
 
 def test_check_file_path():
@@ -85,9 +92,8 @@ def test_check_file_path():
 
 def test_find_creds_in_urls():
     content = b'\0\0http://username:password@some.address.org/foo/bar\0\0"ftp://user:passwd@example.com"\0\0'
-    result, summary = _find_regex(content, URL_REGEXES)
+    result = _find_regex(content, URL_REGEXES)
     assert result['credentials_in_url'] == [
         'ftp://user:passwd@example.com',
         'http://username:password@some.address.org/foo/bar',
     ]
-    assert summary == ['credentials_in_url']

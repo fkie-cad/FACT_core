@@ -4,31 +4,44 @@
     <link type="text/css" href="{{ url_for('static', filename='css/code_pre.css') }}" rel="stylesheet">
 {% endblock %}
 
+{% macro result_list(result_list) %}
+    {% for item in result_list %}
+        <ul class="m-0">
+            <li>{{ item['path'] }}</li>
+        </ul>
+    {% endfor %}
+{% endmacro %}
+
 {% block analysis_result_details %}
 
-{% for key, value in analysis_result.items() | sort %}
-    <tr>
-        <td>
-            {{ key }}
-        </td>
-        <td class="m-0 p-0">
-            <div class="clickable pt-2 pl-3" data-toggle="collapse" data-target="#{{ key }}">
-                <i class="fas fa-angle-down mb-2 pt-2"></i>
-            </div>
-
-            <div class="collapse w-100" id="{{ key }}">
-                {% if value | is_list %}
-                    {% for item in value %}
-                         <ul>
-                            <li>{{ item }}</li>
-                         </ul>
+    {% for category, category_result in analysis_result.items() %}
+        {% if category_result %}
+            <tr>
+                <td>
+                    {{ category }}
+                </td>
+                <td class="p-0">
+                    {% for artifact, artifact_data in (category_result | group_dict_list_by_key('name')).items() %}
+                        <table style="width: 100%">
+                            <tr>
+                                <td style="width: 10%; min-width: 100px;">{{ artifact }}</td>
+                                <td>
+                                    {# hide long results in a <details> block #}
+                                    {% if artifact_data | length > 10 %}
+                                        <details>
+                                            <summary>show details</summary>
+                                            {{ result_list(artifact_data) }}
+                                        </details>
+                                    {% else %}
+                                        {{ result_list(artifact_data) }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
                     {% endfor %}
-                {% else %}
-                    <pre class="information-leaks-pre">{{ value }}</pre>
-                {% endif %}
-            </div>
-        </td>
-    </tr>
-{% endfor %}
+                </td>
+            </tr>
+        {% endif %}
+    {% endfor %}
 
 {% endblock %}
