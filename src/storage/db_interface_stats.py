@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections import Counter
-from typing import TYPE_CHECKING, Any, Callable, Iterator, List, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, List, Tuple
 
 from sqlalchemy import column, func, select
 from sqlalchemy.exc import SQLAlchemyError
@@ -249,21 +249,25 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
 
     def get_software_components(self, q_filter: dict | None = None) -> Stats:
         with self.get_read_only_session() as session:
-            subquery = (
-                select(func.jsonb_object_keys(AnalysisEntry.result).label('software'), AnalysisEntry.uid)
-                .filter(AnalysisEntry.plugin == 'software_components')
-                .subquery('subquery')
-            )
+            label = 'software'
             query = (
-                select(subquery.c.software, func.count(subquery.c.software))
-                .filter(subquery.c.software.notin_(['system_version', 'skipped']))
-                .group_by(subquery.c.software)
+                select(
+                    func.jsonb_array_elements(AnalysisEntry.result['software_components']).label(label),
+                    func.count(label),
+                )
+                .filter(AnalysisEntry.plugin == 'software_components')
+                .group_by(label)
             )
             if self._filter_is_not_empty(q_filter):
-                query = query.join(FileObjectEntry, FileObjectEntry.uid == subquery.c.uid)
+                query = query.join(FileObjectEntry, FileObjectEntry.uid == AnalysisEntry.uid)
                 query = query.join(FirmwareEntry, FileObjectEntry.root_firmware.any(uid=FirmwareEntry.uid))
                 query = query.filter_by(**q_filter)
-            return _sort_tuples(session.execute(query))
+
+            result = {}
+            for software_dict, count in session.execute(query):
+                result.setdefault(software_dict['name'], 0)
+                result[software_dict['name']] += count
+            return _sort_tuples(result.items())
 
     @staticmethod
     def _join_fw_or_fo(query: Select, is_firmware: bool) -> Select:
@@ -293,7 +297,7 @@ def count_occurrences(result_list: list[str]) -> Stats:
     return _sort_tuples(Counter(result_list).items())
 
 
-def _sort_tuples(query_result: Stats) -> Stats:
+def _sort_tuples(query_result: Iterable[Tuple[str, int]]) -> Stats:
     # Sort stats tuples by count in ascending order
     return sorted(
         _convert_to_tuples(query_result), key=lambda e: (e[1], e[0]) if not isinstance(e[0], dict) else (e[1],)

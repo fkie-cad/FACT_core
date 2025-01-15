@@ -297,7 +297,9 @@ def test_get_software_components_stats(stats_updater, backend_db):
         'fo1',
         parent_fw='root_fw',
         analysis={
-            'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
+            'software_components': generate_analysis_entry(
+                analysis_result={'software_components': [{'name': 'LinuxKernel', 'versions': []}]}
+            ),
         },
     )
     insert_test_fo(
@@ -305,7 +307,9 @@ def test_get_software_components_stats(stats_updater, backend_db):
         'fo2',
         parent_fw='root_fw',
         analysis={
-            'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
+            'software_components': generate_analysis_entry(
+                analysis_result={'software_components': [{'name': 'LinuxKernel', 'versions': []}]}
+            ),
         },
     )
     insert_test_fo(
@@ -313,7 +317,9 @@ def test_get_software_components_stats(stats_updater, backend_db):
         'fo3',
         parent_fw='root_fw',
         analysis={
-            'software_components': generate_analysis_entry(analysis_result={'SomeSoftware': {'foo': 'bar'}}),
+            'software_components': generate_analysis_entry(
+                analysis_result={'software_components': [{'name': 'SomeSoftware', 'versions': []}]}
+            ),
         },
     )
 

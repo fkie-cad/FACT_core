@@ -18,19 +18,18 @@ cve_lookup.DB_PATH = f'{db_path}/test.db'
 
 SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
     'result': {
-        'dnsmasq': {'meta': {'software_name': 'Dnsmasq', 'version': ['2.40']}},
-        'OpenSSL': {
-            'matches': True,
-            'meta': {
+        'software_components': [
+            {'name': 'Dnsmasq', 'versions': ['2.40']},
+            {
+                'name': 'OpenSSL',
                 'description': 'SSL library',
                 'open_source': True,
-                'software_name': 'OpenSSL',
-                'version': [''],
+                'versions': [],
                 'website': 'https://www.openssl.org',
+                'rule': 'OpenSSL',
+                'matching_strings': [{'offset': 7194, 'identifier': '$a', 'string': 'T1BFTlNTTA=='}],
             },
-            'rule': 'OpenSSL',
-            'strings': [[7194, '$a', 'T1BFTlNTTA==']],
-        },
+        ],
     },
     'analysis_date': 1563453634.37708,
     'plugin_version': '0.3.2',
