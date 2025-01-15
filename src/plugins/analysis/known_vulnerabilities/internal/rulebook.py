@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from copy import deepcopy
 
 RELATIONS = {
@@ -36,7 +38,7 @@ class Vulnerability:
             (self.score in ['low', 'medium', 'high'], 'score has to be one of low, medium or high'),
             (isinstance(self.description, str), 'description must be a string'),
             (
-                isinstance(self.rule, (SingleRule, MetaRule, SubPathRule)),
+                isinstance(self.rule, (SingleRule, MetaRule, SubPathRule, SoftwareRule)),
                 f'rule must be of type in [SingleRule, MetaRule, SubPathRule]. Has type {type(rule)}',
             ),
             (isinstance(self.link, str) or not link, 'if link is set it has to be a string'),
@@ -95,6 +97,22 @@ class SubPathRule:
         self.meta_rule = meta_rule
 
 
+class SoftwareRule:
+    def __init__(self, software_name: str, affected_versions: set[str]):
+        self.software_name = software_name
+        self.affected_versions = affected_versions
+
+    def evaluate(self, processed_analysis: dict[str, dict]) -> bool:
+        software_components = (
+            processed_analysis.get('software_components', {}).get('result', {}).get('software_components', [])
+        )
+        return any(
+            sw['name'] == self.software_name and v in self.affected_versions
+            for sw in software_components
+            for v in sw['versions']
+        )
+
+
 def evaluate(analysis, rule):
     try:
         if isinstance(rule, MetaRule):
@@ -103,6 +121,8 @@ def evaluate(analysis, rule):
             result = _evaluate_single_rule(analysis, rule)
         elif isinstance(rule, SubPathRule):
             result = _evaluate_sub_path_rule(analysis, rule)
+        elif isinstance(rule, SoftwareRule):
+            result = rule.evaluate(analysis)
         else:
             raise TypeError('rule must be of one in types [SingleRule, MetaRule, SubPathRule]')
         return result
@@ -153,10 +173,9 @@ def _get_dotted_path_from_dictionary(dictionary, dotted_path):
 
 
 def vulnerabilities():
-    heartbleed_rule = SingleRule(
-        value_path=['software_components.result.OpenSSL.meta.version'],
-        relation='intersection',
-        comparison=[f'1.0.1{minor}' for minor in 'abcde'],
+    heartbleed_rule = SoftwareRule(
+        software_name='OpenSSL',
+        affected_versions={f'1.0.1{minor}' for minor in 'abcde'},
     )
     heartbleed_vulnerability = Vulnerability(
         rule=heartbleed_rule,

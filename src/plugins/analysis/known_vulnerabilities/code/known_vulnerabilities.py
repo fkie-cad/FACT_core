@@ -47,15 +47,18 @@ class AnalysisPlugin(YaraBasePlugin):
 
     def get_matched_vulnerabilities(self, yara_result: list[tuple[str, dict]], file_object) -> list[tuple[str, dict]]:
         software_components_results = file_object.processed_analysis.get('software_components', {}).get('result', {})
+        software_by_name = {
+            sw_dict['name']: sw_dict for sw_dict in software_components_results.get('software_components', [])
+        }
         matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
 
         # CVE-2021-45608 NetUSB
-        if 'NetUSB' in software_components_results:
+        if 'NetUSB' in software_by_name:
             matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.file_path))
 
         # CVE-2024-3094 XZ Backdoor secondary detection
-        if 'liblzma' in software_components_results and not any(vuln == 'xz_backdoor' for vuln, _ in yara_result):
-            matched_vulnerabilities.extend(_check_xz_backdoor(software_components_results))
+        if 'liblzma' in software_by_name and not any(vuln == 'xz_backdoor' for vuln, _ in yara_result):
+            matched_vulnerabilities.extend(_check_xz_backdoor(software_by_name['liblzma']))
         return matched_vulnerabilities
 
     def add_tags(self, file_object, vulnerability_list):
@@ -131,7 +134,7 @@ class AnalysisPlugin(YaraBasePlugin):
 
 
 def _check_xz_backdoor(software_results: dict) -> list[tuple[str, dict]]:
-    if any(v in software_results['liblzma']['meta']['version'] for v in ['5.6.0', '5.6.1']):
+    if any(v in software_results['versions'] for v in ['5.6.0', '5.6.1']):
         return [
             (
                 'XZ Backdoor',

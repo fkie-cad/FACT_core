@@ -4,6 +4,7 @@ from ..internal.rulebook import (
     RELATIONS,
     MetaRule,
     SingleRule,
+    SoftwareRule,
     SubPathRule,
     _evaluate_meta_rule,
     _evaluate_single_rule,
@@ -13,6 +14,7 @@ from ..internal.rulebook import (
     evaluate,
 )
 
+# FixMe: result structure changed when IP&URI plugin was ported to new base class
 IPS = {
     'ip_and_uri_finder': {
         'summary': ['1', '2', '3', '4', 'a', 'b', 'c'],
@@ -105,6 +107,32 @@ def test_evaluate_base_rule():
 
     assert _evaluate_sub_path_rule(IPS, sub_path_match)
     assert not _evaluate_sub_path_rule(IPS, sub_path_no_match)
+
+
+def test_software_rule():
+    rule = SoftwareRule(software_name='foo', affected_versions={'v1.2.2', 'v1.2.3'})
+    processed_analysis_match = {
+        'software_components': {
+            'result': {
+                'software_components': [
+                    {'name': 'foo', 'versions': ['v1.2.2']},
+                ]
+            }
+        }
+    }
+    processed_analysis_no_match = {
+        'software_components': {
+            'result': {
+                'software_components': [
+                    {'name': 'foo', 'versions': ['v1.2.1', 'v1.2.4']},
+                    {'name': 'bar', 'versions': ['v1.2.2']},
+                ]
+            }
+        }
+    }
+
+    assert rule.evaluate(processed_analysis_match) is True
+    assert rule.evaluate(processed_analysis_no_match) is False
 
 
 def test_evaluate_bad_type():

@@ -46,9 +46,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         cves = {'cve_results': {}}
         connection = DbConnection(f'sqlite:///{DB_PATH}')
         lookup = Lookup(file_object, connection, match_any=self.match_any)
-        for value in file_object.processed_analysis['software_components']['result'].values():
-            product = value['meta']['software_name']
-            version = value['meta']['version'][0]
+        for sw_dict in file_object.processed_analysis['software_components']['result'].get('software_components', []):
+            product = sw_dict['name']
+            version = sw_dict['versions'][0] if sw_dict['versions'] else None
             if product and version:
                 vulnerabilities = lookup.lookup_vulnerabilities(product, version)
                 if vulnerabilities:
