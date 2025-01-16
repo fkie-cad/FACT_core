@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     import io
 
 
-class AnalysisPlugin(AnalysisPluginV0, compat.AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     class Schema(pydantic.BaseModel):
         matches: List[dict]
 

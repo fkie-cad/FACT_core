@@ -17,7 +17,6 @@ from pydantic import BaseModel, Field
 
 import config
 from analysis.plugin import AnalysisPluginV0, Tag
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 
@@ -116,7 +115,7 @@ class FileMetadata(BaseModel):
     )
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     NAME = 'file_system_metadata'
 
     class Schema(BaseModel):

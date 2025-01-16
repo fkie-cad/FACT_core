@@ -12,7 +12,6 @@ from semver import Version
 
 import config
 from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.hash import get_hash, get_md5
 
 if TYPE_CHECKING:
@@ -26,7 +25,7 @@ ELF_MIME_TYPES = [
 ]
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
         # The supported hashes are the ones from helperFunctions.hash and hashlib (except "shake" which is of
         # little use considering its variable length).

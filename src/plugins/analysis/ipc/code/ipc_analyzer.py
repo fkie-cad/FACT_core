@@ -10,7 +10,6 @@ from pydantic import BaseModel, Field
 from semver import Version
 
 from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.docker import run_docker_container
 
 if TYPE_CHECKING:
@@ -39,7 +38,7 @@ class FunctionCall(BaseModel):
     )
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
         calls: List[FunctionCall] = Field(description='An array of IPC function calls.')
 
