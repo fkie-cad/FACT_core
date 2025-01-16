@@ -29,8 +29,8 @@ class InterComFrontEndBinding:
     def add_single_file_task(self, fw):
         self._add_to_redis_queue('single_file_task', fw, fw.uid)
 
-    def add_compare_task(self, compare_id, force=False):
-        self._add_to_redis_queue('compare_task', (compare_id, force), compare_id)
+    def add_comparison_task(self, comparison_id, force=False):
+        self._add_to_redis_queue('comparison_task', (comparison_id, force), comparison_id)
 
     def delete_file(self, uid_list: set[str]):
         self._add_to_redis_queue('file_delete_task', uid_list)

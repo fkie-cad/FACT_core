@@ -32,15 +32,15 @@ class TestRestCompareFirmware:
         rv = test_client.get(f'/rest/firmware?query={query}', follow_redirects=True)
         assert fw.uid.encode() in rv.data, 'test firmware not found in REST search'
 
-    def _rest_start_compare(self, test_client):
+    def _rest_start_comparison(self, test_client):
         data = {'uid_list': [test_fw_a.uid, test_fw_c.uid]}
         rv = test_client.put('/rest/compare', json=data, follow_redirects=True)
-        assert b'Compare started' in rv.data, 'could not start REST compare'
+        assert b'Comparison started' in rv.data, 'could not start REST comparison'
 
-    def _rest_get_compare(self, test_client):
+    def _rest_get_comparison(self, test_client):
         rv = test_client.get(f'/rest/compare/{test_fw_a.uid};{test_fw_c.uid}', follow_redirects=True)
-        assert b'Compare not found in database.' not in rv.data, 'compare not found in database'
-        assert b'"files_in_common": {"' in rv.data, 'REST compare not successful'
+        assert b'Comparison not found in database.' not in rv.data, 'comparison not found in database'
+        assert b'"files_in_common": {"' in rv.data, 'REST comparison not successful'
 
     # two firmware container with 3 included files each times three plugins
     @pytest.mark.SchedulerTestConfig(items_to_analyze=4 * 2 * 3)
@@ -51,6 +51,6 @@ class TestRestCompareFirmware:
         assert analysis_finished_event.wait(timeout=20)
         self._rest_search(test_client, test_fw_a)
         self._rest_search(test_client, test_fw_c)
-        self._rest_start_compare(test_client)
+        self._rest_start_comparison(test_client)
         assert comparison_finished_event.wait(timeout=20)
-        self._rest_get_compare(test_client)
+        self._rest_get_comparison(test_client)

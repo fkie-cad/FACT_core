@@ -84,8 +84,8 @@ fixable = ["ALL"]
 "migrate_database.py" = ["T201"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["analysis", "compare", "helperFunctions", "install", "intercom", "objects", "plugins", "scheduler",
-    "statistic", "storage", "test", "unpacker", "version", "web_interface", "config"]
+known-first-party = ["analysis", "comparison", "helperFunctions", "install", "intercom", "objects", "plugins",
+    "scheduler", "statistic", "storage", "test", "unpacker", "version", "web_interface", "config"]
 known-third-party = ["docker"]
 
 [tool.ruff.lint.pylint]

@@ -11,7 +11,7 @@ from intercom.back_end_binding import (
     InterComBackEndAnalysisTask,
     InterComBackEndBinarySearchTask,
     InterComBackEndCancelTask,
-    InterComBackEndCompareTask,
+    InterComBackEndComparisonTask,
     InterComBackEndFileDiffTask,
     InterComBackEndLogsTask,
     InterComBackEndPeekBinaryTask,
@@ -87,9 +87,9 @@ class TestInterComTaskCommunication:
         task = task_listener.get_next_task()
         assert task.uid == test_fw.uid, 'uid not correct'
 
-    def test_compare_task(self, intercom_frontend):
-        task = InterComBackEndCompareTask()
-        intercom_frontend.add_compare_task('valid_id', force=False)
+    def test_comparison_task(self, intercom_frontend):
+        task = InterComBackEndComparisonTask()
+        intercom_frontend.add_comparison_task('valid_id', force=False)
         result = task.get_next_task()
         assert result == ('valid_id', False)
 
