@@ -336,6 +336,38 @@ def find_function_ref_strings(function_name):
     return strings
 
 
+def find_function_constants(function_name):
+    """
+    Get all constants that are used as operands in the function with name `function_name`.
+
+    :param function_name: The name of the function.
+    :type function_name: str
+    :return: a list of int/long constants referenced in the function as strings
+    :rtype: list[str]
+    """
+    try:
+        function = getGlobalFunctions(function_name)[0]
+    except (IndexError, TypeError):
+        print("Error: Function {} not found.".format(function_name))
+        return []
+
+    constants = []
+    if function is not None:
+        body = function.getBody()
+        instruction_iterator = currentProgram.getListing().getInstructions(body, True)
+
+        for instruction in instruction_iterator:
+            for i in range(instruction.getNumOperands()):
+                for operand in instruction.getOpObjects(i):
+                    try:
+                        value = operand.getValue()
+                    except AttributeError:
+                        continue
+                    if value is not None and isinstance(value, (int, long)):
+                        constants.append(str(value))
+    return constants
+
+
 def get_fstring_from_functions(ghidra_analysis, key_string, call_args, called_fstrings):
     """
     :param ghidra_analysis: instance of GhidraAnalysis
@@ -412,6 +444,7 @@ def find_version_strings(input_data, ghidra_analysis, result_path):
             print("Error: Function name not found.")
             return 1
         result_list = find_function_ref_strings(function_name)
+        result_list.extend(find_function_constants(function_name))
     else:
         print("Error: Invalid mode.")
         return 1
