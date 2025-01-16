@@ -9,7 +9,6 @@ from docker.types import Mount
 from pydantic import Field
 
 from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.docker import run_docker_container
 from helperFunctions.virtual_file_path import get_paths_for_all_parents
 
@@ -31,7 +30,7 @@ LINTER_IMPLS = {
 }
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     class Schema(pydantic.BaseModel):
         class Issue(pydantic.BaseModel):
             """A linting issue."""

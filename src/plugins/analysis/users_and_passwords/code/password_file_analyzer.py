@@ -8,7 +8,6 @@ import pydantic
 from pydantic import Field
 
 from analysis.plugin import AnalysisPluginV0, Tag
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.tag import TagColor
 from plugins.analysis.users_and_passwords.internal.credentials_finder import (
     CredentialResult,
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
     from io import FileIO
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     class Schema(pydantic.BaseModel):
         unix: List[CredentialResult] = Field(description='The list of found UNIX credentials.')
         http: List[CredentialResult] = Field(description='The list of found HTTP basic auth credentials.')

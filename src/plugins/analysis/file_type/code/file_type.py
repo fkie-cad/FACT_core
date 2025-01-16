@@ -7,14 +7,13 @@ import pydantic
 from pydantic import Field
 
 from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions import magic
 
 if typing.TYPE_CHECKING:
     import io
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     class Schema(pydantic.BaseModel):
         mime: str = Field(
             description="The file's mimetype.",

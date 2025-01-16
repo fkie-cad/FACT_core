@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, List, NamedTuple
 from pydantic import BaseModel, Field
 
 from analysis.plugin import AnalysisPluginV0, Tag, addons, compat
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.hash import get_md5
 from helperFunctions.tag import TagColor
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
@@ -50,7 +49,7 @@ class CryptoMaterialMatch(BaseModel):
     hashes: List[str] = Field(description='The MD5 hashes of the keys/certificates (in the same order as `material`)')
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     """
     Searches for known Crypto material (e.g., public and private keys)
     """

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Optional
 
 from analysis.plugin import AnalysisPluginV0, Tag
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.tag import TagColor
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
@@ -13,7 +12,7 @@ if TYPE_CHECKING:
     import io
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
         metadata = AnalysisPluginV0.MetaData(
             name='device_tree',

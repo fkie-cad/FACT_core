@@ -15,7 +15,6 @@ from pydantic import BaseModel
 from semver import Version
 
 from analysis.plugin import AnalysisPluginV0
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 
 if TYPE_CHECKING:
     from io import FileIO
@@ -36,7 +35,7 @@ class Location(BaseModel):
     latitude: float
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
         ips_v4: List[IpAddress]
         ips_v6: List[IpAddress]
