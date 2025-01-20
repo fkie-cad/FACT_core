@@ -16,7 +16,7 @@ def test_no_rule_file(test_client):
 
 
 def test_wrong_rule_file_format(test_client):
-    result = test_client.post('/rest/binary_search', json={'rule_file': 'not an actual rule file'}).json
+    result = test_client.post('/rest/binary_search', json={'rule_file': 'invalid rule file'}).json
     assert 'Error in YARA rule file' in result['error_message']
 
 

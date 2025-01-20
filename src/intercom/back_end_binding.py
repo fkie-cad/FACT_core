@@ -5,6 +5,8 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import yara
+
 import config
 from helperFunctions.process import stop_processes
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
@@ -56,6 +58,7 @@ class InterComBackEndBinding:
             InterComBackEndPeekBinaryTask(),
             InterComBackEndLogsTask(),
             InterComBackEndCancelTask(self._cancel_task),
+            InterComBackEndCheckYaraRuleTask(),
         ]
 
     def start(self):
@@ -224,3 +227,23 @@ class InterComBackEndLogsTask(InterComListenerAndResponder):
         if backend_logs.is_file():
             return backend_logs.read_text().splitlines()[-100:]
         return []
+
+
+class InterComBackEndCheckYaraRuleTask(InterComListenerAndResponder):
+    CONNECTION_TYPE = 'check_yara_rules_task'
+    OUTGOING_CONNECTION_TYPE = 'check_yara_rules_task_resp'
+
+    def get_response(self, task: str | bytes) -> str:
+        return self._get_yara_error(task)
+
+    @staticmethod
+    def _get_yara_error(rules: str | bytes):
+        if isinstance(rules, bytes):
+            rules = rules.decode(errors='ignore')
+        try:
+            yara.compile(source=rules)
+            if len(list(rules)) == 0:
+                return 'No rules found'  # an empty string does not generate an error
+            return None
+        except (yara.Error, TypeError, UnicodeDecodeError) as error:
+            return f'{error.__class__.__name__}: {error}'

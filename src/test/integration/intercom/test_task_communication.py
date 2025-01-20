@@ -11,6 +11,7 @@ from intercom.back_end_binding import (
     InterComBackEndAnalysisTask,
     InterComBackEndBinarySearchTask,
     InterComBackEndCancelTask,
+    InterComBackEndCheckYaraRuleTask,
     InterComBackEndCompareTask,
     InterComBackEndFileDiffTask,
     InterComBackEndLogsTask,
@@ -198,3 +199,18 @@ class TestInterComTaskCommunication:
         intercom_frontend.cancel_analysis(root_uid)
         result = task.get_next_task()
         assert result == root_uid
+
+    def test_get_yara_error(self, intercom_frontend):
+        listener = InterComBackEndCheckYaraRuleTask()
+        invalid_rule = 'rule foobar {}'
+        intercom_frontend.get_yara_error(invalid_rule)
+        task = listener.get_next_task()
+        assert task == invalid_rule
+        error = listener.get_response(task)
+        assert 'expecting <condition>' in error
+
+    def test_get_yara_error_valid(self, intercom_frontend):
+        listener = InterComBackEndCheckYaraRuleTask()
+        valid_rule = 'rule valid {condition: true}'
+        error = listener.get_response(valid_rule)
+        assert error is None, 'the rule should be valid and the error should be None'

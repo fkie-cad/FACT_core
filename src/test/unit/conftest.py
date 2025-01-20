@@ -70,6 +70,13 @@ class CommonIntercomMock:
     def cancel_analysis(self, root_uid):
         self.task_list.append(root_uid)
 
+    def get_yara_error(self, rule):
+        if isinstance(rule, bytes):
+            rule = rule.decode(errors='ignore')
+        if 'invalid' in rule:
+            return 'SyntaxError: line 1: syntax error, unexpected identifier'
+        return None
+
 
 class FrontendDatabaseMock:
     """A class mocking :py:class:`~web_interface.frontend_database.FrontendDatabase`."""

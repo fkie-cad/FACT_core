@@ -50,3 +50,10 @@ def test_output_is_compatible():
     assert converted_match['strings'] == EXPECTED_RESULT['strings']
     for key, value in EXPECTED_RESULT['meta'].items():
         assert converted_match['meta'][key] == value
+
+
+def test_compile():
+    test_file = Path(get_src_dir()) / 'test/data/yara_magic.yara'
+    assert test_file.is_file()
+    rules = yara.compile(str(test_file))
+    assert rules

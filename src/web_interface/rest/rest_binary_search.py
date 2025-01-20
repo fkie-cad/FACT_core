@@ -1,7 +1,6 @@
 from flask import request
 from flask_restx import Namespace, fields
 
-from helperFunctions.yara_binary_search import is_valid_yara_rule_file
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -34,8 +33,9 @@ class RestBinarySearchPost(RestResourceBase):
         `rule_file` can be something like `rule rule_name {strings: $a = \"foobar\" condition: $a}`
         """
         payload_data = self.validate_payload_data(binary_search_model)
-        if not is_valid_yara_rule_file(payload_data['rule_file']):
-            return error_message('Error in YARA rule file', self.URL, request_data=request.data)
+        yara_error = self.intercom.get_yara_error(payload_data['rule_file'])
+        if yara_error is not None:
+            return error_message(f'Error in YARA rule file: {yara_error}', self.URL, request_data=request.data)
         if payload_data['uid'] and not self.db.frontend.is_firmware(payload_data['uid']):
             return error_message(
                 f'Firmware with UID {payload_data["uid"]} not found in database', self.URL, request_data=request.data
