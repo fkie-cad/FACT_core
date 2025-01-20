@@ -3,8 +3,10 @@ import logging
 import os
 import stat
 import subprocess
+import tempfile
 from contextlib import suppress
 from pathlib import Path
+from shlex import split
 from subprocess import PIPE, STDOUT
 
 from compile_yara_signatures import main as compile_signatures
@@ -17,6 +19,7 @@ from helperFunctions.install import (
     apt_install_packages,
     dnf_install_packages,
     install_pip_packages,
+    install_single_pip_package,
     read_package_list_from_file,
 )
 
@@ -153,6 +156,35 @@ def _install_yara():
             cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
             if cmd_process.returncode != 0:
                 raise InstallationError(f'Error in yara installation.\n{cmd_process.stdout}')
+    _install_yara_python(version=yara_version)
+
+
+def _install_yara_python(version: str):
+    """
+    yara-python must be installed from source, because the pre-built version from PyPI is missing the magic module
+    """
+    logging.info(f'Installing yara-python {version}')
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file = f'{version}.tar.gz'
+        url = f'https://github.com/VirusTotal/yara-python/archive/refs/tags/{file}'
+        with OperateInDirectory(tmp_dir):
+            wget_process = subprocess.run(split(f'wget "{url}"'), capture_output=True, text=True, check=False)
+            if wget_process.returncode != 0:
+                raise InstallationError(f'Error downloading yara-python: {wget_process.stdout}')
+            subprocess.run(split(f'tar xf {file}'), capture_output=True, text=True, check=True)
+            Path(file).unlink()
+        output_paths = [p for p in Path(tmp_dir).iterdir() if p.name.startswith('yara-python')]
+        if len(output_paths) != 1:
+            raise InstallationError('Extracting yara-python failed.')
+        with OperateInDirectory(output_paths[0]):
+            try:
+                subprocess.run(split('pip uninstall -y yara-python'), capture_output=True, text=True, check=False)
+                subprocess.run(
+                    split('python setup.py build --dynamic-linking'), capture_output=True, text=True, check=True
+                )
+                install_single_pip_package('.')
+            except subprocess.CalledProcessError as error:
+                raise InstallationError('Error during yara-python installation') from error
 
 
 def _install_checksec():

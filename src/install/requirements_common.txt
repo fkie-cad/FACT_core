@@ -20,7 +20,6 @@ rich==12.6.0
 sqlalchemy~=2.0.30
 ssdeep==3.4
 xmltodict==0.13.0
-yara-python==4.5.0
 
 # Config validation
 pydantic==2.4.0

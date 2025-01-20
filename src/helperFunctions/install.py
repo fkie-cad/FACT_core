@@ -269,10 +269,7 @@ def install_pip_packages(package_file: Path):
     """
     for package in read_package_list_from_file(package_file):
         try:
-            command = f'pip3 install -U {package} --prefer-binary'  # prefer binary release to compiling latest
-            if not is_virtualenv():
-                command = 'sudo -EH ' + command
-            run_cmd_with_logging(command, silent=True)
+            install_single_pip_package(package)
         except CalledProcessError as error:
             # don't fail if a package is already installed using apt and can't be upgraded
             if error.stdout is not None and 'distutils installed' in error.stdout:
@@ -283,6 +280,13 @@ def install_pip_packages(package_file: Path):
                 continue
             logging.error(f'Pip package {package} could not be installed:\n{error.stderr or error.stdout}')
             raise
+
+
+def install_single_pip_package(package: str):
+    command = f'pip3 install -U {package} --prefer-binary'  # prefer binary release to compiling latest
+    if not is_virtualenv():
+        command = 'sudo -EH ' + command
+    run_cmd_with_logging(command, silent=True)
 
 
 def read_package_list_from_file(path: Path):
