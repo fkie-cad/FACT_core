@@ -46,8 +46,6 @@ def main(distribution):
 
     BIN_DIR.mkdir(exist_ok=True)
 
-    _install_fw_magic()
-
     apt_packages_path = INSTALL_DIR / 'apt-pkgs-common.txt'
     dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-common.txt'
 
@@ -57,6 +55,8 @@ def main(distribution):
     else:
         pkgs = read_package_list_from_file(dnf_packages_path)
         dnf_install_packages(*pkgs)
+
+    _install_fw_magic()
 
     if not is_virtualenv():
         install_pip()
