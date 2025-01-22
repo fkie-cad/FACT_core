@@ -19,19 +19,19 @@ class ExtractIKConfigTest:
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
         test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
-        assert analysis_plugin.probably_kernel_config(test_file.binary)
+        assert analysis_plugin._is_probably_kconfig(test_file.binary)
 
     def test_probably_kernel_config_false(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG_MAGIC_CORRUPT'))
         test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
-        assert not analysis_plugin.probably_kernel_config(test_file.binary)
+        assert not analysis_plugin._is_probably_kconfig(test_file.binary)
 
     def test_probably_kernel_config_utf_error(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'random_invalid/a.image'))
         test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
 
-        assert not analysis_plugin.probably_kernel_config(test_file.binary)
+        assert not analysis_plugin._is_probably_kconfig(test_file.binary)
 
     def test_process_configs_ko_success(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'synthetic/configs.ko'))
@@ -77,7 +77,7 @@ class ExtractIKConfigTest:
         result = AnalysisPlugin.try_object_extract_ikconfig(test_file.binary)
 
         assert len(result) > 0
-        assert analysis_plugin.probably_kernel_config(result)
+        assert analysis_plugin._is_probably_kconfig(result)
 
     def test_process_objects_kernel_image(self, analysis_plugin):
         for valid_image in (TEST_DATA_DIR / 'synthetic').glob('*.image'):
@@ -207,4 +207,4 @@ def test_foo1(full_type, expected_output):
     test_file = FileObject()
     test_file.processed_analysis['file_type'] = {'result': {'full': full_type}}
 
-    assert AnalysisPlugin.has_kconfig_type(test_file) == expected_output
+    assert AnalysisPlugin._has_kconfig_type(test_file) == expected_output
