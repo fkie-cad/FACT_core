@@ -86,8 +86,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result"><code class="docutils literal notranslate"><span class="pre">YaraBinarySearchScanner.get_binary_search_result()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.yara_binary_search.get_yara_error"><code class="docutils literal notranslate"><span class="pre">get_yara_error()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.yara_binary_search.is_valid_yara_rule_file"><code class="docutils literal notranslate"><span class="pre">is_valid_yara_rule_file()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -155,43 +153,6 @@ optionally a firmware uid if only the contents of a single firmware are to be sc
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.yara_binary_search.get_yara_error">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></span><span class="sig-name descname"><span class="pre">get_yara_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rules_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.get_yara_error" title="Permalink to this definition"></a></dt>
-<dd><p>Get the exception that is caused by trying to compile <code class="docutils literal notranslate"><span class="pre">rules_file</span></code> with yara or <code class="docutils literal notranslate"><span class="pre">None</span></code> if there is none.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>rules_file</strong> (<em>str</em><em> | </em><em>bytes</em>) – A string containing yara rules.</p>
-</dd>
-<dt class="field-even">Result<span class="colon">:</span></dt>
-<dd class="field-even"><p>The exception if compiling the rules causes an exception or <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Exception | None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.yara_binary_search.is_valid_yara_rule_file">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></span><span class="sig-name descname"><span class="pre">is_valid_yara_rule_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">yara_rules</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.is_valid_yara_rule_file" title="Permalink to this definition"></a></dt>
-<dd><p>Check if <code class="docutils literal notranslate"><span class="pre">yara_rules</span></code> is a valid set of yara rules.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Param<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A string containing yara rules.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if the rules are valid and <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
-</dd>
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>yara_rules</strong> (<em>str</em><em> | </em><em>bytes</em>) – </p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
-</dd>
-</dl>
 </dd></dl>
 
 </section>
