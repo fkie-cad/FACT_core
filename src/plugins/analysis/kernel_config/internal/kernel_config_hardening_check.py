@@ -6,7 +6,8 @@ import subprocess
 from json import JSONDecodeError
 from subprocess import PIPE, STDOUT
 from tempfile import NamedTemporaryFile
-from typing import NamedTuple
+
+from pydantic import BaseModel
 
 # Based on https://github.com/a13xp0p0v/kconfig-hardened-check and
 # https://github.com/a13xp0p0v/linux-kernel-defence-map by Alexander Popov
@@ -110,7 +111,7 @@ PROTECTS_AGAINST = {
 }
 
 
-class HardeningCheckResult(NamedTuple):
+class HardeningCheckResult(BaseModel):
     option_name: str
     desired_value: str
     decision: str
@@ -147,20 +148,33 @@ def _get_kernel_hardening_data(kernel_config: str) -> list[list[str]]:
 
 def _add_protection_info(hardening_result: list[list[str]]) -> list[HardeningCheckResult]:
     full_result = []
-    for single_result in hardening_result:
-        config_key = single_result[0]
-        actual_value = _detach_actual_value_from_result(single_result)
-        protection_info = PROTECTS_AGAINST.get(config_key, [])
-        full_result.append(HardeningCheckResult(*single_result, actual_value, protection_info))
+    for name, desired, decision, reason, check_result in hardening_result:
+        split_result, actual_value = _detach_actual_value_from_result(check_result)
+        if actual_value == '' and split_result == 'OK':
+            # the actual value is sometimes empty if the check result is positive
+            actual_value = desired
+        protection_info = PROTECTS_AGAINST.get(name, [])
+        full_result.append(
+            HardeningCheckResult(
+                option_name=name,
+                desired_value=desired,
+                decision=decision,
+                reason=reason,
+                check_result=split_result,
+                actual_value=actual_value,
+                vulnerabilities=protection_info,
+            )
+        )
     return full_result
 
 
-def _detach_actual_value_from_result(single_result: list[str]) -> str:
+def _detach_actual_value_from_result(check_result: str) -> tuple[str, str]:
     """
     the result may contain the actual value after a colon
     e.g. 'FAIL: not found' or 'FAIL: "y"'
     removes actual value and returns it (or empty string if missing)
     """
-    split_result = single_result[4].split(': ')
-    single_result[4] = split_result[0]
-    return ': '.join(split_result[1:]).replace('"', '')
+    split_result = check_result.split(': ')
+    check_result = split_result[0]
+    actual_value = ': '.join(split_result[1:]).replace('"', '')
+    return check_result, actual_value
