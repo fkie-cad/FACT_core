@@ -55,7 +55,7 @@ class TestAppBinarySearch:
         response = _post_binary_search(
             test_client, {'file': (BytesIO(b'invalid_rule'), 'test_file.txt'), 'textarea': ''}
         )
-        assert 'Error in YARA rules' in response
+        assert 'syntax error' in response
 
     def test_app_binary_search_post_empty(self, test_client):
         response = _post_binary_search(test_client, {'file': None, 'textarea': ''})

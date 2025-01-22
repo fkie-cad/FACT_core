@@ -20,7 +20,6 @@ from helperFunctions.database import get_shared_session
 from helperFunctions.task_conversion import get_file_name_and_binary_from_request
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
-from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
 from storage.graphql.interface import TEMPLATE_QUERIES, GraphQlInterface, GraphQLSearchError
 from storage.query_conversion import QueryConversionException
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
@@ -279,12 +278,13 @@ class DatabaseRoutes(ComponentBase):
             if firmware_uid and not self._firmware_is_in_db(firmware_uid):
                 error = f'Error: Firmware with UID {firmware_uid!r} not found in database'
             elif yara_rule_file is not None:
-                if is_valid_yara_rule_file(yara_rule_file):
+                yara_error = self.intercom.get_yara_error(yara_rule_file)
+                if yara_error is None:
                     request_id = self.intercom.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(
                         url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware)
                     )
-                error = f'Error in YARA rules: {get_yara_error(yara_rule_file)} (pre-compiled rules are not supported!)'
+                error = f'Error in YARA rules: {yara_error} (pre-compiled rules are not supported!)'
             else:
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)

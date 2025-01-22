@@ -130,29 +130,3 @@ class YaraBinarySearchScanner:
         compiled_rules = yara.compile(source=yara_rules.decode())
         compiled_rules.save(file=temp_rule_file)
         temp_rule_file.flush()
-
-
-def is_valid_yara_rule_file(yara_rules: str | bytes) -> bool:
-    """
-    Check if ``yara_rules`` is a valid set of yara rules.
-
-    :param: A string containing yara rules.
-    :return: ``True`` if the rules are valid and ``False`` otherwise.
-    """
-    return get_yara_error(yara_rules) is None
-
-
-def get_yara_error(rules_file: str | bytes) -> Exception | None:
-    """
-    Get the exception that is caused by trying to compile ``rules_file`` with yara or ``None`` if there is none.
-
-    :param rules_file: A string containing yara rules.
-    :result: The exception if compiling the rules causes an exception or ``None`` otherwise.
-    """
-    try:
-        if isinstance(rules_file, bytes):
-            rules_file = rules_file.decode()
-        yara.compile(source=rules_file)
-        return None
-    except (yara.Error, TypeError, UnicodeDecodeError) as error:
-        return error
