@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import itertools
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, List
 
-from analysis.PluginBase import AnalysisBasePlugin
+from pydantic import BaseModel
+from semver import Version
+
+from analysis.plugin import AnalysisPluginV0
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
+    from io import FileIO
+
 
 PATH_REGEX = {
     'user_paths': re.compile(rb'/home/[^%\n:) \x00]+'),
@@ -76,59 +81,80 @@ def _filter_files_from_summary(path: str) -> str:
     return path
 
 
-class AnalysisPlugin(AnalysisBasePlugin):
+class Artifact(BaseModel):
+    name: str
+    path: str
+
+
+class AnalysisPlugin(AnalysisPluginV0):
     """
     This Plugin searches for leaked information in a firmware,
         e.g., compilation artifacts, VCS repositories, IDE configs and special paths
     """
 
-    NAME = 'information_leaks'
-    DEPENDENCIES = []  # noqa: RUF012
-    DESCRIPTION = 'Find leaked information like compilation artifacts'
-    MIME_WHITELIST = [  # noqa: RUF012
-        'application/x-executable',
-        'application/x-object',
-        'application/x-sharedlib',
-        'text/plain',
-    ]
-    VERSION = '0.2.0'
-    FILE = __file__
+    class Schema(BaseModel):
+        path_artifacts: List[Artifact]
+        url_artifacts: List[Artifact]
 
-    def process_object(self, file_object: FileObject) -> FileObject:
-        if file_object.processed_analysis['file_type']['result']['mime'] == 'text/plain':
-            result, summary = _find_artifacts(file_object)
+    def __init__(self):
+        super().__init__(
+            metadata=(
+                self.MetaData(
+                    name='information_leaks',
+                    description='Find leaked information like compilation artifacts',
+                    dependencies=['file_type'],
+                    version=Version(1, 0, 0),
+                    mime_whitelist=[
+                        'application/x-executable',
+                        'application/x-object',
+                        'application/x-pie-executable',
+                        'application/x-sharedlib',
+                        'text/plain',
+                    ],
+                    Schema=self.Schema,
+                )
+            )
+        )
+
+    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
+        file_content = file_handle.read()
+        if analyses['file_type'].mime == 'text/plain':
+            path_artifacts = _find_artifacts(virtual_file_path)
         else:
-            result, summary = _find_regex(file_object.binary, PATH_REGEX)
+            path_artifacts = _find_regex(file_content, PATH_REGEX)
+        url_artifacts = _find_regex(file_content, URL_REGEXES)
 
-        url_result, url_summary = _find_regex(file_object.binary, URL_REGEXES)
-        result.update(url_result)
-        summary.extend(url_summary)
+        return self.Schema(
+            path_artifacts=self._to_artifact_list(path_artifacts),
+            url_artifacts=self._to_artifact_list(url_artifacts),
+        )
 
-        file_object.processed_analysis[self.NAME] = result
-        file_object.processed_analysis[self.NAME]['summary'] = summary
-        return file_object
+    @staticmethod
+    def _to_artifact_list(artifacts: dict[str, list[str]]) -> list[Artifact]:
+        return [Artifact(name=artifact, path=path) for artifact, path_list in artifacts.items() for path in path_list]
+
+    def summarize(self, result: Schema) -> list[str]:
+        return list({artifact.name for artifact in itertools.chain(result.path_artifacts, result.url_artifacts)})
 
 
-def _find_artifacts(file_object: FileObject) -> tuple[dict[str, Any], list[str]]:
+def _find_artifacts(vfp_dict: dict[str, list[str]]) -> dict[str, list[str]]:
     # FixMe: after removal of duplicate unpacking/analysis, all VFPs will only be found after analysis update
     result = {}
-    for virtual_path_list in file_object.virtual_file_path.values():
-        for virtual_path in virtual_path_list:
-            result.update(_check_file_path(virtual_path))
-    return result, sorted(result)
+    for path_list in vfp_dict.values():
+        for path in path_list:
+            result.update(_check_file_path(path))
+    return result
 
 
 def _check_file_path(file_path: str) -> dict[str, list[str]]:
     for search_function in (_check_for_files, _check_for_directories, _find_files):
-        results = search_function(file_path)
-        if results:
+        if results := search_function(file_path):
             return results
     return {}
 
 
 def _find_files(file_path: str) -> dict[str, list[str]]:
-    files, _ = _find_regex(file_path.encode(), FILES_REGEX)
-    return files
+    return _find_regex(file_path.encode(), FILES_REGEX)
 
 
 def _check_for_files(file_path: str) -> dict[str, list[str]]:
@@ -148,13 +174,11 @@ def _check_for_directories(file_path: str) -> dict[str, list[str]]:
     return results
 
 
-def _find_regex(search_term: bytes, regex_dict: dict[str, re.Pattern]) -> tuple[dict[str, list[str]], list[str]]:
+def _find_regex(search_term: bytes, regex_dict: dict[str, re.Pattern]) -> dict[str, list[str]]:
     results = {}
-    summary = set()
     for label, regex in regex_dict.items():
         result = regex.findall(search_term)
         if result:
             result_list = sorted({e.decode(errors='replace') for e in result})
             results.setdefault(label, []).extend(result_list)
-            summary.add(label)
-    return results, list(summary)
+    return results
