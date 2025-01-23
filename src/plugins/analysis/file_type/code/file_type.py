@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import json
 import typing
+from pathlib import Path
 from typing import List
 
 import pydantic
 from pydantic import Field
+from semver import Version
 
 from analysis.plugin import AnalysisPluginV0
 from helperFunctions import magic
+from helperFunctions.fileSystem import get_bin_dir
 
 if typing.TYPE_CHECKING:
     import io
@@ -23,11 +27,17 @@ class AnalysisPlugin(AnalysisPluginV0):
         )
 
     def __init__(self):
+        try:
+            version_file = Path(get_bin_dir()) / 'version.json'
+            fw_magic_db_version = json.loads(version_file.read_text()).get('version')
+        except (json.JSONDecodeError, FileNotFoundError):
+            fw_magic_db_version = None
         super().__init__(
             metadata=AnalysisPluginV0.MetaData(
                 name='file_type',
                 description='identify the file type',
-                version='1.0.0',
+                version=Version(1, 0, 1),
+                system_version=fw_magic_db_version,
                 Schema=AnalysisPlugin.Schema,
             ),
         )
