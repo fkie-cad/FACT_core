@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from common_helper_files import get_binary_from_file
-from flask import flash, redirect, render_template, render_template_string, request, url_for
+from flask import flash, render_template, render_template_string, request
 from flask_login.utils import current_user
 from werkzeug.exceptions import BadRequestKeyError
 
@@ -105,14 +105,16 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/ro/<root_uid>', POST)
     @AppRoute('/analysis/<uid>/<selected_analysis>', POST)
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', POST)
-    def start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None):
+    @AppRoute('/analysis/single-update/<uid>/<plugin>', POST)
+    def start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None, plugin=None):  # noqa: ARG002
         file_object = self.db.frontend.get_object(uid)
-        file_object.scheduled_analysis = request.form.getlist('analysis_systems')
+        if plugin:
+            file_object.scheduled_analysis = [plugin]
+        else:
+            file_object.scheduled_analysis = request.form.getlist('analysis_systems')
         file_object.force_update = request.form.get('force_update') == 'true'
-        self.intercom.add_single_file_task(file_object)
-        return redirect(
-            url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis)
-        )
+        success = self.intercom.add_single_file_task(file_object)
+        return {'success': success}
 
     @staticmethod
     def _get_used_and_unused_plugins(processed_analysis: dict, all_plugins: list) -> dict:
