@@ -11,7 +11,7 @@ from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-from ..code.qemu_exec import AnalysisPlugin
+from ..code.qemu_exec import PLUGIN_NAME
 
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 
@@ -22,7 +22,7 @@ def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInte
         this_fo = db.get_object(uid)
         if this_fo is not None:
             for parent_uid in this_fo.parents:
-                parent_results = _get_results_from_parent_fo(db.get_analysis(parent_uid, AnalysisPlugin.NAME), uid)
+                parent_results = _get_results_from_parent_fo(db.get_analysis(parent_uid, PLUGIN_NAME), uid)
                 if parent_results:
                     results[parent_uid] = parent_results
     return results
@@ -32,10 +32,11 @@ def _get_results_from_parent_fo(analysis_entry: dict, uid: str):
     if (
         analysis_entry is not None
         and analysis_entry['result'] is not None
-        and 'files' in analysis_entry['result']
-        and uid in analysis_entry['result']['files']
+        and 'included_file_results' in analysis_entry['result']
     ):
-        return analysis_entry['result']['files'][uid]
+        for file_result in analysis_entry['result']['included_file_results']:
+            if file_result['uid'] == uid:
+                return file_result
     return None
 
 
@@ -64,4 +65,4 @@ class PluginRestRoutes(RestResourceBase):
         endpoint = self.ENDPOINTS[0][0]
         if not results:
             error_message(f'no results found for uid {uid}', endpoint, request_data={'uid': uid})
-        return success_message({AnalysisPlugin.NAME: results}, endpoint, request_data={'uid': uid})
+        return success_message({PLUGIN_NAME: results}, endpoint, request_data={'uid': uid})

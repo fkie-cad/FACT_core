@@ -1,15 +1,18 @@
-import os
+from __future__ import annotations
+
 from base64 import b64decode, b64encode
+from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 from subprocess import CompletedProcess
-from unittest import TestCase
+from tempfile import TemporaryDirectory
 
 import pytest
 from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
-from test.common_helper import TEST_FW, create_test_firmware, get_test_data_dir
+from test.common_helper import get_test_data_dir
 from test.mock import mock_patch
 
 from ..code import qemu_exec
@@ -22,8 +25,8 @@ CLI_PARAMETERS = ['-h', '--help', '-help', '--version', ' ']
 
 
 class MockTmpDir:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, name: Path | str):
+        self.name = str(name)
 
     def cleanup(self):
         pass
@@ -32,8 +35,9 @@ class MockTmpDir:
 class MockUnpacker:
     tmp_dir = None
 
-    def unpack_fo(self, _):
-        return self.tmp_dir
+    @contextmanager
+    def unpack_file(self, _):
+        yield self.tmp_dir.name
 
     def set_tmp_dir(self, tmp_dir):
         self.tmp_dir = tmp_dir
@@ -82,149 +86,153 @@ def execute_docker_error(monkeypatch):  # noqa: PT004
     monkeypatch.setattr('docker.client.from_env', DockerClientMock)
 
 
-@pytest.mark.AnalysisPluginTestConfig(
-    plugin_class=AnalysisPlugin,
-    init_kwargs={'unpacker': MockUnpacker()},
-)
+@pytest.fixture
+def _mock_unpacker(monkeypatch):
+    monkeypatch.setattr('plugins.analysis.qemu_exec.code.qemu_exec.Unpacker', MockUnpacker)
+
+
+def test_find_relevant_files():
+    tmp_dir = MockTmpDir(str(TEST_DATA_DIR))
+    result = sorted(qemu_exec._find_relevant_files(Path(tmp_dir.name), root_path=Path(tmp_dir.name)))
+    assert len(result) == 4
+
+    path_list, mime_types = list(zip(*result))
+    for path in ['/lib/ld.so.1', '/lib/libc.so.6', '/test_mips_static', '/usr/bin/test_mips']:
+        assert path in path_list
+    assert all('MIPS' in mime for mime in mime_types)
+
+
+def test_check_qemu_executability():
+    result = qemu_exec.check_qemu_executability('/test_mips_static', 'mips', TEST_DATA_DIR)
+    assert any('--help' in option for option in result)
+    option = [option for option in result if '--help' in option][0]
+    assert result[option]['stdout'] == 'Hello World\n'
+    assert result[option]['stderr'] == ''
+    assert result[option]['return_code'] == '0'
+
+    result = qemu_exec.check_qemu_executability('/test_mips_static', 'i386', TEST_DATA_DIR)
+    assert result == {}
+
+
+def test_find_arch_suffixes():
+    mime_str = 'ELF 32-bit MSB executable, MIPS, MIPS32 rel2 version 1 (SYSV), statically linked'
+    result = qemu_exec._find_arch_suffixes(mime_str)
+    assert result != []
+    # the more specific architecture variants should be checked first
+    assert result == qemu_exec.ARCH_TO_BIN_DICT['MIPS32']
+    assert result != qemu_exec.ARCH_TO_BIN_DICT['MIPS']
+
+
+def test_find_arch_suffixes__unknown_arch():
+    mime_str = 'foo'
+    result = qemu_exec._find_arch_suffixes(mime_str)
+    assert result == []
+
+
+@pytest.mark.timeout(10)
+def test_process_included_files():
+    test_uid = '6b4142fa7e0a35ff6d10e18654be8ac5b778c3b5e2d3d345d1a01c2bcbd51d33_676340'
+    file_list = [('/test_mips_static', '-MIPS32-')]
+
+    result = qemu_exec._process_included_files(file_list, root_path=Path(TEST_DATA_DIR))
+    assert test_uid in result
+    assert result[test_uid]['executable'] is True
+
+
+@dataclass
+class MockFileTypeResult:
+    mime: str
+    full: str
+
+
+@dataclass
+class MockFile:
+    name: str
+
+
+MOCK_ANALYSES = {'file_type': MockFileTypeResult(mime='test_type', full='Not a PE file')}
+MOCK_ANALYSES_EXECUTABLE = {
+    'file_type': MockFileTypeResult(mime='application/x-executable', full='ELF 64-bit executable')
+}
+
+
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestPluginQemuExec:
-    def test_has_relevant_type(self, analysis_plugin):
-        assert analysis_plugin._has_relevant_type(None) is False
-        assert analysis_plugin._has_relevant_type({'mime': 'foo'}) is False
-        assert analysis_plugin._has_relevant_type({'mime': 'application/x-executable'}) is True
-
-    def test_find_relevant_files(self, analysis_plugin):
-        tmp_dir = MockTmpDir(str(TEST_DATA_DIR))
-
-        analysis_plugin.root_path = tmp_dir.name
-        analysis_plugin.unpacker.set_tmp_dir(tmp_dir)
-        result = sorted(analysis_plugin._find_relevant_files(Path(tmp_dir.name)))
-        assert len(result) == 4
-
-        path_list, mime_types = list(zip(*result))
-        for path in ['/lib/ld.so.1', '/lib/libc.so.6', '/test_mips_static', '/usr/bin/test_mips']:
-            assert path in path_list
-        assert all('MIPS' in mime for mime in mime_types)
-
-    def test_check_qemu_executability(self, analysis_plugin):
-        analysis_plugin.OPTIONS = ['-h']
-
-        result = qemu_exec.check_qemu_executability('/test_mips_static', 'mips', TEST_DATA_DIR)
-        assert any('--help' in option for option in result)
-        option = [option for option in result if '--help' in option][0]
-        assert result[option]['stdout'] == 'Hello World\n'
-        assert result[option]['stderr'] == ''
-        assert result[option]['return_code'] == '0'
-
-        result = qemu_exec.check_qemu_executability('/test_mips_static', 'i386', TEST_DATA_DIR)
-        assert result == {}
-
-    def test_find_arch_suffixes(self, analysis_plugin):
-        mime_str = 'ELF 32-bit MSB executable, MIPS, MIPS32 rel2 version 1 (SYSV), statically linked'
-        result = analysis_plugin._find_arch_suffixes(mime_str)
-        assert result != []
-        # the more specific architecture variants should be checked first
-        assert result == analysis_plugin.arch_to_bin_dict['MIPS32']
-        assert result != analysis_plugin.arch_to_bin_dict['MIPS']
-
-    def test_find_arch_suffixes__unknown_arch(self, analysis_plugin):
-        mime_str = 'foo'
-        result = analysis_plugin._find_arch_suffixes(mime_str)
-        assert result == []
-
-    @pytest.mark.timeout(10)
-    def test_process_included_files(self, analysis_plugin):
-        analysis_plugin.OPTIONS = ['-h']
-        test_fw = create_test_firmware()
-        test_uid = '6b4142fa7e0a35ff6d10e18654be8ac5b778c3b5e2d3d345d1a01c2bcbd51d33_676340'
-        test_fw.processed_analysis[analysis_plugin.NAME] = result = {'files': {}}
-        file_list = [('/test_mips_static', '-MIPS32-')]
-
-        analysis_plugin.root_path = Path(TEST_DATA_DIR)
-        analysis_plugin._process_included_files(file_list, test_fw)
-        assert result is not None
-        assert 'files' in result
-        assert test_uid in result['files']
-        assert result['files'][test_uid]['executable'] is True
-
+    @pytest.mark.usefixtures('_mock_unpacker')
     @pytest.mark.timeout(15)
-    def test_process_object(self, analysis_plugin):
+    def test_process_object(self, analysis_plugin: AnalysisPlugin):
         analysis_plugin.OPTIONS = ['-h']
-        test_fw = self._set_up_fw_for_process_object(analysis_plugin)
+        analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(TEST_DATA_DIR))
 
-        analysis_plugin.process_object(test_fw)
-        result = test_fw.processed_analysis[analysis_plugin.NAME]
-        assert 'files' in result
-        assert len(result['files']) == 4
-        assert any(result['files'][uid]['executable'] for uid in result['files'])
+        result = analysis_plugin.analyze(MockFile(name=''), {}, MOCK_ANALYSES)
+        assert len(result.included_file_results) == 4
+        assert any(file.is_executable for file in result.included_file_results)
+        paths = sorted(file.path for file in result.included_file_results)
+        assert paths == ['/lib/ld.so.1', '/lib/libc.so.6', '/test_mips_static', '/usr/bin/test_mips']
 
+        summary = analysis_plugin.summarize(result)
+        assert summary == [EXECUTABLE]
+
+    @pytest.mark.usefixtures('_mock_unpacker')
     @pytest.mark.timeout(15)
-    def test_process_object__with_extracted_folder(self, analysis_plugin):
+    def test_process_object__with_extracted_folder(self, analysis_plugin: AnalysisPlugin):
         analysis_plugin.OPTIONS = ['-h']
-        test_fw = self._set_up_fw_for_process_object(analysis_plugin, path=TEST_DATA_DIR_2)
+        analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(TEST_DATA_DIR_2))
         test_file_uid = '68bbef24a7083ca2f5dc93f1738e62bae73ccbd184ea3e33d5a936de1b23e24c_8020'
 
-        analysis_plugin.process_object(test_fw)
-        result = test_fw.processed_analysis[analysis_plugin.NAME]
-        assert 'files' in result
-        assert len(result['files']) == 3
-        assert result['files'][test_file_uid]['executable'] is True
+        result = analysis_plugin.analyze(MockFile(name=''), {}, MOCK_ANALYSES)
+        assert len(result.included_file_results) == 3
+        file_result_by_uid = {file.uid: file for file in result.included_file_results}
+        assert file_result_by_uid[test_file_uid].is_executable is True
 
+    @pytest.mark.usefixtures('_mock_unpacker')
     @pytest.mark.timeout(10)
     def test_process_object__error(self, analysis_plugin):
-        test_fw = self._set_up_fw_for_process_object(analysis_plugin, path=TEST_DATA_DIR / 'usr')
+        analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(TEST_DATA_DIR / 'usr'))
+        result = analysis_plugin.analyze(MockFile(name=''), {}, MOCK_ANALYSES)
+        summary = analysis_plugin.summarize(result)
 
-        analysis_plugin.process_object(test_fw)
-        result = test_fw.processed_analysis[analysis_plugin.NAME]
-
-        assert 'files' in result
-        assert any(result['files'][uid]['executable'] for uid in result['files']) is False
+        assert len(result.included_file_results) == 1
+        file_result = result.included_file_results[0]
+        assert file_result.is_executable is False
+        assert len(file_result.extended_results) == 1
+        arch_result = file_result.extended_results[0]
+        assert arch_result.architecture == 'mips'
         assert all(
-            "/lib/ld.so.1': No such file or directory" in result['files'][uid]['results']['mips'][option]['stderr']
-            for uid in result['files']
-            for option in result['files'][uid]['results']['mips']
-            if option != 'strace'
+            "/lib/ld.so.1': No such file or directory" in parameter_result.stderr
+            for parameter_result in arch_result.parameter_results
         )
+        assert summary == []
 
     @pytest.mark.timeout(10)
-    @pytest.mark.usefixtures('execute_docker_error')
+    @pytest.mark.usefixtures('_mock_unpacker', 'execute_docker_error')
     def test_process_object__timeout(self, analysis_plugin):
-        test_fw = self._set_up_fw_for_process_object(analysis_plugin)
+        analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(TEST_DATA_DIR / 'usr'))
+        result = analysis_plugin.analyze(MockFile(name=''), {}, MOCK_ANALYSES)
 
-        analysis_plugin.process_object(test_fw)
-        result = test_fw.processed_analysis[analysis_plugin.NAME]
+        assert len(result.included_file_results) == 1
+        file_result = result.included_file_results[0]
+        assert file_result.is_executable is False
+        assert all(arch_results.error == 'timeout' for arch_results in file_result.extended_results)
 
-        assert 'files' in result
-        assert all(
-            arch_results['error'] == 'timeout'
-            for uid in result['files']
-            for arch_results in result['files'][uid]['results'].values()
-        )
-        assert all(result['files'][uid]['executable'] is False for uid in result['files'])
-
+    @pytest.mark.usefixtures('_mock_unpacker')
     @pytest.mark.timeout(10)
     def test_process_object__no_files(self, analysis_plugin):
-        test_fw = create_test_firmware()
-        test_fw.files_included = []
+        with TemporaryDirectory() as tmp_dir:
+            analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(tmp_dir))
+            result = analysis_plugin.analyze(MockFile(name=''), {}, MOCK_ANALYSES)
+            summary = analysis_plugin.summarize(result)
 
-        analysis_plugin.process_object(test_fw)
-        assert analysis_plugin.NAME in test_fw.processed_analysis
-        assert test_fw.processed_analysis[analysis_plugin.NAME] == {'summary': []}
+        assert len(result.included_file_results) == 0
+        assert summary == []
 
+    @pytest.mark.usefixtures('_mock_unpacker')
     @pytest.mark.timeout(10)
     def test_process_object__included_binary(self, analysis_plugin):
-        test_fw = create_test_firmware()
-        test_fw.processed_analysis['file_type']['result']['mime'] = analysis_plugin.FILE_TYPES[0]
-
-        analysis_plugin.process_object(test_fw)
-        assert analysis_plugin.NAME in test_fw.processed_analysis
-        assert 'parent_flag' in test_fw.processed_analysis[analysis_plugin.NAME]
-        assert test_fw.processed_analysis[analysis_plugin.NAME]['parent_flag'] is True
-
-    def _set_up_fw_for_process_object(self, analysis_plugin, path: Path = TEST_DATA_DIR):
-        test_fw = create_test_firmware()
-        test_fw.files_included = ['foo', 'bar']
-        analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(str(path)))
-        return test_fw
+        analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(TEST_DATA_DIR))
+        result = analysis_plugin.analyze(MockFile(name=''), {}, MOCK_ANALYSES_EXECUTABLE)
+        assert result.parent_flag is True
+        assert len(result.included_file_results) == 0
 
 
 def test_get_docker_output__static():
@@ -291,19 +299,6 @@ def test_process_qemu_job():
         assert results == {
             uid: {'path': 'test_path', 'results': {'test_arch': test_results, 'test_arch_2': test_results}}
         }
-
-
-@pytest.mark.parametrize(
-    ('input_data', 'expected_output'),
-    [
-        ({}, []),
-        ({'foo': {EXECUTABLE: False}}, []),
-        ({'foo': {EXECUTABLE: False}, 'bar': {EXECUTABLE: True}}, [EXECUTABLE]),
-    ],
-)
-def test_get_summary(input_data, expected_output):
-    result = qemu_exec.AnalysisPlugin._get_summary(input_data)
-    assert result == expected_output
 
 
 @pytest.mark.parametrize(
@@ -410,7 +405,7 @@ def test_decode_output_values(input_data, expected_output):
 )
 def test_process_strace_output__no_strace(input_data):
     qemu_exec.process_strace_output(input_data)
-    assert input_data['strace'] == {}
+    assert input_data['strace'] is None
 
 
 def test_process_strace_output():
@@ -421,58 +416,18 @@ def test_process_strace_output():
     assert b64decode(result)[:2].hex() == '789c'  # magic string for zlib compressed data
 
 
-class TestQemuExecUnpacker(TestCase):
-    def setUp(self):
+class TestQemuExecUnpacker:
+    def setup_method(self):
         self.name_prefix = 'FACT_plugin_qemu'
         self.unpacker = qemu_exec.Unpacker()
-        qemu_exec.FSOrganizer = MockFSOrganizer
 
     def test_unpack_fo(self):
-        test_fw = create_test_firmware()
-        tmp_dir = self.unpacker.unpack_fo(test_fw)
-
-        try:
-            assert self.name_prefix in tmp_dir.name
-            content = os.listdir(str(Path(tmp_dir.name, 'files')))
+        with self.unpacker.unpack_file(get_test_data_dir() / 'container/test.zip') as tmp_dir:
+            assert self.name_prefix in tmp_dir
+            content = [p.name for p in Path(tmp_dir, 'files').iterdir()]
             assert content != []
             assert 'get_files_test' in content
-        finally:
-            tmp_dir.cleanup()
-
-    def test_unpack_fo__no_file_path(self):
-        test_fw = create_test_firmware()
-        test_fw.file_path = None
-
-        with mock_patch(self.unpacker.fs_organizer, 'generate_path', lambda _: TEST_FW.file_path):
-            tmp_dir = self.unpacker.unpack_fo(test_fw)
-
-        try:
-            assert self.name_prefix in tmp_dir.name
-            content = os.listdir(str(Path(tmp_dir.name, 'files')))
-            assert content != []
-            assert 'get_files_test' in content
-        finally:
-            tmp_dir.cleanup()
 
     def test_unpack_fo__path_not_found(self):
-        test_fw = create_test_firmware()
-        test_fw.file_path = 'foo/bar'
-        tmp_dir = self.unpacker.unpack_fo(test_fw)
-
-        assert tmp_dir is None
-
-    def test_unpack_fo__binary_not_found(self):
-        test_fw = create_test_firmware()
-        test_fw.uid = 'foo'
-        test_fw.file_path = None
-        tmp_dir = self.unpacker.unpack_fo(test_fw)
-
-        assert tmp_dir is None
-
-
-class MockFSOrganizer:
-    @staticmethod
-    def generate_path(fo):
-        if fo.uid != 'foo':
-            return str(get_test_data_dir() / 'container/test.zip')
-        return None
+        with self.unpacker.unpack_file('foo/bar') as tmp_dir:
+            assert tmp_dir is None
