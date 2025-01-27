@@ -4,7 +4,6 @@ from queue import Empty
 from typing import TYPE_CHECKING
 
 import pytest
-from flaky import flaky
 
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
@@ -28,7 +27,7 @@ def add_test_file(scheduler, path_in_test_dir):
     scheduler.add_task(firmware)
 
 
-@flaky(max_runs=3, min_passes=1)  # test may fail when the CI is very busy
+@pytest.mark.flaky(reruns=3)  # test may fail when the CI is very busy
 @pytest.mark.SchedulerTestConfig(items_to_unpack=4)
 def test_check_collision(
     frontend_db,
@@ -52,7 +51,7 @@ def test_check_collision(
     assert fo_from_db.virtual_file_path[SECOND_ROOT_ID] == ['/test']
 
 
-@flaky(max_runs=3, min_passes=1)  # test may fail when the CI is very busy
+@pytest.mark.flaky(reruns=3)  # test may fail when the CI is very busy
 @pytest.mark.SchedulerTestConfig(items_to_unpack=4)
 def test_unpacking_skip(
     frontend_db,
