@@ -3,7 +3,6 @@ from multiprocessing import Event
 from time import sleep
 
 import pytest
-from flaky import flaky
 
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
 
@@ -27,7 +26,7 @@ def test_exception_safe_process():
     assert str(process.exception[0]) == "now that's annoying"
 
 
-@flaky(max_runs=3, min_passes=1)  # test may fail on stressed systems
+@pytest.mark.flaky(reruns=3)  # test may fail on stressed systems
 @pytest.mark.backend_config_overwrite(
     {
         'throw_exceptions': True,
@@ -49,7 +48,7 @@ def test_check_worker_exceptions():
     assert len(process_list) == 0
 
 
-@flaky(max_runs=3, min_passes=1)  # test may fail on stressed systems
+@pytest.mark.flaky(reruns=3)  # test may fail on stressed systems
 @pytest.mark.backend_config_overwrite(
     {
         'throw_exceptions': False,

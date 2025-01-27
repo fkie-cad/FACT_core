@@ -1,5 +1,4 @@
 import pytest
-from flaky import flaky
 
 from analysis.PluginBase import AnalysisBasePlugin
 from statistic.analysis_stats import get_plugin_stats
@@ -40,7 +39,7 @@ def test_get_plugin_stats(mock_plugin):
     }
 
 
-@flaky(max_runs=3, min_passes=1)  # test occasionally fails on the CI
+@pytest.mark.flaky(reruns=3)  # test occasionally fails on the CI
 def test_update_duration_stats(mock_plugin):
     mock_plugin.start()
     assert mock_plugin.analysis_stats_count.value == mock_plugin.analysis_stats_index.value == 0

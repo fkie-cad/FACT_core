@@ -5,7 +5,6 @@ from io import FileIO
 from pathlib import Path
 
 import pytest
-from flaky import flaky
 
 from ..code.file_system_metadata import (
     SGID_BIT,
@@ -60,7 +59,7 @@ class TestFileSystemMetadata:
     test_file_tar = TEST_DATA_DIR / 'test.tar'
     test_file_fs = TEST_DATA_DIR / 'squashfs.img'
 
-    @flaky(max_runs=2, min_passes=1)  # test may fail once on a new system
+    @pytest.mark.flaky(reruns=2)  # test may fail once on a new system
     def test_extract_metadata_from_file_system(self, analysis_plugin):
         metadata = analysis_plugin._extract_metadata_from_file_system(FileIO(self.test_file_fs))
         assert len(metadata) == EXPECTED_FILE_COUNT

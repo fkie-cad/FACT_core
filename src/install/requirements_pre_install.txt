@@ -1,13 +1,13 @@
 virtualenv
 
 # Python Libraries for python based installation
-distro==1.8.0
-packaging==23.0
+distro~=1.9.0
+packaging~=24.2
 python-magic==0.4.27
-requests==2.32.2
+requests==2.32.3
 # Needed by config.py
-pydantic==2.4.0
-werkzeug~=3.0.3
+pydantic==2.10.6
+werkzeug~=3.0.6
 toml==0.10.2
 # needed during installation of cve_lookup plugin
 ijson==3.3.0
