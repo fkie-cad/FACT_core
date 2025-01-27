@@ -34,7 +34,7 @@ class RestBinarySearchPost(RestResourceBase):
         """
         payload_data = self.validate_payload_data(binary_search_model)
         yara_error = self.intercom.get_yara_error(payload_data['rule_file'])
-        if yara_error is not None:
+        if yara_error:
             return error_message(f'Error in YARA rule file: {yara_error}', self.URL, request_data=request.data)
         if payload_data['uid'] and not self.db.frontend.is_firmware(payload_data['uid']):
             return error_message(

@@ -83,7 +83,7 @@ class InterComFrontEndBinding:
             timeout = time() + int(config.frontend.communication_timeout)
         while timeout > time():
             output_data = self.redis.get(request_id)
-            if output_data:
+            if output_data is not None:
                 logging.debug(f'Response received: {response_connection} -> {request_id}')
                 break
             logging.debug(f'No response yet: {response_connection} -> {request_id}')
