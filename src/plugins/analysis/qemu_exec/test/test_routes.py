@@ -4,7 +4,7 @@ from flask_restx import Api
 
 from test.common_helper import create_test_file_object, create_test_firmware
 
-from ..code.qemu_exec import AnalysisPlugin
+from ..code.qemu_exec import PLUGIN_NAME
 from ..routes import routes
 
 
@@ -17,26 +17,42 @@ class DbInterfaceMock:
     def __init__(self):
         self.fw = create_test_firmware()
         self.fw.uid = 'parent_uid'
-        self.fw.processed_analysis[AnalysisPlugin.NAME] = {
+        self.fw.processed_analysis[PLUGIN_NAME] = {
             'result': {
-                'files': {
-                    'foo': {'executable': False},
-                    'bar': {
-                        'executable': True,
+                'included_file_results': [
+                    {'uid': 'foo', 'is_executable': False},
+                    {
+                        'uid': 'bar',
+                        'is_executable': True,
                         'path': '/some/path',
-                        'results': {
-                            'some-arch': {
-                                '-h': {'stdout': 'stdout result', 'stderr': 'stderr result', 'return_code': '1337'}
-                            }
-                        },
+                        'extended_results': [
+                            {
+                                'architecture': 'some-arch',
+                                'error': None,
+                                'parameter_results': [
+                                    {
+                                        'parameters': '-h',
+                                        'stdout': 'stdout result',
+                                        'stderr': 'stderr result',
+                                        'return_code': '1337',
+                                    }
+                                ],
+                            },
+                        ],
                     },
-                    'error-outside': {'executable': False, 'path': '/some/path', 'results': {'error': 'some error'}},
-                    'error-inside': {
-                        'executable': False,
+                    {
+                        'uid': 'error-inside',
+                        'is_executable': False,
                         'path': '/some/path',
-                        'results': {'some-arch': {'error': 'some error'}},
+                        'extended_results': [
+                            {
+                                'architecture': 'some-arch',
+                                'error': 'some error',
+                                'parameter_results': [],
+                            },
+                        ],
                     },
-                }
+                ],
             }
         }
 
@@ -55,7 +71,7 @@ class DbInterfaceMock:
         if uid == self.fo.uid:
             return self.fo.processed_analysis.get(plugin)
         if uid == self.fw.uid:
-            return self.fw.processed_analysis[AnalysisPlugin.NAME]
+            return self.fw.processed_analysis[PLUGIN_NAME]
         return None
 
     def shutdown(self):
@@ -72,15 +88,16 @@ class TestQemuExecRoutesStatic:
         assert result is not None
         assert result != {}
         assert 'parent_uid' in result
-        assert result['parent_uid'] == {'executable': False}
+        assert result['parent_uid']['is_executable'] is False
 
     def test_get_results_from_parent_fo(self):
-        analysis_result = {'executable': False}
-        result = routes._get_results_from_parent_fo({'result': {'files': {'foo': analysis_result}}}, 'foo')
-        assert result == analysis_result
+        expected_result = {'uid': 'foo', 'is_executable': False}
+        analysis = {'result': {'included_file_results': [expected_result]}}
+        result = routes._get_results_from_parent_fo(analysis, 'foo')
+        assert result == expected_result
 
     def test_no_results_from_parent(self):
-        result = routes._get_results_from_parent_fo({'result': {}}, 'foo')
+        result = routes._get_results_from_parent_fo({'result': {'included_file_results': []}}, 'foo')
         assert result is None
 
 
@@ -108,12 +125,8 @@ class TestQemuExecRoutes:
         assert 'Results for this File' in response
         assert 'Executable in QEMU' in response
         assert '<td>True</td>' in response
-        assert all(s in response for s in ['some-arch', 'stdout result', 'stderr result', '1337', '/some/path'])
-
-    def test_error_outside(self):
-        response = self.test_client.get('/plugins/qemu_exec/ajax/error-outside').data.decode()
-        assert 'some-arch' not in response
-        assert 'some error' in response
+        for item in ['some-arch', 'stdout result', 'stderr result', '1337', '/some/path']:
+            assert item in response
 
     def test_error_inside(self):
         response = self.test_client.get('/plugins/qemu_exec/ajax/error-inside').data.decode()
@@ -138,11 +151,11 @@ class TestQemuExecRoutesRest:
 
     def test_get_rest(self):
         result = self.test_client.get('/plugins/qemu_exec/rest/foo').json
-        assert AnalysisPlugin.NAME in result
-        assert 'parent_uid' in result[AnalysisPlugin.NAME]
-        assert result[AnalysisPlugin.NAME]['parent_uid'] == {'executable': False}
+        assert PLUGIN_NAME in result
+        assert 'parent_uid' in result[PLUGIN_NAME]
+        assert result[PLUGIN_NAME]['parent_uid']['is_executable'] is False
 
     def test_get_rest_no_result(self):
         result = self.test_client.get('/plugins/qemu_exec/rest/not_found').json
-        assert AnalysisPlugin.NAME in result
-        assert result[AnalysisPlugin.NAME] == {}
+        assert PLUGIN_NAME in result
+        assert result[PLUGIN_NAME] == {}
