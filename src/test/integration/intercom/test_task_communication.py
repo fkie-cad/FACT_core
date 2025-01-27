@@ -213,4 +213,4 @@ class TestInterComTaskCommunication:
         listener = InterComBackEndCheckYaraRuleTask()
         valid_rule = 'rule valid {condition: true}'
         error = listener.get_response(valid_rule)
-        assert error is None, 'the rule should be valid and the error should be None'
+        assert error == '', 'the rule should be valid and the error should be None'

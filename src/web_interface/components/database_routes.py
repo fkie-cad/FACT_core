@@ -279,7 +279,7 @@ class DatabaseRoutes(ComponentBase):
                 error = f'Error: Firmware with UID {firmware_uid!r} not found in database'
             elif yara_rule_file is not None:
                 yara_error = self.intercom.get_yara_error(yara_rule_file)
-                if yara_error is None:
+                if yara_error == '':
                     request_id = self.intercom.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(
                         url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware)

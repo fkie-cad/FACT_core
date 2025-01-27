@@ -244,6 +244,6 @@ class InterComBackEndCheckYaraRuleTask(InterComListenerAndResponder):
             yara.compile(source=rules)
             if len(list(rules)) == 0:
                 return 'No rules found'  # an empty string does not generate an error
-            return None
+            return ''
         except (yara.Error, TypeError, UnicodeDecodeError) as error:
             return f'{error.__class__.__name__}: {error}'

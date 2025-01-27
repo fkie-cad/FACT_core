@@ -75,7 +75,7 @@ class CommonIntercomMock:
             rule = rule.decode(errors='ignore')
         if 'invalid' in rule:
             return 'SyntaxError: line 1: syntax error, unexpected identifier'
-        return None
+        return ''
 
 
 class FrontendDatabaseMock:
