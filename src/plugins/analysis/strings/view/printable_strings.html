@@ -3,39 +3,78 @@
 {% block analysis_result_details %}
 
     <tr>
-        <td>String count</td>
-        <td>{{ analysis_result['strings'] | length }}</td>
-    </tr>
-    <tr>
-        <td rowspan="4">Strings</td>
-        <td data-toggle="collapse" class="clickable" data-target="#collapse-strings">
-            <span class="fas fa-angle-down"></span> In alphabetical order
-        </td>
-    </tr>
-    <tr>
+        <td>Printable Strings</td>
         <td class="p-0">
-            <div class="collapse" id="collapse-strings" style="width: 100%">
-                <pre class="p-2 bg-light mb-0" style="white-space: pre-wrap;">{{ analysis_result['strings'] | list_to_line_break_string }}</pre>
-            </div>
+            {# see the bootstrap-table docs: https://bootstrap-table.com/docs/api/table-options/ #}
+            <table data-search="true"
+                   data-pagination="true"
+                   data-regex-search="true"
+                   data-page-size="25"
+                   data-page-list="[25, 50, 100, 200]"
+                   data-show-columns="true"
+                   data-buttons-class="primary"
+                   data-show-toggle="true"
+                   data-show-fullscreen="true"
+                   class="table table-bordered table-hover table-sm"
+                   id="stringsTable">
+                <thead>
+                <tr>
+                    {# docs: https://bootstrap-table.com/docs/api/column-options/ #}
+                    <th data-field="string"
+                        data-halign="center"
+                        data-sortable="true">
+                        String
+                    </th>
+                    <th data-field="offset"
+                        data-halign="center"
+                        data-align="right"
+                        data-searchable="false"
+                        data-cell-style="getCellStyle"
+                        data-sortable="true">
+                        Offset
+                    </th>
+                    <th data-field="offset"
+                        data-sortable="true"
+                        data-halign="center"
+                        data-align="right"
+                        data-searchable="false"
+                        data-cell-style="getCellStyle"
+                        data-formatter="formatHex">
+                        Offset (hex)
+                    </th>
+                    <th data-field="relevance"
+                        data-halign="center"
+                        data-align="right"
+                        data-searchable="false"
+                        data-cell-style="getCellStyle"
+                        data-formatter="formatFloat"
+                        data-sortable="true">
+                        Relevance
+                    </th>
+                </tr>
+                </thead>
+            </table>
         </td>
     </tr>
-    {% if 'offsets' in analysis_result %}  <!-- backwards compatibility -->
-        <tr>
-            <td data-toggle="collapse" class="clickable" data-target="#collapse-offset">
-                <span class="fas fa-angle-down"></span> Ordered by offset
-            </td>
-        </tr>
-        <tr>
-            <td class="p-0">
-                <div class="collapse" id="collapse-offset" style="width: 100%">
-                {% if 'offsets' in analysis_result %}
-                    <pre class="p-2 bg-light mb-0" style="white-space: pre-wrap;">{{ analysis_result['offsets'] | format_string_list_with_offset }}</pre>
-                {% else %}
-                    <pre>None</pre>
-                {% endif %}
-                </div>
-            </td>
-        </tr>
-    {% endif %}
+
+    <script>
+        function formatHex(value) {
+            return `0x${value.toString(16)}`;
+        }
+
+        function formatFloat(value) {
+            return value.toFixed(1);
+        }
+
+        function getCellStyle(value, row, index, field) {
+            return {css: {width: '150px', "font-family": "monospace"}};
+        }
+
+        $(function () {
+            // FixMe: load data via ajax
+            const data = {{ analysis_result['strings'] | tojson }};
+            $('#stringsTable').bootstrapTable({data: data})
+        });
+    </script>
 
 {% endblock %}
