@@ -3,7 +3,7 @@
 {% set active_page = "Database" %}
 
 {% block head %}
-    <title>Dependency Graph</title>
+    <title>{{ title }}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dependency_graph.css') }}">
    
     <script src="{{ url_for('static', filename='node_modules/vis-network/dist/vis-network.min.js') }}"></script>
@@ -30,7 +30,7 @@
 {% block body %}
     <div class="header mb-4" style="word-wrap: break-word">
         <h4>
-            Dependency Graph for {{ uid | replace_uid_with_hid }} in {{ root_uid | replace_uid_with_hid }}
+            {{ title }} for {{ uid | replace_uid_with_hid }} in {{ root_uid | replace_uid_with_hid }}
             <br>
             <span style="font-size: 15px"><strong>UID:</strong> {{ uid }}</span>
         </h4>
