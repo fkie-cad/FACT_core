@@ -9,6 +9,7 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 from .helper import (
     TEST_FO,
     TEST_FW,
+    add_included_file,
     create_fw_with_child_fo,
     create_fw_with_parent_and_child,
     get_fo_with_2_root_fw,
@@ -627,6 +628,29 @@ def test_data_for_dependency_graph(frontend_db, backend_db):
     assert result[0].full_type == 'Not a PE file'
     assert result[0].file_name == 'testfile1'
     assert result[0].virtual_file_paths == ['/folder/testfile1']
+
+
+def test_get_data_for_file_graph(frontend_db, backend_db):
+    child_1, fw = create_fw_with_child_fo()
+    child_1.uid = 'child_1'
+    child_1.virtual_file_path = {fw.uid: ['/foo/bar']}
+    child_2 = create_test_file_object()
+    child_2.uid = 'child_2'
+    add_included_file(child_2, fw, fw, [f'/folder/{child_2.file_name}'])
+    child_1.processed_analysis['filepaths'] = generate_analysis_entry(analysis_result={'filepaths': []})
+    child_2.processed_analysis['filepaths'] = generate_analysis_entry(analysis_result={'filepaths': ['/foo/bar']})
+    assert frontend_db.get_data_for_file_graph(fw.uid) == ([], []), 'result should be empty for unknown UID'
+    backend_db.insert_multiple_objects(fw, child_1, child_2)
+
+    assert frontend_db.get_data_for_file_graph(child_1.uid) == ([], []), 'should be empty if no files included'
+    data, edges = frontend_db.get_data_for_file_graph(fw.uid)
+    assert edges == [('/folder/testfile1', '/foo/bar')]
+    assert len(data) == 2
+    entries = {i.uid: i for i in data}
+    assert sorted(entries) == [child_1.uid, child_2.uid]
+    assert isinstance(entries[child_1.uid], DepGraphData)
+    assert entries[child_1.uid].libraries == []
+    assert entries[child_2.uid].libraries == ['/foo/bar']
 
 
 def test_get_root_uid(frontend_db, backend_db):
