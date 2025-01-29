@@ -31,14 +31,20 @@
         <button class="btn btn-secondary">Analysis</button>
 
         {{ button_tooltip('View in radare', 'radare-button', None, 'terminal', onclick='radare_view()') }}
-        {% if not firmware.files_included %}
-            {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', danger=False, disabled=True) }}
-        {% else %}
-            {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', "window.location.href='/dependency-graph/{}/{}'".format(firmware.uid, root_uid)) }}
-        {% endif %}
         {% if firmware.vendor %}
             {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
             {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
+        {% endif %}
+        {% if not firmware.files_included %}
+            {{ button_tooltip('dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', danger=False, disabled=True) }}
+        {% else %}
+            <button id="depGraphDropdown" type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-project-diagram"></i>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="depGraphDropdown">
+              <a class="dropdown-item" href="/dependency-graph/{{ firmware.uid }}/{{ root_uid }}">ELF dependency graph</a>
+              <a class="dropdown-item" href="/file-reference-graph/{{ firmware.uid }}/{{ root_uid }}">referenced file graph</a>
+            </div>
         {% endif %}
     </div>
 
