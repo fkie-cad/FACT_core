@@ -1,0 +1,76 @@
+{% if uids_for_comparison or known_comparisons %}
+    <div class="row justify-content-start mt-3 mb-2">
+        <div class="col-auto collapse" id="known-comparisons">
+            <div class="card float-right" style="width: auto; max-width: 650px;">
+                <div class="card-header text-center" style="font-size: larger">List of comparisons containing the
+                    displayed firmware
+                </div>
+                <div class="card-body">
+                    {% for comparison in known_comparisons %}
+                        <div class="col-xs-12 mb-1">
+                            <span type="button" class="btn btn-primary btn-sm"
+                                  onclick="location.href='/compare/{{ comparison[0] }}'">{{ comparison[0] | replace_comparison_uid_with_hid | safe }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="collapse m-0" id="comparison-list">
+            <div class="jumbotron float-right mx-2 mb-0 p-3" style="width: auto; max-width: 650px;">
+                <span class="mt-0 text-center" style="font-size: larger">Firmware Selected for Comparison</span>
+                <hr style="margin: 12px">
+                <table>
+                    <tr>
+                        <td style="width: 10px; vertical-align: top;">
+                            {% for compare_uid in uids_for_comparison %}
+                                <div class="col-xs-12 p-0">
+                                <span class="m-0" style="padding: 2px; display: inline-flex;">
+                                    <span class="close" style="font-size: 20px"
+                                          onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}/{{ root_uid }}'">
+                                        &times;
+                                    </span>
+                                    <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}"
+                                          style="margin-left: 3px">{{ compare_uid | replace_uid_with_hid | safe }}</span>
+                                </span>
+                                </div>
+                            {% endfor %}
+                        </td>
+                        {% if uids_for_comparison|length > 1 %}
+                            <td style="width: 180px; vertical-align: top;">
+                                <div class="col-xs-12" style="padding: 2px;">
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="location.href='/comparison/remove_all/{{ uid }}/{{ root_uid }}'"
+                                            style="width: 100%">
+                                        <i class="fas fa-ban"></i> Remove All
+                                    </button>
+                                </div>
+                                <div class="col-xs-12" style="padding: 2px;">
+                                    <button type="button" id="start_compare_button" class="btn btn-secondary btn-sm"
+                                            style="width: 100%">
+                                        <i class="fas fa-copy"></i> Compare
+                                    </button>
+                                </div>
+                                <div class="col-xs-12" style="padding: 2px;">
+                                    <button type="button" id="start_text_file_compare_button"
+                                            class="btn btn-secondary btn-sm" style="width: 100%">
+                                        <i class="fas fa-copy"></i> Compare text files
+                                    </button>
+                                </div>
+                                <div class="form-group col-xs-12 m-0">
+                                    <div class="checkbox m-0" style="margin-left: 30px; text-align: center">
+                                        <label style="padding: 2px">
+                                            <input type="checkbox" value="true" id="recompare_checkbox"
+                                                   style="margin-top: 2px;"> Force Recompare
+                                        </label>
+                                    </div>
+                                </div>
+                                <script src="{{ url_for('static', filename='js/start_compare.js') }}"></script>
+                            </td>
+                        {% endif %}
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
