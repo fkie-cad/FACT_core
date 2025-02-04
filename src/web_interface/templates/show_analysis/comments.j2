@@ -69,11 +69,11 @@
                 <tbody>
                     {% for comment in firmware.comments|sort_comments %}
                     <tr>
-                        <td width="20%" valign="bottom">
+                        <td style="vertical-align: bottom; width: 20%;">
                             <div>{{ comment.author }}</div>
                             <div>{{ comment.time|int|nice_unix_time }}</div>
                         </td>
-                        <td width="80%">
+                        <td style="width: 80%;">
                             <span style="font-family: monospace; font-size: 14px">
                                 {{ comment.comment | urlize }}
                             </span>
