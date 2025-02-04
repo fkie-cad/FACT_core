@@ -6,10 +6,10 @@ from storage.schema import FileObjectEntry, SearchCacheEntry
 
 
 class FrontendEditingDbInterface(ReadWriteDbInterface):
-    def add_comment_to_object(self, uid: str, comment: str, author: str, time: int):
+    def add_comment_to_object(self, uid: str, comment: str, author: str, time: int, plugin: str):
         with self.get_read_write_session() as session:
             fo_entry: FileObjectEntry = session.get(FileObjectEntry, uid)
-            new_comment = {'author': author, 'comment': comment, 'time': str(time)}
+            new_comment = {'author': author, 'comment': comment, 'time': str(time), 'plugin': plugin}
             fo_entry.comments.append(new_comment)
 
     def delete_comment(self, uid, timestamp):

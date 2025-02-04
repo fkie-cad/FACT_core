@@ -54,7 +54,8 @@ class MiscellaneousRoutes(ComponentBase):
     def post_comment(self, uid):
         comment = request.form['comment']
         author = request.form['author']
-        self.db.editing.add_comment_to_object(uid, comment, author, round(time()))
+        plugin = request.form['plugin']
+        self.db.editing.add_comment_to_object(uid, comment, author, round(time()), plugin)
         return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['delete'])
