@@ -3,100 +3,123 @@
     <div class="col-lg-12" style="margin-top: 20px">
         <table class="table table-bordered mb-0" id="comments-head">
             <thead class="thead-light">
-                <tr>
-                    <th>
-                        Comments
-                        {# Add Comment Button #}
-                        <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse"
-                                data-target="#addCommentCell" aria-expanded="false" aria-controls="addCommentCell"
-                                style="float: right;">
-                            <i class="far fa-edit"></i> add comment
-                        </button>
+            <tr>
+                <th>
+                    Comments
+                    {# Add Comment Button #}
+                    <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse"
+                            data-target="#addCommentCell" aria-expanded="false" aria-controls="addCommentCell"
+                            style="float: right;">
+                        <i class="far fa-edit"></i> add comment
+                    </button>
 
-                        {# Show Comments Button #}
-                        <form onsubmit="return false;" style="float: right; margin-right: 5px;">
-                            <button data-toggle="collapse" data-target="#comments" class="btn btn-primary btn-sm"
-                            {% if firmware.comments | length == 0 %} disabled {% endif %}>
-                                <span class="badge">{{ firmware.comments | length }}</span> show comments
-                            </button>
-                        </form>
-                    </th>
-                </tr>
+                    {# Show Comments Button #}
+                    <form onsubmit="return false;" style="float: right; margin-right: 5px;">
+                        <button data-toggle="collapse" data-target="#comments" class="btn btn-primary btn-sm"
+                                {% if firmware.comments | length == 0 %} disabled {% endif %}>
+                            <span class="badge">{{ firmware.comments | length }}</span> show comments
+                        </button>
+                    </form>
+                </th>
+            </tr>
             </thead>
             <tbody>
-                <tr class="collapse" id="addCommentCell">
-                    <td>
-                        <div>
-                            <form class="form-horizontal" id="addCommentForm" action="/comment/{{ uid }}" method=post enctype=multipart/form-data>
+            <tr class="collapse" id="addCommentCell">
+                <td>
+                    <div>
+                        <form class="form-horizontal" id="addCommentForm" action="/comment/{{ uid }}" method=post
+                              enctype=multipart/form-data>
 
-                                <div class="form-group row">
-                                    <label class="control-label col-sm-2" for="comment" style="margin-top: 6px;">
-                                        Comment:
-                                    </label>
-                                    <div class="col-xs-12 col-sm-10">
-                                        <textarea name="comment" rows="5" style="resize: vertical; position: relative; z-index: 1;" required autofocus class="form-control" id="comment"></textarea>
-                                    </div>
+                            <div class="form-group row">
+                                <label class="control-label col-sm-2" for="comment" style="margin-top: 6px;">
+                                    Comment:
+                                </label>
+                                <div class="col-xs-12 col-sm-10">
+                                    <textarea name="comment" rows="5"
+                                              style="resize: vertical; position: relative; z-index: 1;" required
+                                              autofocus class="form-control" id="comment"></textarea>
                                 </div>
+                            </div>
 
-                                <div class="form-group row">
-                                    <label class="control-label col-sm-2" for="author" style="margin-top: 6px;">
-                                        Author:
-                                    </label>
-                                    <div class="col-xs-12 col-sm-10">
-                                        <input type="text" name="author" class="form-control" id="author" required
-                                               style="position: relative; z-index: 1;" value="anonymous">
-                                    </div>
+                            <div class="form-group row">
+                                <label class="control-label col-sm-2" for="author" style="margin-top: 6px;">
+                                    Author:
+                                </label>
+                                <div class="col-xs-12 col-sm-10">
+                                    <input type="text" name="author" class="form-control" id="author" required
+                                           style="position: relative; z-index: 1;" value="anonymous">
                                 </div>
+                            </div>
 
-                                {% if current_user.is_authenticated %}
-                                    <script type="text/javascript">
-                                        document.getElementById('author').value = '{{ current_user.email }}';
-                                        document.getElementById('author').setAttribute("readonly", true);
-                                    </script>
-                                {% endif %}
-                            </form>
-                        </div>
-                        <div>
-                            <button type="submit" class="btn btn-primary" form="addCommentForm">Add Comment</button>
-                        </div>
-                    </td>
-                </tr>
+                            <div class="form-group row">
+                                <label class="control-label col-sm-2" for="plugin" style="margin-top: 6px;">
+                                    Plugin:
+                                </label>
+                                <div class="col-xs-12 col-sm-10">
+                                    <select class="form-control" name="plugin" id="plugin" style="position: relative; z-index: 1;">
+                                        <option></option>
+                                        {% for plugin in firmware.processed_analysis %}
+                                            {% if plugin == selected_analysis %}
+                                                <option selected>{{ plugin }}</option>
+                                            {% else %}
+                                                <option>{{ plugin }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {% if current_user.is_authenticated %}
+                                <script type="text/javascript">
+                                    document.getElementById('author').value = '{{ current_user.email }}';
+                                    document.getElementById('author').setAttribute("readonly", true);
+                                </script>
+                            {% endif %}
+                        </form>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary" form="addCommentForm">Add Comment</button>
+                    </div>
+                </td>
+            </tr>
             </tbody>
         </table>
         {% if firmware.comments %}
-        <div class="collapse m-0" id="comments">
-            <table class="table table-bordered p-0 mb-0" id="comments-table">
-                <tbody>
-                    {% for comment in firmware.comments|sort_comments %}
-                    <tr>
-                        <td style="vertical-align: bottom; width: 20%;">
-                            <div>{{ comment.author }}</div>
-                            <div>{{ comment.time|int|nice_unix_time }}</div>
-                        </td>
-                        <td style="width: 80%;">
+            <div class="collapse m-0" id="comments">
+                <table class="table table-bordered p-0 mb-0" id="comments-table">
+                    <tbody>
+                    {% for comment in firmware.comments | sort_comments %}
+                        <tr>
+                            <td style="vertical-align: bottom; width: 20%;">
+                                <div>{{ comment.plugin or "—" }}</div>
+                            </td>
+                            {% set tooltip = "{}\n{}".format(comment.author, comment.time | int | nice_unix_time) %}
+                            <td data-toggle="tooltip" title="{{ tooltip }}" style="width: 80%;">
                             <span style="font-family: monospace; font-size: 14px">
                                 {{ comment.comment | urlize }}
                             </span>
-                        </td>
-                        <td class="m-0 p-0 align-middle">
-                            {# Comment Delete Button #}
-                            <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}" class="btn btn-sm">
-                                <i class="fas fa-trash-alt text-danger"></i>
-                            </button>
-                        </td>
-                        <td class="m-0 p-0">
-                            {# Comment Delete Confirm Button #}
-                            <div class="collapse" id="delete-button-div-{{ comment.time }}">
-                                <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
-                                    <i class="fas fa-check"></i> Click here to confirm!
+                            </td>
+                            <td class="m-0 p-0 align-middle">
+                                {# Comment Delete Button #}
+                                <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}"
+                                        class="btn btn-sm">
+                                    <i class="fas fa-trash-alt text-danger"></i>
                                 </button>
-                            </div>
-                        </td>
-                    </tr>
+                            </td>
+                            <td class="m-0 p-0">
+                                {# Comment Delete Confirm Button #}
+                                <div class="collapse" id="delete-button-div-{{ comment.time }}">
+                                    <button class="btn btn-danger" type="button"
+                                            onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
+                                        <i class="fas fa-check"></i> Click here to confirm!
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
         {% endif %}
     </div>
 
