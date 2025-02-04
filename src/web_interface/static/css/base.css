@@ -129,6 +129,10 @@ a:hover {
     border: 1px solid #ced4da;
 }
 
+.d2h-files-diff, .d2h-cntx:not(.d2h-code-side-linenumber), .d2h-ins:not(.d2h-code-side-linenumber), .d2h-del:not(.d2h-code-side-linenumber) {
+    padding: 0;
+}
+
 body {
     background-color: var(--background-color-light);
     color: var(--text-color-light);
@@ -153,9 +157,15 @@ body.dark-mode a.nav-link.active {
 }
 
 body.dark-mode :is(pre:not(.CodeMirror-line), .pagination-page-info b, .line-number, .list-group-item-action,
-        .table:not(.table-borderless), .list-group-flush) {
+        .table:not(.table-borderless), .list-group-flush, .d2h-file-wrapper) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-dark) !important;
+}
+
+body.dark-mode :is(.d2h-file-wrapper, .d2h-code-side-linenumber) {
+    color: var(--text-color-dark) !important;
+    background-color: var(--background-color-dark) !important;
+    border-color: var(--border-color-dark) !important;
 }
 
 body.dark-mode :is(a:link, a:visited, a:active) {
@@ -171,12 +181,11 @@ body.dark-mode :is(a:hover, .navbar-light .navbar-nav > li > a:hover) {
     color: var(--link-color-hover-dark);
 }
 
-body.dark-mode :is(div.card, input, textarea, select, .dropdown-menu, .d2h-wrapper, .d2h-file-wrapper, .d2h-file-header,
-        .d2h-info, .d2h-code-side-linenumber, .modal-content, a.page-link, span.page-link, .btn-light, .jumbotron
-        , .custom-file-label) {
+body.dark-mode :is(div.card, input, textarea, select, .dropdown-menu, .d2h-wrapper, .d2h-file-header,
+        .d2h-info, .modal-content, a.page-link, span.page-link, .btn-light, .jumbotron, .custom-file-label) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-element-dark) !important;
-    border: 1px solid var(--border-color-dark) !important;
+    border-color: var(--border-color-dark) !important;
 }
 
 body.dark-mode :is(.table.table-borderless, .bg-light) {
@@ -185,12 +194,17 @@ body.dark-mode :is(.table.table-borderless, .bg-light) {
 }
 
 /* d2h: text file diff */
-body.dark-mode .d2h-del {
+body.dark-mode :is(.d2h-del, .d2h-del .d2h-code-side-linenumber) {
     background-color: #6c3538 !important;
 }
 
-body.dark-mode .d2h-ins {
+body.dark-mode :is(.d2h-ins, .d2h-ins .d2h-code-side-linenumber) {
     background-color: rgb(36, 89, 55) !important;
+}
+
+body.dark-mode :is(.d2h-code-side-emptyplaceholder, .d2h-emptyplaceholder,
+        .d2h-emptyplaceholder .d2h-code-side-emptyplaceholder .d2h-cntx .d2h-emptyplaceholder) {
+    background-color: var(--background-color-element-dark) !important;
 }
 
 body.dark-mode .d2h-tag {
@@ -210,7 +224,7 @@ body.dark-mode :is(.input-group-text, .thead-light, .table-head-light, .badge-se
 }
 
 body.dark-mode :is(.table-primary, .list-group-item-primary, option:checked, .pagination > li.active > a,
-        .list-group-item-action.active) {
+        .list-group-item-action.active, .alert-primary) {
     background-color: var(--element-color-primary-dark) !important;
     color: var(--element-color-primary-light) !important;
     border-color: var(--element-color-primary-light) !important;
