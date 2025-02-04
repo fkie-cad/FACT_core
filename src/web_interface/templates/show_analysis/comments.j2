@@ -12,14 +12,6 @@
                             style="float: right;">
                         <i class="far fa-edit"></i> add comment
                     </button>
-
-                    {# Show Comments Button #}
-                    <form onsubmit="return false;" style="float: right; margin-right: 5px;">
-                        <button data-toggle="collapse" data-target="#comments" class="btn btn-primary btn-sm"
-                                {% if firmware.comments | length == 0 %} disabled {% endif %}>
-                            <span class="badge">{{ firmware.comments | length }}</span> show comments
-                        </button>
-                    </form>
                 </th>
             </tr>
             </thead>
@@ -56,9 +48,10 @@
                                     Plugin:
                                 </label>
                                 <div class="col-xs-12 col-sm-10">
-                                    <select class="form-control" name="plugin" id="plugin" style="position: relative; z-index: 1;">
+                                    <select class="form-control" name="plugin" id="plugin"
+                                            style="position: relative; z-index: 1;">
                                         <option></option>
-                                        {% for plugin in firmware.processed_analysis %}
+                                        {% for plugin in firmware.processed_analysis | sort %}
                                             {% if plugin == selected_analysis %}
                                                 <option selected>{{ plugin }}</option>
                                             {% else %}
@@ -85,41 +78,39 @@
             </tbody>
         </table>
         {% if firmware.comments %}
-            <div class="collapse m-0" id="comments">
-                <table class="table table-bordered p-0 mb-0" id="comments-table">
-                    <tbody>
-                    {% for comment in firmware.comments | sort_comments %}
-                        <tr>
-                            <td style="vertical-align: bottom; width: 20%;">
-                                <div>{{ comment.plugin or "—" }}</div>
-                            </td>
-                            {% set tooltip = "{}\n{}".format(comment.author, comment.time | int | nice_unix_time) %}
-                            <td data-toggle="tooltip" title="{{ tooltip }}" style="width: 80%;">
+            <table class="table table-bordered p-0 mb-0" id="comments-table">
+                <tbody>
+                {% for comment in firmware.comments | sort_comments %}
+                    <tr>
+                        <td style="vertical-align: bottom; width: 20%;">
+                            <div>{{ comment.plugin or "—" }}</div>
+                        </td>
+                        {% set tooltip = "{}\n{}".format(comment.author, comment.time | int | nice_unix_time) %}
+                        <td data-toggle="tooltip" title="{{ tooltip }}" style="width: 80%;">
                             <span style="font-family: monospace; font-size: 14px">
                                 {{ comment.comment | urlize }}
                             </span>
-                            </td>
-                            <td class="m-0 p-0 align-middle">
-                                {# Comment Delete Button #}
-                                <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}"
-                                        class="btn btn-sm">
-                                    <i class="fas fa-trash-alt text-danger"></i>
+                        </td>
+                        <td class="m-0 p-0 align-middle">
+                            {# Comment Delete Button #}
+                            <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}"
+                                    class="btn btn-sm">
+                                <i class="fas fa-trash-alt text-danger"></i>
+                            </button>
+                        </td>
+                        <td class="m-0 p-0">
+                            {# Comment Delete Confirm Button #}
+                            <div class="collapse" id="delete-button-div-{{ comment.time }}">
+                                <button class="btn btn-danger" type="button"
+                                        onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
+                                    <i class="fas fa-check"></i> Click here to confirm!
                                 </button>
-                            </td>
-                            <td class="m-0 p-0">
-                                {# Comment Delete Confirm Button #}
-                                <div class="collapse" id="delete-button-div-{{ comment.time }}">
-                                    <button class="btn btn-danger" type="button"
-                                            onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
-                                        <i class="fas fa-check"></i> Click here to confirm!
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         {% endif %}
     </div>
 
