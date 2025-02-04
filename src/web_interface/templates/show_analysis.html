@@ -2,22 +2,6 @@
 
 {% set active_page = "Database" %}
 
-{% macro button_collapse(button_id, icon, target, tooltip) %}
-    <button id="{{ button_id }}" data-toggle="collapse" data-target="#{{ target }}" class="btn btn-outline-secondary">
-        <i class="fas fa-{{ icon }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}"></i>
-    </button>
-{% endmacro %}
-
-{% macro button_tooltip(tooltip, id, url, icon, onclick=None, danger=False, disabled=False) %}
-    {% set button_class = "btn-danger" if danger else "btn-outline-secondary" %}
-    {% set onclick_value = onclick if onclick else "window.location.href = '" + url + firmware.uid + "'" %}
-
-    <button id="{{ id }}" class="btn {{ button_class }}" onclick="{{ onclick_value }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}" {% if disabled %}disabled{% endif %}>
-        <i class="fas fa-{{ icon }}"></i>
-    </button>
-{% endmacro %}
-
-
 {% block head %}
     {# jstree import #}
     <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/jstree/dist/themes/default/style.min.css') }}" />
@@ -76,68 +60,8 @@
     <div class="col-lg-6">
 
         {# Button section #}
-        <div class="btn-toolbar mb-4" role="toolbar" aria-label="Analysis, download and admin buttons">
+        {% include "show_analysis/button_groups.j2" %}
 
-            <div class="btn-group mr-2 mb-2" role="group" aria-label="Download buttons">
-                <button class="btn btn-secondary">Download</button>
-
-                {{ button_tooltip('Download raw file', 'bdown-button', '/download/', 'file-download') }}
-                {% if firmware.files_included %}
-                    {{ button_tooltip('Download included files as tar.gz', 'tdown-button', '/tar-download/', 'file-archive') }}
-                {% endif %}
-                {% if firmware.vendor %}
-                    {{ button_tooltip('Download report as PDF', 'pdown-button', '/pdf-download/', 'file-pdf') }}
-                {% endif %}
-            </div>
-
-            <div class="btn-group mr-2 mb-2" aria-label="Analysis buttons">
-                <button class="btn btn-secondary">Analysis</button>
-
-                {{ button_tooltip('View in radare', 'radare-button', None, 'terminal', onclick='radare_view()') }}
-                {% if not firmware.files_included %}
-                    {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', danger=False, disabled=True) }}
-                {% else %}
-                    {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', "window.location.href='/dependency-graph/{}/{}'".format(firmware.uid, root_uid)) }}
-                {% endif %}
-                {% if firmware.vendor %}
-                    {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
-                    {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
-                {% endif %}
-            </div>
-
-            {% if firmware.vendor and user_has_admin_clearance %}
-                <div class="btn-group mr-2 mb-2" role="group" aria-label="Admin buttons">
-                    <button class="btn btn-secondary">Admin</button>
-
-                    {{ button_collapse('redo-button', 'redo-alt', 'redo-button-div', 'Redo analysis') }}
-                    <span class="collapse" id="redo-button-div">
-                        {{ button_tooltip('Confirm removal of current results and comments', 'confirm-redo', '/admin/re-do_analysis/', 'check', danger=True) }}
-                    </span>
-
-                    <span class="collapse" id="delete-button-div">
-                        {{ button_tooltip('Confirm removal of results and comments', 'confirm-delete', '/admin/delete/', 'check', danger=True) }}
-                    </span>
-                    {{ button_collapse('delete-button', 'trash-alt', 'delete-button-div', 'Delete firmware') }}
-                </div>
-
-            {% endif %}
-            <div class="btn-group d-flex align-items-start">
-                <div class="btn btn-secondary">Comparisons</div>
-                {% if known_comparisons %}
-                    {{ button_collapse('old-compare-button', 'hdd', 'known-comparisons', 'Show list of known comparisons') }}
-                {% endif %}
-                {% if not uids_for_comparison or uid not in uids_for_comparison %}
-                    <button id="add-compare" class="btn btn-outline-secondary" onclick="window.location.href = '/comparison/add/{{firmware.uid}}/{{root_uid}}'" data-toggle="tooltip" data-placement="bottom" title="Add to comparison">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                {% endif %}
-
-                {% if uids_for_comparison %}
-                    {{ button_collapse('new-compare-button', 'list-ul', 'comparison-list', 'Show firmware selected for comparison') }}
-                {% endif %}
-            </div>
-
-        </div>
 
         {# Header section #}
         <div class="header mb-4" style="word-wrap: break-word">
@@ -161,189 +85,25 @@
 
     </div>
 
-    {# General info section #}
     <div class="col-lg-6">
-        {{ firmware | render_general_information(root_uid, other_versions, selected_analysis, file_tree_paths) | safe }}
+        {# General info section #}
+        {% include "show_analysis/general_info_table.j2" %}
     </div>
 
 </div>
 
 
-{% if uids_for_comparison or known_comparisons %}
-<div class="row justify-content-start mt-3 mb-2">
-    <div class="col-auto collapse" id="known-comparisons">
-        <div class="card float-right" style="width: auto; max-width: 650px;">
-            <div class="card-header text-center" style="font-size: larger">List of comparisons containing the displayed firmware</div>
-            <div class="card-body">
-                {% for comparison in known_comparisons %}
-                    <div class="col-xs-12 mb-1">
-                        <span type="button" class="btn btn-primary btn-sm" onclick="location.href='/compare/{{ comparison[0]}}'">{{ comparison[0] | replace_comparison_uid_with_hid | safe  }}</span>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <div class="collapse m-0" id="comparison-list">
-        <div class="jumbotron float-right mx-2 mb-0 p-3" style="width: auto; max-width: 650px;">
-            <span class="mt-0 text-center" style="font-size: larger">Firmware Selected for Comparison</span>
-            <hr style="margin: 12px">
-            <table>
-                <tr>
-                    <td style="width: 10px; vertical-align: top;">
-                        {% for compare_uid in uids_for_comparison %}
-                            <div class="col-xs-12 p-0">
-                                <span class="m-0" style="padding: 2px; display: inline-flex;">
-                                    <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}/{{ root_uid }}'">
-                                        &times;
-                                    </span>
-                                    <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}" style="margin-left: 3px">{{ compare_uid | replace_uid_with_hid | safe }}</span>
-                                </span>
-                            </div>
-                        {% endfor %}
-                    </td>
-                    {% if uids_for_comparison|length > 1 %}
-                        <td style="width: 180px; vertical-align: top;">
-                            <div class="col-xs-12" style="padding: 2px;">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='/comparison/remove_all/{{ uid }}/{{ root_uid }}'" style="width: 100%">
-                                    <i class="fas fa-ban"></i> Remove All
-                                </button>
-                            </div>
-                            <div class="col-xs-12" style="padding: 2px;">
-                                <button type="button" id="start_compare_button" class="btn btn-secondary btn-sm" style="width: 100%">
-                                    <i class="fas fa-copy"></i> Compare
-                                </button>
-                            </div>
-                            <div class="col-xs-12" style="padding: 2px;">
-                                <button type="button" id="start_text_file_compare_button" class="btn btn-secondary btn-sm" style="width: 100%">
-                                    <i class="fas fa-copy"></i> Compare text files
-                                </button>
-                            </div>
-                            <div class="form-group col-xs-12 m-0">
-                                <div class="checkbox m-0" style="margin-left: 30px; text-align: center">
-                                    <label style="padding: 2px">
-                                        <input type="checkbox" value="true" id="recompare_checkbox" style="margin-top: 2px;"> Force Recompare
-                                    </label>
-                                </div>
-                            </div>
-                            <script src="{{ url_for('static', filename='js/start_compare.js') }}"></script>
-                        </td>
-                    {% endif %}
-                </tr>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
+{# Comparison section #}
+{% include "show_analysis/comparison.j2" %}
 
     {# File tree section #}
+    {% include "show_analysis/file_tree.j2" %}
+
     <div class="row">
-        <div class="col-lg-12">
-            <table class="table table-sm">
-                <thead>
-                    <tr class="thead-light">
-                        <th>File Tree</th>
-                        <th width="300px">
-                            <input type="text" name="fileTreeSearch" class="form-control form-control-sm"
-                                   id="fileTreeSearch" placeholder="search file tree ...">
-                            <div class="invalid-feedback" id="fileTreeSearchFeedback" style="padding-left: 8px; font-size: 75%">
-                                Only expanded containers can be searched!
-                            </div>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody style="font-size: 14px;">
-                    <tr>
-                        <td colspan="2">
-                            <div id="fileTreeAjax"></div>
-                            <script>const root_uid = "{{ root_uid | safe }}";</script>
-                            <script src="{{ url_for('static', filename='js/show_analysis_fileTreeAjax.js') }}"></script>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {# Select analysis section #}
-    <div class="row">
-        <div class="col-lg-2">
-            <table class="table table-sm table-hover">
-                <thead class="thead-light">
-                    <tr>
-                        <th>Analysis Results</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for analysis_plugin in firmware.processed_analysis | sort %}
-                        <tr>
-                            <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
-                                {{ analysis_plugin | replace_underscore }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    <tr>
-                        <td class="table-head-light clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
-                            <i class="fas fa-play-circle"></i> Run additional analysis
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        {# add single file analysis modal #}
-        <div id="add_single_file_analysis_modal" class="modal fade" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-
-                    <div class="modal-header d-flex justify-content-between align-items-center">
-                        <h5 class="modal-title">Add analysis to file</h5>
-                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-                    </div>
-
-                    <div class="modal-body" id="modal-body">
-                        <form class="form-horizontal" id="modal-form" action="" method=post enctype=multipart/form-data>
-                            <p>Add new analysis</p>
-                            {% for system in available_plugins.unused | sort %}
-                                <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
-                                    <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
-                                </label>
-                            {% endfor %}
-                            <hr />
-                            <p>Update analysis</p>
-                            {% for system in available_plugins.used | sort %}
-                                <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
-                                    <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
-                                </label>
-                            {% endfor %}
-                            <hr />
-                            <label class="checkbox-inline" data-toggle="tooltip" title="disable smart analysis skipping" style="display: block;">
-                                <input type=checkbox name="force_update" value="true" unchecked>&nbsp;force analysis update<br />
-                            </label>
-                            <button class="btn btn-primary" type="submit" id="add_single_file_analysis" value=submit>
-                                <i class="fas fa-play-circle"></i> Add
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                // overwrites the submit action of the "Run additional analysis" modal button
-                // and waits for the result before refreshing the page
-                const form = document.getElementById('modal-form');
-                const modalBody = document.getElementById('modal-body');
-                form.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    const formData = new FormData(form);
-                    waitForAnalysis(form.action, modalBody, formData);
-                });
-            });
-        </script>
+        {# Select analysis section #}
+        {% include "show_analysis/select_analysis.j2" %}
 
         {# Showing analysis section #}
-
         {% block complete_analysis_block %}
 
             <div class="col-lg-10">
@@ -371,157 +131,11 @@
         {% endblock %}
 
         {# preview section #}
-        {%- if "file_type" in firmware.processed_analysis -%}
-            <div class="col-lg-12">
-                <div class="list-group">
-                    <button id="preview_button" data-toggle="collapse" data-target="#preview-div"
-                            class="list-group-item list-group-item-primary p-2">
-                        Show Preview
-                        <i class="fas fa-caret-down"></i>
-                    </button>
-                    <div id="preview-div" class="collapse border rounded-bottom p-3">
-                        <div class="form-row" id="hex-preview-form" style="display: none;">
-                            <div class="col-auto">
-                                <div class="input-group input-group-sm mb-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">Offset</div>
-                                    </div>
-                                    <input type="text" class="form-control" id="hex-preview-offset" value="0">
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <div class="input-group input-group-sm mb-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">Length</div>
-                                    </div>
-                                    <input type="number" min="1" class="form-control" id="hex-preview-length" value="512">
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <button type="button" class="btn btn-primary btn-sm" onclick="load_preview();">Update</button>
-                            </div>
-                        </div>
-                        <div id="preview-loading-gif" class="border" style="display: block; padding: 5px; text-align: center">
-                            <img src="{{ url_for('static', filename = 'Pacman.gif') }}" alt="loading...">
-                        </div>
-                        <div id="preview-content" class="m-0 mt-2 p-0"></div>
-                    </div>
-
-                    <script>
-                        const isTextOrImage = {{ 'true' if firmware | is_text_file_or_image else 'false' }};
-                        let mimeType = '{{ firmware.processed_analysis["file_type"]["result"]["mime"].replace("/", "_") }}';
-                    </script>
-                    <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_preview.js') }}"></script>
-
-                </div>
-            </div>
-        {% endif %}
+        {% include "show_analysis/preview.j2" %}
     </div>
 
     {# comment section #}
-    <div class="row">
-
-        <div class="col-lg-12" style="margin-top: 20px">
-            <table class="table table-bordered mb-0" id="comments-head">
-                <thead class="thead-light">
-                    <tr>
-                        <th>
-                            Comments
-                            {# Add Comment Button #}
-                            <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse"
-                                    data-target="#addCommentCell" aria-expanded="false" aria-controls="addCommentCell"
-                                    style="float: right;">
-                                <i class="far fa-edit"></i> add comment
-                            </button>
-
-                            {# Show Comments Button #}
-                            <form onsubmit="return false;" style="float: right; margin-right: 5px;">
-                                <button data-toggle="collapse" data-target="#comments" class="btn btn-primary btn-sm"
-                                {% if firmware.comments | length == 0 %} disabled {% endif %}>
-                                    <span class="badge">{{ firmware.comments | length }}</span> show comments
-                                </button>
-                            </form>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="collapse" id="addCommentCell">
-                        <td>
-                            <div>
-                                <form class="form-horizontal" id="addCommentForm" action="/comment/{{ uid }}" method=post enctype=multipart/form-data>
-
-                                    <div class="form-group row">
-                                        <label class="control-label col-sm-2" for="comment" style="margin-top: 6px;">
-                                            Comment:
-                                        </label>
-                                        <div class="col-xs-12 col-sm-10">
-                                            <textarea name="comment" rows="5" style="resize: vertical; position: relative; z-index: 1;" required autofocus class="form-control" id="comment"></textarea>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group row">
-                                        <label class="control-label col-sm-2" for="author" style="margin-top: 6px;">
-                                            Author:
-                                        </label>
-                                        <div class="col-xs-12 col-sm-10">
-                                            <input type="text" name="author" class="form-control" id="author" required
-                                                   style="position: relative; z-index: 1;" value="anonymous">
-                                        </div>
-                                    </div>
-
-                                    {% if current_user.is_authenticated %}
-                                        <script type="text/javascript">
-                                            document.getElementById('author').value = '{{ current_user.email }}';
-                                            document.getElementById('author').setAttribute("readonly", true);
-                                        </script>
-                                    {% endif %}
-                                </form>
-                            </div>
-                            <div>
-                                <button type="submit" class="btn btn-primary" form="addCommentForm">Add Comment</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            {% if firmware.comments %}
-            <div class="collapse m-0" id="comments">
-                <table class="table table-bordered p-0 mb-0" id="comments-table">
-                    <tbody>
-                        {% for comment in firmware.comments|sort_comments %}
-                        <tr>
-                            <td width="20%" valign="bottom">
-                                <div>{{ comment.author }}</div>
-                                <div>{{ comment.time|int|nice_unix_time }}</div>
-                            </td>
-                            <td width="80%">
-                                <span style="font-family: monospace; font-size: 14px">
-                                    {{ comment.comment | urlize }}
-                                </span>
-                            </td>
-                            <td class="m-0 p-0 align-middle">
-                                {# Comment Delete Button #}
-                                <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}" class="btn btn-sm">
-                                    <i class="fas fa-trash-alt text-danger"></i>
-                                </button>
-                            </td>
-                            <td class="m-0 p-0">
-                                {# Comment Delete Confirm Button #}
-                                <div class="collapse" id="delete-button-div-{{ comment.time }}">
-                                    <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
-                                        <i class="fas fa-check"></i> Click here to confirm!
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-        </div>
-
-    </div>
+    {% include "show_analysis/comments.j2" %}
 
     <script>
         function radare_view() {
