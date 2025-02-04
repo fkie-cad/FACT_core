@@ -85,7 +85,7 @@ class TestAcceptanceMisc:
         assert test_fw_a.uid.encode() in rv.data
 
     def _add_comment(self, test_client):
-        data = {'comment': 'this is the test comment', 'author': 'test author'}
+        data = {'comment': 'this is the test comment', 'author': 'test author', 'plugin': 'file_type'}
         test_client.post(
             f'/comment/{test_fw_a.uid}', content_type='multipart/form-data', data=data, follow_redirects=True
         )
