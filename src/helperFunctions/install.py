@@ -230,7 +230,7 @@ def check_distribution(allow_unsupported=False):
     debian_code_names = ['buster', 'stretch', 'bullseye', 'bookworm', 'kali-rolling']
     focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma', 'una']
     jammy_code_names = ['jammy', 'vanessa', 'vera', 'victoria', 'virginia']
-    noble_code_names = ['noble', 'wilma']
+    noble_code_names = ['noble', 'wilma', 'xia', 'zara']
 
     codename = distro.codename().lower()
     if codename in focal_code_names:

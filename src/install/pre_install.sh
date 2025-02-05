@@ -20,7 +20,7 @@ elif [ "${DISTRO}" = "Kali" ] || [ "${DISTRO}" = "Debian" ]; then
 fi
 
 CODENAME=$(lsb_release -cs)
-if [ "${CODENAME}" = "wilma" ]; then
+if [ "${CODENAME}" = "wilma" ] || [ "${CODENAME}" = "xia" ] || [ "${CODENAME}" = "zara" ]; then
     CODENAME=noble
 elif [ "${CODENAME}" = "vanessa" ] || [ "${CODENAME}" = "vera" ] || [ "${CODENAME}" = "victoria" ] || [ "${CODENAME}" = "virginia" ]; then
     CODENAME=jammy
