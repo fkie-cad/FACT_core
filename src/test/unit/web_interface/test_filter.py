@@ -548,3 +548,33 @@ def test_is_text_file_or_image(type_analysis, expected_result):
 )
 def test_sort_dict_list_by_key(input_, expected_result):
     assert flt.sort_dict_list_by_key(input_, 'a') == expected_result
+
+
+@pytest.mark.parametrize(
+    ('input_', 'expected_result'),
+    [
+        ([], []),  # test empty
+        (  # test IPv4
+            [{'address': '4.2.3.1'}, {'address': '1.2.3.4'}, {'address': '3.4.2.1'}, {'address': '2.3.1.4'}],
+            [{'address': '1.2.3.4'}, {'address': '2.3.1.4'}, {'address': '3.4.2.1'}, {'address': '4.2.3.1'}],
+        ),
+        (  # test IPv6
+            [
+                {'address': '2001:0db8:85a3:08d3::0370:7344'},
+                {'address': '2001:0db8::'},
+                {'address': '::1'},
+                {'address': 'fec0::'},
+            ],
+            [
+                {'address': '::1'},
+                {'address': '2001:0db8::'},
+                {'address': '2001:0db8:85a3:08d3::0370:7344'},
+                {'address': 'fec0::'},
+            ],
+        ),
+        # test fallback
+        ([{'address': '4.2.3.1'}, {'address': 'a.b.c'}], [{'address': 'a.b.c'}, {'address': '4.2.3.1'}]),
+    ],
+)
+def test_sort_ip_list(input_, expected_result):
+    assert flt.sort_ip_list(input_) == expected_result

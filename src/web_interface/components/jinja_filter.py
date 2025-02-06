@@ -218,11 +218,13 @@ class FilterClass:
                 'replace_uid_with_hid': self._filter_replace_uid_with_hid,
                 'replace_underscore': flt.replace_underscore_filter,
                 'version_is_compatible': flt.version_is_compatible,
+                'to_set': set,
                 'sort_chart_list_by_name': flt.sort_chart_list_by_name,
                 'sort_chart_list_by_value': flt.sort_chart_list_by_value,
                 'sort_comments': flt.sort_comments,
                 'sort_cve': flt.sort_cve_results,
                 'sort_dict_list': flt.sort_dict_list_by_key,
+                'sort_ip_list': flt.sort_ip_list,
                 'sort_privileges': (
                     lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
                 ),
