@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import binascii
+import ipaddress
 import json
 import logging
 import random
@@ -593,3 +594,20 @@ def is_image(mime: str) -> bool:
 def is_text_file_or_image(fo: FileObject) -> bool:
     mime = fo.processed_analysis.get('file_type', {}).get('result', {}).get('mime', '')
     return is_image(mime) or is_text_file(mime)
+
+
+IPv6 = 6
+
+
+def sort_ip_list(ip_list: list[dict]) -> list[dict]:
+    return sorted(ip_list, key=lambda d: _ip_str_to_tuple(d['address']))
+
+
+def _ip_str_to_tuple(ip_str: str) -> tuple[int, ...]:
+    try:
+        addr = ipaddress.ip_address(ip_str)
+    except ValueError:
+        return (0,)
+    if addr.version == IPv6:
+        return tuple(int(i, 16) for i in addr.exploded.split(':'))
+    return tuple(int(i) for i in addr.exploded.split('.'))
