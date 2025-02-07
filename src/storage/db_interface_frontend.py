@@ -86,7 +86,9 @@ class FrontEndDbInterface(DbInterfaceCommon):
                     'size': size,
                     'file_name': file_name,
                     'mime-type': mime_dict.get(uid, 'file-type-plugin/not-run-yet'),
-                    'current_virtual_path': file_tree_data[uid],
+                    'current_virtual_path': file_tree_data.get(uid, [[file_name]]),  # "orphan fallback"
+                    # FixMe: if orphaned files (i.e. relation FW -> file exists, but there is no path from FW to the
+                    #        file through included files) exist, they break the "file tree path"
                 }
                 for uid, size, file_name in session.execute(query)
             ]
