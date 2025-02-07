@@ -456,6 +456,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return {
             meta_dict['path'].lstrip('/'): meta_dict['mode']
             for meta_dict in fs_metadata.get('result', {}).get('files', [])
+            # FixMe: old versions had a different result structure; remove at some point
+            if isinstance(meta_dict, dict) and all(k in meta_dict for k in ('path', 'mode'))
         }
 
     def find_link_target(self, virtual_file_path: dict[str, list[str]], root_uid: str, target_path: str) -> str | None:
