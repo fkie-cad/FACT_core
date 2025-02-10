@@ -2,25 +2,22 @@
 
 {% block analysis_result_details %}
 
-    {% if analysis_result['init_type'] %}
+    {% if analysis_result.is_init %}
         <tr>
-            <td class="table-head-light">Init system</td>
-            <td class="table-head-light">{{ analysis_result['init_type'][0]}}</td>
+            <td>Init system</td>
+            <td>{{ analysis_result.init_type }}</td>
         </tr>
     {% endif %}
-    {% if analysis_result['description'] %}
-        <tr>
-            <td>Description</td>
-            <td>{{ analysis_result['description'][0]}}</td>
-        </tr>
+    {% if analysis_result.data %}
+        {% for key, value in analysis_result.data.items() | sort %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>
+                    <pre class="border rounded p-2 bg-light"
+                         style="white-space: pre-wrap;"><code>{{ value }}</code></pre>
+                </td>
+            </tr>
+        {% endfor %}
     {% endif %}
-    {% for key, value in analysis_result.items() | sort %}
-        <tr>
-            <td>{{ key }}</td>
-            <td>
-                <pre class="border rounded p-2 bg-light" style="white-space: pre-wrap;"><code>{{ value }}</code></pre>
-            </td>
-        </tr>
-    {% endfor %}
 
 {% endblock %}
