@@ -1,155 +1,190 @@
+from __future__ import annotations
+
 import re
+from enum import Enum
+from pathlib import Path
+from typing import TYPE_CHECKING, Optional, Union
 
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.data_conversion import make_unicode_string
-from objects.file import FileObject
+from pydantic import BaseModel, Field
+from semver import Version
 
-FILE_IGNORES = ['README', 'README.md', 'README.txt', 'INSTALL', 'VERSION']
+from analysis.plugin import AnalysisPluginV0
+
+if TYPE_CHECKING:
+    from io import FileIO
+
+FILE_IGNORES = {'README', 'README.md', 'README.txt', 'INSTALL', 'VERSION'}
 
 
-class AnalysisPlugin(AnalysisBasePlugin):
-    """
-    This Plugin searches for Init-Scripts and lists the Services or Script-Files
-    It displays a short description (if provided) or else the filename
+class InitType(str, Enum):
+    init_tab = 'inittab'
+    initscript = 'initscript'
+    rc = 'rc'
+    runit = 'RunIt'
+    sys_v_init = 'SysVInit'
+    systemd = 'SystemD'
+    upstart = 'UpStart'
 
-    Credits:
-    Original version by Stefan Viergutz created during Firmware Bootcamp WT16/17 at University of Bonn
-    Refactored and improved by Fraunhofer FKIE
-    """
 
-    NAME = 'init_systems'
-    DESCRIPTION = 'detect and analyze auto start services'
-    DEPENDENCIES = ['file_type']  # noqa: RUF012
-    VERSION = '0.4.2'
-    FILE = __file__
+class SystemDData(BaseModel):
+    exec_start: Optional[str] = None
+    description: Optional[str] = None
 
-    def additional_setup(self):
-        self.content = None
 
-    @staticmethod
-    def _is_text_file(file_object):
-        return file_object.processed_analysis['file_type']['result']['mime'] in ['text/plain']
+class InitTabData(BaseModel):
+    sysinit: Optional[str] = None
+    respawn: Optional[str] = None
 
-    @staticmethod
-    def _get_file_path(file_object: FileObject):
-        return list(file_object.virtual_file_path.values())[0][0]
 
-    def _get_systemd_config(self, file_object):
-        result = {}
-        match_description = self._findall_regex(r'(?:Description=)(.*)', self.content)
-        match_exec = self._findall_regex(r'(?<=ExecStart=).*', self.content)
-        if match_exec:
-            result['ExecStart'] = '\n'.join(match_exec)
-        description = match_description if match_description else []
-        description = self._add_quotes(description)
-        result['description'] = description if description else [file_object.file_name]
-        result['init_type'] = ['SystemD']
-        result['summary'] = result['init_type']
-        return result
+class UpstartData(BaseModel):
+    exec: Optional[str] = None
+    pre_start: Optional[str] = None
+    description: Optional[str] = None
 
-    def _get_rc_config(self, _):
-        result = {}
-        matches = self._findall_regex(r'^(?!#)(.+)', self.content)
-        if matches:
-            result['script'] = '\n'.join(matches)
-        result['init_type'] = ['rc']
-        result['summary'] = result['init_type']
-        return result
 
-    def _get_inittab_config(self, _):
-        result = {}
-        matches_sysinit = self._findall_regex(r'^[^#].*(?<=sysinit:)([^#].*)', self.content)
-        matches_respawn = self._findall_regex(r'^[^#].*(?<=respawn:)([^#].*)', self.content)
-        all_matches = []
-        all_matches.extend(list(matches_sysinit))
-        all_matches.extend(list(matches_respawn))
-        if all_matches:
-            result['inittab'] = '\n'.join(all_matches)
-            result['init_type'] = ['inittab']
-            result['summary'] = result['init_type']
-        return result
+class SysVInitData(BaseModel):
+    description: Optional[str] = None
+    short_description: Optional[str] = None
 
-    def _get_initscript_config(self, _):
-        result = {}
-        matches = self._findall_regex(r'^(?!#)(.+)', self.content)
-        if matches:
-            result['script'] = '\n'.join(matches)
-        result['init_type'] = ['initscript']
-        result['summary'] = result['init_type']
-        return result
 
-    def _get_upstart_config(self, file_object):
-        result = {}
-        match_description = self._findall_regex(r'^[^#].*(?<=description)\s*(.*)', self.content)
-        match_exec = self._findall_regex(r'[^#]^exec\s*((?:.*\\\n)*.*)', self.content)
-        match_pre_start = self._findall_regex(
-            r'(?<=pre-start script\n)(?:(?:[\S\s]*?)[\n]*)(?=\nend script)', self.content
+class AnalysisPlugin(AnalysisPluginV0):
+    class Schema(BaseModel):
+        init_type: Optional[InitType] = Field(
+            None, description='The type of init system that was identified for this file'
         )
-        match_script = self._findall_regex(r'(?<=^script\n)(?:(?:[\S\s]*?)[\n]*)(?=\nend script)', self.content)
-        result['description'] = match_description if match_description else [file_object.file_name]
-        if match_exec:
-            result['exec'] = '\n'.join(match_exec)
-        if match_pre_start:
-            result['pre-start'] = '\n'.join(match_pre_start)
-        if match_script:
-            result['script'] = '\n'.join(match_script)
-        result['init_type'] = ['UpStart']
-        result['summary'] = result['init_type']
-        return result
+        data: Optional[Union[SystemDData, InitTabData, UpstartData, SysVInitData]] = Field(
+            None,
+            description='Optional meta information and init data contained in this init script',
+        )
+        is_init: bool = False
 
-    def _get_runit_config(self, file_object):
-        # TODO description = filepath
-        result = {}
-        match_exec = self._findall_regex(r'^([^#](?:.*\\\n)*.*)', self.content)
-        if match_exec:
-            result['script'] = '\n'.join(match_exec)
-        result['description'] = [file_object.file_name]
-        result['init_type'] = ['RunIt']
-        result['summary'] = result['init_type']
-        return result
+        @classmethod
+        def __get_validators__(cls):
+            yield cls.validate
 
-    def _get_sysvinit_config(self, file_object):
-        result = {}
-        match_desc1 = self._findall_regex(r'Short-Description:\s*(.*)', self.content)
-        match_desc2 = self._findall_regex(r'DESC=\"*([^\"|\n]*)', self.content)
-        matches = self._findall_regex(r'^(?!#)(.+)', self.content)
-        description = match_desc1 if match_desc1 else match_desc2 if match_desc2 else []
-        description_formatted = self._add_quotes(description)
-        result['description'] = description_formatted if description_formatted else [file_object.file_name]
-        if matches:
-            result['script'] = '\n'.join(matches)
-        result['init_type'] = ['rc']
-        result['init_type'] = ['SysVInit']
-        result['summary'] = result['init_type']
-        return result
+        @classmethod
+        def validate(cls, value):
+            init_type = value.get('init_type')
+            if init_type == InitType.systemd:
+                value['data'] = SystemDData(**value['data'])
+            elif init_type == InitType.init_tab:
+                value['data'] = InitTabData(**value['data'])
+            elif init_type == InitType.upstart:
+                value['data'] = UpstartData(**value['data'])
+            elif init_type == InitType.sys_v_init:
+                value['data'] = SysVInitData(**value['data'])
+            return cls(**value)
 
-    def process_object(self, file_object):
-        if self._is_text_file(file_object) and (file_object.file_name not in FILE_IGNORES):
-            file_path = self._get_file_path(file_object)
-            self.content = make_unicode_string(file_object.binary)
-            if '/inittab' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_inittab_config(file_object)
-            if 'systemd/system/' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_systemd_config(file_object)
-            if file_path.endswith(('etc/rc', 'etc/rc.local', 'etc/rc.firsttime', 'etc/rc.securelevel')):
-                file_object.processed_analysis[self.NAME] = self._get_rc_config(file_object)
-            if file_path.endswith('etc/initscript'):
-                file_object.processed_analysis[self.NAME] = self._get_initscript_config(file_object)
-            if 'etc/init/' in file_path or 'etc/event.d/' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_upstart_config(file_object)
-            if 'etc/service/' in file_path or 'etc/sv/' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_runit_config(file_object)
-            if 'etc/init.d/' in file_path or 'etc/rc.d/' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_sysvinit_config(file_object)
-        else:
-            file_object.processed_analysis[self.NAME] = {'summary': []}
-        return file_object
+    def __init__(self):
+        super().__init__(
+            metadata=(
+                self.MetaData(
+                    name='init_systems',
+                    mime_whitelist=['text/plain'],
+                    description='detect and analyze initialization scripts',
+                    version=Version(1, 0, 0),
+                    Schema=self.Schema,
+                )
+            )
+        )
+
+    SYSTEMD_EXECSTART_REGEX = re.compile(r'ExecStart=(.*)')
+    SYSTEMD_DESCRIPTION_REGEX = re.compile(r'Description=(.*)')
+
+    def _get_systemd_config(self, file_handle: FileIO) -> Schema:
+        content = file_handle.read().decode(errors='ignore')
+        return self.Schema(
+            is_init=True,
+            init_type=InitType.systemd,
+            data=SystemDData(
+                exec_start=_match(content, self.SYSTEMD_EXECSTART_REGEX),
+                description=_match(content, self.SYSTEMD_DESCRIPTION_REGEX),
+            ),
+        )
+
+    INITTAB_SYSINIT_REGEX = re.compile(r'^[^#].*(?<=sysinit:)([^#].*)', re.MULTILINE)
+    INITTAB_RESPAWN_REGEX = re.compile(r'^[^#].*(?<=respawn:)([^#].*)', re.MULTILINE)
+
+    def _get_inittab_config(self, file_handle: FileIO) -> Schema:
+        content = file_handle.read().decode(errors='ignore')
+        return self.Schema(
+            is_init=True,
+            init_type=InitType.init_tab,
+            data=InitTabData(
+                sysinit=_match(content, self.INITTAB_SYSINIT_REGEX),
+                respawn=_match(content, self.INITTAB_RESPAWN_REGEX),
+            ),
+        )
+
+    UPSTART_DESCRIPTION_REGEX = re.compile(r'^[^#].*(?<=description)\s*(.*)', re.MULTILINE)
+    UPSTART_EXEC_REGEX = re.compile(r'[^#]^exec\s*((?:.*\\\n)*.*)', re.MULTILINE)
+    UPSTART_PRESTART_REGEX = re.compile(r'(?<=pre-start script\n)[\S\s]*?\n*(?=\nend script)', re.MULTILINE)
+
+    def _get_upstart_config(self, file_handle: FileIO) -> Schema:
+        content = file_handle.read().decode(errors='ignore')
+        return self.Schema(
+            is_init=True,
+            init_type=InitType.upstart,
+            data=UpstartData(
+                description=_match(content, self.UPSTART_DESCRIPTION_REGEX),
+                exec=_match(content, self.UPSTART_EXEC_REGEX),
+                pre_start=_match(content, self.UPSTART_PRESTART_REGEX),
+            ),
+        )
+
+    SYSVINIT_SHORT_DESC_REGEX = re.compile(r'Short-Description:\s*(.*)', re.MULTILINE)
+    SYSVINIT_DESC_REGEX = re.compile(r'DESC=\"*([^\"|\n]*)', re.MULTILINE)
+
+    def _get_sysvinit_config(self, file_handle: FileIO) -> Schema:
+        content = file_handle.read().decode(errors='ignore')
+        return self.Schema(
+            is_init=True,
+            init_type=InitType.sys_v_init,
+            data=SysVInitData(
+                description=_match(content, self.SYSVINIT_DESC_REGEX),
+                short_description=_match(content, self.SYSVINIT_SHORT_DESC_REGEX),
+            ),
+        )
+
+    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel | dict]) -> Schema:
+        del analyses
+        file_path = list(virtual_file_path.values())[0][0]
+        if Path(file_path).name not in FILE_IGNORES:
+            result = self._get_script_type_from_path(file_path, file_handle)
+            if result.is_init and not self._has_no_content(file_handle):
+                return result
+        return self.Schema(is_init=False)
+
+    def _get_script_type_from_path(self, file_path: str, file_handle: FileIO) -> Schema:  # noqa: PLR0911
+        if '/inittab' in file_path:
+            return self._get_inittab_config(file_handle)
+        if 'systemd/system/' in file_path:
+            return self._get_systemd_config(file_handle)
+        if file_path.endswith(('etc/rc', 'etc/rc.local', 'etc/rc.firsttime', 'etc/rc.securelevel')):
+            return self.Schema(is_init=True, init_type=InitType.rc)
+        if file_path.endswith('etc/initscript'):
+            return self.Schema(is_init=True, init_type=InitType.initscript)
+        if 'etc/init/' in file_path or 'etc/event.d/' in file_path:
+            return self._get_upstart_config(file_handle)
+        if 'etc/service/' in file_path or 'etc/sv/' in file_path:
+            return self.Schema(is_init=True, init_type=InitType.runit)
+        if 'etc/init.d/' in file_path or 'etc/rc.d/' in file_path:
+            return self._get_sysvinit_config(file_handle)
+        return self.Schema(is_init=False)
+
+    def summarize(self, result: Schema) -> list[str]:
+        if result.is_init and result.init_type:
+            return [result.init_type]
+        return []
 
     @staticmethod
-    def _findall_regex(pattern, content):
-        regex_compiled = re.compile(pattern, re.MULTILINE)
-        return regex_compiled.findall(content)
+    def _has_no_content(file_handle: FileIO) -> bool:
+        file_handle.seek(0)
+        content = file_handle.read().decode(errors='ignore')
+        return all(line.startswith('#') for line in content.splitlines() if line)
 
-    @staticmethod
-    def _add_quotes(unquoted_list):
-        return [f'"{element}"' for element in unquoted_list]
+
+def _match(content: str, regex: re.Pattern) -> str | None:
+    if match := regex.findall(content):
+        return '\n'.join(match)
+    return None
