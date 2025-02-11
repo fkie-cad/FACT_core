@@ -353,6 +353,7 @@ class DatabaseRoutes(ComponentBase):
                 'file_name': {'$like': search_term},
                 'sha256': search_term,
                 'firmware_tags': search_term,
+                'path': {'$like': search_term},
             }
         }
         return redirect(url_for(self.browse_database.__name__, query=json.dumps(query)))

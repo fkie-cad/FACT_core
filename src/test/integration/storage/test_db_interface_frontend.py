@@ -169,6 +169,15 @@ def test_generic_search_or(frontend_db, backend_db):
     }
 
 
+def test_generic_search_path(frontend_db, backend_db):
+    insert_test_fw(backend_db, 'fw', file_name='some_file.zip')
+    insert_test_fo(backend_db, 'uid_1', file_name='foo', parent_fw='fw', vfp={'fw': ['/bin/foo']})
+    insert_test_fo(backend_db, 'uid_2', file_name='bar', vfp={'fw': ['/bin/bar']})
+    insert_test_fo(backend_db, 'uid_3', file_name='test', vfp={'fw': ['/sbin/test']})
+    assert set(frontend_db.generic_search({'path': '/bin/foo'})) == {'uid_1'}
+    assert set(frontend_db.generic_search({'path': {'$like': '/bin/'}})) == {'uid_1', 'uid_2'}
+
+
 def test_generic_search_unknown_op(frontend_db):
     with pytest.raises(QueryConversionException):
         frontend_db.generic_search({'file_name': {'$unknown': 'foo'}})
