@@ -41,8 +41,9 @@ class TestAnalysisPluginsKnownVulnerabilities:
     def test_process_object_software_wrong_version(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'empty'))
         test_file.processed_analysis['file_hashes'] = {'result': {'sha256': '1234'}}
-        self._software_components_result['result']['OpenSSL']['meta']['version'] = ['0.9.8', '1.0.0', '']
-        test_file.processed_analysis['software_components'] = self._software_components_result
+        software_components_result = {**self._software_components_result}
+        software_components_result['result']['software_components'][0]['versions'] = ['0.9.8', '1.0.0']
+        test_file.processed_analysis['software_components'] = software_components_result
 
         results = analysis_plugin.process_object(test_file).processed_analysis[analysis_plugin.NAME]
 
@@ -94,7 +95,9 @@ class TestAnalysisPluginsKnownVulnerabilities:
     def test_xz_backdoor_2nd(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'empty'))
         assert test_file.binary is not None
-        test_file.processed_analysis['software_components'] = {'result': {'liblzma': {'meta': {'version': ['5.6.1']}}}}
+        test_file.processed_analysis['software_components'] = {
+            'result': {'software_components': [{'name': 'liblzma', 'versions': ['5.6.1']}]}
+        }
         fo = analysis_plugin.process_object(test_file)
         result = fo.processed_analysis['known_vulnerabilities']
         assert 'XZ Backdoor' in result
