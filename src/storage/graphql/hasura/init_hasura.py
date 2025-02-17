@@ -179,7 +179,7 @@ class HasuraSetup:
                     'source': self.db_name,
                     'table': table,
                     'role': 'ro_user',
-                    'permission': {'columns': '*', 'filter': {}},
+                    'permission': {'columns': '*', 'filter': {}, 'allow_aggregations': True},
                 },
             }
             response = requests.post(self.url, headers=self.headers, json=query)
