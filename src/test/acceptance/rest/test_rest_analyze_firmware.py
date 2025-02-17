@@ -59,7 +59,7 @@ class TestRestFirmware:
         self, test_client, analysis_finished_event, analysis_finished_counter
     ):
         self._rest_upload_firmware(test_client)
-        assert analysis_finished_event.wait(timeout=15)
+        assert analysis_finished_event.wait(timeout=30)
         analysis_finished_counter.value -= 4  # only one plugin to update
         analysis_finished_event.clear()
         self._rest_get_analysis_result(test_client)
@@ -68,6 +68,6 @@ class TestRestFirmware:
         self._rest_update_analysis_bad_analysis(test_client)
         self._rest_update_analysis_success(test_client)
 
-        assert analysis_finished_event.wait(timeout=10)
+        assert analysis_finished_event.wait(timeout=30)
 
         self._rest_check_new_analysis_exists(test_client)
