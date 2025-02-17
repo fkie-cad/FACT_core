@@ -55,10 +55,22 @@
         {% endif %}
         <tr id="raw-result" class="analysis-meta" style="visibility: collapse">
             <td>Raw Analysis Result</td>
-            <td>
-                <pre class="m-0" style="max-height: 50vh; overflow: scroll;"><code id="raw-analysis" class="language-json">{{ analysis_result | dict_to_json(indent=4) }}</code></pre>
+            <td style="height: 60vh;" class="p-0">
+                <textarea name="textarea" style="resize: vertical; position: relative; z-index: 1; height: 100%;" class="form-control" id="textarea">{{ analysis_result | dict_to_json(indent=4) }}</textarea>
             </td>
         </tr>
+        <script>
+            window.editor = CodeMirror.fromTextArea(document.getElementById('textarea'), {
+                foldGutter: true,
+                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+                lineNumbers: true,
+                lineWrapping: true,
+                matchBrackets: true,
+                mode: {name: "javascript", json: true},
+                readOnly: true,
+                theme: "material",
+              });
+        </script>
 
         {% set version_backend = analysis_plugin_dict[selected_analysis][3] %}
         {% set version_database = analysis_metadata['plugin_version'] %}
