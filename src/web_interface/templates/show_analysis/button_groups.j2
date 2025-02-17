@@ -1,0 +1,77 @@
+{% macro button_collapse(button_id, icon, target, tooltip) %}
+    <button id="{{ button_id }}" data-toggle="collapse" data-target="#{{ target }}" class="btn btn-outline-secondary">
+        <i class="fas fa-{{ icon }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}"></i>
+    </button>
+{% endmacro %}
+
+{% macro button_tooltip(tooltip, id, url, icon, onclick=None, danger=False, disabled=False) %}
+    {% set button_class = "btn-danger" if danger else "btn-outline-secondary" %}
+    {% set onclick_value = onclick if onclick else "window.location.href = '" + url + firmware.uid + "'" %}
+
+    <button id="{{ id }}" class="btn {{ button_class }}" onclick="{{ onclick_value }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}" {% if disabled %}disabled{% endif %}>
+        <i class="fas fa-{{ icon }}"></i>
+    </button>
+{% endmacro %}
+
+<div class="btn-toolbar mb-4" role="toolbar" aria-label="Analysis, download and admin buttons">
+
+    <div class="btn-group mr-2 mb-2" role="group" aria-label="Download buttons">
+        <button class="btn btn-secondary">Download</button>
+
+        {{ button_tooltip('Download raw file', 'bdown-button', '/download/', 'file-download') }}
+        {% if firmware.files_included %}
+            {{ button_tooltip('Download included files as tar.gz', 'tdown-button', '/tar-download/', 'file-archive') }}
+        {% endif %}
+        {% if firmware.vendor %}
+            {{ button_tooltip('Download report as PDF', 'pdown-button', '/pdf-download/', 'file-pdf') }}
+        {% endif %}
+    </div>
+
+    <div class="btn-group mr-2 mb-2" aria-label="Analysis buttons">
+        <button class="btn btn-secondary">Analysis</button>
+
+        {{ button_tooltip('View in radare', 'radare-button', None, 'terminal', onclick='radare_view()') }}
+        {% if not firmware.files_included %}
+            {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', danger=False, disabled=True) }}
+        {% else %}
+            {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', "window.location.href='/dependency-graph/{}/{}'".format(firmware.uid, root_uid)) }}
+        {% endif %}
+        {% if firmware.vendor %}
+            {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
+            {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
+        {% endif %}
+    </div>
+
+    {% if firmware.vendor and user_has_admin_clearance %}
+        <div class="btn-group mr-2 mb-2" role="group" aria-label="Admin buttons">
+            <button class="btn btn-secondary">Admin</button>
+
+            {{ button_collapse('redo-button', 'redo-alt', 'redo-button-div', 'Redo analysis') }}
+            <span class="collapse" id="redo-button-div">
+                {{ button_tooltip('Confirm removal of current results and comments', 'confirm-redo', '/admin/re-do_analysis/', 'check', danger=True) }}
+            </span>
+
+            <span class="collapse" id="delete-button-div">
+                {{ button_tooltip('Confirm removal of results and comments', 'confirm-delete', '/admin/delete/', 'check', danger=True) }}
+            </span>
+            {{ button_collapse('delete-button', 'trash-alt', 'delete-button-div', 'Delete firmware') }}
+        </div>
+
+    {% endif %}
+    <div class="btn-group d-flex align-items-start">
+        <div class="btn btn-secondary">Comparisons</div>
+        {% if known_comparisons %}
+            {{ button_collapse('old-compare-button', 'hdd', 'known-comparisons', 'Show list of known comparisons') }}
+        {% endif %}
+        {% if not uids_for_comparison or uid not in uids_for_comparison %}
+            <button id="add-compare" class="btn btn-outline-secondary" onclick="window.location.href = '/comparison/add/{{firmware.uid}}/{{root_uid}}'" data-toggle="tooltip" data-placement="bottom" title="Add to comparison">
+                <i class="fas fa-plus"></i>
+            </button>
+        {% endif %}
+
+        {% if uids_for_comparison %}
+            {{ button_collapse('new-compare-button', 'list-ul', 'comparison-list', 'Show firmware selected for comparison') }}
+        {% endif %}
+    </div>
+
+</div>

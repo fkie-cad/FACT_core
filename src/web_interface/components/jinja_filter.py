@@ -17,7 +17,6 @@ from helperFunctions.web_interface import cap_length_of_element, get_color_list
 from web_interface.filter import elapsed_time, random_collapse_id
 
 if TYPE_CHECKING:
-    from storage.db_interface_frontend import MetaEntry
     from web_interface.frontend_database import FrontendDatabase
 
 CHART_ELEMENT_COUNT_LIMIT = 100
@@ -118,19 +117,6 @@ class FilterClass:
             '</span>'
         )
 
-    @staticmethod
-    def _render_general_information_table(
-        firmware: MetaEntry, root_uid: str, other_versions, selected_analysis, file_tree_paths
-    ):
-        return render_template(
-            'generic_view/general_information.html',
-            firmware=firmware,
-            root_uid=root_uid,
-            other_versions=other_versions,
-            selected_analysis=selected_analysis,
-            file_tree_paths=file_tree_paths,
-        )
-
     def check_auth(self, _):
         return config.frontend.authentication.enabled
 
@@ -209,7 +195,6 @@ class FilterClass:
                 'remaining_time': elapsed_time,
                 'render_analysis_tags': flt.render_analysis_tags,
                 'render_changed_text_files': flt.render_changed_text_files,
-                'render_general_information': self._render_general_information_table,
                 'render_query_title': flt.render_query_title,
                 'render_fw_tags': flt.render_fw_tags,
                 'replace_comparison_uid_with_hid': self._filter_replace_comparison_uid_with_hid,
