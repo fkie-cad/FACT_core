@@ -111,11 +111,15 @@ omit = [
     # ignore install scripts
     "src/install.py",
     "src/install/*",
+    "src/plugins/installer.py",
+    "src/plugins/analysis/*/install.py",
     # ignore alembic migration scripts
     "src/storage/migration/**",
     # ignore files only run inside docker
     "src/plugins/analysis/*/docker/**",
 ]
+concurrency = ["thread"]
+parallel = true
 
 [tool.coverage.report]
 exclude_also = [
