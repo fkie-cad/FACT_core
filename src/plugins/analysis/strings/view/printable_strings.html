@@ -15,6 +15,7 @@
                    data-buttons-class="primary"
                    data-show-toggle="true"
                    data-show-fullscreen="true"
+                   data-escape="true"
                    class="table table-bordered table-hover table-sm"
                    id="stringsTable">
                 <thead>
@@ -63,7 +64,7 @@
         }
 
         function formatFloat(value) {
-            return value.toFixed(1);
+            return parseFloat(value).toFixed(1);
         }
 
         function getCellStyle(value, row, index, field) {
