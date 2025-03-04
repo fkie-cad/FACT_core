@@ -1,38 +1,62 @@
 {% extends "analysis_plugins/general_information.html" %}
 
+{% macro result_list(results, location=False) %}
+    <ul class="list-group p-0 mb-0" style="width: 100%;">
+        {% for item in results %}
+            {% if location %}
+                <li class="list-group-item d-flex justify-content-between align-items-center rounded-0">
+                    {{ item.address }}
+                    {% if item.location %}
+                        <a href="https://www.google.de/maps/place/{{ item.location.latitude }},{{ item.location.longitude }}">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </a>
+                    {% endif %}
+                </li>
+            {% else %}
+                <li class="list-group-item rounded-0">
+                    <a href="{{ item }}">{{ item }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endmacro %}
+
 {% block analysis_result_details %}
-
-    {% for key, value in analysis_result.items() %}
+    {% if analysis_result['interesting_uris'] %}
         <tr>
-        {% if value != [] %}
-            <td>
-                {% if key == "ips_v4" %}IPv4
-                {% elif key == "ips_v6" %}IPv6
-                {% elif key == "uris" %}URI
-                {% else %}Interesting URIs{% endif %}
-            </td>
+            <td>Interesting URIs</td>
             <td class="p-0">
-                <ul class="list-group p-0 mb-0" style="width: 100%;">
-                    {% for item in value %}
-                        {% if key == "ips_v6" or  key == "ips_v4" %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center rounded-0">
-                                {{ item.address }}
-                                {% if item.location %}
-                                    <a href="https://www.google.de/maps/place/{{ item.location.latitude }},{{ item.location.longitude }}">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                    </a>
-                                {% endif %}
-                            </li>
-                        {% else %}
-                            <li class="list-group-item rounded-0">
-                                <a href="{{ item }}">{{ item }}</a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
+                {{ result_list(analysis_result['interesting_uris'] | sort) }}
             </td>
-        {% endif %}
         </tr>
-    {% endfor %}
+    {% endif %}
 
+    {# deduplicate "interesting" URIs for the analysis page #}
+    {% set results = (analysis_result['uris'] | to_set - analysis_result['interesting_uris'] | to_set) | sort %}
+    {% if results %}
+        <tr>
+            <td>URIs</td>
+            <td class="p-0">
+                {{ result_list(results) }}
+            </td>
+        </tr>
+    {% endif %}
+
+    {% if analysis_result['ips_v4'] %}
+        <tr>
+            <td>IPv4 Addresses</td>
+            <td class="p-0">
+                {{ result_list(analysis_result['ips_v4'] | sort_ip_list, True) }}
+            </td>
+        </tr>
+    {% endif %}
+
+    {% if analysis_result['ips_v6'] %}
+        <tr>
+            <td>IPv6 Addresses</td>
+            <td class="p-0">
+                {{ result_list(analysis_result['ips_v6'] | sort_ip_list, True) }}
+            </td>
+        </tr>
+    {% endif %}
 {% endblock %}
