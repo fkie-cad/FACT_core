@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from flask import request
 from flask_restx import Model, Resource, marshal
 
+from storage.graphql.interface import GraphQlInterface
+
 if TYPE_CHECKING:
     from intercom.front_end_binding import InterComFrontEndBinding
     from storage.redis_status_interface import RedisStatusInterface
@@ -16,6 +18,7 @@ class RestResourceBase(Resource):
         self.db: FrontendDatabase = kwargs.get('db', None)
         self.intercom: InterComFrontEndBinding = kwargs.get('intercom', None)
         self.status: RedisStatusInterface = kwargs.get('status', None)
+        self.gql_interface = GraphQlInterface()
         super().__init__(*args, **kwargs)
 
     @staticmethod

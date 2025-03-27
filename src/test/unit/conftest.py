@@ -118,6 +118,17 @@ class StatusInterfaceMock:
         return self._status
 
 
+class MockGraphQlInterface:
+    def search_gql(
+        self,
+        where: dict,
+        table: str,
+        offset: int | None = None,
+        limit: int | None = None,
+    ):
+        return [TEST_TEXT_FILE.uid], 1
+
+
 class WebInterfaceUnitTestConfig(BaseModel):
     """A class configuring the :py:func:`web_frontend` fixture."""
 
@@ -129,6 +140,8 @@ class WebInterfaceUnitTestConfig(BaseModel):
     intercom_mock_class: Type[CommonIntercomMock] = CommonIntercomMock
     #: A class mocking :py:class:`~storage.redis_status_interface.RedisStatusInterface`
     status_mock_class: Type[StatusInterfaceMock] = StatusInterfaceMock
+    #: A class mocking :py:class:`~storage.graphql.interface.GraphQlInterface`
+    graphql_interface_mock_class: Type[MockGraphQlInterface] = MockGraphQlInterface
 
 
 @pytest.fixture
@@ -158,6 +171,9 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
         return _UserDbMock(), db_mock_instance
 
     monkeypatch.setattr('web_interface.frontend_main.add_flask_security_to_app', _add_flask_security_to_app_mock)
+    monkeypatch.setattr(
+        'web_interface.rest.rest_resource_base.GraphQlInterface', test_config.graphql_interface_mock_class
+    )
 
     monkeypatch.setattr(IntercomMockClass, 'task_list', intercom_task_list)
     # Note: The intercom argument is only the class. It gets instanced when intercom access in needed by `ConnectTo`.

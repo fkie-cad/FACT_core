@@ -12,11 +12,12 @@ from helperFunctions.object_conversion import create_meta_dict
 from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
 from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError
+from storage.graphql.interface import GraphQLSearchError
 from web_interface.rest.helper import (
     error_message,
     get_boolean_from_request,
+    get_json_field,
     get_paging,
-    get_query,
     get_update,
     success_message,
 )
@@ -57,6 +58,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
             'offset': {'description': 'offset of results (paging)', 'in': 'query', 'type': 'int'},
             'limit': {'description': 'number of results (paging)', 'in': 'query', 'type': 'int'},
             'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'},
+            'where': {'description': 'GraphQL style query', 'in': 'query', 'type': 'dict'},
             'recursive': {
                 'description': 'Query for parent firmware of matching objects (requires query)',
                 'in': 'query',
@@ -78,21 +80,36 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         List all available firmware in the database
         """
         try:
-            query, recursive, inverted, offset, limit = self._get_parameters_from_request(request.args)
+            query, where, recursive, inverted, offset, limit = self._get_parameters_from_request(request.args)
         except ValueError as value_error:
             request_data = {k: request.args.get(k) for k in ['query', 'limit', 'offset', 'recursive', 'inverted']}
             return error_message(str(value_error), self.URL, request_data=request_data)
+        parameters = {
+            'offset': offset,
+            'limit': limit,
+            'query': query,
+            'recursive': recursive,
+            'inverted': inverted,
+            'where': where,
+        }
 
-        parameters = {'offset': offset, 'limit': limit, 'query': query, 'recursive': recursive, 'inverted': inverted}
+        if where:
+            try:
+                uids, total = self.gql_interface.search_gql(where, 'firmware', offset=offset, limit=limit)
+                return success_message({'uids': uids, 'total': total}, self.URL, parameters)
+            except GraphQLSearchError:
+                return error_message('Error during GraphQL search', self.URL, parameters)
+
         try:
-            uids = self.db.frontend.rest_get_firmware_uids(**parameters)
+            uids = self.db.frontend.rest_get_firmware_uids(offset, limit, query, recursive, inverted)
             return success_message({'uids': uids}, self.URL, parameters)
         except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)
 
     @staticmethod
     def _get_parameters_from_request(request_parameters):
-        query = get_query(request_parameters)
+        query = get_json_field(request_parameters, 'query')
+        where = get_json_field(request_parameters, 'where')
         recursive = get_boolean_from_request(request_parameters, 'recursive')
         inverted = get_boolean_from_request(request_parameters, 'inverted')
         offset, limit = get_paging(request.args)
@@ -100,7 +117,9 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
             raise ValueError('Recursive search is only permissible with non-empty query')
         if inverted and not recursive:
             raise ValueError('Inverted flag can only be used with recursive')
-        return query, recursive, inverted, offset, limit
+        if query and where:
+            raise ValueError('Fields query and where must not be set at the same time')
+        return query, where, recursive, inverted, offset, limit
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @api.expect(firmware_model)

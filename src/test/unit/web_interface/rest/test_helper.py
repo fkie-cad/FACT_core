@@ -4,8 +4,8 @@ from web_interface.rest.helper import (
     error_message,
     get_boolean_from_request,
     get_current_gmt,
+    get_json_field,
     get_paging,
-    get_query,
     get_update,
     success_message,
 )
@@ -92,13 +92,13 @@ def test_get_update_success():
 @pytest.mark.parametrize('arguments', [{'query': 'bad_string'}, {'query': '[]'}])
 def test_get_query_bad(arguments):
     with pytest.raises(ValueError):  # noqa: PT011
-        get_query(arguments)
+        get_json_field(arguments, 'query')
 
 
 def test_get_query():
-    assert not get_query(None)
+    assert not get_json_field(None, 'foo')
 
-    assert get_query({'query': '{"a": "b"}'}) == {'a': 'b'}
+    assert get_json_field({'query': '{"a": "b"}'}, 'query') == {'a': 'b'}
 
 
 @pytest.mark.parametrize(('offset', 'limit'), [(None, None), ('1', None), ('A', 'B')])

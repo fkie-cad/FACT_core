@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from base64 import standard_b64encode
 from copy import deepcopy
@@ -7,6 +9,7 @@ from urllib.parse import quote
 import pytest
 
 from test.common_helper import TEST_FW, CommonDatabaseMock
+from test.unit.conftest import MockGraphQlInterface
 
 TEST_FW_PAYLOAD = {
     'binary': standard_b64encode(b'\x01\x23\x45\x67\x89').decode(),
@@ -47,7 +50,12 @@ class DbMock(CommonDatabaseMock):
         return DELETED_FILES, DELETED_FILES
 
 
-@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
+class GraphQlMock(MockGraphQlInterface):
+    def search_gql(self, *_, **__):
+        return [TEST_FW.uid], 1
+
+
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock, graphql_interface_mock_class=GraphQlMock)
 class TestRestFirmware:
     def test_successful_request(self, test_client):
         response = test_client.get('/rest/firmware').json
@@ -189,3 +197,10 @@ class TestRestFirmware:
         result = test_client.delete('/rest/firmware/foobar').json
         assert 'error_message' in result
         assert result['error_message'] == 'No firmware with UID foobar found'
+
+    def test_rest_graphql_query(self, test_client):
+        where = quote('{"file_name": {"_eq": "foobar"}}')
+        rv = test_client.get(f'/rest/firmware?where={where}', follow_redirects=True)
+        assert rv.status_code == 200
+        assert rv.json['uids'] == [TEST_FW.uid]
+        assert rv.json['total'] == 1

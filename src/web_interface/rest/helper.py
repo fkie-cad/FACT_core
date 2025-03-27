@@ -9,10 +9,7 @@ import calendar
 import json
 import time
 from copy import deepcopy
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from werkzeug.datastructures import ImmutableMultiDict
+from typing import Mapping
 
 
 def get_current_gmt() -> int:
@@ -72,7 +69,7 @@ def error_message(
     return message, return_code
 
 
-def get_paging(request_parameters: ImmutableMultiDict) -> tuple[int, int]:
+def get_paging(request_parameters: Mapping) -> tuple[int, int]:
     """
     Parse paging parameter offset and limit from request parameters.
 
@@ -92,26 +89,27 @@ def get_paging(request_parameters: ImmutableMultiDict) -> tuple[int, int]:
     return offset, limit
 
 
-def get_query(request_parameters: ImmutableMultiDict) -> dict:
+def get_json_field(request_parameters: Mapping, field: str) -> dict:
     """
     Parse the query parameter from request parameters. Query is a dictionary representing a MongoDB query.
 
     :param request_parameters: dict containing the request parameters.
+    :param field: the JSON field to retrieve.
     :return: The MongoDB query as dict.
     """
     try:
-        query = request_parameters.get('query')
-        query = json.loads(query if query else '{}')
+        value = request_parameters.get(field)
+        value = json.loads(value if value else '{}')
     except (AttributeError, KeyError):
         return {}
     except json.JSONDecodeError as error:
-        raise ValueError('Query must be a json document') from error
-    if not isinstance(query, dict):
-        raise ValueError('Query must be a json document')
-    return query if query else {}
+        raise ValueError(f'Field "{field}" must be a json document') from error
+    if not isinstance(value, dict):
+        raise ValueError(f'Field "{field}" must be a json document')
+    return value if value else {}
 
 
-def get_boolean_from_request(request_parameters: ImmutableMultiDict, name: str) -> bool:
+def get_boolean_from_request(request_parameters: Mapping, name: str) -> bool:
     """
     Retrieve a specific flag from the request parameters as a boolean.
 
@@ -130,7 +128,7 @@ def get_boolean_from_request(request_parameters: ImmutableMultiDict, name: str) 
     return parameter
 
 
-def get_update(request_parameters: ImmutableMultiDict) -> list:
+def get_update(request_parameters: Mapping) -> list:
     """
     Parse the update parameter from request parameters. Update is a list of analysis plugins whose analysis results
     shall be updated.

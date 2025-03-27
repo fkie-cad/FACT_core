@@ -3,7 +3,8 @@ from flask_restx import Namespace
 
 from helperFunctions.object_conversion import create_meta_dict
 from storage.db_interface_base import DbInterfaceError
-from web_interface.rest.helper import error_message, get_paging, get_query, success_message
+from storage.graphql.interface import GraphQLSearchError
+from web_interface.rest.helper import error_message, get_json_field, get_paging, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -22,6 +23,7 @@ class RestFileObjectWithoutUid(RestResourceBase):
             'offset': {'description': 'offset of results (paging)', 'in': 'query', 'type': 'int'},
             'limit': {'description': 'number of results (paging)', 'in': 'query', 'type': 'int'},
             'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'},
+            'where': {'description': 'GraphQL style query', 'in': 'query', 'type': 'dict'},
         },
     )
     def get(self):
@@ -29,15 +31,27 @@ class RestFileObjectWithoutUid(RestResourceBase):
         Browse the file database
         """
         try:
-            query = get_query(request.args)
+            query = get_json_field(request.args, 'query')
+            where = get_json_field(request.args, 'where')
             offset, limit = get_paging(request.args)
         except ValueError as value_error:
             request_data = {k: request.args.get(k) for k in ['query', 'limit', 'offset']}
             return error_message(str(value_error), self.URL, request_data=request_data)
+        parameters = {'offset': offset, 'limit': limit, 'query': query, 'where': where}
 
-        parameters = {'offset': offset, 'limit': limit, 'query': query}
+        if where:
+            if query:
+                return error_message(
+                    'Fields query and where must not be set at the same time', self.URL, request_data=parameters
+                )
+            try:
+                matches, total = self.gql_interface.search_gql(where, 'file_object', offset=offset, limit=limit)
+                return success_message({'uids': matches, 'total': total}, self.URL, parameters)
+            except GraphQLSearchError:
+                return error_message('Error during GraphQL search', self.URL, parameters)
+
         try:
-            uids = self.db.frontend.rest_get_file_object_uids(**parameters)
+            uids = self.db.frontend.rest_get_file_object_uids(offset, limit, query)
             return success_message({'uids': uids}, self.URL, parameters)
         except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)

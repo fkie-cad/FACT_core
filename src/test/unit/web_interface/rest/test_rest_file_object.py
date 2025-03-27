@@ -41,3 +41,10 @@ class TestRestFileObject:
         assert 'file_object' in result
         assert all(section in result['file_object'] for section in ['meta_data', 'analysis'])
         assert isinstance(result['file_object']['meta_data']['virtual_file_path'], dict)
+
+    def test_rest_graphql_query(self, test_client):
+        where = quote('{"file_name": {"_eq": "foobar"}}')
+        rv = test_client.get(f'/rest/file_object?where={where}', follow_redirects=True)
+        assert rv.status_code == 200
+        assert rv.json['uids'] == [TEST_TEXT_FILE.uid]
+        assert rv.json['total'] == 1
