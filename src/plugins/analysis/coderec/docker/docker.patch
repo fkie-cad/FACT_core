@@ -1,0 +1,16 @@
+diff --git a/src/plotting.rs b/src/plotting.rs
+index c04cec6..a7fc41b 100644
+--- a/src/plotting.rs
++++ b/src/plotting.rs
+@@ -31,9 +31,9 @@ const CAPTION_STYLE_3D: (&str, u32, FontStyle, &RGBColor) =
+ const LABEL_STYLE_3D: (&str, u32, FontStyle, &RGBColor) =
+     ("Calibri", 30, FontStyle::Normal, &BLACK);
+ const CAPTION_STYLE_2D: (&str, u32, FontStyle, &RGBColor) =
+-    ("sans-serif", 80, FontStyle::Normal, &BLACK);
++    ("sans-serif", 30, FontStyle::Normal, &BLACK);
+ const LABEL_STYLE_2D: (&str, u32, FontStyle, &RGBColor) =
+-    ("Calibri", 12, FontStyle::Normal, &BLACK);
++    ("Calibri", 20, FontStyle::Normal, &BLACK);
+ 
+ impl CorpusStats {
+     pub fn plot_tg(&self) {
