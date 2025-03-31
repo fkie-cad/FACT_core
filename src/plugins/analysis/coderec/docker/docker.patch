@@ -1,0 +1,32 @@
+diff --git a/src/plotting.rs b/src/plotting.rs
+index 9d0c5e6..75e29fe 100644
+--- a/src/plotting.rs
++++ b/src/plotting.rs
+@@ -29,10 +29,8 @@ const CAPTION_STYLE_3D: (&str, u32, FontStyle, &RGBColor) =
+     ("Calibri", 80, FontStyle::Normal, &BLACK);
+ const LABEL_STYLE_3D: (&str, u32, FontStyle, &RGBColor) =
+     ("Calibri", 30, FontStyle::Normal, &BLACK);
+-const CAPTION_STYLE_2D: (&str, u32, FontStyle, &RGBColor) =
+-    ("sans-serif", 80, FontStyle::Normal, &BLACK);
+ const LABEL_STYLE_2D: (&str, u32, FontStyle, &RGBColor) =
+-    ("Calibri", 12, FontStyle::Normal, &BLACK);
++    ("Calibri", 20, FontStyle::Normal, &BLACK);
+ 
+ impl CorpusStats {
+     pub fn plot_tg(&self) {
+@@ -165,13 +163,12 @@ pub fn plot_regions(
+     let arch_to_best_map = &det_res.arch_to_final_ranges;
+ 
+     let file_name = file_name.split("/").last().unwrap();
+-    let plot_name = format!("{}_w{}_regions.bmp", file_name, win_sz);
++    let plot_name = "/io/regions_plot.svg";
+ 
+-    let root = BitMapBackend::new(&plot_name, (5000, 500)).into_drawing_area();
++    let root = SVGBackend::new(&plot_name, (5000, 500)).into_drawing_area();
+     root.fill(&WHITE).unwrap();
+ 
+     let mut chart = ChartBuilder::on(&root)
+-        .caption(format!("{}, regions", file_name), CAPTION_STYLE_2D)
+         .margin(5)
+         .top_x_label_area_size(40)
+         .x_label_area_size(40)
