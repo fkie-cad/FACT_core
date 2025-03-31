@@ -157,6 +157,7 @@ class FilterClass:
                 'data_to_chart_limited': self.data_to_chart_limited,
                 'data_to_chart_with_value_percentage_pairs': flt.data_to_chart_with_value_percentage_pairs,
                 'decompress': flt.decompress,
+                'decompress_lzma': flt.decompress_lzma,
                 'dict_to_json': json.dumps,
                 'fix_cwe': flt.fix_cwe,
                 'format_duration': flt.format_duration,
