@@ -25,7 +25,7 @@ class MiscellaneousRoutes(ComponentBase):
         self.stats_updater = StatsUpdater(stats_db=self.db.stats_updater)
 
     @login_required
-    @roles_accepted(*PRIVILEGES['status'])
+    @roles_accepted(no_role_needed=True)
     @AppRoute('/', GET)
     def show_home(self):
         latest_count = config.frontend.number_of_latest_firmwares_to_display
