@@ -102,14 +102,14 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def get_ssdeep_hash(self, uid: str) -> str:
         with self.get_read_only_session() as session:
             analysis: AnalysisEntry = session.get(AnalysisEntry, (uid, 'file_hashes'))
-            return analysis.result['ssdeep'] if analysis is not None else None
+            return analysis.result.get('ssdeep') if analysis is not None else None
 
     def get_entropy(self, uid: str) -> float:
         with self.get_read_only_session() as session:
             analysis: AnalysisEntry = session.get(AnalysisEntry, (uid, 'unpacker'))
             if analysis is None or 'entropy' not in analysis.result:
                 return 0.0
-            return analysis.result['entropy']
+            return analysis.result.get('entropy', 0.0)
 
     def get_exclusive_files(self, compare_id: str, root_uid: str) -> list[str]:
         if compare_id is None or root_uid is None:
