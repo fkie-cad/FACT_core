@@ -1,12 +1,11 @@
-rule lighttpd
-{
+rule lighttpd {
 	meta:
 		software_name = "lighttpd"
 		open_source = true
 		website = "https://www.lighttpd.net/"
 		description = "Lighttpd is a web-server optimized for low memory and cpu usage."
 	strings:
-		$a = /lighttpd-\d+\.\d+\.\d+/ nocase ascii wide
+		$a = /lighttpd[-\/]\d+\.\d+\.\d+/ ascii
 	condition:
 		$a and no_text_file
 }

@@ -107,17 +107,21 @@ rule dnsmasq
 		($a or $b or $c) and no_text_file
 }
 
-rule Dropbear
-{
+rule Dropbear {
 	meta:
 		software_name = "Dropbear SSH"
 		open_source = true
 		website = "https://matt.ucc.asn.au/dropbear/dropbear.html"
 		description = "SSH Server and Client"
+		format_string = true
     strings:
-        $a = /dropbear_\d+\.\d+/ nocase ascii wide
+        $a = /dropbear_\d+\.\d+/ nocase ascii
+        $b = "Dropbear SSH client v%s" ascii
+        $c = "Dropbear SSH multi-purpose v%s" ascii
+        $d = "Dropbear v%s" ascii
+        $e = "Dropbear server v%s" ascii
     condition:
-        $a and no_text_file
+        any of them and no_text_file
 }
 
 rule FRRouting
