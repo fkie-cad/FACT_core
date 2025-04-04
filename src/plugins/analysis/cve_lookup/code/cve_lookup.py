@@ -29,7 +29,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     """
 
     NAME = 'cve_lookup'
-    DESCRIPTION = 'lookup CVE vulnerabilities'
+    DESCRIPTION = (
+        'This plugin matches software found by the software_components plugin against the NIST NVD to find matching '
+        'CVEs and the accompanying CVSS vulnerability score. If a version is detected, only CVEs matching the version '
+        'are listed. Otherwise all CVEs for the software are listed.'
+    )
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['software_components']  # noqa: RUF012
     VERSION = '0.2.0'

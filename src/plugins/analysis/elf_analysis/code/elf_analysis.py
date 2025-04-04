@@ -28,7 +28,11 @@ BEHAVIOUR_CLASSES = json.loads(TEMPLATE_FILE_PATH.read_text())
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'elf_analysis'
-    DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
+    DESCRIPTION = (
+        'This plugin uses readelf style functionality to analyze the contents of the elf header. The results are '
+        'grouped into typical classes like imported / exported functions, imported libraries and segments. The plugin'
+        'tags functionality like `network` according to the use of known library functions like `bind` and `recvfrom`.'
+    )
     VERSION = '0.3.4'
     MIME_WHITELIST = [  # noqa: RUF012
         'application/x-executable',

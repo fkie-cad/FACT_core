@@ -16,7 +16,10 @@ class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
         metadata = AnalysisPluginV0.MetaData(
             name='device_tree',
-            description='get the device tree in text from the device tree blob',
+            description=(
+                'This plugin detects device tree blobs both on dedicated .dtb and inside of larger binary files. The '
+                'device tree information is parsed and converted to text for easy accessibility.'
+            ),
             version='2.0.0',
             system_version=None,
             mime_blacklist=[*MIME_BLACKLIST_COMPRESSED, 'audio', 'image', 'video'],
