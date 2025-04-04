@@ -17,7 +17,10 @@ class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
         metadata = AnalysisPluginV0.MetaData(
             name='crypto_hints',
-            description='find indicators of specific crypto algorithms',
+            description=(
+                'This plugin identifies artifacts of various crypto algorithms inside of arbitrary files. This should '
+                'in turn help identifying the use of said algorithms in or with the given file.'
+            ),
             version='0.2.1',
             Schema=AnalysisPlugin.Schema,
         )

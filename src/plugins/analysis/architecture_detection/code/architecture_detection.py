@@ -13,7 +13,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     FILE = __file__
     NAME = 'cpu_architecture'
-    DESCRIPTION = 'identify CPU architecture'
+    DESCRIPTION = (
+        'This plugins tries to identify the ISA for executable binary files. '
+        'Currently there four sources are investigated to gain this information: '
+        'The linux file command, the elf header, the linux kernel configuration and the device tree.'
+    )
     VERSION = '0.4.0'
 
     DEPENDENCIES = ['file_type', 'kernel_config', 'device_tree']  # noqa: RUF012

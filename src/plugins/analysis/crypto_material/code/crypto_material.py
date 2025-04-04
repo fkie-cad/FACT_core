@@ -60,7 +60,11 @@ class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
         metadata = self.MetaData(
             name='crypto_material',
-            description='detects crypto material like SSH keys and SSL certificates',
+            description=(
+                'This plugin identifies and analyzes various kinds of cryptographic material inside arbitrary files. '
+                'The identified material includes SSH keys, RSA keys and SSL certificates among others. If encoded, '
+                'the material is first decoded and then shown in detail.'
+            ),
             version='1.0.0',
             mime_blacklist=['filesystem', *MIME_BLACKLIST_COMPRESSED],
             Schema=self.Schema,

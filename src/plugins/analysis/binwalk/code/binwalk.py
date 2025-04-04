@@ -39,7 +39,12 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(
             metadata=AnalysisPluginV0.MetaData(
                 name='binwalk',
-                description='binwalk signature and entropy analysis',
+                description=(
+                    'This plugin utilizes binwalk to run a signature and entropy scan on arbitrary binary files. '
+                    'binwalk is able to identify a multitude of relevant information, such as compressed data, '
+                    'copyright strings or cryptographic constants inside of a binary stream. In addition to the '
+                    'listing of found information, the entropy graph of binwalk is generated to visualize the file.'
+                ),
                 version='1.0.0',
                 Schema=self.Schema,
                 mime_blacklist=['audio/', 'image/', 'video/', 'text/', *MIME_BLACKLIST_COMPRESSED],
