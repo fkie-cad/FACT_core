@@ -84,20 +84,21 @@ def _get_logging_config(args, component) -> tuple[str | None, int | None, int]:
 def setup_logging(args, component):
     logfile, file_loglevel, console_loglevel = _get_logging_config(args, component)
 
-    log_format = {'fmt': '[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', 'datefmt': '%Y-%m-%d %H:%M:%S'}
+    log_format = '[%(asctime)s][%(module)s][%(levelname)s]: %(message)s'
+    date_format = '%Y-%m-%d %H:%M:%S'
 
     logger = logging.getLogger()
     # Pass all messages to handlers
     logger.setLevel(logging.NOTSET)
 
-    if logfile:
+    if logfile and file_loglevel:
         create_dir_for_file(logfile)
         file_log = logging.FileHandler(logfile)
         file_log.setLevel(file_loglevel)
-        file_log.setFormatter(logging.Formatter(**log_format))
+        file_log.setFormatter(logging.Formatter(fmt=log_format, datefmt=date_format))
         logger.addHandler(file_log)
 
     console_log = logging.StreamHandler()
     console_log.setLevel(console_loglevel)
-    console_log.setFormatter(ColoringFormatter(**log_format))
+    console_log.setFormatter(ColoringFormatter(fmt=log_format, datefmt=date_format))
     logger.addHandler(console_log)
