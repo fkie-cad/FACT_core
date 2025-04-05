@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import datetime
+import json
 import re
+from http import HTTPStatus
 from pathlib import Path
 from shlex import split
 from subprocess import run
@@ -12,7 +15,10 @@ from requests.adapters import HTTPAdapter, Retry
 from ..internal.helper_functions import CveEntry
 
 FILE_NAME = 'CVE-all.json.xz'
-CVE_URL = f'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/download/{FILE_NAME}'
+VERSION_FILE = Path(__file__).parent / 'database' / 'version.json'
+REPO = 'fkie-cad/nvd-json-data-feeds'
+CVE_URL = f'https://github.com/{REPO}/releases/latest/download/{FILE_NAME}'
+API_URL = f'https://api.github.com/repos/{REPO}/releases/latest'
 DB_DIR = Path(__file__).parent / 'database'
 OUTPUT_FILE = DB_DIR / FILE_NAME
 
@@ -26,6 +32,22 @@ def _retrieve_url(download_url: str, target: Path):
             with target.open('wb') as fp:
                 for chunk in request.iter_content(chunk_size=65_536):
                     fp.write(chunk)
+
+
+def _retrieve_latest_version() -> str | None:
+    response = requests.get(API_URL)
+    if response.status_code == HTTPStatus.OK:
+        data = response.json()
+        return data['tag_name']
+    return None
+
+
+def _store_release_data():
+    data = {
+        'version': _retrieve_latest_version(),
+        'last_updated': datetime.datetime.now().isoformat(),
+    }
+    Path(VERSION_FILE).write_text(json.dumps(data))
 
 
 def download_and_decompress_file() -> Path:
@@ -102,3 +124,4 @@ def parse_data() -> list[CveEntry]:
 
 if __name__ == '__main__':
     parse_data()
+    _store_release_data()
