@@ -86,10 +86,11 @@ def main(command_line_options=None, config_path: str | None = None, skip_user_cr
     if not db_setup.table_exists('file_object'):
         logging.info('Creating FACT tables...')
         db_setup.connection.create_tables()
-        db_setup.set_table_privileges()
         set_alembic_revision()
     else:
         logging.info('Skipping creation of FACT tables: already exist')
+    db_setup.create_unpacking_view()
+    db_setup.set_table_privileges()
 
     return 0
 
