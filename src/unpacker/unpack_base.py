@@ -6,6 +6,7 @@ from http import HTTPStatus
 from os import getgid, getuid
 from pathlib import Path
 from subprocess import CalledProcessError
+from typing import TYPE_CHECKING
 
 import requests
 from common_helper_files import safe_rglob
@@ -14,7 +15,9 @@ from requests import ReadTimeout, exceptions
 
 import config
 from helperFunctions.docker import run_docker_container
-from unpacker.extraction_container import EXTRACTOR_DOCKER_IMAGE, ExtractionContainer
+
+if TYPE_CHECKING:
+    from unpacker.extraction_container import ExtractionContainer
 
 WORKER_TIMEOUT = 600  # in seconds
 
@@ -66,7 +69,7 @@ class UnpackBase:
     def _extract_with_new_container(tmp_dir: str):
         try:
             result = run_docker_container(
-                EXTRACTOR_DOCKER_IMAGE,
+                config.backend.unpacking.docker_image,
                 combine_stderr_stdout=True,
                 privileged=True,
                 mem_limit=f'{config.backend.unpacking.memory_limit}m',
