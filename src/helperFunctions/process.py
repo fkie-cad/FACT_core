@@ -198,6 +198,8 @@ def stop_processes(processes: list[Process], timeout: float = 10.0):
     """
     thread_list = []
     for process in processes:
+        if process is None:
+            continue
         thread = Thread(target=stop_process, args=(process, timeout))
         thread.start()
         thread_list.append(thread)

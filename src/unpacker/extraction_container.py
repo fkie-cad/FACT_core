@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from requests.adapters import Response
 
 DOCKER_CLIENT = docker.from_env()
-EXTRACTOR_DOCKER_IMAGE = 'fkiecad/fact_extractor'
 
 
 class ExtractionContainer:
@@ -48,7 +47,7 @@ class ExtractionContainer:
     def _start_container(self):
         volume = Mount('/tmp/extractor', self.tmp_dir.name, read_only=False, type='bind')
         container = DOCKER_CLIENT.containers.run(
-            image=EXTRACTOR_DOCKER_IMAGE,
+            image=config.backend.unpacking.docker_image,
             ports={'5000/tcp': self.port},
             mem_limit=f'{config.backend.unpacking.memory_limit}m',
             mounts=[volume],
@@ -105,7 +104,10 @@ class ExtractionContainer:
 
     @staticmethod
     def _is_extractor_container(container: Container) -> bool:
-        return any(tag == EXTRACTOR_DOCKER_IMAGE for tag in container.image.attrs['RepoTags'])
+        extractor_tag = config.backend.unpacking.docker_image
+        if ':' not in extractor_tag:
+            extractor_tag = f'{extractor_tag}:latest'
+        return any(tag == extractor_tag for tag in container.image.attrs['RepoTags'])
 
     def _has_same_port(self, container: Container) -> bool:
         return any(entry['HostPort'] == str(self.port) for entry in container.ports.get('5000/tcp', []))
