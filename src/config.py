@@ -129,6 +129,7 @@ class Backend(Common):
 
         delay: float
         base_port: int
+        docker_image: str
 
     class BinarySearch(BaseModel):
         max_strings_per_match: int = 10

@@ -11,7 +11,7 @@ from threading import Thread
 from time import sleep
 from typing import TYPE_CHECKING
 
-from docker.errors import DockerException
+from docker.errors import DockerException, NotFound
 
 import config
 from helperFunctions.logging import TerminalColors, color_string
@@ -24,7 +24,7 @@ from helperFunctions.process import (
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_base import DbInterfaceError
-from unpacker.extraction_container import ExtractionContainer
+from unpacker.extraction_container import DOCKER_CLIENT, ExtractionContainer
 from unpacker.unpack import Unpacker
 from unpacker.unpack_base import ExtractionError
 
@@ -131,6 +131,8 @@ class UnpackingScheduler:
         return {'unpacking_queue': self.in_queue.qsize(), 'is_throttled': self.throttle_condition.value == 1}
 
     def create_containers(self):
+        logging.info(f'Starting unpacking workers... (tag: {config.backend.unpacking.docker_image})')
+        self._validate_container_image()
         for id_ in range(config.backend.unpacking.processes):
             tmp_dir = TemporaryDirectory(dir=config.backend.docker_mount_base_dir)
             container = ExtractionContainer(id_=id_, tmp_dir=tmp_dir, value=self.manager.Value('i', 0))
@@ -341,3 +343,14 @@ class UnpackingScheduler:
     def cancel_unpacking(self, root_uid: str):
         if self.currently_extracted is not None and root_uid in self.currently_extracted:
             self.currently_extracted.pop(root_uid)
+
+    @staticmethod
+    def _validate_container_image():
+        try:
+            DOCKER_CLIENT.images.get(config.backend.unpacking.docker_image)
+        except NotFound:
+            logging.critical(
+                f'Extractor docker image "{config.backend.unpacking.docker_image}" not found! '
+                f'Could not start unpacking scheduler.'
+            )
+            raise
