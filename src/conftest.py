@@ -117,6 +117,7 @@ def backend_config(request, common_config, firmware_file_storage_directory) -> c
             'throttle_limit': 50,
             'delay': 0.0,
             'base_port': 9900,
+            'docker_image': 'fkiecad/fact_extractor:latest',
         },
         'binary_search': {'max_strings_per_match': 10},
         'plugin': {
