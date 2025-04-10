@@ -7,7 +7,7 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from test.common_helper import get_test_data_dir
 
-TEST_FW = Firmware(file_path=f'{get_test_data_dir()}/container/test_zip.tar.gz')
+TEST_FW = Firmware(file_path=f'{get_test_data_dir()}/container/test_zip.7z')
 
 
 class MockDb:
