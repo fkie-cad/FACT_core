@@ -1,6 +1,7 @@
 const preview_loading_gif = document.getElementById("preview-loading-gif");
 const preview_button = document.getElementById("preview_button");
 const offset_input = document.getElementById("hex-preview-offset");
+const hex_preview_len = document.getElementById("hex-preview-length");
 
 function hide_gif(element) {
     element.style.display = "none";
@@ -32,7 +33,7 @@ async function highlightCode(jqElement, lineNumbering = false, sizeLimit = 10485
     }
 }
 
-function load_preview(offset = null, focus = false) {
+function loadPreview(offset = null, focus = false) {
     let resourcePath;
     document.getElementById("preview_button").onclick = () => false;
     if (focus && offset !== null) {
@@ -43,14 +44,10 @@ function load_preview(offset = null, focus = false) {
         resourcePath = `/ajax_get_binary/${mimeType}/${uid}`;
     } else {
         // hex preview
-        offset_input.classList.remove("is-invalid");
+        if (!validateHexPreviewInputs()) return;
         $("#preview-content").html("");
         document.getElementById("hex-preview-form").style.display = "flex";
         let offset = parseInt(offset_input.value);
-        if (isNaN(offset)) {
-            offset_input.classList.add("is-invalid");
-            return;
-        }
         let length = document.getElementById("hex-preview-length").value;
         resourcePath = `/ajax_get_hex_preview/${uid}/${offset}/${length}`;
     }
@@ -58,7 +55,31 @@ function load_preview(offset = null, focus = false) {
     $("#preview-content").load(resourcePath, init_preview);
 }
 
-preview_button.onclick = load_preview;
+function movePreviewOffset(back=false) {
+    if (!validateHexPreviewInputs()) return;
+    const length = parseInt(hex_preview_len.value);
+    let offset = parseInt(offset_input.value);
+    offset += back ? -length : length;
+    // do nothing if we are at the start/end already
+    if (offset < 0 || offset > fileSize) return;
+    const isInHex = offset_input.value.startsWith("0x");
+    offset_input.value = isInHex ? `0x${offset.toString( 16)}` : offset.toString();
+    loadPreview();
+}
+
+function validateHexPreviewInputs() {
+    let valid = true;
+    [hex_preview_len, offset_input].forEach(input => {
+        input.classList.remove("is-invalid");
+        if (isNaN(parseInt(input.value))) {
+            input.classList.add("is-invalid");
+            valid = false;
+        }
+    });
+    return valid;
+}
+
+preview_button.onclick = loadPreview;
 let rawResultIsHighlighted = false;
 const toggleSwitch = document.getElementById("rawResultSwitch");
 const analysisTable = document.getElementById("analysis-table-body");
