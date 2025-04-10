@@ -15,7 +15,12 @@ MIME_TO_ICON_PATH.update(
     {
         'application-x-pie-executable': f'/{ICON_URL_BASE}/mimetypes/application-x-executable.svg',
         'application-x-dosexec': f'/{ICON_URL_BASE}/mimetypes/application-x-ms-dos-executable.svg',
+        'application-vnd.microsoft.portable-executable': (
+            f'/{ICON_URL_BASE}/mimetypes/application-x-ms-dos-executable.svg'
+        ),
         'linux-device-tree': f'/{ICON_URL_BASE}/firmware.svg',
+        'text-x-script.python': f'/{ICON_URL_BASE}/mimetypes/text-x-python.svg',
+        'text-postscript': f'/{ICON_URL_BASE}/mimetypes/application-postscript.svg',
     }
 )
 CRYPTO_MIME = 'application-certificate'
