@@ -33,7 +33,6 @@ class InterComListener:
     CONNECTION_TYPE = 'test'  # unique for each listener
 
     def __init__(self, processing_function: Callable[[Any], None] | None = None):
-        super().__init__()
         self.redis = RedisInterface()
         self.process = None
         self.processing_function = processing_function

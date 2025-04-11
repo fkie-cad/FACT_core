@@ -120,11 +120,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def _get_current_vfp(vfp: dict[str, list[str]]) -> list[str]:
         return get_value_of_first_key(vfp)
 
-    def get_file_name(self, uid: str) -> str:
-        with self.get_read_only_session() as session:
-            entry = session.get(FileObjectEntry, uid)
-            return entry.file_name if entry is not None else 'unknown'
-
     # --- misc. ---
 
     def get_firmware_attribute_list(self, attribute: Column) -> list[Any]:
