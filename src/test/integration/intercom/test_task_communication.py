@@ -41,16 +41,23 @@ def intercom_frontend():
     _intercom_frontend.redis.redis.flushdb()
 
 
-class BinaryServiceMock:
-    def __init__(self, *_, **__):
-        pass
-
+class FSOrganizerMock:
     @staticmethod
-    def get_binary_and_file_name(uid: str) -> tuple[bytes, str]:
+    def get_file_from_uid(uid: str) -> bytes:
         if uid == 'uid1':
-            return b'binary content 1', 'file_name_1'
+            return b'binary content 1'
         if uid == 'uid2':
-            return b'binary content 2', 'file_name_2'
+            return b'binary content 2'
+        raise AssertionError('if this line reached something went wrong')
+
+
+class MockDb:
+    @staticmethod
+    def get_file_name(uid: str) -> str:
+        if uid == 'uid1':
+            return 'file_name_1'
+        if uid == 'uid2':
+            return 'file_name_2'
         raise AssertionError('if this line reached something went wrong')
 
 
@@ -113,28 +120,26 @@ class TestInterComTaskCommunication:
             intercom_frontend.get_available_analysis_plugins()
 
     def test_raw_download_task(self, monkeypatch, intercom_frontend):
-        monkeypatch.setattr(
-            'intercom.back_end_binding.BinaryService.get_binary_and_file_name', lambda *_: (b'test', 'test.txt')
-        )
+        monkeypatch.setattr('intercom.back_end_binding.FSOrganizer.get_file_from_uid', lambda *_: b'test')
         monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
-        result = intercom_frontend.get_binary_and_filename('valid_uid')
+        result = intercom_frontend.get_file_contents('valid_uid')
         assert result is None, 'should be none because of timeout'
 
         task_listener = InterComBackEndRawDownloadTask()
         task = task_listener.get_next_task()
         assert task == 'valid_uid', 'task not correct'
-        result = intercom_frontend.get_binary_and_filename('valid_uid_0.0')
-        assert result == (b'test', 'test.txt'), 'retrieved binary not correct'
+        result = intercom_frontend.get_file_contents('valid_uid_0.0')
+        assert result == b'test', 'retrieved binary not correct'
 
     def test_file_diff_task(self, monkeypatch, intercom_frontend):
         monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda _: 'valid_uid_0.0')
-        monkeypatch.setattr('intercom.back_end_binding.BinaryService', BinaryServiceMock)
+        monkeypatch.setattr('intercom.back_end_binding.FSOrganizer', FSOrganizerMock)
 
         result = intercom_frontend.get_file_diff(('uid1', 'uid2'))
         assert result is None, 'should be None because of timeout'
 
-        task_listener = InterComBackEndFileDiffTask()
+        task_listener = InterComBackEndFileDiffTask(db_interface=MockDb())
         task = task_listener.get_next_task()
         assert task == ('uid1', 'uid2'), 'task not correct'
         result = intercom_frontend.get_file_diff(('uid1', 'uid2'))
@@ -142,7 +147,7 @@ class TestInterComTaskCommunication:
         assert result == expected_diff, 'file diff not correct'
 
     def test_peek_binary_task(self, monkeypatch, intercom_frontend):
-        monkeypatch.setattr('intercom.back_end_binding.BinaryService.read_partial_binary', lambda *_: b'foobar')
+        monkeypatch.setattr('intercom.back_end_binding.FSOrganizer.get_partial_file', lambda *_: b'foobar')
         monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
         result = intercom_frontend.peek_in_binary('valid_uid', 0, 512)
@@ -155,20 +160,17 @@ class TestInterComTaskCommunication:
         assert result == b'foobar', 'retrieved binary not correct'
 
     def test_tar_repack_task(self, intercom_frontend, monkeypatch):
-        monkeypatch.setattr(
-            'intercom.back_end_binding.BinaryService.get_repacked_binary_and_file_name',
-            lambda *_: (b'test', 'test.tar'),
-        )
+        monkeypatch.setattr('intercom.back_end_binding.FSOrganizer.get_repacked_file', lambda *_: b'test')
         monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
-        result = intercom_frontend.get_repacked_binary_and_file_name('valid_uid')
+        result = intercom_frontend.get_repacked_file('valid_uid')
         assert result is None, 'should be none because of timeout'
 
         task_listener = InterComBackEndTarRepackTask()
         task = task_listener.get_next_task()
         assert task == 'valid_uid', 'task not correct'
-        result = intercom_frontend.get_repacked_binary_and_file_name('valid_uid_0.0')
-        assert result == (b'test', 'test.tar'), 'retrieved binary not correct'
+        result = intercom_frontend.get_repacked_file('valid_uid_0.0')
+        assert result == b'test', 'retrieved binary not correct'
 
     def test_binary_search_task(self, intercom_frontend, monkeypatch):
         yara_rule, expected_result = b'yara rule', 'result'
