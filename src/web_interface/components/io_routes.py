@@ -70,18 +70,22 @@ class IORoutes(ComponentBase):
         return self._prepare_file_download(uid, packed=True)
 
     def _prepare_file_download(self, uid: str, packed: bool = False) -> str | Response:
-        if not self.db.frontend.exists(uid):
-            return render_template('uid_not_found.html', uid=uid)
+        with get_shared_session(self.db.frontend) as frontend_db:
+            if not (frontend_db.exists(uid)):
+                return render_template('uid_not_found.html', uid=uid)
+            file_name = frontend_db.get_file_name(uid)
         if packed:
-            result = self.intercom.get_repacked_binary_and_file_name(uid)
+            contents = self.intercom.get_repacked_file(uid)
+            file_name = f'{file_name}.tar.gz'
         else:
-            result = self.intercom.get_binary_and_filename(uid)
-        if result is None:
+            contents = self.intercom.get_file_contents(uid)
+        if contents is None:
             return render_template('error.html', message='timeout')
-        binary, file_name = result
-        response = make_response(binary)
+        if contents == b'':
+            return render_template('error.html', message='file not found')
+        response = make_response(contents)
         response.headers['Content-Disposition'] = f'attachment; filename={file_name}'
-        response.headers['Content-Type'] = 'application/gzip' if packed else self._get_file_download_mime(binary, uid)
+        response.headers['Content-Type'] = 'application/gzip' if packed else self._get_file_download_mime(contents, uid)
         return response
 
     def _get_file_download_mime(self, binary: bytes, uid: str) -> str:
@@ -107,10 +111,9 @@ class IORoutes(ComponentBase):
         object_exists = self.db.frontend.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
-        result = self.intercom.get_binary_and_filename(uid)
-        if result is None:
+        binary = self.intercom.get_file_contents(uid)
+        if binary is None:
             return render_template('error.html', message='timeout')
-        binary, _ = result
         try:
             host = config.frontend.radare2_url
             response = requests.post(f'{host}/v1/retrieve', data=binary, verify=False)

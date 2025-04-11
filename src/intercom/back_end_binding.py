@@ -16,7 +16,6 @@ from intercom.common_redis_binding import (
     InterComListenerAndResponder,
     publish_available_analysis_plugins,
 )
-from storage.binary_service import BinaryService
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
 
@@ -48,7 +47,7 @@ class InterComBackEndBinding:
             InterComBackEndReAnalyzeTask(self.unpacking_service.add_task),
             InterComBackEndCompareTask(self.compare_service.add_task),
             InterComBackEndRawDownloadTask(),
-            InterComBackEndFileDiffTask(),
+            InterComBackEndFileDiffTask(db_interface=DbInterfaceCommon()),
             InterComBackEndTarRepackTask(),
             InterComBackEndBinarySearchTask(),
             InterComBackEndUpdateTask(self.analysis_service.update_analysis_of_object_and_children),
@@ -158,24 +157,27 @@ class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.binary_service = BinaryService()
+        self.binary_service = FSOrganizer()
 
-    def get_response(self, task):
-        return self.binary_service.get_binary_and_file_name(task)
+    def get_response(self, task) -> bytes:
+        return self.binary_service.get_file_from_uid(task) or b''
 
 
 class InterComBackEndFileDiffTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'file_diff_task'
     OUTGOING_CONNECTION_TYPE = 'file_diff_task_resp'
 
-    def __init__(self, *args):
+    def __init__(self, *args, db_interface: DbInterfaceCommon):
         super().__init__(*args)
-        self.binary_service = BinaryService()
+        self.binary_service = FSOrganizer()
+        self.db = db_interface
 
     def get_response(self, task: tuple[str, str]) -> str | None:
         uid1, uid2 = task
-        content_1, name_1 = self.binary_service.get_binary_and_file_name(uid1)
-        content_2, name_2 = self.binary_service.get_binary_and_file_name(uid2)
+        content_1 = self.binary_service.get_file_from_uid(uid1)
+        content_2 = self.binary_service.get_file_from_uid(uid2)
+        name_1 = self.db.get_file_name(uid1)
+        name_2 = self.db.get_file_name(uid2)
         if any(e is None for e in [content_1, content_2, name_1, name_2]):
             return None
         diff_lines = difflib.unified_diff(
@@ -193,10 +195,11 @@ class InterComBackEndPeekBinaryTask(InterComListenerAndResponder):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.binary_service = BinaryService()
+        self.binary_service = FSOrganizer()
 
     def get_response(self, task: tuple[str, int, int]) -> bytes:
-        return self.binary_service.read_partial_binary(*task)
+        uid, offset, length = task
+        return self.binary_service.get_partial_file(uid, offset, length)
 
 
 class InterComBackEndTarRepackTask(InterComListenerAndResponder):
@@ -205,10 +208,10 @@ class InterComBackEndTarRepackTask(InterComListenerAndResponder):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.binary_service = BinaryService()
+        self.binary_service = FSOrganizer()
 
-    def get_response(self, task):
-        return self.binary_service.get_repacked_binary_and_file_name(task)
+    def get_response(self, task: str):
+        return self.binary_service.get_repacked_file(task) or b''
 
 
 class InterComBackEndBinarySearchTask(InterComListenerAndResponder):

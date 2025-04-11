@@ -228,6 +228,8 @@ class CommonDatabaseMock:
     def get_file_name(self, uid):
         if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
             return 'test_name'
+        if uid == TEST_FW.uid:
+            return TEST_FW.file_name
         return None
 
     def get_summary(self, fo, selected_analysis):

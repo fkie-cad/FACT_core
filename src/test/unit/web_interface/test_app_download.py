@@ -10,12 +10,17 @@ def test_app_download_raw_invalid(test_client):
 
 def test_app_download_raw_error(test_client):
     rv = test_client.get('/download/error')
-    assert b'<strong>Error!</strong>  timeout' in rv.data
+    assert b'<strong>Error!</strong>  file not found' in rv.data
 
 
 class DbMock(CommonDatabaseMock):
     def get_analysis(self, uid, plugin):
         return {'mime': 'application/x-foobar'}
+
+    def get_file_name(self, uid):
+        if uid == TEST_FW.uid:
+            return TEST_FW.file_name
+        raise RuntimeError('This line should not be reached')
 
 
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
@@ -34,6 +39,7 @@ def test_app_download_missing_mime(test_client, monkeypatch):
     assert rv.headers['Content-Type'] == 'text/plain', 'MIME data should be generated if the DB entry is missing'
 
 
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 def test_app_tar_download(test_client):
     rv = test_client.get(f'/tar-download/{TEST_FW.uid}')
     assert TEST_FW.binary in rv.data
