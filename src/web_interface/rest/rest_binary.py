@@ -49,10 +49,11 @@ class RestBinary(RestResourceBase):
         except ValueError as value_error:
             return error_message(str(value_error), self.URL, request_data={'uid': uid, 'tar': request.args.get('tar')})
 
-        if not tar_flag:
-            binary, file_name = self.intercom.get_binary_and_filename(uid)
-        else:
-            binary, file_name = self.intercom.get_repacked_binary_and_file_name(uid)
-
-        response = {'binary': standard_b64encode(binary).decode(), 'file_name': file_name, 'SHA256': get_sha256(binary)}
+        binary = self.intercom.get_repacked_file(uid) if tar_flag else self.intercom.get_file_contents(uid)
+        file_name = self.db.frontend.get_file_name(uid)
+        response = {
+            'binary': standard_b64encode(binary).decode(),
+            'file_name': f'{file_name}.tar.gz' if tar_flag else file_name,
+            'SHA256': get_sha256(binary),
+        }
         return success_message(response, self.URL, request_data={'uid': uid, 'tar': tar_flag})
