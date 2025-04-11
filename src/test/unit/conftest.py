@@ -35,18 +35,18 @@ class CommonIntercomMock:
         return b'foobar'
 
     @staticmethod
-    def get_binary_and_filename(uid):
+    def get_file_contents(uid):
         if uid == TEST_FW.uid:
-            return TEST_FW.binary, TEST_FW.file_name
+            return TEST_FW.binary
         if uid == TEST_TEXT_FILE.uid:
-            return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
-        return None
+            return TEST_TEXT_FILE.binary
+        return b''
 
     @staticmethod
-    def get_repacked_binary_and_file_name(uid):
+    def get_repacked_file(uid):
         if uid == TEST_FW.uid:
-            return TEST_FW.binary, f'{TEST_FW.file_name}.tar.gz'
-        return None, None
+            return TEST_FW.binary
+        return b''
 
     @staticmethod
     def add_binary_search_request(*_):
