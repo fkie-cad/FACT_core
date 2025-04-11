@@ -3,9 +3,9 @@ from test.common_helper import create_test_file_object
 
 RULE_UID = 'decd4f7805e81c4730fc97cc65e10c53519dbbc65730e477685ee05ad105e319_10'
 
-COMMENT1 = {'author': 'foo', 'comment': 'bar', 'time': '123'}
-COMMENT2 = {'author': 'foo', 'comment': 'bar', 'time': '456'}
-COMMENT3 = {'author': 'foo', 'comment': 'bar', 'time': '789'}
+COMMENT1 = {'author': 'foo', 'comment': 'bar', 'time': '123', 'plugin': 'plugin1'}
+COMMENT2 = {'author': 'foo', 'comment': 'bar', 'time': '456', 'plugin': ''}
+COMMENT3 = {'author': 'foo', 'comment': 'bar', 'time': '789', 'plugin': 'plugin2'}
 
 
 def test_add_comment_to_object(backend_db, frontend_editing_db, frontend_db):
@@ -13,7 +13,9 @@ def test_add_comment_to_object(backend_db, frontend_editing_db, frontend_db):
     fo.comments = [COMMENT1]
     backend_db.insert_object(fo)
 
-    frontend_editing_db.add_comment_to_object(fo.uid, COMMENT2['comment'], COMMENT2['author'], int(COMMENT2['time']))
+    frontend_editing_db.add_comment_to_object(
+        fo.uid, COMMENT2['comment'], COMMENT2['author'], int(COMMENT2['time']), COMMENT2['plugin']
+    )
 
     fo_from_db = frontend_db.get_object(fo.uid)
     assert fo_from_db.comments == [COMMENT1, COMMENT2]

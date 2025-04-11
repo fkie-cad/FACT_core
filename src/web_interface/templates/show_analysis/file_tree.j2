@@ -1,0 +1,27 @@
+<div class="row">
+    <div class="col-lg-12">
+        <table class="table table-sm">
+            <thead>
+                <tr class="thead-light">
+                    <th>File Tree</th>
+                    <th width="300px">
+                        <input type="text" name="fileTreeSearch" class="form-control form-control-sm"
+                               id="fileTreeSearch" placeholder="search file tree ...">
+                        <div class="invalid-feedback" id="fileTreeSearchFeedback" style="padding-left: 8px; font-size: 75%">
+                            Only expanded containers can be searched!
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody style="font-size: 14px;">
+                <tr>
+                    <td colspan="2">
+                        <div id="fileTreeAjax"></div>
+                        <script>const root_uid = "{{ root_uid | safe }}";</script>
+                        <script src="{{ url_for('static', filename='js/show_analysis_fileTreeAjax.js') }}"></script>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
