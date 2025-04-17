@@ -14,3 +14,16 @@
 	condition:
 		($a or $b or $c) and no_text_file
 }
+
+rule postgres {
+    meta:
+        software_name = "PostgreSQL"
+        open_source = true
+        website = "https://www.postgresql.org/"
+        description = "a powerful object-relational database system"
+    strings:
+        $a = /\(PostgreSQL\) \d{1,2}\.\d{1,2}\.?\d{0,2}[a-z]{0,5}/
+        $b = /PostgreSQL \d{1,2}\.\d{1,2}\.?\d{0,2}[a-z]{0,5} on [^ ,]+/
+    condition:
+        ($a or $b) and no_text_file
+}

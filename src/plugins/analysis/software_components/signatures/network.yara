@@ -1,3 +1,16 @@
+rule aMule {
+	meta:
+		software_name = "aMule"
+		open_source = true
+		website = "https://www.amule.org/"
+		description = "all-platform eMule-like P2P client"
+		format_string = true
+    strings:
+        $a = "aMule Version: %s"
+    condition:
+        $a and no_text_file
+}
+
 rule avahi
 {
 	meta:

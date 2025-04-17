@@ -1,3 +1,15 @@
+rule libarchive {
+	meta:
+		software_name = "libarchive"
+		open_source = true
+		website = "https://www.libarchive.org/"
+		description = "Multi-format archive and compression library"
+    strings:
+        $a = /libarchive[\/ ]\d\.\d+\.\d+/
+    condition:
+        $a and no_text_file
+}
+
 rule libFLAC
 {
 	meta:
@@ -47,6 +59,18 @@ rule libVorbis
 		description = "ogg vorbis compressed audio format library."
     strings:
         $a = /libVorbis \d+\.\d+\.\d+/ nocase ascii wide
+    condition:
+        $a and no_text_file
+}
+
+rule libsoup {
+	meta:
+		software_name = "libsoup"
+		open_source = true
+		website = "https://libsoup.gnome.org/libsoup-3.0/index.html"
+		description = "HTTP client/server library"
+    strings:
+        $a = /libsoup\/\d\.\d+\.\d+/
     condition:
         $a and no_text_file
 }
