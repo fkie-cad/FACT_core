@@ -1,9 +1,9 @@
 rule CryptoPP {
-	meta:
-		software_name = "Crypto++"
-		open_source = true
-		website = "https://www.cryptopp.com/"
-		description ="Free C++ library for cryptographic schemes library"
+    meta:
+        software_name = "Crypto++"
+        open_source = true
+        website = "https://www.cryptopp.com/"
+        description ="Free C++ library for cryptographic schemes library"
     strings:
         $a = "this object doesn't support resynchronization"
         $b = "Clone() is not implemented yet."
@@ -45,12 +45,12 @@ rule Mbed_TLS {
 
 rule OpenSSL
 {
-	meta:
-		software_name = "OpenSSL"
-		open_source = true
-		website = "https://www.openssl.org"
-		description ="SSL library"
-		version_regex = "\\d\\.\\d\\.\\d[a-z]{0,2}"
+    meta:
+        software_name = "OpenSSL"
+        open_source = true
+        website = "https://www.openssl.org"
+        description ="SSL library"
+        version_regex = "\\d\\.\\d\\.\\d[a-z]{0,2}"
     strings:
         $a = /OpenSSL( \d+\.\d+\.\d+[a-z]?)?/ nocase ascii wide
     condition:
@@ -59,11 +59,11 @@ rule OpenSSL
 
 rule SSLeay
 {
-	meta:
-		software_name = "SSLeay"
-		open_source = true
-		website = "https://en.wikipedia.org/wiki/SSLeay"
-		description = "SSL library"
+    meta:
+        software_name = "SSLeay"
+        open_source = true
+        website = "https://en.wikipedia.org/wiki/SSLeay"
+        description = "SSL library"
     strings:
         $a = /SSLeay \d+\.\d+\.\d+[a-z]?/ nocase ascii wide
     condition:
@@ -71,12 +71,12 @@ rule SSLeay
 }
 
 rule wolfSSL {
-	meta:
-		software_name = "wolfSSL"
-		open_source = true
-		website = "https://www.wolfssl.com/"
-		description ="Embedded SSL/TLS Library (formerly CyaSSL)"
-		_version_function = "wolfSSL_lib_version"
+    meta:
+        software_name = "wolfSSL"
+        open_source = true
+        website = "https://www.wolfssl.com/"
+        description ="Embedded SSL/TLS Library (formerly CyaSSL)"
+        _version_function = "wolfSSL_lib_version"
     strings:
         // the function which yields the version as string (available since version 3.6.0)
         $a = "wolfSSL_lib_version"
