@@ -24,10 +24,12 @@ def install_postgres(version: int = POSTGRES_VERSION):
         f'sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y {codename}',
         f'sudo apt-get -y install postgresql-{version}',
     ]
+    logs = ''
     for command in command_list:
         process = run(command, text=True, shell=True, check=False, stderr=PIPE)
+        logs += process.stderr or ''
         if process.returncode != 0:
-            raise InstallationError(f'Failed to set up PostgreSQL: {process.stderr}')
+            raise InstallationError(f'Failed to set up PostgreSQL:\n{logs}')
 
 
 def configure_postgres(version: int | None = None):
