@@ -59,6 +59,7 @@ a:hover {
     border: 1px solid var(--element-color-primary-dark);
     padding: 5px;
     font-size: 15px;
+    white-space: pre-wrap;
 }
 
 /* the "arrow" (indicative triangle) of the tooltip */
