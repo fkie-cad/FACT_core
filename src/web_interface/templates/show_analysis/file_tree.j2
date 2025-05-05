@@ -4,7 +4,15 @@
             <thead>
                 <tr class="thead-light">
                     <th>File Tree</th>
-                    <th width="300px">
+                        <th style="width:1%; white-space: nowrap;">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="symlinkSwitch" onchange="toggleSymlinkNodes()">
+                                <label class="custom-control-label" for="symlinkSwitch" style="font-weight: normal;">
+                                    show symlinks
+                                </label>
+                            </div>
+                        </th>
+                        <th style="width: 300px;">
                         <input type="text" name="fileTreeSearch" class="form-control form-control-sm"
                                id="fileTreeSearch" placeholder="search file tree ...">
                         <div class="invalid-feedback" id="fileTreeSearchFeedback" style="padding-left: 8px; font-size: 75%">
@@ -15,7 +23,7 @@
             </thead>
             <tbody style="font-size: 14px;">
                 <tr>
-                    <td colspan="2">
+                    <td colspan="3">
                         <div id="fileTreeAjax"></div>
                         <script>const root_uid = "{{ root_uid | safe }}";</script>
                         <script src="{{ url_for('static', filename='js/show_analysis_fileTreeAjax.js') }}"></script>
