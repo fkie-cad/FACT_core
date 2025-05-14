@@ -11,7 +11,7 @@ from pydantic import Field
 
 from .crack_password import crack_hash
 
-USER_NAME_REGEX = rb'[a-zA-Z][a-zA-Z0-9_-]{2,15}'
+USER_NAME_REGEX = rb'[a-zA-Z_][a-zA-Z0-9_-]{2,16}'
 DES_HASH_LENGTH = 13
 
 
@@ -46,9 +46,10 @@ class CredentialFinder(abc.ABC):
 
 class UnixCredentialFinder(CredentialFinder):
     REGEX_LIST = (
-        re.compile(USER_NAME_REGEX + rb':[^:]?:\d+:\d*:[^:]*:[^:]*:[^\n ]*'),
-        # MD5 / Blowfish / SHA
-        re.compile(USER_NAME_REGEX + rb':\$[1256][ay]?\$[a-zA-Z0-9./+]*\$[a-zA-Z0-9./+]{16,128}={0,2}'),
+        # passwd entry without password hash
+        re.compile(USER_NAME_REGEX + rb':[x!*]?:\d{1,5}:\d{0,5}(?::[^:\n]{0,64}){2}:(?:/[^\n"\']+)?'),
+        # 1 = MD5, 2/2a/2y = Blowfish, 5 = SHA256, 6 = SHA512, y = yescrypt
+        re.compile(USER_NAME_REGEX + rb':\$(?:1|2|2a|2y|5|6|y)\$[a-zA-Z0-9./+]*\$[a-zA-Z0-9./+]{16,128}={0,2}'),
         re.compile(USER_NAME_REGEX + rb':[a-zA-Z0-9./=]{13}:\d*:\d*:'),  # DES
     )
 

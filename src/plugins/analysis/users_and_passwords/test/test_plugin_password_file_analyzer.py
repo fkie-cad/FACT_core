@@ -6,6 +6,7 @@ from ..code.password_file_analyzer import AnalysisPlugin
 from ..internal.crack_password import _parse_john_output, crack_hash
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
+PW_TYPES = ['unix', 'mosquitto', 'http']
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
@@ -16,7 +17,8 @@ class TestAnalysisPluginPasswordFileAnalyzer:
             result = analysis_plugin.analyze(fp, {}, {})
         summary = analysis_plugin.summarize(result)
 
-        for user, type_, pw in [
+        matches = {(i.username, i.type, i.password) for type_ in PW_TYPES for i in getattr(result, type_)}
+        for pw_tuple in [
             ('vboxadd', 'unix', None),
             ('mongodb', 'unix', None),
             ('clamav', 'unix', None),
@@ -30,7 +32,8 @@ class TestAnalysisPluginPasswordFileAnalyzer:
             ('user2', 'unix', 'secret'),  # MD5
             ('nosalt', 'unix', 'root'),  # MD5 without salt
         ]:
-            assert any(i.username == user and i.type == type_ and i.password == pw for i in getattr(result, type_))
+            assert pw_tuple in matches
+            user, type_, _ = pw_tuple
             assert f'{user}:{type_}' in summary
 
     def test_process_object_fp_file(self, analysis_plugin):
