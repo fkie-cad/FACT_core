@@ -46,9 +46,10 @@ class CredentialFinder(abc.ABC):
 
 class UnixCredentialFinder(CredentialFinder):
     REGEX_LIST = (
-        re.compile(USER_NAME_REGEX + rb':[^:]?:\d+:\d*:[^:]*:[^:]*:[^\n ]*'),
-        # MD5 / Blowfish / SHA
-        re.compile(USER_NAME_REGEX + rb':\$[1256][ay]?\$[a-zA-Z0-9./+]*\$[a-zA-Z0-9./+]{16,128}={0,2}'),
+        # passwd entry without password hash
+        re.compile(USER_NAME_REGEX + rb':!?\*?:\d+:(?:\d*:){5}'),
+        # 1 = MD5, 2/2a/2y = Blowfish, 5 = SHA256, 6 = SHA512, y = yescrypt
+        re.compile(USER_NAME_REGEX + rb':\$(?:1|2|2a|2y|5|6|y)\$[a-zA-Z0-9./+]*\$[a-zA-Z0-9./+]{16,128}={0,2}'),
         re.compile(USER_NAME_REGEX + rb':[a-zA-Z0-9./=]{13}:\d*:\d*:'),  # DES
     )
 

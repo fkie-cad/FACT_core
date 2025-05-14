@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, List
 
 import pydantic
 from pydantic import Field
+from semver import Version
 
 from analysis.plugin import AnalysisPluginV0, Tag
 from helperFunctions.tag import TagColor
@@ -34,7 +35,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                 description=(
                     'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
                 ),
-                version='1.0.0',
+                version=Version(1, 1, 0),
                 Schema=self.Schema,
                 mime_blacklist=MIME_BLACKLIST_NON_EXECUTABLE,
             ),
