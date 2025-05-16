@@ -32,7 +32,7 @@ class MockPlugin:
         return 1
 
 
-class MockFSOrganizer:
+class MockFileService:
     def generate_path(self, fw):
         return fw.file_path
 
@@ -46,7 +46,7 @@ def mock_runner():
         runner_config,
         {MockDependency.metadata.name: MockDependency.Schema},
     )
-    runner._fsorganizer = MockFSOrganizer()
+    runner._file_service = MockFileService()
     yield runner
     runner.shutdown()
 

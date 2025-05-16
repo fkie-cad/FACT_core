@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
     from objects.file import FileObject
     from scheduler.analysis_status import AnalysisStatus
-    from storage.fsorganizer import FSOrganizer
+    from storage.file_service import FileService
     from storage.unpacking_locks import UnpackingLockManager
 
 
@@ -53,7 +53,7 @@ class UnpackingScheduler:
         self,
         post_unpack: Callable,
         analysis_workload: Callable | None = None,
-        fs_organizer: FSOrganizer | None = None,
+        file_service: FileService | None = None,
         unpacking_locks: UnpackingLockManager | None = None,
         db_interface: type[BackendDbInterface] = BackendDbInterface,
         status: AnalysisStatus | None = None,
@@ -67,7 +67,7 @@ class UnpackingScheduler:
         self.pending_tasks: dict[int, Thread] = {}
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
-        self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
+        self.unpacker = Unpacker(file_service=file_service, unpacking_locks=unpacking_locks)
         self.status = status
 
         self.manager = None

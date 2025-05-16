@@ -2,7 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
-class MockFSOrganizer:
+class MockFileService:
     def __init__(self, *_, **__):
         self._data_folder = TemporaryDirectory()
 

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 from test.acceptance.conftest import test_fw_a, upload_test_firmware
 from test.common_helper import wait_for_event
 
@@ -78,7 +78,7 @@ def _re_do_analysis_get(test_client):
 
 
 def _delete_firmware(test_client):
-    fs_backend = FSOrganizer()
+    fs_backend = FileService()
     local_firmware_path = Path(fs_backend.generate_path_from_uid(test_fw_a.uid))
     assert local_firmware_path.exists(), 'file not found before delete'
     rv = test_client.get(f'/admin/delete/{test_fw_a.uid}')

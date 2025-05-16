@@ -13,9 +13,10 @@ if TYPE_CHECKING:
     from objects.file import FileObject
 
 
-class FSOrganizer:
+class FileService:
     """
-    This module organizes file system storage
+    This module handles loading, storing and deleting files to and from the file system. It also creates and retrieves
+    the file system path for a given UID of a FileObject.
     """
 
     def __init__(self):
@@ -41,25 +42,25 @@ class FSOrganizer:
     def generate_path_from_uid(self, uid: str) -> str:
         return str(self.data_storage_path / uid[0:2] / uid)
 
-    def get_file(self, file_object: FileObject) -> bytes | None:
-        return self.get_file_from_uid(file_object.uid)
+    def get_file_content(self, file_object: FileObject) -> bytes | None:
+        return self.get_file_content_from_uid(file_object.uid)
 
-    def get_file_from_uid(self, uid: str) -> bytes | None:
+    def get_file_content_from_uid(self, uid: str) -> bytes | None:
         file_path = Path(self.generate_path_from_uid(uid))
         if not file_path.is_file():
             return None
         return get_binary_from_file(file_path)
 
-    def get_partial_file(self, uid: str, offset: int, length: int) -> bytes:
+    def get_partial_file_content(self, uid: str, offset: int, length: int) -> bytes:
         file_path = Path(self.generate_path_from_uid(uid))
         if not file_path.is_file():
-            logging.error(f'[FSOrganizer]: Tried to read from file {uid} but it was not found.')
+            logging.error(f'[FileService]: Tried to read from file {uid} but it was not found.')
             return b''
         with file_path.open('rb') as fp:
             fp.seek(offset)
             return fp.read(length)
 
-    def get_repacked_file(self, uid: str) -> bytes | None:
+    def get_repacked_file_as_bytes(self, uid: str) -> bytes | None:
         repack_service = TarRepack()
         file_path = Path(self.generate_path_from_uid(uid))
         if not file_path.is_file():

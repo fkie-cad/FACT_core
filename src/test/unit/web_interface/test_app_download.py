@@ -20,6 +20,8 @@ class DbMock(CommonDatabaseMock):
     def get_file_name(self, uid):
         if uid == TEST_FW.uid:
             return TEST_FW.file_name
+        if uid == TEST_TEXT_FILE.uid:
+            return TEST_TEXT_FILE.file_name
         raise RuntimeError('This line should not be reached')
 
 

@@ -17,7 +17,7 @@ from helperFunctions.database import get_shared_session
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 from storage.migration import get_current_revision
 
 load()
@@ -36,7 +36,7 @@ class FwExporter:
         self.target_dir = Path(output_dir)
         self.target_dir.mkdir(exist_ok=True)
         self.db_interface = BackendDbInterface()
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
 
     def export_files(self, uid_list: list[str]):
         with get_shared_session(self.db_interface) as db_session, Progress(*COLUMNS) as progress:
@@ -51,7 +51,7 @@ class FwExporter:
             with ZipFile(buffer, 'w', ZIP_DEFLATED) as zip_file:
                 file_task = progress.add_task('Fetching files', total=len(included_files) + 1)
                 for fo_uid in included_files.union({fw_uid}):
-                    file_path = self.fs_organizer.generate_path_from_uid(fo_uid)
+                    file_path = self.file_service.generate_path_from_uid(fo_uid)
                     zip_file.writestr(f'files/{fo_uid}', Path(file_path).read_bytes())
                     progress.advance(file_task)
                 progress.remove_task(file_task)
@@ -82,7 +82,7 @@ class FwExporter:
 class FwImporter:
     def __init__(self, force: bool):
         self.db_interface = BackendDbInterface()
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
         self.force = force
         self.progress: Progress | None = None
 
@@ -138,7 +138,7 @@ class FwImporter:
         files = [f for f in zip_file.namelist() if f != 'data.json']
         file_task = self.progress.add_task('Importing files', total=len(files))
         for file in files:
-            self.fs_organizer.store_file(FileObject(binary=zip_file.read(file)))
+            self.file_service.store_file(FileObject(binary=zip_file.read(file)))
             self.progress.advance(file_task)
         self.progress.remove_task(file_task)
         return len(files)

@@ -17,7 +17,7 @@ from intercom.common_redis_binding import (
     publish_available_analysis_plugins,
 )
 from storage.db_interface_common import DbInterfaceCommon
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 
 if TYPE_CHECKING:
     from objects.firmware import Firmware
@@ -92,10 +92,10 @@ class InterComBackEndAnalysisTask(InterComListener):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
 
     def pre_process(self, task, task_id):  # noqa: ARG002
-        self.fs_organizer.store_file(task)
+        self.file_service.store_file(task)
         return task
 
 
@@ -104,10 +104,10 @@ class InterComBackEndReAnalyzeTask(InterComListener):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
 
     def pre_process(self, task: Firmware, task_id):  # noqa: ARG002
-        task.file_path = self.fs_organizer.generate_path(task)
+        task.file_path = self.file_service.generate_path(task)
         task.create_binary_from_path()
         return task
 
@@ -159,10 +159,10 @@ class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.binary_service = FSOrganizer()
+        self.binary_service = FileService()
 
     def get_response(self, task) -> bytes:
-        return self.binary_service.get_file_from_uid(task) or b''
+        return self.binary_service.get_file_content_from_uid(task) or b''
 
 
 class InterComBackEndFileDiffTask(InterComListenerAndResponder):
@@ -171,13 +171,13 @@ class InterComBackEndFileDiffTask(InterComListenerAndResponder):
 
     def __init__(self, *args, db_interface: DbInterfaceCommon):
         super().__init__(*args)
-        self.binary_service = FSOrganizer()
+        self.binary_service = FileService()
         self.db = db_interface
 
     def get_response(self, task: tuple[str, str]) -> str | None:
         uid1, uid2 = task
-        content_1 = self.binary_service.get_file_from_uid(uid1)
-        content_2 = self.binary_service.get_file_from_uid(uid2)
+        content_1 = self.binary_service.get_file_content_from_uid(uid1)
+        content_2 = self.binary_service.get_file_content_from_uid(uid2)
         name_1 = self.db.get_file_name(uid1)
         name_2 = self.db.get_file_name(uid2)
         if any(e is None for e in [content_1, content_2, name_1, name_2]):
@@ -197,11 +197,11 @@ class InterComBackEndPeekBinaryTask(InterComListenerAndResponder):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.binary_service = FSOrganizer()
+        self.file_service = FileService()
 
     def get_response(self, task: tuple[str, int, int]) -> bytes:
         uid, offset, length = task
-        return self.binary_service.get_partial_file(uid, offset, length)
+        return self.file_service.get_partial_file_content(uid, offset, length)
 
 
 class InterComBackEndTarRepackTask(InterComListenerAndResponder):
@@ -210,10 +210,10 @@ class InterComBackEndTarRepackTask(InterComListenerAndResponder):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.binary_service = FSOrganizer()
+        self.binary_service = FileService()
 
     def get_response(self, task: str):
-        return self.binary_service.get_repacked_file(task) or b''
+        return self.binary_service.get_repacked_file_as_bytes(task) or b''
 
 
 class InterComBackEndBinarySearchTask(InterComListenerAndResponder):
@@ -231,7 +231,7 @@ class InterComBackEndDeleteFile(InterComListener):
 
     def __init__(self, *args, unpacking_locks: UnpackingLockManager, db_interface: DbInterfaceCommon):
         super().__init__(*args)
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
         self.db = db_interface
         self.unpacking_locks = unpacking_locks
 
@@ -245,7 +245,7 @@ class InterComBackEndDeleteFile(InterComListener):
             elif uid not in uids_in_db:
                 deleted += 1
                 logging.debug(f'Removing file: {uid}')
-                self.fs_organizer.delete_file(uid)
+                self.file_service.delete_file(uid)
             else:
                 logging.warning(f'File not removed, because database entry exists: {uid}')
         if deleted:
