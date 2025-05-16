@@ -64,29 +64,29 @@ def test_kconfig_construct_result():
 
 
 def test_elf_construct_result():
-    class MockFSOrganizer:
+    class MockFileService:
         generate_path = None
 
-    mock_fs_organizer = MockFSOrganizer()
+    mock_file_service = MockFileService()
     fo = FileObject()
 
     arm32_exe_path = Path(__file__).parent / 'data/hello_world_arm32'
     arm64_exe_path = Path(__file__).parent / 'data/hello_world_arm64'
     mips3_exe_path = Path(__file__).parent / 'data/hello_world_mips3'
 
-    mock_fs_organizer.generate_path = lambda _: arm32_exe_path
-    result = elf.construct_result(fo, mock_fs_organizer)
+    mock_file_service.generate_path = lambda _: arm32_exe_path
+    result = elf.construct_result(fo, mock_file_service)
     for key in result:
         assert 'v8' in key
 
-    mock_fs_organizer.generate_path = lambda _: arm64_exe_path
-    result = elf.construct_result(fo, mock_fs_organizer)
-    for key in result:  # noqa: B007
+    mock_file_service.generate_path = lambda _: arm64_exe_path
+    result = elf.construct_result(fo, mock_file_service)
+    for _ in result:
         # TODO Make the plugin work with arm64
         assert True
 
-    mock_fs_organizer.generate_path = lambda _: mips3_exe_path
-    result = elf.construct_result(fo, mock_fs_organizer)
+    mock_file_service.generate_path = lambda _: mips3_exe_path
+    result = elf.construct_result(fo, mock_file_service)
     for key in result:
         assert 'MIPS III' in key
 

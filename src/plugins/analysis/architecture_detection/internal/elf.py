@@ -52,9 +52,9 @@ def _get_arm_isa(elffile):
     return result
 
 
-def construct_result(file_object, fs_organizer):
+def construct_result(file_object, file_service):
     result = {}
-    with open(fs_organizer.generate_path(file_object), 'rb') as fp:  # noqa: PTH123
+    with open(file_service.generate_path(file_object), 'rb') as fp:  # noqa: PTH123
         try:
             elffile = ELFFile(fp)
         except ELFError:
