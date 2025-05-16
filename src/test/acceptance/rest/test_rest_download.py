@@ -21,9 +21,9 @@ class TestRestDownloadFirmware:
         assert f'"SHA256": "{test_fw.sha256}"'.encode() in rv.data, 'rest download response incorrect'
 
     @pytest.mark.usefixtures('intercom_backend_binding')
-    def test_run_from_upload_to_show_analysis(self, test_client, backend_db, fsorganizer):
+    def test_run_from_upload_to_show_analysis(self, test_client, backend_db, file_service):
         backend_db.add_object(test_fw)
-        fsorganizer.store_file(test_fw)
+        file_service.store_file(test_fw)
 
         self._rest_search(test_client)
         self._rest_download(test_client)

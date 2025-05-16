@@ -59,6 +59,7 @@ def _dont_get(monkeypatch):
     monkeypatch.setattr('plugins.analysis.hashlookup.code.hashlookup._look_up_hash', mock_look_up_hash)
 
 
+
 @pytest.mark.usefixtures('_dont_get')
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestHashLookup:

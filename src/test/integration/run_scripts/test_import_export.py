@@ -7,11 +7,11 @@ from firmware_import_export import FwExporter, FwImporter
 from test.integration.storage.helper import create_fw_with_child_fo
 
 
-def test_import_export(backend_db, admin_db, fsorganizer):
+def test_import_export(backend_db, admin_db, file_service):
     fo, fw = create_fw_with_child_fo()
     backend_db.insert_multiple_objects(fw, fo)
-    fsorganizer.store_file(fw)
-    fsorganizer.store_file(fo)
+    file_service.store_file(fw)
+    file_service.store_file(fo)
     assert backend_db.is_firmware(fw.uid)
 
     with TemporaryDirectory() as tmpdir:

@@ -31,12 +31,12 @@ class TestAcceptanceDownloadFile:
             contents = ', '.join(tar_file.getnames())
         assert 'testfile1' in contents, 'test files could not be found in tar download'
 
-    def test_firmware_download(self, backend_db, fsorganizer, test_client):
+    def test_firmware_download(self, backend_db, file_service, test_client):
         test_fw = create_test_firmware()
         test_fw.processed_analysis.pop('dummy')
         test_fw.uid = test_fw.uid
         backend_db.add_object(test_fw)
-        fsorganizer.store_file(test_fw)
+        file_service.store_file(test_fw)
 
         self._show_analysis_page(test_client, test_fw)
         self._start_binary_download(test_client, test_fw)

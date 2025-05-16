@@ -36,7 +36,7 @@ class TestFileAddition:
         for fw in [test_fw_1, test_fw_2]:
             fw.version, fw.vendor, fw.device_name, fw.device_class = ['foo'] * 4
             fw.release_date = '2017-01-01'
-            unpacking_scheduler.unpacker.file_storage_system.store_file(fw)
+            unpacking_scheduler.unpacker.file_service.store_file(fw)
             unpacking_scheduler.add_task(fw)
 
         assert analysis_finished_event.wait(timeout=20)
