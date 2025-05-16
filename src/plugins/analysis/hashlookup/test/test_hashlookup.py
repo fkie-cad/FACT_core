@@ -10,7 +10,7 @@ KNOWN_ZSH_HASH = 'A6F2177402114FC8B5E7ECF924FFA61A2AC25BD347BC3370FB92E07B76E0B4
 @pytest.fixture
 def file_object(monkeypatch):
     test_file = create_test_file_object()
-    monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_file.file_path)
+    monkeypatch.setattr('storage.file_service.FileService.generate_path_from_uid', lambda _self, _: test_file.file_path)
     return test_file
 
 
