@@ -13,9 +13,10 @@ if TYPE_CHECKING:
     from objects.file import FileObject
 
 
-class FSOrganizer:
+class FileService:
     """
-    This module organizes file system storage
+    This module handles loading, storing and deleting files to and from the file system. It also creates and retrieves
+    the file system path for a given UID of a FileObject.
     """
 
     def __init__(self):
@@ -53,7 +54,7 @@ class FSOrganizer:
     def get_partial_file(self, uid: str, offset: int, length: int) -> bytes:
         file_path = Path(self.generate_path_from_uid(uid))
         if not file_path.is_file():
-            logging.error(f'[FSOrganizer]: Tried to read from file {uid} but it was not found.')
+            logging.error(f'[FileService]: Tried to read from file {uid} but it was not found.')
             return b''
         with file_path.open('rb') as fp:
             fp.seek(offset)
