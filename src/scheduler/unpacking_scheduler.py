@@ -48,7 +48,7 @@ class UnpackingScheduler:
         self,
         post_unpack=None,
         analysis_workload=None,
-        fs_organizer=None,
+        file_service=None,
         unpacking_locks=None,
         db_interface=BackendDbInterface,
     ):
@@ -61,7 +61,7 @@ class UnpackingScheduler:
         self.pending_tasks: dict[int, Thread] = {}
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
-        self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
+        self.unpacker = Unpacker(file_service=file_service, unpacking_locks=unpacking_locks)
 
         self.manager = None
         self.workers = None

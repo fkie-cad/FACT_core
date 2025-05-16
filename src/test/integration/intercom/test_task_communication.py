@@ -41,7 +41,7 @@ def intercom_frontend():
     _intercom_frontend.redis.redis.flushdb()
 
 
-class FSOrganizerMock:
+class FileServiceMock:
     @staticmethod
     def get_file_from_uid(uid: str) -> bytes:
         if uid == 'uid1':
@@ -120,7 +120,7 @@ class TestInterComTaskCommunication:
             intercom_frontend.get_available_analysis_plugins()
 
     def test_raw_download_task(self, monkeypatch, intercom_frontend):
-        monkeypatch.setattr('intercom.back_end_binding.FSOrganizer.get_file_from_uid', lambda *_: b'test')
+        monkeypatch.setattr('intercom.back_end_binding.FileService.get_file_from_uid', lambda *_: b'test')
         monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
         result = intercom_frontend.get_file_contents('valid_uid')
@@ -134,7 +134,7 @@ class TestInterComTaskCommunication:
 
     def test_file_diff_task(self, monkeypatch, intercom_frontend):
         monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda _: 'valid_uid_0.0')
-        monkeypatch.setattr('intercom.back_end_binding.FSOrganizer', FSOrganizerMock)
+        monkeypatch.setattr('intercom.back_end_binding.FileService', FileServiceMock)
 
         result = intercom_frontend.get_file_diff(('uid1', 'uid2'))
         assert result is None, 'should be None because of timeout'
@@ -147,7 +147,7 @@ class TestInterComTaskCommunication:
         assert result == expected_diff, 'file diff not correct'
 
     def test_peek_binary_task(self, monkeypatch, intercom_frontend):
-        monkeypatch.setattr('intercom.back_end_binding.FSOrganizer.get_partial_file', lambda *_: b'foobar')
+        monkeypatch.setattr('intercom.back_end_binding.FileService.get_partial_file', lambda *_: b'foobar')
         monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
         result = intercom_frontend.peek_in_binary('valid_uid', 0, 512)
@@ -160,7 +160,7 @@ class TestInterComTaskCommunication:
         assert result == b'foobar', 'retrieved binary not correct'
 
     def test_tar_repack_task(self, intercom_frontend, monkeypatch):
-        monkeypatch.setattr('intercom.back_end_binding.FSOrganizer.get_repacked_file', lambda *_: b'test')
+        monkeypatch.setattr('intercom.back_end_binding.FileService.get_repacked_file', lambda *_: b'test')
         monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
         result = intercom_frontend.get_repacked_file('valid_uid')

@@ -11,7 +11,7 @@ from helperFunctions import magic
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 from unpacker.unpack_base import ExtractionError, UnpackBase
 
 if TYPE_CHECKING:
@@ -19,8 +19,8 @@ if TYPE_CHECKING:
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, fs_organizer=None, unpacking_locks=None):
-        self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
+    def __init__(self, file_service=None, unpacking_locks=None):
+        self.file_service = FileService() if file_service is None else file_service
         self.unpacking_locks = unpacking_locks
 
     def unpack(
@@ -97,7 +97,7 @@ class Unpacker(UnpackBase):
             if current_file.uid not in extracted_files:
                 # the same file can be contained multiple times in one archive -> only the VFP needs an update
                 self.unpacking_locks.set_unpacking_lock(current_file.uid)
-                self.file_storage_system.store_file(current_file)
+                self.file_service.store_file(current_file)
                 current_file.parent_firmware_uids.add(parent.root_uid)
                 extracted_files[current_file.uid] = current_file
             extracted_files[current_file.uid].virtual_file_path.setdefault(parent.uid, []).append(current_virtual_path)

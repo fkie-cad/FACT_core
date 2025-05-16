@@ -21,7 +21,7 @@ from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from storage.db_interface_stats import StatsUpdateDbInterface
 from storage.db_interface_view_sync import ViewUpdater
 from storage.db_setup import DbSetup
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import clear_test_tables, setup_test_tables
 from test.integration.common import MockDbInterface as BackEndDbInterfaceMock
@@ -296,12 +296,12 @@ def scheduler_test_config(request) -> SchedulerTestConfig:
     return SchedulerTestConfig.get_instance_from_request(request)
 
 
-def _store_file_if_not_exists(fs_organizer, file_object):
-    path = fs_organizer.generate_path(file_object)
+def _store_file_if_it_does_not_exist(file_service, file_object):
+    path = file_service.generate_path(file_object)
     if Path(path).exists():
         return
 
-    fs_organizer.store_file(file_object)
+    file_service.store_file(file_object)
 
 
 @pytest.fixture
@@ -321,18 +321,18 @@ def analysis_scheduler(  # noqa: PLR0913
 
     monkeypatch.setattr('plugins.base.ViewUpdater', test_config.view_updater_class)
     monkeypatch.setattr('scheduler.analysis.scheduler.ViewUpdater', test_config.view_updater_class)
-    monkeypatch.setattr('scheduler.analysis.plugin.FSOrganizer', test_config.fs_organizer_class)
+    monkeypatch.setattr('scheduler.analysis.plugin.FileService', test_config.file_service_class)
     _analysis_scheduler = AnalysisScheduler(
         post_analysis=lambda *_: None,
         unpacking_locks=unpacking_lock_manager,
     )
 
-    fs_organizer = test_config.fs_organizer_class()
+    file_service = test_config.file_service_class()
     start_analysis_of_object = _analysis_scheduler.start_analysis_of_object
 
     # FIXME Remove this. See also the unpacking_scheduler fixture
     def _start_analysis_of_object_wrapper(file_object):
-        _store_file_if_not_exists(fs_organizer, file_object)
+        _store_file_if_it_does_not_exist(file_service, file_object)
         start_analysis_of_object(file_object)
 
     _analysis_scheduler.start_analysis_of_object = _start_analysis_of_object_wrapper
@@ -411,11 +411,11 @@ def unpacking_scheduler(
         if test_config.pipeline:
             _analysis_scheduler.start_analysis_of_object(fw)
 
-    fs_organizer = test_config.fs_organizer_class()
+    file_service = test_config.file_service_class()
 
     _unpacking_scheduler = UnpackingScheduler(
         post_unpack=_post_unpack_hook,
-        fs_organizer=fs_organizer,
+        file_service=file_service,
         unpacking_locks=unpacking_lock_manager,
         db_interface=test_config.backend_db_class,
     )
@@ -426,7 +426,7 @@ def unpacking_scheduler(
         # Test often create a FileObject and just set its path.
         # FACT expects all files to be in the storage.
         # To work around these contradictions we just store the files here.
-        _store_file_if_not_exists(fs_organizer, fw)
+        _store_file_if_it_does_not_exist(file_service, fw)
         add_task(fw)
 
     _unpacking_scheduler.add_task = _add_task_wrapper
@@ -496,10 +496,10 @@ class SchedulerTestConfig(BaseModel):
     #: This can be either a mocked class or the actual :py:class:`~storage.db_interface_comparison.ComparisonDbInterface`.  # noqa: E501
     #: This is used by the :py:func:`comparison_scheduler`
     comparison_db_class: Type
-    #: Set the class that is used as :py:class:`~storage.fsorganizer.FSOrganizer`.
-    #: This can be either a mocked class or the actual :py:class:`~storage.fsorganizer.FSOrganizer`.
+    #: Set the class that is used as :py:class:`~storage.file_service.FileService`.
+    #: This can be either a mocked class or the actual :py:class:`~storage.file_service.FileService`.
     #: This is used by the :py:func:`unpacking_scheduler` and the :py:func:`analysis_scheduler`.
-    fs_organizer_class: Type
+    file_service_class: Type
     #: Set the class that is used as :py:class:`~storage.db_interface_view_sync.ViewUpdater`.
     #: If you set this to the actual :py:class:`~storage.db_interface_view_sync.ViewUpdater` note that the fixture
     #: :py:func:`~test.conftest.database_interfaces` has to be executed before (e.g. by
@@ -526,7 +526,7 @@ class SchedulerTestConfig(BaseModel):
                 {
                     'backend_db_class': BackendDbInterface,
                     'comparison_db_class': ComparisonDbInterface,
-                    'fs_organizer_class': FSOrganizer,
+                    'file_service_class': FileService,
                     'view_updater_class': ViewUpdater,
                     'pipeline': False,
                     'start_processes': True,
@@ -542,7 +542,7 @@ class SchedulerTestConfig(BaseModel):
                 {
                     'backend_db_class': BackEndDbInterfaceMock,
                     'comparison_db_class': ComparisonDbInterface,
-                    'fs_organizer_class': FSOrganizer,
+                    'file_service_class': FileService,
                     'view_updater_class': ViewUpdaterMock,
                     'pipeline': False,
                     'start_processes': False,
@@ -558,7 +558,7 @@ class SchedulerTestConfig(BaseModel):
                 {
                     'backend_db_class': BackendDbInterface,
                     'comparison_db_class': ComparisonDbInterface,
-                    'fs_organizer_class': FSOrganizer,
+                    'file_service_class': FileService,
                     'view_updater_class': ViewUpdaterMock,
                     'pipeline': True,
                     'start_processes': True,
@@ -589,5 +589,5 @@ class SchedulerTestConfig(BaseModel):
 
 
 @pytest.fixture
-def fsorganizer() -> FSOrganizer:
-    return FSOrganizer()
+def file_service() -> FileService:
+    return FileService()
