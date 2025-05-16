@@ -128,8 +128,8 @@
                                         <div class="bubble bubble-triangle mb-2">
                                             {{ comment.comment }}
                                         </div>
-                                        <div class="footnote">
-                                            {{ comment.author }} ‒ <span class="text-muted">{{ comment.time | int | nice_unix_time }}</span>
+                                        <div class="footnote" style="word-break: break-all; overflow-wrap: break-word;">
+                                            {{ comment.author }} ‒ <span class="text-muted">{{ comment.time | int | nice_unix_time }}</span> - {{ comment.uid | replace_uid_with_hid }}
                                         </div>
                                     </div>
                                 </a>
