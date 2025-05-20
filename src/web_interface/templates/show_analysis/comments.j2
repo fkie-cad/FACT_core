@@ -83,9 +83,12 @@
                 {% for comment in firmware.comments | sort_comments %}
                     <tr>
                         <td style="vertical-align: bottom; width: 20%;">
-                            <div>{{ comment.plugin or "—" }}</div>
+                            <i class="fas fa-microscope" data-toggle="tooltip" title="analysis plugin"></i> {{ comment.plugin or "—" }}
+                            <br>
+                            <i class="fas fa-user" data-toggle="tooltip" title="commenter"></i> {{ comment.author }}
+                            <br>
+                            <i class="far fa-clock"></i> {{ comment.time | int | nice_unix_time }}
                         </td>
-                        {% set tooltip = "{}\n{}".format(comment.author, comment.time | int | nice_unix_time) %}
                         <td data-toggle="tooltip" title="{{ tooltip }}" style="width: 80%;">
                             <span style="font-family: monospace; font-size: 14px">
                                 {{ comment.comment | urlize }}
