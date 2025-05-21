@@ -1,3 +1,38 @@
+{% macro render_comment(comment, delete=True) %}
+    <tr>
+        <td style="vertical-align: bottom; min-width: 205px; width: 20%;">
+            <i class="fas fa-microscope" data-toggle="tooltip" title="analysis plugin"></i> {{ comment.plugin or "—" }}
+            <br>
+            <i class="fas fa-user" data-toggle="tooltip" title="commenter"></i> {{ comment.author }}
+            <br>
+            <i class="far fa-clock"></i> {{ comment.time | int | nice_unix_time }}
+        </td>
+        <td data-toggle="tooltip" title="{{ tooltip }}" style="width: 80%;">
+            <span style="font-family: monospace; font-size: 14px">
+                {{ comment.comment | urlize }}
+            </span>
+        </td>
+        {% if delete %}
+            <td class="m-0 p-0 align-middle" style="width: 10px;">
+                {# Comment Delete Button #}
+                <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}"
+                        class="btn btn-sm">
+                    <i class="fas fa-trash-alt text-danger"></i>
+                </button>
+            </td>
+            <td class="m-0 p-0">
+                {# Comment Delete Confirm Button #}
+                <div class="collapse" id="delete-button-div-{{ comment.time }}">
+                    <button class="btn btn-danger" type="button"
+                            onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
+                        <i class="fas fa-check"></i> Click here to confirm!
+                    </button>
+                </div>
+            </td>
+        {% endif %}
+    </tr>
+{% endmacro %}
+
 <div class="row">
 
     <div class="col-lg-12" style="margin-top: 20px">
@@ -81,40 +116,38 @@
             <table class="table table-bordered p-0 mb-0" id="comments-table">
                 <tbody>
                 {% for comment in firmware.comments | sort_comments %}
-                    <tr>
-                        <td style="vertical-align: bottom; width: 20%;">
-                            <i class="fas fa-microscope" data-toggle="tooltip" title="analysis plugin"></i> {{ comment.plugin or "—" }}
-                            <br>
-                            <i class="fas fa-user" data-toggle="tooltip" title="commenter"></i> {{ comment.author }}
-                            <br>
-                            <i class="far fa-clock"></i> {{ comment.time | int | nice_unix_time }}
-                        </td>
-                        <td data-toggle="tooltip" title="{{ tooltip }}" style="width: 80%;">
-                            <span style="font-family: monospace; font-size: 14px">
-                                {{ comment.comment | urlize }}
-                            </span>
-                        </td>
-                        <td class="m-0 p-0 align-middle">
-                            {# Comment Delete Button #}
-                            <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}"
-                                    class="btn btn-sm">
-                                <i class="fas fa-trash-alt text-danger"></i>
-                            </button>
-                        </td>
-                        <td class="m-0 p-0">
-                            {# Comment Delete Confirm Button #}
-                            <div class="collapse" id="delete-button-div-{{ comment.time }}">
-                                <button class="btn btn-danger" type="button"
-                                        onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
-                                    <i class="fas fa-check"></i> Click here to confirm!
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                    {{ render_comment(comment, True) }}
                 {% endfor %}
                 </tbody>
             </table>
         {% endif %}
     </div>
 
+    {% if aggregated_comments %}
+        <div class="col-lg-12" style="margin-top: 20px" id="aggregatedComments">
+            <table class="table table-bordered mb-0" id="comments-head">
+                <thead class="thead-light">
+                    <tr>
+                        <th colspan="2">Comments for Included Files</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for uid, comment_list in aggregated_comments.items() %}
+                        <tr>
+                            <td style="max-width: 200px; word-break: break-all; overflow-wrap: break-word;">
+                                {{ uid | replace_uid_with_hid_link }}
+                            </td>
+                            <td class="p-0">
+                                <table class="table table-bordered mb-0" id="comments-head">
+                                    {% for comment in comment_list | sort_comments %}
+                                        {{ render_comment(comment, False) }}
+                                    {% endfor %}
+                                </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
 </div>
