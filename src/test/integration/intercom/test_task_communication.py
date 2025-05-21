@@ -25,6 +25,7 @@ from intercom.back_end_binding import (
 from intercom.common_redis_binding import publish_available_analysis_plugins
 from intercom.front_end_binding import InterComFrontEndBinding
 from test.common_helper import create_test_firmware
+from test.mock import mock_patch
 
 
 class AnalysisServiceMock:
@@ -72,14 +73,16 @@ class TestInterComTaskCommunication:
 
     def test_single_file_task(self, intercom_frontend):
         with Manager() as manager:
-            task_listener = InterComBackEndSingleFileTask(manager=manager)
-            test_fw = create_test_firmware()
-            test_fw.file_path = None
-            test_fw.scheduled_analysis = ['binwalk']
-            intercom_frontend.add_single_file_task(test_fw)
-            task = task_listener.get_next_task()
-            assert task.uid in task_listener.events
-            task_listener.events[task.uid].set()
+            analysis_finished_event = manager.Event()
+            with mock_patch(manager, 'Event', lambda: analysis_finished_event):
+                task_listener = InterComBackEndSingleFileTask(manager=manager)
+                test_fw = create_test_firmware()
+                test_fw.file_path = None
+                test_fw.scheduled_analysis = ['binwalk']
+                intercom_frontend.add_single_file_task(test_fw)
+                task = task_listener.get_next_task()
+                sleep(0.01)
+                analysis_finished_event.set()
 
         assert task.uid == test_fw.uid, 'uid not transported correctly'
         assert task.scheduled_analysis
