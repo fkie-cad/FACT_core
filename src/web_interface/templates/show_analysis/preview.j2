@@ -13,7 +13,8 @@
                             <div class="input-group-prepend">
                                 <div class="input-group-text">Offset</div>
                             </div>
-                            <input type="text" class="form-control" id="hex-preview-offset" value="0">
+                            <input type="text" class="form-control" id="hex-preview-offset" value="0"
+                                   onkeydown="if(event.key === 'Enter') loadPreview();">
                         </div>
                     </div>
                     <div class="col-auto">
@@ -21,11 +22,20 @@
                             <div class="input-group-prepend">
                                 <div class="input-group-text">Length</div>
                             </div>
-                            <input type="number" min="1" class="form-control" id="hex-preview-length" value="512">
+                            <input type="number" min="1" class="form-control" id="hex-preview-length" value="512"
+                                   onkeydown="if(event.key === 'Enter') loadPreview();">
                         </div>
                     </div>
                     <div class="col-auto">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="load_preview();">Update</button>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="...">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="loadPreview();">Update</button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="movePreviewOffset(true);">
+                                <i class="fa-solid fa-circle-chevron-left"></i>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="movePreviewOffset(false);">
+                                <i class="fa-solid fa-circle-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div id="preview-loading-gif" class="border" style="display: block; padding: 5px; text-align: center">
