@@ -425,7 +425,7 @@ class TestQemuExecUnpacker(TestCase):
     def setUp(self):
         self.name_prefix = 'FACT_plugin_qemu'
         self.unpacker = qemu_exec.Unpacker()
-        qemu_exec.FSOrganizer = MockFSOrganizer
+        qemu_exec.FileService = MockFileService
 
     def test_unpack_fo(self):
         test_fw = create_test_firmware()
@@ -443,7 +443,7 @@ class TestQemuExecUnpacker(TestCase):
         test_fw = create_test_firmware()
         test_fw.file_path = None
 
-        with mock_patch(self.unpacker.fs_organizer, 'generate_path', lambda _: TEST_FW.file_path):
+        with mock_patch(self.unpacker.file_service, 'generate_path', lambda _: TEST_FW.file_path):
             tmp_dir = self.unpacker.unpack_fo(test_fw)
 
         try:
@@ -470,7 +470,7 @@ class TestQemuExecUnpacker(TestCase):
         assert tmp_dir is None
 
 
-class MockFSOrganizer:
+class MockFileService:
     @staticmethod
     def generate_path(fo):
         if fo.uid != 'foo':
