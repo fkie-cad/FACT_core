@@ -9,9 +9,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     """
 
     NAME = 'hardware_analysis'
-    DESCRIPTION = 'Hardware Analysis Plug-in'
+    DESCRIPTION = 'Hardware Analysis Plugin'
     DEPENDENCIES = ['cpu_architecture', 'elf_analysis', 'kernel_config']  # noqa: RUF012
-    VERSION = '0.2'
+    VERSION = '0.2.1'
     FILE = __file__
 
     def process_object(self, file_object):
@@ -42,7 +42,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def get_modinfo(file_object):
         # getting the information from the *.ko files .modinfo
-        return file_object.processed_analysis['elf_analysis']['result'].get('Output', {}).get('modinfo')
+        return file_object.processed_analysis['elf_analysis']['result'].get('mod_info')
 
     @staticmethod
     def filter_kernel_config(file_object):
