@@ -13,7 +13,8 @@
                             <div class="input-group-prepend">
                                 <div class="input-group-text">Offset</div>
                             </div>
-                            <input type="text" class="form-control" id="hex-preview-offset" value="0">
+                            <input type="text" class="form-control" id="hex-preview-offset" value="0"
+                                   onkeydown="if(event.key === 'Enter') loadPreview();">
                         </div>
                     </div>
                     <div class="col-auto">
@@ -21,7 +22,8 @@
                             <div class="input-group-prepend">
                                 <div class="input-group-text">Length</div>
                             </div>
-                            <input type="number" min="1" class="form-control" id="hex-preview-length" value="512">
+                            <input type="number" min="1" class="form-control" id="hex-preview-length" value="512"
+                                   onkeydown="if(event.key === 'Enter') loadPreview();">
                         </div>
                     </div>
                     <div class="col-auto">
