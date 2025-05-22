@@ -2,7 +2,7 @@
 
 {% block analysis_result_details %}
 
-    {% for key in analysis_result %}
+    {% for software_data in analysis_result.software_components %}
         <tr>
             <td>{{ loop.index - 1 }}</td>
             <td class="p-0 m-0">
@@ -14,29 +14,62 @@
                     <tbody class="table-analysis">
                     <tr>
                         <td>Software Name</td>
-                        <td>{{ analysis_result[key]['meta']['software_name'] }}</td>
+                        <td>{{ software_data.name }}</td>
                     </tr>
                     <tr>
                         <td>Version</td>
                         <td>
-                            {% for version in analysis_result[key]['meta']['version'] %}
-                                {{ version }}
-                            {% endfor %}
+                            {% if software_data.versions | length > 1 %}
+                                <ul>
+                                    {% for version in software_data.versions %}
+                                        <li>{{ version }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% elif software_data.versions | length == 1 %}
+                                {{ software_data.versions[0] }}
+                            {% else %}
+                                N/A
+                            {% endif %}
                         </td>
                     </tr>
-                    <tr>
-                        <td>Description</td>
-                        <td>{{ analysis_result[key]['meta']['description'] }}</td>
-                    </tr>
-                    <tr>
-                        <td>Website</td>
-                        <td>
-                            <a href="{{ analysis_result[key]['meta']['website'] }}">{{ analysis_result[key]['meta']['website'] }}</a>
-                        </td>
-                    </tr>
+                    {% if software_data.description %}
+                        <tr>
+                            <td>Description</td>
+                            <td>{{ software_data.description }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if software_data.website %}
+                        <tr>
+                            <td>Website</td>
+                            <td>
+                                <a href="{{ software_data.website }}">{{ software_data.website }}</a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                    {% if software_data.open_source != None %}
+                        <tr>
+                            <td>Open Source</td>
+                            <td>{{ software_data.open_source }}</td>
+                        </tr>
+                    {% endif %}
                     <tr>
                         <td>Matched Sequence</td>
-                        <td>{{ analysis_result[key]['strings'] }}</td>
+                        <td class="p-0">
+                            <table class="table table-bordered table-sm m-0">
+                                <tr>
+                                    <th>identifier</th>
+                                    <th>offset</th>
+                                    <th>string</th>
+                                </tr>
+                                {% for string_data in software_data.matching_strings %}
+                                    <tr>
+                                        <td style="min-width: 120px; width: 10%;">{{ string_data.identifier }}</td>
+                                        <td style="min-width: 120px; width: 10%;">{{ string_data.offset }}</td>
+                                        <td>{{ string_data.string }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
