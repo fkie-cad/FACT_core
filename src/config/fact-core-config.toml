@@ -98,6 +98,8 @@ throttle-limit = 100
 base-port = 9900
 # if you experience FileNotFound errors during unpacking, increasing this value slightly might help
 delay = 0.0
+# the extractor runs containerized using this image/tag
+docker-image = "fkiecad/fact_extractor:latest"
 
 [backend.binary-search]
 # maximum number of matching strings stored per match
