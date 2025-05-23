@@ -2,34 +2,44 @@
 
 {% block analysis_result_details %}
 
-{% for vector in analysis_result['full'] | sort %}
-    {% set input_vector = analysis_result['full'][vector] %}
-    {% if input_vector %}
-    <tr>
-        <td>{{ vector }}</td>
-        <td class="p-0">
-            {% if vector == 'inputs' %}
-                <table class="table table-bordered mb-0">
-                    {% for class in input_vector %}
-                        <tr>
-                            <td rowspan="{{ input_vector[class] | length }}">{{ class }}</td>
-                            {% for result in input_vector[class] %}
-                                <td>{{ result['name'] }} with callsites at {{ result['xrefs'] }}{% if 'count' in result %}({{ result['count'] }}){% endif %}</td>
-                            </tr><tr>
+    {% for key, value in analysis_result.items() | sort %}
+        {% if value %}
+            <tr>
+                <td>{{ key }}</td>
+                <td class="p-0">
+                    {% if key == 'inputs' %}
+                        <table class="table table-bordered mb-0">
+                            {% for class, vector_list in value.items() %}
+                                {% if vector_list %}
+                                    <tr>
+                                        <td rowspan="{{ vector_list | length }}">
+                                            {{ class }}
+                                        </td>
+                                        {% for result in vector_list %}
+                                            <td>
+                                                {{ result.name }} with callsites at {{ result.xrefs }}
+                                                {% if result.count != None %}
+                                                    ({{ result.count }})
+                                                {% endif %}
+                                            </td>
+                                            </tr>
+                                            {% if not loop.last %}
+                                                <tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                {% endif %}
                             {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </table>
-            {% else %}
-                <ul class="list-group mb-0 p-0">
-                    {% for result in input_vector %}
-                        <li class="list-group-item rounded-0">{{ result }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </td>
-    </tr>
-    {% endif %}
-{% endfor %}
+                        </table>
+                    {% else %}
+                        <ul class="list-group mb-0 p-0">
+                            {% for result in value %}
+                                <li class="list-group-item rounded-0">{{ result }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endif %}
+    {% endfor %}
 
 {% endblock %}
