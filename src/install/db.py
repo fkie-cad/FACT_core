@@ -16,9 +16,9 @@ POSTGRES_UPDATE_MESSAGE = (
 )
 
 
-def install_postgres(version: int = POSTGRES_VERSION):
+def install_postgres(version: int = POSTGRES_VERSION, codename: str | None = None):
     # based on https://www.postgresql.org/download/linux/ubuntu/
-    codename = check_distribution()
+    codename = codename or check_distribution()
     command_list = [
         'sudo apt-get install -y postgresql-common',
         f'sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y {codename}',
@@ -53,7 +53,7 @@ def get_postgres_version() -> int:
     )
 
 
-def main():
+def main(distribution):
     postgres_version: int | None = None
     try:
         postgres_version = get_postgres_version()
@@ -62,7 +62,7 @@ def main():
         logging.info('Skipping PostgreSQL installation. Reason: Already installed.')
     except (CalledProcessError, FileNotFoundError):  # psql binary was not found
         logging.info('Setting up PostgreSQL database')
-        install_postgres()
+        install_postgres(codename=distribution)
     configure_postgres(postgres_version)
 
     # initializing DB

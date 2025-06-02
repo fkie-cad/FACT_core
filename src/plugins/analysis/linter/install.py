@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 
 try:
-    from helperFunctions.install import check_distribution, run_cmd_with_logging
+    from helperFunctions.install import run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
@@ -13,7 +13,7 @@ except ImportError:
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from helperFunctions.install import check_distribution, run_cmd_with_logging
+    from helperFunctions.install import run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
 
@@ -37,5 +37,4 @@ Installer = LinterInstaller
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    installer = Installer(distribution=check_distribution())
-    installer.install()
+    Installer().install()

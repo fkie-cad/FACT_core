@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 
+import distro
+
 from helperFunctions.install import (
-    check_distribution,
     install_pip_packages,
     read_package_list_from_file,
     run_cmd_with_logging,
@@ -30,7 +32,10 @@ class AbstractPluginInstaller:
     base_path = None
 
     def __init__(self, distribution: str | None = None, skip_docker: bool = _skip_docker_env):
-        self.distribution = distribution or check_distribution()
+        # FixMe: deprecate distribution variable
+        if distribution:
+            logging.warning('The distribution parameter is deprecated and will be removed in a future update.')
+        self.distribution = distro.id()
         self.build_path = self.base_path / 'build'
         self.skip_docker = skip_docker
 

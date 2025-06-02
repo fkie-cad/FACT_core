@@ -11,6 +11,7 @@ from pathlib import Path
 from shlex import split
 from subprocess import PIPE, STDOUT
 
+import distro
 from compile_yara_signatures import main as compile_signatures
 
 import config
@@ -31,8 +32,8 @@ PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_backend.txt'
 YARA_VERSION = 'v4.5.0'
 
 
-def main(skip_docker, distribution):
-    if distribution != 'fedora':
+def main(skip_docker):
+    if distro.id() != 'fedora':
         pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-backend.txt')
         apt_install_packages(*pkgs)
     else:
@@ -51,7 +52,7 @@ def main(skip_docker, distribution):
         _install_docker_images()
 
     # install plug-in dependencies
-    _install_plugins(distribution, skip_docker)
+    _install_plugins(skip_docker)
 
     # create directories
     _create_firmware_directory()
@@ -90,7 +91,7 @@ def _install_docker_images():
 def install_plugin_docker_images():
     # Distribution can be None here since it will not be used for installing
     # docker images
-    _install_plugins(None, skip_docker=False, only_docker=True)
+    _install_plugins(skip_docker=False, only_docker=True)
 
 
 def _create_firmware_directory():
@@ -114,7 +115,7 @@ def _create_firmware_directory():
         )
 
 
-def _install_plugins(distribution, skip_docker, only_docker=False):
+def _install_plugins(skip_docker, only_docker=False):
     installer_paths = Path(get_src_dir() + '/plugins/').glob('*/*/install.py')
 
     for install_script in installer_paths:
@@ -123,7 +124,7 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
 
         plugin = importlib.import_module(f'plugins.{plugin_type}.{plugin_name}.install')
 
-        plugin_installer = plugin.Installer(distribution, skip_docker=skip_docker)
+        plugin_installer = plugin.Installer(skip_docker=skip_docker)
         logging.info(f'Installing {plugin_name} plugin.')
         if not only_docker:
             plugin_installer.install()
