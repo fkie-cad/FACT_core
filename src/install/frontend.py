@@ -8,6 +8,7 @@ from pathlib import Path
 from shlex import split
 from subprocess import PIPE, STDOUT
 
+import distro
 from packaging.version import parse as parse_version
 
 import config
@@ -68,14 +69,14 @@ def _create_directory_for_authentication():
         )
 
 
-def _install_nginx(distribution):
-    if distribution != 'fedora':
+def _install_nginx():
+    if distro.id() != 'fedora':
         apt_install_packages('nginx')
     else:
         dnf_install_packages('nginx')
     _generate_and_install_certificate()
     _configure_nginx()
-    if distribution == 'fedora':
+    if distro.id() == 'fedora':
         execute_commands_and_raise_on_return_code(
             [
                 'sudo restorecon -v /etc/nginx/fact.*',
@@ -197,8 +198,8 @@ def _init_hasura():
         run_cmd_with_logging('python3 init_hasura.py')
 
 
-def main(skip_docker, radare, nginx, distribution, skip_hasura):
-    if distribution != 'fedora':
+def main(skip_docker, radare, nginx, skip_hasura):
+    if distro.id() != 'fedora':
         pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-frontend.txt')
         apt_install_packages(*pkgs)
     else:
@@ -218,7 +219,7 @@ def main(skip_docker, radare, nginx, distribution, skip_hasura):
     _create_directory_for_authentication()
 
     if nginx:
-        _install_nginx(distribution)
+        _install_nginx()
 
     if not skip_docker:
         _install_docker_images(radare)
