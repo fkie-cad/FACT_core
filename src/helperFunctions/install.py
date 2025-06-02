@@ -227,7 +227,7 @@ def check_distribution(allow_unsupported=False):
 
     :return: The codename of the distribution
     """
-    debian_code_names = ['buster', 'stretch', 'bullseye', 'bookworm', 'kali-rolling']
+    debian_code_names = ['buster', 'stretch', 'bullseye', 'bookworm', 'trixie', 'kali-rolling']
     focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma', 'una']
     jammy_code_names = ['jammy', 'vanessa', 'vera', 'victoria', 'virginia']
     noble_code_names = ['noble', 'wilma']
@@ -235,6 +235,7 @@ def check_distribution(allow_unsupported=False):
     codename = distro.codename().lower()
     if codename in focal_code_names:
         logging.debug('Ubuntu 20.04 detected')
+        logging.warning('Ubuntu 20.04 has reached its end of life and is no longer supported.')
         return 'focal'
     if codename in jammy_code_names:
         logging.debug('Ubuntu 22.04 detected')
@@ -250,7 +251,7 @@ def check_distribution(allow_unsupported=False):
         return 'fedora'
     msg = (
         f'Your Distribution ({distro.id()} {distro.version()}) is not supported. '
-        'FACT Installer requires Ubuntu 20.04/22.04/24.04, Debian 11/12 or compatible!'
+        'FACT Installer requires Ubuntu 22.04/24.04, Debian 12 or compatible!'
     )
     if allow_unsupported:
         logging.info(msg)

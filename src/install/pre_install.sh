@@ -35,7 +35,7 @@ fi
 
 echo "detected distro ${DISTRO} and codename ${CODENAME}"
 
-if [ "${CODENAME}" = "bionic" ] || [ "${CODENAME}" = "xenial" ] || [ "${CODENAME}" = "buster" ]; then
+if [ "${CODENAME}" = "bionic" ] || [ "${CODENAME}" = "focal" ] || [ "${CODENAME}" = "buster" ] || [ "${CODENAME}" = "bullseye" ]; then
   echo "Warning: your distribution is outdated and the installation may not work as expected. Please upgrade your OS."
 fi
 
