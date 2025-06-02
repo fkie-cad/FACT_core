@@ -95,7 +95,7 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_get_binary/<mime_type>/<uid>', GET)
     def ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
-        binary = self.intercom.get_binary_and_filename(uid)[0]
+        binary = self.intercom.get_file_contents(uid)
         if is_text_file(mime_type):
             return f'<pre style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
         if is_image(mime_type):
