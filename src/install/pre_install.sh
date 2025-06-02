@@ -12,31 +12,39 @@ sudo apt-get update
 sudo apt-get -y install python3-pip git libffi-dev lsb-release
 
 # distro and codename detection
-DISTRO=$(lsb_release -is)
-if [ "${DISTRO}" = "Linuxmint" ] || [ "${DISTRO}" = "Ubuntu" ]; then
-    DISTRO=ubuntu
-elif [ "${DISTRO}" = "Kali" ] || [ "${DISTRO}" = "Debian" ]; then
-    DISTRO=debian
+. /etc/os-release
+if [ -n "${ID_LIKE}" ]; then
+  if [ "${ID}" = "ubuntu" ]; then
+    DISTRO="${ID}"
+  else
+    # ID_LIKE can contain multiple elements separated by spaces but we only want the first one
+    DISTRO="${ID_LIKE%% *}"
+  fi
+else
+  DISTRO="${ID}"
 fi
 
-CODENAME=$(lsb_release -cs)
-if [ "${CODENAME}" = "wilma" ] || [ "${CODENAME}" = "xia" ] || [ "${CODENAME}" = "zara" ]; then
-    CODENAME=noble
-elif [ "${CODENAME}" = "vanessa" ] || [ "${CODENAME}" = "vera" ] || [ "${CODENAME}" = "victoria" ] || [ "${CODENAME}" = "virginia" ]; then
-    CODENAME=jammy
-elif [ "${CODENAME}" = "ulyana" ] || [ "${CODENAME}" = "ulyssa" ] || [ "${CODENAME}" = "uma" ] || [ "${CODENAME}" = "una" ]; then
-    CODENAME=focal
+if [ -z "${CODENAME}" ] && [ -n "${VERSION_CODENAME}" ]; then
+  CODENAME="${VERSION_CODENAME}"
+fi
+
+if [ -n "${UBUNTU_CODENAME}" ]; then
+  # this and DEBIAN_CODENAME are set for linux mint
+  CODENAME="${UBUNTU_CODENAME}"
+elif [ -n "${DEBIAN_CODENAME}" ]; then
+  CODENAME="${DEBIAN_CODENAME}"
 elif  [ "${CODENAME}" = "kali-rolling" ]; then
-    CODENAME=bookworm
+  CODENAME=bookworm
 elif [ -z "${CODENAME}" ]; then
-	echo "Could not get distribution codename. Please make sure that your distribution is compatible to ubuntu/debian."
-	exit 1
+  echo "Could not get distribution codename. Please make sure that your distribution is compatible to ubuntu/debian."
+  exit 1
 fi
 
 echo "detected distro ${DISTRO} and codename ${CODENAME}"
 
-if [ "${CODENAME}" = "bionic" ] || [ "${CODENAME}" = "focal" ] || [ "${CODENAME}" = "buster" ] || [ "${CODENAME}" = "bullseye" ]; then
-  echo "Warning: your distribution is outdated and the installation may not work as expected. Please upgrade your OS."
+supported_codenames=("jammy" "noble" "bookworm" "trixie" "kali-rolling")
+if [[ ! " ${supported_codenames[*]} " =~ ${CODENAME} ]]; then
+    echo "Warning: your distribution is outdated or unsupported and the installation may not work as expected."
 fi
 
 # docker installation (source: https://docs.docker.com/engine/install/{ubuntu|debian})
