@@ -5,14 +5,16 @@ from typing import TYPE_CHECKING
 
 from analysis.PluginBase import AnalysisBasePlugin
 from plugins.analysis.kernel_config.internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
-from plugins.analysis.kernel_config.internal.decomp import decompress
+from plugins.analysis.kernel_config.internal.decomp import GZDecompressor
 from plugins.analysis.kernel_config.internal.kernel_config_hardening_check import check_kernel_hardening
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 if TYPE_CHECKING:
     from objects.file import FileObject
 
-MAGIC_WORD = b'IKCFG_ST\037\213'
+IKCONFIG_START_MAGIC = b'IKCFG_ST'
+IKCONFIG_END_MAGIC = b'IKCFG_ED'
+GZIP_MAGIC = bytes.fromhex('1f 8b')
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -20,7 +22,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'Heuristics to find and analyze Linux Kernel configurations via checksec and kconfig-hardened-check'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['file_type', 'software_components']  # noqa: RUF012
-    VERSION = '0.3.1'
+    VERSION = '0.4.0'
     FILE = __file__
 
     def additional_setup(self):
@@ -39,7 +41,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self.add_kernel_config_to_analysis(file_object, file_object.binary)
         elif file_object.file_name == 'configs.ko' or self.object_is_kernel_image(file_object):
             maybe_config = self.try_object_extract_ikconfig(file_object.binary)
-            if self.probably_kernel_config(maybe_config):
+            if maybe_config and self.probably_kernel_config(maybe_config):
                 self.add_kernel_config_to_analysis(file_object, maybe_config)
 
         file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(
@@ -85,24 +87,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def try_object_extract_ikconfig(raw_data: bytes) -> bytes:
-        container = raw_data
-        if raw_data.find(MAGIC_WORD) < 0:
-            # ikconfig is encapsulated in compression container => absence of magic word
-            inner = decompress(container)
-            if len(inner) == 0:
-                return b''
-            container = inner[0]
-
-        start_offset = container.find(MAGIC_WORD)
-        if start_offset < 0:
+        start_offset = raw_data.find(IKCONFIG_START_MAGIC)
+        end_offset = raw_data.find(IKCONFIG_END_MAGIC, start_offset)
+        if start_offset < 0 or end_offset < 0:
+            # ikconfig may be encapsulated in compression container => "linuxkernel" unpacking plugin should unpack this
+            # container and the kernel_config should be found when this file is analyzed so we just return here
             return b''
+        start_offset += len(IKCONFIG_START_MAGIC)
 
-        maybe_configs = decompress(container[start_offset:])
+        if raw_data[start_offset : start_offset + len(GZIP_MAGIC)] != GZIP_MAGIC:
+            return b''  # the kernel config should always be GZIP compressed
 
-        if len(maybe_configs) == 0:
-            return b''
-
-        return maybe_configs[0]
+        return GZDecompressor.decompress(raw_data[start_offset:end_offset])
 
     @staticmethod
     def object_mime_is_plaintext(file_object: FileObject) -> bool:

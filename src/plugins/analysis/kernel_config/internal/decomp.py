@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import bz2
 import gzip
 import io
-import lzma
-import zlib
+
+DECOMPRESS_CHUNK_SIZE = 8_388_608  # 8 MiB
 
 
 class GZDecompressor:
@@ -23,59 +22,3 @@ class GZDecompressor:
                 pass
 
         return decompressed
-
-
-_COMPRESSIONS = [
-    {'magic': b'\037\213', 'cls': GZDecompressor},
-    {'magic': b'\3757zXZ', 'cls': lzma.LZMADecompressor},
-    {'magic': b'\135\0\0\0', 'cls': lzma.LZMADecompressor},
-    {'magic': b'BZh', 'cls': bz2.BZ2Decompressor},
-]
-
-DECOMPRESS_CHUNK_SIZE = 8388608  # 8 MiB
-
-
-def _collect_compression_indices(raw, magic_word: bytes) -> list[int]:
-    indices = []
-
-    raw_offset = 0
-    while True:
-        raw_offset = raw.find(magic_word, raw_offset)
-        if raw_offset < 0:
-            break
-        indices += [raw_offset]
-        raw_offset += 1
-
-    return indices
-
-
-def _decompress_indices(raw: bytes, indices: list[int], decompressor: object) -> list[bytes]:
-    result = []
-    for index in indices:
-        try:
-            decompressed = decompressor.decompress(raw[index:])
-            if len(decompressed) > 0:
-                result.append(decompressed)
-        except (lzma.LZMAError, zlib.error, ValueError, OSError, EOFError):
-            pass
-
-    return result
-
-
-def decompress(raw: bytes) -> list[bytes]:
-    result = []
-
-    for compression in _COMPRESSIONS:
-        indices = _collect_compression_indices(raw, compression['magic'])
-
-        if len(indices) == 0:
-            continue
-
-        decompressor = compression['cls']()
-
-        result = _decompress_indices(raw, indices, decompressor)
-
-        if len(result) > 0:
-            break
-
-    return result
