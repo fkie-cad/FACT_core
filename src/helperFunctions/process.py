@@ -6,7 +6,6 @@ import traceback
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from multiprocessing import Pipe, Process
-from signal import SIGTERM
 from threading import Thread
 from typing import TYPE_CHECKING
 
@@ -105,22 +104,26 @@ class ExceptionSafeProcess(Process):
         return self._exception
 
 
-def terminate_process_and_children(process: Process) -> None:
+def terminate_process_and_children(process: Process | psutil.Process):
     """
-    Terminate a process and all of its child processes.
+    Terminate a process and all of its child processes recursively.
 
     :param process: The process to be terminated.
     """
-    process.terminate()
-    _terminate_orphans(process)
-    process.join()
+    try:
+        if isinstance(process, Process):
+            process = psutil.Process(process.pid)
+        children = process.children(recursive=False)
+        process.terminate()  # try to send SIGTERM first before SIGKILL
+        with suppress(psutil.TimeoutExpired):
+            process.wait(timeout=5)  # give the process and its children some time to exit gracefully
+        for child in children:
+            terminate_process_and_children(child)  # make sure all child processes also stop
 
-
-def _terminate_orphans(process):
-    with suppress(psutil.NoSuchProcess):
-        parent = psutil.Process(process.pid)
-        for child in parent.children(recursive=True):
-            child.send_signal(SIGTERM)
+        if process.is_running():
+            process.kill()  # if the process still runs after sending SIGTERM: send SIGKILL
+    except psutil.NoSuchProcess:
+        return  # the process no longer exists (maybe it exited in the meantime)
 
 
 def start_single_worker(process_index: int, label: str, function: Callable) -> ExceptionSafeProcess:
