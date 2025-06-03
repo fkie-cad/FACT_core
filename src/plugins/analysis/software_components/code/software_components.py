@@ -50,8 +50,26 @@ class AnalysisPlugin(YaraBasePlugin):
         pattern = re.compile(regex)
         version = pattern.search(input_string)
         if version is not None:
-            return self._strip_leading_zeroes(version.group(0))
+            version_string = version.group(0)
+            if '_sub_regex' in meta_dict and '_sub_replacement' in meta_dict:
+                version_string = self._convert_version_str(
+                    version_string,
+                    meta_dict['_sub_regex'],
+                    meta_dict['_sub_replacement'],
+                )
+            else:
+                version_string = self._strip_leading_zeroes(version_string)
+            return version_string
         return ''
+
+    @staticmethod
+    def _convert_version_str(version: str, pattern: str, replacement: str) -> str:
+        """
+        Convert a version string to a different form (e.g. insert dots).
+        """
+        if not isinstance(pattern, str) or not isinstance(replacement, str):
+            return version
+        return re.sub(pattern, replacement, version)
 
     @staticmethod
     def _get_summary(results: dict) -> list[str]:
@@ -86,9 +104,12 @@ class AnalysisPlugin(YaraBasePlugin):
                     'mode': 'version_function',
                     'function_name': result['meta']['_version_function'],
                 }
-            versions.update(
-                extract_data_from_ghidra(file_object.file_path, input_data, config.backend.docker_mount_base_dir)
+            ghidra_data = extract_data_from_ghidra(
+                file_object.file_path, input_data, config.backend.docker_mount_base_dir
             )
+            for version_str in ghidra_data:
+                if version := self.get_version(version_str, result['meta']):
+                    versions.add(version)
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')
         result['meta']['version'] = list(versions)
