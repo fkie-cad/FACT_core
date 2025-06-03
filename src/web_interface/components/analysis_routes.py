@@ -51,26 +51,26 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/<selected_analysis>', GET)
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', GET)
     def show_analysis(self, uid, selected_analysis=None, root_uid=None):
-        other_versions = None
-        all_comparisons = self.db.comparison.page_comparison_results()
         with get_shared_session(self.db.frontend) as frontend_db:
-            known_comparisons = [comparison for comparison in all_comparisons if uid in comparison[0]]
             file_obj = frontend_db.get_object(uid)
             if not file_obj:
                 return render_template('uid_not_found.html', uid=uid)
             if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
                 flash(f'The requested analysis ({selected_analysis}) has not run (yet)', 'warning')
                 selected_analysis = None
+
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
                 other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
+                file_tree_paths = [[file_obj.uid]]
+                aggregated_comments = frontend_db.get_comments_for_firmware(file_obj.uid)
+            else:  # FileObject (i.e. not the root Firmware object)
+                other_versions = None
+                file_tree_paths = frontend_db.get_file_tree_path(uid, root_uid=none_to_none(root_uid))
+                aggregated_comments = {}
+
             included_fo_analysis_complete = not frontend_db.all_uids_found_in_database(list(file_obj.files_included))
-            file_tree_paths = (
-                frontend_db.get_file_tree_path(uid, root_uid=none_to_none(root_uid))
-                if not isinstance(file_obj, Firmware)
-                else [[file_obj.uid]]
-            )
-        analysis_plugins = self.intercom.get_available_analysis_plugins()
+            analysis_plugins = self.intercom.get_available_analysis_plugins()
 
         analysis = file_obj.processed_analysis.get(selected_analysis, {})
 
@@ -88,11 +88,14 @@ class AnalysisRoutes(ComponentBase):
             other_versions=other_versions,
             uids_for_comparison=get_comparison_uid_dict_from_session(),
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
-            known_comparisons=known_comparisons,
+            known_comparisons=[
+                comparison for comparison in self.db.comparison.page_comparison_results() if uid in comparison[0]
+            ],
             available_plugins=self._get_used_and_unused_plugins(
                 file_obj.processed_analysis, [x for x in analysis_plugins if x != 'unpacker']
             ),
             link_target=self._get_link_target(file_obj, root_uid),
+            aggregated_comments=aggregated_comments,
         )
 
     def _get_correct_template(self, selected_analysis: str | None, fw_object: Firmware | FileObject):
@@ -212,8 +215,7 @@ class AnalysisRoutes(ComponentBase):
         colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
         if not data_graph_part['nodes']:
             flash(
-                'Error: Graph could not be rendered. '
-                'The file chosen as root must contain a filesystem with binaries.',
+                'Error: Graph could not be rendered. The file chosen as root must contain a filesystem with binaries.',
                 'danger',
             )
             return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
