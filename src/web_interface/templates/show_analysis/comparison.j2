@@ -23,15 +23,15 @@
                 <table>
                     <tr>
                         <td style="width: 10px; vertical-align: top;">
-                            {% for compare_uid in uids_for_comparison %}
+                            {% for comparison_uid in uids_for_comparison %}
                                 <div class="col-xs-12 p-0">
                                 <span class="m-0" style="padding: 2px; display: inline-flex;">
                                     <span class="close" style="font-size: 20px"
-                                          onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}/{{ root_uid }}'">
+                                          onclick="location.href='/comparison/remove/{{ uid }}/{{ comparison_uid }}/{{ root_uid }}'">
                                         &times;
                                     </span>
-                                    <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}"
-                                          style="margin-left: 3px">{{ compare_uid | replace_uid_with_hid | safe }}</span>
+                                    <span class="tag badge badge-{% if comparison_uid == uid %}primary{% else %}secondary{% endif %}"
+                                          style="margin-left: 3px">{{ comparison_uid | replace_uid_with_hid | safe }}</span>
                                 </span>
                                 </div>
                             {% endfor %}
@@ -46,13 +46,13 @@
                                     </button>
                                 </div>
                                 <div class="col-xs-12" style="padding: 2px;">
-                                    <button type="button" id="start_compare_button" class="btn btn-secondary btn-sm"
+                                    <button type="button" id="start_comparison_button" class="btn btn-secondary btn-sm"
                                             style="width: 100%">
                                         <i class="fas fa-copy"></i> Compare
                                     </button>
                                 </div>
                                 <div class="col-xs-12" style="padding: 2px;">
-                                    <button type="button" id="start_text_file_compare_button"
+                                    <button type="button" id="start_text_file_comparison_button"
                                             class="btn btn-secondary btn-sm" style="width: 100%">
                                         <i class="fas fa-copy"></i> Compare text files
                                     </button>
