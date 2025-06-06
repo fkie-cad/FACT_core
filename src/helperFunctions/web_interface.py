@@ -7,7 +7,6 @@ from datetime import timedelta
 from common_helper_files import get_binary_from_file
 from matplotlib import colormaps as cm
 from matplotlib import colors
-from passlib.context import CryptContext
 from quantiphy import Quantity
 
 from helperFunctions.fileSystem import get_template_dir
@@ -17,6 +16,8 @@ SPECIAL_CHARACTERS = (
     'ĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœ'
     'ŔŕŘřẞßŚśŜŝŞşŠšȘșŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
 )
+DES_PW_LEN = 13
+PW_SCHEME_INDICATORS = ['$1$', '$2$', '$2a$', '$2y$', '$5$', '$6$', '$y$', '$pbkdf2']
 
 
 def get_color_list(number: int, limit: int = 10) -> list[str]:
@@ -94,11 +95,9 @@ def password_is_legal(pw: str) -> bool:
     :param pw: The password string.
     :return: ``True`` if the password is accepted and ``False`` otherwise.
     """
-    if not pw:
+    if not pw or len(pw) == DES_PW_LEN:
         return False
-    schemes = ['bcrypt', 'des_crypt', 'pbkdf2_sha256', 'pbkdf2_sha512', 'sha256_crypt', 'sha512_crypt', 'plaintext']
-    ctx = CryptContext(schemes=schemes)
-    return ctx.identify(pw) == 'plaintext'
+    return not any(pw.startswith(indicator) for indicator in PW_SCHEME_INDICATORS)
 
 
 def cap_length_of_element(hid_element: str, maximum: int = 55) -> str:
