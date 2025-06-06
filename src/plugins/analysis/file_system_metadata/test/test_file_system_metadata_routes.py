@@ -1,7 +1,7 @@
 from base64 import b64encode
+from contextlib import contextmanager
 
 import pytest
-from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
