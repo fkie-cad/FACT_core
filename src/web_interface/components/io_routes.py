@@ -35,7 +35,7 @@ class IORoutes(ComponentBase):
             raise
         fw = convert_analysis_task_to_fw_obj(analysis_task)
         self.intercom.add_analysis_task(fw)
-        return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
+        return analysis_task['uid']
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', GET)
