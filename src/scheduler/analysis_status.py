@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 
 import config
 from helperFunctions.process import stop_process
-from objects.firmware import Firmware
 from storage.redis_status_interface import RedisStatusInterface
 
 if TYPE_CHECKING:
@@ -45,38 +44,39 @@ class AnalysisStatus:
         self._worker.shutdown()
         self._manager.shutdown()
 
-    def add_update(self, fw_object: Firmware | FileObject, included_files: list[str] | set[str]):
-        self.add_object(fw_object)
+    def add_update(self, fw_object: FileObject, included_files: list[str] | set[str]):
+        # normally, status is initialized during unpacking, but since unpacking is skipped for updates, we need to
+        # init it here first before adding the object
+        self.init_firmware(fw_object)
         self._worker.queue.put((_UpdateType.add_update, fw_object.uid, included_files))
 
-    def add_object(self, fw_object: Firmware | FileObject):
-        if isinstance(fw_object, Firmware):
-            self._worker.queue.put(
-                (
-                    _UpdateType.add_firmware,
-                    fw_object.uid,
-                    fw_object.files_included,
-                    fw_object.get_hid(),
-                    fw_object.scheduled_analysis,
-                )
+    def init_firmware(self, fw_object: FileObject):
+        self._worker.queue.put(
+            (
+                _UpdateType.add_firmware,
+                fw_object.uid,
+                fw_object.get_hid(),
+                fw_object.scheduled_analysis,
             )
-        else:
-            self._worker.queue.put(
-                (
-                    _UpdateType.add_file,
-                    fw_object.uid,
-                    fw_object.root_uid,
-                    fw_object.files_included,
-                )
+        )
+
+    def add_object(self, fw_object: FileObject):
+        self._worker.queue.put(
+            (
+                _UpdateType.add_file,
+                fw_object.uid,
+                fw_object.root_uid,
+                fw_object.files_included,
             )
+        )
 
     def add_analysis(self, fw_object: FileObject, plugin: str):
         self._worker.queue.put((_UpdateType.add_analysis, fw_object.root_uid, plugin))
 
-    def remove_object(self, fw_object: Firmware | FileObject):
+    def remove_object(self, fw_object: FileObject):
         self._worker.queue.put((_UpdateType.remove_file, fw_object.uid, fw_object.root_uid))
 
-    def fw_analysis_is_in_progress(self, fw_object: Firmware | FileObject) -> bool:
+    def fw_analysis_is_in_progress(self, fw_object: FileObject) -> bool:
         return fw_object.root_uid in self._currently_analyzed or fw_object.uid in self._currently_analyzed
 
     def cancel_analysis(self, root_uid: str):
@@ -93,7 +93,7 @@ class FwAnalysisStatus:
     start_time: float = field(default_factory=time)
     completed_files: set[str] = field(default_factory=set)
     total_files_with_duplicates: int = 1
-    unpacked_files_count: int = 1
+    unpacked_files_count: int = 0
     analyzed_files_count: int = 0
 
 
@@ -109,14 +109,16 @@ class AnalysisStatusWorker:
         self.redis = RedisStatusInterface()
 
     def start(self):
-        self._running.value = 1
-        self._worker_process = Process(target=self._worker_loop)
-        self._worker_process.start()
+        if self._running.value == 0:
+            self._running.value = 1
+            self._worker_process = Process(target=self._worker_loop)
+            self._worker_process.start()
 
     def shutdown(self):
-        self._running.value = 0
-        if self._worker_process is not None:
-            stop_process(self._worker_process, timeout=10)
+        if self._running.value == 1:
+            self._running.value = 0
+            if self._worker_process is not None:
+                stop_process(self._worker_process, timeout=10)
 
     def _worker_loop(self):
         logging.debug(f'starting analysis status worker (pid: {os.getpid()})')
@@ -157,11 +159,11 @@ class AnalysisStatusWorker:
         status.total_files_with_duplicates = file_count
         status.files_to_analyze = {fw_uid, *included_files}
 
-    def _add_firmware(self, uid: str, included_files: set[str], hid: str, scheduled_analyses: list[str] | None):
+    def _add_firmware(self, uid: str, hid: str, scheduled_analyses: list[str] | None):
         self.currently_running[uid] = FwAnalysisStatus(
-            files_to_unpack=set(included_files),
+            files_to_unpack={uid},
             files_to_analyze={uid},
-            total_files_count=1 + len(included_files),
+            total_files_count=1,
             hid=hid,
             analysis_plugins={p: 0 for p in scheduled_analyses or []},
         )
