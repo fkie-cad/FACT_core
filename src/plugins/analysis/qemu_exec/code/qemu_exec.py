@@ -24,7 +24,7 @@ from helperFunctions import magic
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 from unpacker.unpack_base import UnpackBase
 
 if TYPE_CHECKING:
@@ -40,7 +40,7 @@ CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 class Unpacker(UnpackBase):
     def __init__(self):
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
 
     def unpack_fo(self, file_object: FileObject) -> TemporaryDirectory | None:
         file_path = file_object.file_path if file_object.file_path else self._get_path_from_fo(file_object)
@@ -53,7 +53,7 @@ class Unpacker(UnpackBase):
         return extraction_dir
 
     def _get_path_from_fo(self, file_object: FileObject) -> str:
-        return self.fs_organizer.generate_path(file_object)
+        return self.file_service.generate_path(file_object)
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
