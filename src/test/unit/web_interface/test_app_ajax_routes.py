@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 import pytest
 
-from helperFunctions.data_conversion import normalize_compare_id
+from helperFunctions.data_conversion import normalize_comparison_id
 from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
 from test.mock import mock_patch
 
@@ -10,14 +10,14 @@ from test.mock import mock_patch
 class DbMock(CommonDatabaseMock):
     @staticmethod
     def get_comparison_result(comparison_id):
-        if comparison_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+        if comparison_id == normalize_comparison_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
             return {
-                'this_is': 'a_compare_result',
+                'this_is': 'a_comparison_result',
                 'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}},
                 'plugins': {'File_Coverage': {'some_feature': {TEST_FW.uid: [TEST_TEXT_FILE.uid]}}},
             }
-        if comparison_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
-            return {'this_is': 'a_compare_result'}
+        if comparison_id == normalize_comparison_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+            return {'this_is': 'a_comparison_result'}
         return 'generic error'
 
     @staticmethod
@@ -51,7 +51,7 @@ class TestAppAjaxRoutes:
         result = test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/not_found').data
         assert b'No summary found' in result
 
-    def test_ajax_get_common_files_for_compare(self, test_client):
+    def test_ajax_get_common_files_for_comparison(self, test_client):
         url = f'/compare/ajax_common_files/{TEST_FW.uid};{TEST_FW_2.uid}/some_feature___{TEST_FW.uid}/'
         result = test_client.get(url).data.decode()
         assert TEST_FW.uid in result
