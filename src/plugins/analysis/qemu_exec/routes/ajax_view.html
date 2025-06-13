@@ -7,12 +7,12 @@
         </th>
     </tr>
 
-    {% for parent_uid, result in results.items() %}
+    {% for parent_uid, file_result in results.items() %}
 
         <tr data-toggle="collapse" data-target="#collapse-{{ parent_uid }}">
             <td class="clickable" colspan=2>
-                <i class="fas fa-angle-down"></i> {{ parent_uid | replace_uid_with_hid | safe }} -- {{ result['path'] }}
-                {% if result['executable'] %}
+                <i class="fas fa-angle-down"></i> {{ parent_uid | replace_uid_with_hid | safe }} -- {{ file_result.path }}
+                {% if file_result.is_executable %}
                     <i class="fas fa-check text-success"></i>
                 {% else %}
                     <i class="fas fa-times text-danger"></i>
@@ -23,77 +23,72 @@
         <tr>
             <td colspan="2" class="qemu-td p-0">
                 <div class="collapse" id="collapse-{{ parent_uid }}">
-
                     <table class="table table-bordered m-0" style="width: 100%">
                         <tr>
-                            <td width="175px">Executable in QEMU:</td>
-                            <td>{{ result['executable'] }}</td>
+                            <td style="width: 175px;">Executable in QEMU:</td>
+                            <td>{{ file_result.is_executable }}</td>
                         </tr>
 
-                        {% if result['results'] %}
-                        <tr>
-                            <td>Individual Results:</td>
-                            <td class="p-0">
-                                <table class="table table-bordered m-0" style="width: 100%">
-                                    {% if 'error' in result['results'] %}
-                                        <!-- error outside docker container -->
-                                        <tr><td><b class="text-danger">Error</b>: {{ result['results']['error'] }}</td></tr>
-                                    {% else %}
-                                        {% for arch in result['results'] %}
+                        {% if file_result.extended_results %}
+                            <tr>
+                                <td>Individual Results:</td>
+                                <td class="p-0">
+                                    <table class="table table-bordered m-0" style="width: 100%">
+                                        {% for arch_result in file_result.extended_results %}
                                             <tr>
-                                                <td width="1px" rowspan="{{ (result['results'][arch] | length - 1) * 3 + 1 }}">
-                                                    {{ arch }}
+                                                {% set row_count = (arch_result.parameter_results | length) * 3 %}
+                                                <td style="width: 1px;" rowspan="{{ row_count }}">
+                                                    {{ arch_result.architecture }}
                                                 </td>
-                                            {% if 'error' in result['results'][arch] %}
+                                            {% if arch_result.error %}
                                                 <!-- error in docker container case -->
-                                                <td><b class="text-danger">Error</b>: {{ result['results'][arch]['error'] }}</td>
+                                                <td><b class="text-danger">Error</b>: {{ arch_result.error }}</td>
                                             {% else %}
                                                 <!-- no error case -->
-                                                {% for option in result['results'][arch] %}
-                                                    {% if option != 'strace' %}
-                                                        {% set option_result = result['results'][arch][option] %}
-                                                        <td width="1px" rowspan="3">{{ option }}</td>
-                                                        <td>stdout</td>
-                                                        <td class="qemu-td" style="padding: 5px;">
-                                                            {% if option_result['stdout'] %}
-                                                            <pre class="qemu-pre"
-                                                                >{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stdout'] }}</pre>
-                                                            {% else %}Empty{% endif %}
-                                                        </td>
-                                                        </tr><tr>
-                                                        <td>stderr</td>
-                                                        <td>
-                                                            {% if option_result['stderr'] %}{{ option_result['stderr'] }}{% else %}Empty{% endif %}
-                                                        </td>
-                                                        </tr><tr>
-                                                        <td>return code</td>
-                                                        <td>{{ option_result['return_code'] }}</td>
-                                                        </tr><tr>
-                                                    {% endif %}
+                                                {% for option_result in arch_result.parameter_results %}
+                                                    <td style="width: 1px;" rowspan="3">{{ option_result.parameters }}</td>
+                                                    <td>stdout</td>
+                                                    <td class="qemu-td" style="padding: 5px;">
+                                                        {% if option_result.stdout %}
+                                                            <pre class="qemu-pre">{{ '$ .' + file_result.path + ' ' + option_result.parameters + '\n' + option_result.stdout }}</pre>
+                                                        {% else %}
+                                                            Empty
+                                                        {% endif %}
+                                                    </td>
+                                                    </tr><tr>
+                                                    <td>stderr</td>
+                                                    <td>
+                                                        {% if option_result.stderr %}
+                                                            {{ option_result.stderr }}
+                                                        {% else %}
+                                                            Empty
+                                                        {% endif %}
+                                                    </td>
+                                                    </tr><tr>
+                                                    <td>return code</td>
+                                                    <td>{{ option_result.return_code }}</td>
+                                                    </tr><tr>
                                                 {% endfor %}
                                             {% endif %}
-                                            {% if 'strace' in result['results'][arch] %}
-                                                <td width="1px">strace</td>
-                                                <td colspan="2">
-                                                    {% if result['results'][arch]['strace'] %}
-                                                        <pre class="qemu-pre">{{ result['results'][arch]['strace'] | decompress }}</pre>
-                                                    {% else %}Empty{% endif %}
-                                                </td>
+                                            <td style="width: 1px;">strace</td>
+                                            <td colspan="2">
+                                                {% if arch_result.strace %}
+                                                    <pre class="qemu-pre">{{ arch_result.strace | decompress }}</pre>
+                                                {% else %}
+                                                    Empty
+                                                {% endif %}
+                                            </td>
                                             </tr>
-                                            {% else %}
-                                                </tr>
-                                            {% endif %}
                                         {% endfor %}
-                                    {% endif %}
-                                </table>
-                            </td>
-                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
                         {% endif %}
                     </table>
-
                 </div>
             </td>
         </tr>
     {% endfor %}
 </table>
+
 {% endif %}
