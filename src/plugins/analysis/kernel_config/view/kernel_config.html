@@ -2,19 +2,19 @@
 
 {% block analysis_result_details %}
 
-    {% if 'kernel_config' in analysis_result | sort %}
+    {% if analysis_result.is_kernel_config %}
         <tr>
             <td>Kernel Config</td>
-            <td><pre class="border rounded p-2 bg-light" style="white-space: pre-wrap; height: 450px; overflow: scroll;"><code>{{ analysis_result['kernel_config'] | safe }}</code></pre></td>
+            <td><pre class="border rounded p-2 bg-light" style="white-space: pre-wrap; height: 450px; overflow: scroll;"><code>{{ analysis_result.kernel_config | safe }}</code></pre></td>
         </tr>
 
         {# checksec kernel check result #}
-        {% if 'checksec' in analysis_result and analysis_result['checksec'] != {} %}
+        {% if analysis_result.checksec and analysis_result.checksec.kernel or analysis_result.checksec.selinux %}
             <tr>
                 <td>Exploit Mitigations</td>
                 <td style="padding: 0">
                     <table style="width: 100%">
-                        {% for category, checksec_data in analysis_result['checksec'].items() %}
+                        {% for category, checksec_data in analysis_result.checksec.items() %}
                             <tr>
                                 <td>{{ category }}</td>
                                 <td style="padding: 0">
@@ -35,7 +35,7 @@
         {% endif %}
 
         {# kconfig-hardened-check result #}
-        {% if 'hardening' in analysis_result and analysis_result['hardening'] != [] %}
+        {% if analysis_result.hardening != [] %}
             <tr>
                 <td>Hardening Check</td>
                 <td style="padding: 0">
@@ -43,26 +43,33 @@
                         <tr>
                             <td class="table-head-light">Config Item</td>
                             <td class="table-head-light">Check Result</td>
+                            <td class="table-head-light">Actual Value</td>
                             <td class="table-head-light">Desired Value</td>
                             <td class="table-head-light">Reasoning</td>
                             <td class="table-head-light">Relates to</td>
                         </tr>
-                        {% for option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities in analysis_result['hardening'] %}
-                        {# option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities  #}
+                        {% for hardening_result in analysis_result.hardening %}
                             <tr>
-                                <td>
-                                    <a href="https://www.kernelconfig.io/search?q={{ option_name }}">
-                                        {{ option_name }}
+                                <td style="word-break: break-all;">
+                                    <a href="https://www.kernelconfig.io/search?q={{ hardening_result.option_name }}">
+                                        {{ hardening_result.option_name }}
                                     </a>
                                 </td>
-                                {% set cell_class = 'table-success' if 'OK' in check_result else 'table-danger' if 'FAIL' in check_result else '' %}
-                                <td class="{{ cell_class }}">{{ check_result }}</td>
-                                <td>{{ desired_value }}</td>
-                                <td>{{ reason | replace_underscore }}</td>
+                                {% if 'OK' in hardening_result.check_result %}
+                                    {% set cell_class = 'table-success' %}
+                                {% elif 'FAIL' in hardening_result.check_result %}
+                                    {% set cell_class = 'table-danger' %}
+                                {% else %}
+                                    {% set cell_class = '' %}
+                                {% endif %}
+                                <td class="{{ cell_class }}">{{ hardening_result.check_result }}</td>
+                                <td>{{ hardening_result.actual_value }}</td>
+                                <td>{{ hardening_result.desired_value }}</td>
+                                <td>{{ hardening_result.reason | replace_underscore }}</td>
                                 <td>
-                                    {% if vulnerabilities %}
+                                    {% if hardening_result.vulnerabilities %}
                                         <ul style="margin-bottom: 0;">
-                                            {% for item in vulnerabilities %}
+                                            {% for item in hardening_result.vulnerabilities %}
                                                 <li>{{ item | link_cve | link_cwe | safe }}</li>
                                             {% endfor %}
                                         </ul>

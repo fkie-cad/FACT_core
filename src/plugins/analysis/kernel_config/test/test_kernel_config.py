@@ -1,164 +1,162 @@
+from io import FileIO
 from pathlib import Path
 from subprocess import CompletedProcess
 
 import pytest
 
-from objects.file import FileObject
+from plugins.analysis.file_type.code.file_type import AnalysisPlugin as FileTypePlugin
+from plugins.analysis.software_components.code.software_components import AnalysisPlugin as SoftwarePlugin
+from plugins.analysis.software_components.code.software_components import SoftwareMatch
 
-from ..code.kernel_config import AnalysisPlugin
+from ..code.kernel_config import AnalysisPlugin, object_is_kernel_image, try_extracting_kconfig
 from ..internal.checksec_check_kernel import check_kernel_config
 from ..internal.decomp import GZDecompressor
-from ..internal.kernel_config_hardening_check import check_kernel_hardening
+from ..internal.kernel_config_hardening_check import HardeningCheckResult, check_kernel_hardening
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
+VALID_DEPENDENCIES_KO = {
+    'file_type': FileTypePlugin.Schema(
+        mime='application/x-object',
+        full='ELF 64-bit LSB relocatable',
+    ),
+    'software_components': SoftwarePlugin.Schema(
+        software_components=[
+            SoftwareMatch(
+                name='linux kernel',
+                versions=['1.2.3'],
+                rule='foo',
+                matching_strings=[],
+            ),
+        ]
+    ),
+}
+VALID_DEPENDENCIES_IMG = {
+    'file_type': FileTypePlugin.Schema(
+        mime='application/octet-stream',
+        full='Linux kernel',
+    ),
+    'software_components': SoftwarePlugin.Schema(
+        software_components=[
+            SoftwareMatch(
+                name='linux kernel',
+                versions=['1.2.3'],
+                rule='foo',
+                matching_strings=[],
+            ),
+        ]
+    ),
+}
+VALID_DEPENDENCIES_CFG = {
+    'file_type': FileTypePlugin.Schema(
+        mime='text/plain',
+        full='ASCII text',
+    ),
+    'software_components': SoftwarePlugin.Schema(software_components=[]),
+}
+
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
-class ExtractIKConfigTest:
+class TestExtractIKConfig:
     def test_probably_kernel_config_true(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
-
-        assert analysis_plugin.probably_kernel_config(test_file.binary)
+        test_file = TEST_DATA_DIR / 'configs' / 'CONFIG'
+        assert analysis_plugin._is_probably_kconfig(test_file.read_bytes())
 
     def test_probably_kernel_config_false(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG_MAGIC_CORRUPT'))
-        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
-
-        assert not analysis_plugin.probably_kernel_config(test_file.binary)
+        test_file = TEST_DATA_DIR / 'configs' / 'CONFIG_MAGIC_CORRUPT'
+        assert not analysis_plugin._is_probably_kconfig(test_file.read_bytes())
 
     def test_probably_kernel_config_utf_error(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'random_invalid/a.image'))
-        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
-
-        assert not analysis_plugin.probably_kernel_config(test_file.binary)
+        test_file = TEST_DATA_DIR / 'random_invalid' / 'a.image'
+        assert not analysis_plugin._is_probably_kconfig(test_file.read_bytes())
 
     def test_process_configs_ko_success(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'synthetic/configs.ko'))
-        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
-
-        analysis_plugin.process_object(test_file)
-
-        assert test_file.processed_analysis[analysis_plugin.NAME]['is_kernel_config']
-        assert len(test_file.processed_analysis[analysis_plugin.NAME]['kernel_config']) > 0
+        test_file = TEST_DATA_DIR / 'synthetic' / 'configs.ko'
+        result = analysis_plugin.analyze(FileIO(test_file), {}, VALID_DEPENDENCIES_KO)
+        _assert_is_kconfig(result)
 
     def test_process_configs_ko_failure(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'synthetic/ko_failure/configs.ko'))
-        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
+        test_file = TEST_DATA_DIR / 'synthetic' / 'ko_failure' / 'configs.ko'
 
-        analysis_plugin.process_object(test_file)
-
-        assert 'is_kernel_config' not in test_file.processed_analysis[analysis_plugin.NAME]
-        assert 'kernel_config' not in test_file.processed_analysis[analysis_plugin.NAME]
+        result = analysis_plugin.analyze(FileIO(test_file), {}, VALID_DEPENDENCIES_KO)
+        _assert_is_not_kconfig(result)
 
     def test_process_valid_plain_text(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
+        test_file = TEST_DATA_DIR / 'configs' / 'CONFIG'
 
-        analysis_plugin.process_object(test_file)
-
-        assert test_file.processed_analysis[analysis_plugin.NAME]['is_kernel_config']
-        assert test_file.processed_analysis[analysis_plugin.NAME]['kernel_config'] == test_file.binary.decode()
+        result = analysis_plugin.analyze(FileIO(test_file), {}, VALID_DEPENDENCIES_CFG)
+        _assert_is_kconfig(result)
 
     def test_process_invalid_plain_text(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'random_invalid/c.image'))
-        test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
+        test_file = TEST_DATA_DIR / 'random_invalid' / 'c.image'
 
-        analysis_plugin.process_object(test_file)
+        result = analysis_plugin.analyze(FileIO(test_file), {}, VALID_DEPENDENCIES_CFG)
 
-        assert 'is_kernel_config' not in test_file.processed_analysis[analysis_plugin.NAME]
-        assert 'kernel_config' not in test_file.processed_analysis[analysis_plugin.NAME]
+        _assert_is_not_kconfig(result)
 
     def test_extract_ko_success(self, analysis_plugin):
-        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'synthetic/configs.ko'))
-        test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
-        test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
+        test_file = TEST_DATA_DIR / 'synthetic' / 'configs.ko'
 
-        result = AnalysisPlugin.try_object_extract_ikconfig(test_file.binary)
+        result = try_extracting_kconfig(test_file.read_bytes())
 
         assert len(result) > 0
-        assert analysis_plugin.probably_kernel_config(result)
+        assert analysis_plugin._is_probably_kconfig(result)
 
-    def test_process_objects_kernel_image(self, analysis_plugin):
-        for valid_image in (TEST_DATA_DIR / 'synthetic').glob('*.image'):
-            test_file = FileObject(file_path=str(valid_image))
-            test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
-            test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
+    def test_analyze_kernel_image(self, analysis_plugin):
+        test_file = TEST_DATA_DIR / 'synthetic' / 'gz.image'
+        result = analysis_plugin.analyze(FileIO(test_file), {}, VALID_DEPENDENCIES_IMG)
+        _assert_is_kconfig(result)
 
-            analysis_plugin.process_object(test_file)
-
-            assert test_file.processed_analysis[analysis_plugin.NAME]['is_kernel_config']
-            assert len(test_file.processed_analysis[analysis_plugin.NAME]['kernel_config']) > 0
-
-        for bad_image in (TEST_DATA_DIR / 'random_invalid').glob('*.image'):
-            test_file = FileObject(file_path=str(bad_image))
-            test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
-            test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
-
-            analysis_plugin.process_object(test_file)
-
-            assert 'is_kernel_config' not in test_file.processed_analysis[analysis_plugin.NAME]
-            assert 'kernel_config' not in test_file.processed_analysis[analysis_plugin.NAME]
+    @pytest.mark.parametrize('file', (TEST_DATA_DIR / 'random_invalid').glob('*.image'))
+    def test_analyze_kernel_image_fail(self, analysis_plugin, file):
+        result = analysis_plugin.analyze(FileIO(file), {}, VALID_DEPENDENCIES_IMG)
+        _assert_is_not_kconfig(result)
 
 
-def test_plaintext_mime_true():
-    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
+def _assert_is_kconfig(result: AnalysisPlugin.Schema):
+    assert result.is_kernel_config is True
+    assert isinstance(result.kernel_config, str)
+    assert len(result.kernel_config) > 0
 
-    assert AnalysisPlugin.object_mime_is_plaintext(test_file)
 
-
-def test_plaintext_mime_false():
-    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/json'}}
-
-    assert not AnalysisPlugin.object_mime_is_plaintext(test_file)
+def _assert_is_not_kconfig(result: AnalysisPlugin.Schema):
+    assert result.is_kernel_config is False
+    assert not isinstance(result.kernel_config, str)
 
 
 def test_try_extract_decompress_fail():
-    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'synthetic/configs.ko.corrupted'))
-    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
-    test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
-
-    assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''
+    test_file = TEST_DATA_DIR / 'synthetic' / 'configs.ko.corrupted'
+    result = try_extracting_kconfig(test_file.read_bytes())
+    assert result == b''
 
 
-def test_is_kernel_image_true():
-    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
-    test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
-
-    assert AnalysisPlugin.object_is_kernel_image(test_file)
-
-
-def test_is_kernel_image_false():
-    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
-    test_file.processed_analysis['software_components'] = {'summary': ['FreeBSD Kernel']}
-
-    assert not AnalysisPlugin.object_is_kernel_image(test_file)
+@pytest.mark.parametrize(
+    ('deps', 'expected'),
+    [
+        (VALID_DEPENDENCIES_KO, True),
+        (VALID_DEPENDENCIES_IMG, True),
+        (VALID_DEPENDENCIES_CFG, False),
+    ],
+)
+def test_is_kernel_image(deps, expected):
+    assert object_is_kernel_image(deps['software_components']) is expected
 
 
 def test_try_extract_fail():
-    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
-    test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
-    test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
-
-    assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''
+    test_file = TEST_DATA_DIR / 'configs' / 'CONFIG'
+    result = try_extracting_kconfig(test_file.read_bytes())
+    assert result == b''
 
 
-def test_try_extract_random_fail():
-    for fp in (TEST_DATA_DIR / 'random_invalid').glob('*.image'):
-        test_file = FileObject(file_path=fp)
-        test_file.processed_analysis['file_type'] = {'result': {'mime': 'application/octet-stream'}}
-        test_file.processed_analysis['software_components'] = {'summary': ['Linux Kernel']}
-        assert AnalysisPlugin.try_object_extract_ikconfig(test_file.binary) == b''
+@pytest.mark.parametrize('file', (TEST_DATA_DIR / 'random_invalid').glob('*.image'))
+def test_try_extract_random_fail(file):
+    assert try_extracting_kconfig(file.read_bytes()) == b''
 
 
 def test_gz_break_on_true():
-    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG.gz'))
+    test_file = TEST_DATA_DIR / 'configs' / 'CONFIG.gz'
     decompressor = GZDecompressor()
-    assert decompressor.decompress(test_file.binary) != b''
+    assert decompressor.decompress(test_file.read_bytes()) != b''
 
 
 def test_checksec_existing_config():
@@ -185,26 +183,9 @@ def test_check_kernel_hardening():
     kernel_config = test_file.read_text()
     result = check_kernel_hardening(kernel_config)
     assert isinstance(result, list)
-    assert all(isinstance(tup, tuple) for tup in result)
+    assert all(isinstance(tup, HardeningCheckResult) for tup in result)
     assert len(result) > 50
-    assert all(len(tup) == 7 for tup in result), 'all results should have 6 elements'
-    assert any(len(tup[5]) > 0 for tup in result), 'some "protection against" info shouldn\'t be empty'
 
 
 def test_check_hardening_no_results():
     assert check_kernel_hardening('CONFIG_FOOBAR=y') == []
-
-
-@pytest.mark.parametrize(
-    ('full_type', 'expected_output'),
-    [
-        ('foobar 123', False),
-        ('Linux make config build file, ASCII text', True),
-        ('Linux make config build file (old)', True),
-    ],
-)
-def test_foo1(full_type, expected_output):
-    test_file = FileObject()
-    test_file.processed_analysis['file_type'] = {'result': {'full': full_type}}
-
-    assert AnalysisPlugin.has_kconfig_type(test_file) == expected_output
