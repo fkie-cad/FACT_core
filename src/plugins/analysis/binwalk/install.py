@@ -5,7 +5,7 @@ import urllib.request
 from pathlib import Path
 
 try:
-    from helperFunctions.install import OperateInDirectory, check_distribution, is_virtualenv, run_cmd_with_logging
+    from helperFunctions.install import OperateInDirectory, is_virtualenv, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
@@ -13,7 +13,7 @@ except ImportError:
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from helperFunctions.install import OperateInDirectory, check_distribution, is_virtualenv, run_cmd_with_logging
+    from helperFunctions.install import OperateInDirectory, is_virtualenv, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
 
@@ -42,6 +42,4 @@ Installer = BinwalkInstaller
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    distribution = check_distribution()
-    installer = Installer(distribution)
-    installer.install()
+    Installer().install()
