@@ -122,13 +122,11 @@ function updatePluginRuntimeStatsTooltip(pluginData, pluginName) {
 
 function getPluginRuntimeStats(stats) {
     if (stats !== null) {
-        return `
-            min: ${stats.min}s<br>
-            max: ${stats.max}s<br>
-            mean: ${stats.mean}s<br>
-            median: ${stats.median}s<br>
-            count: ${stats.count}
-        `;
+        return `min: ${stats.min}s
+            max: ${stats.max}s
+            mean: ${stats.mean}s
+            median: ${stats.median}s
+            count: ${stats.count}`;
     } else {
         return "N/A<br>count: 0";
     }
