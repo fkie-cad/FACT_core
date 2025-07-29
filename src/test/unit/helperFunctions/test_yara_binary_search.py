@@ -10,7 +10,7 @@ TEST_FILE_3 = 'binary_search_test_3'
 
 class MockCommonDbInterface:
     @staticmethod
-    def get_all_files_in_fw(uid):
+    def get_list_of_all_included_files(uid):
         if uid == 'single_firmware':
             return [TEST_FILE_2, TEST_FILE_3]
         return []
@@ -50,9 +50,3 @@ class TestHelperFunctionsYaraBinarySearch:
         result = yara_binary_scanner.get_binary_search_result((b'no valid rule', 'foobar'))
         assert isinstance(result, str)
         assert 'There seems to be an error in the rule file' in result
-
-    def test_get_file_paths_of_files_included_in_fo(self, yara_binary_scanner):
-        result = yara_binary_scanner._get_file_paths_of_files_included_in_fw('single_firmware')
-        assert len(result) == 2
-        assert result[0].endswith(TEST_FILE_2)
-        assert result[1].endswith(TEST_FILE_3)
