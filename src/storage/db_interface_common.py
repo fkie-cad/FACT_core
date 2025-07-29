@@ -283,10 +283,14 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== included files. =====
 
-    def get_list_of_all_included_files(self, fo: FileObject) -> set[str]:
-        if isinstance(fo, Firmware):
-            return self.get_all_files_in_fw(fo.uid)
-        return self.get_all_files_in_fo(fo)
+    def get_list_of_all_included_files(self, fo_or_uid: FileObject | str) -> set[str]:
+        if isinstance(fo_or_uid, str):
+            uid = fo_or_uid
+            is_fw = self.is_firmware(uid)
+        else:
+            uid = fo_or_uid.uid
+            is_fw = isinstance(fo_or_uid, Firmware)
+        return self.get_all_files_in_fw(uid) if is_fw else self.get_all_files_in_fo(uid)
 
     def get_all_files_in_fw(self, fw_uid: str) -> set[str]:
         """Get a set of UIDs of all files (recursively) contained in a firmware"""
@@ -294,19 +298,20 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             query = select(fw_files_table.c.file_uid).where(fw_files_table.c.root_uid == fw_uid)
             return set(session.execute(query).scalars())
 
-    def get_all_files_in_fo(self, fo: FileObject) -> set[str]:
+    def get_all_files_in_fo(self, uid: str) -> set[str]:
         """Get a set of UIDs of all files (recursively) contained in a file"""
         with self.get_read_only_session() as session:
-            return self._get_files_in_files(session, fo.files_included).union({fo.uid, *fo.files_included})
-
-    def _get_files_in_files(self, session, uid_set: set[str], recursive: bool = True) -> set[str]:
-        if not uid_set:
-            return set()
-        query = select(FileObjectEntry).filter(FileObjectEntry.uid.in_(uid_set))
-        included_files = {child.uid for fo in session.execute(query).scalars() for child in fo.included_files}
-        if recursive and included_files:
-            included_files.update(self._get_files_in_files(session, included_files))
-        return included_files
+            # recursive query for included files
+            bottom_query = (
+                select(included_files_table).where(included_files_table.c.parent_uid == uid).cte(recursive=True)
+            )
+            parent_table = aliased(included_files_table)
+            recursive_parent_child_query = select(parent_table).join(
+                bottom_query, parent_table.c.parent_uid == bottom_query.c.child_uid
+            )
+            final_query = bottom_query.union_all(recursive_parent_child_query)
+            included_files = set(session.execute(select(final_query.c.child_uid)).scalars())
+            return included_files.union({uid})
 
     # ===== summary =====
 
