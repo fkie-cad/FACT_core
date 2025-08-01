@@ -93,7 +93,10 @@ whitelist = [
 max-depth = 8
 # Memory limit in MiB.
 # memory-limit = 2048
+# halt unpacking temporarily if the cumulated input queue length of all analysis plugins reaches this value
 throttle-limit = 100
+# time interval in seconds to check if throttling should be enabled
+throttle-interval = 2
 # tcp port(s) for task server
 base-port = 9900
 # if you experience FileNotFound errors during unpacking, increasing this value slightly might help
