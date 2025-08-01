@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from copy import deepcopy
 
+from pydantic import BaseModel
+
 RELATIONS = {
     'exists': lambda x, y: True,  # noqa: ARG005
     'equals': lambda x, y: x == y,
@@ -58,7 +60,7 @@ class Vulnerability:
 
 
 class SingleRule:
-    def __init__(self, value_path, relation, comparison):
+    def __init__(self, value_path: list[str], relation: str, comparison: str):
         for assertion, error_message in [
             (isinstance(value_path, list), 'value_path must be list of dot separated access strings'),
             (relation in RELATIONS, f'relation must be one of {list(RELATIONS.keys())}'),
@@ -103,26 +105,24 @@ class SoftwareRule:
         self.affected_versions = affected_versions
 
     def evaluate(self, processed_analysis: dict[str, dict]) -> bool:
-        software_components = (
-            processed_analysis.get('software_components', {}).get('result', {}).get('software_components', [])
-        )
         return any(
-            sw['name'] == self.software_name and v in self.affected_versions
-            for sw in software_components
-            for v in sw['versions']
+            sc['name'] == self.software_name and version in self.affected_versions
+            for sc in processed_analysis['software_components']['software_components']
+            for version in sc['versions']
         )
 
 
-def evaluate(analysis, rule):
+def evaluate(dependencies: dict[str, BaseModel | dict], rule: MetaRule | SingleRule | SubPathRule | SoftwareRule):
+    analyses_as_dicts = {k: v.model_dump() if isinstance(v, BaseModel) else v for k, v in dependencies.items()}
     try:
         if isinstance(rule, MetaRule):
-            result = _evaluate_meta_rule(analysis, rule)
+            result = _evaluate_meta_rule(analyses_as_dicts, rule)
         elif isinstance(rule, SingleRule):
-            result = _evaluate_single_rule(analysis, rule)
+            result = _evaluate_single_rule(analyses_as_dicts, rule)
         elif isinstance(rule, SubPathRule):
-            result = _evaluate_sub_path_rule(analysis, rule)
+            result = _evaluate_sub_path_rule(analyses_as_dicts, rule)
         elif isinstance(rule, SoftwareRule):
-            result = rule.evaluate(analysis)
+            result = rule.evaluate(analyses_as_dicts)
         else:
             raise TypeError('rule must be of one in types [SingleRule, MetaRule, SubPathRule]')
         return result
@@ -187,7 +187,7 @@ def vulnerabilities():
     )
 
     netgear_cgi_rule = SingleRule(
-        value_path=['file_hashes.result.sha256'],
+        value_path=['file_hashes.sha256'],
         relation='equals',
         comparison='7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a',
     )
