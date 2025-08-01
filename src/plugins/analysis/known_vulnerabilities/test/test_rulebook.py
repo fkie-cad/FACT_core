@@ -113,21 +113,17 @@ def test_software_rule():
     rule = SoftwareRule(software_name='foo', affected_versions={'v1.2.2', 'v1.2.3'})
     processed_analysis_match = {
         'software_components': {
-            'result': {
-                'software_components': [
-                    {'name': 'foo', 'versions': ['v1.2.2']},
-                ]
-            }
+            'software_components': [
+                {'name': 'foo', 'versions': ['v1.2.2']},
+            ]
         }
     }
     processed_analysis_no_match = {
         'software_components': {
-            'result': {
-                'software_components': [
-                    {'name': 'foo', 'versions': ['v1.2.1', 'v1.2.4']},
-                    {'name': 'bar', 'versions': ['v1.2.2']},
-                ]
-            }
+            'software_components': [
+                {'name': 'foo', 'versions': ['v1.2.1', 'v1.2.4']},
+                {'name': 'bar', 'versions': ['v1.2.2']},
+            ]
         }
     }
 
