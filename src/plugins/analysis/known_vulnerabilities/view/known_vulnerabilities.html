@@ -2,17 +2,17 @@
 
 {% block analysis_result_details %}
 
-{% for key in analysis_result %}
+{% for vuln in analysis_result.vulnerabilities %}
     <tr>
-        <td class="table-{{ analysis_result[key]['score'] | vulnerability_class }}">{{ key }}</td>
+        <td class="table-{{ vuln.score | vulnerability_class }}">{{ vuln.name }}</td>
         <td class="d-flex justify-content-between align-items-center">
-            {{ analysis_result[key]['description'] }}
-            {% if analysis_result[key]['link'] %}
-                <a href="{{ analysis_result[key]['link'] }}" target="_blank"><span class="fas fa-link"></span></a>
+            {{ vuln.description }}
+            {% if vuln.link %}
+                <a href="{{ vuln.link }}" target="_blank"><span class="fas fa-link"></span></a>
             {% endif %}
-            {% if analysis_result[key]['additional_data'] %}
+            {% if vuln.additional_data %}
                 <table class="table table-bordered mb-0 pb-0">
-                    {% for inner_key, value in analysis_result[key]['additional_data'].items() %}
+                    {% for inner_key, value in vuln.additional_data.items() %}
                         <tr>
                             <td>{{ inner_key }}</td>
                             <td>{{ value }}</td>
