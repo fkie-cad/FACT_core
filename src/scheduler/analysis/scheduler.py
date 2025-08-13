@@ -232,7 +232,7 @@ class AnalysisScheduler:
                 if issubclass(PluginClass, AnalysisPluginV0):
                     plugin: AnalysisPluginV0 = PluginClass()
                     self.analysis_plugins[plugin.metadata.name] = plugin
-                    schemata[plugin.metadata.name] = PluginClass.Schema
+                    schemata[plugin.metadata.name] = plugin.metadata.Schema
                     _sync_view(plugin_module, plugin.metadata.name)
                 elif issubclass(PluginClass, AnalysisBasePlugin):
                     self.analysis_plugins[PluginClass.NAME] = PluginClass()

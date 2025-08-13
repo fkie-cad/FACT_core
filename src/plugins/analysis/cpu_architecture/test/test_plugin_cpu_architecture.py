@@ -1,94 +1,63 @@
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
-from objects.file import FileObject
+from plugins.analysis.cpu_architecture.internal import dt, elf, kconfig, metadata
+from plugins.analysis.file_type.code.file_type import AnalysisPlugin as TypePlugin
+from plugins.analysis.kernel_config.code.kernel_config import AnalysisPlugin as KConfPlugin
 
-from ..internal import dt, elf, kconfig, metadata
-
-with open(Path(__file__).parent / 'data/dt.dts') as dt_file:  # noqa: PTH123
-    dts = dt_file.read()
-
-_mock_device_tree_analysis = {
-    'device_tree': {
-        'result': {
-            'device_trees': [
-                {
-                    'string': dts,
-                },
-            ]
-        }
-    }
-}
+dt_file = Path(__file__).parent / 'data/dt.dts'
+dts = dt_file.read_text()
 
 
-_mock_kernel_config_analysis_mips = {
-    'kernel_config': {
-        'result': {
-            'kernel_config': 'CONFIG_CPU_MIPS32_R2=y\n',
-        }
-    }
-}
+@dataclass
+class MockDeviceTree:
+    string: str
 
 
-_mock_kernel_config_analysis_arm = {
-    'kernel_config': {
-        'kernel_config': 'CONFIG_CPU_V7=y\n',
-    }
-}
+@dataclass
+class MockDeviceTreeSchema:
+    device_trees: list
+
+
+_mock_device_tree_analysis = MockDeviceTreeSchema(device_trees=[MockDeviceTree(string=dts)])
+
+_mock_kernel_config_analysis_mips = KConfPlugin.Schema(is_kernel_config=True, kernel_config='CONFIG_CPU_MIPS32_R2=y\n')
+_mock_kernel_config_analysis_arm = KConfPlugin.Schema(is_kernel_config=True, kernel_config='CONFIG_CPU_V7=y\n')
 
 
 def test_dt_construct_result():
-    fo = FileObject()
-    fo.processed_analysis.update(_mock_device_tree_analysis)
-    result = dt.construct_result(fo)
+    result = dt.construct_result({'device_tree': _mock_device_tree_analysis})
     assert 'arm,cortex-a9' in result
 
 
 def test_kconfig_construct_result():
-    fo = FileObject()
-    fo.processed_analysis.update(_mock_kernel_config_analysis_mips)
-
-    result = kconfig.construct_result(fo)
+    result = kconfig.construct_result({'kernel_config': _mock_kernel_config_analysis_mips})
     for key in result:
         assert 'mips_v2' in key
         assert '64-bit' not in key
 
-    fo = FileObject()
-    fo.processed_analysis.update(_mock_kernel_config_analysis_arm)
-
-    result = kconfig.construct_result(fo)
+    result = kconfig.construct_result({'kernel_config': _mock_kernel_config_analysis_arm})
     for key in result:
         assert 'armv7' in key
         assert '64-bit' not in key
 
 
-def test_elf_construct_result():
-    class MockFSOrganizer:
-        generate_path = None
-
-    mock_fs_organizer = MockFSOrganizer()
-    fo = FileObject()
-
-    arm32_exe_path = Path(__file__).parent / 'data/hello_world_arm32'
-    arm64_exe_path = Path(__file__).parent / 'data/hello_world_arm64'
-    mips3_exe_path = Path(__file__).parent / 'data/hello_world_mips3'
-
-    mock_fs_organizer.generate_path = lambda _: arm32_exe_path
-    result = elf.construct_result(fo, mock_fs_organizer)
+@pytest.mark.parametrize(
+    ('expected_str', 'path'),
+    [
+        ('v8', 'data/hello_world_arm32'),
+        ('v8', 'data/hello_world_arm64'),
+        # 'data/hello_world_arm64' # TODO Make the plugin work with arm64
+        ('MIPS III', 'data/hello_world_mips3'),
+    ],
+)
+def test_elf_construct_result(expected_str, path):
+    exe_path = Path(__file__).parent / path
+    result = elf.construct_result(exe_path)
     for key in result:
-        assert 'v8' in key
-
-    mock_fs_organizer.generate_path = lambda _: arm64_exe_path
-    result = elf.construct_result(fo, mock_fs_organizer)
-    for key in result:  # noqa: B007
-        # TODO Make the plugin work with arm64
-        assert True
-
-    mock_fs_organizer.generate_path = lambda _: mips3_exe_path
-    result = elf.construct_result(fo, mock_fs_organizer)
-    for key in result:
-        assert 'MIPS III' in key
+        assert expected_str in key
 
 
 @pytest.mark.parametrize(
@@ -234,10 +203,8 @@ def test_elf_construct_result():
     ],
 )
 def test_metadatadetector_get_device_architecture(architecture, bitness, endianness, full_file_type):
-    fo = FileObject()
-    fo.processed_analysis['file_type'] = {'result': {'mime': 'x-executable', 'full': full_file_type}}
-
-    result = metadata.construct_result(fo)
+    dependency_result = {'file_type': TypePlugin.Schema(mime='x-executable', full=full_file_type)}
+    result = metadata.construct_result(dependency_result)
     assert (
         f'{architecture}, {bitness}, {endianness} (M)' in result
     ), f'architecture not correct: expected {architecture}'
