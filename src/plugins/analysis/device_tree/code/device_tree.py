@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Dict, Optional
 
+from semver import Version
+
 from analysis.plugin import AnalysisPluginV0, Tag
 from helperFunctions.tag import TagColor
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
@@ -17,7 +19,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         metadata = AnalysisPluginV0.MetaData(
             name='device_tree',
             description='get the device tree in text from the device tree blob',
-            version='2.0.0',
+            version=Version(2, 0, 1),
             system_version=None,
             mime_blacklist=[*MIME_BLACKLIST_COMPRESSED, 'audio', 'image', 'video'],
             timeout=10,
@@ -54,9 +56,6 @@ class AnalysisPlugin(AnalysisPluginV0):
                 device_trees.append(device_tree)
             except IllegalDeviceTreeError:
                 offset += 1
-
-        if len(device_trees) == 0:
-            return None
 
         return Schema(device_trees=device_trees)
 
