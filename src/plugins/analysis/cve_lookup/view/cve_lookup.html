@@ -1,46 +1,56 @@
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
-    {% for product_name, result in analysis_result['cve_results'].items() | sort %}
+    {% for software_result in analysis_result.cve_results | sort %}
         <tr>
-            <td>{{ product_name }}</td>
-            {% if result == ['N/A'] %}
-                <td>N/A</td>
-            {% else %}
-                <td class="p-0 m-0">
-                    <table class="table table-bordered m-0" style="width: 100%;">
-                        {% set cvss_versions = result | get_cvss_versions %}
-                        <tr>
-                            <th class="text-right" rowspan="2" style="min-width: 200px">CVE ID</th>
-                            <th class="text-center" colspan="{{ cvss_versions | length | max(1) }}" style="min-width: 200px">CVSS scores</th>
-                            <th class="text-left" rowspan="2" style="width: 100%;">Affected versions</th>
-                        </tr>
-                        <tr>
-                            {% if (cvss_versions | length) > 0 %}
-                                {% for version in cvss_versions | sort %}
-                                    <th class="text-center" style="width: 75px;">{{ version }}</th>
-                                {% endfor %}
-                            {% else %}
-                                {# if there is no entry with a CVSS score, display a row of "N/A" #}
-                                <th class="text-center" style="width: 75px;">N/A</th>
+            <td>{{ software_result.software_name }}</td>
+            <td class="p-0 m-0">
+                <table class="table table-bordered m-0" style="width: 100%;">
+                    {# first we try to find out which CVSS versions there are in the data #}
+                    {% set ns = namespace(cvss_versions=[], score="N/A") %}
+                    {% for cve in software_result.cve_list %}
+                        {% for cvss in cve.scores %}
+                            {% if cvss.version not in ns.cvss_versions %}
+                                {% set ns.cvss_versions = ns.cvss_versions + [cvss.version] %}
                             {% endif %}
-                        </tr>
-                        {% for cve_id, entry in result | sort_cve() %}
-                        <tr>
-                            <td class="text-right">
-                                <a href="https://nvd.nist.gov/vuln/detail/{{ cve_id }}" target="_blank" rel="noopener noreferrer">{{ cve_id }} </a>
-                            </td>
-                            {% for version in (cvss_versions or ["N/A"]) | sort %}
-                                {% set score = entry.scores.get(version, "N/A") %}
-                                {% set class = "secondary" if score == "N/A" else ("success" if score|float < 4 else ("warning" if score|float < 7 else "danger")) %}
-                                <td class="text-center"><span class="badge badge-{{ class }}" style="font-size: 100%;">{{ score }}</span></td>
-                            {% endfor %}
-                            <td class="text-left">{{ entry.get("cpe_version", "N/A") }}</td>
-                        </tr>
                         {% endfor %}
-                    </table>
-                </td>
-            {% endif %}
+                    {% endfor %}
+
+                    <tr>
+                        <th class="text-right" rowspan="2" style="min-width: 200px">CVE ID</th>
+                        <th class="text-center" colspan="{{ ns.cvss_versions | length | max(1) }}" style="min-width: 200px">CVSS scores</th>
+                        <th class="text-left" rowspan="2" style="width: 100%;">Affected versions</th>
+                    </tr>
+                    <tr>
+                        {% if (ns.cvss_versions | length) > 0 %}
+                            {% for version in ns.cvss_versions | sort %}
+                                <th class="text-center" style="width: 75px;">{{ version }}</th>
+                            {% endfor %}
+                        {% else %}
+                            {# if there is no entry with a CVSS score, display a row of "N/A" #}
+                            <th class="text-center" style="width: 75px;">N/A</th>
+                        {% endif %}
+                    </tr>
+                    {% for cve in software_result.cve_list | sort_cve %}
+                    <tr>
+                        <td class="text-right">
+                            <a href="https://nvd.nist.gov/vuln/detail/{{ cve.id }}" target="_blank" rel="noopener noreferrer">{{ cve.id }} </a>
+                        </td>
+                        {% for version in (ns.cvss_versions or ["N/A"]) | sort %}
+                            {% set ns.score = "N/A" %}
+                            {% for cvss_entry in cve.scores %}
+                                {% if cvss_entry.version == version %}
+                                    {% set ns.score = cvss_entry.score %}
+                                {% endif %}
+                            {% endfor %}
+                            {% set class = "secondary" if ns.score == "N/A" else ("success" if ns.score | float < 4 else ("warning" if ns.score | float < 7 else "danger")) %}
+                            <td class="text-center"><span class="badge badge-{{ class }}" style="font-size: 100%;">{{ ns.score }}</span></td>
+                        {% endfor %}
+                        <td class="text-left">{{ cve.cpe_version }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
         </tr>
     {% endfor %}
 

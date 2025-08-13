@@ -4,10 +4,11 @@ import logging
 import operator
 import re
 from itertools import combinations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from packaging.version import InvalidVersion, Version
 from packaging.version import parse as parse_version
+from pydantic import BaseModel
 
 from .busybox_cve_filter import filter_busybox_cves
 from .database.db_interface import DbInterface
@@ -16,17 +17,34 @@ from .helper_functions import replace_wildcards
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from objects.file import FileObject
-
     from .database.db_connection import DbConnection
     from .database.schema import Association, Cpe
 
 VALID_VERSION_REGEX = re.compile(r'v?(\d+!)?\d+(\.\d+)*([.-]?(a(lpha)?|b(eta)?|c|dev|post|pre(view)?|r|rc)?\d+)?')
 
 
+class CvssScore(BaseModel):
+    version: str
+    score: str
+
+
+class CveMatch(BaseModel):
+    id: str
+    cpe_version: str
+    scores: List[CvssScore]
+
+    def __lt__(self, other):
+        if not isinstance(other, self.__class__):
+            raise TypeError(f'Wrong type: {type(other)}')
+        return self.id < other.id  # to enable sorting
+
+    def _get_scores_as_dict(self):
+        return {cvss.version: cvss.score for cvss in self.scores}
+
+
 class Lookup:
-    def __init__(self, file_object: FileObject, connection: DbConnection, match_any: bool = False):
-        self.file_object = file_object
+    def __init__(self, file_path: str, connection: DbConnection, match_any: bool = False):
+        self.file_path = file_path
         self.db_interface = DbInterface(connection)
         self.match_any = match_any
 
@@ -34,11 +52,11 @@ class Lookup:
         self,
         product_name: str,
         requested_version: str,
-    ) -> dict:
+    ) -> list[CveMatch]:
         """
         Look up vulnerabilities for a given product and requested version.
         """
-        vulnerabilities = {}
+        vulnerabilities: list[CveMatch] = []
         product_terms = self._generate_search_terms(product_name)
         version = replace_wildcards([requested_version])[0]
         cpe_matches = self.db_interface.match_cpes(product_terms)
@@ -49,16 +67,19 @@ class Lookup:
             cve_ids = [association.cve_id for association in association_matches]
             cves = self.db_interface.get_cves(cve_ids)
             if 'busybox' in product_terms:
-                cves = filter_busybox_cves(self.file_object, cves)
+                cves = filter_busybox_cves(self.file_path, cves)
             for association in association_matches:
                 cve = cves.get(association.cve_id)
                 if cve:
                     cpe = cpe_matches.get(association.cpe_id)
-                    vulnerabilities[cve.cve_id] = {
-                        'scores': cve.cvss_score,
-                        'cpe_version': self._build_version_string(association, cpe),
-                    }
-
+                    scores = [CvssScore(version=version, score=str(score)) for version, score in cve.cvss_score.items()]
+                    vulnerabilities.append(
+                        CveMatch(
+                            id=association.cve_id,
+                            cpe_version=self._build_version_string(association, cpe),
+                            scores=scores,
+                        )
+                    )
         return vulnerabilities
 
     @staticmethod
@@ -157,7 +178,8 @@ class Lookup:
             # try to throw away revisions and other stuff at the end as a final measure
             return parse_version(re.split(r'[^v.\d]', fixed_version)[0])
 
-    def _build_version_string(self, association: Association, cpe: Cpe) -> str:
+    @staticmethod
+    def _build_version_string(association: Association, cpe: Cpe) -> str:
         """
         Build a version string based on the cpe cve association boundaries.
         """

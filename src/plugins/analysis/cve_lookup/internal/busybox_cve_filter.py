@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
-
     from .database.schema import Cve
 
 BASE_DIR = Path(__file__).parent
@@ -18,23 +16,23 @@ with GROUP_1_PATH.open('r') as f1, GROUP_2_PATH.open('r') as f2:
     GROUP_1 = f1.read().splitlines()
     GROUP_2 = f2.read().splitlines()
 
-PATTERNS_1 = [re.compile(rf'(?:\")(?:{re.escape(word)})(?:\-|\")') for word in GROUP_1]
-PATTERNS_2 = [re.compile(rf'(?:\b|\_)(?:{re.escape(word)})(?:\b|-)') for word in GROUP_2]
+PATTERNS_1 = [re.compile(rf'(?:"){re.escape(word)}(?:-|")') for word in GROUP_1]
+PATTERNS_2 = [re.compile(rf'(?:\b|_){re.escape(word)}(?:\b|-)') for word in GROUP_2]
 
 
-def filter_busybox_cves(file_object: FileObject, cves: dict[str, Cve]) -> dict[str, Cve]:
+def filter_busybox_cves(file_path: str, cves: dict[str, Cve]) -> dict[str, Cve]:
     """
     Filters the BusyBox CVEs based on the components present in the binary file and the specified version.
     """
-    components = get_busybox_components(file_object)
-    return filter_cves_by_component(file_object, cves, components)
+    components = get_busybox_components(file_path)
+    return filter_cves_by_component(file_path, cves, components)
 
 
-def get_busybox_components(file_object: FileObject) -> list[str]:
+def get_busybox_components(file_path: str) -> list[str]:
     """
     Extracts the BusyBox components from the binary file.
     """
-    data = Path(file_object.file_path).read_bytes()
+    data = Path(file_path).read_bytes()
     start_index = data.index(b'\x5b\x00\x5b\x5b\x00')
     end_index = data.index(b'\x00\x00', start_index + 5)
     extracted_bytes = data[start_index : end_index + 2]
@@ -42,7 +40,7 @@ def get_busybox_components(file_object: FileObject) -> list[str]:
     return [word.decode('ascii') for word in split_bytes if word]
 
 
-def filter_cves_by_component(file_object: FileObject, cves: dict[str, Cve], components: list[str]) -> dict[str, Cve]:
+def filter_cves_by_component(file_path: str, cves: dict[str, Cve], components: list[str]) -> dict[str, Cve]:
     """
     Filters CVEs based on the components present in the BusyBox binary file.
     """
@@ -54,7 +52,7 @@ def filter_cves_by_component(file_object: FileObject, cves: dict[str, Cve], comp
 
     num_deleted = len(cves) - len(filtered_cves)
     if num_deleted > 0:
-        logging.debug(f'{file_object}: Deleted {num_deleted} CVEs with components not found in this BusyBox binary')
+        logging.debug(f'{file_path}: Deleted {num_deleted} CVEs with components not found in this BusyBox binary')
 
     return filtered_cves
 
