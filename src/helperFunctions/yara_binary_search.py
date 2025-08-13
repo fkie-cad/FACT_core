@@ -42,13 +42,12 @@ class YaraBinarySearchScanner:
         yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
         return yara_process.stdout
 
-    def _execute_yara_search_for_single_firmware(self, rule_file_path: str, firmware_uid: str) -> str:
-        file_paths = self._get_file_paths_of_files_included_in_fw(firmware_uid)
-        result = (self._execute_yara_search(rule_file_path, path) for path in file_paths)
-        return '\n'.join(result)
-
-    def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> list[str]:
-        return [self.fs_organizer.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
+    def _do_yara_search_on_incl_files(self, rule_file_path: str, uid: str) -> str:
+        file_paths = [
+            self.fs_organizer.generate_path_from_uid(included_uid)
+            for included_uid in self.db.get_list_of_all_included_files(uid)
+        ]
+        return '\n'.join(self._execute_yara_search(rule_file_path, path) for path in file_paths)
 
     @staticmethod
     def _parse_raw_result(raw_result: str) -> dict[str, dict[str, list[dict]]]:
@@ -108,21 +107,21 @@ class YaraBinarySearchScanner:
         :return: dict of matching rules with lists of (unique) matched UIDs as values or an error message.
         """
         with NamedTemporaryFile() as temp_rule_file:
-            yara_rules, firmware_uid = task
+            yara_rules, uid = task
             try:
                 self._prepare_temp_rule_file(temp_rule_file, yara_rules)
-                raw_result = self._get_raw_result(firmware_uid, temp_rule_file)
+                raw_result = self._get_raw_result(uid, temp_rule_file)
                 return self._parse_raw_result(raw_result)
             except yara.SyntaxError as yara_error:
                 return f'There seems to be an error in the rule file:\n{yara_error}'
             except CalledProcessError as process_error:
                 return f'Error when calling YARA:\n{process_error.output.decode()}'
 
-    def _get_raw_result(self, firmware_uid: str | None, temp_rule_file: NamedTemporaryFile) -> str:
-        if firmware_uid is None:
+    def _get_raw_result(self, uid: str | None, temp_rule_file: NamedTemporaryFile) -> str:
+        if uid is None:
             raw_result = self._execute_yara_search(temp_rule_file.name)
         else:
-            raw_result = self._execute_yara_search_for_single_firmware(temp_rule_file.name, firmware_uid)
+            raw_result = self._do_yara_search_on_incl_files(temp_rule_file.name, uid)
         return raw_result
 
     @staticmethod
