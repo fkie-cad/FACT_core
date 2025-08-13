@@ -115,7 +115,11 @@ class PluginRunner:
             Schema = self._schemata[dependency]  # noqa: N806
             # Try to convert to the schema defined by the plugin
             result = file_object.processed_analysis[dependency]['result']
-            dependencies[dependency] = Schema(**result)
+            try:
+                dependencies[dependency] = Schema(**result)
+            except Exception as e:
+                logging.error(f'Error while processing dependency {dependency}: {e} {type(Schema)=} {self._schemata=}')
+                raise
         # also allow plugins to access unpacking results (which cannot be defined as dependency and have no schema)
         dependencies['unpacker'] = file_object.processed_analysis.get('unpacker', {}).get('result')
 
