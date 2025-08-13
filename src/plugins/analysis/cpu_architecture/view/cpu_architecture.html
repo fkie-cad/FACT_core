@@ -5,11 +5,10 @@
     <td class="table-head-light"><b>Architecture</b></td>
     <td class="table-head-light"><b>Means of Detection</b></td>
 </tr>
-    {# old results do not have the "architectures" key #}
-    {% for result, method in analysis_result.get("architectures", analysis_result).items() %}
+    {% for arch_entry in analysis_result.architectures %}
         <tr>
-            <td>{{ result }}</td>
-            <td>{{ method }}</td>
+            <td>{{ arch_entry.value }}</td>
+            <td>{{ arch_entry.detection_method }}</td>
         </tr>
     {% endfor %}
 {% endblock %}

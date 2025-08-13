@@ -71,23 +71,16 @@ def _get_compatible_entry(dts: str) -> str | None:
     return compatible[0].replace('\0', ' ')
 
 
-def construct_result(file_object):
-    device_tree_result = file_object.processed_analysis['device_tree'].get('result', {})
+def construct_result(dependency_results: dict):
+    device_tree_result = dependency_results['device_tree']
     if not device_tree_result:
         return {}
 
     result = {}
-    for dt_dict in device_tree_result.get('device_trees', []):
-        dt = dt_dict['string']
-
-        compatible_entry = _get_compatible_entry(dt)
+    for dt_entry in device_tree_result.device_trees:
+        compatible_entry = _get_compatible_entry(dt_entry.string)
         if compatible_entry is None:
             continue
-
-        result.update(
-            {
-                compatible_entry: 'DeviceTree',
-            },
-        )
+        result |= {compatible_entry: 'DeviceTree'}
 
     return result
