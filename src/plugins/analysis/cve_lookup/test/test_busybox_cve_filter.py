@@ -1,7 +1,7 @@
 import pytest
 
-from ..internal.busybox_cve_filter import filter_cves_by_component
-from ..internal.database.schema import Cve
+from plugins.analysis.cve_lookup.internal.busybox_cve_filter import filter_cves_by_component
+from plugins.analysis.cve_lookup.internal.database.schema import Cve
 
 CVE_DICT = {
     'CVE-2021-42385': Cve(

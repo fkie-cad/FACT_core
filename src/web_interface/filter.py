@@ -498,20 +498,19 @@ def _link_to_cwe(match: Match) -> str:
     return f'<a href="https://cwe.mitre.org/data/definitions/{match.group(1)}.html">{match.group(0)}</a>'
 
 
-def sort_cve_results(cve_result: dict[str, dict[str, str]]) -> list[tuple[str, dict[str, str]]]:
-    return sorted(cve_result.items(), key=_cve_sort_key)
+def sort_cve_results(cve_list: list[dict]) -> list[dict]:
+    return sorted(cve_list, key=_cve_sort_key)
 
 
-def _cve_sort_key(item: tuple[str, dict]) -> tuple[float, float, str]:
+def _cve_sort_key(cve: dict) -> tuple[float, float, str]:
     """
     primary sorting key: -max(v2 score, v3.0 score, v3.1 score, v4.0 score, ...)
     secondary sorting key: -min(v2 score, v3.0 score, v3.1 score, v4.0 score, ...)
     tertiary sorting key: CVE ID
     use negative values so that highest scores come first, and we can also sort by CVE ID
     """
-    score_dict = item[1]['scores']
-    scores = {_cve_score_to_float(value) for value in score_dict.values()}
-    return -max(scores or [0.0]), -min(scores or [0.0]), item[0]
+    scores = {_cve_score_to_float(cvss['score']) for cvss in cve['scores']}
+    return -max(scores or [0.0]), -min(scores or [0.0]), cve['id']
 
 
 def _cve_score_to_float(score: float | str) -> float:
@@ -519,10 +518,6 @@ def _cve_score_to_float(score: float | str) -> float:
         return float(score)
     except ValueError:  # "N/A" entries
         return 0.0
-
-
-def get_cvss_versions(cve_result: dict) -> set[str]:
-    return {score_version for entry in cve_result.values() for score_version in entry['scores']}
 
 
 def sort_dict_list_by_key(dict_list: list[dict], key: Any) -> list[dict]:

@@ -1,6 +1,6 @@
 import pytest
 
-from ..internal.helper_functions import replace_wildcards
+from plugins.analysis.cve_lookup.internal.helper_functions import replace_wildcards
 
 
 @pytest.mark.parametrize(
