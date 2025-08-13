@@ -1,6 +1,6 @@
 import pytest
 
-from ..internal.lookup import Lookup
+from plugins.analysis.cve_lookup.internal.lookup import Lookup
 
 
 @pytest.mark.parametrize(

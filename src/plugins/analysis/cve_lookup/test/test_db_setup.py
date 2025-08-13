@@ -1,7 +1,7 @@
-from ..internal.database.db_connection import DbConnection
-from ..internal.database.db_setup import DbSetup
-from ..internal.database.schema import Association, Cpe, Cve
-from ..internal.helper_functions import CveEntry
+from plugins.analysis.cve_lookup.internal.database.db_connection import DbConnection
+from plugins.analysis.cve_lookup.internal.database.db_setup import DbSetup
+from plugins.analysis.cve_lookup.internal.database.schema import Association, Cpe, Cve
+from plugins.analysis.cve_lookup.internal.helper_functions import CveEntry
 
 CPE_ID = 'cpe:2.3:o:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other'
 CVE_ENTRY = CveEntry(

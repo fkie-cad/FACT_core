@@ -162,7 +162,6 @@ class FilterClass:
                 'format_duration': flt.format_duration,
                 'format_string_list_with_offset': flt.filter_format_string_list_with_offset,
                 'get_canvas_height': flt.get_canvas_height,
-                'get_cvss_versions': flt.get_cvss_versions,
                 'get_searchable_crypto_block': flt.get_searchable_crypto_block,
                 'get_unique_keys_from_list_of_dicts': flt.get_unique_keys_from_list_of_dicts,
                 'group_dict_list_by_key': flt.group_dict_list_by_key,
