@@ -1,37 +1,80 @@
 import pytest
 
-from test.common_helper import create_test_file_object
+from plugins.analysis.hash.code.hash import AnalysisPlugin as HashPlugin
+from plugins.analysis.hashlookup.code.hashlookup import AnalysisPlugin, HashLookupError
 
-from ..code.hashlookup import AnalysisPlugin
+KNOWN_HASH = 'DEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEF'
+SAMPLE_RESULT = {
+    'db': 'nsrl_legacy',
+    'MD5': 'DEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEF',
+    'TLSH': 'DEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEF',
+    'CRC32': 'DEADBEEF',
+    'SHA-1': 'DEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEF',
+    'SSDEEP': '1337:deadbeef++BAADF00D:DEADBEEF+/1337',
+    'source': 'db.sqlite',
+    'SHA-256': 'DEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEFDEAFBEEF',
+    'parents': [
+        {
+            'MD5': 'BAADF00DBAADF00DBAADF00DBAADF00D',
+            'SHA-1': 'BAADF00DBAADF00DBAADF00DBAADF00DBAADF00D',
+            'SHA-256': 'BAADF00DBAADF00DBAADF00DBAADF00DBAADF00DBAADF00DBAADF00DBAADF00D',
+            'FileSize': '1337',
+            'PackageName': 'foobar',
+            'PackageSection': 'admin',
+            'PackageVersion': '1337',
+            'PackageMaintainer': 'Debian systemd Maintainers',
+            'PackageDescription': 'description',
+        }
+    ],
+    'FileName': 'foobar.service',
+    'FileSize': '1337',
+    'ProductCode': {
+        'MfgCode': '1337',
+        'Language': 'English',
+        'ProductCode': '1337',
+        'ProductName': 'FooBar',
+        'OpSystemCode': '1337',
+        'ProductVersion': 'November 2020',
+        'ApplicationType': 'software collection',
+    },
+    'SpecialCode': '',
+    'OpSystemCode': {'MfgCode': '1337', 'OpSystemCode': '1337', 'OpSystemName': 'TBD', 'OpSystemVersion': 'none'},
+    'RDS:package_id': '1337',
+    'hashlookup:trust': 100,
+    'insert-timestamp': '1696459415.71279',
+    'hashlookup:parent-total': 1,
+}
 
-KNOWN_ZSH_HASH = 'A6F2177402114FC8B5E7ECF924FFA61A2AC25BD347BC3370FB92E07B76E0B44C'
+
+def mock_look_up_hash(sha2_hash):
+    if sha2_hash == KNOWN_HASH:
+        return SAMPLE_RESULT
+    if sha2_hash == 'unknown_hash'.upper():
+        return {'message': 'Non existing SHA-256'}
+    return {}
 
 
 @pytest.fixture
-def file_object(monkeypatch):
-    test_file = create_test_file_object()
-    monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_file.file_path)
-    return test_file
+def _dont_get(monkeypatch):
+    monkeypatch.setattr('plugins.analysis.hashlookup.code.hashlookup._look_up_hash', mock_look_up_hash)
 
 
+@pytest.mark.usefixtures('_dont_get')
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
-class TestHashlookup:
-    def test_process_object_unknown_hash(self, analysis_plugin, file_object):
-        file_object.processed_analysis['file_hashes'] = {'result': {'sha256': file_object.sha256}}
-        analysis_plugin.process_object(file_object)
-        result = file_object.processed_analysis[analysis_plugin.NAME]
-        assert 'message' in result
-        assert 'sha256 hash unknown' in result['message']
+class TestHashLookup:
+    def test_process_object_known_hash(self, analysis_plugin):
+        dependencies = {'file_hashes': HashPlugin.Schema(md5='', sha256=KNOWN_HASH.lower())}
+        result = analysis_plugin.analyze(None, {}, dependencies)
+        assert result is not None
+        assert result.SHA_256 == KNOWN_HASH
+        assert result.ProductCode.ProductName == 'FooBar'
 
-    def test_process_object_known_hash(self, analysis_plugin, file_object):
-        file_object.processed_analysis['file_hashes'] = {'result': {'sha256': KNOWN_ZSH_HASH}}
-        analysis_plugin.process_object(file_object)
-        result = file_object.processed_analysis[analysis_plugin.NAME]
-        assert 'FileName' in result
-        assert result['FileName'] == './bin/zsh'
+    def test_process_object_unknown_hash(self, analysis_plugin):
+        dependencies = {'file_hashes': HashPlugin.Schema(md5='', sha256='unknown_hash')}
+        result = analysis_plugin.analyze(None, {}, dependencies)
+        assert result is None
 
-    def test_process_object_missing_hash(self, analysis_plugin, file_object):
-        analysis_plugin.process_object(file_object)
-        result = file_object.processed_analysis[analysis_plugin.NAME]
-        assert 'failed' in result
-        assert result['failed'].startswith('Lookup needs sha256 hash')
+    def test_process_object_error(self, analysis_plugin):
+        dependencies = {'file_hashes': HashPlugin.Schema(md5='', sha256='connection_error')}
+        with pytest.raises(HashLookupError):
+            analysis_plugin.analyze(None, {}, dependencies)
