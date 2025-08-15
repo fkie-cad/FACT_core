@@ -11,44 +11,61 @@ Currently, the cwe_checker supports the following architectures:
 - PowerPC
 - Mips
 """
+
+from __future__ import annotations
+
 import json
 import logging
 from collections import defaultdict
+from typing import TYPE_CHECKING, List
 
 from docker.types import Mount
+from pydantic import BaseModel
+from semver import Version
 
 import config
-from analysis.PluginBase import AnalysisBasePlugin
+from analysis.plugin import AnalysisPluginV0
 from helperFunctions.docker import run_docker_container
 
+if TYPE_CHECKING:
+    from io import FileIO
+
 DOCKER_IMAGE = 'fkiecad/cwe_checker:stable'
+SUPPORTED_ARCHS = ('arm', 'x86', 'x64', 'mips', 'ppc')
 
 
-class AnalysisPlugin(AnalysisBasePlugin):
-    """
-    This class implements the FACT Python wrapper for the BAP plugin cwe_checker.
-    """
+class CweResult(BaseModel):
+    cwe_id: str
+    warnings: List[str]
+    plugin_version: str
 
-    NAME = 'cwe_checker'
-    DESCRIPTION = (
-        'This plugin checks ELF binaries for several CWEs (Common Weakness Enumeration) like'
-        'CWE-243 (Creation of chroot Jail Without Changing Working Directory) and'
-        'CWE-676 (Use of Potentially Dangerous Function).'
-        'Due to the nature of static analysis, this plugin may run for a long time.'
-    )
-    DEPENDENCIES = ['cpu_architecture', 'file_type']  # noqa: RUF012
-    VERSION = '0.5.4'
-    TIMEOUT = 600  # 10 minutes
-    MIME_WHITELIST = [  # noqa: RUF012
-        'application/x-executable',
-        'application/x-pie-executable',
-        'application/x-sharedlib',
-    ]
-    FILE = __file__
 
-    SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']  # noqa: RUF012
+class AnalysisPlugin(AnalysisPluginV0):
+    class Schema(BaseModel):
+        cwe_results: List
 
-    def additional_setup(self):
+    def __init__(self):
+        super().__init__(
+            metadata=(
+                self.MetaData(
+                    name='cwe_checker',
+                    description=(
+                        'This plugin checks ELF binaries for several CWEs (Common Weakness Enumeration) like'
+                        'CWE-243 (Creation of chroot Jail Without Changing Working Directory) and'
+                        'CWE-676 (Use of Potentially Dangerous Function).'
+                        'Due to the nature of static analysis, this plugin may run for a long time.'
+                    ),
+                    dependencies=['cpu_architecture', 'file_type'],
+                    mime_whitelist=[
+                        'application/x-executable',
+                        'application/x-pie-executable',
+                        'application/x-sharedlib',
+                    ],
+                    version=Version(1, 0, 0),
+                    Schema=self.Schema,
+                )
+            )
+        )
         self._log_version_string()
         self.memory_limit = getattr(config.backend.plugin.get(self.NAME, None), 'memory_limit', '4G')
         self.swap_limit = getattr(config.backend.plugin.get(self.NAME, None), 'memswap_limit', '4G')
@@ -71,14 +88,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
         )
         return result.stdout
 
-    def _run_cwe_checker_in_docker(self, file_object):
+    def _run_cwe_checker_in_docker(self, file_path: str) -> bytes:
         result = run_docker_container(
             DOCKER_IMAGE,
             combine_stderr_stdout=True,
             timeout=self.TIMEOUT - 30,
             command='/input --json --quiet',
             mounts=[
-                Mount('/input', file_object.file_path, type='bind'),
+                Mount('/input', file_path, type='bind'),
             ],
             mem_limit=self.memory_limit,
             memswap_limit=self.swap_limit,
@@ -106,38 +123,36 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return res
 
-    def _is_supported_arch(self, file_object):
-        arch_type = file_object.processed_analysis['file_type']['result']['full'].lower()
-        return any(supported_arch in arch_type for supported_arch in self.SUPPORTED_ARCHS)
+    @staticmethod
+    def _is_supported_arch(file_type_analysis: BaseModel) -> bool:
+        arch_type = file_type_analysis.full.lower()
+        return any(supported_arch in arch_type for supported_arch in SUPPORTED_ARCHS)
 
-    def _do_full_analysis(self, file_object):
-        output = self._run_cwe_checker_in_docker(file_object)
-        if output is not None:
-            try:
-                cwe_messages = self._parse_cwe_checker_output(output)
-                file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
-            except json.JSONDecodeError:
-                message = f'cwe_checker execution failed: {output}'
-                logging.error(f'{message}\nUID: {file_object.uid}', exc_info=True)
-                file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': message}
-        else:
-            message = 'Timeout or error during cwe_checker execution.'
-            logging.error(f'{message}\nUID: {file_object.uid}')
-            file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': message}
-        return file_object
+    def _do_full_analysis(self, file_path: str) -> dict:
+        output = self._run_cwe_checker_in_docker(file_path)
+        if output is None:
+            raise Exception(f'Timeout or error during cwe_checker execution.\nUID: {file_path}')
+        try:
+            return self._parse_cwe_checker_output(output)
+        except json.JSONDecodeError as error:
+            raise Exception(f'cwe_checker execution failed\nUID: {file_path}') from error
 
-    def process_object(self, file_object):
+    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema | None:
         """
         This function handles only ELF executables. Otherwise, it returns an empty dictionary.
         It calls the cwe_checker docker container.
         """
-        if not self._is_supported_arch(file_object):
-            logging.debug(
-                f"{file_object.file_path}'s arch is not supported ("
-                f'{file_object.processed_analysis["cpu_architecture"]["summary"]})'
-            )
-            file_object.processed_analysis[self.NAME] = {'summary': []}
-        else:
-            file_object = self._do_full_analysis(file_object)
+        del virtual_file_path
+        if not self._is_supported_arch(analyses['file_type']):
+            return None
+        result = self._do_full_analysis(file_handle.name)
 
-        return file_object
+        return self.Schema(
+            cwe_results=[
+                CweResult(cwe_id=cwe_id, warnings=data['warnings'], plugin_version=data['plugin_version'])
+                for cwe_id, data in result.items()
+            ]
+        )
+
+    def summarize(self, result: Schema) -> list[str]:
+        return [cwe.cwe_id for cwe in result.cwe_results] if result else []
