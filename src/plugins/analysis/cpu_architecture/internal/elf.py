@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from pathlib import Path
+
 from elftools.common.exceptions import ELFError
 from elftools.elf.constants import E_FLAGS
 from elftools.elf.descriptions import describe_attr_tag_arm
@@ -32,8 +36,6 @@ def _get_mips_isa(elffile):
 
 
 def _get_arm_isa(elffile):
-    assert elffile['e_machine'] == 'EM_ARM'
-
     result = ''
 
     # Somehow the section does not appear in arm64 binaries
@@ -52,9 +54,9 @@ def _get_arm_isa(elffile):
     return result
 
 
-def construct_result(file_object, fs_organizer):
+def construct_result(file_path: str | Path):
     result = {}
-    with open(fs_organizer.generate_path(file_object), 'rb') as fp:  # noqa: PTH123
+    with Path(file_path).open('rb') as fp:
         try:
             elffile = ELFFile(fp)
         except ELFError:
