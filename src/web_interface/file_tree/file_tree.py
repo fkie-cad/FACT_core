@@ -15,7 +15,15 @@ MIME_TO_ICON_PATH.update(
     {
         'application-x-pie-executable': f'/{ICON_URL_BASE}/mimetypes/application-x-executable.svg',
         'application-x-dosexec': f'/{ICON_URL_BASE}/mimetypes/application-x-ms-dos-executable.svg',
+        'application-vnd.microsoft.portable-executable': (
+            f'/{ICON_URL_BASE}/mimetypes/application-x-ms-dos-executable.svg'
+        ),
         'linux-device-tree': f'/{ICON_URL_BASE}/firmware.svg',
+        'text-postscript': f'/{ICON_URL_BASE}/mimetypes/application-postscript.svg',
+        'text-x-c': f'/{ICON_URL_BASE}/mimetypes/text-x-csrc.svg',
+        'text-x-php': f'/{ICON_URL_BASE}/mimetypes/application-x-php.svg',
+        'text-x-script.python': f'/{ICON_URL_BASE}/mimetypes/text-x-python.svg',
+        'text-x-shellscript': f'/{ICON_URL_BASE}/mimetypes/application-x-shellscript.svg',
     }
 )
 CRYPTO_MIME = 'application-certificate'
@@ -44,7 +52,7 @@ EXTENSION_TO_MIME = {
     'pub': 'application-pgp',
     'py': 'text-x-python',
     'rb': 'application-x-ruby',
-    'sh': 'application-x-shellscript',
+    'sh': 'text-x-shellscript',
     'svg': 'image-svg+xml',
     'ts': 'application-x-javascript',
     'xsd': 'text-xml',
