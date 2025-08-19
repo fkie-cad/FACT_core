@@ -19,6 +19,7 @@ use_memory_db = pytest.mark.frontend_config_overwrite(
         },
     }
 )
+PASSWORD = 'mock_password_123'
 
 
 class Prompt(NamedTuple):
@@ -28,7 +29,7 @@ class Prompt(NamedTuple):
 
 @pytest.fixture
 def prompt(monkeypatch):
-    monkeypatch.setattr('getpass.getpass', lambda _: 'mock_password')
+    monkeypatch.setattr('getpass.getpass', lambda _: PASSWORD)
     with create_pipe_input() as pipe:
         session = PromptSession(
             input=pipe,
@@ -120,4 +121,4 @@ def test_password_is_hashed(prompt):
     start_user_management(test_app, store, db, prompt.session)
     with test_app.app_context():
         user = store.find_user(email='test_user')
-    assert user.password != 'mock_password'
+    assert user.password != PASSWORD
