@@ -67,7 +67,7 @@ def construct_result(file_path: str | Path):
             result.update({_get_mips_isa(elffile): 'ELF'})
         elif elffile['e_machine'] == 'EM_ARM':
             arm_isa = _get_arm_isa(elffile)
-            if arm_isa is not None:
+            if arm_isa:
                 result.update({arm_isa: 'ELF'})
 
     return result
