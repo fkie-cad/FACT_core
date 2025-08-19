@@ -14,9 +14,22 @@ class TestAnalysisStatus:
     def setup_method(self):
         self.status = AnalysisStatus()
 
-    def test_add_firmware_to_current_analyses(self):
+    def test_init_firmware(self):
         fw = Firmware(binary=b'foo')
         fw.files_included = ['foo', 'bar']
+        self.status.init_firmware(fw)
+        self.status._worker._update_status()
+
+        assert fw.uid in self.status._worker.currently_running
+        result = self.status._worker.currently_running[fw.uid]
+        assert result.files_to_unpack == {fw.uid}
+        assert result.files_to_analyze == {fw.uid}
+        assert result.completed_files == set()
+        assert result.unpacked_files_count == 0
+        assert result.analyzed_files_count == 0
+        assert result.total_files_count == 1
+
+        # after unpacking, the file is added again with add_object to add the included files
         self.status.add_object(fw)
         self.status._worker._update_status()
 
@@ -38,6 +51,7 @@ class TestAnalysisStatus:
                 hid='',
                 total_files_count=2,
                 total_files_with_duplicates=2,
+                unpacked_files_count=1,
             )
         }
         fo = FileObject(binary=b'foo')
