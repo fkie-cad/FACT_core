@@ -93,3 +93,21 @@ class TestAppShowAnalysis:
         assert 'Failed' in template
         assert 'reason for fail' in template
         assert 'class="table-danger"' in template, 'failed result should be rendered in "danger" style'
+
+
+class AggCommentDbMock(DbMock):
+    def get_comments_for_firmware(self, uid):
+        if uid == TEST_FW.uid:
+            return {
+                'included_file_uid': [
+                    {'time': 0, 'author': 'some_guy', 'plugin': 'plugin_name'},
+                ]
+            }
+        return {}
+
+
+@pytest.mark.WebInterfaceUnitTestConfig(intercom_mock_class=IntercomMock, database_mock_class=AggCommentDbMock)
+def test_show_aggregated_comments(test_client):
+    response = test_client.get(f'/analysis/{TEST_FW.uid}').data.decode()
+    assert 'Comments for Included Files' in response
+    assert 'some_guy' in response
