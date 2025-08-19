@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Optional
 
 from packaging.version import InvalidVersion
 from packaging.version import parse as parse_version
+from pydantic import ValidationError
 
 import config
 from analysis.plugin import AnalysisPluginV0
@@ -348,6 +349,8 @@ class AnalysisScheduler:
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
     def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject):
+        plugin = self.analysis_plugins[analysis_to_do]
+        analysis_result = None
         if not self._is_forced_update(file_object) and self._analysis_is_already_in_db_and_up_to_date(
             analysis_to_do, file_object.uid
         ):
@@ -362,26 +365,32 @@ class AnalysisScheduler:
             analysis_to_do, file_object
         ):
             logging.debug(f'Skipping analysis "{analysis_to_do}" for {file_object.uid} (blacklisted file type)')
-            analysis_result = self._get_skipped_analysis_result(analysis_to_do)
+            analysis_result = self._get_skipped_analysis_result(analysis_to_do, 'blacklisted file type')
+        elif _dependencies_are_unfulfilled(plugin, file_object):
+            logging.warning(f'{file_object.uid}: dependencies of plugin {analysis_to_do} not fulfilled')
+            analysis_result = self._get_skipped_analysis_result(
+                analysis_to_do, 'dependency is missing (could be skipped)'
+            )
+        else:
+            if file_object.binary is None:
+                self._set_binary(file_object)
+            if isinstance(plugin, AnalysisPluginV0):
+                runner = self._plugin_runners[plugin.metadata.name]
+                try:
+                    runner.queue_analysis(file_object)
+                except ValidationError as err:
+                    analysis_result = self._get_skipped_analysis_result(
+                        analysis_to_do,
+                        f'error during dependency collection: could not apply schema to dependency results: {err!s}',
+                    )
+            elif isinstance(plugin, AnalysisBasePlugin):
+                plugin.add_job(file_object)
+
+        if analysis_result is not None:
             file_object.processed_analysis[analysis_to_do] = analysis_result
             self.status.add_analysis(file_object, analysis_to_do)
             self.post_analysis(file_object.uid, analysis_to_do, analysis_result)
             self._check_further_process_or_complete(file_object)
-        else:
-            if file_object.binary is None:
-                self._set_binary(file_object)
-            plugin = self.analysis_plugins[analysis_to_do]
-            if isinstance(plugin, AnalysisPluginV0):
-                runner = self._plugin_runners[plugin.metadata.name]
-
-                if _dependencies_are_unfulfilled(plugin, file_object):
-                    logging.error(f'{file_object.uid}: dependencies of plugin {plugin.metadata.name} not fulfilled')
-                    self._check_further_process_or_complete(file_object)
-                    return
-
-                runner.queue_analysis(file_object)
-            elif isinstance(plugin, AnalysisBasePlugin):
-                plugin.add_job(file_object)
 
     def _set_binary(self, file_object: FileObject):
         # the file_object.binary may be missing in case of an update
@@ -455,13 +464,13 @@ class AnalysisScheduler:
 
     # ---- 3. blacklist and whitelist ----
 
-    def _get_skipped_analysis_result(self, analysis_to_do: str) -> dict:
+    def _get_skipped_analysis_result(self, analysis_to_do: str, reason: str) -> dict:
         return {
             'summary': [],
             'analysis_date': time.time(),
             'plugin_version': self.analysis_plugins[analysis_to_do].VERSION,
             'result': {
-                'skipped': 'blacklisted file type',
+                'skipped': reason,
             },
         }
 
@@ -650,10 +659,19 @@ def _fix_system_version(system_version: str | None) -> str:
     return system_version.replace('_', '-') if system_version else '0'
 
 
-def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObject):
-    # FIXME plugins can be in processed_analysis and could still be skipped, etc. -> need a way to verify that
-    # FIXME the analysis ran successfully
-    return any(dep not in fw_object.processed_analysis for dep in plugin.metadata.dependencies)
+def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0 | AnalysisBasePlugin, fw_object: FileObject):
+    # FIXME: update when old base class gets removed
+    dependencies = plugin.metadata.dependencies if isinstance(plugin, AnalysisPluginV0) else plugin.DEPENDENCIES
+    return any(
+        dep not in fw_object.processed_analysis
+        or 'result' not in fw_object.processed_analysis[dep]
+        or any(
+            k in result
+            for k in ('skipped', 'failed')
+            if (result := fw_object.processed_analysis[dep]['result']) is not None
+        )
+        for dep in dependencies
+    )
 
 
 def _sync_view(plugin_module, plugin_name):
