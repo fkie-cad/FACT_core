@@ -3,14 +3,14 @@ from datetime import datetime
 import pytest
 
 from helperFunctions.data_conversion import (
-    convert_compare_id_to_list,
+    convert_comparison_id_to_list,
     convert_str_to_bool,
     convert_time_to_str,
     get_value_of_first_key,
     make_bytes,
     make_unicode_string,
     none_to_none,
-    normalize_compare_id,
+    normalize_comparison_id,
 )
 
 
@@ -44,11 +44,11 @@ def test_make_unicode_string(input_data, expected):
     assert result == expected
 
 
-def test_normalize_compare_id():
+def test_normalize_comparison_id():
     ids_a = 'a;b'
     ids_b = 'b;a'
-    assert normalize_compare_id(ids_a) == 'a;b', 'compare id not correct'
-    assert normalize_compare_id(ids_a) == normalize_compare_id(ids_b), 'compare ids not the same'
+    assert normalize_comparison_id(ids_a) == 'a;b', 'comparison ID not correct'
+    assert normalize_comparison_id(ids_a) == normalize_comparison_id(ids_b), 'comparison IDs not the same'
 
 
 @pytest.mark.parametrize(
@@ -58,8 +58,8 @@ def test_normalize_compare_id():
         ('a;b;c', ['a', 'b', 'c']),
     ],
 )
-def test_convert_compare_id_to_list(input_data, expected):
-    assert convert_compare_id_to_list(input_data) == expected
+def test_convert_comparison_id_to_list(input_data, expected):
+    assert convert_comparison_id_to_list(input_data) == expected
 
 
 @pytest.mark.parametrize(('input_data', 'expected'), [({'b': 'b', 'c': 'c', 'a': 'a'}, 'a'), ({}, None)])
