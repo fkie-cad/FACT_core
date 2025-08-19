@@ -346,6 +346,8 @@ class DatabaseRoutes(ComponentBase):
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
             return render_template('error.html', message='Search string not found')
+        if is_uid(search_term) and self.db.frontend.exists(search_term):
+            return redirect(url_for('show_analysis', uid=search_term))
         query = {
             '$or': {
                 'device_name': {'$like': search_term},
