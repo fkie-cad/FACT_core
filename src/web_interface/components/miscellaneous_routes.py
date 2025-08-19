@@ -117,3 +117,8 @@ class MiscellaneousRoutes(ComponentBase):
         if frontend_logs.is_file():
             return frontend_logs.read_text().splitlines()[-100:]
         return []
+
+    @roles_accepted(*PRIVILEGES['status'])
+    @AppRoute('/favicon.ico', GET)
+    def favicon(self):
+        return redirect(url_for('static', filename='fact_icon.ico'))
