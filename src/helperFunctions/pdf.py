@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 import logging
-from pathlib import Path
 from subprocess import CalledProcessError
+from typing import TYPE_CHECKING
 
 from common_helper_encoder import ReportEncoder
 from docker.errors import DockerException
@@ -9,10 +11,14 @@ from docker.types import Mount
 
 from helperFunctions.docker import run_docker_container
 from helperFunctions.object_conversion import create_meta_dict
-from objects.firmware import Firmware
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from objects.firmware import Firmware
 
 
-def build_pdf_report(firmware: Firmware, folder: Path) -> Path:
+def build_pdf_report(firmware: Firmware, folder: Path) -> Path | None:
     """
     Creates a pdf report for the given firmware by calling the fact_pdf_report docker container.
 
@@ -59,10 +65,10 @@ def _initialize_subfolder(folder: Path, firmware: Firmware) -> None:
     (folder / 'data' / 'analysis.json').write_text(json.dumps(firmware.processed_analysis, cls=ReportEncoder))
 
 
-def _find_pdf(folder: Path) -> Path:
+def _find_pdf(folder: Path) -> Path | None:
     pdf_path = None
     for file_path in (folder / 'pdf').rglob('*.pdf'):
         if pdf_path:
-            logging.warning(f'Indistinct pdf name. Found: {file_path.name}')
+            logging.warning(f'Indistinct pdf name. Found: {file_path.name}')  # type: ignore[unreachable]
         pdf_path = file_path
     return pdf_path

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING, Any, AnyStr, TypeVar
+from typing import TYPE_CHECKING, Any, AnyStr
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-_KT = TypeVar('_KT')  # Key type
-_VT = TypeVar('_VT')  # Value type
+    from helperFunctions.types import KT, UID, VT, CompId
 
 
 def make_bytes(data: AnyStr | list[int]) -> bytes:
@@ -35,9 +34,9 @@ def make_unicode_string(code: Any) -> str:
     return code.__str__()
 
 
-def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
+def convert_uid_list_to_compare_id(uid_list: Iterable[UID]) -> CompId:
     """
-    Convert a list of UIDs to a compare ID (which is a unique string consisting of UIDs separated by semi-colons, used
+    Convert a list of UIDs to a compare ID (which is a unique string consisting of UIDs separated by semicolons, used
     to identify a FACT `Firmware` or `FileObject` comparison).
 
     :param uid_list: A list of `FileObject` or `Firmware` UIDs.
@@ -46,7 +45,7 @@ def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
     return ';'.join(sorted(uid_list))
 
 
-def convert_compare_id_to_list(compare_id: str) -> list[str]:
+def convert_compare_id_to_list(compare_id: CompId) -> list[UID]:
     """
     Convert a compare ID back to a list of UIDs.
 
@@ -56,7 +55,7 @@ def convert_compare_id_to_list(compare_id: str) -> list[str]:
     return compare_id.split(';')
 
 
-def normalize_compare_id(compare_id: str) -> str:
+def normalize_compare_id(compare_id: CompId) -> CompId:
     """
     Sort the UIDs in a compare ID (so that it is unique) and return it.
 
@@ -67,7 +66,7 @@ def normalize_compare_id(compare_id: str) -> str:
     return convert_uid_list_to_compare_id(uids)
 
 
-def get_value_of_first_key(input_dict: dict[_KT, _VT]) -> _VT | None:
+def get_value_of_first_key(input_dict: dict[KT, VT]) -> VT | None:
     """
     Get the value of the first key in a dictionary. If the dict is empty, return `None`.
 
