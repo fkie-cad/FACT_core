@@ -66,7 +66,7 @@ def log_current_packages(packages: tuple[str], install: bool = True):
     :param install: Identifier to distinguish installation from removal.
     """
     action = 'Installing' if install else 'Removing'
-    logging.info(f"{action} {' '.join(packages)}")
+    logging.info(f'{action} {" ".join(packages)}')
 
 
 def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:
@@ -93,7 +93,7 @@ def dnf_install_packages(*packages: str):
     """
     log_current_packages(packages)
     return _run_shell_command_raise_on_return_code(
-        f"sudo dnf install -y {' '.join(packages)}", f"Error in installation of package(s) {' '.join(packages)}", True
+        f'sudo dnf install -y {" ".join(packages)}', f'Error in installation of package(s) {" ".join(packages)}', True
     )
 
 
@@ -105,7 +105,7 @@ def dnf_remove_packages(*packages: str):
     """
     log_current_packages(packages, install=False)
     return _run_shell_command_raise_on_return_code(
-        f"sudo dnf remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True
+        f'sudo dnf remove -y {" ".join(packages)}', f'Error in removal of package(s) {" ".join(packages)}', True
     )
 
 
@@ -126,8 +126,8 @@ def apt_install_packages(*packages: str):
     """
     log_current_packages(packages)
     return _run_shell_command_raise_on_return_code(
-        f"sudo apt-get install -y {' '.join(packages)}",
-        f"Error in installation of package(s) {' '.join(packages)}",
+        f'sudo apt-get install -y {" ".join(packages)}',
+        f'Error in installation of package(s) {" ".join(packages)}',
         True,
     )
 
@@ -140,7 +140,7 @@ def apt_remove_packages(*packages: str):
     """
     log_current_packages(packages, install=False)
     return _run_shell_command_raise_on_return_code(
-        f"sudo apt-get remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True
+        f'sudo apt-get remove -y {" ".join(packages)}', f'Error in removal of package(s) {" ".join(packages)}', True
     )
 
 
@@ -227,35 +227,25 @@ def check_distribution(allow_unsupported=False):
 
     :return: The codename of the distribution
     """
-    debian_code_names = ['buster', 'stretch', 'bullseye', 'bookworm', 'trixie', 'kali-rolling']
-    focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma', 'una']
-    jammy_code_names = ['jammy', 'vanessa', 'vera', 'victoria', 'virginia']
-    noble_code_names = ['noble', 'wilma', 'xia', 'zara']
-
-    codename = distro.codename().lower()
-    if codename in focal_code_names:
-        logging.debug('Ubuntu 20.04 detected')
-        logging.warning('Ubuntu 20.04 has reached its end of life and is no longer supported.')
-        return 'focal'
-    if codename in jammy_code_names:
-        logging.debug('Ubuntu 22.04 detected')
-        return 'jammy'
-    if codename in noble_code_names:
-        logging.debug('Ubuntu 24.04 detected')
-        return 'noble'
-    if codename in debian_code_names:
-        logging.debug('Debian/Kali detected')
+    distro_data = distro.os_release_info()
+    codename = distro_data.get(
+        'ubuntu_codename',
+        distro_data.get('debian_codename', distro_data.get('codename', distro_data.get('version_codename', ''))),
+    ).lower()
+    logging.debug(f'found distribution: {distro_data["pretty_name"]} (codename: {codename})')
+    supported_codenames = {'jammy', 'noble', 'bookworm', 'trixie', 'kali-rolling'}
+    if codename in supported_codenames:
+        if codename == 'kali-rolling':
+            return 'bookworm'
         return codename
-    if distro.id() == 'fedora':
-        logging.debug('Fedora detected')
-        return 'fedora'
+
     msg = (
-        f'Your Distribution ({distro.id()} {distro.version()}) is not supported. '
+        f'Your Distribution ({distro_data["pretty_name"]} is either deprecated or not supported. '
         'FACT Installer requires Ubuntu 22.04/24.04, Debian 12 or compatible!'
     )
     if allow_unsupported:
         logging.info(msg)
-        return None
+        return codename
     logging.critical(msg)
     sys.exit(1)
 
