@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from plugins.analysis.cpu_architecture.code.cpu_architecture import AnalysisPlugin
 from plugins.analysis.cpu_architecture.internal import dt, elf, kconfig, metadata
 from plugins.analysis.file_type.code.file_type import AnalysisPlugin as TypePlugin
 from plugins.analysis.kernel_config.code.kernel_config import AnalysisPlugin as KConfPlugin
@@ -208,3 +209,25 @@ def test_metadatadetector_get_device_architecture(architecture, bitness, endiann
     assert (
         f'{architecture}, {bitness}, {endianness} (M)' in result
     ), f'architecture not correct: expected {architecture}'
+
+
+@pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
+class TestAnalysisPluginsSoftwareComponents:
+    def test_analyze(self, analysis_plugin):
+        dependencies = {
+            'kernel_config': _mock_kernel_config_analysis_arm,
+            'device_tree': _mock_device_tree_analysis,
+            'file_type': TypePlugin.Schema(
+                full=(
+                    'ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked, '
+                    'interpreter /lib/ld-linux.so.3, for GNU/Linux 3.2.0, stripped'
+                ),
+                mime='application/x-executable',
+            ),
+        }
+        with dt_file.open('rb') as fp:
+            results: AnalysisPlugin.Schema = analysis_plugin.analyze(fp, {}, dependencies)
+        summary = analysis_plugin.summarize(results)
+
+        assert len(results.architectures) == 3
+        assert sorted(summary) == ['ARM, 32-bit, little endian (M)', 'arm,cortex-a9', 'armv7']
