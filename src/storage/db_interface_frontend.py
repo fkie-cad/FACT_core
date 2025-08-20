@@ -5,7 +5,8 @@ import re
 from pathlib import Path
 from typing import Any, NamedTuple, Optional
 
-from sqlalchemy import Column, Integer, cast, func, or_, select
+from sqlalchemy import Column, Integer, cast, column, func, or_, select
+from sqlalchemy.orm import aliased
 
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
@@ -23,6 +24,7 @@ from storage.schema import (
     included_files_table,
 )
 from web_interface.components.dependency_graph import DepGraphData
+from web_interface.components.file_reference_graph import get_edges_and_nodes
 from web_interface.file_tree.file_tree import FileTreeData, VirtualPathFileTree
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
@@ -436,6 +438,45 @@ class FrontEndDbInterface(DbInterfaceCommon):
             for uid, elf_analysis_result in session.execute(elf_analysis_query)
             if elf_analysis_result is not None
         }
+
+    def get_data_for_file_graph(self, fs_uid: str) -> tuple[list[DepGraphData], list[tuple[str, str]]]:
+        filepath_analysis = aliased(AnalysisEntry)
+        type_analysis = aliased(AnalysisEntry)
+
+        with self.get_read_only_session() as session:
+            # the subquery just groups all VFPs into an array (to reduce memory usage when joining the analyses)
+            subquery = (
+                select(
+                    VirtualFilePath.file_uid.label('file_uid'),
+                    func.array_agg(VirtualFilePath.file_path).label('vfp_array'),
+                )
+                .filter(VirtualFilePath.parent_uid == fs_uid)
+                .group_by(VirtualFilePath.file_uid)
+            )
+            query = (
+                select(
+                    column('file_uid'),
+                    column('vfp_array'),
+                    filepath_analysis.result['filepaths'],
+                    type_analysis.result['mime'],
+                    type_analysis.result['full'],
+                )
+                .select_from(subquery)
+                .join(filepath_analysis, column('file_uid') == filepath_analysis.uid)
+                .filter(filepath_analysis.plugin == 'filepaths')
+                .join(type_analysis, column('file_uid') == type_analysis.uid)
+                .filter(type_analysis.plugin == 'file_type')
+            )
+            data_by_path: dict[str, DepGraphData] = {}
+            for uid, vfp_list, referenced_file_list, mime, full_type in session.execute(query):
+                for path in vfp_list:
+                    data_by_path[path] = DepGraphData(uid, '', [path], mime, full_type, referenced_file_list)
+
+        edges, nodes = get_edges_and_nodes(data_by_path)
+        # instead of the nodes, we return the data for the nodes
+        for file_without_connection in set(data_by_path) - nodes:
+            data_by_path.pop(file_without_connection)
+        return list(data_by_path.values()), list(edges)
 
     def get_root_uid(self, uid: str) -> str:
         with self.get_read_only_session() as session:
