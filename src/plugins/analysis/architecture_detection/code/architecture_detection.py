@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from analysis.PluginBase import AnalysisBasePlugin
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 
 from ..internal import dt, elf, kconfig, metadata
 
@@ -30,18 +30,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
 
     def __init__(self):
-        self._fs_organizer = FSOrganizer()
+        self._file_service = FileService()
         super().__init__()
 
     def process_object(self, file_object):
-        arch_dict = construct_result(file_object, self._fs_organizer)
+        arch_dict = construct_result(file_object, self._file_service)
         file_object.processed_analysis[self.NAME]['architectures'] = arch_dict
         file_object.processed_analysis[self.NAME]['summary'] = list(arch_dict.keys())
 
         return file_object
 
 
-def construct_result(file_object, fs_organizer) -> dict[str, str]:
+def construct_result(file_object, file_service) -> dict[str, str]:
     """
     Returns a dict where keys are the architecture and values are the means of
     detection
@@ -49,7 +49,7 @@ def construct_result(file_object, fs_organizer) -> dict[str, str]:
     result = {}
     result.update(dt.construct_result(file_object))
     result.update(kconfig.construct_result(file_object))
-    result.update(elf.construct_result(file_object, fs_organizer))
+    result.update(elf.construct_result(file_object, file_service))
     result.update(metadata.construct_result(file_object))
 
     return result

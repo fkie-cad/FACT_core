@@ -44,7 +44,7 @@ class InterComFrontEndBinding:
             raise RuntimeError('No available plug-ins found. FACT backend might be down!')
         return plugin_dict
 
-    def get_binary_and_filename(self, uid: str) -> tuple[bytes | None, str | None]:
+    def get_file_contents(self, uid: str) -> bytes | None:
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
 
     def get_file_diff(self, uid_pair: tuple[str, str]) -> str | None:
@@ -53,7 +53,7 @@ class InterComFrontEndBinding:
     def peek_in_binary(self, uid: str, offset: int, length: int) -> bytes:
         return self._request_response_listener((uid, offset, length), 'binary_peek_task', 'binary_peek_task_resp')
 
-    def get_repacked_binary_and_file_name(self, uid: str):
+    def get_repacked_file(self, uid: str) -> bytes | None:
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
 
     def get_yara_error(self, yara_rule: str | bytes) -> str | None:
