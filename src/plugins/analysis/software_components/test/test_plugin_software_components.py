@@ -49,6 +49,7 @@ class TestAnalysisPluginsSoftwareComponents:
             ('OpenSSL 0.9.8zh', '0.9.8zh', {'version_regex': '\\d\\.\\d\\.\\d[a-z]{0,2}'}),
             ('Foo v1.2.3', 'v1.2.3', {'version_regex': 'v?\\d\\.\\d\\.\\d'}),
             ('Bar a.b', 'a.b', {'version_regex': '[a-z]\\.[a-z]'}),
+            ('524', '5.24', {'version_regex': r'\d{3}', '_sub_regex': '(\\d)(\\d{2})', '_sub_replacement': '\\1.\\2'}),
         ],
     )
     def test_get_version(self, analysis_plugin, version, expected_output, meta_dict):
