@@ -4,7 +4,6 @@ from time import gmtime, time
 from zlib import compress
 
 import pytest
-from packaging.version import InvalidVersion
 from semver import Version
 
 import web_interface.filter as flt
@@ -608,5 +607,5 @@ def test_version_is_compatible(version, other_version, expected_result, forgivin
 
 
 def test_version_is_compatible_error():
-    with pytest.raises(InvalidVersion):
+    with pytest.raises(ValueError, match='not a valid version'):
         assert flt.version_is_compatible('1.2.3', 'a.b.c')

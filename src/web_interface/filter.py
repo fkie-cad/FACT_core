@@ -16,12 +16,13 @@ from operator import itemgetter
 from re import Match
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import TYPE_CHECKING, Any, Iterable, Union
+from typing import TYPE_CHECKING, Any, Iterable
 
 import packaging.version
 import semver
 from common_helper_files import human_readable_file_size
 from flask import render_template
+from semver import Version
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.data_conversion import make_unicode_string
@@ -550,53 +551,45 @@ def get_searchable_crypto_block(crypto_material: str) -> str:
     return sorted(blocks, key=len, reverse=True)[0]
 
 
-def version_is_compatible(
-    version: Union[str, semver.Version],
-    other: Union[str, semver.Version],
-    forgiving: bool = False,
-) -> bool:
-    """A warpper around ``semver.Version.is_compatible`` that allows non semver versions.
-    If :paramref:`forgiving` is True non semver versions will try to be coerced to semver versions.
+def version_is_compatible(version: str | Version, other: str | Version, forgiving: bool = False) -> bool:
+    """A wrapper around ``semver.Version.is_compatible`` that allows non semver versions.
+    If :paramref:`forgiving` is True, non semver versions will try to be coerced to semver versions.
     If this does not succeed or :paramref:`forgiving` is False then any semver version will
     be considered incompatible to any other non semver version.
     So for example '1.1.0' would not be compatible '1.2' if forgiving is False.
-    Otherwise it would be coerced from '1.2' to '1.2.0'.
+    Otherwise, it would be coerced from '1.2' to '1.2.0'.
 
     If both versions are not semver they are only compatible if they are equal.
 
-    :param version: The version to check compatiblity for.
+    :param version: The version to check compatibility for.
     :param other: The version to compare to.
+    :param forgiving: Whether the version check is forgiving with versions that are not compatible to semver..
 
     :return: If :paramref:`version` is compatible with :paramref:`other`.
 
     :raises ValueError: If both versions are neither semver nor ``packaging.version.Version`` versions.
     """
-    version_is_semver = True
     try:
-        if isinstance(version, str):
-            version = semver.Version.parse(version)
-    except ValueError:
-        version_is_semver = forgiving
-        version = _coerce_version(version)
-
-    other_is_semver = True
-    try:
-        if isinstance(other, str):
-            other = semver.Version.parse(other)
-    except ValueError:
-        other_is_semver = forgiving
-        other = _coerce_version(other)
+        version, version_is_semver = _convert_to_semver(version, forgiving)
+        other, other_is_semver = _convert_to_semver(other, forgiving)
+    except packaging.version.InvalidVersion as invalid_version:
+        raise ValueError(f'Either {version} or {other} is not a valid version') from invalid_version
 
     if version_is_semver ^ other_is_semver:
         return False
-
     if not version_is_semver and not other_is_semver:
-        try:
-            return packaging.version.Version(str(version)) == packaging.version.Version(str(other))
-        except packaging.version.InvalidVersion as invalid_version:
-            raise ValueError from invalid_version
+        return version == other
 
     return version.is_compatible(other)
+
+
+def _convert_to_semver(version: str | Version, forgiving: bool) -> tuple[Version, bool]:
+    try:
+        if isinstance(version, str):
+            version = Version.parse(version)
+        return version, True
+    except ValueError:
+        return _coerce_version(version), forgiving
 
 
 def _coerce_version(version: str) -> semver.Version:
