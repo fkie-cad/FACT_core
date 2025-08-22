@@ -592,7 +592,7 @@ def version_is_compatible(
 
     if not version_is_semver and not other_is_semver:
         try:
-            return packaging.version.Version(version) == packaging.version.Version(other)
+            return packaging.version.Version(str(version)) == packaging.version.Version(str(other))
         except packaging.version.InvalidVersion as invalid_version:
             raise ValueError from invalid_version
 
