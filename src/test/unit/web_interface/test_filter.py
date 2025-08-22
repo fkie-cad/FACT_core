@@ -609,3 +609,15 @@ def test_version_is_compatible(version, other_version, expected_result, forgivin
 def test_version_is_compatible_error():
     with pytest.raises(ValueError, match='not a valid version'):
         assert flt.version_is_compatible('1.2.3', 'a.b.c')
+
+
+@pytest.mark.parametrize(
+    ('input_', 'expected_result'),
+    [
+        (None, None),
+        ('foobar', 'foobar'),
+        ({'foo': 'bar'}, '{\n  "foo": "bar"\n}'),
+    ],
+)
+def test_render_query_title(input_, expected_result):
+    assert flt.render_query_title(input_) == expected_result
