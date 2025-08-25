@@ -167,7 +167,7 @@ def _install_nodejs(nodejs_version: str = '22'):
 def _find_latest_node_version(target_version: str) -> str:
     proc = subprocess.run(split('nodeenv --list'), capture_output=True, text=True, check=False)
     if proc.returncode != 0:
-        raise InstallationError('nodejs installation failed. Is nodeenv installed?')
+        raise InstallationError(f'nodejs installation failed. Is nodeenv installed?\n{proc.stderr}')
     available_versions = [
         parse_version(v) for v in re.split(r'[\n\t ]', proc.stderr) if v and v.startswith(target_version)
     ]

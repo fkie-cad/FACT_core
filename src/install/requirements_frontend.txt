@@ -19,7 +19,7 @@ uwsgi~=2.0.28
 virtualenv~=20.29.1
 
 # npm installation
-nodeenv~=1.8.0
+nodeenv~=1.9.1
 
 # must be below dependent packages (flask, flask-login, flask-restx)
 werkzeug~=3.0.6
