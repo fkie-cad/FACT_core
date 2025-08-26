@@ -9,9 +9,10 @@ import ijson
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
-from ..internal.helper_functions import CveEntry
+from ..internal.helper_functions import CveEntry, is_ci
 
-FILE_NAME = 'CVE-all.json.xz'
+# Hack: if this is running on the CI, only load recent CVE entries instead of all
+FILE_NAME = 'CVE-all.json.xz' if not is_ci() else 'CVE-recent.json.xz'
 CVE_URL = f'https://github.com/fkie-cad/nvd-json-data-feeds/releases/latest/download/{FILE_NAME}'
 DB_DIR = Path(__file__).parent / 'database'
 OUTPUT_FILE = DB_DIR / FILE_NAME
