@@ -42,6 +42,10 @@ class DbMock(CommonDatabaseMock):
             return FAILED_FO
         return super().get_object(uid, analysis_filter=analysis_filter)
 
+    @staticmethod
+    def get_view(plugin_name):  # noqa: ARG004
+        return ''
+
 
 @pytest.mark.WebInterfaceUnitTestConfig(intercom_mock_class=IntercomMock, database_mock_class=DbMock)
 class TestAppShowAnalysis:
@@ -59,6 +63,10 @@ class TestAppShowAnalysis:
         result = test_client.get(f'/analysis/{TEST_FW_2.uid}').data
         assert b'unknown' not in result
         assert b'2000-01-01' in result
+
+    def test_app_not_loaded(self, test_client):
+        response = test_client.get(f'/analysis/{TEST_FW.uid}/unloaded_plugin/ro/{TEST_FW.uid}').data
+        assert b'was not loaded' in response
 
     def test_app_show_analysis_file_with_preview(self, test_client):
         result = test_client.get(f'/analysis/{TEST_TEXT_FILE.uid}').data
