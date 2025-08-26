@@ -60,10 +60,15 @@
             </td>
         </tr>
 
-        {% set version_backend = analysis_plugin_dict[selected_analysis][3] %}
         {% set version_database = analysis_metadata['plugin_version'] %}
+        {% set version_backend = analysis_plugin_dict.get(selected_analysis, (None, None, None, None))[3] %}
 
-        {% if selected_analysis == 'unpacker' or version_database | version_is_compatible(version_backend, True) %}
+        {% if version_backend == None %}
+            <tr>
+                <td class="table-danger">Plugin not found</td>
+                <td>The analysis plugin that belongs to this analysis result was not loaded, so the result cannot be rendered.</td>
+            </tr>
+        {% elif selected_analysis == 'unpacker' or version_database | version_is_compatible(version_backend, True) %}
             {% if analysis_result is not none and 'skipped' not in analysis_result %}
                 {% block analysis_result_details %}
 
