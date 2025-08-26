@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import getpass
+import os
 from typing import NamedTuple
 
 
@@ -24,3 +26,7 @@ def replace_wildcards(attributes: list[str]) -> list[str]:
         elif attribute == '-':
             attributes[index] = 'N/A'
     return attributes
+
+
+def is_ci():
+    return getpass.getuser() == 'vagrant' and os.environ.get('GITHUB_RUNNER_ACTION_TOKEN') is not None
