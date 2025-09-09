@@ -1,9 +1,8 @@
 import stat
 
-from common_helper_files import human_readable_file_size
-
 from web_interface.file_tree.file_tree import get_icon_for_mime, get_mime_for_text_file
 from web_interface.file_tree.file_tree_node import FileTreeNode
+from web_interface.filter import byte_number_filter
 
 
 def convert_to_jstree_node(node: FileTreeNode):
@@ -36,7 +35,7 @@ def _get_not_analyzed_jstree_node(node: FileTreeNode):
 def _get_file_jstree_node(node: FileTreeNode):
     link = f'/analysis/{node.uid}/ro/{node.root_uid}'
     mode = f', {stat.filemode(int(node.mode, 8)).lstrip("?")}' if node.mode else ''
-    label = f'<b>{node.name}</b> (<span style="color:gray;">{human_readable_file_size(node.size)}{mode}</span>)'
+    label = f'<b>{node.name}</b> (<span style="color:gray;">{byte_number_filter(node.size)}{mode}</span>)'
     mime = get_mime_for_text_file(node.name) if node.type == 'text/plain' else node.type
     result = _get_jstree_node_contents(label, link, get_icon_for_mime(mime))
     result['data'] = {'uid': node.uid}
