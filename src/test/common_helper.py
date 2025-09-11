@@ -163,6 +163,7 @@ class CommonDatabaseMock:
                 'file_type': {'result': {'mime': 'application/octet-stream', 'full': 'test text'}},
                 'mandatory_plugin': {'result': 'mandatory result'},
                 'optional_plugin': {'result': 'optional result'},
+                'unloaded_plugin': {'result': 'optional result', 'plugin_version': '1.0.0'},
             }
             return result
         if uid == TEST_TEXT_FILE.uid:
