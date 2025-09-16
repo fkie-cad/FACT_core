@@ -1,7 +1,8 @@
 # FACT installation
 
 The Firmware and Comparison Tool (FACT) consists of three components: frontend, database and backend.
-All components can be installed on different machines (see [Distributed setup](#distributed-setup)), but you can also install everything on one machine (see [Simple (non-distributed) setup](#simple-non-distributed-setup)).
+All components can be installed on different machines (see [Distributed setup](#distributed-setup)), but you can also
+install everything on one machine (see [Simple (non-distributed) setup](#simple-non-distributed-setup)).
 There is an automated installation script supporting Ubuntu 20.04 and 22.04 systems.
 :exclamation: **The automated installation script might remove some packages of your Ubuntu installation. In some cases,
 FACT relies on newer software versions than the ones provided by the Ubuntu repositories.**
@@ -9,6 +10,7 @@ FACT relies on newer software versions than the ones provided by the Ubuntu repo
 ## TL;DR
 
 Execute the following commands (not as `root`!):
+
 ```sh
 sudo apt update && sudo apt install -y git python3-venv
 git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
@@ -48,7 +50,7 @@ Now you can create a virtual environment with:
 
 ```shell
 python3 -m venv .venv
-``` 
+```
 
 Before using your new venv, you need to activate it:
 
@@ -103,7 +105,7 @@ src/install.py
 
 :beer: **Get a drink... Installation of the dependencies might take some time...** :tea:
 
-More advanced setup options can be viewed using the help function of the installer `src/install.py --help` and are 
+More advanced setup options can be viewed using the help function of the installer `src/install.py --help` and are
 explained in some detailed in the following paragraphs.
 
 If the environment variable `FACT_INSTALLER_SKIP_DOCKER` is set the installer
@@ -118,12 +120,12 @@ For this, the components can be individually installed using the command line op
 `--db` (see `src/install.py --help`).
 The two worker components (frontend, backend) both use the database and communicate through Redis.
 This means the database and Redis need to be accessible from these systems.
-The database in turn does not need any knowledge of its place in the network, other than on which **ip:port** 
+The database in turn does not need any knowledge of its place in the network, other than on which **ip:port**
 combination the database server has to be hosted.
-The configuration on the frontend system has to be changed so that the values of `common.postgres.server` and 
+The configuration on the frontend system has to be changed so that the values of `common.postgres.server` and
 `common.postgres.port` match the **ip:port** for the database.
 The same has to be done for Redis and the backend.
-In addition, since the raw firmware and file binaries are stored in the backend, the 
+In addition, since the raw firmware and file binaries are stored in the backend, the
 `backend.firmware-file-storage-directory` has to be created (by default `/media/data/fact_fw_data`).
 
 ## Installation with Nginx (**--nginx**)
@@ -182,7 +184,6 @@ Below, you will find some hints for system-wide proxy configuration.
 Most dependencies and tools used by FACT honor `*_PROXY` environment variables.
 You can set these on a system-wide scope inside `/etc/environment`.
 
-
 ```sh
 echo 'HTTP_PROXY=http://<YOUR-PROXY-HERE>:<PORT>/
 HTTPS_PROXY=http://<YOUR-PROXY-HERE>:<PORT>/
@@ -199,11 +200,11 @@ While `apt` honors the previously set `*_PROXY` environment variables, `sudo` is
 drop them upon privilege elevation.
 You have two options to fix this issue.
 
-
 **Option 1:** Configure `sudo` to not drop these variables:
 
 Open the sudoers file with `sudo visudo` and append the following line:
-```
+
+```sudoers
 Defaults env_keep += "ftp_proxy http_proxy https_proxy no_proxy"
 ```
 
