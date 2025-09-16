@@ -10,14 +10,17 @@ FACT relies on newer software versions than the ones provided by the Ubuntu repo
 
 Execute the following commands (not as `root`!):
 ```sh
-sudo apt update && sudo apt upgrade && sudo apt install git
+sudo apt update && sudo apt install -y git python3-venv
 git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
+python3 -m venv ~/venv
+. ~/venv/bin/activate
 ~/FACT_core/src/install/pre_install.sh && sudo mkdir /media/data && sudo chown -R $USER /media/data
 ```
 
 Then reboot (e.g., with `sudo reboot`) and afterward run
 
 ```sh
+. ~/venv/bin/activate
 ~/FACT_core/src/install.py
 ~/FACT_core/start_all_installed_fact_components
 ```
