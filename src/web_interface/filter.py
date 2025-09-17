@@ -34,6 +34,8 @@ from web_interface.security.privileges import PRIVILEGES
 if TYPE_CHECKING:
     from objects.file import FileObject
 
+BYTE_FORMAT_THRESHOLD = 2**10
+
 
 def generic_nice_representation(i):  # noqa: PLR0911
     if isinstance(i, struct_time):
@@ -64,9 +66,14 @@ def nice_number_filter(i):
 def byte_number_filter(i, verbose=False):
     if not isinstance(i, (float, int)):
         return 'not available'
-    if verbose:
-        return f'{human_readable_file_size(i)} ({i:,d} bytes)'
-    return human_readable_file_size(i)
+    output = human_readable_file_size(i)
+    if i < BYTE_FORMAT_THRESHOLD:
+        # FixMe: the human_readable_file_size() function from common_helper_files produces output with decimals even
+        #        for values < 1024 and uses the unit "Byte" instead of "bytes"
+        output = output.replace('Byte', 'byte' if i == 1 else 'bytes').replace('.00', '')
+    elif verbose:
+        return f'{output} ({i:,d} bytes)'
+    return output
 
 
 def encode_base64_filter(string):
