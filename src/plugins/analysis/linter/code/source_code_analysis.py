@@ -63,7 +63,7 @@ class AnalysisPlugin(AnalysisPluginV0):
 
     def __init__(self):
         super().__init__(
-            metadata=AnalysisPluginV0.MetaData(
+            metadata=self.MetaData(
                 name='source_code_analysis',
                 description='This plugin implements static code analysis for multiple scripting languages',
                 version=Version(0, 7, 3),

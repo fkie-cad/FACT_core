@@ -2,6 +2,7 @@ import io
 
 import pydantic
 from pydantic import Field
+from semver import Version
 
 from analysis.plugin import AnalysisPluginV0
 
@@ -24,10 +25,10 @@ class AnalysisPlugin(AnalysisPluginV0):
         dependant_analysis: dict
 
     def __init__(self):
-        metadata = AnalysisPluginV0.MetaData(
+        metadata = self.MetaData(
             name='ExamplePlugin',
             description='An example description',
-            version='0.0.0',
+            version=Version(0, 0, 0),
             Schema=AnalysisPlugin.Schema,
             # Note that you don't have to set these fields,
             # they are just here to show that you can.

@@ -5,6 +5,7 @@ from typing import List
 
 import pydantic
 from pydantic import Field
+from semver import Version
 
 from analysis.plugin import AnalysisPluginV0
 from helperFunctions import magic
@@ -24,10 +25,10 @@ class AnalysisPlugin(AnalysisPluginV0):
 
     def __init__(self):
         super().__init__(
-            metadata=AnalysisPluginV0.MetaData(
+            metadata=self.MetaData(
                 name='file_type',
                 description='identify the file type',
-                version='1.0.0',
+                version=Version(1, 0, 0),
                 Schema=AnalysisPlugin.Schema,
             ),
         )

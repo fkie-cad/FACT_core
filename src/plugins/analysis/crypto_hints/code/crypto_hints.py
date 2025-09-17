@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List
 
 import pydantic
+from semver import Version
 
 from analysis.plugin import AnalysisPluginV0, addons, compat
 
@@ -15,10 +16,10 @@ class AnalysisPlugin(AnalysisPluginV0):
         matches: List[dict]
 
     def __init__(self):
-        metadata = AnalysisPluginV0.MetaData(
+        metadata = self.MetaData(
             name='crypto_hints',
             description='find indicators of specific crypto algorithms',
-            version='0.2.1',
+            version=Version(0, 2, 1),
             Schema=AnalysisPlugin.Schema,
         )
         super().__init__(metadata=metadata)
