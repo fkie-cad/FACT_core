@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
-        metadata = AnalysisPluginV0.MetaData(
+        metadata = self.MetaData(
             name='device_tree',
             description='get the device tree in text from the device tree blob',
             version=Version(2, 0, 1),
