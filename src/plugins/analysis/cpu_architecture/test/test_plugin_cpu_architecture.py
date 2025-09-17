@@ -212,7 +212,7 @@ def test_metadatadetector_get_device_architecture(architecture, bitness, endiann
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
-class TestAnalysisPluginsSoftwareComponents:
+class TestAnalysisPluginCpuArchitecture:
     def test_analyze(self, analysis_plugin):
         dependencies = {
             'kernel_config': _mock_kernel_config_analysis_arm,

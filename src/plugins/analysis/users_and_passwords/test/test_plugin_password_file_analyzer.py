@@ -10,7 +10,7 @@ PW_TYPES = ['unix', 'mosquitto', 'http']
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
-class TestAnalysisPluginPasswordFileAnalyzer:
+class TestAnalysisPluginUsersAndPasswords:
     def test_process_object_shadow_file(self, analysis_plugin):
         test_file = TEST_DATA_DIR / 'passwd_test'
         with test_file.open() as fp:
