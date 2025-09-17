@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, List, NamedTuple, Optional
 
 from docker.types import Mount
 from pydantic import BaseModel, Field
+from semver import Version
 
 import config
 from analysis.plugin import AnalysisPluginV0, Tag
@@ -130,7 +131,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             description=(
                 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
             ),
-            version='1.2.0',
+            version=Version(1, 2, 0),
             Schema=self.Schema,
             timeout=30,
         )

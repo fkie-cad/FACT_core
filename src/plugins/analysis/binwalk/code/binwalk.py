@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, List
 
 import binwalk
 from pydantic import BaseModel, Field
+from semver import Version
 
 import config
 from analysis.plugin import AnalysisPluginV0
@@ -37,10 +38,10 @@ class AnalysisPlugin(AnalysisPluginV0):
 
     def __init__(self):
         super().__init__(
-            metadata=AnalysisPluginV0.MetaData(
+            metadata=self.MetaData(
                 name='binwalk',
                 description='binwalk signature and entropy analysis',
-                version='1.0.0',
+                version=Version(1, 0, 0),
                 Schema=self.Schema,
                 mime_blacklist=['audio/', 'image/', 'video/', 'text/', *MIME_BLACKLIST_COMPRESSED],
             ),
