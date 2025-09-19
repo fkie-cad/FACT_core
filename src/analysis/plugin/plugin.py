@@ -13,7 +13,11 @@ if typing.TYPE_CHECKING:
 
 
 class AnalysisFailedError(Exception):
-    ...
+    """
+    This exception is used to cancel an analysis in a controlled way while still providing context information and
+    will not log an error with traceback to the terminal. It is an "expected exception" during analysis: Some
+    requirement is missing or the analysis input is incompatible and the analysis cannot be performend.
+    """
 
 
 class Tag(BaseModel):

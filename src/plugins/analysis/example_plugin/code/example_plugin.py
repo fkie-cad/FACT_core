@@ -1,10 +1,11 @@
 import io
+from pathlib import Path
 
 import pydantic
 from pydantic import Field
 from semver import Version
 
-from analysis.plugin import AnalysisPluginV0
+from analysis.plugin.plugin import AnalysisFailedError, AnalysisPluginV0
 
 
 class AnalysisPlugin(AnalysisPluginV0):
@@ -44,11 +45,15 @@ class AnalysisPlugin(AnalysisPluginV0):
         del result
         return ['big-file', 'binary']
 
-    def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
+    def analyze(self, file_handle: io.FileIO, virtual_file_path: dict, analyses: dict) -> Schema:
         first_byte = file_handle.read(1)
+        if first_byte == b'\xff':
+            raise AnalysisFailedError('reason for fail')
+        if first_byte == b'\xee':
+            raise Exception('Unexpected exception occurred.')
         return AnalysisPlugin.Schema(
             number=42,
-            name=file_handle.name,
+            name=Path(file_handle.name).name,
             first_byte=first_byte.hex(),
             virtual_file_path=virtual_file_path,
             dependant_analysis=analyses['file_type'].model_dump(),

@@ -16,7 +16,8 @@ import pydantic
 from pydantic import BaseModel, ConfigDict
 
 import config
-from objects.file import FileObject  # noqa: TCH001  # needed by pydantic
+from analysis.plugin.plugin import AnalysisFailedError
+from objects.file import FileObject  # noqa: TCH001 # needed by pydantic
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 from storage.fsorganizer import FSOrganizer
 
@@ -231,6 +232,8 @@ class Worker(mp.Process):
                 result = recv_conn.recv()
 
                 if isinstance(result, str):
+                    if result.startswith('Analysis failed'):
+                        raise AnalysisFailedError(result)
                     raise AnalysisExceptionError(result)
 
                 duration = time.time() - start_time
@@ -246,6 +249,8 @@ class Worker(mp.Process):
             except Worker.CrashedError:
                 logging.warning(f'{analysis_description} crashed.')
                 entry['exception'] = (self._plugin.metadata.name, 'Analysis crashed')
+            except AnalysisFailedError as exc:
+                entry['exception'] = (self._plugin.metadata.name, str(exc))
             except AnalysisExceptionError as exc:
                 logging.error(f'{self} got an exception during {analysis_description}: {exc}')
                 entry['exception'] = (self._plugin.metadata.name, 'Exception occurred during analysis')
@@ -267,7 +272,7 @@ class Worker(mp.Process):
 
     def _write_result_in_file_object(self, entry: dict, file_object: FileObject):
         """Takes a file_object and an entry as it is returned by :py:func:`Worker.run`
-        and returns a FileObject with the corresponding fileds set.
+        and returns a FileObject with the corresponding fields set.
         """
         if 'analysis' in entry:
             file_object.processed_analysis[self._plugin.metadata.name] = entry['analysis']
@@ -284,6 +289,8 @@ class Worker(mp.Process):
         """
         try:
             result = plugin.get_analysis(io.FileIO(task.path), task.virtual_file_path, task.dependencies)
+        except AnalysisFailedError as exc:
+            result = f'Analysis failed: {exc}'
         except Exception as exc:
             result = f'{exc}: {traceback.format_exc()}'
 

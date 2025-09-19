@@ -530,9 +530,9 @@ class AnalysisScheduler:
         logging.debug(f'Stopped analysis result collector worker {index}')
 
     def _handle_collected_result(self, fo: FileObject, plugin_name: str):
+        if fo.analysis_exception:
+            self.task_scheduler.reschedule_failed_analysis_task(fo)
         if plugin_name in fo.processed_analysis:
-            if fo.analysis_exception:
-                self.task_scheduler.reschedule_failed_analysis_task(fo)
             self.status.add_analysis(fo, plugin_name)
             self.post_analysis(fo.uid, plugin_name, fo.processed_analysis[plugin_name])
         self._check_further_process_or_complete(fo)
