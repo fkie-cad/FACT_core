@@ -8,7 +8,7 @@ YARA_TEST_FILE = Path(__file__).parent / 'data' / 'yara_test_file'
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
-class TestAnalysisPluginsSoftwareComponents:
+class TestAnalysisPluginSoftwareComponents:
     def test_process_object(self, analysis_plugin):
         with YARA_TEST_FILE.open('rb') as fp:
             results = analysis_plugin.analyze(fp, {}, {})

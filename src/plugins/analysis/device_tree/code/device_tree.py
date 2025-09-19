@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Dict
 
 from semver import Version
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
-        metadata = AnalysisPluginV0.MetaData(
+        metadata = self.MetaData(
             name='device_tree',
             description='get the device tree in text from the device tree blob',
             version=Version(2, 0, 1),
@@ -40,7 +40,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         file_handle: io.FileIO,
         virtual_file_path: dict,
         analyses: Dict[str, dict],
-    ) -> Optional[Schema]:
+    ) -> Schema:
         del virtual_file_path, analyses
 
         binary = file_handle.readall()

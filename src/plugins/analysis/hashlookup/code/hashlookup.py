@@ -7,7 +7,7 @@ import requests
 from pydantic import BaseModel, Field, model_validator
 from semver import Version
 
-from analysis.plugin import AnalysisPluginV0
+from analysis.plugin import AnalysisFailedError, AnalysisPluginV0
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED, MIME_BLACKLIST_NON_EXECUTABLE
 
 if TYPE_CHECKING:
@@ -109,19 +109,19 @@ class AnalysisPlugin(AnalysisPluginV0):
             )
         )
 
-    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema | None:
+    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
         del file_handle, virtual_file_path
         try:
             sha2_hash = analyses['file_hashes'].sha256
         except (KeyError, AttributeError) as error:
-            raise HashLookupError('sha256 hash is missing in dependency results') from error
+            raise AnalysisFailedError('sha256 hash is missing in dependency results') from error
 
         result = _look_up_hash(sha2_hash.upper())
 
         if 'FileName' not in result:
             if 'message' in result and result['message'] == 'Non existing SHA-256':
                 # sha256 hash unknown to hashlookup at time of analysis'
-                return None
+                raise AnalysisFailedError('No record found in circl.lu for this file.')
             raise HashLookupError('Unknown error connecting to hashlookup API')
         return self.Schema.model_validate(result)
 
@@ -134,4 +134,4 @@ def _look_up_hash(sha2_hash: str) -> dict:
         url = f'https://hashlookup.circl.lu/lookup/sha256/{sha2_hash}'
         return requests.get(url, headers={'accept': 'application/json'}).json()
     except (requests.ConnectionError, json.JSONDecodeError) as error:
-        raise HashLookupError('Failed to connect to circl.lu hashlookup API') from error
+        raise AnalysisFailedError('Failed to connect to circl.lu hashlookup API') from error
