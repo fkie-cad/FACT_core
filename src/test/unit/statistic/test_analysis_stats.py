@@ -1,11 +1,11 @@
 import pytest
 
-from analysis.PluginBase import AnalysisBasePlugin
+from analysis.plugin import AnalysisPluginV0
 from statistic.analysis_stats import get_plugin_stats
 from test.common_helper import create_test_firmware
 
 
-class MockPlugin(AnalysisBasePlugin):
+class MockPlugin(AnalysisPluginV0):
     NAME = 'mock_plugin'
     FILE = __file__
     VERSION = '0.0'
