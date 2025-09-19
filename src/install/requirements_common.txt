@@ -4,7 +4,7 @@ testresources==2.0.1
 # General python dependencies
 docker~=7.1.0
 pytest-rerunfailures~=14.0
-lief~=0.16.2
+lief~=0.17.0
 psutil~=6.1.1
 psycopg2-binary~=2.9.10
 pylint~=3.2.7
