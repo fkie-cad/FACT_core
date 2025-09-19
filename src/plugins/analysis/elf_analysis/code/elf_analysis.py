@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import string
+import warnings
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
@@ -14,11 +15,14 @@ from semver import Version
 from analysis.plugin import AnalysisPluginV0, Tag
 from helperFunctions.tag import TagColor
 
-FUNCTION_MATCHING_THRESHOLD = 0.85
-
 if TYPE_CHECKING:
     from io import FileIO
 
+# disable lief logging in cases where it cannot parse sections types or tags
+warnings.filterwarnings('ignore', message='.*is not a valid TYPE.*')
+warnings.filterwarnings('ignore', message='.*is not a valid TAG.*')
+
+FUNCTION_MATCHING_THRESHOLD = 0.85
 TEMPLATE_FILE_PATH = Path(__file__).parent.parent / 'internal/matching_template.json'
 BEHAVIOUR_CLASSES = json.loads(TEMPLATE_FILE_PATH.read_text())
 PRINTABLE_BYTES = set(string.printable.encode())
@@ -87,7 +91,8 @@ class ElfSection(BaseModel):
             flags=[f.name for f in section.flags_list if isinstance(f.name, str)],
             name=section.name,
             size=section.size,
-            type=section.type.name,
+            # if lief section type resolution fails, section.type will be an int
+            type=section.type.name if not isinstance(section.type, int) else str(section.type),
             offset=section.offset,
             virtual_address=section.virtual_address,
         )
@@ -125,7 +130,8 @@ class DynamicEntry(BaseModel):
     @classmethod
     def from_lief_dyn_entry(cls, entry: lief.ELF.DynamicEntry) -> DynamicEntry:
         return cls(
-            tag=entry.tag.name,
+            # if lief symbol flag resolution fails, entry.tag will be an int
+            tag=entry.tag.name if not isinstance(entry.tag, int) else str(entry.tag),
             value=entry.value,
             library=getattr(entry, 'name', None),
             flags=[f.name for f in entry.flags] if hasattr(entry, 'flags') else None,
@@ -160,7 +166,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         metadata = self.MetaData(
             name='elf_analysis',
             description='Analyzes and tags ELF executables and libraries',
-            version=Version(1, 0, 0),
+            version=Version(1, 0, 1),
             Schema=self.Schema,
             mime_whitelist=[
                 'application/x-executable',
@@ -236,7 +242,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         return TagColor.GRAY
 
 
-def _get_behavior_classes(elf: lief.ELF) -> list[str]:
+def _get_behavior_classes(elf: lief.ELF.Binary) -> list[str]:
     libraries = _get_symbols_version_entries([str(s) for s in elf.symbols_version])
     libraries.extend([str(lib) for lib in elf.libraries])
     functions = _get_relevant_imp_functions([f.name for f in elf.imported_functions])
@@ -288,7 +294,7 @@ def _get_modinfo(elf: lief.ELF.Binary) -> dict[str, str] | None:
     return None
 
 
-def _get_note_sections_content(elf: lief.ELF) -> Iterable[InfoSectionData]:
+def _get_note_sections_content(elf: lief.ELF.Binary) -> Iterable[InfoSectionData]:
     for section in elf.sections:  # type: lief.ELF.Section
         if section.type == lief.ELF.Section.TYPE.NOTE:
             readable_content = bytes([c for c in section.content.tobytes() if c in PRINTABLE_BYTES])
