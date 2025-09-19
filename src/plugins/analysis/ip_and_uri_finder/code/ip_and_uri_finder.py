@@ -100,7 +100,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             ValueError,
             InvalidDatabaseError,
         ) as exception:
-            logging.debug(f'Error during {self.NAME} analysis: {exception!s}', exc_info=True)
+            logging.debug(f'Error during {self.metadata.name} analysis: {exception!s}', exc_info=True)
             return None
 
     def summarize(self, result: Schema) -> list:

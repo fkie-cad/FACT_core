@@ -44,13 +44,11 @@ class AnalysisPlugin(AnalysisPluginV0):
         return ['big-file', 'binary']
 
     def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
-        file_type_analysis = analyses['file_type']
-
         first_byte = file_handle.read(1)
         return AnalysisPlugin.Schema(
             number=42,
             name=file_handle.name,
             first_byte=first_byte.hex(),
             virtual_file_path=virtual_file_path,
-            dependant_analysis=file_type_analysis,
+            dependant_analysis=analyses['file_type'].model_dump(),
         )

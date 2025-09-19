@@ -7,7 +7,6 @@ from time import time
 from typing import TYPE_CHECKING, Optional
 
 import config
-from analysis.PluginBase import sanitize_processed_analysis
 from helperFunctions import magic
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
@@ -111,3 +110,26 @@ class Unpacker(UnpackBase):
             error = ExtractionError('File not found')
             self._store_unpacking_error_skip_info(file_object, error=error)
             raise error
+
+
+def sanitize_processed_analysis(processed_analysis_entry: dict) -> dict:
+    # Old analysis plugins (before AnalysisPluginV0) could write anything they want to processed_analysis.
+    # We put everything the plugin wrote into a separate dict so that it matches the behavior of AnalysisPluginV0
+    result = {}
+    for key in list(processed_analysis_entry):
+        if key in {
+            'tags',
+            'summary',
+            'analysis_date',
+            'plugin_version',
+            'system_version',
+            'file_system_flag',
+            'result',
+        }:
+            continue
+
+        result[key] = processed_analysis_entry.pop(key)
+
+    processed_analysis_entry['result'] = result
+
+    return processed_analysis_entry
