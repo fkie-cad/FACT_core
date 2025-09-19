@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Dict
 
 from semver import Version
 
@@ -40,7 +40,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         file_handle: io.FileIO,
         virtual_file_path: dict,
         analyses: Dict[str, dict],
-    ) -> Optional[Schema]:
+    ) -> Schema:
         del virtual_file_path, analyses
 
         binary = file_handle.readall()
