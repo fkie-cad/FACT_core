@@ -4,6 +4,7 @@ import logging
 from contextlib import suppress
 from typing import TYPE_CHECKING
 
+from semver import Version
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -115,7 +116,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             analysis = AnalysisEntry(
                 uid=uid,
                 plugin=plugin,
-                plugin_version=analysis_dict['plugin_version'],
+                plugin_version=self._sanitize_plugin_version(analysis_dict['plugin_version']),
                 system_version=analysis_dict.get('system_version'),
                 analysis_date=analysis_dict['analysis_date'],
                 summary=analysis_dict.get('summary'),
@@ -124,6 +125,12 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 file_object=fo_backref,
             )
             session.add(analysis)
+
+    @staticmethod
+    def _sanitize_plugin_version(plugin_version: str | Version) -> str:
+        if isinstance(plugin_version, Version):
+            return str(plugin_version)
+        return plugin_version
 
     def add_vfp(self, parent_uid: str, child_uid: str, paths: list[str]):
         """Adds a new "virtual file path" for file `child_uid` with path `path` in `parent_uid`"""
@@ -196,7 +203,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def update_analysis(self, uid: str, plugin: str, analysis_data: dict):
         with self.get_read_write_session() as session:
             entry = session.get(AnalysisEntry, (uid, plugin))
-            entry.plugin_version = analysis_data['plugin_version']
+            entry.plugin_version = self._sanitize_plugin_version(analysis_data['plugin_version'])
             entry.system_version = analysis_data.get('system_version')
             entry.analysis_date = analysis_data['analysis_date']
             entry.summary = analysis_data.get('summary')

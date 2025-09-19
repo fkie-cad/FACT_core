@@ -206,7 +206,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             mounts=[
                 Mount('/work', input_dir, type='bind'),
             ],
-            timeout=int(self.TIMEOUT * 0.8),  # docker call gets 80% of the analysis time before it times out
+            timeout=int(self.metadata.timeout * 0.8),  # docker call gets 80% of the analysis time before it times out
             privileged=True,
         )
         return result.stdout

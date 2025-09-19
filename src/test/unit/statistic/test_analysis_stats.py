@@ -1,34 +1,50 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
 import pytest
 
-from analysis.PluginBase import AnalysisBasePlugin
+from scheduler.analysis import plugin
 from statistic.analysis_stats import get_plugin_stats
 from test.common_helper import create_test_firmware
 
 
-class MockPlugin(AnalysisBasePlugin):
-    NAME = 'mock_plugin'
-    FILE = __file__
-    VERSION = '0.0'
-    ANALYSIS_STATS_LIMIT = 5
+@dataclass
+class MockMetadata:
+    name: str
+    dependencies: list[str]
 
-    def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):
-        return fo
+
+@dataclass
+class MockPlugin:
+    metadata: MockMetadata
+
+    def get_analysis(self, *_, **__):
+        return 1
+
+
+class MockFSOrganizer:
+    def generate_path(self, fw):
+        return fw.file_path
 
 
 @pytest.fixture
-def mock_plugin():
-    plugin = MockPlugin()
-    yield plugin
-    plugin.shutdown()
+def mock_runner():
+    runner_config = plugin.PluginRunner.Config(process_count=1, timeout=5)
+    metadata = MockMetadata(name='test', dependencies=[])
+    runner = plugin.PluginRunner(MockPlugin(metadata), runner_config, {})
+    runner._fsorganizer = MockFSOrganizer()
+    yield runner
+    runner.shutdown()
 
 
-def test_get_plugin_stats(mock_plugin):
-    mock_plugin.analysis_stats[0] = 1.0
-    mock_plugin.analysis_stats[1] = 2.0
-    mock_plugin.analysis_stats[2] = 3.0
-    mock_plugin.analysis_stats_count.value = 3
+def test_get_plugin_stats(mock_runner):
+    mock_runner.stats[0] = 1.0
+    mock_runner.stats[1] = 2.0
+    mock_runner.stats[2] = 3.0
+    mock_runner.stats_count.value = 3
 
-    result = get_plugin_stats(mock_plugin.analysis_stats, mock_plugin.analysis_stats_count)
+    result = get_plugin_stats(mock_runner.stats, mock_runner.stats_count)
     assert result == {
         'count': '3',
         'max': '3.00',
@@ -40,17 +56,18 @@ def test_get_plugin_stats(mock_plugin):
 
 
 @pytest.mark.flaky(reruns=3)  # test occasionally fails on the CI
-def test_update_duration_stats(mock_plugin):
-    mock_plugin.start()
-    assert mock_plugin.analysis_stats_count.value == mock_plugin.analysis_stats_index.value == 0
+def test_update_duration_stats(mock_runner):
+    plugin.ANALYSIS_STATS_LIMIT = 5
+    mock_runner.start()
+    assert mock_runner.stats_count.value == mock_runner._stats_idx.value == 0
     fw = create_test_firmware()
     for _ in range(4):
-        mock_plugin.add_job(fw)
-        mock_plugin.out_queue.get(timeout=5)
-    assert mock_plugin.analysis_stats_count.value == mock_plugin.analysis_stats_index.value == 4
-    mock_plugin.add_job(fw)
-    mock_plugin.out_queue.get(timeout=5)
-    assert mock_plugin.analysis_stats_count.value == 5
-    assert mock_plugin.analysis_stats_index.value == 0, 'index should start at 0 when max count is reached'
+        mock_runner.queue_analysis(fw)
+        mock_runner.out_queue.get(timeout=5)
+    assert mock_runner.stats_count.value == mock_runner._stats_idx.value == 4
+    mock_runner.queue_analysis(fw)
+    mock_runner.out_queue.get(timeout=5)
+    assert mock_runner.stats_count.value == 5
+    assert mock_runner._stats_idx.value == 0, 'index should start at 0 when max count is reached'
 
-    assert get_plugin_stats(mock_plugin.analysis_stats, mock_plugin.analysis_stats_count) is not None
+    assert get_plugin_stats(mock_runner.stats, mock_runner.stats_count) is not None

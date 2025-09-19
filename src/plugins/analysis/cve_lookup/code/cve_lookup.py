@@ -52,8 +52,8 @@ class AnalysisPlugin(AnalysisPluginV0):
                 )
             )
         )
-        self.min_crit_score = getattr(config.backend.plugin.get(self.NAME, {}), 'min-critical-score', 9.0)
-        self.match_any = getattr(config.backend.plugin.get(self.NAME, {}), 'match-any', False)
+        self.min_crit_score = getattr(config.backend.plugin.get(self.metadata.name, {}), 'min-critical-score', 9.0)
+        self.match_any = getattr(config.backend.plugin.get(self.metadata.name, {}), 'match-any', False)
 
     def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
         """
