@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import string
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -52,17 +53,17 @@ class ElfHeader(BaseModel):
     def from_lief_header(cls, header: lief.ELF.Header) -> ElfHeader:
         return cls(
             entrypoint=header.entrypoint,
-            file_type=header.file_type.__name__,
+            file_type=header.file_type.name,
             header_size=header.header_size,
             identity_abi_version=header.identity_abi_version,
-            identity_class=header.identity_class.__name__,
-            identity_data=header.identity_data.__name__,
-            identity_os_abi=header.identity_os_abi.__name__,
-            identity_version=header.identity_version.__name__,
-            machine_type=header.machine_type.__name__.lower(),
+            identity_class=header.identity_class.name,
+            identity_data=header.identity_data.name,
+            identity_os_abi=header.identity_os_abi.name,
+            identity_version=header.identity_version.name,
+            machine_type=header.machine_type.name.lower(),
             numberof_sections=header.numberof_sections,
             numberof_segments=header.numberof_segments,
-            object_file_version=header.object_file_version.__name__,
+            object_file_version=header.object_file_version.name,
             processor_flag=header.processor_flag,
             program_header_size=header.program_header_size,
             program_headers_offset=header.program_header_offset,
@@ -83,10 +84,10 @@ class ElfSection(BaseModel):
     @classmethod
     def from_lief_section(cls, section: lief.ELF.Section) -> ElfSection:
         return cls(
-            flags=[f.__name__ for f in section.flags_list],
+            flags=[f.name for f in section.flags_list if isinstance(f.name, str)],
             name=section.name,
             size=section.size,
-            type=section.type.__name__,
+            type=section.type.name,
             offset=section.offset,
             virtual_address=section.virtual_address,
         )
@@ -108,7 +109,7 @@ class ElfSegment(BaseModel):
             flags=[ELF_SEGMENT_FLAGS.get(segment.flags.value, 'None')],
             physical_address=segment.physical_address,
             physical_size=segment.physical_size,
-            type=segment.type.__name__,
+            type=segment.type.name,
             virtual_address=segment.virtual_address,
             virtual_size=segment.virtual_size,
         )
@@ -124,10 +125,10 @@ class DynamicEntry(BaseModel):
     @classmethod
     def from_lief_dyn_entry(cls, entry: lief.ELF.DynamicEntry) -> DynamicEntry:
         return cls(
-            tag=entry.tag.__name__,
+            tag=entry.tag.name,
             value=entry.value,
             library=getattr(entry, 'name', None),
-            flags=[f.__name__ for f in entry.flags] if hasattr(entry, 'flags') else None,
+            flags=[f.name for f in entry.flags] if hasattr(entry, 'flags') else None,
             array=[str(i) for i in entry.array] if hasattr(entry, 'array') else None,
         )
 
@@ -183,7 +184,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             imported_functions=[
                 ElfSymbol(name=name, offset=address) for address, name in _deduplicate_functions(elf.imported_functions)
             ],
-            sections=[ElfSection.from_lief_section(s) for s in elf.sections],
+            sections=self._get_sections(elf),
             segments=[ElfSegment.from_lief_segment(s) for s in elf.segments],
             dynamic_entries=[DynamicEntry.from_lief_dyn_entry(e) for e in elf.dynamic_entries],
             libraries=elf.libraries,
@@ -191,6 +192,16 @@ class AnalysisPlugin(AnalysisPluginV0):
             mod_info=_get_modinfo(elf),
             behavior_classes=_get_behavior_classes(elf),
         )
+
+    def _get_sections(self, elf: lief.ELF.Binary) -> list[ElfSection]:
+        sections = []
+        for sec in elf.sections:
+            try:
+                sections.append(ElfSection.from_lief_section(sec))
+            except Exception as error:
+                logging.exception(f'[{self.metadata.name}]: section {sec} could not be parsed: {error}')
+                continue
+        return sections
 
     def summarize(self, result: Schema) -> list[str]:
         keys = ['sections', 'dynamic_entries', 'exported_functions', 'imported_functions', 'note_sections', 'mod_info']
@@ -265,7 +276,7 @@ def _behaviour_class_applies(functions: list[str], libraries: list[str], indicat
     return False
 
 
-def _get_modinfo(elf: lief.ELF) -> dict[str, str] | None:
+def _get_modinfo(elf: lief.ELF.Binary) -> dict[str, str] | None:
     # getting the information from the *.ko files .modinfo section
     for section in elf.sections:
         if section.name == '.modinfo':
