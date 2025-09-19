@@ -9,7 +9,7 @@ import queue
 import signal
 import time
 import traceback
-import typing
+from typing import TYPE_CHECKING, Dict, Type
 
 import psutil
 import pydantic
@@ -21,7 +21,7 @@ from objects.file import FileObject  # noqa: TCH001 # needed by pydantic
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 from storage.fsorganizer import FSOrganizer
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from analysis.plugin import AnalysisPluginV0
 
 
@@ -38,11 +38,11 @@ class PluginRunner:
 
         #: The virtual file path of the file object
         #: See :py:class:`FileObject`.
-        virtual_file_path: typing.Dict
+        virtual_file_path: Dict
         #: The path of the file on the disk
         path: str
         #: A dictionary containing plugin names as keys and their analysis as value.
-        dependencies: typing.Dict
+        dependencies: Dict
         #: The schedulers state associated with the file that is analyzed.
         #: Here it is just the whole FileObject
         # We need this because the scheduler is using multiple processes which
@@ -58,7 +58,7 @@ class PluginRunner:
         self,
         plugin: AnalysisPluginV0,
         config: Config,
-        schemata: typing.Dict[str, pydantic.BaseModel],
+        schemata: Dict[str, Type[pydantic.BaseModel]],
     ):
         self._plugin = plugin
         self._config = config
@@ -187,7 +187,7 @@ class Worker(mp.Process):
 
         def _handle_sigterm(signum, frame):
             del signum, frame
-            logging.info(f'{self} received SIGTERM. Shutting down.')
+            logging.debug(f'{self} received SIGTERM. Shutting down.')
             nonlocal run
             nonlocal result
             run = False
@@ -198,8 +198,8 @@ class Worker(mp.Process):
             if not child_process.is_alive():
                 return
 
-            if not recv_conn.poll(Worker.SIGTERM_TIMEOUT):
-                raise Worker.TimeoutError(Worker.SIGTERM_TIMEOUT)
+            if not recv_conn.poll(self.SIGTERM_TIMEOUT):
+                raise self.TimeoutError(self.SIGTERM_TIMEOUT)
 
             result = recv_conn.recv()
 
@@ -227,7 +227,7 @@ class Worker(mp.Process):
                 child_process.start()
                 # If process crashes without an exception (e.g. SEGFAULT) we will report a timeout
                 if not recv_conn.poll(self._worker_config.timeout):
-                    raise Worker.TimeoutError(self._worker_config.timeout)
+                    raise self.TimeoutError(self._worker_config.timeout)
 
                 result = recv_conn.recv()
 
@@ -243,10 +243,10 @@ class Worker(mp.Process):
                 if duration > 120:  # noqa: PLR2004
                     logging.info(f'{analysis_description} is slow: took {duration:.1f} seconds')
                 self._update_duration_stats(duration)
-            except Worker.TimeoutError as err:
+            except self.TimeoutError as err:
                 logging.warning(f'{analysis_description} timed out after {err.timeout} seconds.')
                 entry['timeout'] = (self._plugin.metadata.name, 'Analysis timed out')
-            except Worker.CrashedError:
+            except self.CrashedError:
                 logging.warning(f'{analysis_description} crashed.')
                 entry['exception'] = (self._plugin.metadata.name, 'Analysis crashed')
             except AnalysisFailedError as exc:
