@@ -1,10 +1,13 @@
+from __future__ import annotations
+
+from dataclasses import KW_ONLY, dataclass, field
 from multiprocessing import Queue
 from time import sleep
 from unittest import mock
 
 import pytest
+from semver import Version
 
-from analysis.PluginBase import AnalysisBasePlugin
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
 from scheduler.task_scheduler import MANDATORY_PLUGINS
@@ -34,7 +37,7 @@ class BackendDbInterface:
 )
 class TestScheduleInitialAnalysis:
     def test_plugin_registration(self, analysis_scheduler):
-        assert 'dummy_plugin_for_testing_only' in analysis_scheduler.analysis_plugins, 'Dummy plugin not found'
+        assert 'ExamplePlugin' in analysis_scheduler.analysis_plugins, 'Example Plugin not found'
 
     @pytest.mark.SchedulerTestConfig(start_processes=False)
     def test_schedule_firmware_init_no_analysis_selected(self, analysis_scheduler):
@@ -49,18 +52,14 @@ class TestScheduleInitialAnalysis:
     @pytest.mark.SchedulerTestConfig(start_processes=True)
     def test_whole_run_analysis_selected(self, analysis_scheduler, post_analysis_queue):
         test_fw = Firmware(file_path=get_test_data_dir() / 'get_files_test/testfile1')
-        test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
+        test_fw.scheduled_analysis = ['ExamplePlugin']
         analysis_scheduler.start_analysis_of_object(test_fw)
         analysis_results = [post_analysis_queue.get(timeout=10) for _ in range(3)]
-        analysis_results = [
-            {'uid': uid, 'plugin': plugin, 'result': result} for uid, plugin, result in analysis_results
-        ]
+        analysis_results = {plugin: result for uid, plugin, result in analysis_results}
         assert len(analysis_results) == 3, 'analysis not done'
-        assert analysis_results[0]['plugin'] == 'file_type'
-        assert analysis_results[1]['plugin'] == 'dummy_plugin_for_testing_only'
-        assert analysis_results[2]['plugin'] == 'file_hashes'
-        assert analysis_results[1]['result']['result']['1'] == 'first result', 'result not correct'
-        assert analysis_results[1]['result']['summary'] == ['first result', 'second result']
+        assert set(analysis_results) == {'file_type', 'ExamplePlugin', 'file_hashes'}
+        assert analysis_results['ExamplePlugin']['result']['first_byte'] == '74'
+        assert analysis_results['ExamplePlugin']['summary'] == ['big-file', 'binary']
 
     def test_expected_plugins_are_found(self, analysis_scheduler):
         result = analysis_scheduler.get_plugin_dict()
@@ -82,7 +81,7 @@ class TestScheduleInitialAnalysis:
     def test_get_plugin_dict_description(self, analysis_scheduler):
         result = analysis_scheduler.get_plugin_dict()
         assert (
-            result['file_type'][0] == analysis_scheduler.analysis_plugins['file_type'].DESCRIPTION
+            result['file_type'][0] == analysis_scheduler.analysis_plugins['file_type'].metadata.description
         ), 'description not correct'
 
     @pytest.mark.backend_config_overwrite(
@@ -106,9 +105,11 @@ class TestScheduleInitialAnalysis:
 
     def test_get_plugin_dict_version(self, analysis_scheduler):
         result = analysis_scheduler.get_plugin_dict()
-        assert result['file_type'][3] == analysis_scheduler.analysis_plugins['file_type'].VERSION, 'version not correct'
         assert (
-            result['file_hashes'][3] == analysis_scheduler.analysis_plugins['file_hashes'].VERSION
+            result['file_type'][3] == analysis_scheduler.analysis_plugins['file_type'].metadata.version
+        ), 'version not correct'
+        assert (
+            result['file_hashes'][3] == analysis_scheduler.analysis_plugins['file_hashes'].metadata.version
         ), 'version not correct'
 
     def test_process_next_analysis_unknown_plugin(self, analysis_scheduler):
@@ -122,8 +123,8 @@ class TestScheduleInitialAnalysis:
     @pytest.mark.backend_config_overwrite(
         {
             'plugin': {
-                'dummy_plugin_for_testing_only': {
-                    'name': 'dummy_plugin_for_testing_only',
+                'ExamplePlugin': {
+                    'name': 'ExamplePlugin',
                     'mime_whitelist': ['foo', 'bar'],
                 },
             }
@@ -133,9 +134,9 @@ class TestScheduleInitialAnalysis:
         test_fw = Firmware(file_path=get_test_data_dir() / 'get_files_test/testfile1')
         test_fw.scheduled_analysis = ['file_hashes']
         test_fw.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
-        analysis_scheduler._start_or_skip_analysis('dummy_plugin_for_testing_only', test_fw)
+        analysis_scheduler._start_or_skip_analysis('ExamplePlugin', test_fw)
         uid, plugin, analysis_result = post_analysis_queue.get(timeout=10)
-        assert plugin == 'dummy_plugin_for_testing_only'
+        assert plugin == 'ExamplePlugin'
         assert 'skipped' in analysis_result['result']
 
 
@@ -144,13 +145,12 @@ class TestAnalysisSchedulerBlacklist:
     file_object = MockFileObject()
 
     class PluginMock:
-        DEPENDENCIES = []  # noqa: RUF012
-
         def __init__(self, blacklist=None, whitelist=None):
+            self.metadata = MetaDataMock()
             if blacklist:
-                self.MIME_BLACKLIST = blacklist
+                self.metadata.mime_blacklist = blacklist
             if whitelist:
-                self.MIME_WHITELIST = whitelist
+                self.metadata.mime_whitelist = whitelist
 
         def shutdown(self):
             pass
@@ -263,13 +263,10 @@ class TestAnalysisSchedulerBlacklist:
 
 class TestAnalysisSkipping:
     class PluginMock:
-        DEPENDENCIES = []  # noqa: RUF012
-
         def __init__(self, version, system_version):
-            self.VERSION = version
-            self.NAME = 'test plug-in'
+            self.metadata = MetaDataMock(version=version, name='test plug-in')
             if system_version:
-                self.SYSTEM_VERSION = system_version
+                self.metadata.system_version = system_version
 
     class BackendMock:
         def __init__(self, analysis_result):
@@ -299,14 +296,14 @@ class TestAnalysisSkipping:
             'expected_output',
         ),
         [
-            ('1.0', None, '1.0', None, True),
-            ('1.1', None, '1.0', None, False),
-            ('1.0', None, '1.1', None, True),
-            ('1.0', '2.0', '1.0', '2.0', True),
-            ('1.0', '2.0', '1.0', '2.1', True),
-            ('1.0', '2.1', '1.0', '2.0', False),
-            ('1.0', '2.0', '1.0', None, False),
-            (' 1.0', '1.1', '1.1', '1.0', False),  # invalid version string
+            (Version(1, 0), None, '1.0.0', None, True),
+            (Version(1, 1), None, '1.0.0', None, False),
+            (Version(1, 0), None, '1.1.0', None, True),
+            (Version(1, 0), '2.0', '1.0.0', '2.0', True),
+            (Version(1, 0), '2.0', '1.0.0', '2.1', True),
+            (Version(1, 0), '2.1', '1.0.0', '2.0', False),
+            (Version(1, 0), '2.0', '1.0.0', None, False),
+            ('foo', '1.1', '1.1.0', '1.0', False),  # invalid version string
         ],
     )
     def test_analysis_is_already_in_db_and_up_to_date(
@@ -357,12 +354,10 @@ class TestAnalysisSkipping:
 
 class TestAnalysisShouldReanalyse:
     class PluginMock:
-        DEPENDENCIES = ['plugin_dep']  # noqa: RUF012
-        NAME = 'plugin_root'
-
         def __init__(self, plugin_version, system_version):
-            self.VERSION = plugin_version
-            self.SYSTEM_VERSION = system_version
+            self.metadata = MetaDataMock(version=plugin_version, system_version=system_version)
+            self.metadata.dependencies = ['plugin_dep']
+            self.metadata.name = 'plugin_root'
 
     class BackendMock:
         def __init__(self, dependency_analysis_date, system_version=None):
@@ -392,13 +387,13 @@ class TestAnalysisShouldReanalyse:
             'expected_result',
         ),
         [
-            (10, 20, '1.0', None, '1.0', None, False),  # analysis date < dependency date => not up to date
-            (20, 10, '1.0', None, '1.0', None, True),  # analysis date > dependency date => up to date
-            (20, 10, '1.1', None, '1.0', None, False),  # plugin version > db version => not up to date
-            (20, 10, '1.0', None, '1.1', None, True),  # plugin version < db version => up to date
-            (20, 10, '1.0', '1.1', '1.0', '1.0', False),  # system version > db system version => not up to date
-            (20, 10, '1.0', '1.0', '1.0', '1.1', True),  # system version < db system version => up to date
-            (20, 10, '1.0', '1.0', '1.0', None, False),  # system version did not exist in db => not up to date
+            (10, 20, Version(1, 0), None, '1.0.0', None, False),  # analysis date < dependency date => not up to date
+            (20, 10, Version(1, 0), None, '1.0.0', None, True),  # analysis date > dependency date => up to date
+            (20, 10, Version(1, 1), None, '1.0.0', None, False),  # plugin version > db version => not up to date
+            (20, 10, Version(1, 0), None, '1.1.0', None, True),  # plugin version < db version => up to date
+            (20, 10, Version(1, 0), '1.1', '1.0.0', '1.0', False),  # system version > db sys version => not up to date
+            (20, 10, Version(1, 0), '1.0', '1.0.0', '1.1', True),  # system version < db sys version => up to date
+            (20, 10, Version(1, 0), '1.0', '1.0.0', None, False),  # system version didn't exist in db => not up to date
             (20, 10, 'foo', '1.0', '1.0', None, False),  # invalid version => not up to date
         ],
     )
@@ -422,9 +417,21 @@ class TestAnalysisShouldReanalyse:
         assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, plugin, 'uid') == expected_result
 
 
-class PluginMock(AnalysisBasePlugin):
-    def __init__(self, dependencies):
-        self.DEPENDENCIES = dependencies
+@dataclass
+class MetaDataMock:
+    _: KW_ONLY
+    name: str = 'mock_plugin'
+    dependencies: list[str] = field(default_factory=list)
+    version: Version = field(default=Version(0, 1, 0))
+    system_version: str | None = None
+
+
+class MockRunner:
+    def __init__(self):
+        self._in_queue = Queue()
+
+    def get_queue_len(self):
+        return self._in_queue.qsize()
 
 
 def test_combined_analysis_workload(monkeypatch):
@@ -433,16 +440,15 @@ def test_combined_analysis_workload(monkeypatch):
 
     scheduler.analysis_plugins = {}
     scheduler._plugin_runners = {}
-    dummy_plugin = scheduler.analysis_plugins['dummy_plugin'] = PluginMock([])
-    dummy_plugin.in_queue = Queue()
+    dummy_runner = scheduler._plugin_runners['dummy_plugin'] = MockRunner()
     scheduler.process_queue = Queue()
     try:
         assert scheduler.get_combined_analysis_workload() == 0
         scheduler.process_queue.put({})
         for _ in range(2):
-            dummy_plugin.in_queue.put({})
+            dummy_runner._in_queue.put({})
         assert scheduler.get_combined_analysis_workload() == 3
     finally:
         sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
         scheduler.process_queue.close()
-        dummy_plugin.in_queue.close()
+        dummy_runner._in_queue.close()

@@ -1,14 +1,24 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
 import pytest
+from semver import Version
 
 from objects.firmware import Firmware
 from scheduler.task_scheduler import AnalysisTaskScheduler
 
 
+@dataclass
+class MetadataMock:
+    dependencies: list[str]
+    version: Version
+
+
 class TestAnalysisScheduling:
     class PluginMock:
         def __init__(self, dependencies):
-            self.DEPENDENCIES = dependencies
-            self.VERSION = 1
+            self.metadata = MetadataMock(dependencies, Version(1, 0, 0))
 
     def setup_class(self):
         self.analysis_plugins = {}

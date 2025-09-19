@@ -39,13 +39,13 @@ class TestPluginRoutes:
     def test_find_plugins(self):
         result = _find_plugins()
         categories, plugins = zip(*result)
-        plugins = chain(*plugins)
+        plugins = set(chain(*plugins))
         assert all(c in categories for c in PLUGIN_CATEGORIES)
-        assert 'dummy' in plugins
+        assert 'file_type' in plugins
         assert 'file_coverage' in plugins
 
     def test_module_has_routes(self):
-        assert _module_has_routes('dummy', 'analysis') is True
+        assert _module_has_routes('example_plugin', 'analysis') is True
         assert _module_has_routes('file_type', 'analysis') is False
 
     def test_import_module_routes(self):
@@ -54,7 +54,7 @@ class TestPluginRoutes:
 
         assert dummy_endpoint not in self._get_app_endpoints(self.app)
 
-        plugin_routes._import_module_routes('dummy', 'analysis')
+        plugin_routes._import_module_routes('example_plugin', 'analysis')
         assert dummy_endpoint in self._get_app_endpoints(self.app)
 
         test_client = self.app.test_client()
@@ -67,7 +67,7 @@ class TestPluginRoutes:
 
         assert dummy_endpoint not in self._get_app_endpoints(self.app)
 
-        plugin_routes._import_module_routes('dummy', 'analysis')
+        plugin_routes._import_module_routes('example_plugin', 'analysis')
 
         test_client = self.app.test_client()
         result = test_client.get(dummy_endpoint).json

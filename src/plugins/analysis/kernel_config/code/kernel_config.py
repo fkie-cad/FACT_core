@@ -8,7 +8,6 @@ from pydantic import BaseModel
 from semver import Version
 
 from analysis.plugin import AnalysisPluginV0, Tag
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.tag import TagColor
 from plugins.analysis.kernel_config.internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
 from plugins.analysis.kernel_config.internal.decomp import GZDecompressor
@@ -34,7 +33,7 @@ class CheckSec(BaseModel):
     selinux: dict
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
         is_kernel_config: bool
         kernel_config: Optional[str] = None
