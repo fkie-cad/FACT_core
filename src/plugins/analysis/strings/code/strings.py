@@ -55,7 +55,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             for regex, encoding in STRING_REGEXES
         ]
 
-    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]):
+    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
         del virtual_file_path, analyses
         return self.Schema(
             strings=[

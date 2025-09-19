@@ -116,7 +116,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         file_handle: io.FileIO,
         virtual_file_path: dict,
         analyses: dict[str, pydantic.BaseModel],
-    ) -> typing.Optional[Schema]:
+    ) -> Schema:
         """Analyze a file.
         May return None if nothing was found.
 

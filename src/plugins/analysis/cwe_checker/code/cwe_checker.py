@@ -24,7 +24,7 @@ from pydantic import BaseModel
 from semver import Version
 
 import config
-from analysis.plugin import AnalysisPluginV0
+from analysis.plugin import AnalysisFailedError, AnalysisPluginV0
 from helperFunctions.docker import run_docker_container
 
 if TYPE_CHECKING:
@@ -137,14 +137,16 @@ class AnalysisPlugin(AnalysisPluginV0):
         except json.JSONDecodeError as error:
             raise Exception(f'cwe_checker execution failed\nUID: {file_path}') from error
 
-    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema | None:
+    def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
         """
         This function handles only ELF executables. Otherwise, it returns an empty dictionary.
         It calls the cwe_checker docker container.
         """
         del virtual_file_path
         if not self._is_supported_arch(analyses['file_type']):
-            return None
+            full_type = analyses['file_type'].full
+            arch = full_type.split(',')[1].strip() if full_type.startswith('ELF') else 'Unknown'
+            raise AnalysisFailedError(f'Unsupported architecture: {arch}')
         result = self._do_full_analysis(file_handle.name)
 
         return self.Schema(
