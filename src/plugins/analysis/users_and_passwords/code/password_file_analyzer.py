@@ -30,7 +30,7 @@ class AnalysisPlugin(AnalysisPluginV0):
 
     def __init__(self):
         super().__init__(
-            metadata=AnalysisPluginV0.MetaData(
+            metadata=self.MetaData(
                 name='users_and_passwords',
                 description=(
                     'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'

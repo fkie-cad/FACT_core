@@ -38,7 +38,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         vulnerabilities: List[Vulnerability]
 
     def __init__(self):
-        metadata = AnalysisPluginV0.MetaData(
+        metadata = self.MetaData(
             name='known_vulnerabilities',
             description='Rule based detection of known vulnerabilities like Heartbleed',
             dependencies=['file_hashes', 'software_components'],

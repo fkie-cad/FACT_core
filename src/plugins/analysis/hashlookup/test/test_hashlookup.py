@@ -1,5 +1,6 @@
 import pytest
 
+from analysis.plugin import AnalysisFailedError
 from plugins.analysis.hash.code.hash import AnalysisPlugin as HashPlugin
 from plugins.analysis.hashlookup.code.hashlookup import AnalysisPlugin, HashLookupError
 
@@ -71,8 +72,8 @@ class TestHashLookup:
 
     def test_process_object_unknown_hash(self, analysis_plugin):
         dependencies = {'file_hashes': HashPlugin.Schema(md5='', sha256='unknown_hash')}
-        result = analysis_plugin.analyze(None, {}, dependencies)
-        assert result is None
+        with pytest.raises(AnalysisFailedError, match='No record found'):
+            analysis_plugin.analyze(None, {}, dependencies)
 
     def test_process_object_error(self, analysis_plugin):
         dependencies = {'file_hashes': HashPlugin.Schema(md5='', sha256='connection_error')}
