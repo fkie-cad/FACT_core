@@ -132,7 +132,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             with suppress(DockerException, TimeoutError):
                 run_docker_container(
                     'fact/known-vulnerabilities',
-                    logging_label=self.NAME,
+                    logging_label=self.metadata.name,
                     timeout=60,
                     mounts=[
                         Mount('/io', tmp_dir, type='bind'),

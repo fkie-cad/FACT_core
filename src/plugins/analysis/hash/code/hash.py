@@ -64,7 +64,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                 Schema=self.Schema,
             ),
         )
-        configured_hashes = getattr(config.backend.plugin.get(self.NAME, None), 'hashes', [])
+        configured_hashes = getattr(config.backend.plugin.get(self.metadata.name, None), 'hashes', [])
         self.hashes_to_create = set(configured_hashes).union({'sha256', 'md5'})
 
     def analyze(self, file_handle: FileIO, virtual_file_path: str, analyses: dict) -> Schema:

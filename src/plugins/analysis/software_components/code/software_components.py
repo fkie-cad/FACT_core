@@ -9,7 +9,6 @@ from semver import Version
 
 import config
 from analysis.plugin import AnalysisPluginV0, Tag, addons
-from analysis.plugin.compat import AnalysisBasePluginAdapterMixin
 from helperFunctions.tag import TagColor
 from plugins.analysis.software_components.bin import OS_LIST
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
@@ -38,7 +37,7 @@ class MatchingString(BaseModel):
     identifier: str = Field(description='Identifier of the rule that this string matched (e.g. "$a")')
 
 
-class AnalysisPlugin(AnalysisPluginV0, AnalysisBasePluginAdapterMixin):
+class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
         software_components: List[SoftwareMatch]
 
