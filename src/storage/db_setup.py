@@ -6,6 +6,18 @@ import config
 from storage.db_connection import AdminConnection, DbConnection
 from storage.db_interface_base import ReadWriteDbInterface
 
+CREATE_VIEW_CMD = text(
+    """
+CREATE VIEW unpacking AS
+    SELECT
+        uid,
+        (result->>'entropy')::float AS entropy,
+        (result->>'number_of_unpacked_files')::integer AS number_of_unpacked_files
+    FROM analysis
+    WHERE plugin = 'unpacker';
+"""
+)
+
 
 class Privileges:
     SELECT = 'SELECT'
@@ -38,6 +50,10 @@ class DbSetup(ReadWriteDbInterface):
         with self.connection.engine.connect() as db, db.engine.begin() as connection:
             return inspect(connection).has_table(table_name, None)
 
+    def view_exists(self, view_name: str):
+        with self.connection.engine.connect() as db, db.engine.begin() as connection:
+            return view_name in inspect(connection).get_view_names(schema='public')
+
     def database_exists(self, db_name: str) -> bool:
         with self.get_read_only_session() as session:
             return bool(session.execute(text(f"SELECT 1 FROM pg_database WHERE datname = '{db_name}'")).scalar())
@@ -63,8 +79,23 @@ class DbSetup(ReadWriteDbInterface):
         ]:
             user = getattr(config.backend.postgres, f'{key}_user')
             for privilege in privileges:
-                self.grant_privilege(user, privilege)
+                self.grant_table_privilege(user, privilege)
+                self.grant_view_privilege(user, privilege)
 
-    def grant_privilege(self, user_name: str, privilege: str):
+    def grant_table_privilege(self, user_name: str, privilege: str):
         with self.get_read_write_session() as session:
             session.execute(text(f'GRANT {privilege} ON ALL TABLES IN SCHEMA public TO {user_name};'))
+
+    def create_unpacking_view(self):
+        if not self.view_exists('unpacking'):
+            with self.get_read_write_session() as session:
+                session.execute(CREATE_VIEW_CMD)
+
+    def grant_view_privilege(self, user_name: str, privilege: str):
+        with self.get_read_write_session() as session:
+            session.execute(text(f'GRANT {privilege} ON unpacking TO {user_name};'))
+
+    def delete_unpacking_view(self):
+        if self.view_exists('unpacking'):
+            with self.get_read_write_session() as session:
+                session.execute(text('DROP VIEW IF EXISTS unpacking;'))
