@@ -26,9 +26,9 @@ class TestAcceptanceNormalSearch:
         rv = test_client.get('/database/browse')
         assert test_fw.uid.encode() in rv.data, 'test firmware not found in browse database'
 
-    def _show_browse_compare(self, test_client):
-        rv = test_client.get('/database/browse_compare')
-        assert '200' in rv.status, 'compare browsing site offline'
+    def _show_browse_comparisons(self, test_client):
+        rv = test_client.get('/database/browse_comparisons')
+        assert '200' in rv.status, 'comparison browsing site offline'
 
     def _show_search_post(self, test_client):
         data = {
@@ -59,7 +59,7 @@ class TestAcceptanceNormalSearch:
 
     def test_search(self, test_client):
         self._show_browse_db(test_client)
-        self._show_browse_compare(test_client)
+        self._show_browse_comparisons(test_client)
         self._show_search_get(test_client)
         self._show_search_post(test_client)
         self._show_quick_search(test_client)
