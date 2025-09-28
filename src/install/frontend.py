@@ -27,6 +27,7 @@ DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 STATIC_WEB_DIR = INSTALL_DIR.parent / 'web_interface' / 'static'
+CONFIG_DIR = INSTALL_DIR.parent / 'config'
 MIME_ICON_DIR = STATIC_WEB_DIR / 'file_icons'
 ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/Papirus/24x24')
 NODEENV_DIR = 'nodeenv'
@@ -83,6 +84,10 @@ def _install_nginx(distribution):
             ],
             error='restore selinux context',
         )
+    if not Path('/run/nginx.pid').exists():
+        proc = subprocess.run('sudo service nginx restart', shell=True, capture_output=True, text=True, check=False)
+        if proc.returncode != 0:
+            raise InstallationError(f'Failed to start nginx\n{proc.stderr}')
     nginx_process = subprocess.run('sudo nginx -s reload', shell=True, capture_output=True, text=True, check=False)
     if nginx_process.returncode != 0:
         raise InstallationError(f'Failed to start nginx\n{nginx_process.stderr}')
@@ -103,18 +108,19 @@ def _generate_and_install_certificate():
 
 def _configure_nginx():
     logging.info('Configuring nginx')
-    execute_commands_and_raise_on_return_code(
-        [
-            'sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak',
-            'sudo rm /etc/nginx/nginx.conf',
-            # copy is better on redhat to respect selinux context
-            '(cd ../config && sudo install -m 644 $PWD/nginx.conf /etc/nginx/nginx.conf)',
-            '(sudo mkdir /etc/nginx/error || true)',
-            '(cd ../web_interface/templates/ '
-            '&& sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true',
-        ],
-        error='configuring nginx',
-    )
+    with OperateInDirectory(CONFIG_DIR):
+        execute_commands_and_raise_on_return_code(
+            [
+                'sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak',
+                'sudo rm /etc/nginx/nginx.conf',
+                # copy is better on redhat to respect selinux context
+                'sudo install -m 644 $PWD/nginx.conf /etc/nginx/nginx.conf',
+                '(sudo mkdir /etc/nginx/error || true)',
+                '(cd ../web_interface/templates/ '
+                '&& sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true',
+            ],
+            error='configure nginx',
+        )
 
 
 def _install_docker_images(radare):
@@ -167,7 +173,7 @@ def _install_nodejs(nodejs_version: str = '22'):
 def _find_latest_node_version(target_version: str) -> str:
     proc = subprocess.run(split('nodeenv --list'), capture_output=True, text=True, check=False)
     if proc.returncode != 0:
-        raise InstallationError('nodejs installation failed. Is nodeenv installed?')
+        raise InstallationError(f'nodejs installation failed. Is nodeenv installed?\n{proc.stderr}')
     available_versions = [
         parse_version(v) for v in re.split(r'[\n\t ]', proc.stderr) if v and v.startswith(target_version)
     ]
