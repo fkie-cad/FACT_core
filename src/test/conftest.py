@@ -138,6 +138,7 @@ def _database_interfaces():  # noqa: PT005
     with pytest.MonkeyPatch.context() as mpk:
         config.load()
         # Make sure to match the config here with the one in src/conftest.py:common_config
+        assert config.common.postgres.database != config.common.postgres.test_database
         sections = {
             'postgres': {
                 'server': config.common.postgres.server,
@@ -178,6 +179,7 @@ def _database_interfaces():  # noqa: PT005
         comparison = ComparisonDbInterface(connection=rw_connection)
         admin = AdminDbInterface(intercom=MockIntercom())
         stats_update = StatsUpdateDbInterface(connection=rw_connection)
+        assert common.connection.database == config.common.postgres.test_database
 
     setup_test_tables(db_setup)
 
@@ -195,6 +197,7 @@ def database_interfaces(_database_interfaces) -> DatabaseInterfaces:
         yield _database_interfaces
     finally:
         with _database_interfaces.admin.get_read_write_session() as session:
+            assert _database_interfaces.admin.connection.database == config.common.postgres.test_database
             # clear rows from test db between tests
             for table in reversed(_database_interfaces.admin.connection.base.metadata.sorted_tables):
                 session.execute(table.delete())
