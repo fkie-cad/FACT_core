@@ -1,6 +1,7 @@
 """
 generate workload statistics
 """
+
 import logging
 import os
 import sys
@@ -10,20 +11,23 @@ import distro
 import psutil
 
 import config
-from storage.db_interface_stats import StatsUpdateDbInterface
+from storage.redis_status_interface import RedisStatusInterface
 from version import __VERSION__
 
 
 class WorkLoadStatistic:
     def __init__(self, component):
         self.component = component
-        self.db = StatsUpdateDbInterface()
+        self.status = RedisStatusInterface()
         self.platform_information = self._get_platform_information()
         logging.debug(f'{self.component}: Online')
 
     def shutdown(self):
         logging.debug(f'{self.component}: shutting down -> set offline message')
-        self.db.update_statistic(self.component, {'status': 'offline', 'last_update': time()})
+        self.status.set_component_status(
+            self.component,
+            {'name': self.component, 'status': 'offline', 'last_update': time()},
+        )
 
     def update(self, unpacking_workload=None, analysis_workload=None, compare_workload=None):
         stats = {
@@ -39,9 +43,10 @@ class WorkLoadStatistic:
             stats['analysis'] = analysis_workload
         if compare_workload:
             stats['compare'] = compare_workload
-        self.db.update_statistic(self.component, stats)
+        self.status.set_component_status(self.component, stats)
 
-    def _get_system_information(self):
+    @staticmethod
+    def _get_system_information():
         memory_usage = psutil.virtual_memory()
         try:
             disk_usage = psutil.disk_usage(config.backend.firmware_file_storage_directory)
