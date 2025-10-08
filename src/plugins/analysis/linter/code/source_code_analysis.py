@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, List, Optional
 import pydantic
 from docker.types import Mount
 from pydantic import Field
+from semver import Version
 
 from analysis.plugin import AnalysisPluginV0
 from helperFunctions.docker import run_docker_container
@@ -62,10 +63,10 @@ class AnalysisPlugin(AnalysisPluginV0):
 
     def __init__(self):
         super().__init__(
-            metadata=AnalysisPluginV0.MetaData(
+            metadata=self.MetaData(
                 name='source_code_analysis',
                 description='This plugin implements static code analysis for multiple scripting languages',
-                version='0.7.1',
+                version=Version(0, 7, 1),
                 Schema=AnalysisPlugin.Schema,
                 mime_whitelist=['text/'],
             ),
