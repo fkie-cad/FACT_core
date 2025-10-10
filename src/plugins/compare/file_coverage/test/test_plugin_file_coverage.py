@@ -6,8 +6,8 @@ from test.unit.compare.compare_plugin_test_class import ComparePluginTest
 
 
 class DbMock:
-    def get_entropy(self, uid):
-        return 0.2
+    def get_entropy_for_uid_list(self, uid_list):
+        return {uid: 0.2 for uid in uid_list}
 
     def get_ssdeep_hash(self, uid):
         return '42'

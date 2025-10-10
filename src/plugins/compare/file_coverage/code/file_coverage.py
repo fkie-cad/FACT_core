@@ -168,11 +168,8 @@ class ComparePlugin(CompareBasePlugin):
         return non_zero_files
 
     def _evaluate_entropy_for_list_of_uids(self, list_of_uids, new_result, firmware_uid):
-        non_zero_file_ids = []
-        for uid in list_of_uids:
-            if self.database.get_entropy(uid) > 0.1:  # noqa: PLR2004
-                non_zero_file_ids.append(uid)
-        if non_zero_file_ids:
+        entropy_dict = self.database.get_entropy_for_uid_list(list_of_uids)
+        if non_zero_file_ids := [uid for uid, entropy in entropy_dict.items() if entropy > 0.1]:  # noqa: PLR2004
             new_result[firmware_uid] = non_zero_file_ids
 
     def _find_changed_text_files(
