@@ -90,6 +90,10 @@ def test_get_data_for_nice_list(frontend_db, backend_db):
     assert nice_list_data[0]['current_virtual_path'][0] == expected_hid, 'UID should be replaced with HID'
     assert nice_list_data[1]['current_virtual_path'][0] == f'{expected_hid} | /file/path'
 
+    nice_list_data = frontend_db.get_data_for_nice_list(uid_list, uid_list[0], include_vfp=False)
+    assert len(nice_list_data) == 2
+    assert sorted(nice_list_data[0].keys()) == ['file_name', 'mime-type', 'size', 'uid']
+
 
 def test_get_device_class_list(frontend_db, backend_db):
     insert_test_fw(backend_db, 'fw1', device_class='class1')

@@ -1,7 +1,7 @@
 {% macro file_information_span(file_object, root_uid, selected_analysis=None, filename_only=False) %}
     {% set selected_analysis_url = selected_analysis + '/' if selected_analysis else '' %}
     <a href="/analysis/{{ file_object.uid }}/{{ selected_analysis_url }}ro/{{ root_uid }}">
-        {% if filename_only %}
+        {% if filename_only or "current_virtual_path" not in file_object %}
             <h6>{{ file_object.file_name | safe }}</h6>
         {% else %}
             <h6>{{ file_object.current_virtual_path[0] | safe }}</h6>

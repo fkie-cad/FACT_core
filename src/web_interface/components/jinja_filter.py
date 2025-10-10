@@ -78,12 +78,17 @@ class FilterClass:
         root_uid: str | None = None,
         selected_analysis: str | None = None,
         filename_only: bool = False,
+        nice_list_data: list[dict] | None = None,
     ) -> str:
         root_uid = none_to_none(root_uid)
         if not is_list_of_uids(uids):
             return uids
 
-        analyzed_uids = self.db.frontend.get_data_for_nice_list(uids, root_uid)
+        if nice_list_data:
+            # if multiple "nice lists" are rendered at once, nice_list_data should be prefetched for all files
+            analyzed_uids = [d for d in nice_list_data if d['uid'] in uids]
+        else:
+            analyzed_uids = self.db.frontend.get_data_for_nice_list(uids, root_uid, include_vfp=not filename_only)
         number_of_unanalyzed_files = len(uids) - len(analyzed_uids)
         first_item = analyzed_uids.pop(0)
 
