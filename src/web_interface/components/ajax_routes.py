@@ -118,13 +118,16 @@ class AjaxRoutes(ComponentBase):
     def ajax_get_summary(self, uid, selected_analysis):
         with get_shared_session(self.db.frontend) as frontend_db:
             firmware = frontend_db.get_object(uid, analysis_filter=selected_analysis)
-            summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis)
+            summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis) or {}
+            all_uids = {uid for uid_list in summary_of_included_files.values() for uid in uid_list}
+            nice_list_data = self.db.frontend.get_data_for_nice_list(all_uids, uid, False)
             root_uid = uid if isinstance(firmware, Firmware) else frontend_db.get_root_uid(uid)
         return render_template(
             'summary.html',
             summary_of_included_files=summary_of_included_files,
             root_uid=root_uid,
             selected_analysis=selected_analysis,
+            nice_list_data=nice_list_data,
         )
 
     @roles_accepted(*PRIVILEGES['status'])
