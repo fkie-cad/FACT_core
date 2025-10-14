@@ -1,0 +1,303 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+    <tr>
+        <td>Average Entropy</td>
+        <td>{{ analysis_result.entropy.avg_entropy | nice_number }}</td>
+    </tr>
+    <tr>
+        <td>Entropy Plot</td>
+        <td>
+            <canvas id="entropyChart" class="chart-container"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>Binwalk Matches</td>
+        <td>
+            <details>
+                <ul class="list-group list-group-flush overflow-40v">
+                    {% for item in analysis_result.file_matches %}
+                        <li class="list-group-item">
+                            <table class="table table-sm table-borderless" style="margin-bottom: 0;">
+                                <tr>
+                                    <th class="tab-col-head">offset</th>
+                                    <td>
+                                        <a href="#" onclick="showOffsetInHexPreview({{ item.offset }})">
+                                            {{ item.offset | nice_number }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">size</th>
+                                    <td>{{ item.size | nice_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">name</th>
+                                    <td>{{ item.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">description</th>
+                                    <td>
+                                        {% if ", " in item.description %}
+                                            {% for part in item.description.split(", ") %}
+                                                {% if loop.first %}
+                                                    {{ part }}
+                                                    <ul>
+                                                {% else %}
+                                                    <li>{{ part }}</li>
+                                                {% endif %}
+                                            {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            {{ item.description }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">confidence</th>
+                                    <td>{{ item.confidence }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">id</th>
+                                    <td>{{ item.id }}</td>
+                                </tr>
+                            </table>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </details>
+        </td>
+    </tr>
+    {% if analysis_result.unblob_matches %}
+        <tr>
+            <td>Unblob Matches</td>
+            <td>
+                <details>
+                    <ul class="list-group list-group-flush overflow-40v">
+                        {% for item in analysis_result.unblob_matches %}
+                            <li class="list-group-item">
+                                <table class="table table-sm table-borderless" style="margin-bottom: 0;">
+                                    <tr>
+                                        <th class="tab-col-head">offset</th>
+                                        <td>
+                                            <a href="#" onclick="showOffsetInHexPreview({{ item.offset }})">
+                                                {{ item.offset | nice_number }}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="tab-col-head">size</th>
+                                        <td>{{ item.size | nice_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="tab-col-head">type</th>
+                                        <td>{{ item.type }}</td>
+                                    </tr>
+                                </table>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </details>
+            </td>
+        </tr>
+    {% endif %}
+    <tr>
+        <td>Entropy Data</td>
+        <td>
+            Blocksize: {{ analysis_result.entropy.blocksize | number_format }}
+            <br>
+            <details>
+                <ul class="list-group list-group-flush overflow-40v">
+                    {% for block in analysis_result.entropy.blocks %}
+                        <li class="list-group-item">
+                            <table class="table table-sm table-borderless" style="margin-bottom: 0;">
+                                <tr>
+                                    <th class="tab-col-head">offset</th>
+                                    <td>
+                                        <a href="#" onclick="showOffsetInHexPreview({{ block.offset }})">
+                                            {{ block.offset | nice_number }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">entropy</th>
+                                    <td>{{ block.entropy | nice_number }}</td>
+                                </tr>
+                            </table>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </details>
+        </td>
+    </tr>
+
+    <script src="{{ url_for("static", filename="node_modules/chart.js/dist/Chart.js") }}"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            /* 40% of vertical page height */
+            height: 40vh;
+        }
+        .tab-col-head {
+            width: 1%;
+            text-align: right;
+        }
+        .overflow-40v {
+            max-height: 40vh;
+            overflow: scroll;
+            display: block;
+        }
+    </style>
+    <script>
+        data = {{ analysis_result | json_dumps | safe }};
+        const ctx = document.getElementById('entropyChart').getContext('2d');
+        function getUrlForOffset(offset) {
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.set('load_preview', offset);
+            return currentUrl.toString();
+        }
+        function showOffsetInHexPreview(offset) {
+            window.location.href = getUrlForOffset(offset);
+        }
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Entropy',
+                        data: data.entropy.blocks.map(item => ({
+                            x: item.offset,
+                            y: item.entropy
+                        })),
+                        borderColor: 'rgb(0,123,255)',
+                        backgroundColor: 'rgba(0,123,255,0.2)',
+                        lineTension: 0.1,
+                        fill: false,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        type: 'line',
+                    },
+                    {
+                        label: 'Binwalk File Signatures',
+                        data: data.file_matches.map((match, index) => ({
+                            x: match.offset,
+                            // vary the height so the points are less likely to overlap
+                            y: 0.3 + (index % 5) / 25
+                        })),
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.0)',
+                        pointRadius: 10,
+                        pointHoverRadius: 12,
+                        pointStyle: 'star',
+                        showLine: false,
+                        type: 'scatter'
+                    },
+                    {% if analysis_result.unblob_matches %}
+                    {
+                        label: 'Unblob File Signatures',
+                        data: data.unblob_matches.map((match, index) => ({
+                            x: match.offset,
+                            // vary the height so the points are less likely to overlap
+                            y: 0.5 + (index % 5) / 25
+                        })),
+                        borderColor: 'rgb(0,155,123)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.0)',
+                        pointRadius: 10,
+                        pointHoverRadius: 12,
+                        pointStyle: 'triangle',
+                        showLine: false,
+                        type: 'scatter'
+                    },
+                    {% endif %}
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Binary Forensics Plot'
+                },
+                hover: {
+                    mode: 'point',
+                    intersect: true
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const clickedElement = activeElements[0];
+                        const datasetIndex = clickedElement._datasetIndex;
+                        const pointIndex = clickedElement._index;
+                        let offset;
+                        if (datasetIndex === 0) {  // Entropy Dataset
+                            const clickedDataPoint = chart.data.datasets[datasetIndex].data[pointIndex];
+                            offset = clickedDataPoint.x;
+                        } else if (datasetIndex === 1) {  // Binwalk Signature Dataset
+                            offset = data.file_matches[pointIndex].offset;
+                        } else if (datasetIndex === 2) {  // Unblob Signature Dataset
+                            offset = data.entropy_matches[pointIndex].offset;
+                        }
+                        showOffsetInHexPreview(offset);
+                    }
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        display: true,
+                        ticks: {
+                            maxTicksLimit: 20,
+                            callback: (value) => {
+                                return value.toLocaleString();
+                            }
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Offset'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        ticks: {
+                            min: 0,
+                            max: 1,
+                            stepSize: 0.1
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Entropy'
+                        }
+                    }]
+                },
+                tooltips: {
+                    mode: 'point',
+                    intersect: true,
+                    callbacks: {
+                        title: (tooltipItems) => {
+                            const offset = tooltipItems[0].xLabel;
+                            return `offset: ${offset.toLocaleString()} (0x${offset.toString(16)})`;
+                        },
+                        label: (tooltipItem) => {
+                            if (tooltipItem.datasetIndex === 0) {
+                                // Entropy Dataset
+                                return `entropy: ${tooltipItem.yLabel.toFixed(3)}`;
+                            } else if (tooltipItem.datasetIndex === 1) {
+                                // Binwalk Signature Dataset
+                                const signature = data.file_matches[tooltipItem.index];
+                                return `type: ${signature.name}`;
+                            } else if (tooltipItem.datasetIndex === 2) {
+                                // Unblob Signature Dataset
+                                const signature = data.unblob_matches[tooltipItem.index];
+                                return `type: ${signature.type}`;
+                            }
+                        },
+                        afterLabel: () => {
+                            return 'click to load hex preview';
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+{% endblock %}
