@@ -108,9 +108,9 @@ class FilterClass:
         hid = cap_length_of_element(hid_element)
         if uid == current_file_uid:
             # if we are on the analysis page of this file, the element should not contain a link and use another color
-            return f'<span class="badge badge-secondary">{hid}</span>'
+            return f'<span class="badge bg-secondary">{hid}</span>'
         return (
-            '<span class="badge badge-primary">'
+            '<span class="badge bg-primary">'
             f'    <a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
             f'        {hid}'
             '    </a>'

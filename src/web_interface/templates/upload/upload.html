@@ -55,17 +55,8 @@
                     {# File #}
                     <div class="input-group mb-3">
                         {%- if not is_reanalysis %}
-                            <div class="input-group-prepend">
-                                <span class="input-group-text upload-label">
-                                    File
-                                </span>
-                            </div>
-                            <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="file" name=file required>
-                                <label class="custom-file-label" for="customFile">
-                                    Choose file...
-                                </label>
-                            </div>
+                             <span class="input-group-text upload-label">File</span>
+                            <input type="file" class="form-control" id="file" name="file" required>
                         {%- else %}
                             <input type="hidden" name="file_name" id="file_name" value="{{ firmware.file_name }}">
                         {%- endif %}
@@ -128,7 +119,7 @@
 
                     {# Analysis Preset #}
                     {%- call macros.upload_input("analysis", "Analysis Preset") %}
-                        <select class="custom-select" id="analysis" name="analysis_dropdown"
+                        <select class="form-select" id="analysis" name="analysis_dropdown"
                                 onchange="change_selected_plugins(this.value);">
                             {% for preset in analysis_presets %}
                                 <option value="{{ preset }}">{{ preset }}</option>
@@ -142,7 +133,7 @@
                             {% for system, (title, mandatory, presets) in analysis_plugin_dict.items() | sort %}
                                 {% if not mandatory %}
                                     <div id="{{ system }}">
-                                        <label class="checkbox-inline" data-toggle="tooltip"
+                                        <label class="checkbox-inline" data-bs-toggle="tooltip"
                                                title="{{ title | safe }}">
                                             <input type=checkbox name="analysis_systems"
                                                    value="{{ system }}"
@@ -165,11 +156,11 @@
                     </button>
 
                     {%- if is_reanalysis and "re-do" not in title %}
-                        <div class="checkbox m-0 pl-2" style="display: inline;">
+                        <div class="checkbox m-0 ps-2" style="display: inline;">
                             <label style="padding: 2px">
                                 <input
                                         type="checkbox" value="true" id="force_reanalysis" style="margin-top: 2px;"
-                                        data-toggle="tooltip" title="deactivate smart scheduling"
+                                        data-bs-toggle="tooltip" title="deactivate smart scheduling"
                                         name="force_reanalysis"
                                 > Force Analysis Update
                             </label>

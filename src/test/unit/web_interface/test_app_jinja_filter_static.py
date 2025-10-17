@@ -6,8 +6,8 @@ from web_interface.components.jinja_filter import FilterClass
 @pytest.mark.parametrize(
     ('hid', 'uid', 'current_uid', 'expected_output'),
     [
-        ('hid', 'uid', 'uid', 'badge-secondary">hid'),
-        ('hid', 'uid', 'different_uid', 'badge-primary">    <a'),
+        ('hid', 'uid', 'uid', 'bg-secondary">hid'),
+        ('hid', 'uid', 'different_uid', 'bg-primary">    <a'),
         (
             'suuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id',
             'uid',

@@ -79,7 +79,7 @@
                     </select>
                     <div class="input-group-append">
                         <button type="button" class="btn btn-primary block-button" id="helpButton"
-                                data-toggle="modal" data-target="#file_objectModal">
+                                data-bs-toggle="modal" data-bs-target="#file_objectModal">
                             <i class="fas fa-question"></i> Help
                         </button>
                         <button type="button" class="btn btn-info block-button" id="checkButton" onclick="checkCode()">
@@ -101,8 +101,8 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel">{{ table }} query</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                
                             </button>
                         </div>
                         <div class="modal-body">
@@ -121,10 +121,10 @@
                             Hints: You can use Ctrl+Enter to start the search and the input accepts JSON5 (superset of JSON that allows unquoted keys, trailing commas and single quoted strings), so you can copy the <samp>where: {...}</samp> part directly from your GraphQL query.
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="copyToClipboard('{{ table }}-example')">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="copyToClipboard('{{ table }}-example')">
                                 <i class="far fa-clipboard"></i> Copy Query to Clipboard
                             </button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                 <i class="fas fa-xmark"></i> Close
                             </button>
                         </div>
@@ -177,7 +177,7 @@
                 <p>
                     {% set _id = "example-" + table + "-" + loop.index | string %}
                     <span id="{{ _id }}" class="example-json">{{ code | safe }}</span>
-                    <span class="far fa-copy" data-toggle="tooltip" title="copy to query input"
+                    <span class="far fa-copy" data-bs-toggle="tooltip" title="copy to query input"
                           onclick="copyToCodemirror('{{ _id }}', {{ (tables | list).index(table) }})"></span>
                     <br />
                     <span class="example-comment">{{ description }}</span>

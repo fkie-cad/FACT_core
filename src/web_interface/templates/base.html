@@ -38,7 +38,7 @@
 
     <script>
         $(document).ready(function(){
-            $('[data-toggle="tooltip"]').tooltip();
+            $('[data-bs-toggle="tooltip"]').tooltip();
             $(".toggle").click(function(){
                 $(".expand").toggle();
             });
@@ -51,7 +51,19 @@
     {% endblock %}
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-
+    <style>
+        .search-container {
+            transition: width 0.5s ease-in-out;
+        }
+        .search-container:focus-within {
+            width: 300px;
+        }
+        .search-container .form-control {
+            background-color: #e7e7e7;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+    </style>
     {% block styles %}
     {% endblock %}
 </head>
@@ -59,11 +71,11 @@
 <body>
 
 <nav role="navigation" class="navbar navbar-expand-lg navbar-light flex-column flex-md-row bg-fact">
-    <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggler">
-        <span class="sr-only">Toggle navigation</span>
+    <button type="button" data-bs-target="#navbarCollapse" data-bs-toggle="collapse" class="navbar-toggler">
+        <span class="visually-hidden">Toggle navigation</span>
         <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="navbar-brand d-none d-md-block ml-3" data-toggle="tooltip" data-placement="bottom" data-delay='{"show": 500, "hide": 100}'
+    <div class="navbar-brand d-none d-md-block ms-3" data-bs-toggle="tooltip" data-bs-placement="bottom" data-delay='{"show": 500, "hide": 100}'
          title="Firmware Analysis and Comparison Tool" style="vertical-align: middle;">
         <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
     </div>
@@ -72,7 +84,7 @@
         <ul class="navbar-nav" style="padding-right: 5px">
             {% for caption, href, icon in navigation_bar %}
             {% if caption == "Database" %}
-            <li class="dropdown pr-3">
+            <li class="dropdown pe-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
                    class="dropdown-toggle" data-toggle="dropdown" href="#"><i
                         class="fas fa-tasks"></i><span class="hideable_caption">&nbsp;Database</span><span class="caret"></span></a>
@@ -94,9 +106,9 @@
                 </div>
             </li>
             {% elif caption == "Info" %}
-            <li class="dropdown pr-3">
+            <li class="dropdown pe-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i><span class="hideable_caption">&nbsp;{{
+                   class="dropdown-toggle" data-bs-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i><span class="hideable_caption">&nbsp;{{
                     caption }}</span><span class="caret"></span></a>
                 <div class="dropdown-menu">
                     <a class="dropdown-item" href="/statistic" style="font-size: 14px"><i class="fas fa-chart-bar"></i>
@@ -109,14 +121,14 @@
                 </div>
             </li>
             {% elif caption == "Feedback" %}
-            <li class="pr-3">
+            <li class="pe-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                    data-toggle="modal" data-target="#feedbackModal" href="#"> <i class="fas fa-bullhorn"></i><span class="hideable_caption">&nbsp;Feedback</span></a>
+                    data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#"> <i class="fas fa-bullhorn"></i><span class="hideable_caption">&nbsp;Feedback</span></a>
             </li>
             {% elif caption == "Admin" %}
-            <li class="dropdown pr-3">
+            <li class="dropdown pe-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i><span class="hideable_caption">&nbsp;{{
+                   class="dropdown-toggle" data-bs-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i><span class="hideable_caption">&nbsp;{{
                     caption }}</span><span class="caret"></span></a>
                 <div class="dropdown-menu">
                     {% if current_user | user_has_role('manage_users') %}
@@ -131,9 +143,9 @@
             </li>
             {% elif caption == "Login" %}
             {% if current_user.is_authenticated %}
-            <li class="dropdown pr-3">
+            <li class="dropdown pe-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i><span class="hideable_caption">&nbsp;{{
+                   class="dropdown-toggle" data-bs-toggle="dropdown" href="#"><i class="fas fa-user"></i><span class="hideable_caption">&nbsp;{{
                     current_user.email|truncate(12) }}</span><span class="caret"></span></a>
                 <div class="dropdown-menu">
                     <a class="dropdown-item" href="/user_profile" style="font-size: 14px"><i
@@ -149,7 +161,7 @@
             </li>
             {% endif %}
             {% else %}
-            <li class="pr-3">
+            <li class="pe-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %} href={{ href }}>{{
                     icon|safe }}<span class="hideable_caption">&nbsp;{{ caption }}</span></a>
             </li>
@@ -158,25 +170,22 @@
         </ul>
 
         {# dark mode switch #}
-        <div class="custom-control custom-switch">
-            <i class="far fa-sun" style="color: #fff; margin-left: -38px; margin-right: 38px;"></i>
-            <input type="checkbox" class="custom-control-input" id="darkModeSwitch" onchange="toggleDarkMode()">
-            <label class="custom-control-label" for="darkModeSwitch">
+        <div class="form-check form-switch">
+            <i class="far fa-sun" style="color: #fff; margin-left: -55px; margin-right: 43px;"></i>
+            <input type="checkbox" class="form-check-input" id="darkModeSwitch" onchange="toggleDarkMode()" style="margin-left: 0;">
+            <label class="form-check-label" for="darkModeSwitch">
                 <i class="fas fa-moon" style="color: #fff;"></i>
             </label>
         </div>
 
         <!-- Navbar Quick Search Input -->
-        <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-block">
-            <div class="input-group mr-sm-2" style="z-index: 100;" >
-                <input type="text" class="form-control" placeholder="Quick search filename, vendor, device, sha256 hash or tags"
-                       id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();"
-                       style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem; width: 120px; transition: width 0.5s ease-in-out;">
-                <div class="input-group-append">
-                    <button class="btn btn-secondary" type="button" onclick="quickSearch()">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
+        <div id="quick_search_div" class="nav navbar-nav ms-md-auto d-block">
+            <div class="input-group me-sm-2" style="z-index: 100;">
+                <input type="text" class="form-control search-container" placeholder="Quick search filename, vendor, device, sha256 hash or tags"
+                       id="quick_search_input" onkeydown="if(event.keyCode===13) quickSearch();" style="width: 120px;">
+                <button class="btn btn-secondary" type="button" onclick="quickSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
             </div>
         </div>
 
@@ -194,7 +203,7 @@
             <div class="my-3 alert alert-{{ category if category in flash_categories else 'danger' }} alert-dismissible fade show"
                  role="alert">
                 {{ message }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
                 </button>
             </div>
             {% endfor %}
@@ -222,8 +231,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="feedbackModalLabel">Feedback Options</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                    
                 </button>
             </div>
             <div class="modal-body">
@@ -235,7 +244,7 @@
                 </ul>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

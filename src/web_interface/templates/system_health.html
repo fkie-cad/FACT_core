@@ -34,7 +34,7 @@
 
 {% macro icon_tooltip_desk(icon, tooltip, icon_class=None) %}
     {% set icon_class = icon_class if icon_class else 'fas' %}
-    <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}">
+    <td class="align-middle text-center" style="width: 30px;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ tooltip }}">
         <i class="{{ icon_class }} fa-{{ icon }}"></i>
     </td>
 {% endmacro %}
@@ -75,7 +75,7 @@
                     <tr>
                         {{ icon_tooltip_desk('box-open', 'Pending items for extraction') }}
                         <td colspan="4" id="backend-unpacking-queue"></td>
-                        <td class="text-danger text-center" id="backend-unpacking-throttle-indicator" data-toggle="tooltip" data-placement="bottom"
+                        <td class="text-danger text-center" id="backend-unpacking-throttle-indicator" data-bs-toggle="tooltip" data-bs-placement="bottom"
                             title="Pause indicates that unpacking is halted until analysis queue is under throttle limit again."></td>
                     </tr>
                     <tr>
@@ -118,37 +118,37 @@
                         <tr>
                             <td style="word-break: break-all; overflow-wrap: break-word;">{{ plugin_name }}</td>
 
-                            <td class="status-td" data-toggle="tooltip" data-placement="bottom" title="number of concurrent workers">
+                            <td class="status-td" data-bs-toggle="tooltip" data-bs-placement="bottom" title="number of concurrent workers">
                                 <span class="status-span">
                                     <i class="fas fa-align-justify text-muted status-fa"></i>
                                     <div>{{ threads }}</div>
                                 </span>
                             </td>
 
-                            <td class="status-td" data-toggle="tooltip" data-placement="bottom" title="currently processing">
+                            <td class="status-td" data-bs-toggle="tooltip" data-bs-placement="bottom" title="currently processing">
                                 <span class="status-span">
                                     <i class="fas fa-cog text-muted status-fa" id="{{ plugin_name }}-active-indicator"></i>
                                     <div id="{{ plugin_name }}-active"></div>
                                 </span>
                             </td>
 
-                            <td class="status-td" data-toggle="tooltip" data-placement="bottom" title="pending tasks">
+                            <td class="status-td" data-bs-toggle="tooltip" data-bs-placement="bottom" title="pending tasks">
                                 <span class="status-span">
                                     <i class="fas fa-sign-in-alt text-muted status-fa" id="{{ plugin_name }}-queue-indicator"></i>
                                     <div id="{{ plugin_name }}-queue"></div>
                                 </span>
                             </td>
 
-                            <td class="status-td" data-toggle="tooltip" data-placement="bottom" title="finished tasks ready for collection">
+                            <td class="status-td" data-bs-toggle="tooltip" data-bs-placement="bottom" title="finished tasks ready for collection">
                                 <span class="status-span">
                                     <i class="fas fa-sign-out-alt text-muted status-fa" id="{{ plugin_name }}-out-queue-indicator"></i>
                                     <div id="{{ plugin_name }}-out-queue"></div>
                                 </span>
                             </td>
 
-                            <td class="status-td" data-toggle="tooltip" data-placement="bottom" title="show runtime stats" data-html="true" data-sanitize="false" id="{{ plugin_name }}-stats">
+                            <td class="status-td" data-bs-toggle="tooltip" data-bs-placement="bottom" title="show runtime stats" data-html="true" data-sanitize="false" id="{{ plugin_name }}-stats">
                                 <span class="fas fa-circle-info clickable" style="color: var(--link-color-hover-light); cursor: help;"
-                                      data-toggle="collapse" data-target="#{{ plugin_name }}-stats-collapse">
+                                      data-bs-toggle="collapse" data-bs-target="#{{ plugin_name }}-stats-collapse">
                                 </span>
                             </td>
                         </tr>

@@ -48,8 +48,8 @@ class TestAppShowAnalysis:
     def test_app_show_analysis_get_valid_fw(self, test_client):
         result = test_client.get(f'/analysis/{TEST_FW.uid}').data
         assert b'<strong>UID:</strong> ' + make_bytes(TEST_FW.uid) in result
-        assert b'data-toggle="tooltip" title="mandatory plugin description"' in result
-        assert b'data-toggle="tooltip" title="optional plugin description"' in result
+        assert b'data-bs-toggle="tooltip" title="mandatory plugin description"' in result
+        assert b'data-bs-toggle="tooltip" title="optional plugin description"' in result
         assert b'test text' in result, 'general info: file type is missing'
 
         # check release date not available

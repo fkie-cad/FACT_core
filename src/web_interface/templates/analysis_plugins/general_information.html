@@ -7,20 +7,20 @@
             <col style="width: 12.5%">
             <col style="width: 87.5%">
         </colgroup>
-        <thead class="thead-light">
+        <thead class="table-light">
         <tr>
             <th colspan="2">
                 <div class="d-flex justify-content-between align-items-center">
                         <span>
                             Showing Analysis: {{ selected_analysis | replace_underscore }}
                         </span>
-                    <div class="custom-control custom-switch">
-                        <input type="checkbox" class="custom-control-input" id="rawResultSwitch">
-                        <label class="custom-control-label" for="rawResultSwitch" style="font-weight: normal;">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" id="rawResultSwitch">
+                        <label class="form-check-label" for="rawResultSwitch" style="font-weight: normal;">
                             Show Raw Result (JSON)
                         </label>
                         <button class="btn btn-outline-secondary btn-sm" type="submit" style="padding: 2px 5px;"
-                                onclick="copyRawAnalysis()" data-toggle="tooltip" title="copy raw result">
+                                onclick="copyRawAnalysis()" data-bs-toggle="tooltip" title="copy raw result">
                             <i class="far fa-copy"></i>
                         </button>
                     </div>

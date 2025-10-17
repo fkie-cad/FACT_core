@@ -28,7 +28,7 @@
             <div class="form-row">
                 <div class="form-group col-lg-6" id="device-class-dropdown-div">
                     <label class="control-label" for="device_class_dropdown">Device Class:</label>
-                    <select class="form-control" id="device_class_dropdown" name="device_class_dropdown"
+                    <select class="form-select" id="device_class_dropdown" name="device_class_dropdown"
                             onchange="window.location=update_url_variables(window.location.toString(), 'device_class', this.value)">
                         <option value=""></option>
                         {% for class in device_classes | sort %}
@@ -39,7 +39,7 @@
 
                 <div class="form-group col-lg-6" id="vendor-dropdown-div">
                     <label class="control-label" for="vendor_dropdown">Vendor:</label>
-                    <select class="form-control" id="vendor_dropdown" name="vendor_dropdown"
+                    <select class="form-select" id="vendor_dropdown" name="vendor_dropdown"
                             onchange="window.location=update_url_variables(window.location.toString(), 'vendor', this.value)">
                         <option value=""></option>
                         {% for vendor in vendors | sort %}

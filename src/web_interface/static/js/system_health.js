@@ -148,7 +148,7 @@ function updateCurrentAnalyses(analysisData) {
     document.querySelectorAll('div[role=tooltip]').forEach((element) => {
         element.remove();
     });
-    $("body").tooltip({selector: '[data-toggle="tooltip"]'});  // update tooltips for dynamically created elements
+    $("body").tooltip({selector: '[data-bs-toggle="tooltip"]'});  // update tooltips for dynamically created elements
 }
 
 function createCurrentAnalysisItem(data, uid, isFinished = false, isCancelled = false) {
@@ -159,9 +159,9 @@ function createCurrentAnalysisItem(data, uid, isFinished = false, isCancelled = 
     const unpackingIsFinished = isFinished ? null : (data.unpacked_count == data.total_count);
     const padding = isFinished || isCancelled || !showDetails ? "88%" : "47%";
     const cancelButton = isFinished || isCancelled ? '' : `
-        <button type="button" class="close" onclick="cancelAnalysis(this, '${uid}')" style="font-size: 1.1rem; color: red; opacity: 1;">
+        <button type="button" class="btn-close" onclick="cancelAnalysis(this, '${uid}')" style="font-size: 1.1rem; color: red; opacity: 1;">
             <span aria-hidden="true">
-                <i class="fas fa-trash-alt" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Cancel Analysis"></i>
+                <i class="fas fa-trash-alt" data-bs-toggle="tooltip" data-bs-placement="bottom" title="" data-original-title="Cancel Analysis"></i>
             </span>
         </button>
     `;
@@ -202,7 +202,7 @@ function createCurrentAnalysisItem(data, uid, isFinished = false, isCancelled = 
 function cancelAnalysis(element, root_uid) {
     element.innerHTML = `
         <div class="spinner-border text-danger" role="status">
-            <span class="sr-only">Cancelling...</span>
+            <span class="visually-hidden">Cancelling...</span>
         </div>
     `;
     fetch(`/ajax/cancel_analysis/${root_uid}`).then(response => {
@@ -256,7 +256,7 @@ function objectToStyle(obj) {
 
 function createIconCell(icon, tooltip, width) {
     return `
-        <td class="align-middle text-right" style="width: ${width};" data-toggle="tooltip" data-placement="bottom" title="${tooltip}">
+        <td class="align-middle text-right" style="width: ${width};" data-bs-toggle="tooltip" data-bs-placement="bottom" title="${tooltip}">
             <i class="fas fa-${icon}"></i>
         </td>
     `;

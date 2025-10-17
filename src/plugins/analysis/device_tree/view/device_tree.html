@@ -41,7 +41,7 @@
 
 {% block analysis_result_details %}
 {% for device_tree in analysis_result["device_trees"] %}
-    <tr data-toggle="collapse" data-target="#collapse-{{ device_tree.offset }}">
+    <tr data-bs-toggle="collapse" data-bs-target="#collapse-{{ device_tree.offset }}">
         <td class="clickable" colspan=2>
             <i class="fas fa-angle-down"></i>
             Offset {{ device_tree.offset | hex }} | {{ device_tree.model or device_tree.description or "" }}

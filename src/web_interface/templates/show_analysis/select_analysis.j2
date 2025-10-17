@@ -1,6 +1,6 @@
 <div class="col-lg-2">
     <table class="table table-sm table-hover">
-        <thead class="thead-light">
+        <thead class="table-light">
             <tr>
                 <th>Analysis Results</th>
             </tr>
@@ -8,13 +8,13 @@
         <tbody>
             {% for analysis_plugin in firmware.processed_analysis | sort %}
                 <tr>
-                    <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
+                    <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-bs-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
                         {{ analysis_plugin | replace_underscore }}
                     </td>
                 </tr>
             {% endfor %}
             <tr>
-                <td class="table-head-light clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
+                <td class="table-head-light clickable" data-bs-toggle="modal" data-bs-target="#add_single_file_analysis_modal">
                     <i class="fas fa-play-circle"></i> Run additional analysis
                 </td>
             </tr>
@@ -29,26 +29,26 @@
 
             <div class="modal-header d-flex justify-content-between align-items-center">
                 <h5 class="modal-title">Add analysis to file</h5>
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body" id="modal-body">
                 <form class="form-horizontal" id="modal-form" action="" method=post enctype=multipart/form-data>
                     <p>Add new analysis</p>
                     {% for system in available_plugins.unused | sort %}
-                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
+                        <label class="checkbox-inline" data-bs-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
                             <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
                         </label>
                     {% endfor %}
                     <hr />
                     <p>Update analysis</p>
                     {% for system in available_plugins.used | sort %}
-                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
+                        <label class="checkbox-inline" data-bs-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
                             <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
                         </label>
                     {% endfor %}
                     <hr />
-                    <label class="checkbox-inline" data-toggle="tooltip" title="disable smart analysis skipping" style="display: block;">
+                    <label class="checkbox-inline" data-bs-toggle="tooltip" title="disable smart analysis skipping" style="display: block;">
                         <input type=checkbox name="force_update" value="true" unchecked>&nbsp;force analysis update<br />
                     </label>
                     <button class="btn btn-primary" type="submit" id="add_single_file_analysis" value=submit>

@@ -2,13 +2,13 @@
 
     <div class="col-lg-12" style="margin-top: 20px">
         <table class="table table-bordered mb-0" id="comments-head">
-            <thead class="thead-light">
+            <thead class="table-light">
             <tr>
                 <th>
                     Comments
                     {# Add Comment Button #}
-                    <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse"
-                            data-target="#addCommentCell" aria-expanded="false" aria-controls="addCommentCell"
+                    <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#addCommentCell" aria-expanded="false" aria-controls="addCommentCell"
                             style="float: right;">
                         <i class="far fa-edit"></i> add comment
                     </button>
@@ -48,7 +48,7 @@
                                     Plugin:
                                 </label>
                                 <div class="col-xs-12 col-sm-10">
-                                    <select class="form-control" name="plugin" id="plugin"
+                                    <select class="form-select" name="plugin" id="plugin"
                                             style="position: relative; z-index: 1;">
                                         <option></option>
                                         {% for plugin in firmware.processed_analysis | sort %}
@@ -83,20 +83,20 @@
                 {% for comment in firmware.comments | sort_comments %}
                     <tr>
                         <td style="vertical-align: bottom; width: 20%;">
-                            <i class="fas fa-microscope" data-toggle="tooltip" title="analysis plugin"></i> {{ comment.plugin or "—" }}
+                            <i class="fas fa-microscope" data-bs-toggle="tooltip" title="analysis plugin"></i> {{ comment.plugin or "—" }}
                             <br>
-                            <i class="fas fa-user" data-toggle="tooltip" title="commenter"></i> {{ comment.author }}
+                            <i class="fas fa-user" data-bs-toggle="tooltip" title="commenter"></i> {{ comment.author }}
                             <br>
                             <i class="far fa-clock"></i> {{ comment.time | int | nice_unix_time }}
                         </td>
-                        <td data-toggle="tooltip" title="{{ tooltip }}" style="width: 80%;">
+                        <td data-bs-toggle="tooltip" title="{{ tooltip }}" style="width: 80%;">
                             <span style="font-family: monospace; font-size: 14px">
                                 {{ comment.comment | urlize }}
                             </span>
                         </td>
                         <td class="m-0 p-0 align-middle">
                             {# Comment Delete Button #}
-                            <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}"
+                            <button data-bs-toggle="collapse" data-bs-target="#delete-button-div-{{ comment.time }}"
                                     class="btn btn-sm">
                                 <i class="fas fa-trash-alt text-danger"></i>
                             </button>

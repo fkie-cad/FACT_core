@@ -26,11 +26,10 @@
                             {% for compare_uid in uids_for_comparison %}
                                 <div class="col-xs-12 p-0">
                                 <span class="m-0" style="padding: 2px; display: inline-flex;">
-                                    <span class="close" style="font-size: 20px"
+                                    <span class="btn-close" style="font-size: 20px"
                                           onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}/{{ root_uid }}'">
-                                        &times;
                                     </span>
-                                    <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}"
+                                    <span class="tag badge bg-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}"
                                           style="margin-left: 3px">{{ compare_uid | replace_uid_with_hid | safe }}</span>
                                 </span>
                                 </div>

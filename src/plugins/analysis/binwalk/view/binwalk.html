@@ -22,7 +22,7 @@
                                     {%- if loop.first -%}
                                     {{ element }}
                                     <button type="button" class="btn btn-outline-primary btn-sm collapsed"
-                                            data-toggle="collapse" data-target="#bw-{{ outer_loop.index }}">
+                                            data-bs-toggle="collapse" data-bs-target="#bw-{{ outer_loop.index }}">
                                         ... <i class="fas fa-caret-down"></i>
                                     </button>
                                     <ul id="bw-{{ outer_loop.index }}" class="collapse">

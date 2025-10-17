@@ -102,7 +102,7 @@
             <div class="col col-xs-12 col-sm-8 col-lg-6 col-xl-4 card p-2 m-2 bg-light rounded border-0 home-block">
                 <div class="card-body bg-light p-3">
                     <h4 class="card-title mb-3">Latest Firmware Submissions</h4>
-                    <ul class="list-group-flush px-0 mb-0">
+                    <ul class="list-group list-group-flush px-0 mb-0">
                         {% for firmware in latest_firmware_submissions %}
                             {% call macros.fw_detail_tabular_field(firmware) %}
                             {% endcall %}
@@ -120,7 +120,7 @@
             <div class="col col-xs-12 col-sm-8 col-lg-6 col-xl-4 card p-2 m-2 bg-light rounded border-0 home-block">
                 <div class="card-body p-3">
                     <h4 class="card-title mb-3">Latest Comments</h4>
-                    <ul class="list-group-flush px-0">
+                    <ul class="list-group list-group-flush px-0">
                         {% for comment in latest_comments %}
                             <li class="list-group-item bg-light p-2 clickable li-hover" onclick="location.href='/analysis/{{ comment.uid }}'">
                                 <a href="/analysis/{{ comment.uid }}" style="color: #515151;">

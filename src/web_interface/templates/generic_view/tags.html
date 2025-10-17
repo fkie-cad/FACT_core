@@ -1,8 +1,8 @@
 <span
-    class="badge badge-{{ color }} mr-2"
+    class="badge bg-{{ color }} me-2"
     style="font-size: {{ size }}px; cursor: pointer;"
     {% if tooltip -%}
-        data-toggle="tooltip"
+        data-bs-toggle="tooltip"
         title="{{ tooltip | replace_underscore }}"
     {%- endif %}
     {% if uid -%}

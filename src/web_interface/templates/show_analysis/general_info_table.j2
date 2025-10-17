@@ -1,13 +1,13 @@
 {% macro field_with_icon(icon, content, tooltip, colspan=1, query=None) %}
-    <td class="align-middle text-center border-dark" style="width: 30px;" data-toggle="tooltip" data-placement="right" title="{{ tooltip }}">
+    <td class="align-middle text-center border-dark" style="width: 30px;" data-bs-toggle="tooltip" data-bs-placement="right" title="{{ tooltip }}">
         <i class="fas fa-{{ icon }}"></i>
     </td>
 
     {% set query_str = '{{"{}": "{}"}}'.format(query, content) if query else None %}
     <td class="border-dark" colspan="{{ colspan }}" style="word-break: break-all; word-wrap: break-word; overflow-wrap: break-word;" {% if query %}
         onclick="location.href='/database/browse?query={{ query_str | urlencode }}'"
-        data-placement="bottom"
-        data-toggle="tooltip"
+        data-bs-placement="bottom"
+        data-bs-toggle="tooltip"
         title="Show all {{ content }} firmware"
     {% endif %}>{{ content }}</td>
 {% endmacro %}

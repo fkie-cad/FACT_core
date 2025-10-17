@@ -75,11 +75,11 @@
 
     {% elif feature == 'changed_text_files' %}
         <tr>
-            <td data-toggle="tooltip" data-placement="right" title="text files with identical paths but different content">changed text files</td>
+            <td data-bs-toggle="tooltip" data-placement="right" title="text files with identical paths but different content">changed text files</td>
             <td colspan="{{ uid_list | length }}">
                 <div class="list-group">
-                    <div role="button" data-toggle="collapse" data-target="#changed_text_files" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" aria-expanded="false">
-                        show files<span class="badge badge-pill badge-primary">{{ result['plugins'][plugin][feature] | length }}</span>
+                    <div role="button" data-bs-toggle="collapse" data-bs-target="#changed_text_files" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" aria-expanded="false">
+                        show files<span class="badge rounded-pill bg-primary">{{ result['plugins'][plugin][feature] | length }}</span>
                     </div>
                     <div id="changed_text_files" class="collapse">
                         <div class="list-group list-group-flush">
@@ -98,8 +98,8 @@
             {% if 'all' in result['plugins'][plugin][feature] %}
                 <td colspan="{{ uid_list | length }}">
                     <div class="list-group">
-                        <div role="button" data-toggle="collapse" data-target="#{{ feature + '___all' }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
-                            show files<span class="badge badge-pill badge-primary">{{ result['plugins'][plugin][feature]['all'] | length }}</span>
+                        <div role="button" data-bs-toggle="collapse" data-bs-target="#{{ feature + '___all' }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
+                            show files<span class="badge rounded-pill bg-primary">{{ result['plugins'][plugin][feature]['all'] | length }}</span>
                         </div>
                         <div id="{{ feature + '___all' }}" class="collapse"></div>
                         <div id="{{ feature + '___all' + '_gif' }}" style="display: none;">
@@ -113,8 +113,8 @@
                 {% for uid in uid_list %}
                     <td>
                         <div class="list-group">
-                            <div role="button" data-toggle="collapse" data-target="#{{ feature + '___' + uid }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
-                                show files<span class="badge badge-pill badge-primary">{{ result['plugins'][plugin][feature][uid] | length }}</span>
+                            <div role="button" data-bs-toggle="collapse" data-bs-target="#{{ feature + '___' + uid }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
+                                show files<span class="badge rounded-pill bg-primary">{{ result['plugins'][plugin][feature][uid] | length }}</span>
                             </div>
                             <div id="{{ feature + '___' + uid }}" class="collapse"></div>
                             <div id="{{ feature + '___' + uid + '_gif' }}" style="display: none;">

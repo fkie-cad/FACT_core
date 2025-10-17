@@ -4,7 +4,7 @@
 
 {% macro icon_tooltip_desk(icon, tooltip, icon_class=None) %}
     {% set icon_class = icon_class if icon_class else 'fas' %}
-    <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}">
+    <td class="align-middle text-center" style="width: 30px;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ tooltip }}">
         <i class="{{ icon_class }} fa-{{ icon }}"></i>
     </td>
 {% endmacro %}
@@ -38,7 +38,7 @@
             </div>
 
             {% set button_id = "bt-" + plugin_name %}
-            <button class="btn btn-outline-secondary btn-sm btn-block mt-3" data-toggle="collapse" data-target="#{{ plugin_name }}" onclick="toggleCaretIcon('{{ button_id }}')">
+            <button class="btn btn-outline-secondary btn-sm btn-block mt-3" data-bs-toggle="collapse" data-bs-target="#{{ plugin_name }}" onclick="toggleCaretIcon('{{ button_id }}')">
                 <i id="{{ button_id }}" class="fas fa-caret-down"></i>
             </button>
 

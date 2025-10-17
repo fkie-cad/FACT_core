@@ -450,9 +450,9 @@ def render_changed_text_files(changed_text_files: dict) -> str:
             id_ = f'ctf-{os.urandom(8).hex()}'
             count = _count_changed_files(value)
             element = (
-                f'<div class="p-1" data-toggle="collapse" data-target="#{id_}">'
+                f'<div class="p-1" data-bs-toggle="collapse" data-bs-target="#{id_}">'
                 f'  ╰ <img src="/static/file_icons/folder.svg"> {key} <i class="fas fa-caret-down"></i>'
-                f' <span class="badge badge-pill badge-secondary">{count}</span>'
+                f' <span class="badge rounded-pill bg-secondary">{count}</span>'
                 f'</div>\n'
                 f'<div id="{id_}" class="collapse list-group list-group-flush">\n'
                 f'  {inner}\n'

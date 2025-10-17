@@ -22,7 +22,7 @@
 
         {% for file_result in analysis_result.included_file_results %}
 
-            <tr data-toggle="collapse" data-target="#collapse-{{ file_result.uid }}">
+            <tr data-bs-toggle="collapse" data-bs-target="#collapse-{{ file_result.uid }}">
                 <td class="clickable" colspan=2>
                     <i class="fas fa-angle-down"></i> {{ file_result.path }}
                     {% if file_result.is_executable %}

@@ -44,7 +44,7 @@
                                 {% endif %}
                             {% endfor %}
                             {% set class = "secondary" if ns.score == "N/A" else ("success" if ns.score | float < 4 else ("warning" if ns.score | float < 7 else "danger")) %}
-                            <td class="text-center"><span class="badge badge-{{ class }}" style="font-size: 100%;">{{ ns.score }}</span></td>
+                            <td class="text-center"><span class="badge bg-{{ class }}" style="font-size: 100%;">{{ ns.score }}</span></td>
                         {% endfor %}
                         <td class="text-left">{{ cve.cpe_version }}</td>
                     </tr>

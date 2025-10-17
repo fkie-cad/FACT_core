@@ -18,8 +18,8 @@
 {% endmacro %}
 
 {% macro collapse_head(collapse_id, list_length) %}
-    <div class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" data-toggle="collapse" data-target="#{{ collapse_id }}" role="button">
+    <div class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#{{ collapse_id }}" role="button">
         show file
-        <span class="badge badge-primary badge-pill">{{ list_length }}</span>
+        <span class="badge bg-primary rounded-pill">{{ list_length }}</span>
     </div>
 {% endmacro %}

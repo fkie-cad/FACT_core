@@ -1,6 +1,6 @@
 {% macro button_collapse(button_id, icon, target, tooltip) %}
-    <button id="{{ button_id }}" data-toggle="collapse" data-target="#{{ target }}" class="btn btn-outline-secondary">
-        <i class="fas fa-{{ icon }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}"></i>
+    <button id="{{ button_id }}" data-bs-toggle="collapse" data-bs-target="#{{ target }}" class="btn btn-outline-secondary">
+        <i class="fas fa-{{ icon }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ tooltip }}"></i>
     </button>
 {% endmacro %}
 
@@ -8,14 +8,14 @@
     {% set button_class = "btn-danger" if danger else "btn-outline-secondary" %}
     {% set onclick_value = onclick if onclick else "window.location.href = '" + url + firmware.uid + "'" %}
 
-    <button id="{{ id }}" class="btn {{ button_class }}" onclick="{{ onclick_value }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}" {% if disabled %}disabled{% endif %}>
+    <button id="{{ id }}" class="btn {{ button_class }}" onclick="{{ onclick_value }}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ tooltip }}" {% if disabled %}disabled{% endif %}>
         <i class="fas fa-{{ icon }}"></i>
     </button>
 {% endmacro %}
 
 <div class="btn-toolbar mb-4" role="toolbar" aria-label="Analysis, download and admin buttons">
 
-    <div class="btn-group mr-2 mb-2" role="group" aria-label="Download buttons">
+    <div class="btn-group me-2 mb-2" role="group" aria-label="Download buttons">
         <button class="btn btn-secondary">Download</button>
 
         {{ button_tooltip('Download raw file', 'bdown-button', '/download/', 'file-download') }}
@@ -27,7 +27,7 @@
         {% endif %}
     </div>
 
-    <div class="btn-group mr-2 mb-2" aria-label="Analysis buttons">
+    <div class="btn-group me-2 mb-2" aria-label="Analysis buttons">
         <button class="btn btn-secondary">Analysis</button>
 
         {{ button_tooltip('View in radare', 'radare-button', None, 'terminal', onclick='radare_view()') }}
@@ -43,7 +43,7 @@
     </div>
 
     {% if firmware.vendor and user_has_admin_clearance %}
-        <div class="btn-group mr-2 mb-2" role="group" aria-label="Admin buttons">
+        <div class="btn-group me-2 mb-2" role="group" aria-label="Admin buttons">
             <button class="btn btn-secondary">Admin</button>
 
             {{ button_collapse('redo-button', 'redo-alt', 'redo-button-div', 'Redo analysis') }}
@@ -64,7 +64,7 @@
             {{ button_collapse('old-compare-button', 'hdd', 'known-comparisons', 'Show list of known comparisons') }}
         {% endif %}
         {% if not uids_for_comparison or uid not in uids_for_comparison %}
-            <button id="add-compare" class="btn btn-outline-secondary" onclick="window.location.href = '/comparison/add/{{firmware.uid}}/{{root_uid}}'" data-toggle="tooltip" data-placement="bottom" title="Add to comparison">
+            <button id="add-compare" class="btn btn-outline-secondary" onclick="window.location.href = '/comparison/add/{{firmware.uid}}/{{root_uid}}'" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add to comparison">
                 <i class="fas fa-plus"></i>
             </button>
         {% endif %}

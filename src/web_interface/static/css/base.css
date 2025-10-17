@@ -218,7 +218,7 @@ body.dark-mode :is(th) {
     background-color: inherit !important;
 }
 
-body.dark-mode :is(.input-group-text, .thead-light, .table-head-light, .badge-secondary, .custom-file-label:after,
+body.dark-mode :is(.input-group-text, .table-light, .table-head-light, .bg-secondary, .custom-file-label:after,
         .btn-input-group-upload) {
     background-color: var(--element-color-secondary-dark) !important;
     color: var(--text-color-dark) !important;

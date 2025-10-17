@@ -30,8 +30,8 @@
             <!-- user roles -->
             <tr>
                 <th class="d-flex justify-content-between align-items-center align-middle border-0">
-                    <a href="#" data-toggle="modal" data-target="#user_role_help_modal" style="width: 100%">
-                        <span class="fas fa-info-circle" data-toggle="tooltip" title="show role definitions"></span>
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#user_role_help_modal" style="width: 100%">
+                        <span class="fas fa-info-circle" data-bs-toggle="tooltip" title="show role definitions"></span>
                     </a>
                     Roles
                 </th>
@@ -41,7 +41,7 @@
                             <li class="list-group-item">{{ role.name | replace_underscore }}</li>
                         {% endfor %}
                     </ul>
-                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#change_user_roles_modal" style="width: 100%">
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#change_user_roles_modal" style="width: 100%">
                         Edit Roles
                     </button>
                 </td>
@@ -54,17 +54,17 @@
                 <div class="modal-content">
                     <div class="modal-header d-flex justify-content-between align-items-center">
                         <h5 class="modal-title">Select User roles</h5>
-                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
 
                     <div class="modal-body">
                         <form method="post">
                             <div class="form-group">
                                 {% for role in available_roles %}
-                                    <div class="custom-control custom-switch" id="user_roles">
-                                        <input type="checkbox" class="custom-control-input" id="{{ role }}" value="{{ role }}" name="input_roles"
+                                    <div class="form-check form-switch" id="user_roles">
+                                        <input type="checkbox" class="form-check-input" id="{{ role }}" value="{{ role }}" name="input_roles"
                                                {% if role in user.roles %} checked {% endif %}>
-                                        <label class="custom-control-label" for="{{ role }}">{{ role | replace_underscore }}</label>
+                                        <label class="form-check-label" for="{{ role }}">{{ role | replace_underscore }}</label>
                                     </div>
                                 {% endfor %}
                             </div>
@@ -85,7 +85,7 @@
                 <div class="modal-content">
                     <div class="modal-header d-flex justify-content-between align-items-center">
                         <h5 class="modal-title">User roles</h5>
-                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
 
                     <div class="modal-body p-0">
@@ -124,7 +124,7 @@
 
 <div class="row justify-content-center">
     <div class="col-md-4 mt-4 mb-2">
-        <button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-primary" style="width: 100%">
+        <button data-bs-toggle="collapse" data-bs-target="#delete-button-div" class="btn btn-primary" style="width: 100%">
             <i class="fas fa-trash-alt"></i> Delete user
         </button>
         <div class="collapse" id="delete-button-div">
@@ -137,7 +137,7 @@
 <!-- admin change user password -->
     <div class="col-md-4 mt-4 mb-2">
 
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#admin_change_password_modal" style="width: 100%">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#admin_change_password_modal" style="width: 100%">
             <i class="fas fa-key"></i> Change password
         </button>
 
@@ -147,7 +147,7 @@
 
                     <div class="modal-header d-flex justify-content-between align-items-center">
                         <h5 class="modal-title">Change user password</h5>
-                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
 
                     <div class="modal-body">

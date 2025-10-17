@@ -48,7 +48,7 @@
                 {% if search_parameters.search_target not in [search_parameters.TargetType.yara, search_parameters.TargetType.graphql] %}
                     <div class="form-group col-md-5">
                         <label class="control-label" for="device_class_dropdown">Device Class:</label>
-                        <select class="form-control form-control-sm" id="device_class_dropdown" name='device_class_dropdown'
+                        <select class="form-select form-control-sm" id="device_class_dropdown" name='device_class_dropdown'
                                 onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'device_class', this.value), 'page', '')">
                             <option value=''></option>
                             {% for class in device_classes | sort %}
@@ -59,7 +59,7 @@
 
                     <div class="form-group col-md-5">
                         <label class="control-label" for="vendor_dropdown">Vendor:</label>
-                        <select class="form-control form-control-sm" id="vendor_dropdown" name='vendor_dropdown'
+                        <select class="form-select form-control-sm" id="vendor_dropdown" name='vendor_dropdown'
                                 onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'vendor', this.value), 'page', '')">
                             <option value=''></option>
                             {% for vendor in vendors | sort %}
@@ -71,7 +71,7 @@
 
                 <div class="form-group col-md-2">
                     <label class="control-label" for="pp_dropdown">Per page:</label>
-                    <select class="form-control form-control-sm" id="pp_dropdown"
+                    <select class="form-select form-control-sm" id="pp_dropdown"
                             onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'per_page', this.value), 'page', '')">
                         <option value=''></option>
                         {% for value in [10, 20, 50, 100] %}
@@ -96,10 +96,10 @@
     <div class="row justify-content-center">
         <div class="col-xl-6 col-lg-8 col-md-10">
             <div class="list-group mt-4">
-                <button data-toggle="collapse" data-target="#search_query" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" style="border: 0;">
+                <button data-bs-toggle="collapse" data-bs-target="#search_query" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" style="border: 0;">
                     <i class="fas fa-caret-down"></i>
                     Show Search Query
-                    <span class="badge badge-primary">{{ search_parameters.search_target.value }} Search</span>
+                    <span class="badge bg-primary">{{ search_parameters.search_target.value }} Search</span>
                 </button>
                 <div id="search_query" class="collapse list-group-item p-0 border-0">
                     <pre class="bg-light p-2 mb-0 rounded-bottom">{{ search_parameters.query_title | render_query_title }}</pre>
@@ -113,7 +113,7 @@
 <div class="row justify-content-center">
     <div class="mt-4 col-xl-6 col-lg-8 col-md-10">
         {% if firmware_list %}
-            <ul class="list-group-flush p-3 bg-light">
+            <ul class="list-group list-group-flush p-3 bg-light">
                 {% for firmware in firmware_list %}
 
                     {# single search result #}
@@ -122,8 +122,8 @@
                         {# binary search show matching strings button #}
                         {% if search_parameters.yara_match_data and firmware.uid in search_parameters.yara_match_data %}
                             <div class="p-0">
-                                <button type="button" class="btn btn-info btn-sm btn-block collapsed" data-toggle="collapse" aria-expanded="false"
-                                      aria-controls="match-strings-{{ firmware.uid }}" data-target="#match-strings-{{ firmware.uid }}">
+                                <button type="button" class="btn btn-info btn-sm btn-block collapsed" data-bs-toggle="collapse" aria-expanded="false"
+                                      aria-controls="match-strings-{{ firmware.uid }}" data-bs-target="#match-strings-{{ firmware.uid }}">
                                     show matching strings
                                     <i class="fas fa-caret-down"></i>
                                 </button>

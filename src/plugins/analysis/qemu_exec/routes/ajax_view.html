@@ -9,7 +9,7 @@
 
     {% for parent_uid, file_result in results.items() %}
 
-        <tr data-toggle="collapse" data-target="#collapse-{{ parent_uid }}">
+        <tr data-bs-toggle="collapse" data-bs-target="#collapse-{{ parent_uid }}">
             <td class="clickable" colspan=2>
                 <i class="fas fa-angle-down"></i> {{ parent_uid | replace_uid_with_hid | safe }} -- {{ file_result.path }}
                 {% if file_result.is_executable %}
