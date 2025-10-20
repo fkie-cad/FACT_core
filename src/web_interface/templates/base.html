@@ -1,18 +1,34 @@
 <!DOCTYPE html>
-{% set navigation_bar = [
-("Home", "/", '<i class="fas fa-home"></i>'),
-("Database", None, None),
-("Upload", "/upload", '<i class="fas fa-upload"></i>'),
-("Info", None, '<i class="fas fa-info-circle"></i>'),
-("Feedback", None, '<i class="fas fa-bullhorn"></i>'),
-("Admin", None, '<i class="fas fa-users-cog"></i>')
-] -%}
-
-{% if ("string only here to have input to " | auth_enabled) %}
-{% do navigation_bar.append(("Login", None, None)) %}
-{% endif %}
 
 {% set active_page = active_page | default('Home') %}
+
+{% macro navbar_item(caption, link, icon, options=None) %}
+    <li class="pr-3">
+        <a href="{{ link }}"
+           {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif %}
+           {% if options %}{{ options | safe }}{% endif %}
+        ><i class="fas fa-{{ icon }}"></i><span class="hideable_caption">&nbsp;{{ caption }}</span></a>
+    </li>
+{%- endmacro %}
+
+{% macro navbar_dropdown_menu(caption, icon) %}
+    <li class="dropdown pr-3">
+        <a class="dropdown-toggle"
+           data-toggle="dropdown"
+           href="#"
+           {% if caption == active_page %}style="color: #fff; font-weight: 500;" {% endif %}
+        ><i class="fas fa-{{ icon }}"></i><span class="hideable_caption">&nbsp;{{ caption }}</span><span class="caret"></span></a>
+        <div class="dropdown-menu">
+            {{ caller() }}
+        </div>
+    </li>
+{%- endmacro %}
+
+{% macro navbar_dropdown_item(link, icon, caption) %}
+    <a class="dropdown-item" href="{{ link }}" style="font-size: 14px">
+        <i class="fas fa-{{ icon }}"></i> {{ caption }}
+    </a>
+{%- endmacro %}
 
 <html>
 <head lang="en">
@@ -58,6 +74,7 @@
 
 <body>
 
+{# Navbar #}
 <nav role="navigation" class="navbar navbar-expand-lg navbar-light flex-column flex-md-row bg-fact">
     <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggler">
         <span class="sr-only">Toggle navigation</span>
@@ -70,91 +87,42 @@
     <div id="navbarCollapse" class="collapse navbar-collapse">
         <!-- Navbar Elements -->
         <ul class="navbar-nav" style="padding-right: 5px">
-            {% for caption, href, icon in navigation_bar %}
-            {% if caption == "Database" %}
-            <li class="dropdown pr-3">
-                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i
-                        class="fas fa-tasks"></i><span class="hideable_caption">&nbsp;Database</span><span class="caret"></span></a>
-                <div class="dropdown-menu">
-                    <a class="dropdown-item" href="/database/browse" style="font-size: 14px"><i
-                            class="fas fa-list-ul"></i> Browse Firmware</a>
-                    <a class="dropdown-item" href="/database/browse_compare" style="font-size: 14px"><i
-                            class="far fa-copy"></i> Browse Compares</a>
-                    <a class="dropdown-item" href="/database/search" style="font-size: 14px"><i
-                            class="fas fa-search"></i> Basic Search</a>
-                    <a class="dropdown-item" href="/database/advanced_search" style="font-size: 14px"><i
-                            class="fas fa-search-plus"></i> Advanced Search</a>
-                    <a class="dropdown-item" href="/database/graphql" style="font-size: 14px"><i
-                            class="fas fa-search-plus"></i> GraphQL Search</a>
-                    <a class="dropdown-item" href="/database/binary_search" style="font-size: 14px"><i
-                            class="fas fa-search-dollar"></i> Binary Pattern Search</a>
-                    <a class="dropdown-item" href="/database/browse_binary_search_history" style="font-size: 14px"><i
-                            class="fas fa-search-dollar"></i> Browse Binary Pattern Search History</a>
-                </div>
-            </li>
-            {% elif caption == "Info" %}
-            <li class="dropdown pr-3">
-                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i><span class="hideable_caption">&nbsp;{{
-                    caption }}</span><span class="caret"></span></a>
-                <div class="dropdown-menu">
-                    <a class="dropdown-item" href="/statistic" style="font-size: 14px"><i class="fas fa-chart-bar"></i>
-                        Statistics</a>
-                    <a class="dropdown-item" href="/system_health" style="font-size: 14px"><i
-                            class="fas fa-heartbeat"></i> System</a>
-                    <a class="dropdown-item" href="/plugins" style="font-size: 14px"><i class="fas fa-puzzle-piece"></i> Plugins</a>
-                    <a class="dropdown-item" href="/doc" style="font-size: 14px"><i class="fas fa-terminal"></i> Rest API</a>
-                    <a class="dropdown-item" href="/about" style="font-size: 14px"><i class="fas fa-beer"></i> About</a>
-                </div>
-            </li>
-            {% elif caption == "Feedback" %}
-            <li class="pr-3">
-                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                    data-toggle="modal" data-target="#feedbackModal" href="#"> <i class="fas fa-bullhorn"></i><span class="hideable_caption">&nbsp;Feedback</span></a>
-            </li>
-            {% elif caption == "Admin" %}
-            <li class="dropdown pr-3">
-                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i><span class="hideable_caption">&nbsp;{{
-                    caption }}</span><span class="caret"></span></a>
-                <div class="dropdown-menu">
-                    {% if current_user | user_has_role('manage_users') %}
-                        <a class="dropdown-item" href="/admin/manage_users" style="font-size: 14px"><i
-                                class="fas fa-users-cog"></i> Manage Users</a>
-                    {% endif %}
-                    <a class="dropdown-item" href="/admin/missing_analyses" style="font-size: 14px"><i
-                            class="fas fa-search"></i> Find Missing Analyses</a>
-                    <a class="dropdown-item" href="/admin/logs" style="font-size: 14px"><i
-                            class="fas fa-exclamation-circle"></i> Logs</a>
-                </div>
-            </li>
-            {% elif caption == "Login" %}
-            {% if current_user.is_authenticated %}
-            <li class="dropdown pr-3">
-                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i><span class="hideable_caption">&nbsp;{{
-                    current_user.email|truncate(12) }}</span><span class="caret"></span></a>
-                <div class="dropdown-menu">
-                    <a class="dropdown-item" href="/user_profile" style="font-size: 14px"><i
-                            class="fas fa-user-cog"></i> Profile</a>
-                    <a class="dropdown-item" href="/logout" style="font-size: 14px"><i class="fas fa-sign-out-alt"></i>
-                        Logout</a>
-                </div>
-            </li>
-            {% else %}
-            <li>
-                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %} href="/login"><i
-                        class="fas fa-sign-in-alt"></i><span class="hideable_caption">&nbsp;Login</span></a>
-            </li>
+            {{ navbar_item("Home", "/", "home") }}
+            {% call navbar_dropdown_menu("Database", "tasks") %}
+                {{ navbar_dropdown_item("/database/browse", "list-ul", "Browse Firmware") }}
+                {{ navbar_dropdown_item("/database/browse_compare", "copy", "Browse Comparisons") }}
+                {{ navbar_dropdown_item("/database/search", "search", "Basic Search") }}
+                {{ navbar_dropdown_item("/database/advanced_search", "search-plus", "Advanced Search") }}
+                {{ navbar_dropdown_item("/database/graphql", "search-plus", "GraphQL Search") }}
+                {{ navbar_dropdown_item("/database/binary_search", "search-dollar", "Binary Pattern Search") }}
+                {{ navbar_dropdown_item("/database/browse_binary_search_history", "search-dollar", "Browse Binary Pattern Search History") }}
+            {% endcall %}
+            {{ navbar_item("Upload", "/upload", "upload") }}
+            {% call navbar_dropdown_menu("Info", "info-circle") %}
+                {{ navbar_dropdown_item("/statistic", "chart-bar", "Statistics") }}
+                {{ navbar_dropdown_item("/system_health", "heartbeat", "System") }}
+                {{ navbar_dropdown_item("/plugins", "puzzle-piece", "Plugins") }}
+                {{ navbar_dropdown_item("/doc", "terminal", "Rest API") }}
+                {{ navbar_dropdown_item("/about", "beer", "About") }}
+            {% endcall %}
+            {{ navbar_item("Feedback", "#", "bullhorn", options='data-toggle="modal" data-target="#feedbackModal"') }}
+            {% call navbar_dropdown_menu("Admin", "shield") %}
+                {% if current_user | user_has_role('manage_users') %}
+                    {{ navbar_dropdown_item("/admin/manage_users", "users-cog", "Manage Users") }}
+                {% endif %}
+                {{ navbar_dropdown_item("/admin/missing_analyses", "search", "Find Missing Analyses") }}
+                {{ navbar_dropdown_item("/admin/logs", "exclamation-circle", "Logs") }}
+            {% endcall %}
+            {% if ("" | auth_enabled) %}
+                {% if current_user.is_authenticated %}
+                    {% call navbar_dropdown_menu(current_user.email | truncate(12), "user") %}
+                        {{ navbar_dropdown_item("/user_profile", "user-cog", "Profile") }}
+                        {{ navbar_dropdown_item("/logout", "sign-out-alt", "Logout") }}
+                    {% endcall %}
+                {% else %}
+                    {{ navbar_item("Login", "/login", "sign-in-alt") }}
+                {% endif %}
             {% endif %}
-            {% else %}
-            <li class="pr-3">
-                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %} href={{ href }}>{{
-                    icon|safe }}<span class="hideable_caption">&nbsp;{{ caption }}</span></a>
-            </li>
-            {% endif %}
-            {% endfor %}
         </ul>
 
         {# dark mode switch #}
