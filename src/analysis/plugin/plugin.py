@@ -8,8 +8,6 @@ import pydantic
 import semver
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from . import compat
-
 if typing.TYPE_CHECKING:
     import io
 
@@ -35,7 +33,7 @@ class Tag(BaseModel):
     propagate: bool = False
 
 
-class AnalysisPluginV0(compat.AnalysisBasePluginAdapterMixin, metaclass=abc.ABCMeta):
+class AnalysisPluginV0(metaclass=abc.ABCMeta):
     """An abstract class that all analysis plugins must inherit from.
 
     Analysis plugins should not depend on FACT_core code where they mustn't.
