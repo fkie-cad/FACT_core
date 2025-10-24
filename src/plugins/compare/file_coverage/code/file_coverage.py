@@ -100,23 +100,32 @@ class ComparePlugin(CompareBasePlugin):
     ) -> tuple[list[list], dict]:
         similar_files = []
         similarity = {}
+        all_uids = set()
+        all_uids.update({fo.uid for fo in fo_list})
+        all_uids.update(*(fo.list_of_all_included_files for fo in fo_list))
+        hash_dict = self.database.get_ssdeep_hash_for_uid_list(all_uids)
         for parent_one, parent_two in combinations(fo_list, 2):
             for file_one in exclusive_files[parent_one.uid]:
-                for similar_file_pair, value in self._find_similar_file_for(file_one, parent_one.uid, parent_two):
+                for similar_file_pair, value in self._find_similar_file_for(
+                    file_one, parent_one.uid, parent_two, hash_dict
+                ):
                     similar_files.append(similar_file_pair)
                     similarity[convert_uid_list_to_compare_id(similar_file_pair)] = value
         similarity_sets = generate_similarity_sets(remove_duplicates_from_list(similar_files))
         return similarity_sets, similarity
 
-    def _find_similar_file_for(self, file_uid: str, parent_uid: str, comparison_fo: FileObject):
-        hash_one = self.database.get_ssdeep_hash(file_uid)
+    def _find_similar_file_for(
+        self, file_uid: str, parent_uid: str, comparison_fo: FileObject, hash_dict: dict[str, str]
+    ):
+        hash_one = hash_dict.get(file_uid)
         if hash_one:
             id1 = self._get_similar_file_id(file_uid, parent_uid)
             for potential_match in comparison_fo.files_included:
                 id2 = self._get_similar_file_id(potential_match, comparison_fo.uid)
-                hash_two = self.database.get_ssdeep_hash(potential_match)
+                if (hash_two := hash_dict.get(potential_match)) is None:
+                    continue
                 ssdeep_similarity = ssdeep.compare(hash_one, hash_two)
-                if hash_two and ssdeep_similarity > self.ssdeep_ignore_threshold:
+                if ssdeep_similarity > self.ssdeep_ignore_threshold:
                     yield (id1, id2), ssdeep_similarity
 
     def combine_similarity_results(self, similar_files: list[list[str]], fo_list: list[FileObject], similarity: dict):

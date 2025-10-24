@@ -99,10 +99,14 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             query = select(func.count(ComparisonEntry.comparison_id))
             return session.execute(query).scalar()
 
-    def get_ssdeep_hash(self, uid: str) -> str:
+    def get_ssdeep_hash_for_uid_list(self, uid_list: list[str]) -> dict[str, str]:
         with self.get_read_only_session() as session:
-            analysis: AnalysisEntry = session.get(AnalysisEntry, (uid, 'file_hashes'))
-            return analysis.result.get('ssdeep') if analysis is not None else None
+            query = (
+                select(AnalysisEntry.result['ssdeep'], AnalysisEntry.uid)
+                .filter(AnalysisEntry.plugin == 'file_hashes')
+                .filter(AnalysisEntry.uid.in_(uid_list))
+            )
+            return {uid: ssdeep_hash for ssdeep_hash, uid in session.execute(query) if ssdeep_hash is not None}
 
     def get_entropy_for_uid_list(self, uid_list: list[str]) -> dict[str, float]:
         with self.get_read_only_session() as session:

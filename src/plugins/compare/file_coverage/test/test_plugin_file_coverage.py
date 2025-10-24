@@ -9,8 +9,8 @@ class DbMock:
     def get_entropy_for_uid_list(self, uid_list):
         return {uid: 0.2 for uid in uid_list}
 
-    def get_ssdeep_hash(self, uid):
-        return '42'
+    def get_ssdeep_hash_for_uid_list(self, uid_list):
+        return {uid: '42' for uid in uid_list}
 
     def get_vfp_of_included_text_files(self, root_uid, blacklist=None):
         if root_uid == '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787':
