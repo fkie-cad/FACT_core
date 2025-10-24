@@ -27,15 +27,11 @@ class FilterClass:
     This is WEB front end main class
     """
 
-    def __init__(self, app, program_version, db: FrontendDatabase, **_):
-        self._program_version = program_version
+    def __init__(self, app, db: FrontendDatabase, **_):
         self._app = app
         self.db = db
 
         self._setup_filters()
-
-    def _filter_print_program_version(self, *_):
-        return f'{self._program_version}'
 
     def _filter_replace_uid_with_file_name(self, input_data):
         tmp = input_data.__str__()
@@ -117,9 +113,6 @@ class FilterClass:
             '</span>'
         )
 
-    def check_auth(self, _):
-        return config.frontend.authentication.enabled
-
     def data_to_chart_limited(self, data, limit: int | None = None, color_list=None):
         limit = self._get_chart_element_count() if limit is None else limit
         try:
@@ -150,7 +143,6 @@ class FilterClass:
             {
                 'all_items_equal': lambda data: len({str(value) for value in data.values()}) == 1,
                 'as_ascii_table': flt.as_ascii_table,
-                'auth_enabled': self.check_auth,
                 'base64_encode': flt.encode_base64_filter,
                 'bytes_to_str': flt.bytes_to_str_filter,
                 'data_to_chart': self.data_to_chart,
@@ -189,7 +181,6 @@ class FilterClass:
                 'nice_virtual_path_list': self._nice_virtual_path_list,
                 'number_format': flt.byte_number_filter,
                 'octal_to_readable': flt.octal_to_readable,
-                'print_program_version': self._filter_print_program_version,
                 'regex_meta': flt.comment_out_regex_meta_chars,
                 'remaining_time': elapsed_time,
                 'render_analysis_tags': flt.render_analysis_tags,
