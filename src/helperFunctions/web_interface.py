@@ -5,7 +5,8 @@ import re
 from datetime import timedelta
 
 from common_helper_files import get_binary_from_file
-from matplotlib import cm, colors
+from matplotlib import colormaps as cm
+from matplotlib import colors
 from passlib.context import CryptContext
 from quantiphy import Quantity
 
@@ -109,7 +110,7 @@ def cap_length_of_element(hid_element: str, maximum: int = 55) -> str:
     :param maximum: The length after witch the element is capped.
     :return: The capped string.
     """
-    return f'~{hid_element[-(maximum - 1):]}' if len(hid_element) > maximum else hid_element
+    return f'~{hid_element[-(maximum - 1) :]}' if len(hid_element) > maximum else hid_element
 
 
 def _format_si_prefix(number: float, unit: str) -> str:
