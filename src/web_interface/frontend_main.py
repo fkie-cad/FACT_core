@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
+from inspect import getmembers, isfunction
 
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.redis_status_interface import RedisStatusInterface
 from version import __VERSION__
+from web_interface import jinja_functions
 from web_interface.app import create_app
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
@@ -29,6 +31,7 @@ class WebFrontEnd:
         self.status_interface = RedisStatusInterface() if status_interface is None else status_interface
 
         self._setup_app()
+        self._register_jinja_functions()
         logging.info('Web front end online')
 
     def _setup_app(self):
@@ -47,4 +50,13 @@ class WebFrontEnd:
 
         rest_base = RestBase(**base_args)
         PluginRoutes(**base_args, api=rest_base.api)
-        FilterClass(self.app, self.program_version, self.db)
+        FilterClass(self.app, self.db)
+
+    def _register_jinja_functions(self):
+        # add functions from the module to the globals in jinja so that the functions can be called from templates
+        for function_name, function in getmembers(jinja_functions, isfunction):
+            if (
+                (not function_name.startswith('_'))  # we assume all function beginning with "_" are helper functions
+                and (function.__module__ == jinja_functions.__name__)  # only functions from the module, no imports
+            ):
+                self.app.jinja_env.globals.update({function_name: function})
