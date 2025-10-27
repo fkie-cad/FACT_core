@@ -10,6 +10,7 @@ COMPONENT_STATUS_REDIS_KEYS = {
     'backend': '__fact_backend_status__',
     'database': '__fact_database_status__',
 }
+PUBSUB_CHANNEL = '__fact_status_channel__'
 
 
 class RedisStatusInterface:
@@ -20,6 +21,8 @@ class RedisStatusInterface:
         status['_id'] = component  # for backwards compatibility
         if not (key := COMPONENT_STATUS_REDIS_KEYS.get(component)):
             raise ValueError(f'Unknown component {component}')
+        # pubsub is used for live updates in the webinterface, while static keys are used for /rest/status
+        self.redis.redis.publish(PUBSUB_CHANNEL, json.dumps(status))
         self.redis.set(key, json.dumps(status))
 
     def get_component_status(self, component: str) -> dict | None:
@@ -32,6 +35,7 @@ class RedisStatusInterface:
 
     def set_analysis_status(self, status: dict):
         self.redis.set(ANALYSIS_STATUS_REDIS_KEY, json.dumps(status))
+        self.redis.redis.publish(PUBSUB_CHANNEL, json.dumps(status))
 
     def get_analysis_status(self) -> dict:
         try:

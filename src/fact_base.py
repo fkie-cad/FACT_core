@@ -82,7 +82,7 @@ class FactBase:
     def shutdown_listener(self, signum, _):
         if not _is_main_process():
             return  # all subprocesses also inherit this signal handler (which is intentional for a "clean" shutdown)
-        logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
+        logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}... (PID={os.getpid()})')
         self.run = False
 
     def start(self):

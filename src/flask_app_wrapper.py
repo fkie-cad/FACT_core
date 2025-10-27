@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import atexit
+import logging
 import pickle
 import sys
 from pathlib import Path
@@ -30,7 +32,11 @@ def create_web_interface():
     args_path = Path(sys.argv[-1])
     args = None
     if args_path.is_file():
-        args = pickle.loads(args_path.read_bytes())
+        try:
+            args = pickle.loads(args_path.read_bytes())
+        except pickle.UnpicklingError:
+            # should only happen if the app wasn't started with "start_fact_frontend.py"
+            logging.error('Could not load pickled args -> fallback to default config')
         config_file = getattr(args, 'config_file', None)
         config.load(config_file)
 
@@ -40,3 +46,8 @@ def create_web_interface():
 
 web_interface = create_web_interface()
 app = web_interface.app
+atexit.register(web_interface.shutdown)
+
+
+if __name__ == '__main__':
+    app.run(debug=True, host='127.0.0.1', port=5000, threaded=True)

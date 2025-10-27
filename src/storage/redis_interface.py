@@ -14,15 +14,19 @@ CHUNK_MAGIC = b'$CHUNKED$'
 SEPARATOR = '#'
 
 
+def get_redis_from_cfg() -> Redis:
+    return Redis(
+        host=config.common.redis.host,
+        port=config.common.redis.port,
+        db=config.common.redis.fact_db,
+        password=config.common.redis.password,
+    )
+
+
 class RedisInterface:
     def __init__(self, chunk_size=REDIS_MAX_VALUE_SIZE):
         self.chunk_size = chunk_size
-        redis_db = config.common.redis.fact_db
-        redis_host = config.common.redis.host
-        redis_port = config.common.redis.port
-        redis_pw = config.common.redis.password
-
-        self.redis = Redis(host=redis_host, port=redis_port, db=redis_db, password=redis_pw)
+        self.redis = get_redis_from_cfg()
 
     def set(self, key: str, value: Any):
         self.redis.set(key, self._split_if_necessary(dumps(value)))

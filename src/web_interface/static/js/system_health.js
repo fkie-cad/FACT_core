@@ -1,52 +1,92 @@
-async function getSystemHealthData() {
-    const response = await fetch("/ajax/system_health");
-    return response.json();
+class StatusMonitor {
+    constructor() {
+        this.eventSource = null;
+        this.reconnectDelay = 1000;
+        this.maxReconnectDelay = 30000;
+    }
+
+    connect() {
+        this.eventSource = new EventSource('/status-stream');
+
+        this.eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.hasOwnProperty('type') && data.type === "heartbeat") {
+                // just a heartbeat, no data -> do nothing
+            } else if (data.hasOwnProperty('name')) {
+                updateSystemHealth(data);
+            } else if (data.hasOwnProperty('current_analyses')) {
+                updateCurrentAnalyses(data);
+            } else {
+                console.log(`Error: unexpected event: ${JSON.stringify(data)}`);
+            }
+            this.reconnectDelay = 1000;
+        };
+
+        this.eventSource.onerror = () => {
+            console.log('Lost connection to FACT server. Reconnecting...');
+            updateSystemHealth({name: "frontend", status: "offline"});
+            this.eventSource.close();
+            setTimeout(() => {
+                this.connect();
+            }, this.reconnectDelay);
+            this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay);
+        };
+    }
+
+    disconnect() {
+        if (this.eventSource) {
+            this.eventSource.close();
+        }
+    }
 }
 
-async function updateSystemHealth() {
-    getSystemHealthData().then(data => data.systemHealth.map(entry => {
-        const statusElement = document.getElementById(`${entry.name}-status`);
-        statusElement.innerText = entry.status;
-        if (entry.status === "offline") {
-            statusElement.classList.add('text-danger');
-            statusElement.classList.remove('text-success');
-            return;
+const monitor = new StatusMonitor();
+monitor.connect();
+
+window.addEventListener('beforeunload', () => monitor.disconnect());
+
+
+function updateSystemHealth(entry) {
+    const statusElement = document.getElementById(`${entry.name}-status`);
+    statusElement.innerText = entry.status;
+    if (entry.status === "offline") {
+        statusElement.classList.add('text-danger');
+        statusElement.classList.remove('text-success');
+        return;
+    }
+    statusElement.classList.remove('text-danger');
+    statusElement.classList.add('text-success');
+    document.getElementById(`${entry.name}-os`).innerText = entry.platform.os;
+    document.getElementById(`${entry.name}-python`).innerText = entry.platform.python;
+    document.getElementById(`${entry.name}-version`).innerText = entry.platform.fact_version;
+    document.getElementById(`${entry.name}-cpu`).innerText = `${entry.system.cpu_cores} cores (${entry.system.virtual_cpu_cores} threads) @ ${entry.system.cpu_percentage}%`;
+    updateProgressBarElement(`${entry.name}-memory`, entry.system.memory_percent, entry.system.memory_used, entry.system.memory_total);
+    updateProgressBarElement(`${entry.name}-disk`, entry.system.disk_percent, entry.system.disk_used, entry.system.disk_total);
+    if (entry.name === "backend") {
+        const queueElement = document.getElementById("backend-unpacking-queue");
+        if (entry.unpacking.unpacking_queue > 500) {
+            queueElement.classList.add("text-warning");
+        } else {
+            queueElement.classList.remove("text-warning");
         }
-        statusElement.classList.remove('text-danger');
-        statusElement.classList.add('text-success');
-        document.getElementById(`${entry.name}-os`).innerText = entry.platform.os;
-        document.getElementById(`${entry.name}-python`).innerText = entry.platform.python;
-        document.getElementById(`${entry.name}-version`).innerText = entry.platform.fact_version;
-        document.getElementById(`${entry.name}-cpu`).innerText = `${entry.system.cpu_cores} cores (${entry.system.virtual_cpu_cores} threads) @ ${entry.system.cpu_percentage}%`;
-        updateProgressBarElement(`${entry.name}-memory`, entry.system.memory_percent, entry.system.memory_used, entry.system.memory_total);
-        updateProgressBarElement(`${entry.name}-disk`, entry.system.disk_percent, entry.system.disk_used, entry.system.disk_total);
-        if (entry.name === "backend") {
-            const queueElement = document.getElementById("backend-unpacking-queue");
-            if (entry.unpacking.unpacking_queue > 500) {
-                queueElement.classList.add("text-warning");
-            } else {
-                queueElement.classList.remove("text-warning");
-            }
-            queueElement.innerText = entry.unpacking.unpacking_queue.toString();
+        queueElement.innerText = entry.unpacking.unpacking_queue.toString();
 
-            const throttleElement = document.getElementById("backend-unpacking-throttle-indicator");
-            if (entry.unpacking.is_throttled) {
-                throttleElement.innerHTML = '<i class="far fa-pause-circle fa-lg"></i>';
-            } else {
-                throttleElement.innerHTML = '';
-            }
-
-            const analysisQueueElement = document.getElementById("backend-analysis-queue");
-            analysisQueueElement.innerText = entry.analysis.analysis_main_scheduler.toString();
-
-            Object.entries(entry.analysis.plugins).map(([pluginName, pluginData], index) => {
-                if (!pluginName.includes("dummy")) {
-                    updatePluginCard(pluginName, pluginData);
-                }
-            });
-            updateCurrentAnalyses(data.analysisStatus);
+        const throttleElement = document.getElementById("backend-unpacking-throttle-indicator");
+        if (entry.unpacking.is_throttled) {
+            throttleElement.innerHTML = '<i class="far fa-pause-circle fa-lg"></i>';
+        } else {
+            throttleElement.innerHTML = '';
         }
-    }));
+
+        const analysisQueueElement = document.getElementById("backend-analysis-queue");
+        analysisQueueElement.innerText = entry.analysis.analysis_main_scheduler.toString();
+
+        Object.entries(entry.analysis.plugins).map(([pluginName, pluginData], index) => {
+            if (!pluginName.includes("dummy")) {
+                updatePluginCard(pluginName, pluginData);
+            }
+        });
+    }
 }
 
 function updateProgressBarElement(elementId, percent, used, total) {
