@@ -4,10 +4,6 @@
 
 {% block head %}
     <script type="text/javascript" src="{{ url_for('static', filename='js/system_health.js') }}"></script>
-    <script>
-        setInterval(updateSystemHealth, 5000);
-        updateSystemHealth();
-    </script>
     <style>
         .progress {
             color: white;

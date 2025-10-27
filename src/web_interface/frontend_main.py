@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.redis_status_interface import RedisStatusInterface
@@ -14,6 +15,7 @@ from web_interface.components.io_routes import IORoutes
 from web_interface.components.jinja_filter import FilterClass
 from web_interface.components.miscellaneous_routes import MiscellaneousRoutes
 from web_interface.components.plugin_routes import PluginRoutes
+from web_interface.components.sse_routes import SseRoutes
 from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.components.user_management_routes import UserManagementRoutes
 from web_interface.frontend_database import FrontendDatabase
@@ -29,7 +31,7 @@ class WebFrontEnd:
         self.status_interface = RedisStatusInterface() if status_interface is None else status_interface
 
         self._setup_app()
-        logging.info('Web front end online')
+        logging.info(f'Web front end online (PID={os.getpid()})')
 
     def _setup_app(self):
         self.app = create_app()
@@ -43,8 +45,13 @@ class WebFrontEnd:
         IORoutes(**base_args)
         MiscellaneousRoutes(**base_args)
         StatisticRoutes(**base_args)
+        self.sse = SseRoutes(**base_args)
         UserManagementRoutes(**base_args, user_db=self.user_db, user_db_interface=self.user_datastore)
 
         rest_base = RestBase(**base_args)
         PluginRoutes(**base_args, api=rest_base.api)
         FilterClass(self.app, self.program_version, self.db)
+
+    def shutdown(self):
+        logging.info(f'Shutting down Web front end (PID={os.getpid()})')
+        self.sse.shutdown()

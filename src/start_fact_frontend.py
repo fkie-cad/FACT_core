@@ -27,6 +27,10 @@ import tempfile
 from shlex import split
 from subprocess import Popen, TimeoutExpired
 
+import psutil
+
+from helperFunctions.process import terminate_process_and_children
+
 try:
     from fact_base import FactBase
 except (ImportError, ModuleNotFoundError):
@@ -54,10 +58,10 @@ class UwsgiServer:
         if self.process:
             try:
                 self.process.send_signal(signal.SIGINT)
-                self.process.wait(timeout=30)
+                self.process.wait(timeout=10)
             except TimeoutExpired:
-                logging.error('frontend did not stop in time -> kill')
-                self.process.kill()
+                logging.error(f'frontend process (PID={self.process.pid}) did not stop in time -> kill')
+                terminate_process_and_children(psutil.Process(self.process.pid))
 
 
 class FactFrontend(FactBase):
