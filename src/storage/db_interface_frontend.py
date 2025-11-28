@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 from typing import Any, NamedTuple, Optional
 
-from sqlalchemy import Column, Integer, cast, func, or_, select
+from sqlalchemy import Column, func, or_, select, text
 
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
@@ -168,8 +168,11 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def get_latest_comments(self, limit=10):
         with self.get_read_only_session() as session:
-            subquery = select(FileObjectEntry.uid, func.jsonb_array_elements(FileObjectEntry.comments)).subquery()
-            query = select(subquery).order_by(cast(subquery.c.jsonb_array_elements.op('->>')('time'), Integer).desc())
+            # Create subquery with explicit column label
+            comment_col = func.jsonb_array_elements(FileObjectEntry.comments).label('comment_data')
+            subquery = select(FileObjectEntry.uid, comment_col).subquery()
+            # Use the labeled column with -> operator
+            query = select(subquery).order_by(text("comment_data -> 'time' DESC"))
             return [{'uid': uid, **comment_dict} for uid, comment_dict in session.execute(query.limit(limit))]
 
     # --- generic search ---
