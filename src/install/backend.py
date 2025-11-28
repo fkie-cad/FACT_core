@@ -5,6 +5,8 @@ import stat
 import subprocess
 import tempfile
 from contextlib import suppress
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as get_package_version
 from pathlib import Path
 from shlex import split
 from subprocess import PIPE, STDOUT
@@ -26,6 +28,7 @@ from helperFunctions.install import (
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_backend.txt'
+YARA_VERSION = 'v4.5.0'
 
 
 def main(skip_docker, distribution):
@@ -39,7 +42,8 @@ def main(skip_docker, distribution):
     install_pip_packages(PIP_DEPENDENCIES)
 
     # install yara
-    _install_yara()
+    _install_yara(YARA_VERSION)
+    _install_yara_python(YARA_VERSION)
 
     _install_checksec()
 
@@ -129,9 +133,7 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
         logging.info(f'Finished installing {plugin_name} plugin.\n')
 
 
-def _install_yara():
-    yara_version = 'v4.5.0'  # must be the same version as `yara-python` in `install/requirements_common.txt`
-
+def _install_yara(yara_version: str):
     yara_process = subprocess.run('yara --version', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
     if yara_process.returncode == 0 and yara_process.stdout.strip() == yara_version.strip('v'):
         logging.info('Skipping yara installation: Already installed and up to date')
@@ -156,13 +158,16 @@ def _install_yara():
             cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
             if cmd_process.returncode != 0:
                 raise InstallationError(f'Error in yara installation.\n{cmd_process.stdout}')
-    _install_yara_python(version=yara_version)
 
 
-def _install_yara_python(version: str):
+def _install_yara_python(version: str = YARA_VERSION):
     """
     yara-python must be installed from source, because the pre-built version from PyPI is missing the magic module
     """
+    if _yara_python_is_up_to_date(version):
+        logging.info(f'Skipping yara-python {version} installation (reason: already installed)')
+        return
+
     logging.info(f'Installing yara-python {version}')
     with tempfile.TemporaryDirectory() as tmp_dir:
         file = f'{version}.tar.gz'
@@ -185,6 +190,14 @@ def _install_yara_python(version: str):
                 install_single_pip_package('.')
             except subprocess.CalledProcessError as error:
                 raise InstallationError('Error during yara-python installation') from error
+
+
+def _yara_python_is_up_to_date(version: str = YARA_VERSION) -> bool:
+    try:
+        installed_version = get_package_version('yara-python')
+        return installed_version == version.lstrip('v')
+    except PackageNotFoundError:
+        return False
 
 
 def _install_checksec():
