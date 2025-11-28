@@ -99,17 +99,23 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             query = select(func.count(ComparisonEntry.comparison_id))
             return session.execute(query).scalar()
 
-    def get_ssdeep_hash(self, uid: str) -> str:
+    def get_ssdeep_hash_for_uid_list(self, uid_list: list[str]) -> dict[str, str]:
         with self.get_read_only_session() as session:
-            analysis: AnalysisEntry = session.get(AnalysisEntry, (uid, 'file_hashes'))
-            return analysis.result.get('ssdeep') if analysis is not None else None
+            query = (
+                select(AnalysisEntry.result['ssdeep'], AnalysisEntry.uid)
+                .filter(AnalysisEntry.plugin == 'file_hashes')
+                .filter(AnalysisEntry.uid.in_(uid_list))
+            )
+            return {uid: ssdeep_hash for ssdeep_hash, uid in session.execute(query) if ssdeep_hash is not None}
 
-    def get_entropy(self, uid: str) -> float:
+    def get_entropy_for_uid_list(self, uid_list: list[str]) -> dict[str, float]:
         with self.get_read_only_session() as session:
-            analysis: AnalysisEntry = session.get(AnalysisEntry, (uid, 'unpacker'))
-            if analysis is None or 'entropy' not in analysis.result:
-                return 0.0
-            return analysis.result.get('entropy', 0.0)
+            query = (
+                select(AnalysisEntry.result['entropy'], AnalysisEntry.uid)
+                .filter(AnalysisEntry.plugin == 'unpacker')
+                .filter(AnalysisEntry.uid.in_(uid_list))
+            )
+            return {uid: entropy for entropy, uid in session.execute(query) if entropy is not None}
 
     def get_exclusive_files(self, compare_id: str, root_uid: str) -> list[str]:
         if compare_id is None or root_uid is None:
