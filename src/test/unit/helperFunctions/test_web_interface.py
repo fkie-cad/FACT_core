@@ -50,6 +50,7 @@ def test_is_superuser(input_data, expected):
         ('abc', True),
         ('1234567890abc', False),
         ('$5$FOOBAR99$f12dcbf3354f40a0ac341f712e4d72b74f4bb788dbc33aa86bd92d23c53188e5', False),
+        ('$pbkdf2-sha256$29000$do5RynkPgdCacy4FYCwFQA$w0QXDH5F.S2h8f0RYmHBmTPza5CHNR72jydO83UYUx8', False),
     ],
 )
 def test_password_is_legal(input_data, expected):
