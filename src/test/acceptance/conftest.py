@@ -30,7 +30,7 @@ def test_client(web_frontend):
 def intercom_backend_binding(unpacking_lock_manager, analysis_scheduler, comparison_scheduler, unpacking_scheduler):
     _intercom_backend_binding = InterComBackEndBinding(
         analysis_service=analysis_scheduler,
-        compare_service=comparison_scheduler,
+        comparison_service=comparison_scheduler,
         unpacking_service=unpacking_scheduler,
         unpacking_locks=unpacking_lock_manager,
     )

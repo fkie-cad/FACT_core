@@ -7,16 +7,16 @@ import networkx
 import ssdeep
 
 import config
-from compare.PluginBase import CompareBasePlugin
+from comparison.comparison_base_plugin import ComparisonBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_list
-from helperFunctions.data_conversion import convert_uid_list_to_compare_id
+from helperFunctions.data_conversion import convert_uid_list_to_comparison_id
 from objects.firmware import Firmware
 
 if TYPE_CHECKING:
     from objects.file import FileObject
 
 
-class ComparePlugin(CompareBasePlugin):
+class ComparisonPlugin(ComparisonBasePlugin):
     """
     Compares file coverage
     """
@@ -29,27 +29,27 @@ class ComparePlugin(CompareBasePlugin):
         super().__init__(*args, **kwargs)
         self.ssdeep_ignore_threshold = config.backend.ssdeep_ignore
 
-    def compare_function(self, fo_list, dependency_results: dict[str, dict]):  # noqa: ARG002
-        compare_result = {
+    def compare_objects(self, fo_list, dependency_results: dict[str, dict]):  # noqa: ARG002
+        comparison_result = {
             'files_in_common': self._get_intersection_of_files(fo_list),
             'exclusive_files': self._get_exclusive_files(fo_list),
         }
 
-        self._handle_partially_common_files(compare_result, fo_list)
+        self._handle_partially_common_files(comparison_result, fo_list)
 
-        for result in compare_result.values():
+        for result in comparison_result.values():
             if isinstance(result, dict):
                 result['collapse'] = False
 
-        similar_files, similarity = self._get_similar_files(fo_list, compare_result['exclusive_files'])
-        compare_result['similar_files'] = self.combine_similarity_results(similar_files, fo_list, similarity)
+        similar_files, similarity = self._get_similar_files(fo_list, comparison_result['exclusive_files'])
+        comparison_result['similar_files'] = self.combine_similarity_results(similar_files, fo_list, similarity)
 
         if len(fo_list) == 2 and all(isinstance(fo, Firmware) for fo in fo_list):  # noqa: PLR2004
-            compare_result['changed_text_files'] = self._find_changed_text_files(
-                fo_list, compare_result['files_in_common']['all']
+            comparison_result['changed_text_files'] = self._find_changed_text_files(
+                fo_list, comparison_result['files_in_common']['all']
             )
 
-        return compare_result
+        return comparison_result
 
     def _get_exclusive_files(self, fo_list: list[FileObject]) -> dict[str, list[str]]:
         result = {}
@@ -68,16 +68,16 @@ class ComparePlugin(CompareBasePlugin):
     def _get_included_file_sets(fo_list: list[FileObject]) -> list[set[str]]:
         return [set(file_object.list_of_all_included_files) for file_object in fo_list]
 
-    def _handle_partially_common_files(self, compare_result, fo_list):
+    def _handle_partially_common_files(self, comparison_result, fo_list):
         if len(fo_list) > 2:  # noqa: PLR2004
-            compare_result['files_in_more_than_one_but_not_in_all'] = self._get_files_in_more_than_one_but_not_in_all(
-                fo_list, compare_result
-            )
-            not_in_all = compare_result['files_in_more_than_one_but_not_in_all']
+            comparison_result[
+                'files_in_more_than_one_but_not_in_all'
+            ] = self._get_files_in_more_than_one_but_not_in_all(fo_list, comparison_result)
+            not_in_all = comparison_result['files_in_more_than_one_but_not_in_all']
         else:
             not_in_all = {}
-        compare_result['non_zero_files_in_common'] = self._get_non_zero_common_files(
-            compare_result['files_in_common'], not_in_all
+        comparison_result['non_zero_files_in_common'] = self._get_non_zero_common_files(
+            comparison_result['files_in_common'], not_in_all
         )
 
     @staticmethod
@@ -104,7 +104,7 @@ class ComparePlugin(CompareBasePlugin):
             for file_one in exclusive_files[parent_one.uid]:
                 for similar_file_pair, value in self._find_similar_file_for(file_one, parent_one.uid, parent_two):
                     similar_files.append(similar_file_pair)
-                    similarity[convert_uid_list_to_compare_id(similar_file_pair)] = value
+                    similarity[convert_uid_list_to_comparison_id(similar_file_pair)] = value
         similarity_sets = generate_similarity_sets(remove_duplicates_from_list(similar_files))
         return similarity_sets, similarity
 
@@ -134,7 +134,7 @@ class ComparePlugin(CompareBasePlugin):
     def _get_similarity_value(group_of_similar_files: list[str], similarity_dict: dict[str, str]) -> str:
         similarities_list = []
         for id_tuple in combinations(group_of_similar_files, 2):
-            similar_file_pair_id = convert_uid_list_to_compare_id(id_tuple)
+            similar_file_pair_id = convert_uid_list_to_comparison_id(id_tuple)
             if similar_file_pair_id in similarity_dict:
                 similarities_list.append(similarity_dict[similar_file_pair_id])
         if not similarities_list:

@@ -59,10 +59,10 @@ class FactBackend(FactBase):
             analysis_workload=self.analysis_service.get_combined_analysis_workload,
             unpacking_locks=self.unpacking_lock_manager,
         )
-        self.compare_service = ComparisonScheduler()
+        self.comparison_service = ComparisonScheduler()
         self.intercom = InterComBackEndBinding(
             analysis_service=self.analysis_service,
-            compare_service=self.compare_service,
+            comparison_service=self.comparison_service,
             unpacking_service=self.unpacking_service,
             unpacking_locks=self.unpacking_lock_manager,
         )
@@ -70,13 +70,13 @@ class FactBackend(FactBase):
     def start(self):
         self.analysis_service.start()
         self.unpacking_service.start()
-        self.compare_service.start()
+        self.comparison_service.start()
         self.intercom.start()
 
     def shutdown(self):
         super().shutdown()
         self.intercom.shutdown()
-        self.compare_service.shutdown()
+        self.comparison_service.shutdown()
         self.unpacking_service.shutdown()
         self.analysis_service.shutdown()
         self.unpacking_lock_manager.shutdown()
@@ -105,7 +105,7 @@ class FactBackend(FactBase):
         return any(
             (
                 self.unpacking_service.check_exceptions(),
-                self.compare_service.check_exceptions(),
+                self.comparison_service.check_exceptions(),
                 self.analysis_service.check_exceptions(),
             )
         )
@@ -129,7 +129,7 @@ def _check_ulimit():
     | unpacking_lock_manager | 2    | -     | 2   |
     | analysis_service       | 200  | 294   | 494 |
     | unpacking_service      | 2    | 20    | 22  |
-    | compare_service        | 3    | 4     | 7   |
+    | comparison_service     | 3    | 4     | 7   |
     | intercom               | -    | 24    | 24  |
     | total                  |      |       | 556 |
 

@@ -7,9 +7,9 @@ from sqlalchemy import func, select, type_coerce
 from sqlalchemy.dialects.postgresql import JSONB
 
 from helperFunctions.data_conversion import (
-    convert_compare_id_to_list,
-    convert_uid_list_to_compare_id,
-    normalize_compare_id,
+    convert_comparison_id_to_list,
+    convert_uid_list_to_comparison_id,
+    normalize_comparison_id,
 )
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
@@ -33,15 +33,15 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             self.update_comparison(comparison_id, comparison_result)
         else:
             self.insert_comparison(comparison_id, comparison_result)
-        logging.info(f'compare result added to db: {comparison_id}')
+        logging.info(f'Comparison result added to db: {comparison_id}')
 
     def comparison_exists(self, comparison_id: str) -> bool:
         with self.get_read_only_session() as session:
             query = select(ComparisonEntry.comparison_id).filter(ComparisonEntry.comparison_id == comparison_id)
             return bool(session.execute(query).scalar())
 
-    def objects_exist(self, compare_id: str) -> bool:
-        uid_list = convert_compare_id_to_list(compare_id)
+    def objects_exist(self, comparison_id: str) -> bool:
+        uid_list = convert_comparison_id_to_list(comparison_id)
         with self.get_read_only_session() as session:
             query = select(func.count(FileObjectEntry.uid)).filter(FileObjectEntry.uid.in_(uid_list))
             return session.execute(query).scalar() == len(uid_list)
@@ -49,16 +49,16 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     @staticmethod
     def _calculate_comp_id(comparison_result):
         uid_set = {uid for c_dict in comparison_result['general'].values() for uid in c_dict}
-        return convert_uid_list_to_compare_id(uid_set)
+        return convert_uid_list_to_comparison_id(uid_set)
 
     def get_comparison_result(self, comparison_id: str) -> dict | None:
-        comparison_id = normalize_compare_id(comparison_id)
+        comparison_id = normalize_comparison_id(comparison_id)
         if not self.comparison_exists(comparison_id):
-            logging.debug(f'Compare result not found in db: {comparison_id}')
+            logging.debug(f'Comparison result not found in db: {comparison_id}')
             return None
         with self.get_read_only_session() as session:
             comparison_entry = session.get(ComparisonEntry, comparison_id)
-            logging.debug(f'got compare result from db: {comparison_id}')
+            logging.debug(f'Got comparison result from db: {comparison_id}')
             return self._entry_to_dict(comparison_entry, comparison_id)
 
     @staticmethod
@@ -111,11 +111,11 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 return 0.0
             return analysis.result.get('entropy', 0.0)
 
-    def get_exclusive_files(self, compare_id: str, root_uid: str) -> list[str]:
-        if compare_id is None or root_uid is None:
+    def get_exclusive_files(self, comparison_id: str, root_uid: str) -> list[str]:
+        if comparison_id is None or root_uid is None:
             return []
         try:
-            result = self.get_comparison_result(compare_id)
+            result = self.get_comparison_result(comparison_id)
             exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]
         except (KeyError, FactComparisonException):
             exclusive_files = []

@@ -58,8 +58,8 @@ class CommonIntercomMock:
             return {'test_rule': ['test_uid']}, b'some yara rule'
         return None, None
 
-    def add_compare_task(self, compare_id, force=False):
-        self.task_list.append((compare_id, force))
+    def add_comparison_task(self, comparison_id, force=False):
+        self.task_list.append((comparison_id, force))
 
     def add_analysis_task(self, task):
         self.task_list.append(task)

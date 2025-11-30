@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import pytest
 
-from compare.compare import Compare, schedule_comparison_plugins
-from compare.PluginBase import CompareBasePlugin
+from comparison.comparison import Comparison, schedule_comparison_plugins
+from comparison.comparison_base_plugin import ComparisonBasePlugin
 from test.common_helper import create_test_file_object, create_test_firmware
 
 
 @pytest.fixture(autouse=True)
-def _no_compare_views(monkeypatch):
-    monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda *_: None)
+def _no_comparison_views(monkeypatch):
+    monkeypatch.setattr(ComparisonBasePlugin, '_sync_view', value=lambda *_: None)
 
 
 class MockDbInterface:
@@ -39,16 +39,16 @@ class MockDbInterface:
 
 
 @pytest.fixture
-def compare_system():
-    return Compare(db_interface=MockDbInterface())
+def comparison_system():
+    return Comparison(db_interface=MockDbInterface())
 
 
 fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
 fw_two = create_test_firmware(device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True)
 
 
-def test_compare_objects(compare_system):
-    result = compare_system.compare_objects([fw_one, fw_two])
+def test_compare_objects(comparison_system):
+    result = comparison_system.compare_objects([fw_one, fw_two])
     assert isinstance(result, dict), 'Result is not a dict'
     assert 'general' in result, 'general part is missing'
     assert isinstance(result['general'], dict), 'general part is not a dict'
@@ -56,13 +56,13 @@ def test_compare_objects(compare_system):
     assert isinstance(result['plugins'], dict), 'plugins part is not a dict'
 
 
-def test_compare_error_none_existing_fo(compare_system):
+def test_compare_error_non_existing_fo(comparison_system):
     with pytest.raises(AttributeError):
-        compare_system.compare(['error'])
+        comparison_system.compare(['error'])
 
 
-def test_create_general_section_dict(compare_system):
-    result = compare_system._create_general_section_dict([fw_one, fw_two])
+def test_create_general_section_dict(comparison_system):
+    result = comparison_system._create_general_section_dict([fw_one, fw_two])
     assert isinstance(result, dict), 'result is not a dict'
     assert result['device_name'][fw_one.uid] == 'dev_1'
     assert result['device_name'][fw_two.uid] == 'dev_2'
@@ -74,9 +74,9 @@ def test_create_general_section_dict(compare_system):
     assert result['virtual_file_path'][fw_one.uid] == [fw_one.file_name]
 
 
-def test_plugin_system(compare_system):
-    assert len(compare_system.compare_plugins) > 0, 'no compare plugin found'
-    assert 'File_Coverage' in compare_system.compare_plugins, 'File Coverage module not found'
+def test_plugin_system(comparison_system):
+    assert len(comparison_system.comparison_plugins) > 0, 'no comparison plugin found'
+    assert 'File_Coverage' in comparison_system.comparison_plugins, 'File Coverage module not found'
 
 
 class MockPlugin:

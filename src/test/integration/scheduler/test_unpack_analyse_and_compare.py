@@ -1,13 +1,13 @@
 import pytest
 
-from helperFunctions.data_conversion import normalize_compare_id
+from helperFunctions.data_conversion import normalize_comparison_id
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
 from test.common_helper import get_test_data_dir
 
 _expected_result = {
     'File_Coverage': {'files_in_common': {'all': [], 'collapse': False}},
-    'Software': {'Compare Skipped': {'all': 'Required analyses not present: software_components'}},
+    'Software': {'Comparison Skipped': {'all': 'Required analyses not present: software_components'}},
 }
 
 
@@ -19,7 +19,7 @@ class TestFileAddition:
         pipeline=True,
         backend_db_class=BackendDbInterface,
     )
-    def test_unpack_analyse_and_compare(  # noqa: PLR0913
+    def test_unpack_analyse_and_comparison(  # noqa: PLR0913
         self,
         backend_db,
         unpacking_scheduler,
@@ -41,13 +41,13 @@ class TestFileAddition:
 
         assert analysis_finished_event.wait(timeout=20)
 
-        compare_id = normalize_compare_id(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
+        comparison_id = normalize_comparison_id(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
 
-        assert comparison_scheduler.add_task((compare_id, False)) is None, 'adding comparison task creates error'
+        assert comparison_scheduler.add_task((comparison_id, False)) is None, 'adding comparison task creates error'
 
         assert comparison_finished_event.wait(timeout=10)
 
-        result = comparison_db.get_comparison_result(compare_id)
+        result = comparison_db.get_comparison_result(comparison_id)
 
         assert result is not None, 'comparison result not found in DB'
         assert result['plugins']['Software'] == _expected_result['Software']

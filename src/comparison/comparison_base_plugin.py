@@ -1,4 +1,4 @@
-from __future__ import annotations  # noqa: N999
+from __future__ import annotations
 
 from abc import abstractmethod
 from typing import TYPE_CHECKING
@@ -9,9 +9,9 @@ if TYPE_CHECKING:
     from objects.file import FileObject
 
 
-class CompareBasePlugin(BasePlugin):
+class ComparisonBasePlugin(BasePlugin):
     """
-    This is the compare plug-in base class. All compare plug-ins should be derived from this class.
+    This is the comparison plugin base class. All comparison plugins should be derived from this class.
     """
 
     # must be set by the plugin:
@@ -26,7 +26,7 @@ class CompareBasePlugin(BasePlugin):
         self.database = db_interface
 
     @abstractmethod
-    def compare_function(self, fo_list: list[FileObject], dependency_results: dict[str, dict]) -> dict[str, dict]:
+    def compare_objects(self, fo_list: list[FileObject], dependency_results: dict[str, dict]) -> dict[str, dict]:
         """
         This function must be implemented by the plugin.
         `fo_list` is a list with file_objects including analysis and all summaries.
@@ -38,7 +38,7 @@ class CompareBasePlugin(BasePlugin):
 
     def compare(self, fo_list: list[FileObject], dependency_results: dict[str, dict]) -> dict[str, dict]:
         """
-        This function is called by the compare module.
+        This function is called by the comparison module.
         """
         missing_comparison_deps = self._get_missing_comparison_deps(dependency_results)
         if missing_comparison_deps:
@@ -49,8 +49,8 @@ class CompareBasePlugin(BasePlugin):
             }
         missing_analysis_deps = self._get_missing_analysis_deps(fo_list)
         if missing_analysis_deps:
-            return {'Compare Skipped': {'all': f"Required analyses not present: {', '.join(missing_analysis_deps)}"}}
-        return self.compare_function(fo_list, dependency_results)
+            return {'Comparison Skipped': {'all': f"Required analyses not present: {', '.join(missing_analysis_deps)}"}}
+        return self.compare_objects(fo_list, dependency_results)
 
     def _get_missing_comparison_deps(self, dependency_results: dict[str, dict]) -> list[str]:
         return [

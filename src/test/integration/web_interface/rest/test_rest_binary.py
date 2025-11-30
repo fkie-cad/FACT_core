@@ -23,7 +23,7 @@ class TestRestDownload(RestTestBase):
     def test_rest_download_valid(self, backend_config):
         backend_binding = InterComBackEndBinding(
             analysis_service=test_backend_scheduler.AnalysisServiceMock(),
-            compare_service=test_backend_scheduler.ServiceMock(self.test_queue),
+            comparison_service=test_backend_scheduler.ServiceMock(self.test_queue),
             unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue),
         )
         backend_binding.start()

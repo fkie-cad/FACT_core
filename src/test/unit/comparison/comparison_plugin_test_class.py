@@ -4,7 +4,7 @@ from configparser import ConfigParser
 from test.common_helper import CommonDatabaseMock, create_test_firmware
 
 
-class ComparePluginTest:
+class ComparisonPluginTest:
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'base'
     PLUGIN_CLASS = None
@@ -13,7 +13,7 @@ class ComparePluginTest:
         self.config = self.generate_config()
         self.config.add_section('expert-settings')
         self.config.set('expert-settings', 'ssdeep-ignore', '80')
-        self.compare_plugins = {}
+        self.comparison_plugins = {}
         self.c_plugin = self.setup_plugin()
         self.setup_test_fw()
 

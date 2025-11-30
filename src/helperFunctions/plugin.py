@@ -14,13 +14,13 @@ def discover_analysis_plugins() -> list:
     return _import_plugins('analysis')
 
 
-def discover_compare_plugins() -> list:
-    """Returns a list of modules where each module is a compare plugin."""
-    return _import_plugins('compare')
+def discover_comparison_plugins() -> list:
+    """Returns a list of modules where each module is a comparison plugin."""
+    return _import_plugins('comparison')
 
 
 def _import_plugins(plugin_type):
-    assert plugin_type in ['analysis', 'compare']
+    assert plugin_type in ['analysis', 'comparison']
 
     plugins = []
     src_dir = get_src_dir()
