@@ -11,6 +11,7 @@ def create_app():
     app.config.from_object(__name__)
     app.config['SECRET_KEY'] = os.urandom(24)
     _add_config_to_app(app)
+    app.url_map.strict_slashes = False  # allow trailing slashes in endpoint URLs
     return app
 
 
