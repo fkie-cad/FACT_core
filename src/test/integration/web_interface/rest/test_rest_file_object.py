@@ -15,8 +15,9 @@ class TestRestFileObject(RestTestBase):
         assert b'hid' in rv.data
         assert b'size' in rv.data
 
-    def test_rest_request_multiple_file_objects(self):
-        rv = self.test_client.get('/rest/file_object', follow_redirects=True)
+    @pytest.mark.parametrize('url', ['/rest/file_object', '/rest/file_object/'])
+    def test_rest_request_multiple_file_objects(self, url):
+        rv = self.test_client.get(url, follow_redirects=True)
 
         assert b'uids' in rv.data
         assert b'status:" 1' not in rv.data
@@ -25,7 +26,3 @@ class TestRestFileObject(RestTestBase):
         rv = self.test_client.get('/rest/file_object/invalid%20uid', follow_redirects=True)
 
         assert b'No file object with UID invalid uid' in rv.data
-
-    def test_rest_download_invalid_data(self):
-        rv = self.test_client.get('/rest/file_object/', follow_redirects=True)
-        assert b'404 Not Found' in rv.data
