@@ -15,7 +15,7 @@ class TestComparePluginFileHeader(ComparePluginTest):
         assert all(key in result for key in ['hexdiff', 'ascii', 'offsets']), 'not all result keys given'
         assert all(
             isinstance(result[key], Markup) for key in ['hexdiff', 'ascii', 'offsets']
-        ), 'partial results should be flask.Markup strings'
+        ), 'partial results should be Markup strings'
 
         assert '>4B<' in result['hexdiff'], 'no bytes in hexdump or bad upper case conversion'
         assert '<br />' in result['hexdiff'], 'no linebreaks found'
