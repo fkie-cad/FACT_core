@@ -1,7 +1,7 @@
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
-    {% for software_result in analysis_result.cve_results | sort %}
+    {% for software_result in analysis_result.cve_results | sort_dict_list(key="software_name") %}
         <tr>
             <td>{{ software_result.software_name }}</td>
             <td class="p-0 m-0">
