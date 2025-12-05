@@ -4,6 +4,7 @@ import logging
 from typing import TYPE_CHECKING, List, NamedTuple
 
 from pydantic import BaseModel, Field
+from semver import Version
 
 from analysis.plugin import AnalysisPluginV0, Tag, addons, compat
 from helperFunctions.hash import get_md5
@@ -61,7 +62,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         metadata = self.MetaData(
             name='crypto_material',
             description='detects crypto material like SSH keys and SSL certificates',
-            version='1.0.0',
+            version=Version(1, 0, 0),
             mime_blacklist=['filesystem', *MIME_BLACKLIST_COMPRESSED],
             Schema=self.Schema,
         )
