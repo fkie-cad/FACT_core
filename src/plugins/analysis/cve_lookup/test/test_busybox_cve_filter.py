@@ -1,6 +1,12 @@
+from tempfile import NamedTemporaryFile
+
 import pytest
 
-from plugins.analysis.cve_lookup.internal.busybox_cve_filter import filter_cves_by_component
+from plugins.analysis.cve_lookup.internal.busybox_cve_filter import (
+    filter_busybox_cves,
+    filter_cves_by_component,
+    get_busybox_components,
+)
 from plugins.analysis.cve_lookup.internal.database.schema import Cve
 
 CVE_DICT = {
@@ -162,3 +168,51 @@ CVE_DICT = {
 def test_filter_cves_by_component(components, expected_cve_ids):
     filtered_cves = filter_cves_by_component(None, CVE_DICT, components)
     assert set(filtered_cves) == expected_cve_ids
+
+
+@pytest.mark.parametrize(
+    ('data', 'expected_components'),
+    [
+        (
+            b'XXX\0[\0[[\0awk\0rm\0wget\0\0\0XXX',
+            ['[', '[[', 'awk', 'rm', 'wget'],
+        ),
+        (  # too few components
+            b'XXX\0awk\0rm\0wget\0\0\0XXX',
+            [],
+        ),
+        (  # false positive
+            b'XXX\0[\0[\0[\0[\0[\0[\0[\0[\0[\0XXX',
+            [],
+        ),
+        (  # aligned strings
+            b'XXX\0[\0\0\0[[\0\0awk\0rm\0\0wget\0\0\0\0XXX',
+            ['[', '[[', 'awk', 'rm', 'wget'],
+        ),
+        (  # invalid strings should be filtered out
+            b'XXX\0[\0awk\0kill\0run-parts\0ping6\0vi\0-2\0_.-._\x00123456\0XXX',
+            ['[', 'awk', 'kill', 'ping6', 'run-parts', 'vi'],
+        ),
+        (  # if no tool strings are contained, the output should be empty and no error should occur
+            b'X' * 1000,
+            [],
+        ),
+    ],
+)
+def test_get_busybox_components(data, expected_components):
+    with NamedTemporaryFile() as tmp_file:
+        tmp_file.write(data)
+        tmp_file.flush()
+        assert get_busybox_components(tmp_file.name) == expected_components
+
+
+def test_filter_busybox_cves():
+    with NamedTemporaryFile() as tmp_file:
+        tmp_file.write(b'foobar123')
+        tmp_file.flush()
+        # if no components are found, nothing should be filtered out
+        assert filter_busybox_cves(tmp_file.name, CVE_DICT) == CVE_DICT
+
+        tmp_file.write(b'XXX\0[\0[[\0rm\0unlzma\0wget\0\0\0XXX')
+        tmp_file.flush()
+        assert filter_busybox_cves(tmp_file.name, CVE_DICT) == {'CVE-2021-42374': CVE_DICT['CVE-2021-42374']}
