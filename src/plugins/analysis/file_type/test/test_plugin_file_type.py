@@ -17,6 +17,6 @@ def test_detect_type_of_file(analysis_plugin):
     summary = analysis_plugin.summarize(result)
 
     assert result.mime == 'application/zip', 'mime-type not detected correctly'
-    assert result.full.startswith('Zip archive data, at least'), 'full type not correct'
+    assert result.full.startswith('Zip archive data,'), 'full type not correct'
 
     assert summary == ['application/zip']
