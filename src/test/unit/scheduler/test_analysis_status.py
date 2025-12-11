@@ -10,9 +10,18 @@ from scheduler.analysis_status import RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC, Ana
 ROOT_UID = 'root_uid'
 
 
+class MockRedis:
+    def __init__(self):
+        self.analysis_status = None
+
+    def set_analysis_status(self, status):
+        self.analysis_status = status
+
+
 class TestAnalysisStatus:
     def setup_method(self):
         self.status = AnalysisStatus()
+        self.status._worker.redis = MockRedis()
 
     def test_add_firmware_to_current_analyses(self):
         fw = Firmware(binary=b'foo')
@@ -207,3 +216,73 @@ class TestAnalysisStatus:
         self.status._worker._update_status()
 
         assert ROOT_UID in self.status._worker.currently_running
+
+    def test_add_update(self):
+        fw = Firmware(binary=b'foo')
+        fw.files_included = ['foo', 'bar']
+        self.status.add_update(fw, fw.files_included)
+        # _update_status is called twice, because add_object is called first and then add_update
+        self.status._worker._update_status()
+        self.status._worker._update_status()
+
+        assert fw.uid in self.status._worker.currently_running
+        result = self.status._worker.currently_running[fw.uid]
+        assert result.files_to_unpack == set()
+        assert result.completed_files == set()
+        assert result.unpacked_files_count == result.total_files_count
+        assert result.analyzed_files_count == 0
+        assert result.files_to_analyze == {fw.uid, *fw.files_included}
+        assert result.total_files_count == len(fw.files_included) + 1
+
+    def test_add_analysis(self):
+        self.status._worker.currently_running = {
+            ROOT_UID: FwAnalysisStatus(
+                files_to_unpack=set(),
+                files_to_analyze={'foo', 'bar'},
+                analysis_plugins={},
+                hid='',
+                total_files_count=3,
+            )
+        }
+        self.status._currently_analyzed[ROOT_UID] = True
+        fo = FileObject(binary=b'foo')
+        fo.root_uid = ROOT_UID
+        fo.uid = 'foo'
+
+        result = self.status._worker.currently_running[ROOT_UID]
+        assert result.analysis_plugins == {}
+
+        self.status.add_analysis(fo, 'some_plugin')
+        self.status._worker._update_status()
+
+        assert result.analysis_plugins == {'some_plugin': 1}
+
+    def test_store_status(self):
+        self.status._worker.currently_running = {
+            ROOT_UID: FwAnalysisStatus(
+                files_to_unpack={'bar'},
+                files_to_analyze={'foo', 'bar'},
+                analysis_plugins={},
+                hid='',
+                unpacked_files_count=2,
+                total_files_count=3,
+            )
+        }
+        recently_finished = {
+            'other_UID': {
+                'duration': 13.37,
+                'total_files_count': 1337,
+                'time_finished': 1337,
+                'hid': 'analysis_status.hid',
+            }
+        }
+        self.status._worker.recently_finished = recently_finished
+        self.status._worker._store_status()
+
+        status = self.status._worker.redis.analysis_status
+        assert ROOT_UID in status['current_analyses']
+        assert status['current_analyses'][ROOT_UID]['unpacked_count'] == 2
+        assert status['current_analyses'][ROOT_UID]['analyzed_count'] == 0
+        assert status['current_analyses'][ROOT_UID]['total_count'] == 3
+        assert status['recently_canceled_analyses'] == {}
+        assert status['recently_finished_analyses'] == recently_finished

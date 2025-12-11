@@ -67,8 +67,8 @@ class AnalysisPlugin(AnalysisPluginV0):
             )
         )
         self._log_version_string()
-        self.memory_limit = getattr(config.backend.plugin.get(self.NAME, None), 'memory_limit', '4G')
-        self.swap_limit = getattr(config.backend.plugin.get(self.NAME, None), 'memswap_limit', '4G')
+        self.memory_limit = getattr(config.backend.plugin.get(self.metadata.name, None), 'memory_limit', '4G')
+        self.swap_limit = getattr(config.backend.plugin.get(self.metadata.name, None), 'memswap_limit', '4G')
 
     def _log_version_string(self):
         output = self._run_cwe_checker_to_get_version_string()
@@ -92,7 +92,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         result = run_docker_container(
             DOCKER_IMAGE,
             combine_stderr_stdout=True,
-            timeout=self.TIMEOUT - 30,
+            timeout=self.metadata.timeout - 30,
             command='/input --json --quiet',
             mounts=[
                 Mount('/input', file_path, type='bind'),

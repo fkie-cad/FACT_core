@@ -83,7 +83,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             run_docker_container(
                 DOCKER_IMAGE,
                 combine_stderr_stdout=True,
-                timeout=self.TIMEOUT,
+                timeout=self.metadata.timeout,
                 command=f'{mount} /results/',
                 mounts=[
                     Mount('/results/', str(folder.resolve()), type='bind'),
