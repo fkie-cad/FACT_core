@@ -1,4 +1,5 @@
-from decorator import contextmanager
+from contextlib import contextmanager
+
 from flask import Flask
 from flask_restx import Api
 
