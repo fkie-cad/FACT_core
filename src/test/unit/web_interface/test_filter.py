@@ -173,11 +173,12 @@ def test_base64_filter():
 @pytest.mark.parametrize(
     ('input_data', 'verbose', 'expected'),
     [
-        (1000, False, '1000.00 Byte'),
+        (1000, False, '1000 bytes'),
         (1024, False, '1.00 KiB'),
         (1024 * 1024, False, '1.00 MiB'),
-        (1234.1234, False, '1.21 KiB'),
-        (1000, True, '1000.00 Byte (1,000 bytes)'),
+        (1234, False, '1.21 KiB'),
+        (1234, True, '1.21 KiB (1,234 bytes)'),
+        (1000, True, '1000 bytes'),
         (b'abc', False, 'not available'),
         (None, False, 'not available'),
     ],
