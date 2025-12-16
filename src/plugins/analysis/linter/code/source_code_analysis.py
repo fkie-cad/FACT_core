@@ -66,9 +66,9 @@ class AnalysisPlugin(AnalysisPluginV0):
             metadata=AnalysisPluginV0.MetaData(
                 name='source_code_analysis',
                 description='This plugin implements static code analysis for multiple scripting languages',
-                version=Version(0, 7, 2),
+                version=Version(0, 7, 3),
                 Schema=AnalysisPlugin.Schema,
-                mime_whitelist=['text/'],
+                mime_whitelist=['text/', 'application/javascript'],
             ),
         )
 
