@@ -27,10 +27,15 @@ def run_eslint(file_path):
     output_json = json.loads(result.stdout)
 
     issues = []
-    # As we only ever analyse one file use output_json[0]
+    # As we only ever analyze one file use output_json[0]
     for msg in output_json[0]['messages']:
         issues.append(
-            {'line': msg['line'], 'column': msg['column'], 'message': msg['message'], 'symbol': msg['ruleId']}
+            {
+                'line': msg['line'],
+                'column': msg['column'],
+                'message': msg['message'],
+                'symbol': msg['ruleId'] or 'N/A',  # ruleId can be None if there is a syntax error
+            }
         )
 
     return issues
