@@ -107,7 +107,7 @@ class AnalysisScheduler:
         db_interface=None,
         unpacking_locks: UnpackingLockManager | None = None,
     ):
-        self.analysis_plugins = {}
+        self.analysis_plugins: dict[str, AnalysisPluginV0 | AnalysisBasePlugin] = {}
         self._plugin_runners = {}
 
         self._load_plugins()
@@ -177,7 +177,7 @@ class AnalysisScheduler:
         for child_fo in self.db_backend_service.get_objects_by_uid_list(included_files):
             child_fo.root_uid = fo.uid  # set the correct root_uid so that "current analysis stats" work correctly
             child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
-            self.task_scheduler.schedule_analysis_tasks(child_fo, fo.scheduled_analysis)
+            self.task_scheduler.schedule_analysis_tasks(child_fo, fo.scheduled_analysis, mandatory=True)
             self._check_further_process_or_complete(child_fo)
         self._check_further_process_or_complete(fo)
 
