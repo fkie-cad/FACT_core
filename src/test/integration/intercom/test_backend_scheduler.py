@@ -22,7 +22,7 @@ class ServiceMock:
         pass
 
 
-class TestListener(InterComListener):
+class DummyListener(InterComListener):
     CONNECTION_TYPE = 'test_task'
 
 
@@ -54,7 +54,7 @@ def get_intercom_for_testing():
 def test_backend_worker(intercom):
     test_queue = Queue()
     service = ServiceMock(test_queue)
-    listener = TestListener(service.add_task)
+    listener = DummyListener(service.add_task)
     intercom.listeners.append(listener)
     intercom.start()
     intercom_frontend = InterComFrontEndBinding()
