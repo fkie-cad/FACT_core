@@ -33,4 +33,4 @@ class TestShowStatistic:
         }
         page_content = test_client.get('/statistic').data.decode()
         assert 'General' in page_content
-        assert '>10.00 Byte<' in page_content
+        assert '>10 bytes<' in page_content
