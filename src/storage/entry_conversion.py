@@ -118,7 +118,11 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
 
 
 def sanitize(analysis_data: dict) -> dict:
-    """Null bytes are not legal in PostgreSQL JSON columns -> remove them"""
+    """
+    Makes a Python dict JSON compatible so that it can be stored in the database.
+    Null bytes are not legal in PostgreSQL JSON columns, so we remove them.
+    Tuples are not JSON compatible and immutable (i.e. the values cannot be sanitized), so they are converted to lists.
+    """
     for key, value in list(analysis_data.items()):
         _sanitize_value(analysis_data, key, value)
         _sanitize_key(analysis_data, key)
@@ -127,6 +131,8 @@ def sanitize(analysis_data: dict) -> dict:
 
 
 def _sanitize_value(analysis_data: dict, key: str, value):
+    if isinstance(value, tuple):
+        analysis_data[key] = value = list(value)
     if isinstance(value, dict):
         sanitize(value)
     elif isinstance(value, str):
@@ -156,9 +162,13 @@ def _sanitize_key(analysis_data: dict, key: str):
 
 
 def _sanitize_list(value: list) -> list:
-    for index, element in enumerate(value):
+    for index, element in enumerate(list(value)):
+        if isinstance(element, tuple):
+            value[index] = element = list(element)  # noqa: PLW2901
         if isinstance(element, dict):
             sanitize(element)
+        elif isinstance(element, list):
+            _sanitize_list(element)
         elif isinstance(element, str):
             value[index] = _sanitize_string(element)
     return value
