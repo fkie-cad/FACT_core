@@ -5,10 +5,6 @@ Pillow~=10.4.0
 pyopenssl~=25.0.0
 pyyaml~=6.0.2
 
-# FIXME This is only needed by the compare/file_header plugin
-#       See Issue #832
-flask~=3.0.3
-
 git+https://github.com/fkie-cad/common_helper_yara.git
 
 # For plugin definition
