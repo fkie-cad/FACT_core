@@ -25,8 +25,8 @@ class MockDbInterface:
             return None
         return self.fo
 
-    def get_ssdeep_hash(self, uid):
-        return ''
+    def get_ssdeep_hash_for_uid_list(self, uid_list):
+        return {uid: '42' for uid in uid_list}
 
     def get_complete_object_including_all_summaries(self, uid):
         return self.get_object(uid)
