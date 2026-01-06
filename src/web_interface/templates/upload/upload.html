@@ -178,8 +178,12 @@
                 </form>
             </div>
 
-            <img id="loading_img" src="{{ url_for('.static', filename='Pacman.gif') }}"
-                 alt="loading..." style="display: none; margin: auto;"/>
+            <div class="mb-3" id="loading-img" style="display: none; padding: 5px; text-align: center">
+                <p>Upload in progress...</p>
+            </div>
+            <script>
+                loadLoadingAnimation('loading-img');
+            </script>
         </div>
     </div>
 

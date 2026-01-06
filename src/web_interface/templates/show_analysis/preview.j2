@@ -39,8 +39,10 @@
                     </div>
                 </div>
                 <div id="preview-loading-gif" class="border" style="display: block; padding: 5px; text-align: center">
-                    <img src="{{ url_for('static', filename = 'Pacman.gif') }}" alt="loading...">
                 </div>
+                <script>
+                    loadLoadingAnimation('preview-loading-gif');
+                </script>
                 <div id="preview-content" class="m-0 mt-2 p-0"></div>
             </div>
 
