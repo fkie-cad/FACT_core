@@ -7,7 +7,7 @@ python-magic==0.4.27
 requests==2.32.4
 # Needed by config.py
 pydantic==2.10.6
-werkzeug~=3.0.6
+werkzeug~=3.1.5
 toml==0.10.2
 # needed during installation of cve_lookup plugin
 ijson==3.4.0
