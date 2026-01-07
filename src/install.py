@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 """
     FACT Installer
-    Copyright (C) 2015-2025  Fraunhofer FKIE
+    Copyright (C) 2015-2026  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
