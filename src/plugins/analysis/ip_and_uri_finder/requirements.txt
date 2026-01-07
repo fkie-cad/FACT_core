@@ -1,4 +1,4 @@
 git+https://github.com/fkie-cad/common_analysis_ip_and_uri.git
 geoip2==4.7.0
 # dependency of geoip2 for python >= 3.12
-aiohttp~=3.12.14
+aiohttp~=3.13.3
