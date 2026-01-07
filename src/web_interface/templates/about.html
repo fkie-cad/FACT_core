@@ -55,9 +55,121 @@
 <div class="row justify-content-center">
     <div class="col-xl-8 col-lg-12" style="width:100%;column-count:2;column-rule:grey 1px dotted;column-gap:50px">
 
-        <h4>FACT 4.3-dev</h4>
+        <h4>FACT 4.3 (2026-01-12)</h4>
         <ul>
-            <li>ToDo</li>
+            <li>Features:
+                <ul>
+                    <li>Web GUI:
+                        <ul>
+                            <li>Analysis page:
+                                <ul>
+                                    <li>Added option to view the raw JSON analysis result</li>
+                                    <li>Permissions are shown in the file tree (where available)</li>
+                                    <li>Improved comment feature</li>
+                                    <li>Single file analyses will be shown directly when completed</li>
+                                    <li>Show a link to the actual file (if available) for symlinks</li>
+                                    <li>Added option to hide symlinks in the file tree</li>
+                                    <li>Added forward/back buttons to hex preview</li>
+                                </ul>
+                            </li>
+                            <li>Comparison:
+                                <ul>
+                                    <li>Changed text files are shown as tree</li>
+                                    <li>Improved browsing page</li>
+                                </ul>
+                            </li>
+                            <li>Binary search: show matching strings</li>
+                            <li>Advanced search: improved support for <code>$contains</code> operator</li>
+                            <li>GraphQL search: search the database using GraphQL</li>
+                            <li>Improved upload page</li>
+                            <li>Added dark mode</li>
+                            <li>Added option to cancel analyses</li>
+                            <li>Improved system and plugin status page</li>
+                            <li>New loading animation</li>
+                        </ul>
+                    </li>
+                    <li>Plugins:
+                        <ul>
+                            <li>known vulnerabilities:
+                                <ul>
+                                    <li>Added check for vulnerable xz version</li>
+                                </ul>
+                            </li>
+                            <li>filesystem metadata:
+                                <ul>
+                                    <li>added support for YAFFS filesystems</li>
+                                    <li>Show permissions (where possible)</li>
+                                </ul>
+                            </li>
+                            <li>software components:
+                                <ul>
+                                    <li>Improved signatures of OpenSSH, dropbear and lighttpd</li>
+                                </ul>
+                            </li>
+                            <li>CVE lookup:
+                                <ul>
+                                    <li>Added support for CVSS 4.0+ metrics</li>
+                                </ul>
+                            </li>
+                            <li>IP and URI finder:
+                                <ul>
+                                    <li>Merged with "interesting URIs" plugin</li>
+                                    <li>Improved template</li>
+                                </ul>
+                            </li>
+                            <li>printable strings:
+                                <ul>
+                                    <li>merged with string evaluator plugin</li>
+                                    <li>improved result visualization</li>
+                                </ul>
+                            </li>
+                            <li>users and passwords:
+                                <ul>
+                                    <li>improved password cracking wordlist</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>Other:
+                        <ul>
+                            <li>Firmware import/export: analyses (extracted files and results) can now be exported and imported using the script <code>firmware_import_export.py</code></li>
+                            <li>Added delete endpoint to REST API</li>
+                            <li>Extractor docker image can now be set in the configuration</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>Performance/Efficiency Improvements:
+                <ul>
+                    <li>Improved docker container mount efficiency of multiple analysis plugins</li>
+                    <li>Improved code highlighting speed on analysis page</li>
+                    <li>Optimized RAM usage of cve lookup plugin setup</li>
+                    <li>Greatly improved firmware comparison performance</li>
+                </ul>
+            </li>
+            <li>Misc:
+                <ul>
+                    <li>Removed search redirect in case of one result</li>
+                    <li>Install nodejs dependencies in nodeenv</li>
+                    <li>Updated installed PostgreSQL version to 17</li>
+                    <li>Documentation fixes and improvements</li>
+                    <li>Removed support for EoL distros Debian 11 and Ubuntu 20.04</li>
+                    <li>Added support for Debian 13 and Python 13</li>
+                    <li>Removed TLSH and "hardware analysis" plugins</li>
+                    <li>Converted remaining analysis plugins to new base class and removed the old base class</li>
+                    <li>Code refactoring</li>
+                </ul>
+            </li>
+            <li>Bug Fixes:
+                <ul>
+                    <li>Fix for exception in CVE lookup result sorting</li>
+                    <li>YARA installation fixes</li>
+                    <li>Fix for redirect loop in case of user without roles</li>
+                    <li>Text file preview fix for JSON/JS</li>
+                    <li>Multiple fixes regarding error handling in analysis plugins</li>
+                    <li>Several additional bug fixes</li>
+                </ul>
+            </li>
         </ul>
 
         <h4>FACT 4.2 (2024-09-04)</h4>
