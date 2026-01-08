@@ -1,0 +1,119 @@
+services:
+  fact-frontend:
+    runtime: sysbox-runc
+    build:
+      context: .
+      target: fact_frontend
+    environment:
+      PGPASSWORD: password
+      HASURA_HOST: hasura
+      HASURA_PORT: 8080
+    ports:
+      - "5000:5000"
+    networks:
+      fact:
+        aliases:
+          - frontend
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
+  fact-backend:
+    runtime: sysbox-runc
+    build:
+      context: .
+      target: fact_backend
+    environment:
+      PGPASSWORD: password
+    networks:
+      fact:
+        aliases:
+          - backend
+    volumes:
+      - fact_files:/media/data
+      - fact_docker_images:/var/lib/docker
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
+  db:
+    container_name: postgres
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    volumes:
+      - fact_db:/data/postgres
+    networks:
+      fact:
+        aliases:
+          - db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d postgres"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+  redis:
+    container_name: redis
+    image: redis:alpine
+    restart: always
+    networks:
+      fact:
+        aliases:
+          - redis
+  hasura:
+    image: hasura/graphql-engine:v2.38.0
+    ports:
+      - "18080:8080"
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgresql://postgres:password@db:5432/postgres
+      PG_DATABASE_URL: postgresql://postgres:password@db:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
+      FACT_DB_URL: "postgresql://postgres:password@db:5432/fact_db"
+      HASURA_GRAPHQL_ADMIN_SECRET: "${HASURA_ADMIN_SECRET:-4dM1n_S3cR3T_changemeplz}"
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "ro_user"
+    depends_on:
+      hasura-connector:
+        condition: service_healthy
+    networks:
+      fact:
+        aliases:
+          - hasura
+  hasura-connector:
+    image: hasura/graphql-data-connector:v2.38.0
+    restart: always
+    ports:
+      - "18081:8081"
+    environment:
+      QUARKUS_LOG_LEVEL: ERROR
+      QUARKUS_OPENTELEMETRY_ENABLED: "false"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/athena/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+    networks:
+      fact:
+        aliases:
+          - hasura-connector
+
+networks:
+  fact:
+    driver: bridge
+
+volumes:
+  fact_db:
+  fact_files:
+  fact_docker_images:

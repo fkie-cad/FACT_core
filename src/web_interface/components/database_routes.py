@@ -404,7 +404,7 @@ class DatabaseRoutes(ComponentBase):
         req_headers = {k: v for (k, v) in request.headers if k not in excluded_proxy_headers}
         response = requests.request(
             method=request.method,
-            url=f'http://localhost:{config.frontend.hasura.port}/v1/graphql',
+            url=f'http://{config.frontend.hasura.host}:{config.frontend.hasura.port}/v1/graphql',
             headers={**req_headers, 'X-Hasura-Role': 'ro_user'},
             data=request.get_data(),
             cookies=request.cookies,
