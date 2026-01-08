@@ -14,13 +14,12 @@ from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-from ..code.file_system_metadata import AnalysisPlugin
-
 if TYPE_CHECKING:
     from web_interface.frontend_database import FrontendDatabase
 
 
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
+PLUGIN_NAME = 'file_system_metadata'
 
 
 class ParentAnalysisLookupMixin:
@@ -31,7 +30,7 @@ class ParentAnalysisLookupMixin:
         with get_shared_session(self.db.frontend) as db:
             vfp = db.get_vfps(uid)
             for parent_uid in vfp:
-                parent_analysis = db.get_analysis(parent_uid, AnalysisPlugin.NAME) or {}
+                parent_analysis = db.get_analysis(parent_uid, PLUGIN_NAME) or {}
                 results.append(_get_results_from_parent_fo(parent_analysis.get('result', {}), parent_uid, vfp))
         return results
 
@@ -83,4 +82,4 @@ class PluginRestRoutes(RestResourceBase, ParentAnalysisLookupMixin):
         endpoint = self.ENDPOINTS[0][0]
         if not results:
             error_message(f'no results found for uid {uid}', endpoint, request_data={'uid': uid})
-        return success_message({AnalysisPlugin.NAME: results}, endpoint, request_data={'uid': uid})
+        return success_message({PLUGIN_NAME: results}, endpoint, request_data={'uid': uid})
