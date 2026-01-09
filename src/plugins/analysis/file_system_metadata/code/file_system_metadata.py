@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 from semver import Version
 
 import config
-from analysis.plugin import AnalysisPluginV0, Tag
+from analysis.plugin import AnalysisFailedError, AnalysisPluginV0, Tag
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 
@@ -197,7 +197,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                 return _analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
             message = 'Mounting the file system failed'
             logging.warning(f'{message} for {file_handle.name}:\n{output}')
-            raise RuntimeError(message)
+            raise AnalysisFailedError(message)
 
     def _mount_in_docker(self, input_dir: str) -> str:
         result = run_docker_container(
