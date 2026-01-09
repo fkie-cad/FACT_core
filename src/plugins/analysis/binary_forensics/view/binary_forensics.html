@@ -1,0 +1,237 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+    <tr>
+        <td>Average Emtropy</td>
+        <td>{{ analysis_result.entropy.avg_entropy | nice_number }}</td>
+    </tr>
+    <tr>
+        <td>Entropy Plot</td>
+        <td>
+            <canvas id="entropyChart" class="chart-container"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>Binwalk File Matches</td>
+        <td>
+            <details>
+                <ul class="list-group list-group-flush">
+                    {% for item in analysis_result.file_matches %}
+                        <li class="list-group-item">
+                            <table class="table table-sm table-borderless" style="margin-bottom: 0;">
+                                <tr>
+                                    <th class="tab-col-head">offset</th>
+                                    <td>{{ item.offset | nice_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">size</th>
+                                    <td>{{ item.size | nice_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">name</th>
+                                    <td>{{ item.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">description</th>
+                                    <td>
+                                        {% if ", " in item.description %}
+                                            {% for part in item.description.split(", ") %}
+                                                {% if loop.first %}
+                                                    {{ part }}
+                                                    <ul>
+                                                {% else %}
+                                                    <li>{{ part }}</li>
+                                                {% endif %}
+                                            {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            {{ item.description }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">confidence</th>
+                                    <td>{{ item.confidence }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">id</th>
+                                    <td>{{ item.id }}</td>
+                                </tr>
+                            </table>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </details>
+        </td>
+    </tr>
+    <tr>
+        <td>Block Data</td>
+        <td>
+            Blocksize: {{ analysis_result.entropy.blocksize | number_format }}
+            <br>
+            <details>
+                <ul class="list-group list-group-flush">
+                    {% for block in analysis_result.entropy.blocks %}
+                        <li class="list-group-item">
+                            <table class="table table-sm table-borderless" style="margin-bottom: 0;">
+                                <tr>
+                                    <th class="tab-col-head">offset</th>
+                                    <td>{{ block.offset | nice_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="tab-col-head">entropy</th>
+                                    <td>{{ block.entropy | nice_number }}</td>
+                                </tr>
+                            </table>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </details>
+        </td>
+    </tr>
+
+    <script src="{{ url_for("static", filename="node_modules/chart.js/dist/Chart.js") }}"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            /* 40% of vertical page height */
+            height: 40vh;
+        }
+        .tab-col-head {
+            width: 1%;
+            text-align: right;
+        }
+    </style>
+    <script>
+        data = {{ analysis_result | json_dumps | safe }};
+        const ctx = document.getElementById('entropyChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Entropy',
+                        data: data.entropy.blocks.map(item => ({
+                            x: item.offset,
+                            y: item.entropy
+                        })),
+                        borderColor: 'rgba(0,147,116,1.0)',
+                        backgroundColor: 'rgba(0,147,116,0.2)',
+                        lineTension: 0.1,
+                        fill: false,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        type: 'line',
+                    },
+                    {
+                        label: 'Binwalk File Signatures',
+                        data: data.file_matches.map((match, index) => ({
+                            x: match.offset,
+                            // vary the height so the points are less likely to overlap
+                            y: 0.4 + (index % 5) / 25
+                        })),
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.0)',
+                        pointRadius: 10,
+                        pointHoverRadius: 12,
+                        pointStyle: 'star',
+                        showLine: false,
+                        type: 'scatter'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Binary Forensics Plot'
+                },
+                /*
+                legend: {
+                    display: false
+                },
+                */
+                hover: {
+                    mode: 'point',
+                    intersect: true
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const clickedElement = activeElements[0];
+                        const datasetIndex = clickedElement._datasetIndex;
+                        const pointIndex = clickedElement._index;
+                        let offset;
+                        if (datasetIndex === 0) {
+                            // Entropy Dataset
+                            const clickedDataPoint = chart.data.datasets[datasetIndex].data[pointIndex];
+                            offset = clickedDataPoint.x;
+                        } else {
+                            // Signature Dataset
+                            offset = data.file_matches[pointIndex].offset;
+                        }
+                        console.log(`datasetIndex: ${datasetIndex}`)
+                        const currentUrl = new URL(window.location);
+                        // set load_preview param to automatically show the preview at the offset of the clicked point
+                        currentUrl.searchParams.set('load_preview', offset);
+                        window.location.href = currentUrl.toString();
+                    }
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        display: true,
+                        ticks: {
+                            maxTicksLimit: 20,
+                            callback: (value) => {
+                                return value.toLocaleString();
+                            }
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Offset'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        ticks: {
+                            min: 0,
+                            max: 1,
+                            stepSize: 0.1
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Entropy'
+                        }
+                    }]
+                },
+                tooltips: {
+                    mode: 'point',
+                    intersect: true,
+                    callbacks: {
+                        title: (tooltipItems) => {
+                            const offset = tooltipItems[0].xLabel;
+                            return `offset: ${offset.toLocaleString()} (0x${offset.toString(16)})`;
+                        },
+                        label: (tooltipItem) => {
+                            if (tooltipItem.datasetIndex === 0) {
+                                // Entropy Dataset
+                                return `entropy: ${tooltipItem.yLabel.toFixed(3)}`;
+                            } else {
+                                // Signature Dataset
+                                const signature = data.file_matches[tooltipItem.index];
+                                return `type: ${signature.name}`;
+                            }
+                        },
+                        afterLabel: () => {
+                            return 'click to load hex preview';
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+{% endblock %}
