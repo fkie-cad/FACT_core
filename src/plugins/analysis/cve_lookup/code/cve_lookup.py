@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING, List
 
@@ -18,7 +19,9 @@ if TYPE_CHECKING:
 
     from plugins.analysis.software_components.code.software_components import AnalysisPlugin as SoftwarePlugin
 
-DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
+DB_DIR = Path(__file__).parent.parent / 'internal/database'
+DB_PATH = str(DB_DIR / 'cve_cpe.db')
+VERSION_PATH = DB_DIR / 'version.json'
 
 
 class CveResult(BaseModel):
@@ -40,6 +43,10 @@ class AnalysisPlugin(AnalysisPluginV0):
         cve_results: List[CveResult]
 
     def __init__(self):
+        try:
+            system_version = json.loads(VERSION_PATH.read_text()).get('version')
+        except (json.JSONDecodeError, FileNotFoundError):
+            system_version = None
         super().__init__(
             metadata=(
                 self.MetaData(
@@ -49,6 +56,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                     version=Version(1, 0, 0),
                     dependencies=['software_components'],
                     Schema=self.Schema,
+                    system_version=system_version,
                 )
             )
         )

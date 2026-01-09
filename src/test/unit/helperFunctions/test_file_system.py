@@ -5,6 +5,7 @@ import pytest
 
 from helperFunctions.fileSystem import (
     file_is_empty,
+    get_bin_dir,
     get_config_dir,
     get_relative_object_path,
     get_src_dir,
@@ -37,6 +38,11 @@ def test_get_template_dir():
     assert template_dir.is_dir(), 'template dir not found'
     file_suffixes_in_template_dir = [f.suffix for f in template_dir.iterdir()]
     assert '.html' in file_suffixes_in_template_dir
+
+
+def test_get_bin_dir():
+    bin_dir = get_bin_dir()
+    assert bin_dir.is_dir(), 'bin dir not found'
 
 
 @pytest.mark.parametrize(
