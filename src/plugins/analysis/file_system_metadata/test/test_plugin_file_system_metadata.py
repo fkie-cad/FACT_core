@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+from analysis.plugin import AnalysisFailedError
+
 from ..code.file_system_metadata import (
     SGID_BIT,
     STICKY_BIT,
@@ -100,7 +102,7 @@ class TestFileSystemMetadata:
         assert result[testfile_sticky_key].modification_time == 1518167842.0
 
     def test_extract_metadata_from_file_system__unmountable(self, analysis_plugin):
-        with pytest.raises(RuntimeError, match='Mounting the file system failed'):
+        with pytest.raises(AnalysisFailedError, match='Mounting the file system failed'):
             analysis_plugin._extract_metadata_from_file_system(FileIO(self.test_file_tar))
 
     def test_extract_metadata_from_tar(self):
