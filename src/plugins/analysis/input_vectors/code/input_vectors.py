@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from docker.errors import DockerException
 from docker.types import Mount
 from pydantic import BaseModel
-from requests.exceptions import ReadTimeout
 from semver import Version
 
 from analysis.plugin import AnalysisPluginV0
@@ -63,6 +62,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                     'application/x-sharedlib',
                     'application/x-pie-executable',
                 ],
+                timeout=TIMEOUT_IN_SECONDS,
             ),
         )
 
@@ -83,15 +83,13 @@ class AnalysisPlugin(AnalysisPluginV0):
                 # We explicitly don't want stderr to ignore "Cannot analyse at [...]"
                 combine_stderr_stdout=False,
                 logging_label=self.metadata.name,
-                timeout=TIMEOUT_IN_SECONDS,
+                timeout=TIMEOUT_IN_SECONDS - 10,
                 command=CONTAINER_TARGET_PATH,
                 mounts=[
                     Mount(CONTAINER_TARGET_PATH, file_handle.name, type='bind', read_only=True),
                 ],
             )
             analysis_data = loads(result.stdout)['full']
-        except ReadTimeout as err:
-            raise InputVectorsAnalysisError('Analysis timed out. It might not be complete.') from err
         except (DockerException, OSError, KeyError) as err:
             raise InputVectorsAnalysisError('Analysis issues. It might not be complete.') from err
         except JSONDecodeError as err:
