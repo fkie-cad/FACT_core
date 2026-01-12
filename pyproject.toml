@@ -40,7 +40,6 @@ select = [
     "C4",  # flake8-comprehensions
     "EXE",  # flake8-executable
     "FIX",  # flake8-fixme
-    "FA",  # flake8-future-annotations
     "ISC",  # flake8-implicit-str-concat
     "PIE",  # flake8-pie
     "T20",  # flake8-print
