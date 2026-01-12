@@ -299,12 +299,12 @@ class Worker(mp.Process):
     def _update_duration_stats(self, duration):
         with self._stats.get_lock():
             self._stats[self._stats_idx.value] = duration
-        self._stats_idx.value += 1
-        if self._stats_idx.value >= ANALYSIS_STATS_LIMIT:
-            # if the stats array is full, overwrite the oldest result
-            self._stats_idx.value = 0
-        if self._stats_count.value < ANALYSIS_STATS_LIMIT:
-            self._stats_count.value += 1
+            self._stats_idx.value += 1
+            if self._stats_idx.value >= ANALYSIS_STATS_LIMIT:
+                # if the stats array is full, overwrite the oldest result
+                self._stats_idx.value = 0
+            if self._stats_count.value < ANALYSIS_STATS_LIMIT:
+                self._stats_count.value += 1
 
 
 class AnalysisExceptionError(Exception):
