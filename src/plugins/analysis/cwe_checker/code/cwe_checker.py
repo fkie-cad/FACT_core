@@ -131,11 +131,11 @@ class AnalysisPlugin(AnalysisPluginV0):
     def _do_full_analysis(self, file_path: str) -> dict:
         output = self._run_cwe_checker_in_docker(file_path)
         if output is None:
-            raise Exception(f'Timeout or error during cwe_checker execution.\nUID: {file_path}')
+            raise AnalysisFailedError('Timeout or error during cwe_checker execution')
         try:
             return self._parse_cwe_checker_output(output)
         except json.JSONDecodeError as error:
-            raise Exception(f'cwe_checker execution failed\nUID: {file_path}') from error
+            raise AnalysisFailedError('cwe_checker execution failed') from error
 
     def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
         """
