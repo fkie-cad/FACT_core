@@ -139,9 +139,11 @@ class InterComBackEndSingleFileTask(InterComListenerAndResponder):
             if not event.is_set():
                 raise TimeoutError
             return True
-        except (TimeoutError, KeyError):
+        except TimeoutError:
+            logging.warning(f'Timeout during single file update of {task.uid}.')
+        except KeyError:
             logging.exception('Single file update failed.')
-            return False
+        return False
 
 
 class InterComBackEndCompareTask(InterComListener):
