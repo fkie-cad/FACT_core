@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, List
 
 from docker.types import Mount
 from pydantic import BaseModel
+from requests import RequestException
 from semver import Version
 
 import config
@@ -61,7 +62,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                         'application/x-pie-executable',
                         'application/x-sharedlib',
                     ],
-                    version=Version(1, 0, 0),
+                    version=Version(1, 0, 1),
                     Schema=self.Schema,
                 )
             )
@@ -129,13 +130,16 @@ class AnalysisPlugin(AnalysisPluginV0):
         return any(supported_arch in arch_type for supported_arch in SUPPORTED_ARCHS)
 
     def _do_full_analysis(self, file_path: str) -> dict:
-        output = self._run_cwe_checker_in_docker(file_path)
+        try:
+            output = self._run_cwe_checker_in_docker(file_path)
+        except RequestException as e:
+            raise AnalysisFailedError('No response from cwe_checker Docker container (possible timeout)') from e
         if output is None:
-            raise AnalysisFailedError('Timeout or error during cwe_checker execution')
+            raise AnalysisFailedError('cwe_checker output is missing (timeout or error during execution)')
         try:
             return self._parse_cwe_checker_output(output)
         except json.JSONDecodeError as error:
-            raise AnalysisFailedError('cwe_checker execution failed') from error
+            raise AnalysisFailedError('cwe_checker execution failed: Could not parse output') from error
 
     def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
         """
