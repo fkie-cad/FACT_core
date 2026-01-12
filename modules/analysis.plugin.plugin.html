@@ -111,6 +111,9 @@
 <dt class="sig sig-object py" id="analysis.plugin.plugin.AnalysisFailedError">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">analysis.plugin.plugin.</span></span><span class="sig-name descname"><span class="pre">AnalysisFailedError</span></span><a class="headerlink" href="#analysis.plugin.plugin.AnalysisFailedError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>This exception is used to cancel an analysis in a controlled way while still providing context information and
+will not log an error with traceback to the terminal. It is an “expected exception” during analysis: Some
+requirement is missing or the analysis input is incompatible and the analysis cannot be performend.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -226,7 +229,7 @@ May return None if nothing was found.</p>
 <dd class="field-even"><p>The analysis if anything was found.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>Optional</em>[Schema]</p>
+<dd class="field-odd"><p>Schema</p>
 </dd>
 </dl>
 </dd></dl>
