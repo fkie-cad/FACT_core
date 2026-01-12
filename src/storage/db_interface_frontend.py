@@ -3,7 +3,7 @@ from __future__ import annotations
 import os.path
 import re
 from pathlib import Path
-from typing import Any, NamedTuple, Optional
+from typing import Any, Iterable, NamedTuple, Optional
 
 from sqlalchemy import Column, Integer, cast, func, or_, select
 
@@ -75,26 +75,52 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- "nice list" ---
 
-    def get_data_for_nice_list(self, uid_list: list[str], root_uid: str | None) -> list[dict]:
+    def _get_some_path_for_uid_list(self, uid_list: Iterable[str], root_uid: str | None = None) -> dict[str, str]:
         with self.get_read_only_session() as session:
-            mime_dict = self._get_mime_types_for_uid_list(session, uid_list)
-            query = select(FileObjectEntry.uid, FileObjectEntry.size, FileObjectEntry.file_name).filter(
-                FileObjectEntry.uid.in_(uid_list)
+            query = (
+                select(VirtualFilePath.file_uid, VirtualFilePath.file_path)
+                .filter(VirtualFilePath.file_uid.in_(uid_list))
+                .distinct(VirtualFilePath.file_uid)  # only one path per file
             )
-            file_tree_data = self.get_file_tree_path_for_uid_list(uid_list, root_uid=root_uid)
+            if root_uid:  # if root_uid is set, only return paths contained in that FW
+                query = query.join(fw_files_table, VirtualFilePath.file_uid == fw_files_table.c.file_uid).filter(
+                    fw_files_table.c.root_uid == root_uid
+                )
+            return {uid: path for uid, path in session.execute(query)}  # noqa: C416  # dict() does not work here
+
+    def get_data_for_nice_list(
+        self, uid_list: Iterable[str], root_uid: str | None, include_vfp: bool = True
+    ) -> list[dict]:
+        with self.get_read_only_session() as session:
+            query = (
+                select(
+                    FileObjectEntry.uid,
+                    FileObjectEntry.size,
+                    FileObjectEntry.file_name,
+                    AnalysisEntry.result.op('->>')('mime'),
+                )
+                .filter(FileObjectEntry.uid.in_(uid_list))
+                .outerjoin(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
+                .filter(AnalysisEntry.plugin == 'file_type')
+            )
+            path_dict = self._get_some_path_for_uid_list(uid_list)
+
             nice_list_data = [
                 {
                     'uid': uid,
                     'size': size,
-                    'file_name': file_name,
-                    'mime-type': mime_dict.get(uid, 'file-type-plugin/not-run-yet'),
-                    'current_virtual_path': file_tree_data.get(uid, [[file_name]]),  # "orphan fallback"
-                    # FixMe: if orphaned files (i.e. relation FW -> file exists, but there is no path from FW to the
-                    #        file through included files) exist, they break the "file tree path"
+                    'file_name': path_dict.get(uid, file_name),
+                    'mime-type': mime or 'N/A',
                 }
-                for uid, size, file_name in session.execute(query)
+                for uid, size, file_name, mime in session.execute(query)
             ]
-            self._replace_uids_in_nice_list(nice_list_data, root_uid)
+            if include_vfp:
+                file_tree_data = self.get_file_tree_path_for_uid_list(uid_list, root_uid=root_uid)
+                for dict_ in nice_list_data:
+                    dict_['current_virtual_path'] = file_tree_data.get(dict_['uid'], [[dict_['file_name']]])
+                    # FixMe: default = "orphan fallback": if orphaned files exist (i.e. relation FW -> file exists, but
+                    #   there is no path from FW to the file through included files), they break the "file tree path"
+                self._replace_uids_in_nice_list(nice_list_data, root_uid)
             return nice_list_data
 
     def _replace_uids_in_nice_list(self, nice_list_data: list[dict], root_uid: str):
