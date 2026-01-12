@@ -279,7 +279,7 @@ def _extract_metadata_from_tar(file_handle: FileIO) -> list[FileMetadata]:
     except EOFError:
         logging.warning(f'File {file_handle.name} ended unexpectedly')
     except (tarfile.TarError, zlib.error, tarfile.ReadError) as error:
-        raise RuntimeError('Could not open tar archive') from error
+        raise AnalysisFailedError(f'Could not open tar archive: {error}') from error
     return result
 
 
