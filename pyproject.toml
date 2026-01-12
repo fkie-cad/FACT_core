@@ -26,21 +26,20 @@ exclude = [
     "src/plugins/analysis/input_vectors/internal",  # FixMe: runs inside a bionic docker container with python 3.6
 ]
 line-length = 120
-target-version = "py38"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
-    "F",  # Pyflakes
-    "E",  # pycodestyle Error
-    "W",  # pycodestyle Warning
-    "C90",  # mccabe
-    "I",  # isort
-    "N",  # pep8-naming
-    "UP",  # pyupgrade
+    # see https://docs.astral.sh/ruff/rules
+    "ERA",  # eradicate
+    "YTT",  # flake8-2020
+    "ANN",  # flake8-annotations
+    "S",  # flake8-bandit (security)
     "B",  # flake8-bugbear
     "A",  # flake8-builtins
     "C4",  # flake8-comprehensions
     "EXE",  # flake8-executable
+    "FIX",  # flake8-fixme
     "FA",  # flake8-future-annotations
     "ISC",  # flake8-implicit-str-concat
     "PIE",  # flake8-pie
@@ -49,26 +48,36 @@ select = [
     "Q",  # flake8-quotes
     "RET",  # flake8-return
     "SIM",  # flake8-simplify
-    "TCH",  # flake8-type-checking
+    "TC",  # flake8-type-checking
     "ARG",  # flake8-unused-arguments
     "PTH",  # flake8-use-pathlib
-    "ERA",  # eradicate
-    "PL",  # Pylint
+    "I",  # isort
+    "C90",  # mccabe
+    "N",  # pep8-naming
     "PERF",  # Perflint
+    "E",  # pycodestyle Error
+    "W",  # pycodestyle Warning
+    "F",  # Pyflakes
+    "PLC",  # Pylint
+    "PLE",  # Pylint Error
+    "PLR",  # Pylint Refactor
+    "PLW",  # Pylint Warning
+    "UP",  # pyupgrade
+    "FURB",  # refurb (FURB code optimzations)
     "RUF",  # Ruff-specific rules
 ]
 ignore = [
     "A003",
+    "ANN204",  # type annotation for special methods (e.g. __init__)
     "PERF203",
     "PERF401",
     "RUF001",
     "RUF002",
     "RUF003",
     "RUF015",
-    # pydantic only supports these from python>=3.9
-    "UP006",
-    "UP007",
-    # rules may cause conflicts when used with the formatter
+    "FIX001",  # line contains fixme
+    "FIX004",  # line contains hack
+    # rules may cause conflicts when used with the formatter:
     "ISC001",
     "Q001",
 ]
