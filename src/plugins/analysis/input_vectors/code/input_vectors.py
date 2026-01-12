@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING
 from docker.errors import DockerException
 from docker.types import Mount
 from pydantic import BaseModel
+from requests import RequestException
 from semver import Version
 
-from analysis.plugin import AnalysisPluginV0
+from analysis.plugin import AnalysisFailedError, AnalysisPluginV0
 from helperFunctions.docker import run_docker_container
 
 if TYPE_CHECKING:
@@ -17,10 +18,6 @@ if TYPE_CHECKING:
 DOCKER_IMAGE = 'input-vectors:latest'
 TIMEOUT_IN_SECONDS = 120
 CONTAINER_TARGET_PATH = '/tmp/input'
-
-
-class InputVectorsAnalysisError(Exception):
-    pass
 
 
 class InputVector(BaseModel):
@@ -90,10 +87,12 @@ class AnalysisPlugin(AnalysisPluginV0):
                 ],
             )
             analysis_data = loads(result.stdout)['full']
+        except RequestException as err:
+            raise AnalysisFailedError('No response from Docker container (possible timeout)') from err
         except (DockerException, OSError, KeyError) as err:
-            raise InputVectorsAnalysisError('Analysis issues. It might not be complete.') from err
+            raise AnalysisFailedError('Analysis issues. It might not be complete.') from err
         except JSONDecodeError as err:
-            raise InputVectorsAnalysisError('Could not decode JSON output') from err
+            raise AnalysisFailedError('Could not decode JSON output') from err
         return analysis_data
 
     def summarize(self, result: Schema) -> list:
