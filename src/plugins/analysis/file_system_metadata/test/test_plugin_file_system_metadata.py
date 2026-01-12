@@ -175,7 +175,7 @@ class TestFileSystemMetadata:
         )
 
     def test_extract_metadata_tar_unreadable(self):
-        with pytest.raises(RuntimeError):
+        with pytest.raises(AnalysisFailedError):
             _extract_metadata_from_tar(FileIO(TEST_DATA_DIR / 'squashfs.img'))
 
     def test_extract_metadata_from_tar__eof_error(self):
