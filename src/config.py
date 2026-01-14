@@ -125,6 +125,7 @@ class Backend(Common):
         max_depth: int
         memory_limit: int = 2048
 
+        throttle_interval: float
         throttle_limit: int
 
         delay: float
