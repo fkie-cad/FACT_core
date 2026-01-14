@@ -80,7 +80,6 @@ function validateHexPreviewInputs() {
 }
 
 preview_button.onclick = loadPreview;
-let rawResultIsHighlighted = false;
 const toggleSwitch = document.getElementById("rawResultSwitch");
 const analysisTable = document.getElementById("analysis-table-body");
 const rawResultRow = document.getElementById("raw-result");
@@ -102,18 +101,6 @@ if (toggleSwitch !== null && analysisTable !== null) {
             });
             rawResultRow.style.visibility = "collapse";
         }
-
-        if (!rawResultIsHighlighted && toggleSwitch.checked) {
-            // highlight the result lazily and only once
-            rawResultIsHighlighted = true;
-            let rawResult = document.getElementById('raw-analysis');
-            highlightCode(rawResult).then(
-                (_) => null, // do nothing
-                (error) => {
-                    console.log(`Error: Raw result highlighting not successful: ${error}`);
-                }
-            );
-        }
     });
 
     window.onload = function () {
@@ -123,7 +110,6 @@ if (toggleSwitch !== null && analysisTable !== null) {
 }
 
 function copyRawAnalysis() {
-    const code = document.getElementById("raw-analysis");
     // Copy the raw analysis data to clipboard
-    navigator.clipboard.writeText(code.textContent);
+    navigator.clipboard.writeText(window.editor.getValue());
 }
