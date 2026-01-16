@@ -1,4 +1,5 @@
 import re
+from http import HTTPStatus
 from io import BytesIO
 
 
@@ -46,7 +47,7 @@ class TestAppUpload:
             },
             follow_redirects=True,
         )
-        assert b'Upload Successful' in rv.data
+        assert rv.status_code == HTTPStatus.OK, 'upload not successful'
         assert b'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17' in rv.data
         assert (
             intercom_task_list[0].uid == 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17'
