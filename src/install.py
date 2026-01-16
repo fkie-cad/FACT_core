@@ -194,13 +194,13 @@ def install():
 
 def install_fact_components(args, distribution, none_chosen, skip_docker):
     if (args.common or args.frontend or args.backend or none_chosen) and not args.no_common:
-        common(distribution)
+        common()
     if args.db or none_chosen:
-        db()
+        db(distribution)
     if args.frontend or none_chosen:
-        frontend(skip_docker, not args.no_radare, args.nginx, distribution, args.no_hasura)
+        frontend(skip_docker, not args.no_radare, args.nginx, args.no_hasura)
     if args.backend or none_chosen:
-        backend(skip_docker, distribution)
+        backend(skip_docker)
 
 
 def install_docker_images(args):
