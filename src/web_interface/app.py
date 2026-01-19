@@ -6,8 +6,22 @@ from flask_security import uia_username_mapper
 import config
 
 
+class ExtendedAutoEscapeFlask(Flask):
+    AUTOESCAPE_EXTENSIONS = (
+        '.j2',
+        '.jhtml',
+        '.jinja',
+        '.jinja2',
+    )
+
+    def select_jinja_autoescape(self, filename):
+        if filename and filename.endswith(self.AUTOESCAPE_EXTENSIONS):
+            return True
+        return super().select_jinja_autoescape(filename)
+
+
 def create_app():
-    app = Flask(__name__)
+    app = ExtendedAutoEscapeFlask(__name__)
     app.config.from_object(__name__)
     app.config['SECRET_KEY'] = os.urandom(24)
     _add_config_to_app(app)
