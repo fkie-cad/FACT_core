@@ -19,7 +19,7 @@ import config
 from analysis.plugin.plugin import AnalysisFailedError
 from objects.file import FileObject  # noqa: TCH001 # needed by pydantic
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 
 if TYPE_CHECKING:
     from analysis.plugin import AnalysisPluginV0
@@ -72,7 +72,7 @@ class PluginRunner:
         self.stats_count = mp.Value('i', 0)
         self._stats_idx = mp.Value('i', 0)
 
-        self._fsorganizer = FSOrganizer()
+        self._file_service = FileService()
 
         worker_config = Worker.Config(
             timeout=self._config.timeout,
@@ -123,7 +123,7 @@ class PluginRunner:
         self._in_queue.put(
             PluginRunner.Task(
                 virtual_file_path=file_object.virtual_file_path,
-                path=self._fsorganizer.generate_path(file_object),
+                path=self._file_service.generate_path(file_object),
                 dependencies=dependencies,
                 scheduler_state=file_object,
             )

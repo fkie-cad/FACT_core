@@ -281,6 +281,11 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             )
         ]
 
+    def get_file_name(self, uid: str) -> str:
+        with self.get_read_only_session() as session:
+            entry = session.get(FileObjectEntry, uid)
+            return entry.file_name if entry is not None else 'unknown'
+
     # ===== included files. =====
 
     def get_list_of_all_included_files(self, fo: FileObject) -> set[str]:
