@@ -54,6 +54,42 @@ rule jQuery
 		$a
 }
 
+rule file_libmagic {
+	meta:
+		software_name = "file"
+		open_source = true
+		website = "https://www.darwinsys.com/file/"
+		description = "file type guesser"
+		// versions are stored as decimal int with three digits
+		// (first digit: major version, remaining two digits: minor version)
+		version_regex = "\\d{3}"
+		_version_function = "magic_version"
+		// sub XYY -> X.YY
+        _sub_regex = "(\\d)(\\d{2})"
+        _sub_replacement = "\\1.\\2"
+	strings:
+	    // see https://github.com/file/file/blob/f7d05cade99ff4819b4de70445511037000f6b14/src/magic.c#L607
+		$a =  "magic_version" nocase ascii
+	condition:
+		$a and no_text_file
+}
+
+rule OPKG {
+	meta:
+		software_name = "OPKG"
+		open_source = true
+		website = "https://openwrt.org/docs/guide-user/additional-software/opkg"
+		description = "Opkg lightweight embedded package manager"
+		version_regex = "[0-9a-z]{40} \\(\\d{4}-\\d{2}-\\d{2}\\)"
+	strings:
+		// the version is not stored as a number; instead a git commit hash and a date is used: [hash] ([YYYY-MM-DD])
+	    // see https://github.com/openwrt/opkg-lede/blob/38eccbb1fd694d4798ac1baf88f9ba83d1eac616/src/opkg-cl.c#L158
+		$a =  "opkg version %s\n" nocase ascii
+		$b =  /[0-9a-z]{40} \(\d{4}-\d{2}-\d{2}\)/ ascii
+	condition:
+		$a and $b and no_text_file
+}
+
 rule Perl
 {
 	meta:
