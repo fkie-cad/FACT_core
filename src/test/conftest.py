@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict
 
 import config
 from scheduler.analysis import AnalysisScheduler
+from scheduler.analysis_status import AnalysisStatus
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_connection import ReadOnlyConnection, ReadWriteConnection
@@ -205,6 +206,14 @@ def database_interfaces(_database_interfaces) -> DatabaseInterfaces:
 
 
 @pytest.fixture
+def analysis_status():
+    status = AnalysisStatus()
+    status.start()
+    yield status
+    status.shutdown()
+
+
+@pytest.fixture
 def common_db(database_interfaces) -> DbInterfaceCommon:
     """Convenience fixture. Equivalent to ``database_interfaces.common``."""
     return database_interfaces.common
@@ -313,6 +322,7 @@ def analysis_scheduler(  # noqa: PLR0913
     analysis_finished_counter,
     unpacking_lock_manager,
     test_config,
+    analysis_status,
     monkeypatch,
 ) -> AnalysisScheduler:
     """Returns an instance of :py:class:`~scheduler.analysis.AnalysisScheduler`.
@@ -325,6 +335,7 @@ def analysis_scheduler(  # noqa: PLR0913
     _analysis_scheduler = AnalysisScheduler(
         post_analysis=lambda *_: None,
         unpacking_locks=unpacking_lock_manager,
+        status=analysis_status,
     )
 
     fs_organizer = test_config.fs_organizer_class()
@@ -396,6 +407,7 @@ def unpacking_scheduler(
     test_config,
     unpacking_finished_event,
     unpacking_finished_counter,
+    analysis_status,
 ) -> UnpackingScheduler:
     """Returns an instance of :py:class:`~scheduler.unpacking_scheduler.UnpackingScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
@@ -418,6 +430,7 @@ def unpacking_scheduler(
         fs_organizer=fs_organizer,
         unpacking_locks=unpacking_lock_manager,
         db_interface=test_config.backend_db_class,
+        status=analysis_status,
     )
     add_task = _unpacking_scheduler.add_task
 
