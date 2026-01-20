@@ -4,6 +4,7 @@ from time import gmtime, time
 from zlib import compress
 
 import pytest
+from semver import Version
 
 import web_interface.filter as flt
 from test.common_helper import create_test_file_object
@@ -580,3 +581,45 @@ def test_sort_dict_list_by_key(input_, expected_result):
 )
 def test_sort_ip_list(input_, expected_result):
     assert flt.sort_ip_list(input_) == expected_result
+
+
+@pytest.mark.parametrize(
+    ('version', 'other_version', 'expected_result', 'forgiving'),
+    [
+        ('1.2.3', '1.2.3', True, False),
+        ('1.2.3', '1.2.4', True, False),
+        ('1.2.3', '1.3.4', True, False),
+        ('1.2.3', '2.3.4', False, False),
+        # if both versions are not semver compatible, they are only considered compatible if equal
+        ('1.2', '1.2', True, False),
+        ('1.2', '1.3', False, False),
+        # with forgiving=True versions not strictly compatible with semver should still work
+        ('1.2', '1.2.3', True, True),
+        ('1.2', '1.2.3', False, False),
+        # below 1.0.0 the versions are considered incompatible
+        ('0.1.2', '0.2.3', False, False),
+        # the semver Version class should also work
+        (Version(1, 2, 3), '1.2.4', True, False),
+        ('1.2.3', Version(1, 2, 4), True, False),
+        (Version(1, 2, 3), Version(1, 2, 4), True, False),
+    ],
+)
+def test_version_is_compatible(version, other_version, expected_result, forgiving):
+    assert flt.version_is_compatible(version, other_version, forgiving=forgiving) == expected_result
+
+
+def test_version_is_compatible_error():
+    with pytest.raises(ValueError, match='not a valid version'):
+        assert flt.version_is_compatible('1.2.3', 'a.b.c')
+
+
+@pytest.mark.parametrize(
+    ('input_', 'expected_result'),
+    [
+        (None, None),
+        ('foobar', 'foobar'),
+        ({'foo': 'bar'}, '{\n  "foo": "bar"\n}'),
+    ],
+)
+def test_render_query_title(input_, expected_result):
+    assert flt.render_query_title(input_) == expected_result
