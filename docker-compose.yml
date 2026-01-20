@@ -1,0 +1,77 @@
+services:
+  fact-frontend:
+    runtime: sysbox-runc
+    build:
+      context: .
+      target: fact_frontend
+    environment:
+      PGPASSWORD: password
+    ports:
+      - "5000:5000"
+    networks:
+      fact:
+        aliases:
+          - frontend
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
+  fact-backend:
+    runtime: sysbox-runc
+    build:
+      context: .
+      target: fact_backend
+    environment:
+      PGPASSWORD: password
+    networks:
+      fact:
+        aliases:
+          - backend
+    volumes:
+      - fact_files:/media/data
+      - fact_docker_images:/var/lib/docker
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
+  db:
+    container_name: postgres
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    volumes:
+      - fact_db:/data/postgres
+    networks:
+      fact:
+        aliases:
+          - db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d postgres"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+  redis:
+    container_name: redis
+    image: redis:alpine
+    restart: always
+    networks:
+      fact:
+        aliases:
+          - redis
+
+networks:
+  fact:
+    driver: bridge
+
+volumes:
+  fact_db:
+  fact_files:
+  fact_docker_images:
