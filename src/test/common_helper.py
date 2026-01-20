@@ -200,7 +200,7 @@ class CommonDatabaseMock:
         return 10
 
     def exists(self, uid):
-        return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
+        return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error', 'uid_in_db')
 
     def uid_list_exists(self, uid_list):
         return set()
