@@ -2,6 +2,7 @@
 testresources==2.0.1
 
 # General python dependencies
+aiohttp~=3.13.3
 docker~=7.1.0
 pytest-rerunfailures~=14.0
 lief~=0.17.0
