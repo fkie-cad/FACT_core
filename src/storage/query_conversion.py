@@ -7,7 +7,7 @@ from sqlalchemy import func, or_, select, type_coerce
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 
-from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
 
 if TYPE_CHECKING:
     from sqlalchemy.sql import Select
@@ -99,6 +99,13 @@ def build_query_from_dict(  # noqa: C901, PLR0912
             query = query.join(FileObjectEntry, FirmwareEntry.uid == FileObjectEntry.uid)
         for key, value in file_search_dict.items():
             filters.append(_dict_key_to_filter(_get_column(key, FileObjectEntry), key, value))
+
+    if 'path' in query_dict:
+        # outer join because FWs have no entry in the VFP table as child (file_uid)
+        query = query.outerjoin(
+            VirtualFilePath, VirtualFilePath.file_uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid)
+        )
+        filters.append(_dict_key_to_filter(VirtualFilePath.file_path, 'file_path', query_dict['path']))
 
     query = query.filter(or_(*filters)) if or_query else query.filter(*filters)
 
