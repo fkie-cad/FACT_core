@@ -1,10 +1,22 @@
+rule libarchive {
+    meta:
+        software_name = "libarchive"
+        open_source = true
+        website = "https://www.libarchive.org/"
+        description = "Multi-format archive and compression library"
+    strings:
+        $a = /libarchive[\/ ]\d\.\d+\.\d+/
+    condition:
+        $a and no_text_file
+}
+
 rule libFLAC
 {
-	meta:
-		software_name = "libFLAC"
-		open_source = true
-		website = "https://xiph.org/flac/"
-		description = "Free Lossless Audio Codec multimedia library."
+    meta:
+        software_name = "libFLAC"
+        open_source = true
+        website = "https://xiph.org/flac/"
+        description = "Free Lossless Audio Codec multimedia library."
     strings:
         $a = /libFLAC \d+\.\d+\.\d+/ nocase ascii wide
     condition:
@@ -12,12 +24,12 @@ rule libFLAC
 }
 
 rule liblzma {
-	meta:
-		software_name = "xz"
-		open_source = true
-		website = "https://tukaani.org/xz/"
-		description = "XZ-format compression library"
-		_version_function = "lzma_version_string"
+    meta:
+        software_name = "xz"
+        open_source = true
+        website = "https://tukaani.org/xz/"
+        description = "XZ-format compression library"
+        _version_function = "lzma_version_string"
     strings:
         $a = "lzma_version_number"
         $b = "lzma_version_string"
@@ -27,11 +39,11 @@ rule liblzma {
 
 rule libogg
 {
-	meta:
-		software_name = "libogg"
-		open_source = true
-		website = "https://xiph.org/ogg/"
-		description = "ogg multimedia file parsing library."
+    meta:
+        software_name = "libogg"
+        open_source = true
+        website = "https://xiph.org/ogg/"
+        description = "ogg multimedia file parsing library."
     strings:
         $a = /libogg-\d+\.\d+\.\d+/ nocase ascii wide
     condition:
@@ -40,24 +52,36 @@ rule libogg
 
 rule libVorbis
 {
-	meta:
-		software_name = "libVorbis"
-		open_source = true
-		website = "https://xiph.org/vorbis/"
-		description = "ogg vorbis compressed audio format library."
+    meta:
+        software_name = "libVorbis"
+        open_source = true
+        website = "https://xiph.org/vorbis/"
+        description = "ogg vorbis compressed audio format library."
     strings:
         $a = /libVorbis \d+\.\d+\.\d+/ nocase ascii wide
     condition:
         $a and no_text_file
 }
 
+rule libsoup {
+    meta:
+        software_name = "libsoup"
+        open_source = true
+        website = "https://libsoup.gnome.org/libsoup-3.0/index.html"
+        description = "HTTP client/server library"
+    strings:
+        $a = /libsoup\/\d\.\d+\.\d+/
+    condition:
+        $a and no_text_file
+}
+
 rule PH7
 {
-	meta:
-		software_name = "PH7"
-		open_source = true
-		website = "http://ph7.symisc.net/"
-		description = "Byte code compiler and virtual machine for PHP"
+    meta:
+        software_name = "PH7"
+        open_source = true
+        website = "http://ph7.symisc.net/"
+        description = "Byte code compiler and virtual machine for PHP"
     strings:
         $a = /PH7\/\d+\.\d+\.\d+/ nocase ascii wide
     condition:
@@ -66,26 +90,26 @@ rule PH7
 
 rule FileX
 {
-	meta:
-		software_name = "FileX"
-		open_source = false
-		website = "https://rtos.com/solutions/threadx/real-time-operating-system/"
-		description = "FAT filesystem implementation for ThreadX RTOS"
-	strings:
-		$a = /FileX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
-	condition:
-		$a and no_text_file
+    meta:
+        software_name = "FileX"
+        open_source = false
+        website = "https://rtos.com/solutions/threadx/real-time-operating-system/"
+        description = "FAT filesystem implementation for ThreadX RTOS"
+    strings:
+        $a = /FileX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
+    condition:
+        $a and no_text_file
 }
 
 rule liblua
 {
-	meta:
-		software_name = "Lua"
-		open_source = true
-		website = "https://www.lua.org/"
-		description = "Shared library for the Lua interpreter"
-	strings:
-		$a = /Lua: Lua \d\.\d+(\.\d+)? Copyright \(C\) 1994-\d+/ nocase ascii wide
-	condition:
-		$a and no_text_file
+    meta:
+        software_name = "Lua"
+        open_source = true
+        website = "https://www.lua.org/"
+        description = "Shared library for the Lua interpreter"
+    strings:
+        $a = /Lua: Lua \d\.\d+(\.\d+)? Copyright \(C\) 1994-\d+/ nocase ascii wide
+    condition:
+        $a and no_text_file
 }
