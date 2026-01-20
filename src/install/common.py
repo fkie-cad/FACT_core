@@ -5,6 +5,7 @@ from pathlib import Path
 from platform import python_version_tuple
 from subprocess import PIPE, STDOUT
 
+import distro
 from pkg_resources import parse_version
 
 from helperFunctions.install import (
@@ -40,8 +41,8 @@ def install_pip():
             raise InstallationError(f'Error in pip installation for python3:\n{cmd_process.stdout}')
 
 
-def main(distribution):
-    _update_package_sources(distribution)
+def main():
+    _update_package_sources()
     _update_submodules()
 
     BIN_DIR.mkdir(exist_ok=True)
@@ -49,7 +50,7 @@ def main(distribution):
     apt_packages_path = INSTALL_DIR / 'apt-pkgs-common.txt'
     dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-common.txt'
 
-    if distribution != 'fedora':
+    if distro.id() != 'fedora':
         pkgs = read_package_list_from_file(apt_packages_path)
         apt_install_packages(*pkgs)
     else:
@@ -60,7 +61,7 @@ def main(distribution):
 
     if not is_virtualenv():
         install_pip()
-    elif distribution != 'fedora':
+    elif distro.id() != 'fedora':
         run_cmd_with_logging('pip install -U pip setuptools wheel')
     else:
         # on fedora, extra setuptools will break some system tools like selinux ones
@@ -104,9 +105,9 @@ def _update_submodules():
         logging.warning("FACT is not set up using git. Note that *adding submodules* won't work!!")
 
 
-def _update_package_sources(distribution):
+def _update_package_sources():
     logging.info('Updating system')
-    if distribution == 'fedora':
+    if distro.id() == 'fedora':
         dnf_update_sources()
     else:
         apt_update_sources()
