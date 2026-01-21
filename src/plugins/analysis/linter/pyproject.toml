@@ -1,0 +1,10 @@
+[project]
+name = "fact-plugin-source_code_analysis"
+version = "0.7.3"
+dependencies = [
+    "fact-core",
+    "pylint==2.15.5",
+]
+
+[tool.uv.sources]
+fact-core = { workspace = true }

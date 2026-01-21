@@ -1,0 +1,9 @@
+[project]
+name = "fact-plugin-cwe_checker"
+version = "1.0.1"
+dependencies = [
+    "fact-core",
+]
+
+[tool.uv.sources]
+fact-core = { workspace = true }

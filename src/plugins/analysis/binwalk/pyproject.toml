@@ -1,0 +1,13 @@
+[project]
+name = "fact-plugin-binwalk"
+version = "1.0.0"
+dependencies = [
+    "fact-core",
+    "binwalk @ git+https://github.com/OSPG/binwalk.git@v2.4.1",
+    "capstone==4.0.2",
+    "cstruct==4.0",
+    "matplotlib==3.10.5",
+]
+
+[tool.uv.sources]
+fact-core = { workspace = true }

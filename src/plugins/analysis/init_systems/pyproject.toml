@@ -1,0 +1,9 @@
+[project]
+name = "fact-plugin-init_systems"
+version = "1.0.0"
+dependencies = [
+    "fact-core",
+]
+
+[tool.uv.sources]
+fact-core = { workspace = true }

@@ -1,0 +1,10 @@
+[project]
+name = "fact-plugin-cve_lookup"
+version = "1.0.0"
+dependencies = [
+    "fact-core",
+    "retry==0.9.2",
+]
+
+[tool.uv.sources]
+fact-core = { workspace = true }

@@ -129,4 +129,5 @@ class FactBase:
 
 
 def _is_main_process() -> bool:
-    return os.getpid() == os.getpgrp()
+    cmdline = ' '.join(psutil.Process(os.getppid()).cmdline())
+    return os.getpid() == os.getpgrp() or 'uv run' in cmdline

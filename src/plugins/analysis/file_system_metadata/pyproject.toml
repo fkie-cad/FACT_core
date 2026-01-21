@@ -1,0 +1,9 @@
+[project]
+name = "fact-plugin-file_system_metadata"
+version = "1.2.0"
+dependencies = [
+    "fact-core",
+]
+
+[tool.uv.sources]
+fact-core = { workspace = true }

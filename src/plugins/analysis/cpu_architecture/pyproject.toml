@@ -1,0 +1,10 @@
+[project]
+name = "fact-plugin-cpu_architecture"
+version = "1.0.0"
+dependencies = [
+    "fact-core",
+    "pyelftools==0.32",
+]
+
+[tool.uv.sources]
+fact-core = { workspace = true }

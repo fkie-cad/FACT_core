@@ -90,16 +90,6 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
-IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
-PREFIX=""
-if [[ $IS_VENV == "False" ]]
-then
-  echo -e "\\033[31mWarning: It is highly discouraged to install FACT without a virtual environment because of the risk of conflicts with system Python packages!\\033[0m"
-  PREFIX="sudo -EH python3 -m"
-fi
-$PREFIX pip install -U pip setuptools wheel
-$PREFIX pip install -r ./requirements_pre_install.txt --prefer-binary
-
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 
 exit 0
