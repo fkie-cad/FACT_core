@@ -174,6 +174,18 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = select(subquery).order_by(cast(subquery.c.jsonb_array_elements.op('->>')('time'), Integer).desc())
             return [{'uid': uid, **comment_dict} for uid, comment_dict in session.execute(query.limit(limit))]
 
+    def get_comments_for_firmware(self, fw_uid: str) -> dict[str, list[dict]]:
+        if not self.is_firmware(fw_uid):
+            return {}
+        with self.get_read_only_session() as session:
+            query = (
+                select(FileObjectEntry.comments, FileObjectEntry.uid)
+                .join(fw_files_table, fw_files_table.c.file_uid == FileObjectEntry.uid)
+                .filter(fw_files_table.c.root_uid == fw_uid)
+                .filter(FileObjectEntry.comments != [])
+            )
+            return {uid: comment_list for comment_list, uid in session.execute(query) if uid != fw_uid}
+
     # --- generic search ---
 
     def generic_search(
