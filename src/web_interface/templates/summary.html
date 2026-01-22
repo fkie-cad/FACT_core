@@ -17,7 +17,7 @@
             <tr>
                 <td>{{ item | wordwrap(width=60, break_long_words=True) }}</td>
                 <td>
-                    {{ summary_of_included_files[item] | nice_uid_list(root_uid=root_uid, selected_analysis=selected_analysis) | safe }}
+                    {{ summary_of_included_files[item] | nice_uid_list(root_uid=root_uid, selected_analysis=selected_analysis, nice_list_data=nice_list_data) | safe }}
                 </td>
             </tr>
         {% endfor %}
