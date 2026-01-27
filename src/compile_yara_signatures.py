@@ -47,8 +47,8 @@ def _get_plugin_name(plugin_path):
 def _create_compiled_signature_file(directory, tmp_file):
     target_path = os.path.join(SIGNATURE_DIR, f'{_get_plugin_name(directory)}.yc')  # noqa: PTH118
     try:
-        command = f'yarac -d test_flag=false {tmp_file.name} {target_path}'
-        subprocess.run(command, stdout=PIPE, stderr=STDOUT, shell=True, check=True)
+        command = ['yarac', '-d', 'test_flag=false', tmp_file.name, target_path]
+        subprocess.run(command, stdout=PIPE, stderr=STDOUT, shell=False, check=True)  # nosec B603
     except CalledProcessError:
         print(f'[ERROR] Creation of {os.path.split(target_path)[0]} failed !!')  # noqa: T201
 
