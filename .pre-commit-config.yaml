@@ -2,7 +2,7 @@ default_stages: [ pre-commit, pre-push ]
 exclude: ^src/(bin/|web_interface/static/package-lock.json)
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
         args: [ --maxkb=10000 ]
@@ -30,30 +30,29 @@ repos:
         exclude: ^src/web_interface/static/package-lock.json
 
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
-    rev: 2.1.5
+    rev: 3.0.0
     hooks:
       - id: shellcheck
 
-  - repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
-    rev: v0.1.0
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.14.0
     hooks:
-      - id: dockerfilelint
+      - id: hadolint
 
   - repo: https://github.com/pre-commit/mirrors-jshint
-    rev: v2.13.0
+    rev: v2.13.6
     hooks:
       - id: jshint
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.2.2'
+    rev: 'v0.14.11'
     hooks:
       - id: ruff
         args: [ --fix, --exit-non-zero-on-fix ]
       - id: ruff-format
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.35.0
+    rev: v0.44.0
     hooks:
       - id: markdownlint
         args: [ "--config", ".markdownlint.yaml" ]
-
