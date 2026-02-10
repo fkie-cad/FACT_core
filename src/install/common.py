@@ -5,7 +5,7 @@ from pathlib import Path
 from platform import python_version_tuple
 from subprocess import PIPE, STDOUT
 
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 from helperFunctions.install import (
     InstallationError,
@@ -26,8 +26,8 @@ PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_common.txt'
 
 
 def install_pip():
-    python_version = '.'.join(python_version_tuple()[:2])
-    if parse_version(python_version) < parse_version('3.8'):
+    python_version = '.'.join(python_version_tuple())
+    if parse_version(python_version) < parse_version('3.10.0'):
         logging.warning('Your Python version is outdated. Please upgrade it.')
         pip_link = f'https://bootstrap.pypa.io/pip/{python_version}/get-pip.py'
     else:
