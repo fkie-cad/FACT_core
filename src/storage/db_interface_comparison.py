@@ -3,8 +3,7 @@ from __future__ import annotations
 import logging
 from time import time
 
-from sqlalchemy import func, select, type_coerce
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import func, select
 
 from helperFunctions.data_conversion import (
     convert_compare_id_to_list,
@@ -136,7 +135,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 .filter(FileObjectEntry.uid.not_in(blacklist))
                 .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
                 .filter(AnalysisEntry.plugin == 'file_type')
-                .filter(AnalysisEntry.result['mime'] == type_coerce('text/plain', JSONB))
+                .filter(AnalysisEntry.result['mime'].astext.like('text/%'))
             )
             uid_list = list(session.execute(query).scalars())
         vfp_data = self.get_vfps_for_uid_list(uid_list, root_uid=root_uid)
