@@ -15,7 +15,7 @@ python-tlsh==4.5.0
 redis~=5.2.1
 rich~=13.9.4
 sqlalchemy~=2.0.37
-git+https://github.com/DinoTools/python-ssdeep.git
+git+https://github.com/jstucke/python-ssdeep.git
 xmltodict~=0.14.2
 
 # Common code modules
