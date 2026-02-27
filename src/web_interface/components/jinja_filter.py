@@ -168,7 +168,6 @@ class FilterClass:
                 'group_changed_text_files': flt.group_path_dict_by_dirs,
                 'hex': hex,
                 'hex_to_bytes': lambda h: str(bytes.fromhex(h))[2:-1],
-                'hide_dts_binary_data': flt.hide_dts_binary_data,
                 'infection_color': flt.infection_color,
                 'is_list': lambda item: isinstance(item, list),
                 'is_text_file_or_image': flt.is_text_file_or_image,

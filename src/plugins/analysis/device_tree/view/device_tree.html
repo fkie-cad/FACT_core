@@ -3,7 +3,7 @@
 
 {% macro device_tree_table_cell(dt_data, colspan="1") %}
     <td colspan="{{ colspan }}">
-        <pre class="dt-pre">{{ dt_data | hide_dts_binary_data | nice_generic | safe }}</pre>
+        <pre class="dt-pre">{{ dt_data | nice_generic | safe }}</pre>
     </td>
 {% endmacro %}
 
@@ -29,8 +29,8 @@
                 element.innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
                 {language: 'dts'}
             ).value;
-        };
-        document.addEventListener('DOMContentLoaded', (event) => {
+        }
+        document.addEventListener('DOMContentLoaded', (_) => {
             document.querySelectorAll('.dt-pre').forEach((element) => {
                 async_highlight(element);
             });
@@ -53,8 +53,8 @@
                 <table class="table table-bordered table-sm m-0" style="width: 100%">
                     {% for key, value in device_tree.header.items() -%}
                         <tr>
-                            <td width="200px">{{ key | replace_underscore }}</td>
-                            <td width="125px">{{ value | nice_number }}</td>
+                            <td style="width: 200px;">{{ key | replace_underscore }}</td>
+                            <td style="width: 125px;">{{ value | nice_number }}</td>
                             <td>{{ value | hex }}</td>
                         </tr>
                     {%- endfor %}
