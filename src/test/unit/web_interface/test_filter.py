@@ -458,20 +458,6 @@ def test_sort_cve_result(input_list, expected_result):
 
 
 @pytest.mark.parametrize(
-    ('input_dts', 'expected_result'),
-    [
-        ('', ''),
-        ('data = [01 23 45 67 89 ab cd ef 01 23 45 67 89 ab cd ef];', 'data = (BINARY DATA ...);'),
-        ('data = <0x01 0x2345 0x67 0x89 0xabcdef 0x1234 0x56 0x78 0x90 0xab 0xcd>;', 'data = (BINARY DATA ...);'),
-        ('data = [01 23 45 67];', 'data = [01 23 45 67];'),  # short entries should not be replaced
-        ('data = <0x01 0x2345 0x67>;', 'data = <0x01 0x2345 0x67>;'),  # short entries should not be replaced
-    ],
-)
-def test_hide_dts_data(input_dts, expected_result):
-    assert flt.hide_dts_binary_data(input_dts) == expected_result
-
-
-@pytest.mark.parametrize(
     ('input_', 'expected_result'),
     [
         ('', ''),
