@@ -38,4 +38,6 @@ def test_multiple_device_trees(file, analysis_plugin):
 @pytest.mark.parametrize('file', [TEST_FP, TEST_BROKEN])
 def test_no_device_trees(file, analysis_plugin):
     result = analysis_plugin.analyze(io.FileIO(file), {}, {})
+    summary = analysis_plugin.summarize(result)
     assert result.device_trees == []
+    assert summary == []
