@@ -28,6 +28,9 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(metadata=metadata)
 
     def summarize(self, result: Schema) -> list[str]:
+        if not result.device_trees:
+            return []
+
         models = [device_tree.model for device_tree in result.device_trees if device_tree.model]
 
         if not models:
