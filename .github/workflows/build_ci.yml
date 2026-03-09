@@ -85,3 +85,38 @@ jobs:
           verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Teams webhook
+        if: failure() && github.event_name == 'schedule'
+        run: |
+          curl -X POST ${{ secrets.TEAMS_WEBHOOK }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "⚠️ CI build failed",
+              "sections": [
+                {
+                  "activityTitle": "Scheduled master/stable build failed",
+                  "activitySubtitle": "Branch: ${{ matrix.target }}",
+                  "facts": [
+                    {
+                      "name": "OS",
+                      "value": "${{ matrix.os }}"
+                    },
+                    {
+                      "name": "Commit",
+                      "value": "${{ github.sha }}"
+                    }
+                  ],
+                  "potentialAction": [
+                    {
+                      "name": "Link",
+                      "targets": [
+                        {
+                          "os": "default",
+                          "uri": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }'
