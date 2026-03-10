@@ -199,6 +199,7 @@ def _was_already_added(response: Response) -> bool:
 
 if __name__ == '__main__':
     config.load()
+    logging.basicConfig(level=logging.INFO)
     try:
         HasuraSetup().init_hasura()
     except HasuraInitError as error:
