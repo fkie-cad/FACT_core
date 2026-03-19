@@ -16,7 +16,7 @@ prompt-toolkit~=3.0.51
 python-dateutil~=2.9.0
 quantiphy~=2.20
 uwsgi~=2.0.30
-virtualenv~=20.31.2
+virtualenv~=21.2.0
 
 # npm installation
 nodeenv~=1.9.1
