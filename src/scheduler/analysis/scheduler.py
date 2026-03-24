@@ -201,7 +201,7 @@ class AnalysisScheduler:
 
     def _format_available_plugins(self) -> str:
         plugins = []
-        for plugin_name in sorted(self.analysis_plugins, key=str.lower):
+        for plugin_name in self._get_list_of_available_plugins():
             plugins.append(f'{plugin_name} {self.analysis_plugins[plugin_name].metadata.version}')
         return ', '.join(plugins)
 
@@ -668,6 +668,4 @@ def _get_view_path(plugin_module: types.ModuleType, plugin_name: str) -> Path | 
     if len(view_files) > 1:
         raise RuntimeError(f'{plugin_name}: Plug-in provides more than one view!')
 
-    if len(view_files) != 1:
-        raise RuntimeError(f'{plugin_name}: Unexpected view file count!')
     return view_files[0]

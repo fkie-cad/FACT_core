@@ -3,7 +3,6 @@ from __future__ import annotations
 import importlib
 import logging
 import sys
-from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
 from helperFunctions.fileSystem import get_src_dir
@@ -32,13 +31,14 @@ def _import_plugins(plugin_type):
         # If it isn't we can't do relative imports of the `internal` modules
         module_name = str(plugin_file).replace('/', '.')[len(src_dir + '/') : -len('.py')]
 
-        loader = SourceFileLoader(module_name, str(plugin_file))
-        spec = importlib.util.spec_from_loader(loader.name, loader)
+        spec = importlib.util.spec_from_file_location(module_name, plugin_file)
+        if spec is None:
+            continue
         plugin_module = importlib.util.module_from_spec(spec)
 
         sys.modules[spec.name] = plugin_module
         try:
-            loader.exec_module(plugin_module)
+            spec.loader.exec_module(plugin_module)
             plugins.append(plugin_module)
         except Exception:
             sys.modules.pop(spec.name)
