@@ -10,7 +10,6 @@
   [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d3910401cb58498a8c2d00be80092080)](https://www.codacy.com/gh/fkie-cad/FACT_core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
   [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/FACT_core/community)
   [![CI Build](https://github.com/fkie-cad/FACT_core/actions/workflows/build_ci.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/build_ci.yml)
-  [![Ruff](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 </div>
@@ -81,15 +80,14 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 
 It's principally possible to install FACT on any Linux distribution, but the installer is limited to
 
-- Debian 12 (stable)
-- Ubuntu 22.04/24.04 (stable)
-- Linux Mint 21/22 (stable)
+- Debian 12/13 or compatible (stable)
+- Ubuntu 22.04/24.04 or compatible (stable)
 - Kali (experimental)
 
 Installation on older distributions (e.g. Debian 11 "Bullseye" or Ubuntu 20.04 "Focal") may still work, but is not
 considered stable, since these distributions have reached their end of life.
 
-FACT requires Python 3.10–3.12 (should be the default in all supported distributions)
+FACT requires Python 3.10–3.13 (should be the default in all supported distributions)
 
 The setup process is mostly automated and wrapped in a single script.
 Some features can be selected specifically though.
