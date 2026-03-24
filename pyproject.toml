@@ -83,8 +83,8 @@ ignore = [
 fixable = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
-"test*.py" = ["ARG002", "PLR2004"]
-"conftest.py" = ["ARG001", "ARG002"]
+"test*.py" = ["ARG002", "PLR2004", "ANN", "S101"]
+"conftest.py" = ["ARG001", "ARG002", "ANN", "S101"]
 "common_helper.py" = ["ARG002"]
 # ignore prints in CLI scripts
 "migrate_db_to_postgresql.py" = ["T201"]
