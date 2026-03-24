@@ -31,8 +31,8 @@ from storage.fsorganizer import FSOrganizer
 from .plugin import PluginRunner, Worker
 
 if TYPE_CHECKING:
-    import types
     from collections.abc import Callable
+    from types import ModuleType
 
     from objects.file import FileObject
     from storage.unpacking_locks import UnpackingLockManager
@@ -197,7 +197,7 @@ class AnalysisScheduler:
         self._check_further_process_or_complete(fo)
 
     def _get_list_of_available_plugins(self) -> list[str]:
-        return sorted(self.analysis_plugins, key=str.lower)
+        return sorted(self.analysis_plugins, key=lambda s: s.lower())
 
     def _format_available_plugins(self) -> str:
         plugins = []
@@ -643,7 +643,7 @@ def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObjec
     )
 
 
-def _sync_view(plugin_module: types.ModuleType, plugin_name: str) -> None:
+def _sync_view(plugin_module: ModuleType, plugin_name: str) -> None:
     view_path = _get_view_path(plugin_module, plugin_name)
 
     if view_path is None:
@@ -657,7 +657,7 @@ def _sync_view(plugin_module: types.ModuleType, plugin_name: str) -> None:
     )
 
 
-def _get_view_path(plugin_module: types.ModuleType, plugin_name: str) -> Path | None:
+def _get_view_path(plugin_module: ModuleType, plugin_name: str) -> Path | None:
     views_dir = Path(plugin_module.__file__).parent.parent / 'view'
     view_files = list(views_dir.iterdir()) if views_dir.is_dir() else []
 
