@@ -105,7 +105,7 @@ We provide monthly and ready-to-use vagrant boxes of our master branch.
 [Vagrant](https://www.vagrantup.com/) is an easy and convenient way to get started with FACT without having to install
 it on your machine.
 Just setup vagrant and import our provided box into VirtualBox.
-Our boxes can be found [here](https://app.vagrantup.com/fact-cad/boxes/FACT-master)!
+Our boxes can be found [on the vagrantup website](https://app.vagrantup.com/fact-cad/boxes/FACT-master)!
 
 Check out on how to get started with FACT and vagrant in
 our [tutorial](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.vagrant.md).
@@ -141,24 +141,24 @@ You can shut down the system by pressing <kbd>Ctrl + c</kbd> or by sending a SIG
 > More documentation on how to use FACT can be found on
 our [wiki pages](https://github.com/fkie-cad/FACT_core/wiki/).
 
-Our Sphinx documentation can be found [here](https://fkie-cad.github.io/FACT_core/).
+You can also take a look at [our Sphinx documentation](https://fkie-cad.github.io/FACT_core/).
 
 Information on what FACT is and how it works can also be found in the slides in the
 [`docs` folder](https://github.com/fkie-cad/FACT_core/tree/master/docs).
 
 ### REST API
 
-FACT provides a REST API. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/Rest-API).
+FACT provides a REST API. More information can be found on the [wiki page](https://github.com/fkie-cad/FACT_core/wiki/Rest-API).
 
 ### User Management
 
 FACT provides an optional basic authentication, role, and user management.
-More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/Authentication).
+More information can be found on the [wiki page](https://github.com/fkie-cad/FACT_core/wiki/Authentication).
 
 ## Contributing
 
 The easiest way to contribute is writing your own plugin.
-Our Developer Manual can be found [here](https://github.com/fkie-cad/FACT_core/wiki/).
+Our Developer Manual can be found in the [wiki](https://github.com/fkie-cad/FACT_core/wiki/) on GitHub.
 
 ## Additional plugins
 
