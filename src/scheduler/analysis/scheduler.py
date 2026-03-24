@@ -32,6 +32,7 @@ from .plugin import PluginRunner, Worker
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from types import ModuleType
 
     from objects.file import FileObject
     from storage.unpacking_locks import UnpackingLockManager
@@ -103,7 +104,7 @@ class AnalysisScheduler:
     def __init__(
         self,
         post_analysis: Callable[[str, str, dict], None] | None = None,
-        db_interface=None,
+        db_interface: BackendDbInterface | None = None,
         unpacking_locks: UnpackingLockManager | None = None,
     ):
         self.analysis_plugins: dict[str, AnalysisPluginV0] = {}
@@ -124,7 +125,7 @@ class AnalysisScheduler:
         self.db_backend_service = db_interface or BackendDbInterface()
         self.post_analysis = post_analysis or self.db_backend_service.add_analysis
 
-    def start(self):
+    def start(self) -> None:
         self.status.start()
         self._start_scheduling_processes()
         self._start_result_collector()
@@ -132,7 +133,7 @@ class AnalysisScheduler:
         logging.info('Analysis scheduler online')
         logging.info(f'Analysis plugins available: {self._format_available_plugins()}')
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Shutdown the runner process, the result collector and all plugin processes. A multiprocessing.Value is set to
         notify all attached processes of the impending shutdown. Afterward, queues are closed once it's safe.
@@ -155,7 +156,7 @@ class AnalysisScheduler:
         self.status.shutdown()
         logging.info('Analysis scheduler offline')
 
-    def update_analysis_of_object_and_children(self, fo: FileObject):
+    def update_analysis_of_object_and_children(self, fo: FileObject) -> None:
         """
         This function is used to analyze an object and all its recursively included objects without repeating the
         extraction process. Scheduled analyses are propagated to the included objects.
@@ -173,7 +174,7 @@ class AnalysisScheduler:
             self._check_further_process_or_complete(child_fo)
         self._check_further_process_or_complete(fo)
 
-    def start_analysis_of_object(self, fo: FileObject):
+    def start_analysis_of_object(self, fo: FileObject) -> None:
         """
         This function is used to start analysis of a firmware object. The function registers the firmware with the
         status module such that the progress of the firmware and its included files is tracked.
@@ -184,7 +185,7 @@ class AnalysisScheduler:
         self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
         self._check_further_process_or_complete(fo)
 
-    def update_analysis_of_single_object(self, fo: FileObject):
+    def update_analysis_of_single_object(self, fo: FileObject) -> None:
         """
         This function is used to add analysis tasks for a single file. This function has no side effects, so the object
         is simply iterated until all scheduled analyses are processed or skipped.
@@ -196,7 +197,7 @@ class AnalysisScheduler:
         self._check_further_process_or_complete(fo)
 
     def _get_list_of_available_plugins(self) -> list[str]:
-        return sorted(self.analysis_plugins, key=str.lower)
+        return sorted(self.analysis_plugins, key=lambda s: s.lower())
 
     def _format_available_plugins(self) -> str:
         plugins = []
@@ -204,18 +205,18 @@ class AnalysisScheduler:
             plugins.append(f'{plugin_name} {self.analysis_plugins[plugin_name].metadata.version}')
         return ', '.join(plugins)
 
-    def cancel_analysis(self, root_uid: str):
+    def cancel_analysis(self, root_uid: str) -> None:
         self.status.cancel_analysis(root_uid)
 
     # ---- plugin initialization ----
 
-    def _remove_example_plugins(self):
+    def _remove_example_plugins(self) -> None:
         plugins = ['dummy_plugin_for_testing_only', 'ExamplePlugin']
         for plugin in plugins:
             self._plugin_runners.pop(plugin, None)
             self.analysis_plugins.pop(plugin, None)
 
-    def _load_plugins(self):
+    def _load_plugins(self) -> None:
         schemata = {}
 
         for plugin_module in discover_analysis_plugins():
@@ -285,7 +286,7 @@ class AnalysisScheduler:
                 thread_count = config.backend.plugin[plugin].processes
             except (AttributeError, KeyError):
                 thread_count = config.backend.plugin_defaults.processes
-            # TODO this should not be a tuple but rather a dictionary/class
+            # FixMe this should not be a tuple but rather a dictionary/class
             result[plugin] = (
                 self.analysis_plugins[plugin].metadata.description,
                 mandatory_flag,
@@ -299,13 +300,13 @@ class AnalysisScheduler:
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
 
-    def _start_plugin_runners(self):
+    def _start_plugin_runners(self) -> None:
         for runner in self._plugin_runners.values():
             runner.start()
 
     # ---- task runner functions ----
 
-    def _start_scheduling_processes(self):
+    def _start_scheduling_processes(self) -> None:
         self.schedule_processes = [
             ExceptionSafeProcess(target=self._task_runner, args=(i,))
             for i in range(config.backend.scheduling_worker_count)
@@ -313,7 +314,7 @@ class AnalysisScheduler:
         for process in self.schedule_processes:
             process.start()
 
-    def _task_runner(self, index: int = 0):
+    def _task_runner(self, index: int = 0) -> None:
         logging.debug(f'Started analysis scheduling worker {index} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             try:
@@ -324,7 +325,7 @@ class AnalysisScheduler:
                 self._process_next_analysis_task(task)
         logging.debug(f'Stopped analysis scheduling worker {index}')
 
-    def _process_next_analysis_task(self, fw_object: FileObject):
+    def _process_next_analysis_task(self, fw_object: FileObject) -> None:
         self.unpacking_locks.release_unpacking_lock(fw_object.uid)
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
@@ -333,7 +334,7 @@ class AnalysisScheduler:
         else:
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
-    def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject):
+    def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject) -> None:
         plugin = self.analysis_plugins[analysis_to_do]
         analysis_result = None
         if not self._is_forced_update(file_object) and self._analysis_is_already_in_db_and_up_to_date(
@@ -374,7 +375,7 @@ class AnalysisScheduler:
             self.post_analysis(file_object.uid, analysis_to_do, analysis_result)
             self._check_further_process_or_complete(file_object)
 
-    def _set_binary(self, file_object: FileObject):
+    def _set_binary(self, file_object: FileObject) -> None:
         # the file_object.binary may be missing in case of an update
         if file_object.file_path is None:
             file_object.file_path = self.fs_organizer.generate_path(file_object)
@@ -439,7 +440,7 @@ class AnalysisScheduler:
                 return False
         return True
 
-    def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
+    def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject) -> None:
         db_entry = self.db_backend_service.get_analysis(fw_object.uid, analysis_to_do)
         fw_object.processed_analysis[analysis_to_do] = db_entry
 
@@ -455,7 +456,7 @@ class AnalysisScheduler:
             },
         }
 
-    def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject):
+    def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject) -> bool:
         blacklist, whitelist = self._get_blacklist_and_whitelist(next_analysis)
         if not (blacklist or whitelist):
             return False
@@ -501,7 +502,7 @@ class AnalysisScheduler:
 
     # ---- result collector functions ----
 
-    def _start_result_collector(self):
+    def _start_result_collector(self) -> None:
         self.result_collector_processes = [
             ExceptionSafeProcess(target=self._result_collector, args=(i,))
             for i in range(config.backend.collector_worker_count)
@@ -509,7 +510,7 @@ class AnalysisScheduler:
         for process in self.result_collector_processes:
             process.start()
 
-    def _result_collector(self, index: int = 0):
+    def _result_collector(self, index: int = 0) -> None:
         # Collects the results from the plugins and writes them in FileObject.processed_analysis
         logging.debug(f'Started analysis result collector worker {index} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
@@ -529,7 +530,7 @@ class AnalysisScheduler:
                 sleep(config.backend.block_delay)
         logging.debug(f'Stopped analysis result collector worker {index}')
 
-    def _handle_collected_result(self, fo: FileObject, plugin_name: str):
+    def _handle_collected_result(self, fo: FileObject, plugin_name: str) -> None:
         if fo.analysis_exception:
             self.task_scheduler.reschedule_failed_analysis_task(fo)
         if plugin_name in fo.processed_analysis:
@@ -537,7 +538,7 @@ class AnalysisScheduler:
             self.post_analysis(fo.uid, plugin_name, fo.processed_analysis[plugin_name])
         self._check_further_process_or_complete(fo)
 
-    def _check_further_process_or_complete(self, fw_object):
+    def _check_further_process_or_complete(self, fw_object: FileObject) -> None:
         if not fw_object.scheduled_analysis:
             logging.info(f'Analysis Completed: {fw_object.uid}')
             self.status.remove_object(fw_object)
@@ -555,7 +556,7 @@ class AnalysisScheduler:
             )
 
     @staticmethod
-    def _do_callback(fw_object: FileObject):
+    def _do_callback(fw_object: FileObject) -> None:
         if fw_object.callback is not None:
             try:
                 fw_object.callback()
@@ -564,7 +565,7 @@ class AnalysisScheduler:
 
     # ---- miscellaneous functions ----
 
-    def get_combined_analysis_workload(self):
+    def get_combined_analysis_workload(self) -> int:
         runner_queue_sum = sum([runner.get_queue_len() for runner in self._plugin_runners.values()])
         return self.process_queue.qsize() + runner_queue_sum
 
@@ -621,7 +622,7 @@ def _fix_system_version(system_version: str | None) -> str:
     return system_version.replace('_', '-') if system_version else '0'
 
 
-def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObject):
+def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObject) -> bool:
     return any(
         dep not in fw_object.processed_analysis
         or 'result' not in fw_object.processed_analysis[dep]
@@ -634,7 +635,7 @@ def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObjec
     )
 
 
-def _sync_view(plugin_module, plugin_name):
+def _sync_view(plugin_module: ModuleType, plugin_name: str) -> None:
     view_path = _get_view_path(plugin_module, plugin_name)
 
     if view_path is None:
@@ -648,7 +649,7 @@ def _sync_view(plugin_module, plugin_name):
     )
 
 
-def _get_view_path(plugin_module, plugin_name) -> Path | None:
+def _get_view_path(plugin_module: ModuleType, plugin_name: str) -> Path | None:
     views_dir = Path(plugin_module.__file__).parent.parent / 'view'
     view_files = list(views_dir.iterdir()) if views_dir.is_dir() else []
 
