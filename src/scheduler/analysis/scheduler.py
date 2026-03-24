@@ -226,7 +226,7 @@ class AnalysisScheduler:
                 schemata[plugin.metadata.name] = plugin.metadata.Schema
                 _sync_view(plugin_module, plugin.metadata.name)
             except Exception:
-                logging.error(f'Could not import analysis plugin {plugin_module.AnalysisPlugin.NAME}', exc_info=True)
+                logging.error(f'Could not import analysis plugin {plugin_module.AnalysisPlugin}', exc_info=True)
 
         for plugin in self.analysis_plugins.values():
             if not isinstance(plugin, AnalysisPluginV0):
