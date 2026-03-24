@@ -121,8 +121,8 @@ class AnalysisScheduler:
         self.result_collector_processes = []
 
         self.fs_organizer = FSOrganizer()
-        self.db_backend_service = db_interface if db_interface else BackendDbInterface()
-        self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
+        self.db_backend_service = db_interface or BackendDbInterface()
+        self.post_analysis = post_analysis or self.db_backend_service.add_analysis
 
     def start(self):
         self.status.start()
@@ -200,7 +200,7 @@ class AnalysisScheduler:
 
     def _format_available_plugins(self) -> str:
         plugins = []
-        for plugin_name in sorted(self.analysis_plugins, key=str.lower):
+        for plugin_name in self._get_list_of_available_plugins():
             plugins.append(f'{plugin_name} {self.analysis_plugins[plugin_name].metadata.version}')
         return ', '.join(plugins)
 
@@ -659,5 +659,4 @@ def _get_view_path(plugin_module, plugin_name) -> Path | None:
     if len(view_files) > 1:
         raise RuntimeError(f'{plugin_name}: Plug-in provides more than one view!')
 
-    assert len(view_files) == 1
     return view_files[0]
