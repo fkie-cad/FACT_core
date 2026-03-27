@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import abc
 import time
-import typing
+from typing import TYPE_CHECKING, Type, TypeVar, final
 
 import pydantic
 import semver
 from pydantic import BaseModel, ConfigDict, field_validator
 
-if typing.TYPE_CHECKING:
+from helperFunctions.tag import TagColor  # noqa: TCH001
+
+if TYPE_CHECKING:
     import io
 
 
@@ -31,8 +33,7 @@ class Tag(BaseModel):
     #: In FACT_core this is shown as tooltip
     value: str
     #: The color of the tag
-    #: See :py:class:`helperFunctions.tag.TagColor`.
-    color: str
+    color: TagColor
     #: Whether or not the tag should be shown in parent files.
     propagate: bool = False
 
@@ -54,7 +55,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         description: str
         #: Pydantic model of the object returned by :py:func:`analyse`.
         # Note that we cannot allow pydantic dataclasses because they lack the `schema` method
-        Schema: typing.Type
+        Schema: Type[BaseModel]
         #: The version of the plugin.
         #: It MUST be a `semver <https://semver.org/>`_ version.
         #: Here is a quick summary how semver relates to plugins.
@@ -67,13 +68,13 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         version: semver.Version
         #: The version of the backing analysis system.
         #: E.g. for yara plugins this would be the yara version.
-        system_version: typing.Optional[str] = None
+        system_version: str | None = None
         #: A list of all plugins that this plugin depends on
-        dependencies: typing.List = pydantic.Field(default_factory=list)
+        dependencies: list[str] = pydantic.Field(default_factory=list)
         #: List of mimetypes that should not be processed
-        mime_blacklist: list = pydantic.Field(default_factory=list)
+        mime_blacklist: list[str] = pydantic.Field(default_factory=list)
         #: List of mimetypes that should be processed
-        mime_whitelist: list = pydantic.Field(default_factory=list)
+        mime_whitelist: list[str] = pydantic.Field(default_factory=list)
         #: The analysis in not expected to take longer than timeout seconds on any given file
         #: and will be aborted if the timeout is reached.
         timeout: int = 300
@@ -90,7 +91,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         self.metadata: AnalysisPluginV0.MetaData = metadata
 
     # The type MetaData.Schema
-    Schema = typing.TypeVar('Schema')
+    Schema = TypeVar('Schema')
 
     def summarize(self, result: Schema) -> list[str]:  # noqa: ARG002
         """
@@ -115,7 +116,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         self,
         file_handle: io.FileIO,
         virtual_file_path: dict,
-        analyses: dict[str, pydantic.BaseModel],
+        analyses: dict[str, BaseModel],
     ) -> Schema:
         """Analyze a file.
         May return None if nothing was found.
@@ -127,8 +128,8 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         :return: The analysis if anything was found.
         """
 
-    @typing.final
-    def get_analysis(self, file_handle: io.FileIO, virtual_file_path: dict, analyses: dict[str, dict]) -> dict:
+    @final
+    def get_analysis(self, file_handle: io.FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> dict:
         start_time = time.time()
         result = self.analyze(file_handle, virtual_file_path, analyses)
 
