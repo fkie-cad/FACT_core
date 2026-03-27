@@ -183,4 +183,6 @@ password-salt = "5up3r5tr0n6_p455w0rd_5417"
 
 
 [frontend.hasura]
+host = "localhost"
+port = 33333
 admin-secret = "4dM1n_S3cR3T_changemeplz"

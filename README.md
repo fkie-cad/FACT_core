@@ -114,8 +114,30 @@ our [tutorial](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.vagrant
 
 ### Docker
 
-There is also a dockerized version, but it is currently unmaintained.
-(see the [FACT_docker](https://github.com/fkie-cad/FACT_docker) repo for more information).
+>[!IMPORTANT]
+> The docker image requires Sysbox as Docker runtime.
+> Sysbox installation is described [here](https://github.com/nestybox/sysbox/tree/master?tab=readme-ov-file#installation)
+> Please make sure that it works before trying to run FACT with docker by running the hello-world image:
+> `docker run --rm --runtime sysbox-runc hello-world`
+
+If you have untracked files in the directory or also installed FACT locally, create a `.dockerignore`, so you don't
+copy the files into the Docker image when building it:
+
+```shell
+# exclude untracked files:
+git ls-files . --exclude-standard --others --directory > .dockerignore
+# exclude ignored files:
+git ls-files . --ignored --exclude-standard --others --directory >> .dockerignore
+# also exclude the .git folder:
+echo ".git/" >> .dockerignore
+```
+
+Running FACT with docker compose:
+
+```shell
+docker compose build
+docker compose up
+```
 
 ## Usage
 

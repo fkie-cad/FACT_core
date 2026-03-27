@@ -113,6 +113,7 @@ class Frontend(Common):
     class Hasura(BaseModel):
         model_config = ConfigDict(extra='forbid')
         admin_secret: str
+        host: str = 'localhost'
         port: int = 33_333
 
 
