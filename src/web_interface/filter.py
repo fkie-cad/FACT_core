@@ -4,6 +4,7 @@ import binascii
 import ipaddress
 import json
 import logging
+import lzma
 import os
 import random
 import re
@@ -368,6 +369,13 @@ def decompress(string: str) -> str:
     try:
         return zlib.decompress(b64decode(string)).decode()
     except (zlib.error, binascii.Error, TypeError):
+        return string
+
+
+def decompress_lzma(string: str) -> str:
+    try:
+        return lzma.decompress(b64decode(string)).decode()
+    except lzma.LZMAError:
         return string
 
 
