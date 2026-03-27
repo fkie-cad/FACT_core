@@ -10,7 +10,6 @@
   [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d3910401cb58498a8c2d00be80092080)](https://www.codacy.com/gh/fkie-cad/FACT_core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
   [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/FACT_core/community)
   [![CI Build](https://github.com/fkie-cad/FACT_core/actions/workflows/build_ci.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/build_ci.yml)
-  [![Ruff](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml/badge.svg)](https://github.com/fkie-cad/FACT_core/actions/workflows/ruff.yml)
   [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 </div>
@@ -81,15 +80,14 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 
 It's principally possible to install FACT on any Linux distribution, but the installer is limited to
 
-- Debian 12 (stable)
-- Ubuntu 22.04/24.04 (stable)
-- Linux Mint 21/22 (stable)
+- Debian 12/13 or compatible (stable)
+- Ubuntu 22.04/24.04 or compatible (stable)
 - Kali (experimental)
 
 Installation on older distributions (e.g. Debian 11 "Bullseye" or Ubuntu 20.04 "Focal") may still work, but is not
 considered stable, since these distributions have reached their end of life.
 
-FACT requires Python 3.10–3.12 (should be the default in all supported distributions)
+FACT requires Python 3.10–3.13 (should be the default in all supported distributions)
 
 The setup process is mostly automated and wrapped in a single script.
 Some features can be selected specifically though.
@@ -107,7 +105,7 @@ We provide monthly and ready-to-use vagrant boxes of our master branch.
 [Vagrant](https://www.vagrantup.com/) is an easy and convenient way to get started with FACT without having to install
 it on your machine.
 Just setup vagrant and import our provided box into VirtualBox.
-Our boxes can be found [here](https://app.vagrantup.com/fact-cad/boxes/FACT-master)!
+Our boxes can be found [on the vagrantup website](https://app.vagrantup.com/fact-cad/boxes/FACT-master)!
 
 Check out on how to get started with FACT and vagrant in
 our [tutorial](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.vagrant.md).
@@ -143,24 +141,24 @@ You can shut down the system by pressing <kbd>Ctrl + c</kbd> or by sending a SIG
 > More documentation on how to use FACT can be found on
 our [wiki pages](https://github.com/fkie-cad/FACT_core/wiki/).
 
-Our Sphinx documentation can be found [here](https://fkie-cad.github.io/FACT_core/).
+You can also take a look at [our Sphinx documentation](https://fkie-cad.github.io/FACT_core/).
 
 Information on what FACT is and how it works can also be found in the slides in the
 [`docs` folder](https://github.com/fkie-cad/FACT_core/tree/master/docs).
 
 ### REST API
 
-FACT provides a REST API. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/Rest-API).
+FACT provides a REST API. More information can be found on the [wiki page](https://github.com/fkie-cad/FACT_core/wiki/Rest-API).
 
 ### User Management
 
 FACT provides an optional basic authentication, role, and user management.
-More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/Authentication).
+More information can be found on the [wiki page](https://github.com/fkie-cad/FACT_core/wiki/Authentication).
 
 ## Contributing
 
 The easiest way to contribute is writing your own plugin.
-Our Developer Manual can be found [here](https://github.com/fkie-cad/FACT_core/wiki/).
+Our Developer Manual can be found in the [wiki](https://github.com/fkie-cad/FACT_core/wiki/) on GitHub.
 
 ## Additional plugins
 
