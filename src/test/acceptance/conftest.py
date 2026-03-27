@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from pathlib import Path
 
 import pytest
@@ -91,5 +92,5 @@ def upload_test_firmware(test_client, test_fw):
         }
         rv = test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
 
-    assert b'Upload Successful' in rv.data, 'upload not successful'
+    assert rv.status_code == HTTPStatus.OK, 'upload not successful'
     assert test_fw.uid.encode() in rv.data, 'uid not found on upload success page'

@@ -4,6 +4,7 @@
     "@graphiql/plugin-explorer": "^3.0.2",
     "@graphiql/toolkit": "^0.9.1",
     "@highlightjs/cdn-assets": "^11.8.0",
+    "axios": "^1.9.0",
     "bootstrap": "^4.6.2",
     "bootstrap-datepicker": "^1.9.0",
     "bootstrap-select": "^1.13.18",
