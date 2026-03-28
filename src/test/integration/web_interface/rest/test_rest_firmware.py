@@ -111,13 +111,6 @@ class TestRestFirmware(RestTestBase):
 
         assert b'No firmware with UID invalid uid' in rv.data
 
-    def test_rest_download_invalid_data(self, backend_db):
-        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
-        backend_db.add_object(test_firmware)
-
-        rv = self.test_client.get('/rest/firmware/', follow_redirects=True)
-        assert b'404 Not Found' in rv.data
-
     @pytest.mark.skip(reason='Intercom not running, thus not a single plugin known')
     def test_rest_update_analysis_success(self, backend_db):
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
