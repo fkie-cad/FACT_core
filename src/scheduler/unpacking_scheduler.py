@@ -30,6 +30,7 @@ from unpacker.unpack_base import ExtractionError
 
 if TYPE_CHECKING:
     from objects.file import FileObject
+    from scheduler.analysis_status import AnalysisStatus
 
 
 class NoFreeWorker(RuntimeError):  # noqa: N818
@@ -51,6 +52,7 @@ class UnpackingScheduler:
         fs_organizer=None,
         unpacking_locks=None,
         db_interface=BackendDbInterface,
+        status: AnalysisStatus | None = None,
     ):
         self.stop_condition = Value('i', 0)
         self.throttle_condition = Value('i', 0)
@@ -62,6 +64,7 @@ class UnpackingScheduler:
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
         self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
+        self.status = status
 
         self.manager = None
         self.workers = None
@@ -125,6 +128,8 @@ class UnpackingScheduler:
         schedule a firmware_object for unpacking
         """
         fw.root_uid = fw.uid  # make sure the root_uid is set correctly for unpacking and analysis scheduling
+        if self.status is not None:
+            self.status.init_firmware(fw)  # initialize unpacking and analysis progress tracking
         self.in_queue.put(fw)
 
     def get_scheduled_workload(self):
