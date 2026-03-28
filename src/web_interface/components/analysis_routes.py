@@ -161,6 +161,7 @@ class AnalysisRoutes(ComponentBase):
             analysis_presets=analysis_presets,
             title=title,
             selected_preset=current_analysis_preset,
+            is_reanalysis=True,
         )
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])

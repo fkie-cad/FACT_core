@@ -39,6 +39,7 @@
         {% if firmware.vendor %}
             {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
             {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
+            {{ button_tooltip('Copy metadata to upload', 'copy-meta-button', '/upload?copyMetaFrom=', 'upload') }}
         {% endif %}
     </div>
 
