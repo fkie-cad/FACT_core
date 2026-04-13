@@ -53,6 +53,7 @@ class FactBackend(FactBase):
             post_unpack=self.analysis_service.start_analysis_of_object,
             analysis_workload=self.analysis_service.get_combined_analysis_workload,
             unpacking_locks=self.unpacking_lock_manager,
+            status=self.analysis_service.status,
         )
         self.compare_service = ComparisonScheduler()
         self.intercom = InterComBackEndBinding(
