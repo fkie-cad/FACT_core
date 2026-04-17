@@ -59,7 +59,7 @@
 
      {% if stats["general_stats"] %}
         {% call macros.stats_panel("General") %}
-            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
+            <table class="table table-responsive-md table-hover bg-light px-0 mb-0" style="width: 100%;">
                 {{ macros.stats_table_row("firmware samples", stats["general_stats"]["number_of_firmwares"] | nice_number) }}
                 {{ macros.stats_table_row("firmware total size", stats["general_stats"]["total_firmware_size"] | number_format) }}
                 {{ macros.stats_table_row("firmware average size", stats["general_stats"]["average_firmware_size"] | number_format) }}
@@ -77,7 +77,7 @@
 
     {% if (stats["crypto_material_stats"]["crypto_material"] | length) > 0 %}
         {% call macros.stats_panel("Crypto Material", "lock") %}
-            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
+            <table class="table table-responsive-md table-hover bg-light px-0 mb-0" style="width: 100%;">
             {% for item in (stats["crypto_material_stats"]["crypto_material"] | sort_chart_list_by_value) %}
                 <tr>
                     <td style="text-align: left; padding:5px; cursor:pointer;"
@@ -97,7 +97,7 @@
 
     {% if (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | length) > 0 %}
         {% call macros.stats_panel("Known Vulnerabilities", "bolt") %}
-            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
+            <table class="table table-responsive-md table-hover bg-light px-0 mb-0" style="width: 100%;">
             {% for item in (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | sort_chart_list_by_value) %}
                 <tr>
                     <td style="text-align: left; padding:5px; cursor:pointer;"
@@ -117,7 +117,7 @@
 
     {% if stats["unpacker_stats"]["overall_unpack_ratio"] %}
         {% call macros.stats_panel("Unpacker Stats", "file-archive") %}
-            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
+            <table class="table table-responsive-md table-hover bg-light px-0 mb-0" style="width: 100%;">
                 {{ macros.stats_table_row("Share of not-packed files", (stats["unpacker_stats"]["overall_unpack_ratio"] * 100) | nice_number, percent=True,
                    tooltip="Percentage of files that could not be further unpacked (outer vertices in the file tree), and are not considered packed") }}
                 {{ macros.stats_table_row("Average packed entropy", stats["unpacker_stats"]["average_packed_entropy"] | nice_number, tooltip="Average byte entropy of files that are considered packed") }}

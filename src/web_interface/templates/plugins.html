@@ -20,7 +20,7 @@
                 <span class="card-text">
                     {{ description }}
                 </span>
-                <table class="table table-borderless mb-0 table-sm">
+                <table class="table table-borderless card-table mb-0 table-sm">
                     <tr>
                         {{ icon_tooltip_desk('project-diagram', 'Plugin dependencies') }}
                         <td>{{ dependencies | list_group_collapse | safe}}</td>
