@@ -23,7 +23,7 @@ def _get_compatible_entry(dts: str) -> str | None:
     dts = re.sub(r'\t*[0-9a-zA-Z,._+?#-]+ = .{256,}\n', '', dts)
     with NamedTemporaryFile() as tmp:
         Path(tmp.name).write_text(dts)
-        dtc_process = subprocess.run(
+        dtc_process = subprocess.run(  # noqa: S603
             shlex.split(f'dtc -I dts -O yaml {tmp.name}'),
             input=dts,
             stdout=PIPE,
@@ -67,7 +67,7 @@ def _get_compatible_entry(dts: str) -> str | None:
     return compatible[0].replace('\0', ' ')
 
 
-def construct_result(dependency_results: dict):
+def construct_result(dependency_results: dict) -> dict[str, str]:
     device_tree_result = dependency_results['device_tree']
     if not device_tree_result:
         return {}
