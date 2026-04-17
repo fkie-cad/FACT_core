@@ -3,7 +3,9 @@ from __future__ import annotations
 import re
 import shlex
 import subprocess
+from pathlib import Path
 from subprocess import DEVNULL, PIPE
+from tempfile import NamedTemporaryFile
 
 import yaml
 
@@ -19,24 +21,18 @@ def _get_compatible_entry(dts: str) -> str | None:
     # Replace every property that is very long (>256 bytes)
     # This speeds up dtc and should only affect binary data
     dts = re.sub(r'\t*[0-9a-zA-Z,._+?#-]+ = .{256,}\n', '', dts)
+    with NamedTemporaryFile() as tmp:
+        Path(tmp.name).write_text(dts)
+        dtc_process = subprocess.run(
+            shlex.split(f'dtc -I dts -O yaml {tmp.name}'),
+            input=dts,
+            stdout=PIPE,
+            stderr=DEVNULL,
+            text=True,
+            check=True,
+        )
 
-    # TODO ideally this should use helperFunctions.docker.run_docker_container
-    # Passing stdin via docker-py is really hard.
-    # The approaches described in [1] don't work for some reason.
-    # See also [2].
-    #
-    # [1] https://github.com/docker/docker-py/issues/1507
-    # [2] https://github.com/docker/docker-py/issues/983
-    dtc_process = subprocess.run(
-        shlex.split('docker run -i --rm fact/dtc -I dts -O yaml'),
-        input=dts,
-        stdout=PIPE,
-        stderr=DEVNULL,
-        text=True,
-        check=True,
-    )
-
-    # TODO Why do we need this?
+    # FixMe: Why do we need this?
     dt = dtc_process.stdout.replace('!u8', '')
 
     dt_yaml = yaml.load(dt, Loader=yaml.SafeLoader)
