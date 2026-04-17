@@ -1,0 +1,76 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+    <tr>
+        <td>Architecture</td>
+        <td>{{ analysis_result.architecture }}</td>
+    </tr>
+    <tr>
+        <td>Regions</td>
+        <td class="p-0 m-0">
+            <table class="table table-bordered m-0">
+                <tr>
+                    <th style="width: 20%;">Region Type</th>
+                </tr>
+                {% for region in analysis_result.regions %}
+                    <tr>
+                        <td>
+                            {{ region.type | replace_underscore }}
+                            <svg width="10" height="10">
+                                <rect width="10" height="10" opacity="1" fill="{{ region.plot_color }}" x="0" y="0" stroke="black"></rect>
+                            </svg>
+                        </td>
+                        <td class="p-1">
+                            total size: {{ region.total_size | number_format }}
+                            <details>
+                                <summary>show details</summary>
+                                <table class="table table-bordered table-sm m-0">
+                                <tr>
+                                    <th class="bg-light">Size</th>
+                                    <th class="bg-light">Start Address</th>
+                                    <th class="bg-light">End Address</th>
+                                </tr>
+                                    {% for range in region.address_ranges %}
+                                        <tr>
+                                            <td>{{ range.size | nice_number }} ({{ range.size | hex }})</td>
+                                            <td>
+                                                <a href="/analysis/{{ firmware.uid }}/coderec/ro/{{ root_uid }}?load_preview={{ range.start }}">
+                                                    {{ range.start }} ({{ range.start | hex }})
+                                                </a>
+                                            </td>
+                                            <td>{{ range.end }} ({{ range.end | hex }})</td>
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            </details>
+                        </td>
+                {% endfor %}
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td>Plot</td>
+        <td style="max-width: 100%; cursor: zoom-in;" data-toggle="modal" data-target="#plotModal">
+            {{ (analysis_result.plot | decompress_lzma).replace('<svg ', '<svg style="width: 100%; height: auto;" ') | safe }}
+        </td>
+    </tr>
+
+    {# modal for larger plot view #}
+    <div class="modal fade" id="plotModal" tabindex="-1" role="dialog" aria-labelledby="plotModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 90vw;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="plotModalLabel">Byte Plot of File</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div style="overflow-x: auto;">
+                    {{ analysis_result.plot | decompress_lzma | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
