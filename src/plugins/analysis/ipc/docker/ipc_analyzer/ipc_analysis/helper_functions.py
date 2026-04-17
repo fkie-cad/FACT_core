@@ -114,6 +114,8 @@ def get_vars_from_varnode(ghidra_analysis, func, varnode):
     :return: list
     """
     result = []
+    if varnode is None:
+        return result
     addr_size = int(ghidra_analysis.current_program.getMetadata()['Address Size'])
     bitmask = 2**addr_size - 1
     local_variables = func.getAllVariables()
@@ -159,10 +161,18 @@ def find_source_value(ghidra_analysis, func, var, sources):
         # Handle p-code CAST of source_varnode
         if len(source_vars) == 0:
             varnode = source_varnode
-            def_op = source_varnode.getDef()
+            if varnode is None:
+                continue
+            def_op = varnode.getDef()
+            if def_op is None:
+                continue
             while def_op.getOpcode() == PcodeOp.CAST:
                 varnode = def_op.getInput(0)
+                if varnode is None:
+                    break
                 def_op = varnode.getDef()
+                if def_op is None:
+                    break
             if def_op is not None:
                 source_vars = get_vars_from_varnode(ghidra_analysis, func, varnode)
             else:
