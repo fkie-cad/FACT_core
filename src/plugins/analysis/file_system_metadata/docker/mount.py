@@ -17,10 +17,10 @@ OUTPUT_FILE = INPUT_DIR / 'output.pickle'
 @contextmanager
 def mount(input_file: Path):
     try:
-        check_call(f'mount -o ro,loop {input_file} {MOUNT_DIR}', shell=True)
+        check_call(['mount', '-o', 'ro,loop', str(input_file), str(MOUNT_DIR)], shell=False)  # nosec B603
         yield
     finally:
-        check_call(f'umount {MOUNT_DIR}', shell=True)
+        check_call(['umount', str(MOUNT_DIR)], shell=False)  # nosec B603
 
 
 def main():
