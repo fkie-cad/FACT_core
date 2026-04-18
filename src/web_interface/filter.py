@@ -302,7 +302,7 @@ def render_analysis_tags(tags, uid=None, root_uid=None, size=14):
             for key, tag in sorted(tags[plugin_name].items(), key=_sort_tags_key):
                 if key == 'root_uid':
                     continue
-                color = tag['color'] if tag['color'] in TagColor.ALL else TagColor.BLUE
+                color = tag['color'] if tag['color'] in set(TagColor) else TagColor.BLUE
                 output += render_template(
                     'generic_view/tags.html',
                     color=color,
@@ -465,9 +465,7 @@ def render_changed_text_files(changed_text_files: dict) -> str:
                 f'  {inner}\n'
                 '</div>\n'
             )
-        elements.append(
-            f'<div class="list-group-item border-top" style="padding: 0 0 0 25px">\n' f'{element}\n' '</div>'
-        )
+        elements.append(f'<div class="list-group-item border-top" style="padding: 0 0 0 25px">\n{element}\n</div>')
     return '\n'.join(elements)
 
 
