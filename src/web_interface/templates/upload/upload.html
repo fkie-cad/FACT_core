@@ -164,6 +164,17 @@
                         {%- endif %}
                     </button>
 
+                    {%- if not is_reanalysis %}
+                        <div class="checkbox m-0 pl-2" style="display: inline;">
+                            <label style="padding: 2px" data-toggle="tooltip"
+                                   title="Skip firmware unpacking and run Ghidra analysis directly on the uploaded binary file">
+                                <input type="checkbox" value="true" id="skip_unpacking" style="margin-top: 2px;"
+                                       name="skip_unpacking">
+                                Skip Unpacking (Direct Binary Analysis)
+                            </label>
+                        </div>
+                    {%- endif %}
+
                     {%- if is_reanalysis and "re-do" not in title %}
                         <div class="checkbox m-0 pl-2" style="display: inline;">
                             <label style="padding: 2px">

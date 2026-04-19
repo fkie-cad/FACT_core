@@ -34,7 +34,12 @@ class IORoutes(ComponentBase):
             logging.warning(f'Received invalid upload request: Key {KeyError.__str__(error)} is missing!')
             raise
         fw = convert_analysis_task_to_fw_obj(analysis_task)
-        self.intercom.add_analysis_task(fw)
+        if request.form.get('skip_unpacking') == 'true':
+            if 'ghidra_analysis' not in fw.scheduled_analysis:
+                fw.scheduled_analysis.append('ghidra_analysis')
+            self.intercom.add_direct_analysis_task(fw)
+        else:
+            self.intercom.add_analysis_task(fw)
         return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])

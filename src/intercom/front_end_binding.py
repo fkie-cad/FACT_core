@@ -20,6 +20,10 @@ class InterComFrontEndBinding:
     def add_analysis_task(self, fw):
         self._add_to_redis_queue('analysis_task', fw, fw.uid)
 
+    def add_direct_analysis_task(self, fw):
+        """Send a firmware object directly to the analysis scheduler, bypassing the unpacking step."""
+        self._add_to_redis_queue('direct_analysis_task', fw, fw.uid)
+
     def add_re_analyze_task(self, fw, unpack=True):
         if unpack:
             self._add_to_redis_queue('re_analyze_task', fw, fw.uid)

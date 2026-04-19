@@ -64,6 +64,9 @@ class CommonIntercomMock:
     def add_analysis_task(self, task):
         self.task_list.append(task)
 
+    def add_direct_analysis_task(self, task):
+        self.task_list.append(task)
+
     def add_re_analyze_task(self, task, unpack=True):
         self.task_list.append(task)
 

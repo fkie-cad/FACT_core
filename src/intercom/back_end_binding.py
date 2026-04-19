@@ -17,6 +17,8 @@ from intercom.common_redis_binding import (
     publish_available_analysis_plugins,
 )
 from storage.binary_service import BinaryService
+from storage.db_interface_backend import BackendDbInterface
+from storage.db_interface_base import DbInterfaceError
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
 
@@ -60,6 +62,7 @@ class InterComBackEndBinding:
                 self.analysis_service.update_analysis_of_single_object,
                 manager=self.manager,
             ),
+            InterComBackEndDirectAnalysisTask(self.analysis_service.start_analysis_of_object),
             InterComBackEndPeekBinaryTask(),
             InterComBackEndLogsTask(),
             InterComBackEndCancelTask(self._cancel_task),
@@ -115,6 +118,29 @@ class InterComBackEndReAnalyzeTask(InterComListener):
 
 class InterComBackEndUpdateTask(InterComBackEndReAnalyzeTask):
     CONNECTION_TYPE = 'update_task'
+
+
+class InterComBackEndDirectAnalysisTask(InterComListener):
+    """
+    Processes direct binary analysis tasks — uploads that skip the unpacking step
+    and are sent straight to the analysis scheduler.
+    The file is stored on disk and saved to the database before analysis begins.
+    """
+
+    CONNECTION_TYPE = 'direct_analysis_task'
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.fs_organizer = FSOrganizer()
+        self.db_interface = BackendDbInterface()
+
+    def pre_process(self, task, task_id):  # noqa: ARG002
+        self.fs_organizer.store_file(task)
+        try:
+            self.db_interface.add_object(task)
+        except DbInterfaceError as error:
+            logging.error(f'[direct_analysis] Could not save object to database: {error}')
+        return task
 
 
 class InterComBackEndSingleFileTask(InterComListenerAndResponder):

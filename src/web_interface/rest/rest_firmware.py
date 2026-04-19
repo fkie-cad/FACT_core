@@ -42,6 +42,10 @@ firmware_model = api.model(
             description='Selected Analysis Systems', cls_or_instance=fields.String
         ),
         'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True),
+        'skip_unpacking': fields.Boolean(
+            description='Skip firmware unpacking and run Ghidra analysis directly on the uploaded binary',
+            default=False,
+        ),
     },
 )
 
@@ -139,7 +143,13 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         except binascii.Error:
             return {'error_message': 'Could not parse binary (must be valid base64!)'}
         firmware_object = convert_analysis_task_to_fw_obj(data)
-        self.intercom.add_analysis_task(firmware_object)
+        skip_unpacking = data.get('skip_unpacking', False)
+        if skip_unpacking:
+            if 'ghidra_analysis' not in firmware_object.scheduled_analysis:
+                firmware_object.scheduled_analysis.append('ghidra_analysis')
+            self.intercom.add_direct_analysis_task(firmware_object)
+        else:
+            self.intercom.add_analysis_task(firmware_object)
         data.pop('binary')
 
         return {'uid': firmware_object.uid}
