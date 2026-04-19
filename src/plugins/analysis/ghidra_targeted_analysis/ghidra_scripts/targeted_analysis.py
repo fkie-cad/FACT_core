@@ -127,11 +127,16 @@ def analyze(binary_path: str, config_path: str, output_path: str) -> None:
             func, depth = queue.popleft()
             name = func.getName()
 
+            # Skip already-visited functions.
+            # Also skip functions that are deeper than max_depth so that
+            # functions *at* max_depth are still processed (depth 0 = entry
+            # point, depth max_depth = last level included).
             if name in visited or depth > max_depth:
                 continue
 
             addr = _normalize_address(func.getEntryPoint().toString())
-            pseudocode = '' if func.isExternal() or func.isThunk() else _decompile(decompiler, func, monitor)
+            is_opaque = func.isExternal() or func.isThunk()
+            pseudocode = '' if is_opaque else _decompile(decompiler, func, monitor)
             callees = _get_callees(func, monitor)
             sensitive_refs = _find_sensitive_refs(pseudocode, sensitive_vars)
 

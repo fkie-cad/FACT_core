@@ -36,6 +36,7 @@ from flask_restx import Namespace
 
 import config
 from analysis.plugin import AnalysisFailedError
+from helperFunctions.uid import is_uid
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -94,10 +95,36 @@ class PluginRestRoutes(RestResourceBase):
             )
 
         # ----------------------------------------------------------------
+        # Validate UID format (prevents path traversal)
+        # ----------------------------------------------------------------
+        if not is_uid(uid):
+            return error_message(
+                f'Invalid UID format: "{uid}"',
+                endpoint,
+                request_data,
+                return_code=HTTPStatus.BAD_REQUEST,
+            )
+
+        # ----------------------------------------------------------------
         # Resolve binary path from UID
         # ----------------------------------------------------------------
-        storage_dir = Path(config.backend.firmware_file_storage_directory)
-        file_path = storage_dir / uid[:2] / uid
+        # Note: `uid` has already been validated by `is_uid()` which enforces
+        # the pattern [a-f0-9]{64}_[0-9]+ — no path separators are possible.
+        # The `relative_to()` check below is a defence-in-depth guard.
+        storage_dir = Path(config.backend.firmware_file_storage_directory).resolve()
+        candidate = (storage_dir / uid[:2] / uid).resolve()
+        # Use relative_to() as a canonical confinement check – raises ValueError
+        # if the resolved path escapes the storage directory.
+        try:
+            candidate.relative_to(storage_dir)
+        except ValueError:
+            return error_message(
+                'Invalid UID: path escapes storage directory',
+                endpoint,
+                request_data,
+                return_code=HTTPStatus.BAD_REQUEST,
+            )
+        file_path = candidate
         if not file_path.exists():
             return error_message(
                 f'Binary file not found for UID "{uid}"',
