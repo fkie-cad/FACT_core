@@ -208,7 +208,7 @@ class CommonDatabaseMock:
     def all_uids_found_in_database(self, uid_list):
         return True
 
-    def get_data_for_nice_list(self, input_data, root_uid):
+    def get_data_for_nice_list(self, input_data, root_uid, include_vfp=None):
         return [NICE_LIST_DATA]
 
     @staticmethod

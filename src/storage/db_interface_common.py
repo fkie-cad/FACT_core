@@ -214,7 +214,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         return self.get_file_tree_path_for_uid_list([uid], root_uid=root_uid).get(uid, [])
 
     def get_file_tree_path_for_uid_list(
-        self, uid_list: list[str], root_uid: str | None = None
+        self, uid_list: Iterable[str], root_uid: str | None = None
     ) -> dict[str, list[list[str]]]:
         """
         Generate all file paths for a list of UIDs `uid_list`. A path is a list of UIDs representing the path from root
