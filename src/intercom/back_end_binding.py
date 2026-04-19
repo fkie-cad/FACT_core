@@ -139,7 +139,10 @@ class InterComBackEndDirectAnalysisTask(InterComListener):
         try:
             self.db_interface.add_object(task)
         except DbInterfaceError as error:
-            logging.error(f'[direct_analysis] Could not save object to database: {error}')
+            logging.error(
+                f'[direct_analysis] Could not save object {task.uid!r} to database, skipping analysis: {error}'
+            )
+            return None
         return task
 
 
