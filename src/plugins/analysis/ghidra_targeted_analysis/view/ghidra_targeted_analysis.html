@@ -1,0 +1,98 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+{# This plugin's results are produced on-demand via the REST endpoint.       #}
+{# The table below is only shown when stored results exist (non-empty schema). #}
+
+{% set call_tree = analysis_result.call_tree %}
+{% set entry_points = analysis_result.entry_points %}
+{% set sensitive_vars = analysis_result.sensitive_vars %}
+
+{% if not call_tree %}
+    <tr>
+        <td colspan="5" class="text-muted text-center">
+            <em>No targeted analysis has been run yet for this file.</em>
+            <br>
+            Use the REST endpoint to trigger analysis:
+            <br>
+            <code>POST /plugins/ghidra_targeted_analysis/rest/&lt;uid&gt;</code>
+            <br>
+            Body: <code>{"entry_points": ["main"], "sensitive_vars": ["buf"]}</code>
+        </td>
+    </tr>
+{% else %}
+
+    {# Summary row #}
+    <tr>
+        <td class="table-head-light"><strong>Entry Points</strong></td>
+        <td colspan="4">
+            {% for ep in entry_points %}
+                <span class="badge badge-primary mr-1">{{ ep }}</span>
+            {% endfor %}
+        </td>
+    </tr>
+    {% if sensitive_vars %}
+    <tr>
+        <td class="table-head-light"><strong>Sensitive Variables</strong></td>
+        <td colspan="4">
+            {% for sv in sensitive_vars %}
+                <span class="badge badge-danger mr-1">{{ sv }}</span>
+            {% endfor %}
+        </td>
+    </tr>
+    {% endif %}
+
+    {# Column headers #}
+    <tr class="thead-light">
+        <th>Depth</th>
+        <th>Function</th>
+        <th>Address</th>
+        <th>Callees</th>
+        <th>Pseudocode / Sensitive Refs</th>
+    </tr>
+
+    {% for func in call_tree | sort(attribute='depth') %}
+        <tr {% if func.sensitive_var_refs %}class="table-warning"{% endif %}>
+            <td><span class="badge badge-secondary">{{ func.depth }}</span></td>
+            <td>
+                <code>{{ func.name }}</code>
+                {% if func.sensitive_var_refs %}
+                    <br>
+                    {% for ref in func.sensitive_var_refs %}
+                        <span class="badge badge-danger" title="Sensitive variable reference">{{ ref }}</span>
+                    {% endfor %}
+                {% endif %}
+            </td>
+            <td><code>{{ func.address }}</code></td>
+            <td>
+                {% if func.callees %}
+                    <ul class="mb-0 pl-3">
+                        {% for callee in func.callees | sort %}
+                            <li><code>{{ callee }}</code></li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <em class="text-muted">none</em>
+                {% endif %}
+            </td>
+            <td class="m-0 p-0">
+                {% if func.pseudocode %}
+                    <div class="clickable pt-2 pl-3"
+                         data-toggle="collapse"
+                         data-target="#pseudocode_targeted_{{ loop.index }}">
+                        <i class="fas fa-angle-down mb-2 pt-2"></i> show / hide
+                    </div>
+                    <div class="collapse w-100" id="pseudocode_targeted_{{ loop.index }}">
+                        <pre class="m-2 p-2"
+                             style="background:#f8f9fa; max-height:400px; overflow:auto;"><code>{{ func.pseudocode }}</code></pre>
+                    </div>
+                {% else %}
+                    <em class="text-muted pl-3">no pseudocode</em>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}

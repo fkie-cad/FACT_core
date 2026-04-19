@@ -3,9 +3,10 @@ This plugin uses Ghidra to decompile binary files extracted from firmware images
 For each function it stores the decompiled pseudocode and the list of called functions
 (call graph). This data can be used for further automated analysis.
 
-Ghidra is run in headless mode inside a Docker container.  The container receives
-the binary via a bind-mount, runs a custom Ghidra script that emits a JSON result
-file, and the plugin then parses that result.
+Ghidra is run inside a Docker container via the **pyghidra** Python bridge.  The
+container receives the binary via a bind-mount, runs a Python analysis script
+(``decompile_and_callgraph.py``) that emits a JSON result file, and the plugin then
+parses that result.
 """
 
 from __future__ import annotations
@@ -76,21 +77,14 @@ class AnalysisPlugin(AnalysisPluginV0):
     # ------------------------------------------------------------------
 
     def _run_ghidra_in_docker(self, file_path: str, output_dir: str) -> CompletedProcess:
-        """Run Ghidra headless analyser in a Docker container.
+        """Run the pyghidra analysis script inside a Docker container.
 
         *file_path* is mounted read-only as ``/input`` inside the container.
-        *output_dir* is mounted as ``/output`` so the Java script can write
+        *output_dir* is mounted as ``/output`` so the Python script can write
         ``result.json`` there.  The Ghidra scripts directory is mounted as
         ``/scripts``.
         """
-        command = (
-            '/opt/ghidra/support/analyzeHeadless /tmp/ghidra_proj TmpProject'
-            ' -import /input'
-            ' -postScript DecompileAndCallGraph.java /output/result.json'
-            ' -scriptPath /scripts'
-            ' -deleteProject'
-            ' -noanalysis'
-        )
+        command = 'python3 /scripts/decompile_and_callgraph.py /input /output/result.json'
         try:
             result = run_docker_container(
                 DOCKER_IMAGE,

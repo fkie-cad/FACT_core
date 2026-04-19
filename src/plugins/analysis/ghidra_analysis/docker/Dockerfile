@@ -3,6 +3,7 @@
 # Builds a minimal image containing:
 #   * OpenJDK 17 (required by Ghidra 11.x)
 #   * Ghidra (downloaded from the official GitHub release)
+#   * Python 3 + pyghidra (Python bridge for Ghidra scripting)
 #
 # The image exposes no ports and is only used in headless / batch mode.
 
@@ -15,7 +16,7 @@ ARG GHIDRA_SHA256=219ec130b901645779948feeb7cc86f131dd2da3f0e8769f8b006f3007109b
 ENV GHIDRA_INSTALL_DIR=/opt/ghidra
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget unzip && \
+    apt-get install -y --no-install-recommends wget unzip python3 python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
 RUN GHIDRA_ARCHIVE="ghidra_${GHIDRA_VERSION}_PUBLIC_${GHIDRA_DATE}.zip" && \
@@ -24,10 +25,12 @@ RUN GHIDRA_ARCHIVE="ghidra_${GHIDRA_VERSION}_PUBLIC_${GHIDRA_DATE}.zip" && \
     echo "${GHIDRA_SHA256}  /tmp/ghidra.zip" | sha256sum -c - && \
     unzip -q /tmp/ghidra.zip -d /opt && \
     mv "/opt/ghidra_${GHIDRA_VERSION}_PUBLIC" "${GHIDRA_INSTALL_DIR}" && \
-    rm /tmp/ghidra.zip && \
-    chmod +x "${GHIDRA_INSTALL_DIR}/support/analyzeHeadless"
+    rm /tmp/ghidra.zip
 
-# Create a non-root user for running Ghidra
+# Install pyghidra - the Python bridge for Ghidra's Java API (via jpype)
+RUN pip3 install --no-cache-dir pyghidra
+
+# Create a non-root user for running analysis
 RUN useradd -m -u 1000 ghidra
 USER ghidra
 
