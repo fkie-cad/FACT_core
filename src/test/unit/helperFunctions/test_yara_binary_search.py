@@ -1,5 +1,4 @@
 import unittest
-from pathlib import Path
 from subprocess import CalledProcessError
 from unittest import mock
 from unittest.mock import patch
@@ -17,7 +16,7 @@ MATCH_DATA_KEYS = {'condition', 'match', 'offset'}
 
 class MockCommonDbInterface:
     @staticmethod
-    def get_all_files_in_fw(uid):
+    def get_list_of_all_included_files(uid):
         if uid == 'single_firmware':
             return [TEST_FILE_2, TEST_FILE_3]
         return []
@@ -107,9 +106,3 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
             target_path=get_test_data_dir() / TEST_FILE_1 / TEST_FILE_1,
         )
         assert 'test_rule' in result
-
-    def test_get_file_paths_of_files_included_in_fo(self):
-        result = self.yara_binary_scanner._get_file_paths_of_files_included_in_fw('single_firmware')
-        assert len(result) == 2
-        assert Path(result[0]).name == TEST_FILE_2
-        assert Path(result[1]).name == TEST_FILE_3
