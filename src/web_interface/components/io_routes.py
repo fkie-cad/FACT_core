@@ -40,10 +40,12 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', GET)
     def get_upload(self):
+        metadata_fw = request.args.get('copyMetaFrom')
         with get_shared_session(self.db.frontend) as frontend_db:
             device_class_list = frontend_db.get_device_class_list()
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
+            fw = frontend_db.get_firmware(metadata_fw) if metadata_fw else None
         analysis_plugins = {
             k: t[:3] for k, t in self.intercom.get_available_analysis_plugins().items() if k != 'unpacker'
         }
@@ -55,6 +57,8 @@ class IORoutes(ComponentBase):
             device_names=json.dumps(device_name_dict, sort_keys=True),
             analysis_plugin_dict=analysis_plugins,
             selected_preset='default',
+            firmware=fw,
+            is_reanalysis=False,
         )
 
     # ---- file download
