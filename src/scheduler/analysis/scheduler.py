@@ -28,6 +28,7 @@ from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_view_sync import ViewUpdater
 from storage.fsorganizer import FSOrganizer
 
+from .blacklist import check_plugin_blacklists
 from .plugin import PluginRunner, Worker
 
 if TYPE_CHECKING:
@@ -110,6 +111,8 @@ class AnalysisScheduler:
         self._plugin_runners: dict[str, PluginRunner] = {}
 
         self._load_plugins()
+        check_plugin_blacklists(self.analysis_plugins)
+
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
         self.unpacking_locks = unpacking_locks
