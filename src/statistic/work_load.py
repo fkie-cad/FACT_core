@@ -25,7 +25,7 @@ class WorkLoadStatistic:
         logging.debug(f'{self.component}: shutting down -> set offline message')
         self.db.update_statistic(self.component, {'status': 'offline', 'last_update': time()})
 
-    def update(self, unpacking_workload=None, analysis_workload=None, compare_workload=None):
+    def update(self, unpacking_workload=None, analysis_workload=None, comparison_workload=None):
         stats = {
             'name': self.component,
             'status': 'online',
@@ -37,8 +37,8 @@ class WorkLoadStatistic:
             stats['unpacking'] = unpacking_workload
         if analysis_workload:
             stats['analysis'] = analysis_workload
-        if compare_workload:
-            stats['compare'] = compare_workload
+        if comparison_workload:
+            stats['compare'] = comparison_workload
         self.db.update_statistic(self.component, stats)
 
     def _get_system_information(self):
