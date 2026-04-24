@@ -85,6 +85,19 @@ jobs:
           verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  build-ci-complete:
+    name: Build CI Complete
+    needs: build-ci
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check build-ci matrix result
+        run: |
+          if [ "${{ needs.build-ci.result }}" != "success" ]; then
+            echo "Some build-ci matrix jobs failed!"
+            exit 1
+          fi
+          echo "All build-ci matrix jobs passed!"
       - name: Teams webhook
         if: failure() && github.event_name == 'schedule'
         run: |
@@ -114,8 +127,7 @@ jobs:
                       {
                         "type": "FactSet",
                         "facts": [
-                          { "title": "Branch", "value": "${{ matrix.target }}" },
-                          { "title": "OS", "value": "${{ matrix.os }}" },
+                          { "title": "Result", "value": "${{ needs.build-ci.result }}" },
                           { "title": "Commit", "value": "${{ github.sha }}" }
                         ]
                       }
