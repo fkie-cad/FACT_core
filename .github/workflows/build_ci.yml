@@ -91,32 +91,43 @@ jobs:
           curl -X POST ${{ secrets.TEAMS_WEBHOOK }} \
             -H 'Content-Type: application/json' \
             -d '{
-              "text": "⚠️ CI build failed",
-              "sections": [
+              "type": "message",
+              "attachments": [
                 {
-                  "activityTitle": "Scheduled master/stable build failed",
-                  "activitySubtitle": "Branch: ${{ matrix.target }}",
-                  "facts": [
-                    {
-                      "name": "OS",
-                      "value": "${{ matrix.os }}"
-                    },
-                    {
-                      "name": "Commit",
-                      "value": "${{ github.sha }}"
-                    }
-                  ],
-                  "potentialAction": [
-                    {
-                      "name": "Link",
-                      "targets": [
-                        {
-                          "os": "default",
-                          "uri": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                        }
-                      ]
-                    }
-                  ]
+                  "contentType": "application/vnd.microsoft.card.adaptive",
+                  "content": {
+                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                    "type": "AdaptiveCard",
+                    "version": "1.4",
+                    "body": [
+                      {
+                        "type": "TextBlock",
+                        "text": "⚠️ CI build failed",
+                        "weight": "Bolder",
+                        "size": "Large"
+                      },
+                      {
+                        "type": "TextBlock",
+                        "text": "Scheduled master/stable build failed",
+                        "weight": "Bolder"
+                      },
+                      {
+                        "type": "FactSet",
+                        "facts": [
+                          { "title": "Branch", "value": "${{ matrix.target }}" },
+                          { "title": "OS", "value": "${{ matrix.os }}" },
+                          { "title": "Commit", "value": "${{ github.sha }}" }
+                        ]
+                      }
+                    ],
+                    "actions": [
+                      {
+                        "type": "Action.OpenUrl",
+                        "title": "Open Run",
+                        "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      }
+                    ]
+                  }
                 }
               ]
             }'
