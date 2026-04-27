@@ -18,9 +18,9 @@ from string import ascii_letters
 from time import localtime, strftime, struct_time, time
 from typing import TYPE_CHECKING, Any, Iterable, Union
 
+import bitmath
 import packaging.version
 import semver
-from common_helper_files import human_readable_file_size
 from flask import render_template
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
@@ -66,11 +66,10 @@ def nice_number_filter(i):
 def byte_number_filter(i, verbose=False):
     if not isinstance(i, (float, int)):
         return 'not available'
-    output = human_readable_file_size(i)
+    output = bitmath.Byte(bytes=i).best_prefix().format('{value:.2f} {unit}')
     if i < BYTE_FORMAT_THRESHOLD:
-        # FixMe: the human_readable_file_size() function from common_helper_files produces output with decimals even
-        #        for values < 1024 and uses the unit "Byte" instead of "bytes"
-        output = output.replace('Byte', 'byte' if i == 1 else 'bytes').replace('.00', '')
+        # bitmath shows decimal places even for small numbers. Also, we prefer "bytes" to "B" for small numbers
+        output = output.replace(' B', ' byte' if i == 1 else ' bytes').replace('.00', '')
     elif verbose:
         return f'{output} ({i:,d} bytes)'
     return output
