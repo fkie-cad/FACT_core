@@ -7,11 +7,17 @@ from ..code.software_components import AnalysisPlugin, _entry_has_no_trailing_ve
 YARA_TEST_FILE = Path(__file__).parent / 'data' / 'yara_test_file'
 
 
+class MockFileTypeResult:
+    def __init__(self):
+        self.full = 'full type'
+        self.mime = 'application/octet-stream'
+
+
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
 class TestAnalysisPluginSoftwareComponents:
-    def test_process_object(self, analysis_plugin):
+    def test_analyze(self, analysis_plugin):
         with YARA_TEST_FILE.open('rb') as fp:
-            results = analysis_plugin.analyze(fp, {}, {})
+            results = analysis_plugin.analyze(fp, {}, {'file_type': MockFileTypeResult()})
 
         assert len(results.software_components) == 1, 'incorrect number of software components found'
         software_result = results.software_components[0]
@@ -56,9 +62,9 @@ class TestAnalysisPluginSoftwareComponents:
 
     def test_get_version_from_meta(self, analysis_plugin):
         version = 'v15.14.1a'
-        assert (
-            get_version(f'Foo {version}', {'version_regex': 'v\\d\\d\\.\\d\\d\\.\\d[a-z]'}) == version
-        ), 'version not found correctly'
+        assert get_version(f'Foo {version}', {'version_regex': 'v\\d\\d\\.\\d\\d\\.\\d[a-z]'}) == version, (
+            'version not found correctly'
+        )
 
     def test_entry_has_no_trailing_version(self, analysis_plugin):
         assert not _entry_has_no_trailing_version('Linux', 'Linux 4.15.0-22')

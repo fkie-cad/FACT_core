@@ -8,5 +8,5 @@ rule smart_wizzard
 	strings:
 		$a = /Netgear Smart Wizard \d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }

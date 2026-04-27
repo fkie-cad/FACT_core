@@ -8,7 +8,7 @@ rule avahi
     strings:
         $a = /avahi-\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule Bftpd
@@ -21,7 +21,7 @@ rule Bftpd
     strings:
         $a = /bftpd-V\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule cadaver
@@ -34,7 +34,7 @@ rule cadaver
     strings:
         $a = /cadaver \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule CUPS
@@ -48,7 +48,7 @@ rule CUPS
         $a = /CUPS v\d+\.\d+\.\d+/ nocase ascii wide
         $b = /cups-\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        any of them and no_text_file
+        any of them
 }
 
 rule curl
@@ -61,7 +61,7 @@ rule curl
     strings:
         $a = /curl\/\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule dhcp6c
@@ -74,7 +74,7 @@ rule dhcp6c
     strings:
         $a = /dhcp6c-V\d+\.\d+/ nocase ascii wide
     condition:
-    	$a and no_text_file
+    	$a
 }
 
 
@@ -88,7 +88,7 @@ rule dhcp6s
     strings:
         $a = /dhcp6s-V\d+\.\d+/ nocase ascii wide
     condition:
-    	$a and no_text_file
+    	$a
 }
 
 rule dnsmasq
@@ -104,7 +104,7 @@ rule dnsmasq
 		$b = "dnsmasq-%s"
 		$c = "dnsmasq version %s"
 	condition:
-		($a or $b or $c) and no_text_file
+		$a or $b or $c
 }
 
 rule Dropbear {
@@ -121,7 +121,7 @@ rule Dropbear {
         $d = "Dropbear v%s" ascii
         $e = "Dropbear server v%s" ascii
     condition:
-        any of them and no_text_file
+        any of them
 }
 
 rule FRRouting
@@ -134,7 +134,7 @@ rule FRRouting
     strings:
         $a = /FRRouting \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule hostapd
@@ -147,7 +147,7 @@ rule hostapd
     strings:
         $a = /hostapd v\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule iptables
@@ -160,7 +160,7 @@ rule iptables
     strings:
         $a = /iptables-\d+\.\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule l2tpd
@@ -173,7 +173,7 @@ rule l2tpd
     strings:
         $a = /l2tpd version 0.\d+/ ascii
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule libpcap
@@ -186,7 +186,7 @@ rule libpcap
 	strings:
 		$a = /libpcap version \d+\.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule libupnp
@@ -199,7 +199,7 @@ rule libupnp
 	strings:
 		$a = /libupnp-\d+\.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule MiniUPnP
@@ -212,7 +212,7 @@ rule MiniUPnP
 	strings:
 		$a = /MiniUPNP \d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule netatalk
@@ -225,7 +225,7 @@ rule netatalk
 	strings:
 		$a =  /netatalk-\d+.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule NicheStack
@@ -238,7 +238,7 @@ rule NicheStack
     strings:
         $a = /InterNiche Portable TCP\/IP[a-zA-Z ]{,30}, v\d(\.\d)?/
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule netcat_traditional
@@ -252,7 +252,7 @@ rule netcat_traditional
         $a = "nc -h for help"
         $b = /\[v1.\d+-?\d*\.?\d*]/
     condition:
-        $a and $b and no_text_file
+        $a and $b
 }
 
 rule NTP
@@ -266,7 +266,7 @@ rule NTP
         $a = /NTP daemon program - Ver. \d+\.\d+\.\d+p?\d*/
         $b = /ntpd \d+.\d+.\d+p?\d*/
     condition:
-        ($a or $b) and no_text_file
+        $a or $b
 }
 
 rule OpenSSH
@@ -279,7 +279,7 @@ rule OpenSSH
     strings:
         $a = /OpenSSH(_\d+\.\d+(\.\d)?(p\d)?[ \x00])?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule OpenVPN
@@ -309,7 +309,7 @@ rule pppd_format_string
         $c = "pppd: %s %d"
         $d = "See pppd(8) for more options."
     condition:
-        ($a or $b or $c) and $d and no_text_file
+        ($a or $b or $c) and $d
 }
 
 rule pptpClient
@@ -322,7 +322,7 @@ rule pptpClient
     strings:
         $a = /pptp version \d+\.\d+\.\d/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule ProFTPD
@@ -335,7 +335,7 @@ rule ProFTPD
     strings:
         $a = /ProFTPD \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule Pure_FTPd
@@ -348,7 +348,7 @@ rule Pure_FTPd
     strings:
         $a = /pure-ftpd v\d\.\d+\.\d+(\-\d)?/ ascii
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule Quagga
@@ -361,7 +361,7 @@ rule Quagga
     strings:
         $a = /Hello, this is Quagga \(version .+\)./ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule radvd
@@ -374,7 +374,7 @@ rule radvd
 	strings:
 		$a = /radvd-\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule radvd_format_string
@@ -390,7 +390,7 @@ rule radvd_format_string
         $b = "version %s started"
         $c = "Version: %s"
 	condition:
-        $a and ($b or $c) and no_text_file
+        $a and ($b or $c)
 }
 
 rule readymedia
@@ -403,7 +403,7 @@ rule readymedia
 	strings:
 		$a = /ReadyDLNA \d+\.\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule RP_L2TP
@@ -418,7 +418,7 @@ rule RP_L2TP
     strings:
         $a = /l2tpd Version %s Copyright \d+ Roaring Penguin/ ascii
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule samba
@@ -431,7 +431,7 @@ rule samba
 	strings:
 		$a =  /samba-\d+.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule squid
@@ -444,7 +444,7 @@ rule squid
 	strings:
 		$a =  /squid\/\d+.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule strongSwan
@@ -457,7 +457,7 @@ rule strongSwan
 	strings:
 		$a =  /strongSwan \d+.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule telnetd
@@ -470,7 +470,7 @@ rule telnetd
 	strings:
 		$a = /telnetd-V\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule tinyproxy
@@ -483,7 +483,7 @@ rule tinyproxy
 	strings:
 		$a = /(Proxy-agent|Server): tinyproxy\/\d\.\d+\.\d+(pre\d|rc\d|-rc\d)?/ ascii
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule udhcp
@@ -496,7 +496,7 @@ rule udhcp
     strings:
         $a = /udhcp \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule upnp_portable_sdk
@@ -510,7 +510,7 @@ rule upnp_portable_sdk
 	strings:
 		$a = /UPnP\/1.0, Portable SDK for UPnP devices\/\d\.\d\.\d+/
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule vsftpd
@@ -523,7 +523,7 @@ rule vsftpd
     strings:
         $a = /vsftpd: version \d\.\d+(\.\d+)?/ nocase ascii
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule wpa_supplicant
@@ -536,7 +536,7 @@ rule wpa_supplicant
     strings:
         $a = /wpa_supplicant v\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule xl2tpd
@@ -549,7 +549,7 @@ rule xl2tpd
     strings:
         $a = /xl2tpd-\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule zebra
@@ -562,5 +562,5 @@ rule zebra
     strings:
         $a = /Hello, this is zebra \(version 0.\d+.{0,10}\)./ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
