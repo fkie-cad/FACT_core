@@ -7,7 +7,7 @@ rule OS1
 		description = ""
 		no_text_file = true
     strings:
-        $b = ""
+        $b = "OS1"
     condition:
         $b
 }
@@ -21,7 +21,7 @@ rule OS2
 		description = ""
 		no_text_file = true
     strings:
-        $b = ""
+        $b = "OS2"
     condition:
         $b
 }

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from common_helper_yara import compile_rules, get_all_matched_strings, scan
+import yara
+
+from helperFunctions.yara import compile_rules, get_all_matched_strings, scan_file
 
 
 class SignatureTestingMatching:
@@ -14,54 +15,46 @@ class SignatureTestingMatching:
         self.signature_path = None
         self.strings_to_match = None
 
-    def check(self, signature_path: Path, test_file: Path):
+    def check(self, signature_path: Path, test_file: Path) -> set[str]:
         self.test_file = test_file
         self.signature_path = signature_path
         self.strings_to_match = test_file.read_text().strip().split('\n')
         self._execute_yara_matching()
         return set(self.strings_to_match).difference(self.matches)
 
-    def _execute_yara_matching(self):
+    def _execute_yara_matching(self) -> None:
         with TemporaryDirectory(prefix='fact_software_signature_test') as tmp_dir:
             signature_file_path = Path(tmp_dir) / 'test_sig.yc'
             compile_rules(self.signature_path, signature_file_path, external_variables={'test_flag': 'true'})
-            scan_result = scan(signature_file_path, self.test_file, compiled=True)
+            scan_result = scan_file(signature_file_path, self.test_file)
             self.matches = get_all_matched_strings(scan_result)
 
 
 class SignatureTestingMeta:
-    META_FIELDS = ['software_name', 'open_source', 'website', 'description']  # noqa: RUF012
-    missing_meta_fields = []  # noqa: RUF012
+    META_FIELDS = ('software_name', 'open_source', 'website', 'description')
 
-    def check_meta_fields(self, sig_path: Path):
+    def check_meta_fields(self, sig_path: Path) -> tuple[list[str], list[str]]:
+        missing_meta_fields = []
+        rule_errors = []
         for file in sig_path.iterdir():
-            self.check_for_file(file)
-        return self.missing_meta_fields
+            try:
+                missing_meta_fields.extend(self._check_for_file(file))
+            except yara.SyntaxError as error:
+                rule_errors.append(f'error in rule file {file.name}: {error}')
+        return missing_meta_fields, rule_errors
 
-    def check_for_file(self, file_path: Path):
-        rules = self._split_rules(file_path.read_text())
+    def _check_for_file(self, file_path: Path) -> list[str]:
+        missing_meta_fields = []
+        rules = yara.compile(str(file_path))
         for rule in rules:
-            self.check_meta_fields_of_rule(rule)
+            missing_meta_fields.extend(self.check_meta_fields_of_rule(rule))
+        return missing_meta_fields
 
-    @staticmethod
-    def _split_rules(raw_rules: str) -> list[str]:
-        rule_lines = raw_rules.splitlines()
-        rule_start_indices = [i for i in range(len(rule_lines)) if rule_lines[i].startswith('rule ')]
+    def check_meta_fields_of_rule(self, rule: yara.Rule) -> list[str]:
+        if not rule.meta:
+            return [f'ALL in {rule.identifier}']
         return [
-            ''.join(rule_lines[start:end])
-            for start, end in zip(rule_start_indices, rule_start_indices[1:] + [len(rule_lines)])
+            f'{required_field} in {rule.identifier}'
+            for required_field in self.META_FIELDS
+            if required_field not in rule.meta
         ]
-
-    def check_meta_fields_of_rule(self, rule: str):
-        rule_components = [s.strip() for s in rule.split()]
-        rule_name = rule_components[1].replace('{', '')
-        if 'meta:' not in rule_components:
-            self._register_missing_field('ALL', rule_name)
-            return
-        for required_field in self.META_FIELDS:
-            if required_field not in rule_components:
-                self._register_missing_field(required_field, rule_name)
-
-    def _register_missing_field(self, missing_field: str, rule_name: str):
-        self.missing_meta_fields.append(f'{missing_field} in {rule_name}')
-        logging.error(f'CST: No meta field {missing_field} for rule {rule_name}.')

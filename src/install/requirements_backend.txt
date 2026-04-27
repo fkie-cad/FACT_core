@@ -4,6 +4,7 @@ networkx~=3.1
 Pillow~=12.2.0
 pyopenssl~=26.0.0
 pyyaml~=6.0.2
+yara-python~=4.5.4
 
 git+https://github.com/fkie-cad/common_helper_yara.git
 
