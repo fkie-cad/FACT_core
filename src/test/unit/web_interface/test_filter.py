@@ -67,7 +67,16 @@ def test_handle_uids():
     assert result == expected_result, 'output not correct'
 
 
-def check_nice_list_output(input_data):
+@pytest.mark.parametrize(
+    'input_data',
+    [
+        ['a', 'b'],
+        set('ab'),
+        b'ab',
+        'ab',
+    ],
+)
+def test_nice_list(input_data):
     expected = (
         '<ul class="list-group list-group-flush">\n'
         '\t<li class="list-group-item">a</li>\n'
@@ -76,14 +85,6 @@ def check_nice_list_output(input_data):
     )
     result = flt.list_group(input_data)
     assert result == expected, 'output not correct'
-
-
-def test_nice_list_set():
-    check_nice_list_output(set('ab'))
-
-
-def test_nice_list_list():
-    check_nice_list_output(['a', 'b'])
 
 
 def test_list_to_line_break_string():
@@ -189,7 +190,7 @@ def test_byte_number_filter(input_data, verbose, expected):
 
 @pytest.mark.parametrize(
     ('input_data', 'expected'),
-    [(b'abc', b'abc'), (123, '123'), (1234, '1,234'), (1234.1234, '1,234.12'), (None, 'not available')],
+    [(b'abc', "b'abc'"), (123, '123'), (1234, '1,234'), (1234.1234, '1,234.12'), (None, 'not available')],
 )
 def test_nice_number(input_data, expected):
     assert flt.nice_number_filter(input_data) == expected
