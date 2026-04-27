@@ -3,18 +3,14 @@ import logging
 import os
 import stat
 import subprocess
-import tempfile
 from contextlib import suppress
-from importlib.metadata import PackageNotFoundError
-from importlib.metadata import version as get_package_version
 from pathlib import Path
-from shlex import split
 from subprocess import PIPE, STDOUT
 
 import distro
-from compile_yara_signatures import main as compile_signatures
 
 import config
+from compile_yara_signatures import main as compile_signatures
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import (
     InstallationError,
@@ -22,14 +18,13 @@ from helperFunctions.install import (
     apt_install_packages,
     dnf_install_packages,
     install_pip_packages,
-    install_single_pip_package,
     read_package_list_from_file,
 )
+from helperFunctions.yara import compile_plugin_yara_signatures
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_backend.txt'
-YARA_VERSION = 'v4.5.0'
 
 
 def main(skip_docker):
@@ -41,10 +36,6 @@ def main(skip_docker):
         dnf_install_packages(*pkgs)
 
     install_pip_packages(PIP_DEPENDENCIES)
-
-    # install yara
-    _install_yara(YARA_VERSION)
-    _install_yara_python(YARA_VERSION)
 
     _install_checksec()
 
@@ -59,15 +50,11 @@ def main(skip_docker):
 
     # compiling yara signatures
     compile_signatures()
-    yarac_process = subprocess.run(
-        'yarac -d test_flag=false ../test/unit/analysis/test.yara ../analysis/signatures/Yara_Base_Plugin.yc',
-        shell=True,
-        capture_output=True,
-        text=True,
-        check=False,
+    # compile yara test signatures
+    compile_plugin_yara_signatures(
+        Path(__file__).parent.parent / 'test/unit/analysis/test.yara',
+        Path(__file__).parent.parent / 'analysis/signatures',
     )
-    if yarac_process.returncode != 0:
-        raise InstallationError('Failed to compile yara test signatures')
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
@@ -132,73 +119,6 @@ def _install_plugins(skip_docker, only_docker=False):
             with OperateInDirectory(plugin_installer.base_path):
                 plugin_installer.install_docker_images()
         logging.info(f'Finished installing {plugin_name} plugin.\n')
-
-
-def _install_yara(yara_version: str):
-    yara_process = subprocess.run('yara --version', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
-    if yara_process.returncode == 0 and yara_process.stdout.strip() == yara_version.strip('v'):
-        logging.info('Skipping yara installation: Already installed and up to date')
-        return
-
-    logging.info(f'Installing yara {yara_version}')
-    archive = f'{yara_version}.zip'
-    download_url = f'https://github.com/VirusTotal/yara/archive/refs/tags/{archive}'
-    wget_process = subprocess.run(
-        f'wget {download_url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
-    )
-    if wget_process.returncode != 0:
-        raise InstallationError(f'Error on yara download.\n{wget_process.stdout}')
-    unzip_process = subprocess.run(f'unzip {archive}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
-    Path(archive).unlink()
-    if unzip_process.returncode != 0:
-        raise InstallationError(f'Error on yara extraction.\n{unzip_process.stdout}')
-    yara_folder = [p for p in Path().iterdir() if p.name.startswith('yara-')][0]
-    with OperateInDirectory(yara_folder.name, remove=True):
-        Path('bootstrap.sh').chmod(0o775)
-        for command in ['./bootstrap.sh', './configure --enable-magic', 'make -j$(nproc)', 'sudo make install']:
-            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
-            if cmd_process.returncode != 0:
-                raise InstallationError(f'Error in yara installation.\n{cmd_process.stdout}')
-
-
-def _install_yara_python(version: str = YARA_VERSION):
-    """
-    yara-python must be installed from source, because the pre-built version from PyPI is missing the magic module
-    """
-    if _yara_python_is_up_to_date(version):
-        logging.info(f'Skipping yara-python {version} installation (reason: already installed)')
-        return
-
-    logging.info(f'Installing yara-python {version}')
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        file = f'{version}.tar.gz'
-        url = f'https://github.com/VirusTotal/yara-python/archive/refs/tags/{file}'
-        with OperateInDirectory(tmp_dir):
-            wget_process = subprocess.run(split(f'wget "{url}"'), capture_output=True, text=True, check=False)
-            if wget_process.returncode != 0:
-                raise InstallationError(f'Error downloading yara-python: {wget_process.stdout}')
-            subprocess.run(split(f'tar xf {file}'), capture_output=True, text=True, check=True)
-            Path(file).unlink()
-        output_paths = [p for p in Path(tmp_dir).iterdir() if p.name.startswith('yara-python')]
-        if len(output_paths) != 1:
-            raise InstallationError('Extracting yara-python failed.')
-        with OperateInDirectory(output_paths[0]):
-            try:
-                subprocess.run(split('pip uninstall -y yara-python'), capture_output=True, text=True, check=False)
-                subprocess.run(
-                    split('python setup.py build --dynamic-linking'), capture_output=True, text=True, check=True
-                )
-                install_single_pip_package('.')
-            except subprocess.CalledProcessError as error:
-                raise InstallationError('Error during yara-python installation') from error
-
-
-def _yara_python_is_up_to_date(version: str = YARA_VERSION) -> bool:
-    try:
-        installed_version = get_package_version('yara-python')
-        return installed_version == version.lstrip('v')
-    except PackageNotFoundError:
-        return False
 
 
 def _install_checksec():
