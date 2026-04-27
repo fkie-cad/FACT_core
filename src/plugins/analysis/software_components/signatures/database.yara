@@ -7,10 +7,11 @@
 		description = "a small fast SQL database engine"
 		format_string = true
 		version_regex = "\\d\\.\\d+\\.\\d+\\.?\\d?"
+		no_text_file = true
 	strings:
 		$a = "SQLite version %s" ascii
 		$b = /SQLite version \d\.\d+\.\d+(\.\d)?/ ascii
 		$c = /libsqlite3\-\d\.\d+\.\d+(\.\d)?\.so/ ascii
 	condition:
-		($a or $b or $c) and no_text_file
+		$a or $b or $c
 }
