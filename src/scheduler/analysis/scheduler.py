@@ -26,7 +26,7 @@ from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_view_sync import ViewUpdater
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 
 from .plugin import PluginRunner, Worker
 
@@ -120,7 +120,7 @@ class AnalysisScheduler:
         self.schedule_processes = []
         self.result_collector_processes = []
 
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
         self.db_backend_service = db_interface if db_interface else BackendDbInterface()
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
 
@@ -377,7 +377,7 @@ class AnalysisScheduler:
     def _set_binary(self, file_object: FileObject):
         # the file_object.binary may be missing in case of an update
         if file_object.file_path is None:
-            file_object.file_path = self.fs_organizer.generate_path(file_object)
+            file_object.file_path = self.file_service.generate_path(file_object)
         file_object.create_binary_from_path()
 
     # ---- 1. Is forced update ----
