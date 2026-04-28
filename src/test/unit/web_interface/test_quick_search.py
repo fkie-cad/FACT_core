@@ -55,6 +55,11 @@ class TestAppQuickSearch:
     def test_quick_search_sha256(self, test_client):
         assert TEST_FW_2.uid in _start_quick_search(test_client, TEST_FW_2.sha256)
 
+    def test_quick_search_uid(self, test_client):
+        response = _start_quick_search(test_client, TEST_FW_2.uid)
+        assert TEST_FW_2.uid in response
+        assert 'Analysis Results' in response  # this should lead directly to the analysis page
+
     def test_quick_search_tags(self, test_client):
         assert TEST_FW_2.uid in _start_quick_search(test_client, list(TEST_FW_2.tags)[0])
 
