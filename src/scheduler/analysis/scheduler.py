@@ -237,9 +237,17 @@ class AnalysisScheduler:
             except (AttributeError, KeyError):
                 process_count = config.backend.plugin_defaults.processes
 
+            # if a timeout value is set in the plugin's configuration use that. If not, use the value from the plugin
+            # defaults. If that is not set either, use the value from the plugin's metadata
+            plugin_timeout = (
+                getattr(config.backend.plugin.get(plugin.metadata.name, {}), 'timeout', None)
+                or getattr(config.backend.plugin_defaults, 'timeout', None)
+                or plugin.metadata.timeout
+            )
+            logging.debug(f'Plugin {plugin.metadata.name} uses timeout {plugin_timeout} seconds.')
             runner_config = PluginRunner.Config(
                 process_count=process_count,
-                timeout=plugin.metadata.timeout,
+                timeout=plugin_timeout,
             )
             runner = PluginRunner(plugin, runner_config, schemata)
             self._plugin_runners[plugin.metadata.name] = runner
