@@ -136,6 +136,7 @@ class Backend(Common):
 
     class PluginDefaults(BaseModel):
         processes: int
+        timeout: int | float | None = None
 
     class Plugin(BaseModel):
         model_config = ConfigDict(extra='allow')
