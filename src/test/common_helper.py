@@ -8,6 +8,7 @@ from http import HTTPStatus
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
+import config
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -300,6 +301,7 @@ def setup_test_tables(db_setup):
 
 
 def clear_test_tables(db_setup):
+    assert db_setup.connection.database == config.common.postgres.test_database
     db_setup.connection.base.metadata.drop_all(db_setup.connection.engine)
 
 
