@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from semver import Version
 
@@ -12,6 +12,8 @@ from ..internal.schema import DeviceTree, IllegalDeviceTreeError, Schema
 
 if TYPE_CHECKING:
     import io
+
+    from pydantic import BaseModel
 
 
 class AnalysisPlugin(AnalysisPluginV0):
@@ -39,7 +41,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         self,
         file_handle: io.FileIO,
         virtual_file_path: dict,
-        analyses: Dict[str, dict],
+        analyses: dict[str, BaseModel],
     ) -> Schema:
         del virtual_file_path, analyses
 

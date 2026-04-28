@@ -1,6 +1,9 @@
-class TagColor:
+from enum import Enum
+
+
+class TagColor(str, Enum):
     """
-    A class containing the different colors the tags may have. `TagColor.ALL` contains a list of all colors.
+    A class containing the different colors the tags may have.
     """
 
     GRAY = 'secondary'
@@ -11,4 +14,6 @@ class TagColor:
     RED = 'danger'
     LIGHT = 'light'
     DARK = 'dark'
-    ALL = [GRAY, BLUE, GREEN, LIGHT_BLUE, ORANGE, RED, LIGHT, DARK]  # noqa: RUF012
+
+    def __str__(self) -> str:
+        return self.value
