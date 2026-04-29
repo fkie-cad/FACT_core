@@ -5,10 +5,11 @@ rule VxWorks
 		open_source = false
 		website = "http://www.windriver.com/products/vxworks/"
 		description = "Real Time Operating System by WindRiver"
+		no_text_file = true
     strings:
         $b = /VxWorks[ -]?\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $b and no_text_file
+        $b
 }
 
 rule WindRiverLinux
@@ -18,10 +19,11 @@ rule WindRiverLinux
 		open_source = false
 		website = "http://windriver.com/products/linux/"
 		description = "Operating system for embedded devices based on Linux"
+		no_text_file = true
     strings:
         $b = /wrlinux-\d+\.\d+/ nocase ascii wide
     condition:
-        $b and no_text_file
+        $b
 }
 
 rule LynxOS
@@ -31,10 +33,11 @@ rule LynxOS
 		open_source = false
 		website = "http://www.lynx.com/products/real-time-operating-systems/lynxos-rtos/"
 		description = "Operating system for embedded devices"
+		no_text_file = true
     strings:
         $b = /LynxOS \d+\.\d+/ nocase ascii wide
     condition:
-        $b and no_text_file
+        $b
 }
 
 rule OpenWrt
@@ -44,10 +47,11 @@ rule OpenWrt
 		open_source = true
 		website = "https://openwrt.org/"
 		description = "Linux based operating system for home routers"
+		no_text_file = true
     strings:
         $b = /([a-zA-Z]+ )?OpenWrt Linux-\d+.\d+\.\d+/ nocase ascii wide
     condition:
-        $b and no_text_file
+        $b
 }
 
 rule FireOS
@@ -57,10 +61,11 @@ rule FireOS
 		open_source = true
 		website = "https://developer.amazon.com/android-fireos"
 		description = "Linux (Android) based operating system used on Amazon devices"
+		no_text_file = true
 	strings:
 		$a = /ro.build.version.name=Fire OS \d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule LinuxKernel
@@ -70,11 +75,12 @@ rule LinuxKernel
 		open_source = true
 		website = "http://www.kernel.org"
 		description = "The Linux Kernel"
+		no_text_file = true
     strings:
 		$safe_condition = /Linux version \d\.\d{1,2}\.\d{1,3}(-[\d\w.-]+)?/ nocase ascii wide
 
 	condition:
-		$safe_condition and no_text_file
+		$safe_condition
 
 /* tmporarly removed due to too many false positives */
 /*
@@ -93,11 +99,12 @@ rule CiscoIOS
 		open_source = false
 		website = "https://www.cisco.com/c/en/us/products/ios-nx-os-software/ios-technologies/index.html"
 		description = "Cisco Internetwork Operating System"
+		no_text_file = true
 	strings:
 		$a = "CW_SYSDESCR$Cisco IOS Software"
 		$b = /Cisco IOS Software,[A-Za-z0-9 .()-]+, Version [^,]+,/ ascii
 	condition:
-		($a or $b) and no_text_file
+		$a or $b
 }
 
 rule ThreadX
@@ -107,10 +114,11 @@ rule ThreadX
 		open_source = false
 		website = "https://rtos.com/solutions/threadx/real-time-operating-system/"
 		description = "Real Time Operating System"
+		no_text_file = true
 	strings:
 		$a = /ThreadX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule MicroC_OS {
@@ -119,13 +127,14 @@ rule MicroC_OS {
 		open_source = false
 		website = "https://www.micrium.com/rtos/"
 		description = "Real Time Operating System by Micrium"
+		no_text_file = true
 
     strings:
         $a = /Micrium ?OS/ nocase
         $b = /(\xc2\xb5|u|micro)c\/os-?[i]{0,3}/ nocase
 
     condition:
-        ($a or $b) and no_text_file
+        $a or $b
 }
 
 rule Contiki
@@ -135,10 +144,11 @@ rule Contiki
 		open_source = true
 		website = "http://www.contiki-os.org/"
 		description = "Real Time Operating System"
+		no_text_file = true
 	strings:
 		$a = /Contiki\/\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule eCos
@@ -149,8 +159,9 @@ rule eCos
 		website = "https://www.ecoscentric.com"
 		description = "Real Time Operating System"
 		format_string = true
+		no_text_file = true
 	strings:
 		$a = "eCos Release: %d.%d.%d" nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }

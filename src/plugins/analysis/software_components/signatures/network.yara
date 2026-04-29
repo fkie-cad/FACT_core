@@ -5,10 +5,11 @@ rule avahi
 		open_source = true
 		website = "http://www.avahi.org/"
 		description = "Avahi is a system which facilitates service discovery on a local network via the mDNS/DNS-SD protocol suite."
+		no_text_file = true
     strings:
         $a = /avahi-\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule Bftpd
@@ -18,10 +19,11 @@ rule Bftpd
 		open_source = true
 		website = "http://bftpd.sourceforge.net/"
 		description = "FTP Server"
+		no_text_file = true
     strings:
         $a = /bftpd-V\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule cadaver
@@ -31,10 +33,11 @@ rule cadaver
 		open_source = true
 		website = "http://www.webdav.org/cadaver/"
 		description = "WebDAV client"
+		no_text_file = true
     strings:
         $a = /cadaver \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule CUPS
@@ -44,11 +47,12 @@ rule CUPS
 		open_source = true
 		website = "http://www.cups.org/"
 		description = "Print server"
+		no_text_file = true
     strings:
         $a = /CUPS v\d+\.\d+\.\d+/ nocase ascii wide
         $b = /cups-\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        any of them and no_text_file
+        any of them
 }
 
 rule curl
@@ -58,10 +62,11 @@ rule curl
 		open_source = true
 		website = "https://curl.haxx.se/"
 		description = "command line network client"
+		no_text_file = true
     strings:
         $a = /curl\/\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule dhcp6c
@@ -71,10 +76,11 @@ rule dhcp6c
 		open_source = true
 		website = "https://fedorahosted.org/dhcpv6/"
 		description = "DHCP Client Daemon for IPv6"
+		no_text_file = true
     strings:
         $a = /dhcp6c-V\d+\.\d+/ nocase ascii wide
     condition:
-    	$a and no_text_file
+    	$a
 }
 
 
@@ -85,10 +91,11 @@ rule dhcp6s
 		open_source = true
 		website = "https://fedorahosted.org/dhcpv6/"
 		description = "DHCP Server Daemon for IPv6"
+		no_text_file = true
     strings:
         $a = /dhcp6s-V\d+\.\d+/ nocase ascii wide
     condition:
-    	$a and no_text_file
+    	$a
 }
 
 rule dnsmasq
@@ -99,12 +106,13 @@ rule dnsmasq
 		website = "http://www.thekelleys.org.uk/dnsmasq/doc.html"
 		description = "DNS and DHCP Server"
 		format_string = true
+		no_text_file = true
 	strings:
 		$a = /dnsmasq-\d+\.\d+/ nocase ascii wide
 		$b = "dnsmasq-%s"
 		$c = "dnsmasq version %s"
 	condition:
-		($a or $b or $c) and no_text_file
+		$a or $b or $c
 }
 
 rule Dropbear {
@@ -114,6 +122,7 @@ rule Dropbear {
 		website = "https://matt.ucc.asn.au/dropbear/dropbear.html"
 		description = "SSH Server and Client"
 		format_string = true
+		no_text_file = true
     strings:
         $a = /dropbear_\d+\.\d+/ nocase ascii
         $b = "Dropbear SSH client v%s" ascii
@@ -121,7 +130,7 @@ rule Dropbear {
         $d = "Dropbear v%s" ascii
         $e = "Dropbear server v%s" ascii
     condition:
-        any of them and no_text_file
+        any of them
 }
 
 rule FRRouting
@@ -131,10 +140,11 @@ rule FRRouting
 		open_source = true
 		website = "https://frrouting.org/"
 		description = "A free and open source Internet routing protocol suite"
+		no_text_file = true
     strings:
         $a = /FRRouting \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule hostapd
@@ -144,10 +154,11 @@ rule hostapd
 		open_source = true
 		website = "https://w1.fi/hostapd/"
 		description = "hostapd is a user space daemon for access point and authentication servers."
+		no_text_file = true
     strings:
         $a = /hostapd v\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule iptables
@@ -157,10 +168,11 @@ rule iptables
 		open_source = true
 		website = "http://www.netfilter.org/projects/iptables/index.html"
 		description = "iptables is the userspace command line program used to configure the Linux 2.4.x and later packet filtering ruleset."
+		no_text_file = true
     strings:
         $a = /iptables-\d+\.\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule l2tpd
@@ -170,10 +182,11 @@ rule l2tpd
 		open_source = true
 		website = "http://l2tpd.sourceforge.net/"
 		description = "the original Layer 2 Tunnelling Protocol Daemon"
+		no_text_file = true
     strings:
         $a = /l2tpd version 0.\d+/ ascii
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule libpcap
@@ -183,10 +196,11 @@ rule libpcap
 		open_source = true
 		website = "http://www.tcpdump.org/"
 		description = "Library for network traffic capturing"
+		no_text_file = true
 	strings:
 		$a = /libpcap version \d+\.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule libupnp
@@ -196,10 +210,11 @@ rule libupnp
 		open_source = true
 		website = "http://pupnp.sourceforge.net"
 		description = "Portable upnp library"
+		no_text_file = true
 	strings:
 		$a = /libupnp-\d+\.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule MiniUPnP
@@ -209,10 +224,11 @@ rule MiniUPnP
 		open_source = true
 		website = "http://miniupnp.free.fr/"
 		description = "UPnP Software"
+		no_text_file = true
 	strings:
 		$a = /MiniUPNP \d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule netatalk
@@ -222,10 +238,11 @@ rule netatalk
 		open_source = true
 		website = "http://netatalk.sourceforge.net/"
 		description = "AFP fileserver"
+		no_text_file = true
 	strings:
 		$a =  /netatalk-\d+.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule NicheStack
@@ -235,10 +252,11 @@ rule NicheStack
 		open_source = false
 		website = "http://www.iniche.com/source-code/networking-stack/nichestack.php"
 		description = "embedded TCP/IP stack from InterNiche"
+		no_text_file = true
     strings:
         $a = /InterNiche Portable TCP\/IP[a-zA-Z ]{,30}, v\d(\.\d)?/
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule netcat_traditional
@@ -248,11 +266,12 @@ rule netcat_traditional
 		open_source = true
 		website = "https://nc110.sourceforge.io/"
 		description = "TCP/IP swiss army knife"
+		no_text_file = true
     strings:
         $a = "nc -h for help"
         $b = /\[v1.\d+-?\d*\.?\d*]/
     condition:
-        $a and $b and no_text_file
+        $a and $b
 }
 
 rule NTP
@@ -262,11 +281,12 @@ rule NTP
 		open_source = true
 		website = "http://www.ntp.org/"
 		description = "NTP is a protocol designed to synchronize the clocks of computers over a network"
+		no_text_file = true
     strings:
         $a = /NTP daemon program - Ver. \d+\.\d+\.\d+p?\d*/
         $b = /ntpd \d+.\d+.\d+p?\d*/
     condition:
-        ($a or $b) and no_text_file
+        $a or $b
 }
 
 rule OpenSSH
@@ -276,10 +296,11 @@ rule OpenSSH
 		open_source = true
 		website = "http://www.openssh.com"
 		description = "SSH library"
+		no_text_file = true
     strings:
         $a = /OpenSSH(_\d+\.\d+(\.\d)?(p\d)?[ \x00])?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule OpenVPN
@@ -303,13 +324,14 @@ rule pppd_format_string
 		website = "https://ppp.samba.org/"
 		description = "ppp (Paul's PPP Package) is an open source package which implements the Point-to-Point Protocol (PPP) on Linux and Solaris systems."
 		format_string = true
+		no_text_file = true
     strings:
         $a = "pppd %s started by %s, uid %d"
         $b = "pppd version %s"
         $c = "pppd: %s %d"
         $d = "See pppd(8) for more options."
     condition:
-        ($a or $b or $c) and $d and no_text_file
+        ($a or $b or $c) and $d
 }
 
 rule pptpClient
@@ -319,10 +341,11 @@ rule pptpClient
 		open_source = true
 		website = "http://pptpclient.sourceforge.net/"
 		description = "PPTP Client is a Linux, FreeBSD, NetBSD and OpenBSD client for the proprietary Microsoft Point-to-Point Tunneling Protocol, PPTP."
+		no_text_file = true
     strings:
         $a = /pptp version \d+\.\d+\.\d/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule ProFTPD
@@ -332,10 +355,11 @@ rule ProFTPD
 		open_source = true
 		website = "http://www.proftpd.org/"
 		description = "Highly configurable FTP Server"
+		no_text_file = true
     strings:
         $a = /ProFTPD \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule Pure_FTPd
@@ -345,10 +369,11 @@ rule Pure_FTPd
 		open_source = true
 		website = "https://www.pureftpd.org/"
 		description = "free (BSD), secure, production-quality and standard-conformant FTP server"
+		no_text_file = true
     strings:
         $a = /pure-ftpd v\d\.\d+\.\d+(\-\d)?/ ascii
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule Quagga
@@ -358,10 +383,11 @@ rule Quagga
 		open_source = true
 		website = "https://www.quagga.net/"
 		description = "network routing software suite (fork of Zebra)"
+		no_text_file = true
     strings:
         $a = /Hello, this is Quagga \(version .+\)./ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule radvd
@@ -371,10 +397,11 @@ rule radvd
 		open_source = true
 		website = "http://www.litech.org/radvd/"
 		description = "IPv6 Router Advertisement Daemon"
+		no_text_file = true
 	strings:
 		$a = /radvd-\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule radvd_format_string
@@ -385,12 +412,13 @@ rule radvd_format_string
 		website = "http://www.litech.org/radvd/"
 		description = "IPv6 Router Advertisement Daemon"
 		format_string = true
+		no_text_file = true
 	strings:
 	    $a = "radvd already running, terminating."
         $b = "version %s started"
         $c = "Version: %s"
 	condition:
-        $a and ($b or $c) and no_text_file
+        $a and ($b or $c)
 }
 
 rule readymedia
@@ -400,10 +428,11 @@ rule readymedia
 		open_source = true
 		website = "http://sourceforge.net/projects/minidlna/"
 		description = "ReadyMedia is a simple media server software"
+		no_text_file = true
 	strings:
 		$a = /ReadyDLNA \d+\.\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule RP_L2TP
@@ -415,10 +444,11 @@ rule RP_L2TP
 		description = "user-space implementation of L2TP for Linux and other UNIX systems"
 		format_string = true
 		version_regex = "0\\.\\d"
+		no_text_file = true
     strings:
         $a = /l2tpd Version %s Copyright \d+ Roaring Penguin/ ascii
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule samba
@@ -428,10 +458,11 @@ rule samba
 		open_source = true
 		website = "https://www.samba.org/"
 		description = "Samba is the standard Windows interoperability suite of programs for Linux and Unix."
+		no_text_file = true
 	strings:
 		$a =  /samba-\d+.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule squid
@@ -441,10 +472,11 @@ rule squid
 		open_source = true
 		website = "http://www.squid-cache.org/"
 		description = "Squid is a full-featured HTTP proxy cache"
+		no_text_file = true
 	strings:
 		$a =  /squid\/\d+.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule strongSwan
@@ -454,10 +486,11 @@ rule strongSwan
 		open_source = true
 		website = "https://www.strongswan.org/"
 		description = "OpenSource IPsec-based VPN Solution"
+		no_text_file = true
 	strings:
 		$a =  /strongSwan \d+.\d+.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule telnetd
@@ -467,10 +500,11 @@ rule telnetd
 		open_source = true
 		website = "https://www.gnu.org/software/inetutils/"
 		description = "DARPA TELNET protocol server (part of GNU network utilities)"
+		no_text_file = true
 	strings:
 		$a = /telnetd-V\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule tinyproxy
@@ -480,10 +514,11 @@ rule tinyproxy
 		open_source = true
 		website = "http://tinyproxy.github.io/"
 		description = "lightweight http(s) proxy daemon"
+		no_text_file = true
 	strings:
 		$a = /(Proxy-agent|Server): tinyproxy\/\d\.\d+\.\d+(pre\d|rc\d|-rc\d)?/ ascii
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule udhcp
@@ -493,10 +528,11 @@ rule udhcp
 		open_source = true
 		website = "https://busybox.net/"
 		description = "udhcp is a lightweight dhcp server/client. It is part of Busybox by now."
+		no_text_file = true
     strings:
         $a = /udhcp \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule upnp_portable_sdk
@@ -507,10 +543,11 @@ rule upnp_portable_sdk
 		website = "https://pupnp.sourceforge.io"
 		description = "Portable UPnP library"
 		version_regex = "\\d\\.\\d\\.\\d+"
+		no_text_file = true
 	strings:
 		$a = /UPnP\/1.0, Portable SDK for UPnP devices\/\d\.\d\.\d+/
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule vsftpd
@@ -520,10 +557,11 @@ rule vsftpd
 		open_source = true
 		website = "https://security.appspot.com/vsftpd.html"
 		description = "very secure FTP server for UNIX systems"
+		no_text_file = true
     strings:
         $a = /vsftpd: version \d\.\d+(\.\d+)?/ nocase ascii
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule wpa_supplicant
@@ -533,10 +571,11 @@ rule wpa_supplicant
 		open_source = true
 		website = "https://w1.fi/wpa_supplicant/"
 		description = "wpa_supplicant is a WPA Supplicant for Linux and other OSes with support for WPA and WPA2."
+		no_text_file = true
     strings:
         $a = /wpa_supplicant v\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule xl2tpd
@@ -546,10 +585,11 @@ rule xl2tpd
 		open_source = false
 		website = "https://www.xelerance.com/services/software/xl2tpd/"
 		description = "Layer 2 Tunneling Protocol (L2TP) daemon"
+		no_text_file = true
     strings:
         $a = /xl2tpd-\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule zebra
@@ -559,8 +599,9 @@ rule zebra
 		open_source = true
 		website = "https://www.gnu.org/software/zebra/"
 		description = "multi-server routing software which provides TCP/IP based routing protocols"
+		no_text_file = true
     strings:
         $a = /Hello, this is zebra \(version 0.\d+.{0,10}\)./ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }

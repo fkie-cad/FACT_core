@@ -5,10 +5,11 @@ rule OS1
 		open_source = false
 		website = ""
 		description = ""
+		no_text_file = true
     strings:
-        $b = ""
+        $b = "OS1"
     condition:
-        $b and no_text_file
+        $b
 }
 
 rule OS2
@@ -18,8 +19,9 @@ rule OS2
 		open_source = false
 		website = ""
 		description = ""
+		no_text_file = true
     strings:
-        $b = ""
+        $b = "OS2"
     condition:
-        $b and no_text_file
+        $b
 }

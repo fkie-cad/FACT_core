@@ -4,10 +4,11 @@ rule lighttpd {
 		open_source = true
 		website = "https://www.lighttpd.net/"
 		description = "Lighttpd is a web-server optimized for low memory and cpu usage."
+		no_text_file = true
 	strings:
 		$a = /lighttpd[-\/]\d+\.\d+\.\d+/ ascii
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule GoAhead
@@ -17,10 +18,11 @@ rule GoAhead
 		open_source = true
 		website = "http://embedthis.com/goahead/"
 		description = "Web-Server"
+		no_text_file = true
 	strings:
 		$a = /GoAhead-Webs/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule mini_httpd
@@ -30,10 +32,11 @@ rule mini_httpd
 		open_source = true
 		website = "https://acme.com"
 		description = "small HTTP server"
+		no_text_file = true
 	strings:
 		$a = /mini_httpd\/\d\.\d+ \d{2}[a-z]{3}\d{4}/ ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule nginx
@@ -43,10 +46,11 @@ rule nginx
 		open_source = true
 		website = "https://www.nginx.com/"
 		description = "Web-Server"
+		no_text_file = true
 	strings:
 		$a = /nginx version: nginx\/\d+\.\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule eCosWebServer
@@ -57,9 +61,10 @@ rule eCosWebServer
 		website = "https://www.ecoscentric.com"
 		description = "Web-Server"
 		format_string = true
+		no_text_file = true
 	strings:
 		$a = "eCos Embedded Web Server" nocase ascii wide
 		$b = "Server: %s" nocase ascii wide
 	condition:
-		$a and $b and no_text_file
+		$a and $b
 }

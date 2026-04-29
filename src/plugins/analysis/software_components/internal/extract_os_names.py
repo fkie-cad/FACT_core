@@ -1,39 +1,28 @@
 from __future__ import annotations
 
 import json
-import os
-from contextlib import suppress
+from pathlib import Path
 
-from common_helper_files import get_string_list_from_file, write_binary_to_file
+import yara
 
-SIGNATURE_PATH = '../signatures/os.yara'
-TARGET_PATH = '../bin/__init__.py'
-
-
-def get_software_names(yara_file_path):
-    scanned_software = []
-
-    for line in get_string_list_from_file(yara_file_path):
-        line = line.strip()  # noqa: PLW2901
-        parts_of_line = line.split('=')
-        if parts_of_line[0].strip() == 'software_name':
-            software_name = parts_of_line[1].strip()
-            software_name = software_name.replace('"', '')
-            scanned_software.append(software_name)
-
-    return scanned_software
+SIGNATURE_PATH = Path(__file__).parent.parent / 'signatures/os.yara'
+TARGET_PATH = Path(__file__).parent.parent / 'bin/__init__.py'
 
 
-def extract_names(yara_file_path=SIGNATURE_PATH, target_path=TARGET_PATH):
-    stashed_directory = os.getcwd()  # noqa: PTH109
-    os.chdir(os.path.dirname(__file__))  # noqa: PTH120
+def get_software_names(yara_file_path: Path) -> list[str]:
+    rules = yara.compile(str(yara_file_path))
+    software_names = []
+    for rule in rules:
+        if not rule.meta:
+            continue
+        if software_name := rule.meta.get('software_name'):
+            software_names.append(software_name)
+    return software_names
 
+
+def extract_names(yara_file_path: Path = SIGNATURE_PATH, target_path: Path = TARGET_PATH) -> None:
     software_names = get_software_names(yara_file_path)
+    target_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with suppress(FileExistsError):
-        os.mkdir(os.path.dirname(target_path))  # noqa: PTH102, PTH120
-
-    binary_string = f'OS_LIST = {json.dumps(software_names)}\n'
-    write_binary_to_file(file_binary=binary_string.encode(), file_path=target_path, overwrite=True)
-
-    os.chdir(stashed_directory)
+    os_list = f'OS_LIST = {json.dumps(software_names)}\n'
+    target_path.write_text(os_list)

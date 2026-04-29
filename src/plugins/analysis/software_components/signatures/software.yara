@@ -22,10 +22,11 @@ rule Bash
 		open_source = true
 		website = "https://www.gnu.org/software/bash/"
 		description = "Linux Shell"
+		no_text_file = true
 	strings:
 		$a = /Bash version \d+\.\d+(.\d+)?/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule BusyBox
@@ -35,10 +36,11 @@ rule BusyBox
 		open_source = true
 		website = "http://www.busybox.net/"
 		description = "BusyBox combines tiny versions of many common UNIX utilities into a single small executable."
+		no_text_file = true
 	strings:
 		$a = /BusyBox v\d+\.\d+(.\d+)?/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule jQuery
@@ -61,11 +63,12 @@ rule Perl
 		open_source = true
 		website = "https://www.perl.org/"
 		description = "Perl scripting language interpreter"
+		no_text_file = true
 	strings:
 		$a = "This is perl"
 		$b = /perl\d?\/\d\.\d+\.\d+/ ascii
 	condition:
-		$a and $b and no_text_file
+		$a and $b
 }
 
 rule PHP
@@ -75,11 +78,12 @@ rule PHP
 		open_source = true
 		website = "https://www.php.net/"
 		description = "PHP scripting language interpreter"
+		no_text_file = true
 	strings:
 		$a = "PHP %s (%s) (built: %s %s)"
 		$b = /X-Powered-By: PHP\/\d+\.\d+\.\d+/ ascii
 	condition:
-		($a or $b) and no_text_file
+		$a or $b
 }
 
 rule Realtek_SDK
@@ -89,10 +93,11 @@ rule Realtek_SDK
 		open_source = false
 		website = "http://www.realtek.com.tw"
 		description = "Realtek IoT Software Development Kit"
+		no_text_file = true
 	strings:
 		$a = "MiniIGD %s (%s)."
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule redis
@@ -103,11 +108,12 @@ rule redis
 		website = "https://redis.io/"
 		description = "Redis is an open source in-memory data structure store"
 		format_string = true
+		no_text_file = true
     strings:
         $a = "redis_version:%s"
         $b = "Redis version=%s"
         $c = "Redis needs to enable the AOF"
     condition:
-        ($a or $b) and $c and no_text_file
+        ($a or $b) and $c
 }
 
