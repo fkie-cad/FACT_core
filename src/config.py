@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import toml
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -52,19 +51,19 @@ class Common(BaseModel):
         test_db: int
         host: str
         port: int
-        password: Optional[str] = None
+        password: str | None = None
 
     class Logging(BaseModel):
         model_config = ConfigDict(extra='forbid')
 
-        file_backend: str = '/tmp/fact_backend.log'
-        file_frontend: str = '/tmp/fact_frontend.log'
-        file_database: str = '/tmp/fact_database.log'
+        file_backend: str = '/tmp/fact_backend.log'  # noqa: S108
+        file_frontend: str = '/tmp/fact_frontend.log'  # noqa: S108
+        file_database: str = '/tmp/fact_database.log'  # noqa: S108
         level: str = 'WARNING'
 
         @field_validator('level')
         @classmethod
-        def _validate_level(cls, value):
+        def _validate_level(cls, value: str) -> str:
             if isinstance(logging.getLevelName(value), str):
                 raise ValueError(f'The "loglevel" {value} is not a valid loglevel.')
 
@@ -74,15 +73,15 @@ class Common(BaseModel):
         model_config = ConfigDict(extra='forbid')
 
         name: str
-        plugins: List[str]
+        plugins: list[str]
 
     postgres: Common.Postgres
     redis: Common.Redis
     logging: Common.Logging
 
-    analysis_preset: Dict[str, Common.AnalysisPreset]
+    analysis_preset: dict[str, Common.AnalysisPreset]
 
-    temp_dir_path: str = '/tmp'
+    temp_dir_path: str = '/tmp'  # noqa: S108
     docker_mount_base_dir: str
 
 
@@ -160,17 +159,17 @@ class Backend(Common):
     throw_exceptions: bool
 
     plugin_defaults: Backend.PluginDefaults
-    plugin: Dict[str, Backend.Plugin]
+    plugin: dict[str, Backend.Plugin]
 
     @field_validator('temp_dir_path')
     @classmethod
-    def _validate_temp_dir_path(cls, value):
+    def _validate_temp_dir_path(cls, value: str) -> str:
         if not Path(value).exists():
             raise ValueError('The "temp-dir-path" does not exist.')
         return value
 
 
-def load(path: str | Path | None = None):
+def load(path: str | Path | None = None) -> None:
     """Load the config file located at ``path``.
     The file must be a toml file and is read into instances of :py:class:`~config.Backend`,
     :py:class:`~config.Frontend` and :py:class:`~config.Common`.
@@ -233,7 +232,7 @@ def load(path: str | Path | None = None):
         _frontend = Frontend(**frontend_dict, **common_dict)
 
 
-def _replace_hyphens_with_underscores(dictionary):
+def _replace_hyphens_with_underscores(dictionary: dict) -> None:
     if not isinstance(dictionary, dict):
         return
 
