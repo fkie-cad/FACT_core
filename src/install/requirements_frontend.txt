@@ -29,3 +29,6 @@ bleach~=6.2.0
 
 # Figuring out if the analysis is outdated
 semver~=3.0.4
+
+# jinja filters
+bitmath~=2.0.0
