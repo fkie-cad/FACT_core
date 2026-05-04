@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 import logging
+import multiprocessing
 from pathlib import Path
 
 import toml
 from pydantic import BaseModel, ConfigDict, field_validator
 from werkzeug.local import LocalProxy
+
+# Python 3.14 uses forkserver as default (see https://docs.python.org/3.14/library/multiprocessing.html#multiprocessing-programming-forkserver)
+# which is not compatible at the moment (because of stricter pickling)
+# FixMe: make FACT compatible to forkserver
+multiprocessing.set_start_method('fork', force=True)
 
 _backend = None
 #: Proxy to an instance of :py:class:`Backend`

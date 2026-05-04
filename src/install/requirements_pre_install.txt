@@ -6,7 +6,7 @@ packaging~=24.2
 python-magic==0.4.27
 requests==2.33.0
 # Needed by config.py
-pydantic==2.10.6
+pydantic==2.13.3
 werkzeug~=3.1.5
 toml==0.10.2
 # needed during installation of cve_lookup plugin

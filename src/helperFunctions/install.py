@@ -233,7 +233,7 @@ def check_distribution(allow_unsupported=False):
         distro_data.get('debian_codename', distro_data.get('codename', distro_data.get('version_codename', ''))),
     ).lower()
     logging.debug(f'found distribution: {distro_data["pretty_name"]} (codename: {codename})')
-    supported_codenames = {'jammy', 'noble', 'bookworm', 'trixie', 'kali-rolling'}
+    supported_codenames = {'jammy', 'noble', 'resolute', 'bookworm', 'trixie', 'kali-rolling'}
     if codename in supported_codenames:
         if codename == 'kali-rolling':
             return 'bookworm'
@@ -241,7 +241,7 @@ def check_distribution(allow_unsupported=False):
 
     msg = (
         f'Your Distribution ({distro_data["pretty_name"]} is either deprecated or not supported. '
-        'FACT Installer requires Ubuntu 22.04/24.04, Debian 12 or compatible!'
+        'FACT Installer requires Ubuntu 22.04/24.04/26.04, Debian 12/13 or compatible!'
     )
     if allow_unsupported:
         logging.info(msg)
