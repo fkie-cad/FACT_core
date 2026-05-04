@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import multiprocessing
 from pathlib import Path
+from typing import Any
 
 import toml
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -238,11 +239,11 @@ def load(path: str | Path | None = None) -> None:
         _frontend = Frontend(**frontend_dict, **common_dict)
 
 
-def _replace_hyphens_with_underscores(dictionary: dict) -> None:
-    if not isinstance(dictionary, dict):
-        return
-
-    for key in list(dictionary.keys()):
-        _replace_hyphens_with_underscores(dictionary[key])
-        value = dictionary.pop(key)
+def _replace_hyphens_with_underscores(dictionary: dict[str, Any]) -> None:
+    for key, value in list(dictionary.items()):
+        if isinstance(value, dict):
+            _replace_hyphens_with_underscores(value)
+        if '-' not in key:
+            continue
+        dictionary.pop(key)
         dictionary[key.replace('-', '_')] = value
