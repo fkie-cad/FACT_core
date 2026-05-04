@@ -11,8 +11,7 @@ from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-from ..code.qemu_exec import PLUGIN_NAME
-
+PLUGIN_NAME = 'qemu_exec'
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 
 
