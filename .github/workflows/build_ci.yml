@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ jammy, bookworm, noble, trixie ]
+        os: [ jammy, bookworm, noble, trixie, resolute ]
         target: ${{ fromJson(needs.generate-matrix.outputs.target) }}
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
     timeout-minutes: 35

@@ -15,7 +15,7 @@ more-itertools~=10.7.0
 prompt-toolkit~=3.0.51
 python-dateutil~=2.9.0
 quantiphy~=2.20
-uwsgi~=2.0.30
+uwsgi~=2.0.31
 virtualenv~=21.2.0
 
 # npm installation
