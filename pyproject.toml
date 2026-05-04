@@ -67,6 +67,8 @@ select = [
 ]
 ignore = [
     "A003",
+    "ANN002",
+    "ANN003",
     "ANN204",  # type annotation for special methods (e.g. __init__)
     "PERF203",
     "PERF401",
