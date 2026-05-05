@@ -27,7 +27,7 @@ INSTALL_DIR = Path(__file__).parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_backend.txt'
 
 
-def main(skip_docker):
+def main(skip_docker: bool) -> int:
     if distro.id() != 'fedora':
         pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-backend.txt')
         apt_install_packages(*pkgs)
@@ -61,31 +61,31 @@ def main(skip_docker):
     return 0
 
 
-def _install_docker_images():
+def _install_docker_images() -> None:
     # pull extraction docker container
     logging.info('Pulling fact extraction container')
-
-    docker_process = subprocess.run(
-        'docker pull fkiecad/fact_extractor', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
+    # FixMe: install docker images using Docker Python API: client.images.pull("...")
+    docker_process = subprocess.run(  # noqa: S602
+        '/usr/bin/docker pull fkiecad/fact_extractor', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
     if docker_process.returncode != 0:
         raise InstallationError(f'Failed to pull extraction container:\n{docker_process.stdout}')
 
 
-def install_plugin_docker_images():
+def install_plugin_docker_images() -> None:
     # Distribution can be None here since it will not be used for installing
     # docker images
     _install_plugins(skip_docker=False, only_docker=True)
 
 
-def _create_firmware_directory():
+def _create_firmware_directory() -> None:
     logging.info('Creating firmware directory')
 
     data_dir_name = config.backend.firmware_file_storage_directory
-    mkdir_process = subprocess.run(
+    mkdir_process = subprocess.run(  # noqa: S602
         f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
-    chown_process = subprocess.run(
+    chown_process = subprocess.run(  # noqa: S602
         f'sudo chown {os.getuid()}:{os.getgid()} {data_dir_name}',
         shell=True,
         stdout=PIPE,
@@ -99,7 +99,7 @@ def _create_firmware_directory():
         )
 
 
-def _install_plugins(skip_docker, only_docker=False):
+def _install_plugins(skip_docker: bool, only_docker: bool = False) -> None:
     installer_paths = Path(get_src_dir() + '/plugins/').glob('*/*/install.py')
 
     for install_script in installer_paths:
@@ -118,12 +118,12 @@ def _install_plugins(skip_docker, only_docker=False):
         logging.info(f'Finished installing {plugin_name} plugin.\n')
 
 
-def _install_checksec():
+def _install_checksec() -> None:
     checksec_path = BIN_DIR / 'checksec'
 
     logging.info('Installing checksec.sh')
     checksec_url = 'https://raw.githubusercontent.com/slimm609/checksec.sh/2.5.0/checksec'
-    wget_process = subprocess.run(
+    wget_process = subprocess.run(  # noqa: S602
         f'wget -P {BIN_DIR} {checksec_url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
     if wget_process.returncode != 0:
