@@ -38,12 +38,23 @@ class AnalysisStatus:
         self._currently_analyzed = self._manager.dict()
         self._worker = AnalysisStatusWorker(currently_analyzed_fw=self._currently_analyzed)
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['_manager']  # cannot be pickled
+        # _currently_analyzed (proxy) should still work in the child process
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)
+        self._manager = None  # not needed in the child process, only relevant in the parent
+
     def start(self):
         self._worker.start()
 
     def shutdown(self):
         self._worker.shutdown()
-        self._manager.shutdown()
+        if self._manager is not None:
+            self._manager.shutdown()
 
     def add_update(self, fw_object: Firmware | FileObject, included_files: list[str] | set[str]):
         self.add_object(fw_object)
@@ -107,6 +118,15 @@ class AnalysisStatusWorker:
         self.queue = Queue()
         self._running = Value('i', 0)
         self.redis = RedisStatusInterface()
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['_worker_process']  # cannot be pickled
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._worker_process = None
 
     def start(self):
         self._running.value = 1

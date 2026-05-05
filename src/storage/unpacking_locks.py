@@ -9,8 +9,19 @@ class UnpackingLockManager:
         self.unpacking_locks = self.manager.dict()
         logging.debug(f'Started unpacking locks manager {getattr(self.manager, "._process", "")}')
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['manager']  # cannot be pickled
+        # unpacking_locks (proxy) should nonetheless still work in the child process
+        return state
+
+    def __setstate__(self, state: dict):
+        self.__dict__.update(state)
+        self.manager = None  # not needed in the child process, only relevant in the parent
+
     def shutdown(self):
-        self.manager.shutdown()
+        if self.manager is not None:
+            self.manager.shutdown()
 
     def set_unpacking_lock(self, uid: str):
         self.unpacking_locks[uid] = 1

@@ -46,12 +46,6 @@ class AnalysisPlugin(AnalysisPluginV0):
 
     def __init__(self):
         self.ip_and_uri_finder = CommonAnalysisIPAndURIFinder()
-        try:
-            self.reader = geoip2.database.Reader(str(GEOIP_DATABASE_PATH))
-        except FileNotFoundError:
-            logging.error('could not load GeoIP database')
-            self.reader = None
-
         super().__init__(
             metadata=self.MetaData(
                 name='ip_and_uri_finder',
@@ -70,6 +64,30 @@ class AnalysisPlugin(AnalysisPluginV0):
                 system_version=self.ip_and_uri_finder.plugin_version,
             ),
         )
+        self._reader: geoip2.database.Reader | None = None
+        self._reader_loaded = False  # to not repeat FileNotFoundError
+
+    @property
+    def reader(self) -> geoip2.database.Reader | None:
+        if not self._reader_loaded:
+            try:
+                self._reader = geoip2.database.Reader(str(GEOIP_DATABASE_PATH))
+            except FileNotFoundError:
+                logging.error('could not load GeoIP database')
+                self._reader = None
+            self._reader_loaded = True
+        return self._reader
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['_reader']  # cannot be pickled
+        del state['_reader_loaded']
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._reader = None
+        self._reader_loaded = False
 
     def analyze(self, file_handle: FileIO, virtual_file_path: dict[str, list[str]], analyses: dict) -> Schema:
         del virtual_file_path, analyses

@@ -323,40 +323,21 @@ def analysis_scheduler(  # noqa: PLR0913
     monkeypatch.setattr('scheduler.analysis.scheduler.ViewUpdater', test_config.view_updater_class)
     monkeypatch.setattr('scheduler.analysis.plugin.FSOrganizer', test_config.fs_organizer_class)
     _analysis_scheduler = AnalysisScheduler(
-        post_analysis=lambda *_: None,
+        post_analysis=_nop,
         unpacking_locks=unpacking_lock_manager,
     )
 
     fs_organizer = test_config.fs_organizer_class()
     start_analysis_of_object = _analysis_scheduler.start_analysis_of_object
-
     # FIXME Remove this. See also the unpacking_scheduler fixture
-    def _start_analysis_of_object_wrapper(file_object):
-        _store_file_if_not_exists(fs_organizer, file_object)
-        start_analysis_of_object(file_object)
-
-    _analysis_scheduler.start_analysis_of_object = _start_analysis_of_object_wrapper
+    _analysis_scheduler.start_analysis_of_object = StartAnalysisWrapper(fs_organizer, start_analysis_of_object)
 
     _analysis_scheduler.db_backend_service = test_config.backend_db_class()
 
-    def _pre_analysis_hook(fw):
-        pre_analysis_queue.put(fw)
-        if test_config.pipeline:
-            _analysis_scheduler.db_backend_service.add_object(fw)
-
-    _analysis_scheduler.pre_analysis = _pre_analysis_hook
-
-    def _post_analysis_hook(*args):
-        post_analysis_queue.put(args)
-        analysis_finished_counter.value += 1
-        # We use == here instead of >= to not set the thing when items_to_analyze is 0
-        if analysis_finished_counter.value == test_config.items_to_analyze:
-            analysis_finished_event.set()
-
-        if test_config.pipeline:
-            _analysis_scheduler.db_backend_service.add_analysis(*args)
-
-    _analysis_scheduler.post_analysis = _post_analysis_hook
+    _analysis_scheduler.pre_analysis = PreAnalysisCallback(pre_analysis_queue, test_config, _analysis_scheduler)
+    _analysis_scheduler.post_analysis = PostAnalysisCallback(
+        post_analysis_queue, analysis_finished_counter, analysis_finished_event, test_config, _analysis_scheduler
+    )
 
     if test_config.start_processes:
         _analysis_scheduler.start()
@@ -366,6 +347,47 @@ def analysis_scheduler(  # noqa: PLR0913
     # Even if plugins are not started their constructors start a manager
     # FIXME this should only be called if test_config.start_processes is set
     _analysis_scheduler.shutdown()
+
+
+class PreAnalysisCallback:
+    def __init__(self, pre_analysis_queue, test_config, scheduler):
+        self.pre_analysis_queue = pre_analysis_queue
+        self.test_config = test_config
+        self.scheduler = scheduler
+
+    def __call__(self, fw):
+        self.pre_analysis_queue.put(fw)
+        if self.test_config.pipeline:
+            self.scheduler.db_backend_service.add_object(fw)
+
+
+class StartAnalysisWrapper:
+    def __init__(self, fs_organizer, original_start_analysis):
+        self.fs_organizer = fs_organizer
+        self.original_start_analysis = original_start_analysis
+
+    def __call__(self, file_object):
+        _store_file_if_not_exists(self.fs_organizer, file_object)
+        self.original_start_analysis(file_object)
+
+
+class PostAnalysisCallback:
+    def __init__(self, post_analysis_queue, analysis_finished_counter, analysis_finished_event, test_config, scheduler):
+        self.post_analysis_queue = post_analysis_queue
+        self.analysis_finished_counter = analysis_finished_counter
+        self.analysis_finished_event = analysis_finished_event
+        self.test_config = test_config
+        self.scheduler = scheduler
+
+    def __call__(self, *args):
+        self.post_analysis_queue.put(args)
+        self.analysis_finished_counter.value += 1
+        # We use == here instead of >= to not set the thing when items_to_analyze is 0
+        if self.analysis_finished_counter.value == self.test_config.items_to_analyze:
+            self.analysis_finished_event.set()
+
+        if self.test_config.pipeline:
+            self.scheduler.db_backend_service.add_analysis(*args)
 
 
 @pytest.fixture
@@ -591,3 +613,7 @@ class SchedulerTestConfig(BaseModel):
 @pytest.fixture
 def fsorganizer() -> FSOrganizer:
     return FSOrganizer()
+
+
+def _nop(*_, **__):
+    pass

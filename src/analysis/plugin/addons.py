@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import yara
 
@@ -23,12 +23,23 @@ class Yara:
             raise RuntimeError('YaraAddon would overwrite system_version')
         plugin.metadata.system_version = yara.__version__
 
-        rules_path = f'{get_src_dir()}/analysis/signatures/{plugin.metadata.name}.yc'
-        self._rules = yara.load(rules_path)
+        self._rules_path = f'{get_src_dir()}/analysis/signatures/{plugin.metadata.name}.yc'
+        self._rules: yara.Rules | None = None  # lazy loaded during first access
+
+    @property
+    def rules(self) -> yara.Rules:
+        if self._rules is None:
+            self._rules = yara.load(self._rules_path)
+        return self._rules
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['_rules']  # cannot be pickled
+        return state
 
     def match(self, file_handle: io.FileIO) -> list[yara.Match]:
         """A convenience method to call ``yara.Rules.match`` for the rules of the plugin.
 
         The file handle is NOT read.
         """
-        return self._rules.match(file_handle.name)
+        return self.rules.match(file_handle.name)

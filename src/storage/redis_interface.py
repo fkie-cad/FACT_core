@@ -15,14 +15,27 @@ SEPARATOR = '#'
 
 
 class RedisInterface:
-    def __init__(self, chunk_size=REDIS_MAX_VALUE_SIZE):
+    def __init__(self, chunk_size: int = REDIS_MAX_VALUE_SIZE):
         self.chunk_size = chunk_size
-        redis_db = config.common.redis.fact_db
-        redis_host = config.common.redis.host
-        redis_port = config.common.redis.port
-        redis_pw = config.common.redis.password
+        self.redis = self._create_redis_connection()
 
-        self.redis = Redis(host=redis_host, port=redis_port, db=redis_db, password=redis_pw)
+    @staticmethod
+    def _create_redis_connection() -> Redis:
+        return Redis(
+            host=config.common.redis.host,
+            port=config.common.redis.port,
+            db=config.common.redis.fact_db,
+            password=config.common.redis.password,
+        )
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['redis']  # cannot be pickled
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.redis = self._create_redis_connection()  # im Child neu verbinden
 
     def set(self, key: str, value: Any):
         self.redis.set(key, self._split_if_necessary(dumps(value)))
