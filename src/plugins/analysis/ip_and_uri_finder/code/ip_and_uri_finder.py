@@ -5,7 +5,7 @@ from contextlib import suppress
 from itertools import product
 from pathlib import Path
 from re import search
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 import geoip2.database
 from common_analysis_ip_and_uri_finder import CommonAnalysisIPAndURIFinder
@@ -27,22 +27,22 @@ IP_V4_BLACKLIST = [r'127.0.[0-9]+.1', r'255.[0-9]+.[0-9]+.[0-9]+']  # localhost 
 IP_V6_BLACKLIST = [r'^[0-9A-Za-z]::$', r'^::[0-9A-Za-z]$', r'^[0-9A-Za-z]::[0-9A-Za-z]$', r'^::$']  # trivial addresses
 
 
-class IpAddress(BaseModel):
-    address: str
-    location: Optional[Location]
-
-
 class Location(BaseModel):
     longitude: float
     latitude: float
 
 
+class IpAddress(BaseModel):
+    address: str
+    location: Location | None
+
+
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        ips_v4: List[IpAddress]
-        ips_v6: List[IpAddress]
-        uris: List[str]
-        interesting_uris: List[str]
+        ips_v4: list[IpAddress]
+        ips_v6: list[IpAddress]
+        uris: list[str]
+        interesting_uris: list[str]
 
     def __init__(self):
         self.ip_and_uri_finder = CommonAnalysisIPAndURIFinder()
