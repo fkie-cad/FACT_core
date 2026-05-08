@@ -8,8 +8,10 @@ import subprocess
 import sys
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, STDOUT, CalledProcessError
+from tempfile import TemporaryDirectory
 
 import distro
+import requests
 
 
 class InstallationError(Exception):
@@ -198,6 +200,29 @@ def _checkout_github_project(github_path: str, folder_name: str):
         raise InstallationError(f'Cloning from github failed for project {github_path}\n {clone_url}')
     if not Path('.', folder_name).exists():
         raise InstallationError(f'Repository creation failed on folder {folder_name}\n {clone_url}')
+
+
+def install_github_release(
+    target_path: Path,
+    project_path: str,
+    file: str,
+    version: str = 'latest',
+    file_list: list[str] | None = None,
+    timeout: int = 300,
+) -> None:
+    url = f'https://github.com/{project_path}/releases/download/{version}/{file}'
+    logging.debug(f'Downloading {url} and extracting {file_list} to {target_path}')
+    with TemporaryDirectory() as temp_dir:
+        output_path = Path(temp_dir) / file
+        with requests.get(url, stream=True, timeout=timeout) as request:
+            request.raise_for_status()
+            with output_path.open('wb') as fp:
+                for chunk in request.iter_content(chunk_size=8_192):
+                    fp.write(chunk)
+        cmd = f'tar -xf {output_path} -C {target_path}'
+        if file_list is not None:
+            cmd += ' ' + ' '.join(file_list)
+        subprocess.run(shlex.split(cmd), shell=False, check=True)
 
 
 def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool = False, **kwargs):

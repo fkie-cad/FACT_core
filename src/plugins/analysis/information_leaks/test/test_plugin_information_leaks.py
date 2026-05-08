@@ -82,6 +82,16 @@ class TestAnalysisPluginInformationLeaks:
         ]
         assert sorted(summary) == expected_result
 
+    def test_find_secrets(self, analysis_plugin):
+        result = analysis_plugin.analyze(
+            file_handle=FileIO(TEST_DATA_DIR / 'secret_test_file'),
+            virtual_file_path={},
+            analyses={'file_type': MockTypeResult('text/plain')},
+        )
+        summary = analysis_plugin.summarize(result)
+        expected_result = ['aws-access-token', 'gcp-api-key', 'generic-api-key', 'github-pat']
+        assert sorted(summary) == expected_result
+
 
 def test_check_file_path():
     # if multiple rules match, only the first should appear in the result

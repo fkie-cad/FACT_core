@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import itertools
+import json
+import logging
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from shlex import split
+from subprocess import run
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from semver import Version
@@ -14,6 +18,7 @@ if TYPE_CHECKING:
     from io import FileIO
 
 
+GITLEAKS_PATH = Path(__file__).parent.parent / 'bin' / 'gitleaks'
 PATH_REGEX = {
     'user_paths': re.compile(rb'/home/[^%\n:) \x00]+'),
     'root_path': re.compile(rb'/root/[^%\n:) \x00]+'),
@@ -86,6 +91,14 @@ class Artifact(BaseModel):
     path: str
 
 
+class Secret(BaseModel):
+    name: str
+    secret: str
+    description: str
+    start_line: int
+    start_column: int
+
+
 class AnalysisPlugin(AnalysisPluginV0):
     """
     This Plugin searches for leaked information in a firmware,
@@ -93,8 +106,9 @@ class AnalysisPlugin(AnalysisPluginV0):
     """
 
     class Schema(BaseModel):
-        path_artifacts: List[Artifact]
-        url_artifacts: List[Artifact]
+        path_artifacts: list[Artifact]
+        url_artifacts: list[Artifact]
+        secrets: list[Secret]
 
     def __init__(self):
         super().__init__(
@@ -103,7 +117,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                     name='information_leaks',
                     description='Find leaked information like compilation artifacts',
                     dependencies=['file_type'],
-                    version=Version(1, 0, 0),
+                    version=Version(1, 1, 0),
                     mime_whitelist=[
                         'application/x-executable',
                         'application/x-object',
@@ -123,10 +137,12 @@ class AnalysisPlugin(AnalysisPluginV0):
         else:
             path_artifacts = _find_regex(file_content, PATH_REGEX)
         url_artifacts = _find_regex(file_content, URL_REGEXES)
+        secrets = _find_secrets(file_handle)
 
         return self.Schema(
             path_artifacts=self._to_artifact_list(path_artifacts),
             url_artifacts=self._to_artifact_list(url_artifacts),
+            secrets=secrets,
         )
 
     @staticmethod
@@ -134,7 +150,9 @@ class AnalysisPlugin(AnalysisPluginV0):
         return [Artifact(name=artifact, path=path) for artifact, path_list in artifacts.items() for path in path_list]
 
     def summarize(self, result: Schema) -> list[str]:
-        return list({artifact.name for artifact in itertools.chain(result.path_artifacts, result.url_artifacts)})
+        return list(
+            {artifact.name for artifact in itertools.chain(result.path_artifacts, result.url_artifacts, result.secrets)}
+        )
 
 
 def _find_artifacts(vfp_dict: dict[str, list[str]]) -> dict[str, list[str]]:
@@ -182,3 +200,25 @@ def _find_regex(search_term: bytes, regex_dict: dict[str, re.Pattern]) -> dict[s
             result_list = sorted({e.decode(errors='replace') for e in result})
             results.setdefault(label, []).extend(result_list)
     return results
+
+
+def _find_secrets(file: FileIO) -> list[Secret]:
+    if not GITLEAKS_PATH.is_file():
+        logging.warning('gitleaks not found. Please rerun installation of info leaks plugin')
+        return []
+
+    cmd = f'{GITLEAKS_PATH.absolute()} dir {file.name} -f json -r -'
+    proc = run(split(cmd), shell=False, check=False, text=True, capture_output=True)  # noqa: S603
+    if proc.returncode not in {0, 1}:  # return code is 1 if secrets were found
+        logging.warning(f'Error when running gitleaks: {proc.stderr}')
+        return []
+    return [
+        Secret(
+            name=entry['RuleID'],
+            secret=entry['Match'],
+            start_line=entry['StartLine'],
+            start_column=entry['StartColumn'],
+            description=entry['Description'],
+        )
+        for entry in json.loads(proc.stdout)
+    ]

@@ -12,6 +12,25 @@
     {% endfor %}
 {% endmacro %}
 
+{% macro secret_list(result_list) %}
+    {% for item in result_list %}
+        <table class="table-sm mb-2" style="width: 100%">
+            <tr>
+                <td style="min-width: 100px;">Description:</td>
+                <td>{{ item['description'] }}</td>
+            </tr>
+            <tr>
+                <td>Secret:</td>
+                <td>{{ item['secret'] }}</td>
+            </tr>
+            <tr>
+                <td>Start:</td>
+                <td>Line: {{ item['start_line'] }}, Column: {{ item['start_column'] }}</td>
+            </tr>
+        </table>
+    {% endfor %}
+{% endmacro %}
+
 {% block analysis_result_details %}
 
     {% for category, category_result in analysis_result.items() %}
@@ -30,10 +49,10 @@
                                     {% if artifact_data | length > 10 %}
                                         <details>
                                             <summary>show details</summary>
-                                            {{ result_list(artifact_data) }}
+                                            {{ secret_list(artifact_data) if category == 'secrets' else result_list(artifact_data) }}
                                         </details>
                                     {% else %}
-                                        {{ result_list(artifact_data) }}
+                                        {{ secret_list(artifact_data) if category == 'secrets' else result_list(artifact_data) }}
                                     {% endif %}
                                 </td>
                             </tr>
