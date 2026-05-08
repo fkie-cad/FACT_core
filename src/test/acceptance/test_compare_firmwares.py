@@ -25,6 +25,8 @@ class TestAcceptanceCompareFirmwares:
         assert test_fw_a.name.encode() in rv.data, 'test firmware a comparison not displayed correctly'
         assert test_fw_c.name.encode() in rv.data, 'test firmware b comparison not displayed correctly'
         assert b'File Coverage' in rv.data, 'comparison page not displayed correctly'
+        assert b'test fw c' in rv.data, 'general info fields are not displayed correctly'
+        assert rv.data.count(b'test part') == 1, 'common fields should be grouped'
 
     def _show_home_page(self, test_client):
         rv = test_client.get('/')
