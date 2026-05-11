@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from semver import Version
@@ -26,9 +26,9 @@ VERSION_PATH = DB_DIR / 'version.json'
 
 class CveResult(BaseModel):
     software_name: str
-    cve_list: List[CveMatch]
+    cve_list: list[CveMatch]
 
-    def __lt__(self, other):
+    def __lt__(self, other: CveMatch):
         if not isinstance(other, self.__class__):
             raise TypeError(f'Wrong type: {type(other)}')
         return self.software_name < other.software_name  # to enable sorting
@@ -40,7 +40,7 @@ class AnalysisPlugin(AnalysisPluginV0):
     """
 
     class Schema(BaseModel):
-        cve_results: List[CveResult]
+        cve_results: list[CveResult]
 
     def __init__(self):
         try:
@@ -107,7 +107,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             if self._entry_has_critical_rating(cve.scores)
         ]
 
-    def _software_has_critical_cve(self, cve_list: List[CveMatch]) -> bool:
+    def _software_has_critical_cve(self, cve_list: list[CveMatch]) -> bool:
         """
         Check if any entry in the given dictionary of CVEs has a critical rating.
         """

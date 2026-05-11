@@ -27,7 +27,7 @@ INSTALL_DIR = Path(__file__).parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_common.txt'
 
 
-def install_pip():
+def install_pip() -> None:
     python_version = '.'.join(python_version_tuple())
     if parse_version(python_version) < parse_version('3.10.0'):
         logging.warning('Your Python version is outdated. Please upgrade it.')
@@ -37,12 +37,12 @@ def install_pip():
 
     logging.info('Installing python3 pip')
     for command in [f'wget {pip_link}', 'sudo -EH python3 get-pip.py', 'rm get-pip.py']:
-        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
+        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)  # noqa: S602
         if cmd_process.returncode != 0:
             raise InstallationError(f'Error in pip installation for python3:\n{cmd_process.stdout}')
 
 
-def main():
+def main() -> int:
     _update_package_sources()
     _update_submodules()
 
@@ -77,7 +77,7 @@ def main():
     return 0
 
 
-def _install_fw_magic(version: str = 'v0.2.2'):
+def _install_fw_magic(version: str = 'v0.2.2') -> None:
     with OperateInDirectory(BIN_DIR):
         run_cmd_with_logging(
             f'wget https://github.com/fkie-cad/firmware-magic-database/releases/download/{version}/firmware.xz'
@@ -90,11 +90,11 @@ def _install_fw_magic(version: str = 'v0.2.2'):
         Path('fw_magic_version.json').write_text(json.dumps({'version': version.lstrip('v')}))
 
 
-def _update_submodules():
-    git_process = subprocess.run('git status', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
+def _update_submodules() -> None:
+    git_process = subprocess.run('git status', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)  # noqa: S602, S607
     if git_process.returncode == 0:
-        git_submodule_process = subprocess.run(
-            '(cd ../../ && git submodule foreach "git pull")',
+        git_submodule_process = subprocess.run(  # noqa: S602
+            '(cd ../../ && git submodule foreach "git pull")',  # noqa: S607
             shell=True,
             stdout=PIPE,
             stderr=STDOUT,
@@ -107,7 +107,7 @@ def _update_submodules():
         logging.warning("FACT is not set up using git. Note that *adding submodules* won't work!!")
 
 
-def _update_package_sources():
+def _update_package_sources() -> None:
     logging.info('Updating system')
     if distro.id() == 'fedora':
         dnf_update_sources()

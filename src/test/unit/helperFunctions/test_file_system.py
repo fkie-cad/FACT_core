@@ -17,7 +17,7 @@ TEST_DATA_DIR = get_test_data_dir()
 
 
 @pytest.fixture
-def restore_cwd():  # noqa: PT004
+def restore_cwd():
     current_cwd = os.getcwd()  # noqa: PTH109
     yield
     os.chdir(current_cwd)
