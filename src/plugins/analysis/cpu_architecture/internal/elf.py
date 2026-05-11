@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from elftools.common.exceptions import ELFError
+from elftools.common.exceptions import ELFError, ELFParseError
 from elftools.elf.constants import E_FLAGS
 from elftools.elf.descriptions import describe_attr_tag_arm
 from elftools.elf.elffile import ELFFile
@@ -39,19 +39,20 @@ def _get_arm_isa(elffile):
     result = ''
 
     # Somehow the section does not appear in arm64 binaries
-    sec = elffile.get_section_by_name('.ARM.attributes')
-    if sec is None:
+    try:
+        sec = elffile.get_section_by_name('.ARM.attributes')
+        if sec is None:
+            return None
+        for sub_sec in sec.iter_subsections():
+            for sub_sub_sec in sub_sec.iter_subsubsections():
+                for attribute in sub_sub_sec.iter_attributes():
+                    if attribute.tag not in ['TAG_CPU_ARCH', 'TAG_CPU_NAME', 'TAG_CPU_ARCH_PROFILE']:
+                        continue
+                    descr = describe_attr_tag_arm(attribute.tag, attribute.value, attribute.extra)
+                    result += f'{descr}\n'
+        return result
+    except (ELFParseError, ELFError):  # file is probably missing section information
         return None
-    for sub_sec in sec.iter_subsections():
-        for sub_sub_sec in sub_sec.iter_subsubsections():
-            for attribute in sub_sub_sec.iter_attributes():
-                if attribute.tag not in ['TAG_CPU_ARCH', 'TAG_CPU_NAME', 'TAG_CPU_ARCH_PROFILE']:
-                    continue
-
-                descr = describe_attr_tag_arm(attribute.tag, attribute.value, attribute.extra)
-                result += f'{descr}\n'
-
-    return result
 
 
 def construct_result(file_path: str | Path):
