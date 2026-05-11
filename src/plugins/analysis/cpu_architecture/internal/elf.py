@@ -20,22 +20,23 @@ FLAGS_TO_STR = {
 }
 
 
-def _mips_flags_to_str(flags):
+def _mips_flags_to_str(flags: int) -> str:
     return ', '.join(
         (arch_str for arch_flags, arch_str in FLAGS_TO_STR.items() if (flags & E_FLAGS.EF_MIPS_ARCH) == arch_flags)
     )
 
 
-def _get_mips_isa(elffile):
-    assert elffile['e_machine'] == 'EM_MIPS'
-    # TODO implement parsing abiflags section
+def _get_mips_isa(elffile: ELFFile) -> str:
+    if elffile['e_machine'] != 'EM_MIPS':
+        raise ValueError(f'Unsupported ISA {elffile["e_machine"]}, should be EM_MIPS')
+    # FixMe: implement parsing abiflags section
     header = elffile.header
     flags = header['e_flags']
 
     return _mips_flags_to_str(flags)
 
 
-def _get_arm_isa(elffile):
+def _get_arm_isa(elffile: ELFFile) -> str | None:
     result = ''
 
     # Somehow the section does not appear in arm64 binaries
@@ -55,7 +56,7 @@ def _get_arm_isa(elffile):
         return None
 
 
-def construct_result(file_path: str | Path):
+def construct_result(file_path: str | Path) -> dict[str, str]:
     result = {}
     with Path(file_path).open('rb') as fp:
         try:
