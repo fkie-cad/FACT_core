@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import abc
 import time
-from typing import TYPE_CHECKING, Type, TypeVar, final
+from typing import TYPE_CHECKING, TypeVar, final
 
 import pydantic
 import semver
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from helperFunctions.tag import TagColor  # noqa: TCH001
+from helperFunctions.tag import TagColor  # noqa: TC001
 
 if TYPE_CHECKING:
     import io
@@ -55,7 +55,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         description: str
         #: Pydantic model of the object returned by :py:func:`analyse`.
         # Note that we cannot allow pydantic dataclasses because they lack the `schema` method
-        Schema: Type[BaseModel]
+        Schema: type[BaseModel]
         #: The version of the plugin.
         #: It MUST be a `semver <https://semver.org/>`_ version.
         #: Here is a quick summary how semver relates to plugins.
@@ -81,7 +81,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
 
         @field_validator('version', mode='before')
         @classmethod
-        def _version_validator(cls, value):
+        def _version_validator(cls, value: str | semver.Version) -> semver.Version:
             if isinstance(value, str):
                 return semver.Version.parse(value)
 
