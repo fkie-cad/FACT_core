@@ -104,10 +104,16 @@ class FactBase:
             sleep(5)
             if self.args.testing:
                 break
+            if self._exception_occurred():
+                logging.error(f'Exception occurred, shutting down {self.PROGRAM_NAME}')
+                break
             if not counter % 12:  # only check every minute
                 self._check_resource_usage()
             counter += 1
         self.shutdown()
+
+    def _exception_occurred(self) -> bool:
+        return False
 
     @staticmethod
     def do_self_test():
