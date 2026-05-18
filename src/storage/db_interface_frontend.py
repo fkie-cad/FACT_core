@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 
 from sqlalchemy import Column, ColumnElement, Integer, Select, cast, func, or_, select
 
-from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_some_vfp
 from objects.firmware import Firmware
@@ -121,10 +120,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
         for uid, vfp_dict in vfp_data.items():
             hid_dict[uid] = get_some_vfp(vfp_dict)
         return hid_dict
-
-    @staticmethod
-    def _get_current_vfp(vfp: dict[str, list[str]]) -> list[str]:
-        return get_value_of_first_key(vfp)
 
     # --- misc. ---
 
