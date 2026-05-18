@@ -27,7 +27,6 @@ class _UpdateType(Enum):
     add_file = auto()
     add_analysis = auto()
     remove_file = auto()
-    is_currently_analyzed = auto()
     cancel = auto()
 
 

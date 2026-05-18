@@ -116,10 +116,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
             hid_dict[uid] = get_some_vfp(vfp_dict)
         return hid_dict
 
-    @staticmethod
-    def _get_current_vfp(vfp: dict[str, list[str]]) -> list[str]:
-        return get_value_of_first_key(vfp)
-
     def get_file_name(self, uid: str) -> str:
         with self.get_read_only_session() as session:
             entry = session.get(FileObjectEntry, uid)

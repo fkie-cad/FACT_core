@@ -236,9 +236,6 @@ class VirtualPathFileTree:
             mode=mode,
         )
 
-    def _get_file_name(self, current_virtual_path: list[str]) -> str:
-        return current_virtual_path[0] if current_virtual_path else self.fo_data.file_name
-
     def _has_children(self) -> bool:
         if self.whitelist:
             return any(f in self.fo_data.included_files for f in self.whitelist)

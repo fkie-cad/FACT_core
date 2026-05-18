@@ -36,13 +36,6 @@ def file_object_from_entry(
     return file_object
 
 
-def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, list[str]]:
-    result = {}
-    for vfp_entry in vfp_list or []:
-        result.setdefault(vfp_entry.parent_uid, []).append(vfp_entry.file_path)
-    return result
-
-
 def _populate_fo_data(
     fo_entry: FileObjectEntry,
     file_object: FileObject,

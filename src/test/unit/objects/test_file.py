@@ -48,8 +48,3 @@ class TestObjectsFile:
         assert len(test_parent.files_included) == 2, 'number of uids not correct'
         assert test_child.uid in test_parent.files_included, 'uid of first file not found'
         assert test_child2.uid in test_parent.files_included, 'uid of second file not found'
-
-    def test_get_virtual_paths_for_all_uids(self):
-        fo = FileObject(binary=b'foo')
-        fo.virtual_file_path = {'root_uid_1': ['vfp1', 'vfp2'], 'root_uid_2': ['vfp3']}
-        assert sorted(fo.get_virtual_paths_for_all_uids()) == ['vfp1', 'vfp2', 'vfp3']

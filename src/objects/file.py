@@ -199,14 +199,6 @@ class FileObject:
         file_object.scheduled_analysis = self.scheduled_analysis
         self.files_included.add(file_object.uid)
 
-    def get_virtual_paths_for_all_uids(self) -> list[str]:
-        """
-        Get all virtual file paths (VFPs) of the file in all firmware containers.
-
-        :return: List of virtual paths.
-        """
-        return [vfp for vfp_list in self.virtual_file_path.values() for vfp in vfp_list]
-
     def __str__(self) -> str:
         return (
             f'UID: {self.uid}\n'

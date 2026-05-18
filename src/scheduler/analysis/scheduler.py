@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from multiprocessing import Lock, Queue, Value
+from multiprocessing import Queue, Value
 from pathlib import Path
 from queue import Empty
 from time import sleep
@@ -114,7 +114,6 @@ class AnalysisScheduler:
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
         self.unpacking_locks = unpacking_locks
-        self.scheduling_lock = Lock()
 
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)

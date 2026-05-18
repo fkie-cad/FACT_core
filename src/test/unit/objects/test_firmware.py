@@ -39,10 +39,10 @@ def test_create_firmware_from_file():
 
 def test_set_binary():
     binary = get_binary_from_file(f'{get_test_data_dir()}/get_files_test/testfile1')
-    md5 = 'e802ca22f6cd2d9357cf3da1d191879e'
+    sha256 = 'd558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a'
     firmware = Firmware()
     firmware.set_binary(binary)
-    assert firmware.md5 == md5
+    assert firmware.sha256 == sha256
 
 
 @pytest.mark.parametrize(

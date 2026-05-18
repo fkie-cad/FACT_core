@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from helperFunctions.hash import get_md5
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 
@@ -115,7 +114,6 @@ class Firmware(FileObject):
         """
         super().set_binary(binary)
         self.root_uid = self.uid
-        self.md5 = get_md5(binary)
 
     def set_tag(self, tag: str):
         """

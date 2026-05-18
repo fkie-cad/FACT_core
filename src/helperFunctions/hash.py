@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from hashlib import new
 
-import tlsh
-
 from helperFunctions.data_conversion import make_bytes
 
 
@@ -26,7 +24,3 @@ def get_sha256(code: bytes | str) -> str:
 
 def get_md5(code: bytes | str) -> str:
     return get_hash('md5', code)
-
-
-def get_tlsh_comparison(first, second):
-    return tlsh.diff(first, second)
