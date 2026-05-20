@@ -3,11 +3,10 @@ from __future__ import annotations
 import os.path
 import re
 from pathlib import Path
-from typing import Any, NamedTuple, Optional
+from typing import TYPE_CHECKING, Any, NamedTuple
 
-from sqlalchemy import Column, Integer, cast, func, or_, select
+from sqlalchemy import BinaryExpression, Column, Integer, Select, cast, func, or_, select
 
-from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_some_vfp
 from objects.firmware import Firmware
@@ -25,6 +24,11 @@ from storage.schema import (
 from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree import FileTreeData, VirtualPathFileTree
 from web_interface.file_tree.file_tree_node import FileTreeNode
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from sqlalchemy.orm import Session
 
 RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
 
@@ -97,7 +101,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             self._replace_uids_in_nice_list(nice_list_data, root_uid)
             return nice_list_data
 
-    def _replace_uids_in_nice_list(self, nice_list_data: list[dict], root_uid: str):
+    def _replace_uids_in_nice_list(self, nice_list_data: list[dict], root_uid: str) -> None:
         uids_in_vfp = set()
         for item in nice_list_data:
             uids_in_vfp.update(uid for uid_list in item['current_virtual_path'] for uid in uid_list)
@@ -129,10 +133,10 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = select(attribute).filter(attribute.isnot(None)).distinct()
             return sorted(session.execute(query).scalars())
 
-    def get_device_class_list(self):
+    def get_device_class_list(self) -> list[str]:
         return self.get_firmware_attribute_list(FirmwareEntry.device_class)
 
-    def get_vendor_list(self):
+    def get_vendor_list(self) -> list[str]:
         return self.get_firmware_attribute_list(FirmwareEntry.vendor)
 
     def get_tag_list(self) -> list[str]:
@@ -140,7 +144,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = select(func.unnest(FirmwareEntry.firmware_tags)).distinct()
             return sorted(session.execute(query).scalars())
 
-    def get_device_name_dict(self):
+    def get_device_name_dict(self) -> dict[str, dict[str, list[str]]]:
         device_name_dict = {}
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry.device_class, FirmwareEntry.vendor, FirmwareEntry.device_name)
@@ -164,7 +168,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             )
             return list(session.execute(query))
 
-    def get_latest_comments(self, limit=10):
+    def get_latest_comments(self, limit: int = 10) -> list[dict]:
         with self.get_read_only_session() as session:
             subquery = select(FileObjectEntry.uid, func.jsonb_array_elements(FileObjectEntry.comments)).subquery()
             query = select(subquery).order_by(cast(subquery.c.jsonb_array_elements.op('->>')('time'), Integer).desc())
@@ -180,7 +184,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         only_fo_parent_firmware: bool = False,
         inverted: bool = False,
         as_meta: bool = False,
-    ):
+    ) -> list[str | MetaEntry]:
         with self.get_read_only_session() as session:
             query = build_generic_search_query(search_dict, only_fo_parent_firmware, inverted)
             query = self._apply_offset_and_limit(query, skip, limit)
@@ -216,7 +220,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def _get_meta_for_fw(self, entry: FirmwareEntry) -> MetaEntry:
         hid = self._get_hid_for_fw_entry(entry)
         tags = {
-            **{tag: TagColor.GRAY for tag in entry.firmware_tags},
+            **dict.fromkeys(entry.firmware_tags, TagColor.GRAY),
             self._get_unpacker_name(entry): TagColor.LIGHT_BLUE,
         }
         submission_date = entry.submission_date
@@ -248,7 +252,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def generate_file_tree_nodes_for_uid_list(
         self, uid_list: list[str], root_uid: str, parent_uid: str | None, whitelist: list[str] | None = None
-    ):
+    ) -> Iterator[FileTreeNode]:
         file_tree_data = self.get_file_tree_data(uid_list, parent_uid)
         for entry in file_tree_data:
             yield from self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry)
@@ -260,7 +264,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         parent_uid: str | None = None,
         whitelist: list[str] | None = None,
         data: FileTreeData | None = None,
-    ):
+    ) -> Iterator[FileTreeNode]:
         if data is None:
             data = self.get_file_tree_data([uid], parent_uid)[0]
         try:
@@ -295,7 +299,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             ]
 
     @staticmethod
-    def _get_mime_types_for_uid_list(session, uid_list: list[str]) -> dict[str, str]:
+    def _get_mime_types_for_uid_list(session: Session, uid_list: list[str]) -> dict[str, str]:
         type_query = (
             select(AnalysisEntry.uid, AnalysisEntry.result['mime'])
             .filter(AnalysisEntry.plugin == 'file_type')
@@ -304,7 +308,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return dict(iter(session.execute(type_query)))
 
     @staticmethod
-    def _get_included_files_for_uid_list(session, uid_list: list[str]) -> dict[str, list[str]]:
+    def _get_included_files_for_uid_list(session: Session, uid_list: list[str]) -> dict[str, list[str]]:
         included_query = (
             # aggregation `array_agg()` converts multiple rows to an array
             select(FileObjectEntry.uid, func.array_agg(included_files_table.c.child_uid))
@@ -317,8 +321,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- REST ---
 
     def rest_get_firmware_uids(
-        self, offset: int, limit: int, query: Optional[dict] = None, recursive=False, inverted=False
-    ):
+        self, offset: int, limit: int, query: dict | None = None, recursive: bool = False, inverted: bool = False
+    ) -> list[str]:
         if query is None:
             query = {}
         if recursive:
@@ -329,7 +333,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             db_query = db_query.order_by(FirmwareEntry.uid.asc())
             return list(session.execute(db_query).scalars())
 
-    def rest_get_file_object_uids(self, offset: int | None, limit: int | None, query=None) -> list[str]:
+    def rest_get_file_object_uids(self, offset: int | None, limit: int | None, query: dict | None = None) -> list[str]:
         if query:
             return self.generic_search(query, skip=offset, limit=limit)
         with self.get_read_only_session() as session:
@@ -353,7 +357,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return missing_analyses
 
     @staticmethod
-    def _query_all_plugins_of_object(query_filter):
+    def _query_all_plugins_of_object(query_filter: BinaryExpression) -> Select:
         return (
             # array_agg() aggregates different values of field into array
             select(AnalysisEntry.uid, func.array_agg(AnalysisEntry.plugin))
@@ -383,12 +387,12 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 match_data=entry.match_data,
             )
 
-    def get_total_cached_query_count(self):
+    def get_total_cached_query_count(self) -> int:
         with self.get_read_only_session() as session:
             query = select(func.count(SearchCacheEntry.uid))
             return session.execute(query).scalar()
 
-    def search_query_cache(self, offset: int, limit: int):
+    def search_query_cache(self, offset: int, limit: int) -> list[tuple[str, str, list[str]]]:
         with self.get_read_only_session() as session:
             query = select(SearchCacheEntry).offset(offset).limit(limit)
             return [
@@ -422,7 +426,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             ]
 
     @staticmethod
-    def _get_elf_analysis_libraries(session, uid_list: list[str]) -> dict[str, list[str] | None]:
+    def _get_elf_analysis_libraries(session: Session, uid_list: list[str]) -> dict[str, list[str] | None]:
         elf_analysis_query = (
             select(FileObjectEntry.uid, AnalysisEntry.result)
             .filter(FileObjectEntry.uid.in_(uid_list))

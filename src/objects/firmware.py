@@ -93,7 +93,7 @@ class Firmware(FileObject):
 
         self.root_uid = self.uid
 
-    def set_part_name(self, part: str):
+    def set_part_name(self, part: str) -> None:
         """
         Setter for `self.part_name`.
 
@@ -105,7 +105,7 @@ class Firmware(FileObject):
         else:
             self.part = part
 
-    def set_binary(self, binary: bytes):
+    def set_binary(self, binary: bytes) -> None:
         """
         See :meth:`objects.file.FileObject.set_binary`.
 
@@ -115,7 +115,7 @@ class Firmware(FileObject):
         super().set_binary(binary)
         self.root_uid = self.uid
 
-    def set_tag(self, tag: str):
+    def set_tag(self, tag: str) -> None:
         """
         Set a user-defined tag in the color gray.
 
@@ -157,7 +157,7 @@ class Firmware(FileObject):
         return json
 
     @classmethod
-    def from_json(cls, json: dict, root_uid: str | None = None):
+    def from_json(cls, json: dict, root_uid: str | None = None) -> Firmware:
         instance = super().from_json(json, root_uid)
         instance.device_class = json.get('device_class')
         instance.device_name = json.get('device_name')

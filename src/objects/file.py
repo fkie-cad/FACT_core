@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 from common_helper_files import get_binary_from_file
 
@@ -28,7 +27,7 @@ class FileObject:
         binary: bytes | None = None,
         file_name: str | None = None,
         file_path: str | None = None,
-        scheduled_analysis: Optional[list[str]] = None,
+        scheduled_analysis: list[str] | None = None,
     ):
         self._uid = None
 
@@ -157,7 +156,7 @@ class FileObject:
         return self._uid
 
     @uid.setter
-    def uid(self, new_uid: str):
+    def uid(self, new_uid: str) -> None:
         if self._uid is not None:
             logging.warning(f'uid overwrite: Uid might not be related to binary data anymore: {self._uid} -> {new_uid}')
         self._uid = new_uid
@@ -176,7 +175,7 @@ class FileObject:
             logging.warning(f'Virtual file paths of {self.uid} are emtpy: {self.virtual_file_path}')
             return self.file_name
 
-    def _create_from_file(self, file_path: str):
+    def _create_from_file(self, file_path: str) -> None:
         self.set_binary(get_binary_from_file(file_path))
         self.create_binary_from_path()
 
