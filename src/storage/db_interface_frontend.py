@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NamedTuple
 
-from sqlalchemy import Column, ColumnElement, Integer, Select, cast, func, or_, select
+from sqlalchemy import Column, Integer, Select, cast, func, or_, select
 
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_some_vfp
@@ -28,7 +28,8 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from flask_sqlalchemy.session import Session
+    from sqlalchemy import ColumnElement
+    from sqlalchemy.orm import Session
 
 RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
 
