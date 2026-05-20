@@ -18,7 +18,7 @@ SEPARATOR = '#'
 
 
 class RedisInterface:
-    def __init__(self, chunk_size=REDIS_MAX_VALUE_SIZE):
+    def __init__(self, chunk_size: int = REDIS_MAX_VALUE_SIZE):
         self.chunk_size = chunk_size
         redis_db = config.common.redis.fact_db
         redis_host = config.common.redis.host
@@ -38,23 +38,23 @@ class RedisInterface:
         retry = Retry(ExponentialBackoff(), 3)
         self.redis = Redis(connection_pool=pool, retry=retry)
 
-    def set(self, key: str, value: Any):
+    def set(self, key: str, value: Any) -> None:  # noqa: ANN401
         self.redis.set(key, self._split_if_necessary(dumps(value)))
 
-    def get(self, key: str, delete: bool = True) -> Any:
+    def get(self, key: str, delete: bool = True) -> Any:  # noqa: ANN401
         value = self._redis_pop(key) if delete else self.redis.get(key)
         return self._combine_if_split(value, delete=delete)
 
-    def queue_put(self, key: str, value: Any):
+    def queue_put(self, key: str, value: Any) -> None:  # noqa: ANN401
         self.redis.rpush(key, self._split_if_necessary(dumps(value)))
 
-    def queue_get(self, key: str) -> Any:
+    def queue_get(self, key: str) -> Any:  # noqa: ANN401
         return self._combine_if_split(self.redis.lpop(key))
 
     def _split_if_necessary(self, value: bytes) -> str | bytes:
         return self._store_chunks(value) if len(value) > self.chunk_size else value
 
-    def _store_chunks(self, value) -> str:
+    def _store_chunks(self, value: Any) -> str:  # noqa: ANN401
         meta_key = CHUNK_MAGIC.decode()
         for index in range(ceil(len(value) / self.chunk_size)):
             key = self._get_new_chunk_key()
@@ -63,18 +63,18 @@ class RedisInterface:
             meta_key += SEPARATOR + key
         return meta_key
 
-    def _get_new_chunk_key(self):
+    def _get_new_chunk_key(self) -> str:
         while True:
-            key = f'chunk_{randint(0, 9999)}'
+            key = f'chunk_{randint(0, 9999)}'  # noqa: S311
             if not self.redis.exists(key):
                 return key
 
-    def _combine_if_split(self, value: bytes | None, delete: bool = True) -> Any:
+    def _combine_if_split(self, value: bytes | None, delete: bool = True) -> Any:  # noqa: ANN401
         if value is None:
             return None
         if value.startswith(CHUNK_MAGIC):
             value = self._combine_chunks(value.decode(), delete=delete)
-        return loads(value)
+        return loads(value)  # noqa: S301
 
     def _combine_chunks(self, meta_key: str, delete: bool) -> bytes:
         return b''.join(
