@@ -5,7 +5,10 @@ from pickle import dumps, loads
 from random import randint
 from typing import Any
 
-from redis.client import Redis
+from redis import Redis
+from redis.backoff import ExponentialBackoff
+from redis.connection import ConnectionPool
+from redis.retry import Retry
 
 import config
 
@@ -22,7 +25,18 @@ class RedisInterface:
         redis_port = config.common.redis.port
         redis_pw = config.common.redis.password
 
-        self.redis = Redis(host=redis_host, port=redis_port, db=redis_db, password=redis_pw)
+        pool = ConnectionPool(
+            host=redis_host,
+            port=redis_port,
+            db=redis_db,
+            password=redis_pw,
+            max_connections=200,
+            socket_connect_timeout=5,
+            socket_keepalive=True,
+            retry_on_timeout=True,
+        )
+        retry = Retry(ExponentialBackoff(), 3)
+        self.redis = Redis(connection_pool=pool, retry=retry)
 
     def set(self, key: str, value: Any):
         self.redis.set(key, self._split_if_necessary(dumps(value)))
