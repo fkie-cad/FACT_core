@@ -3,7 +3,7 @@
 The Firmware and Comparison Tool (FACT) consists of three components: frontend, database and backend.
 All components can be installed on different machines (see [Distributed setup](#distributed-setup)), but you can also
 install everything on one machine (see [Simple (non-distributed) setup](#simple-non-distributed-setup)).
-There is an automated installation script supporting Ubuntu 20.04 and 22.04 systems.
+There is an automated installation script supporting Ubuntu LTS and Debian systems (that are not EoL).
 :exclamation: **The automated installation script might remove some packages of your Ubuntu installation. In some cases,
 FACT relies on newer software versions than the ones provided by the Ubuntu repositories.**
 
@@ -11,17 +11,17 @@ FACT relies on newer software versions than the ones provided by the Ubuntu repo
 
 Execute the following commands (not as `root`!):
 
-```sh
+```shell
 sudo apt update && sudo apt install -y git python3-venv
 git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
 python3 -m venv ~/venv
 . ~/venv/bin/activate
-~/FACT_core/src/install/pre_install.sh && sudo mkdir /media/data && sudo chown -R $USER /media/data
+~/FACT_core/src/install/pre_install.sh
 ```
 
-Then reboot (e.g., with `sudo reboot`) and afterward run
+Then reboot (e.g., with `sudo reboot`) or log out and back in and afterward run
 
-```sh
+```shell
 . ~/venv/bin/activate
 ~/FACT_core/src/install.py
 ~/FACT_core/start_all_installed_fact_components
@@ -29,6 +29,22 @@ Then reboot (e.g., with `sudo reboot`) and afterward run
 
 Wait a few seconds, open your browser and go to [`http://localhost:5000`](http://localhost:5000).
 Use `Ctrl + c` in your terminal to shut down FACT.
+
+> [!NOTE]
+> You can run the whole installation without restart by using `newgrp` (useful e.g. for scripting): (Please mind: this
+> will only work for the current shell, you still need to reboot before being able to use docker normally)
+
+```shell
+sudo apt update && sudo apt install -y git python3-venv
+git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
+python3 -m venv ~/venv
+. ~/venv/bin/activate
+~/FACT_core/src/install/pre_install.sh
+newgrp docker << END
+. ~/venv/bin/activate
+python3 FACT_core/src/install.py
+END
+```
 
 ### WSL only
 
