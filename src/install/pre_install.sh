@@ -9,7 +9,7 @@ FACTUSER=$(whoami)
 
 echo "Installing pre-install requirements..."
 sudo apt-get update
-sudo apt-get -y install python3-pip git libffi-dev lsb-release
+sudo apt-get -y install python3-pip git libffi-dev lsb-release jq
 
 # distro and codename detection
 . /etc/os-release
@@ -101,5 +101,7 @@ $PREFIX pip install -U pip setuptools wheel
 $PREFIX pip install -r ./requirements_pre_install.txt --prefer-binary
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
+
+bash fix_executable_bits.sh
 
 exit 0
