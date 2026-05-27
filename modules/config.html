@@ -70,6 +70,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Backend.PluginDefaults"><code class="docutils literal notranslate"><span class="pre">Backend.PluginDefaults</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#config.Backend.PluginDefaults.processes"><code class="docutils literal notranslate"><span class="pre">Backend.PluginDefaults.processes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.Backend.PluginDefaults.timeout"><code class="docutils literal notranslate"><span class="pre">Backend.PluginDefaults.timeout</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#config.Backend.Unpacking"><code class="docutils literal notranslate"><span class="pre">Backend.Unpacking</span></code></a><ul>
@@ -283,6 +284,11 @@
 <span class="sig-name descname"><span class="pre">processes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#config.Backend.PluginDefaults.processes" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="config.Backend.PluginDefaults.timeout">
+<span class="sig-name descname"><span class="pre">timeout</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#config.Backend.PluginDefaults.timeout" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -374,7 +380,7 @@
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="config.Backend.plugin">
-<span class="sig-name descname"><span class="pre">plugin</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#config.Backend.Plugin" title="config.Backend.Plugin"><span class="pre">Backend.Plugin</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#config.Backend.plugin" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plugin</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#config.Backend.Plugin" title="config.Backend.Plugin"><span class="pre">Backend.Plugin</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#config.Backend.plugin" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -441,7 +447,7 @@
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="config.Common.AnalysisPreset.plugins">
-<span class="sig-name descname"><span class="pre">plugins</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#config.Common.AnalysisPreset.plugins" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plugins</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#config.Common.AnalysisPreset.plugins" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -604,7 +610,7 @@
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="config.Common.analysis_preset">
-<span class="sig-name descname"><span class="pre">analysis_preset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#config.Common.AnalysisPreset" title="config.Common.AnalysisPreset"><span class="pre">Common.AnalysisPreset</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#config.Common.analysis_preset" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">analysis_preset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#config.Common.AnalysisPreset" title="config.Common.AnalysisPreset"><span class="pre">Common.AnalysisPreset</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#config.Common.analysis_preset" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -789,6 +795,9 @@ See <a class="reference external" href="https://alexmarandon.com/articles/python
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>None</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
