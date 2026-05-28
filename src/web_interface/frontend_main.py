@@ -8,7 +8,7 @@ from version import __VERSION__
 from web_interface.app import create_app
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
-from web_interface.components.compare_routes import CompareRoutes
+from web_interface.components.comparison_routes import ComparisonRoutes
 from web_interface.components.database_routes import DatabaseRoutes
 from web_interface.components.io_routes import IORoutes
 from web_interface.components.jinja_filter import FilterClass
@@ -38,7 +38,7 @@ class WebFrontEnd:
 
         AjaxRoutes(**base_args)
         AnalysisRoutes(**base_args)
-        CompareRoutes(**base_args)
+        ComparisonRoutes(**base_args)
         DatabaseRoutes(**base_args)
         IORoutes(**base_args)
         MiscellaneousRoutes(**base_args)

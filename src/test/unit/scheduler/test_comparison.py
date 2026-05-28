@@ -2,13 +2,13 @@ from time import sleep
 
 import pytest
 
-from compare.PluginBase import CompareBasePlugin
+from comparison.comparison_base_plugin import ComparisonBasePlugin
 from test.common_helper import CommonDatabaseMock, create_test_file_object
 
 
 @pytest.fixture(autouse=True)
-def no_compare_views(monkeypatch):  # noqa: PT004
-    monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)  # noqa: ARG005
+def no_comparison_views(monkeypatch):  # noqa: PT004
+    monkeypatch.setattr(ComparisonBasePlugin, '_sync_view', value=lambda s, p: None)  # noqa: ARG005
 
 
 class MockDbInterface(CommonDatabaseMock):
@@ -31,8 +31,8 @@ class MockDbInterface(CommonDatabaseMock):
     },
 )
 @pytest.mark.SchedulerTestConfig(start_processes=False, comparison_db_class=MockDbInterface)
-class TestSchedulerCompare:
-    def test_start_compare(self, comparison_scheduler):
+class TestSchedulerComparison:
+    def test_start_comparison(self, comparison_scheduler):
         comparison_scheduler.add_task(('existing_id', True))
         uid, redo = comparison_scheduler.in_queue.get(timeout=2)
         assert uid == 'existing_id', 'retrieved id not correct'
@@ -43,21 +43,23 @@ class TestSchedulerCompare:
         sleep(2)
         comparison_scheduler.shutdown()
 
-    def test_compare_single_run(self, comparison_scheduler):
-        compares_done = set()
+    def test_run_single_comparison(self, comparison_scheduler):
+        comparisons_done = set()
         comparison_scheduler.in_queue.put((comparison_scheduler.db_interface.test_object.uid, False))
-        comparison_scheduler._compare_single_run(compares_done)
-        assert len(compares_done) == 1, 'compares done not set correct'
-        assert comparison_scheduler.db_interface.test_object.uid in compares_done, 'correct uid not in compares done'
+        comparison_scheduler._comparison_worker(comparisons_done)
+        assert len(comparisons_done) == 1, 'comparisons done not set correct'
+        assert (
+            comparison_scheduler.db_interface.test_object.uid in comparisons_done
+        ), 'correct uid not in comparisons done'
 
     def test_decide_whether_to_process(self, comparison_scheduler):
-        compares_done = set('a')
+        comparisons_done = set('a')
         assert comparison_scheduler._comparison_should_start(
-            'b', False, compares_done
-        ), 'non-existing compare should always be done'
+            'b', False, comparisons_done
+        ), 'non-existing comparison should always be done'
         assert comparison_scheduler._comparison_should_start(
-            'a', True, compares_done
+            'a', True, comparisons_done
         ), 'redo is true so result should be true'
         assert not comparison_scheduler._comparison_should_start(
-            'a', False, compares_done
+            'a', False, comparisons_done
         ), 'already done and redo no -> should be false'

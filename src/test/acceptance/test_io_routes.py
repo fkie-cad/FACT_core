@@ -4,7 +4,7 @@ from helperFunctions import magic
 from storage.db_interface_comparison import ComparisonDbInterface
 from test.common_helper import create_test_firmware
 
-COMPARE_RESULT = {
+COMPARISON_RESULT = {
     'general': {'a': {'id1': '<empty>', 'id2': '<empty>'}, 'b': {'id1': '<empty>', 'id2': '<empty>'}},
     'plugins': {'Ida_Diff_Highlighting': {'idb_binary': 'The IDA database'}},
 }
@@ -35,23 +35,23 @@ class TestAcceptanceIoRoutes:
         assert b'Failed to establish a new connection' in response.data, 'connection shall fail'
 
     def test_ida_download(self, backend_db, test_client):
-        compare_interface = ComparisonDbInterface()
+        comparison_interface = ComparisonDbInterface()
 
         backend_db.add_object(self.test_fw)
 
-        COMPARE_RESULT['general'] = {'a': {self.test_fw.uid: 'x'}, 'b': {self.test_fw.uid: 'y'}}
+        COMPARISON_RESULT['general'] = {'a': {self.test_fw.uid: 'x'}, 'b': {self.test_fw.uid: 'y'}}
 
-        compare_interface.add_comparison_result(COMPARE_RESULT)
-        cid = compare_interface._calculate_comp_id(COMPARE_RESULT)
+        comparison_interface.add_comparison_result(COMPARISON_RESULT)
+        cid = comparison_interface._calculate_comp_id(COMPARISON_RESULT)
 
         response = test_client.get(f'/ida-download/{cid}')
         assert b'IDA database' in response.data, 'mocked ida database not in result'
 
     def test_ida_download_bad_uid(self, test_client):
-        compare_interface = ComparisonDbInterface()
+        comparison_interface = ComparisonDbInterface()
 
-        compare_interface.add_comparison_result(COMPARE_RESULT)
-        cid = compare_interface._calculate_comp_id(COMPARE_RESULT)
+        comparison_interface.add_comparison_result(COMPARISON_RESULT)
+        cid = comparison_interface._calculate_comp_id(COMPARISON_RESULT)
 
         response = test_client.get(f'/ida-download/{cid}')
         assert b'not found' in response.data, 'endpoint should dismiss result'

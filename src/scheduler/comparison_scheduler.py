@@ -6,8 +6,8 @@ from multiprocessing import Queue, Value
 from queue import Empty
 
 import config
-from compare.compare import Compare
-from helperFunctions.data_conversion import convert_compare_id_to_list
+from comparison.comparison import Comparison
+from helperFunctions.data_conversion import convert_comparison_id_to_list
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
@@ -24,7 +24,7 @@ class ComparisonScheduler:
         self.stop_condition = Value('i', 1)
         self.in_queue = Queue()
         self.callback = callback
-        self.comparison_module = Compare(db_interface=self.db_interface)
+        self.comparison_module = Comparison(db_interface=self.db_interface)
         self.worker = None
 
     def start(self):
@@ -52,10 +52,10 @@ class ComparisonScheduler:
         logging.debug(f'Started comparison worker {worker_id} (pid={os.getpid()})')
         comparisons_done = set()
         while self.stop_condition.value == 0:
-            self._compare_single_run(comparisons_done)
+            self._comparison_worker(comparisons_done)
         logging.debug(f'Stopped comparison worker {worker_id}')
 
-    def _compare_single_run(self, comparisons_done):
+    def _comparison_worker(self, comparisons_done):
         try:
             comparison_id, redo = self.in_queue.get(timeout=config.backend.block_delay)
         except Empty:
@@ -71,7 +71,7 @@ class ComparisonScheduler:
     def _process_comparison(self, comparison_id: str):
         try:
             self.db_interface.add_comparison_result(
-                self.comparison_module.compare(convert_compare_id_to_list(comparison_id))
+                self.comparison_module.compare(convert_comparison_id_to_list(comparison_id))
             )
         except Exception:
             logging.error(f'Fatal error in comparison process for {comparison_id}', exc_info=True)

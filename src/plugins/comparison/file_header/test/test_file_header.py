@@ -1,16 +1,16 @@
 from markupsafe import Markup
 
-from test.unit.compare.compare_plugin_test_class import ComparePluginTest
+from test.unit.comparison.comparison_plugin_test_class import ComparisonPluginTest
 
-from ..code.file_header import ComparePlugin, replace_none_ascii_with_dots
+from ..code.file_header import ComparisonPlugin, replace_none_ascii_with_dots
 
 
-class TestComparePluginFileHeader(ComparePluginTest):
+class TestComparisonPluginFileHeader(ComparisonPluginTest):
     PLUGIN_NAME = 'File_Header'
-    PLUGIN_CLASS = ComparePlugin
+    PLUGIN_CLASS = ComparisonPlugin
 
     def test_compare(self):
-        result = self.c_plugin.compare_function([self.fw_one, self.fw_two, self.fw_three], {})
+        result = self.c_plugin.compare_objects([self.fw_one, self.fw_two, self.fw_three], {})
 
         assert all(key in result for key in ['hexdiff', 'ascii', 'offsets']), 'not all result keys given'
         assert all(

@@ -1,6 +1,6 @@
 import pytest
 
-from compare.PluginBase import CompareBasePlugin as ComparePlugin
+from comparison.comparison_base_plugin import ComparisonBasePlugin as ComparisonPlugin
 from test.common_helper import CommonDatabaseMock, create_test_firmware
 
 fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
@@ -9,8 +9,8 @@ fw_three = create_test_firmware(device_name='dev_3', bin_path='container/test.ca
 
 
 @pytest.fixture
-def compare_plugin():
-    return ComparePlugin(view_updater=CommonDatabaseMock())
+def comparison_plugin():
+    return ComparisonPlugin(view_updater=CommonDatabaseMock())
 
 
 @pytest.mark.backend_config_overwrite(
@@ -19,16 +19,16 @@ def compare_plugin():
     }
 )
 class TestPluginBase:
-    def test_compare_missing_dep(self, compare_plugin):
-        compare_plugin.DEPENDENCIES = ['test_ana']
+    def test_comparison_missing_dep(self, comparison_plugin):
+        comparison_plugin.DEPENDENCIES = ['test_ana']
         fw_one.processed_analysis['test_ana'] = {}
-        result = compare_plugin.compare([fw_one, fw_two], {})
+        result = comparison_plugin.compare([fw_one, fw_two], {})
         assert result == {
-            'Compare Skipped': {'all': 'Required analyses not present: test_ana'}
+            'Comparison Skipped': {'all': 'Required analyses not present: test_ana'}
         }, 'missing dep result not correct'
 
-    def test_compare(self, compare_plugin):
-        result = compare_plugin.compare([fw_one, fw_two], {})
+    def test_compare(self, comparison_plugin):
+        result = comparison_plugin.compare([fw_one, fw_two], {})
         assert result == {'dummy': {'all': 'dummy-content', 'collapse': False}}, 'result not correct'
 
 
@@ -47,13 +47,13 @@ class MockFileObject:
     ],
 )
 def test_get_missing_analysis_deps(fo_list, dependencies, expected_output):
-    plugin = ComparePlugin()
+    plugin = ComparisonPlugin()
     plugin.DEPENDENCIES = dependencies
     assert plugin._get_missing_analysis_deps(fo_list) == expected_output
 
 
 def test_missing_comparison_deps():
-    plugin = ComparePlugin()
+    plugin = ComparisonPlugin()
     plugin.COMPARISON_DEPS = ['a', 'b', 'c']
     dependency_results = {
         'a': {'foo': 'bar'},

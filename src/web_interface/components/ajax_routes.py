@@ -27,17 +27,17 @@ from web_interface.security.privileges import PRIVILEGES
 class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_tree/<uid>/<root_uid>', GET)
-    @AppRoute('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', GET)
-    def ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
-        root_uid, compare_id = none_to_none(root_uid), none_to_none(compare_id)
-        exclusive_files = self._get_exclusive_files(compare_id, root_uid)
+    @AppRoute('/compare/ajax_tree/<comparison_id>/<root_uid>/<uid>', GET)
+    def ajax_get_tree_children(self, uid, root_uid=None, comparison_id=None):
+        root_uid, comparison_id = none_to_none(root_uid), none_to_none(comparison_id)
+        exclusive_files = self._get_exclusive_files(comparison_id, root_uid)
         tree = self._generate_file_tree(root_uid, uid, exclusive_files)
         children = [convert_to_jstree_node(child_node) for child_node in tree.get_list_of_child_nodes()]
         return jsonify(children)
 
-    def _get_exclusive_files(self, compare_id, root_uid):
-        if compare_id:
-            return self.db.comparison.get_exclusive_files(compare_id, root_uid)
+    def _get_exclusive_files(self, comparison_id, root_uid):
+        if comparison_id:
+            return self.db.comparison.get_exclusive_files(comparison_id, root_uid)
         return None
 
     def _generate_file_tree(self, root_uid: str | None, uid: str, whitelist: list[str]) -> FileTreeNode:
@@ -66,19 +66,19 @@ class AjaxRoutes(ComponentBase):
         return jsonify(root)
 
     @roles_accepted(*PRIVILEGES['compare'])
-    @AppRoute('/compare/ajax_common_files/<compare_id>/<feature_id>/', GET)
-    def ajax_get_common_files_for_compare(self, compare_id, feature_id):
-        result = self.db.comparison.get_comparison_result(compare_id)
+    @AppRoute('/compare/ajax_common_files/<comparison_id>/<feature_id>/', GET)
+    def ajax_get_common_files_for_comparison(self, comparison_id, feature_id):
+        result = self.db.comparison.get_comparison_result(comparison_id)
         feature, matching_uid = feature_id.split('___')
         uid_list = result['plugins']['File_Coverage'][feature][matching_uid]
-        return self._get_nice_uid_list_html(uid_list, root_uid=self._get_root_uid(matching_uid, compare_id))
+        return self._get_nice_uid_list_html(uid_list, root_uid=self._get_root_uid(matching_uid, comparison_id))
 
     @staticmethod
-    def _get_root_uid(candidate, compare_id):
-        # feature_id contains an UID in individual case, in all case simply take first uid from compare
+    def _get_root_uid(candidate, comparison_id):
+        # feature_id contains an UID in individual case, in all case simply take first uid from comparison
         if candidate != 'all':
             return candidate
-        return compare_id.split(';')[0]
+        return comparison_id.split(';')[0]
 
     def _get_nice_uid_list_html(self, input_data, root_uid):
         included_files = self.db.frontend.get_data_for_nice_list(input_data, None)

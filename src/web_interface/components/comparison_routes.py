@@ -7,9 +7,9 @@ from typing import NamedTuple
 from flask import redirect, render_template, render_template_string, request, session, url_for
 
 from helperFunctions.data_conversion import (
-    convert_compare_id_to_list,
-    convert_uid_list_to_compare_id,
-    normalize_compare_id,
+    convert_comparison_id_to_list,
+    convert_uid_list_to_comparison_id,
+    normalize_comparison_id,
 )
 from helperFunctions.database import get_shared_session
 from helperFunctions.web_interface import get_template_as_string
@@ -25,27 +25,27 @@ class FileDiffData(NamedTuple):
     fw_hid: str
 
 
-class CompareRoutes(ComponentBase):
+class ComparisonRoutes(ComponentBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     @roles_accepted(*PRIVILEGES['compare'])
-    @AppRoute('/compare/<compare_id>', GET)
-    def show_compare_result(self, compare_id):
-        compare_id = normalize_compare_id(compare_id)
+    @AppRoute('/compare/<comparison_id>', GET)
+    def show_comparison_result(self, comparison_id):
+        comparison_id = normalize_comparison_id(comparison_id)
         with get_shared_session(self.db.comparison) as comparison_db:
-            if not comparison_db.objects_exist(compare_id):
+            if not comparison_db.objects_exist(comparison_id):
                 return render_template('compare/error.html', error='Not all UIDs found in the DB')
-            result = comparison_db.get_comparison_result(compare_id)
+            result = comparison_db.get_comparison_result(comparison_id)
         if not result:
-            return render_template('compare/wait.html', compare_id=compare_id)
-        download_link = self._create_ida_download_if_existing(result, compare_id)
-        uid_list = convert_compare_id_to_list(compare_id)
-        plugin_views, plugins_without_view = self._get_compare_plugin_views(result)
-        compare_view = _get_compare_view(plugin_views)
-        self._fill_in_empty_fields(result, compare_id)
+            return render_template('compare/wait.html', comparison_id=comparison_id)
+        download_link = self._create_ida_download_if_existing(result, comparison_id)
+        uid_list = convert_comparison_id_to_list(comparison_id)
+        plugin_views, plugins_without_view = self._get_comparison_plugin_views(result)
+        comparison_view = _get_comparison_view(plugin_views)
+        self._fill_in_empty_fields(result, comparison_id)
         return render_template_string(
-            compare_view,
+            comparison_view,
             result=result,
             uid_list=uid_list,
             download_link=download_link,
@@ -53,17 +53,17 @@ class CompareRoutes(ComponentBase):
         )
 
     @staticmethod
-    def _fill_in_empty_fields(result, compare_id):
-        compare_uids = compare_id.split(';')
+    def _fill_in_empty_fields(result, comparison_id):
+        comparison_uids = comparison_id.split(';')
         for key in result['general']:
-            for uid in compare_uids:
+            for uid in comparison_uids:
                 if uid not in result['general'][key]:
                     result['general'][key][uid] = ''
 
-    def _get_compare_plugin_views(self, compare_result):
+    def _get_comparison_plugin_views(self, comparison_result):
         views, plugins_without_view = [], []
         with suppress(KeyError):
-            used_plugins = list(compare_result['plugins'].keys())
+            used_plugins = list(comparison_result['plugins'].keys())
             with get_shared_session(self.db.template) as template_db:
                 for plugin in used_plugins:
                     view = template_db.get_view(plugin)
@@ -80,7 +80,7 @@ class CompareRoutes(ComponentBase):
         if len(uid_dict) < 2:  # noqa: PLR2004
             return render_template('compare/error.html', error='No UIDs found for comparison')
 
-        comparison_id = convert_uid_list_to_compare_id(list(uid_dict))
+        comparison_id = convert_uid_list_to_comparison_id(list(uid_dict))
         session['uids_for_comparison'] = None
         redo = True if request.args.get('force_recompare') else None
 
@@ -89,24 +89,24 @@ class CompareRoutes(ComponentBase):
                 return render_template('compare/error.html', error='Not all UIDs found in the DB')
 
             if not redo and comparison_db.comparison_exists(comparison_id):
-                return redirect(url_for('show_compare_result', compare_id=comparison_id))
+                return redirect(url_for('show_comparison_result', comparison_id=comparison_id))
 
-        self.intercom.add_compare_task(comparison_id, force=redo)
-        return render_template('compare/wait.html', compare_id=comparison_id)
+        self.intercom.add_comparison_task(comparison_id, force=redo)
+        return render_template('compare/wait.html', comparison_id=comparison_id)
 
     @staticmethod
-    def _create_ida_download_if_existing(result, compare_id):
+    def _create_ida_download_if_existing(result, comparison_id):
         if isinstance(result, dict) and result.get('plugins', {}).get('Ida_Diff_Highlighting', {}).get('idb_binary'):
-            return f'/ida-download/{compare_id}'
+            return f'/ida-download/{comparison_id}'
         return None
 
     @roles_accepted(*PRIVILEGES['compare'])
-    @AppRoute('/database/browse_compare', GET)
+    @AppRoute('/database/browse_comparisons', GET)
     def browse_comparisons(self):
         with get_shared_session(self.db.comparison) as comparison_db:
             page, per_page = extract_pagination_from_request(request)[0:2]
             try:
-                compare_list = comparison_db.page_comparison_results(skip=per_page * (page - 1), limit=per_page)
+                comparison_list = comparison_db.page_comparison_results(skip=per_page * (page - 1), limit=per_page)
             except Exception as exception:
                 error_message = f'Could not query database: {type(exception)}'
                 logging.error(error_message, exc_info=True)
@@ -116,8 +116,8 @@ class CompareRoutes(ComponentBase):
 
         pagination = get_pagination(page=page, per_page=per_page, total=total)
         return render_template(
-            'database/compare_browse.html',
-            compare_list=compare_list,
+            'database/browse_comparisons.html',
+            comparison_list=comparison_list,
             page=page,
             per_page=per_page,
             pagination=pagination,
@@ -126,28 +126,28 @@ class CompareRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/add/<uid>', GET)
     @AppRoute('/comparison/add/<uid>/<root_uid>', GET)
-    def add_to_compare_basket(self, uid, root_uid=None):
-        compare_uid_list = get_comparison_uid_dict_from_session()
-        compare_uid_list[uid] = root_uid
+    def add_to_comparison_basket(self, uid, root_uid=None):
+        comparison_uid_list = get_comparison_uid_dict_from_session()
+        comparison_uid_list[uid] = root_uid
         session.modified = True
         return redirect(url_for('show_analysis', uid=uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>', GET)
-    @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>/<root_uid>', GET)
-    def remove_from_compare_basket(self, analysis_uid, compare_uid, root_uid=None):
-        compare_uid_list = get_comparison_uid_dict_from_session()
-        if compare_uid in compare_uid_list:
-            session['uids_for_comparison'].pop(compare_uid)
+    @AppRoute('/comparison/remove/<analysis_uid>/<comparison_uid>', GET)
+    @AppRoute('/comparison/remove/<analysis_uid>/<comparison_uid>/<root_uid>', GET)
+    def remove_from_comparison_basket(self, analysis_uid, comparison_uid, root_uid=None):
+        comparison_uid_list = get_comparison_uid_dict_from_session()
+        if comparison_uid in comparison_uid_list:
+            session['uids_for_comparison'].pop(comparison_uid)
             session.modified = True
         return redirect(url_for('show_analysis', uid=analysis_uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove_all/<analysis_uid>', GET)
     @AppRoute('/comparison/remove_all/<analysis_uid>/<root_uid>', GET)
-    def remove_all_from_compare_basket(self, analysis_uid, root_uid=None):
-        compare_uid_list = get_comparison_uid_dict_from_session()
-        compare_uid_list.clear()
+    def remove_all_from_comparison_basket(self, analysis_uid, root_uid=None):
+        comparison_uid_list = get_comparison_uid_dict_from_session()
+        comparison_uid_list.clear()
         session.modified = True
         return redirect(url_for('show_analysis', uid=analysis_uid, root_uid=root_uid))
 
@@ -205,14 +205,14 @@ class CompareRoutes(ComponentBase):
         return FileDiffData(uid, mime, fw_hid)
 
 
-def _get_compare_view(plugin_views):
-    compare_view = get_template_as_string('compare/compare.html')
-    return _add_plugin_views_to_compare_view(compare_view, plugin_views)
+def _get_comparison_view(plugin_views):
+    comparison_view = get_template_as_string('compare/compare.html')
+    return _add_plugin_views_to_comparison_view(comparison_view, plugin_views)
 
 
-def _add_plugin_views_to_compare_view(compare_view, plugin_views):
+def _add_plugin_views_to_comparison_view(comparison_view, plugin_views):
     key = '{# individual plugin views #}'
-    insertion_index = compare_view.find(key)
+    insertion_index = comparison_view.find(key)
     if insertion_index == -1:
         logging.error('compare view insertion point not found in compare template')
     else:
@@ -220,8 +220,8 @@ def _add_plugin_views_to_compare_view(compare_view, plugin_views):
         for plugin, view in plugin_views:
             if_case = f"{{% elif plugin == '{plugin}' %}}"
             view = f'{if_case}\n{view.decode()}'  # noqa: PLW2901
-            compare_view = _insert_plugin_into_view_at_index(view, compare_view, insertion_index)
-    return compare_view
+            comparison_view = _insert_plugin_into_view_at_index(view, comparison_view, insertion_index)
+    return comparison_view
 
 
 def _insert_plugin_into_view_at_index(plugin, view, index):

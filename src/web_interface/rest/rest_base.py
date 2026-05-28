@@ -7,7 +7,7 @@ from flask_restx import Api
 from web_interface.rest.rest_analysis import api as analysis_api
 from web_interface.rest.rest_binary import api as binary_api
 from web_interface.rest.rest_binary_search import api as binary_search_api
-from web_interface.rest.rest_compare import api as compare_api
+from web_interface.rest.rest_comparison import api as comparison_api
 from web_interface.rest.rest_file_object import api as file_object_api
 from web_interface.rest.rest_firmware import api as firmware_api
 from web_interface.rest.rest_missing_analyses import api as missing_analyses_api
@@ -31,7 +31,7 @@ class RestBase:
             analysis_api,
             binary_api,
             binary_search_api,
-            compare_api,
+            comparison_api,
             file_object_api,
             firmware_api,
             missing_analyses_api,

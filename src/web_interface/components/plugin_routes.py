@@ -5,7 +5,7 @@ from helperFunctions.fileSystem import get_src_dir
 from web_interface.components.component_base import ComponentBase
 
 ROUTES_MODULE_NAME = 'routes'
-PLUGIN_CATEGORIES = ['analysis', 'compare']
+PLUGIN_CATEGORIES = ['analysis', 'comparison']
 PLUGIN_DIR = f'{get_src_dir()}/plugins'
 
 

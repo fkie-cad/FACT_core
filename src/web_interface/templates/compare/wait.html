@@ -17,16 +17,16 @@
             to { transform: scale(1) rotate(360deg);}
         }
     </style>
-    <meta http-equiv="refresh" content="10 URL=/compare/{{ compare_id }}">
+    <meta http-equiv="refresh" content="10 URL=/compare/{{ comparison_id }}">
 {% endblock %}
 
 {% block body %}
 <div class="alert alert-secondary mt-4">
     <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
-    <strong>Info:</strong> Your compare task is in progress. Please wait or <a href="/compare/{{ compare_id }}">reload</a> this page manually.
+    <strong>Info:</strong> Your comparison task is in progress. Please wait or <a href="/compare/{{ comparison_id }}">reload</a> this page manually.
 </div>
 <div class="alert alert-warning">
     <span class="glyphicon glyphicon-hourglass"></span>
-    <strong>Warning:</strong> Compare tasks usually take under a minute. For larger images (> 10000 files) you may want to bookmark this page and come back later though.
+    <strong>Warning:</strong> Comparison tasks usually take under a minute. For larger images (> 10000 files) you may want to bookmark this page and come back later though.
 </div>
 {% endblock %}
