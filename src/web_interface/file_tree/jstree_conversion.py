@@ -24,7 +24,8 @@ def convert_to_jstree_node(node: FileTreeNode):
 
 
 def _get_directory_jstree_node(node: FileTreeNode):
-    return _get_jstree_node_contents(f'{node.name}', '#', '/static/file_icons/folder.svg')
+    label = f'<b>{node.name}</b> (<span style="color:gray;">{human_readable_file_size(node.size)}</span>)'
+    return _get_jstree_node_contents(label, '#', '/static/file_icons/folder.svg')
 
 
 def _get_not_analyzed_jstree_node(node: FileTreeNode):
