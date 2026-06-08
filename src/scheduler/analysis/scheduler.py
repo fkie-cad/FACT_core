@@ -483,19 +483,19 @@ class AnalysisScheduler:
             self._add_completed_analysis_results_to_file_object('file_type', fw_object)
         return fw_object.processed_analysis['file_type']['result']['mime'].lower()
 
-    def _get_blacklist_and_whitelist(self, next_analysis: str) -> tuple[list, list]:
+    def _get_blacklist_and_whitelist(self, next_analysis: str) -> tuple[list[str], list[str]]:
         blacklist, whitelist = self._get_blacklist_and_whitelist_from_config(next_analysis)
-        if not (blacklist or whitelist):
+        if blacklist is None and whitelist is None:
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(next_analysis)
-        return blacklist, whitelist
+        return blacklist or [], whitelist or []
 
     @staticmethod
-    def _get_blacklist_and_whitelist_from_config(analysis_plugin: str) -> tuple[list, list]:
-        blacklist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_blacklist', [])
-        whitelist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_whitelist', [])
+    def _get_blacklist_and_whitelist_from_config(analysis_plugin: str) -> tuple[list[str] | None, list[str] | None]:
+        blacklist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_blacklist', None)
+        whitelist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_whitelist', None)
         return blacklist, whitelist
 
-    def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> tuple[list, list]:
+    def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> tuple[list[str], list[str]]:
         try:
             blacklist = self.analysis_plugins[analysis_plugin].metadata.mime_blacklist
         except AttributeError:
