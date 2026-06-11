@@ -38,3 +38,58 @@ class TestRestAnalysis(RestTestBase):
         assert 'analysis' not in response.json
         assert 'error_message' in response.json
         assert 'not found' in response.json['error_message']
+
+    def test_rest_put_analysis(self, backend_db, monkeypatch):
+        insert_test_fo(backend_db, 'uid')
+
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
+            lambda _: ['file_type', 'some_other_plugin'],
+        )
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.add_single_file_task',
+            lambda _, __: True,
+        )
+
+        response = self.test_client.put('/rest/analysis/uid/file_type')
+        assert response.status_code == HTTPStatus.OK
+        assert response.json['success'] is True
+
+    def test_rest_put_analysis_no_file(self, monkeypatch):
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
+            lambda _: ['file_type'],
+        )
+
+        response = self.test_client.put('/rest/analysis/unknown_uid/file_type')
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert 'error_message' in response.json
+        assert 'No file object with UID' in response.json['error_message']
+
+    def test_rest_put_analysis_invalid_plugin(self, backend_db, monkeypatch):
+        insert_test_fo(backend_db, 'uid')
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
+            lambda _: ['file_type'],
+        )
+
+        unknown_plugin = 'unknown_plugin'
+        response = self.test_client.put(f'/rest/analysis/uid/{unknown_plugin}')
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert 'error_message' in response.json
+        assert f'Analysis plugin "{unknown_plugin}" not found' in response.json['error_message']
+
+    def test_rest_put_analysis_force(self, backend_db, monkeypatch):
+        insert_test_fo(backend_db, 'uid')
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
+            lambda _: ['file_type'],
+        )
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.add_single_file_task',
+            lambda _, fo: fo.force_update is True,
+        )
+
+        response = self.test_client.put('/rest/analysis/uid/file_type?force=true')
+        assert response.status_code == HTTPStatus.OK
+        assert response.json['success'] is True
