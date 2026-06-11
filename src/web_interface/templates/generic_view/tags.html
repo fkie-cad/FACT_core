@@ -7,6 +7,8 @@
     {%- endif %}
     {% if uid -%}
         onclick="location.href='/analysis/{{ uid }}/{{ plugin }}/ro/{{ root_uid }}?load_summary=true'"
+    {% elif value == "Comments" %}
+        onclick="document.getElementById('comments-head').scrollIntoView({ behavior: 'smooth', block: 'start' });"
     {%- endif %}
 >
     {{ value }}
