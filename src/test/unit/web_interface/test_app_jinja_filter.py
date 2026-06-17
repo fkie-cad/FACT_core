@@ -6,7 +6,7 @@ from web_interface.components.jinja_filter import FilterClass
 
 @pytest.fixture
 def filter_class(web_frontend):
-    return FilterClass(web_frontend.app, '', web_frontend.db)
+    return FilterClass(web_frontend.app, web_frontend.db)
 
 
 class TestAppShowAnalysis:
