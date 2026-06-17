@@ -1,4 +1,5 @@
 import re
+from http import HTTPStatus
 
 from helperFunctions.data_conversion import make_bytes
 from test.common_helper import TEST_FW
@@ -35,7 +36,7 @@ class TestAppReAnalyze:
             'analysis_systems': ['new_system'],
         }
         rv = test_client.post(f'/update-analysis/{TEST_FW.uid}', data=form_data)
-        assert b'Upload Successful' in rv.data
+        assert rv.status_code == HTTPStatus.OK, 'upload not successful'
         assert make_bytes(TEST_FW.uid) in rv.data
         assert intercom_task_list[0].uid == TEST_FW.uid, 'fw not added to intercom'
         assert 'new_system' in intercom_task_list[0].scheduled_analysis, 'new analysis system not scheduled'
