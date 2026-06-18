@@ -50,6 +50,8 @@ def extract_english_summary(descriptions: list) -> str:
 def extract_cve_impact(metrics: dict) -> dict[str, str]:
     impact = {}
     for cvss_type, cvss_data in metrics.items():
+        if not cvss_type.startswith('cvss'):
+            continue
         key = cvss_type.replace('cvssMetric', '')
         if re.match(r'V\d\d', key):
             # V30 / V31 / V40 -> V3.0 / V3.1 / V4.0
