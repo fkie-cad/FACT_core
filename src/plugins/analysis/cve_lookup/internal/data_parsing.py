@@ -4,12 +4,16 @@ import re
 from pathlib import Path
 from shlex import split
 from subprocess import run
+from typing import TYPE_CHECKING
 
 import ijson
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
 from ..internal.helper_functions import CveEntry, is_ci
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 # Hack: if this is running on the CI, only load recent CVE entries instead of all
 FILE_NAME = 'CVE-all.json.xz' if not is_ci() else 'CVE-recent.json.xz'
@@ -18,11 +22,11 @@ DB_DIR = Path(__file__).parent / 'database'
 OUTPUT_FILE = DB_DIR / FILE_NAME
 
 
-def _retrieve_url(download_url: str, target: Path):
+def _retrieve_url(download_url: str, target: Path) -> None:
     adapter = HTTPAdapter(max_retries=Retry(total=5, backoff_factor=0.1))
     with requests.Session() as session:
         session.mount('http://', adapter)
-        with requests.get(download_url, stream=True) as request:
+        with requests.get(download_url, stream=True, timeout=300) as request:
             request.raise_for_status()
             with target.open('wb') as fp:
                 for chunk in request.iter_content(chunk_size=65_536):
@@ -34,7 +38,7 @@ def download_and_decompress_file() -> Path:
     Downloads data from a URL, saves it to a file, decompresses it, and returns the path.
     """
     _retrieve_url(CVE_URL, OUTPUT_FILE)
-    run(split(f'unxz --force {OUTPUT_FILE.name}'), cwd=DB_DIR, check=True)
+    run(split(f'unxz --force {OUTPUT_FILE.name}'), cwd=DB_DIR, check=True)  # noqa: S603
     return DB_DIR / OUTPUT_FILE.stem  # the .xz suffix was removed during extraction
 
 
@@ -91,7 +95,7 @@ def extract_data_from_cve(cve_item: dict) -> CveEntry:
     return CveEntry(cve_id=cve_id, summary=summary, impact=impact, cpe_entries=cpe_entries)
 
 
-def parse_data() -> list[CveEntry]:
+def parse_data() -> Iterator[CveEntry]:
     """
     Parse the data from the JSON file and return a list of CveEntry objects.
     """
