@@ -5,12 +5,16 @@ import subprocess
 from pathlib import Path
 from subprocess import PIPE, STDOUT, CalledProcessError
 from tempfile import NamedTemporaryFile
+from typing import TYPE_CHECKING
 
 import yara
 
 import config
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
+
+if TYPE_CHECKING:
+    from helperFunctions.types import TmpFile
 
 
 class YaraBinarySearchScanner:
@@ -79,7 +83,7 @@ class YaraBinarySearchScanner:
         :param raw_result: raw yara scan result
         :return: dict of matching files, rules and strings
         """
-        results = {}
+        results: dict[str, dict[str, list[dict]]] = {}
         for result_str in re.findall(
             # <rule_name>            <path>     <offset>    <condition>      <string>
             r'[a-zA-Z_][a-zA-Z0-9_]+ [^\n]+\n(?:0x[0-9a-f]+:\$[a-zA-Z0-9_]+: .+\n)+',
@@ -118,7 +122,7 @@ class YaraBinarySearchScanner:
             except CalledProcessError as process_error:
                 return f'Error when calling YARA:\n{process_error.output.decode()}'
 
-    def _get_raw_result(self, firmware_uid: str | None, temp_rule_file: NamedTemporaryFile) -> str:
+    def _get_raw_result(self, firmware_uid: str | None, temp_rule_file: TmpFile) -> str:
         if firmware_uid is None:
             raw_result = self._execute_yara_search(temp_rule_file.name)
         else:
@@ -126,7 +130,7 @@ class YaraBinarySearchScanner:
         return raw_result
 
     @staticmethod
-    def _prepare_temp_rule_file(temp_rule_file: NamedTemporaryFile, yara_rules: bytes):
+    def _prepare_temp_rule_file(temp_rule_file: TmpFile, yara_rules: bytes):
         compiled_rules = yara.compile(source=yara_rules.decode())
         compiled_rules.save(file=temp_rule_file)
         temp_rule_file.flush()

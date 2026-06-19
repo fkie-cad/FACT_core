@@ -17,12 +17,12 @@ _fact_magic = f'{get_src_dir()}/bin/firmware.mgc'
 _internal_symlink_magic = f'{get_src_dir()}/bin/internal_symlink_magic.mgc'
 _magic_file = f'{_internal_symlink_magic}:{_fact_magic}:{_default_magic}'
 
-_instances = {}
+_instances: dict[int, pymagic.Magic] = {}
 
 
 def _get_magic_instance(**kwargs):
     """Returns an instance of pymagic.Magic"""
-    # Dicts are not hashable but sorting and creating a tuple is a valid hash
+    # Dicts are not hashable, but sorting and creating a tuple is a valid hash
     key = hash(tuple(sorted(kwargs.items())))
     instance = _instances.get(key)
     if instance is None:

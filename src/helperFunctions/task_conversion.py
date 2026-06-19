@@ -39,7 +39,7 @@ def get_file_name_and_binary_from_request(request: Request) -> tuple[str, bytes]
     :return: A Tuple containing the file name and the file content.
     """
     try:
-        file_name = escape(request.files['file'].filename)
+        file_name: str = escape(request.files['file'].filename)
     except AttributeError:
         file_name = 'no name'
     file_binary = request.files['file'].read() if request.files['file'] else None
@@ -61,7 +61,7 @@ def create_re_analyze_task(request: Request, uid: str) -> dict[str, Any]:
     return task
 
 
-def _get_meta_from_request(request: Request):
+def _get_meta_from_request(request: Request) -> dict[str, Any]:
     meta = {
         'device_name': escape(request.form['device_name']),
         'device_part': escape(request.form['device_part']),
@@ -79,7 +79,7 @@ def _get_meta_from_request(request: Request):
     return meta
 
 
-def _get_meta_from_dropdowns(meta, request: Request):
+def _get_meta_from_dropdowns(meta: dict, request: Request):
     for item in meta:
         if not meta[item] and item in DROPDOWN_FIELDS:
             dd = request.form[f'{item}_dropdown']
