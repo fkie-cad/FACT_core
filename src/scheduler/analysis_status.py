@@ -37,20 +37,20 @@ class AnalysisStatus:
         self._currently_analyzed = self._manager.dict()
         self._worker = AnalysisStatusWorker(currently_analyzed_fw=self._currently_analyzed)
 
-    def start(self):
+    def start(self) -> None:
         self._worker.start()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         self._worker.shutdown()
         self._manager.shutdown()
 
-    def add_update(self, fw_object: FileObject, included_files: list[str] | set[str]):
+    def add_update(self, fw_object: FileObject, included_files: list[str] | set[str]) -> None:
         # normally, status is initialized during unpacking, but since unpacking is skipped for updates, we need to
         # init it here first before adding the object
         self.init_firmware(fw_object)
         self._worker.queue.put((_UpdateType.add_update, fw_object.uid, included_files))
 
-    def init_firmware(self, fw_object: FileObject):
+    def init_firmware(self, fw_object: FileObject) -> None:
         self._worker.queue.put(
             (
                 _UpdateType.add_firmware,
@@ -60,7 +60,7 @@ class AnalysisStatus:
             )
         )
 
-    def add_object(self, fw_object: FileObject):
+    def add_object(self, fw_object: FileObject) -> None:
         self._worker.queue.put(
             (
                 _UpdateType.add_file,
@@ -70,16 +70,16 @@ class AnalysisStatus:
             )
         )
 
-    def add_analysis(self, fw_object: FileObject, plugin: str):
+    def add_analysis(self, fw_object: FileObject, plugin: str) -> None:
         self._worker.queue.put((_UpdateType.add_analysis, fw_object.root_uid, plugin))
 
-    def remove_object(self, fw_object: FileObject):
+    def remove_object(self, fw_object: FileObject) -> None:
         self._worker.queue.put((_UpdateType.remove_file, fw_object.uid, fw_object.root_uid))
 
     def fw_analysis_is_in_progress(self, fw_object: FileObject) -> bool:
         return fw_object.root_uid in self._currently_analyzed or fw_object.uid in self._currently_analyzed
 
-    def cancel_analysis(self, root_uid: str):
+    def cancel_analysis(self, root_uid: str) -> None:
         self._worker.queue.put((_UpdateType.cancel, root_uid))
 
 
@@ -108,19 +108,19 @@ class AnalysisStatusWorker:
         self._running = Value('i', 0)
         self.redis = RedisStatusInterface()
 
-    def start(self):
+    def start(self) -> None:
         if self._running.value == 0:
             self._running.value = 1
             self._worker_process = Process(target=self._worker_loop)
             self._worker_process.start()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         if self._running.value == 1:
             self._running.value = 0
             if self._worker_process is not None:
                 stop_process(self._worker_process, timeout=10)
 
-    def _worker_loop(self):
+    def _worker_loop(self) -> None:
         logging.debug(f'starting analysis status worker (pid: {os.getpid()})')
         next_update_time = 0
         while self._running.value:
@@ -135,7 +135,7 @@ class AnalysisStatusWorker:
                 next_update_time = current_time + config.backend.analysis_status_update_interval
         logging.debug('stopped analysis status worker')
 
-    def _update_status(self):
+    def _update_status(self) -> None:
         update_type, *args = self.queue.get(timeout=config.backend.analysis_status_update_interval)
         if update_type == _UpdateType.add_update:
             self._add_update(*args)
@@ -150,7 +150,7 @@ class AnalysisStatusWorker:
         elif update_type == _UpdateType.cancel:
             self._cancel_analysis(*args)
 
-    def _add_update(self, fw_uid: str, included_files: set[str]):
+    def _add_update(self, fw_uid: str, included_files: set[str]) -> None:
         status = self.currently_running[fw_uid]
         status.files_to_unpack = set()
         file_count = len(included_files) + 1
@@ -159,18 +159,18 @@ class AnalysisStatusWorker:
         status.total_files_with_duplicates = file_count
         status.files_to_analyze = {fw_uid, *included_files}
 
-    def _add_firmware(self, uid: str, hid: str, scheduled_analyses: list[str] | None):
+    def _add_firmware(self, uid: str, hid: str, scheduled_analyses: list[str] | None) -> None:
         self.currently_running[uid] = FwAnalysisStatus(
             files_to_unpack={uid},
             files_to_analyze={uid},
             total_files_count=1,
             hid=hid,
-            analysis_plugins={p: 0 for p in scheduled_analyses or []},
+            analysis_plugins=dict.fromkeys(scheduled_analyses or [], 0),
         )
         # This is only for checking if a FW is currently analyzed from *outside* of this class
         self.currently_analyzed[uid] = True
 
-    def _add_included_file(self, uid: str, root_uid: str, included_files: set[str]):
+    def _add_included_file(self, uid: str, root_uid: str, included_files: set[str]) -> None:
         """
         An included file of a FW comes from unpacking. There are two things that need to be updated:
         - move the file from files_to_unpack to files_to_analyze (could be a duplicate, i.e. was already moved)
@@ -189,14 +189,14 @@ class AnalysisStatusWorker:
             status.files_to_analyze.add(uid)
             status.unpacked_files_count += 1
 
-    def _add_analysis(self, root_uid: str, plugin: str):
+    def _add_analysis(self, root_uid: str, plugin: str) -> None:
         if root_uid not in self.currently_running:
             return
         status = self.currently_running[root_uid]
         status.analysis_plugins.setdefault(plugin, 0)
         status.analysis_plugins[plugin] += 1
 
-    def _remove_object(self, uid: str, root_uid: str):
+    def _remove_object(self, uid: str, root_uid: str) -> None:
         if root_uid not in self.currently_running:
             return
         status = self.currently_running[root_uid]
@@ -222,13 +222,13 @@ class AnalysisStatusWorker:
             'hid': analysis_status.hid,
         }
 
-    def _clear_recently_finished(self):
+    def _clear_recently_finished(self) -> None:
         for status_dict in (self.recently_finished, self.recently_canceled):
             for uid, stats in list(status_dict.items()):
                 if time() - stats['time_finished'] > RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC:
                     status_dict.pop(uid)
 
-    def _store_status(self):
+    def _store_status(self) -> None:
         status = {
             'current_analyses': self._get_current_analyses_stats(),
             'recently_finished_analyses': self.recently_finished,
@@ -236,7 +236,7 @@ class AnalysisStatusWorker:
         }
         self.redis.set_analysis_status(status)
 
-    def _get_current_analyses_stats(self):
+    def _get_current_analyses_stats(self) -> dict[str, dict]:
         return {
             uid: {
                 'unpacked_count': status.unpacked_files_count,
@@ -250,7 +250,7 @@ class AnalysisStatusWorker:
             for uid, status in self.currently_running.items()
         }
 
-    def _cancel_analysis(self, root_uid: str):
+    def _cancel_analysis(self, root_uid: str) -> None:
         if root_uid in self.currently_running:
             status = self.currently_running.pop(root_uid)
             self.recently_canceled[root_uid] = {
