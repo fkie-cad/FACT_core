@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from time import time
+from typing import Any
 
 from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
@@ -19,7 +20,7 @@ def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | No
     firmware.vendor = fw_entry.vendor
     firmware.version = fw_entry.version
     firmware.part = fw_entry.device_part
-    firmware.tags = {tag: 'secondary' for tag in getattr(fw_entry, 'firmware_tags', [])}
+    firmware.tags = dict.fromkeys(getattr(fw_entry, 'firmware_tags', []), 'secondary')
     return firmware
 
 
@@ -36,13 +37,6 @@ def file_object_from_entry(
     return file_object
 
 
-def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, list[str]]:
-    result = {}
-    for vfp_entry in vfp_list or []:
-        result.setdefault(vfp_entry.parent_uid, []).append(vfp_entry.file_path)
-    return result
-
-
 def _populate_fo_data(
     fo_entry: FileObjectEntry,
     file_object: FileObject,
@@ -51,7 +45,7 @@ def _populate_fo_data(
     parents: set[str] | None = None,
     virtual_file_paths: dict[str, list[str]] | None = None,
     parent_fw: set[str] | None = None,
-):
+) -> None:
     file_object.uid = fo_entry.uid
     file_object.size = fo_entry.size
     file_object.file_name = fo_entry.file_name
@@ -130,7 +124,7 @@ def sanitize(analysis_data: dict) -> dict:
     return analysis_data
 
 
-def _sanitize_value(analysis_data: dict, key: str, value):
+def _sanitize_value(analysis_data: dict, key: str, value: Any) -> None:  # noqa: ANN401
     if isinstance(value, tuple):
         analysis_data[key] = value = list(value)
     if isinstance(value, dict):
@@ -156,7 +150,7 @@ def _sanitize_string(string: str) -> str:
     return string
 
 
-def _sanitize_key(analysis_data: dict, key: str):
+def _sanitize_key(analysis_data: dict, key: str) -> None:
     if '\0' in key:
         analysis_data[key.replace('\0', '')] = analysis_data.pop(key)
 

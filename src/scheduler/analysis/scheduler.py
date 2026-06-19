@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from multiprocessing import Lock, Queue, Value
+from multiprocessing import Queue, Value
 from pathlib import Path
 from queue import Empty
 from time import sleep
@@ -31,8 +31,8 @@ from storage.fsorganizer import FSOrganizer
 from .plugin import PluginRunner, Worker
 
 if TYPE_CHECKING:
-    import types
     from collections.abc import Callable
+    from types import ModuleType
 
     from objects.file import FileObject
     from storage.unpacking_locks import UnpackingLockManager
@@ -97,7 +97,7 @@ class AnalysisScheduler:
     The results are stored in the database using ``post_analysis()`` after each analysis is completed.
 
     :param post_analysis: A database function to call after running an analysis task.
-    :param db_interface: An instance of BackEndDbInterface.
+    :param db_interface: An instance of BackendDbInterface.
     :param unpacking_locks: An instance of UnpackingLockManager.
     """
 
@@ -114,7 +114,6 @@ class AnalysisScheduler:
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
         self.unpacking_locks = unpacking_locks
-        self.scheduling_lock = Lock()
 
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
@@ -643,7 +642,7 @@ def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObjec
     )
 
 
-def _sync_view(plugin_module: types.ModuleType, plugin_name: str) -> None:
+def _sync_view(plugin_module: ModuleType, plugin_name: str) -> None:
     view_path = _get_view_path(plugin_module, plugin_name)
 
     if view_path is None:
@@ -657,7 +656,7 @@ def _sync_view(plugin_module: types.ModuleType, plugin_name: str) -> None:
     )
 
 
-def _get_view_path(plugin_module: types.ModuleType, plugin_name: str) -> Path | None:
+def _get_view_path(plugin_module: ModuleType, plugin_name: str) -> Path | None:
     views_dir = Path(plugin_module.__file__).parent.parent / 'view'
     view_files = list(views_dir.iterdir()) if views_dir.is_dir() else []
 
@@ -668,6 +667,4 @@ def _get_view_path(plugin_module: types.ModuleType, plugin_name: str) -> Path | 
     if len(view_files) > 1:
         raise RuntimeError(f'{plugin_name}: Plug-in provides more than one view!')
 
-    if len(view_files) != 1:
-        raise RuntimeError(f'{plugin_name}: Unexpected view file count!')
     return view_files[0]
