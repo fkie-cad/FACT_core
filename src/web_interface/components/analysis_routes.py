@@ -231,6 +231,35 @@ class AnalysisRoutes(ComponentBase):
             uid=uid,
             root_uid=root_uid,
             colors=colors,
+            title='ELF Dependency Graph',
+        )
+
+    @roles_accepted(*PRIVILEGES['view_analysis'])
+    @AppRoute('/file-reference-graph/<uid>/<root_uid>', GET)
+    def show_file_reference_graph(self, uid: str, root_uid: str | None = None):
+        with get_shared_session(self.db.frontend) as frontend_db:
+            data, edges = frontend_db.get_data_for_file_graph(uid)
+        mime_types = {entry.mime for entry in data}
+        graph_data = create_data_graph_nodes_and_groups(data, mime_types)
+
+        for source, target in edges:
+            graph_data['edges'].append({'from': source, 'to': target, 'id': len(graph_data['edges'])})
+        colors = sorted(get_graph_colors(len(mime_types)))
+
+        if not graph_data['nodes']:
+            flash(
+                'Error: No data to show. Either the file path analysis is missing or there are no references '
+                'to other files in the included files of this file system or this file is not a file system.',
+                'danger',
+            )
+
+        return render_template(
+            'dependency_graph.html',
+            **{key: json.dumps(graph_data[key]) for key in ['nodes', 'edges', 'groups']},
+            uid=uid,
+            root_uid=root_uid,
+            colors=colors,
+            title='File Reference Graph',
         )
 
     @staticmethod

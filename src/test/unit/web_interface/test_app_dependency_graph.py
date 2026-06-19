@@ -11,6 +11,12 @@ class DbMock(CommonDatabaseMock):
             return [entry_1, entry_2]
         return []
 
+    @staticmethod
+    def get_data_for_file_graph(uid):
+        if uid == 'testgraph':
+            return [entry_1, entry_2], [(entry_1.file_name, entry_2.file_name)]
+        return [], []
+
 
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 def test_app_dependency_graph(test_client):
@@ -26,3 +32,15 @@ def test_app_dependency_graph(test_client):
         b'Error: Graph could not be rendered. The file chosen as root must contain a filesystem with binaries.'
         in result_error.data
     )
+
+
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
+def test_app_dependency_graph2(test_client):
+    result = test_client.get(f'/file-reference-graph/testgraph/{TEST_FW.uid}')
+    assert b'<strong>UID:</strong> testgraph' in result.data
+    assert (
+        b'Error: Graph could not be rendered. The file chosen as root must contain a filesystem with binaries.'
+        not in result.data
+    )
+    result_error = test_client.get('/file-reference-graph/1234567/567879')
+    assert b'Error: No data to show' in result_error.data
