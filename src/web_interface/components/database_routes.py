@@ -274,13 +274,13 @@ class DatabaseRoutes(ComponentBase):
     def start_binary_search(self):
         error = None
         if request.method == 'POST':
-            yara_rule_file, firmware_uid, only_firmware = self._get_items_from_binary_search_request(request)
-            if firmware_uid and not self._firmware_is_in_db(firmware_uid):
-                error = f'Error: Firmware with UID {firmware_uid!r} not found in database'
+            yara_rule_file, uid, only_firmware = self._get_items_from_binary_search_request(request)
+            if uid and not self.db.frontend.exists(uid):
+                error = f'Error: File with UID {uid!r} not found in database'
             elif yara_rule_file is not None:
                 yara_error = self.intercom.get_yara_error(yara_rule_file)
                 if yara_error == '':
-                    request_id = self.intercom.add_binary_search_request(yara_rule_file, firmware_uid)
+                    request_id = self.intercom.add_binary_search_request(yara_rule_file, uid)
                     return redirect(
                         url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware)
                     )
@@ -299,9 +299,6 @@ class DatabaseRoutes(ComponentBase):
         firmware_uid = req.form.get('firmware_uid') if req.form.get('firmware_uid') else None
         only_firmware = req.form.get('only_firmware') is not None
         return yara_rule_file, firmware_uid, only_firmware
-
-    def _firmware_is_in_db(self, firmware_uid: str) -> bool:
-        return self.db.frontend.is_firmware(firmware_uid)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/binary_search_results', GET)

@@ -38,8 +38,8 @@
         {% endif %}
         {% if firmware.vendor %}
             {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
-            {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
         {% endif %}
+        {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
     </div>
 
     {% if firmware.vendor and user_has_admin_clearance %}

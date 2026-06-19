@@ -100,8 +100,18 @@ def test_all_files_in_fw(backend_db, common_db):
 def test_all_files_in_fo(backend_db, common_db):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
     backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
-    assert common_db.get_all_files_in_fo(fw) == {fw.uid, parent_fo.uid, child_fo.uid}
-    assert common_db.get_all_files_in_fo(parent_fo) == {parent_fo.uid, child_fo.uid}
+    assert common_db.get_all_files_in_fo(fw.uid) == {fw.uid, parent_fo.uid, child_fo.uid}
+    assert common_db.get_all_files_in_fo(parent_fo.uid) == {parent_fo.uid, child_fo.uid}
+
+
+def test_get_list_of_all_included_files(backend_db, common_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
+    expected_result = {parent_fo.uid, child_fo.uid}
+    assert common_db.get_list_of_all_included_files(fw) == expected_result
+    assert common_db.get_list_of_all_included_files(fw.uid) == expected_result
+    assert common_db.get_list_of_all_included_files(parent_fo) == expected_result
+    assert common_db.get_list_of_all_included_files(parent_fo.uid) == expected_result
 
 
 def test_get_objects_by_uid_list(backend_db, common_db):
