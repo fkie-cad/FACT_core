@@ -168,6 +168,9 @@ changed back to its previous value.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to install.</p>
 </dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -179,6 +182,9 @@ changed back to its previous value.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to remove.</p>
 </dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -186,6 +192,11 @@ changed back to its previous value.</p>
 <dt class="sig sig-object py" id="helperFunctions.install.apt_update_sources">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">apt_update_sources</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_update_sources" title="Permalink to this definition"></a></dt>
 <dd><p>Update package lists on Ubuntu / Debian / Mint / Kali systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -195,6 +206,12 @@ changed back to its previous value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The codename of the distribution</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>allow_unsupported</strong> (<em>bool</em>) – </p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -222,6 +239,9 @@ Useful to find out if a program is already installed.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to install.</p>
 </dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -233,6 +253,9 @@ Useful to find out if a program is already installed.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to remove.</p>
 </dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -240,16 +263,21 @@ Useful to find out if a program is already installed.</p>
 <dt class="sig sig-object py" id="helperFunctions.install.dnf_update_sources">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">dnf_update_sources</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_update_sources" title="Permalink to this definition"></a></dt>
 <dd><p>Update package lists on Fedora / RedHat / Cent systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.install.install_github_project">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">install_github_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commands</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.install_github_project" title="Permalink to this definition"></a></dt>
-<dd><p>Install github project by cloning it, running a set of commands and removing the cloned files afterwards.</p>
+<dd><p>Install GitHub project by cloning it, running a set of commands and removing the cloned files afterward.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>project_path</strong> (<em>str</em>) – Github path to project. For FACT this is ‘fkie-cad/FACT_core’.</p></li>
+<li><p><strong>project_path</strong> (<em>str</em>) – GitHub path to project. For FACT this is ‘fkie-cad/FACT_core’.</p></li>
 <li><p><strong>commands</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of commands to run after cloning to install project.</p></li>
 </ul>
 </dd>
@@ -260,6 +288,9 @@ Useful to find out if a program is already installed.</p>
 <span class="p">)</span>
 </pre></div>
 </div>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -274,6 +305,9 @@ have one package per line (empty lines and comments are allowed).</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>package_file</strong> (<em>Path</em>) – The path to the package file.</p>
 </dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -283,6 +317,9 @@ have one package per line (empty lines and comments are allowed).</p>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>package</strong> (<em>str</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -305,9 +342,12 @@ have one package per line (empty lines and comments are allowed).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>packages</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – List of packages that are affected.</p></li>
+<li><p><strong>packages</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em>) – List of packages that are affected.</p></li>
 <li><p><strong>install</strong> (<em>bool</em>) – Identifier to distinguish installation from removal.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -326,6 +366,9 @@ There may not be multiple packages in one line.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A list of package names contained in the file.</p>
 </dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -338,6 +381,9 @@ this effectively falls back to <cite>sudo rm -rf</cite>.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>folder_name</strong> (<em>str</em>) – Path to directory to remove.</p>
 </dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -345,16 +391,19 @@ this effectively falls back to <cite>sudo rm -rf</cite>.</p>
 <dt class="sig sig-object py" id="helperFunctions.install.run_cmd_with_logging">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">run_cmd_with_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.run_cmd_with_logging" title="Permalink to this definition"></a></dt>
 <dd><p>Runs <cite>cmd</cite> with subprocess.run, logs the command it executes and logs
-stderr on non-zero returncode.
+stderr on non-zero return code.
 All keyword arguments are except <cite>raise_error</cite> passed to subprocess.run.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>shell</strong> – execute the command through the shell.</p></li>
-<li><p><strong>raise_error</strong> – Whether or not an error should be raised when <cite>cmd</cite> fails</p></li>
+<li><p><strong>cmd</strong> (<em>str</em>) – the command to execute.</p></li>
+<li><p><strong>shell</strong> (<em>bool</em>) – execute the command through the shell.</p></li>
+<li><p><strong>raise_error</strong> (<em>bool</em>) – Whether or not an error should be raised when <cite>cmd</cite> fails</p></li>
 <li><p><strong>silent</strong> (<em>bool</em>) – don’t log in case of error.</p></li>
-<li><p><strong>cmd</strong> (<em>str</em>) – </p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
