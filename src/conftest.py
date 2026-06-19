@@ -5,7 +5,7 @@ import logging
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Type
+from typing import TYPE_CHECKING
 
 import pytest
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,11 +13,17 @@ from pydantic.v1.utils import deep_update
 
 import config
 from analysis.plugin import AnalysisPluginV0
+from test.common_helper import TEST_FW, TEST_TEXT_FILE, CommonDatabaseMock
 from test.conftest import merge_markers
+from web_interface.frontend_main import WebFrontEnd
+from web_interface.security.authentication import add_flask_security_to_app
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @pytest.fixture
-def docker_mount_base_dir() -> str:
+def docker_mount_base_dir() -> Iterator[str]:
     docker_gid = grp.getgrnam('docker').gr_gid
 
     with TemporaryDirectory(prefix='fact-docker-mount-base-dir') as tmp_dir:
@@ -27,7 +33,7 @@ def docker_mount_base_dir() -> str:
 
 
 @pytest.fixture
-def firmware_file_storage_directory() -> str:
+def firmware_file_storage_directory() -> Iterator[str]:
     with TemporaryDirectory(prefix='fact-firmware-file-storage-directory') as tmp_dir:
         yield tmp_dir
 
@@ -184,7 +190,7 @@ class AnalysisPluginTestConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
-    plugin_class: Type[AnalysisPluginV0] = AnalysisPluginV0
+    plugin_class: type[AnalysisPluginV0] = AnalysisPluginV0
     #: Whether or not to start the workers (see ``AnalysisPlugin.start``).
     #: Not supported for AnalysisPluginV0
     start_processes: bool = False
@@ -238,11 +244,180 @@ def analysis_plugin(request, _patch_config):
     # FIXME now with AnalysisPluginV0 analysis plugins became way simpler
     # We might want to delete everything from AnalysisPluginTestConfig in the future
     PluginClass = test_config.plugin_class  # noqa: N806
-    assert (
-        test_config.init_kwargs == {}
-    ), 'AnalysisPluginTestConfig.init_kwargs must be empty for AnalysisPluginV0 instances'
-    assert (
-        not test_config.start_processes
-    ), 'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
+    assert test_config.init_kwargs == {}, (
+        'AnalysisPluginTestConfig.init_kwargs must be empty for AnalysisPluginV0 instances'
+    )
+    assert not test_config.start_processes, (
+        'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
+    )
 
     return PluginClass()
+
+
+# === Unit test classes and fixtures ===
+
+
+class CommonIntercomMock:
+    task_list = None
+    _common_fields = ('0.1.0', [], [], [], 1)
+
+    def __init__(self, *_, **__):
+        pass
+
+    def get_available_analysis_plugins(self):
+        return {
+            'default_plugin': ('default plugin description', False, {'default': True}, *self._common_fields),
+            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *self._common_fields),
+            'optional_plugin': ('optional plugin description', False, {'default': False}, *self._common_fields),
+            'file_type': ('file_type plugin', False, {'default': False}, *self._common_fields),
+            'unpacker': ('Additional information provided by the unpacker', True, False),
+        }
+
+    def shutdown(self):
+        pass
+
+    @staticmethod
+    def peek_in_binary(*_):
+        return b'foobar'
+
+    @staticmethod
+    def get_binary_and_filename(uid):
+        if uid == TEST_FW.uid:
+            return TEST_FW.binary, TEST_FW.file_name
+        if uid == TEST_TEXT_FILE.uid:
+            return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
+        return None
+
+    @staticmethod
+    def get_repacked_binary_and_file_name(uid):
+        if uid == TEST_FW.uid:
+            return TEST_FW.binary, f'{TEST_FW.file_name}.tar.gz'
+        return None, None
+
+    @staticmethod
+    def add_binary_search_request(*_):
+        return 'binary_search_id'
+
+    @staticmethod
+    def get_binary_search_result(uid):
+        if uid == 'binary_search_id':
+            return {'test_rule': ['test_uid']}, b'some yara rule'
+        return None, None
+
+    def add_compare_task(self, compare_id, force=False):
+        self.task_list.append((compare_id, force))
+
+    def add_analysis_task(self, task):
+        self.task_list.append(task)
+
+    def add_re_analyze_task(self, task, unpack=True):
+        self.task_list.append(task)
+
+    def cancel_analysis(self, root_uid):
+        self.task_list.append(root_uid)
+
+    def get_yara_error(self, rule):
+        if isinstance(rule, bytes):
+            rule = rule.decode(errors='ignore')
+        if 'invalid' in rule:
+            return 'SyntaxError: line 1: syntax error, unexpected identifier'
+        return ''
+
+
+class FrontendDatabaseMock:
+    """A class mocking :py:class:`~web_interface.frontend_database.FrontendDatabase`."""
+
+    def __init__(self, db_mock: CommonDatabaseMock):
+        """
+        The Constructor.
+
+        :param db_mock: An object providing every function needed for a test.
+        """
+        self.frontend = db_mock
+        self.editing = db_mock
+        self.admin = db_mock
+        self.comparison = db_mock
+        self.template = db_mock
+        self.stats_viewer = db_mock
+        self.stats_updater = db_mock
+
+
+class _UserDbMock:
+    class session:  # noqa: N801
+        @staticmethod
+        def commit():
+            pass
+
+        @staticmethod
+        def rollback():
+            pass
+
+
+class StatusInterfaceMock:
+    def __init__(self):
+        self._status = {'current_analyses': {}, 'recently_finished_analyses': {}}
+
+    def set_analysis_status(self, status: dict):
+        self._status = status
+
+    def get_analysis_status(self):
+        return self._status
+
+
+class WebInterfaceUnitTestConfig(BaseModel):
+    """A class configuring the :py:func:`web_frontend` fixture."""
+
+    #: A class that can be instanced to mock every ``@property`` of
+    #: :py:class:`~web_interface.frontend_database.FrontendDatabase`.
+    #: See also: The documentation of :py:class:`FrontendDatabaseMock`
+    database_mock_class: type = CommonDatabaseMock
+    #: A class mocking :py:class:`~intercom.front_end_binding.InterComFrontEndBinding`
+    intercom_mock_class: type[CommonIntercomMock] = CommonIntercomMock
+    #: A class mocking :py:class:`~storage.redis_status_interface.RedisStatusInterface`
+    status_mock_class: type[StatusInterfaceMock] = StatusInterfaceMock
+
+
+@pytest.fixture
+def intercom_task_list() -> list:
+    """A fixture used to add tasks in the :py:class:`CommonIntercomMock`.
+    It can be used to inspect what tasks where added"""
+    return []
+
+
+@pytest.fixture
+def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
+    """Returns an instance of :py:class:`~web_interface.frontend_main.WebFrontEnd`.
+    This fixture can be configured by providing an instance of :py:class:`WebInterfaceUnitTestConfig` as a marker
+    called ``WebInterfaceUnitTestConfig``.
+
+    .. seealso::
+
+        The fixture :py:func:`intercom_task_list`.
+    """
+    test_config = merge_markers(request, 'WebInterfaceUnitTestConfig', WebInterfaceUnitTestConfig)
+
+    db_mock_instance = test_config.database_mock_class()
+    IntercomMockClass = test_config.intercom_mock_class  # noqa: N806
+
+    def _add_flask_security_to_app_mock(app):
+        add_flask_security_to_app(app)
+        return _UserDbMock(), db_mock_instance
+
+    monkeypatch.setattr('web_interface.frontend_main.add_flask_security_to_app', _add_flask_security_to_app_mock)
+
+    monkeypatch.setattr(IntercomMockClass, 'task_list', intercom_task_list)
+    # Note: The intercom argument is only the class. It gets instanced when intercom access in needed by `ConnectTo`.
+    frontend = WebFrontEnd(
+        db=FrontendDatabaseMock(db_mock_instance),
+        intercom=IntercomMockClass,
+        status_interface=test_config.status_mock_class(),
+    )
+    frontend.app.config['TESTING'] = True
+
+    return frontend
+
+
+@pytest.fixture
+def test_client(web_frontend):
+    """Shorthand for ``web_frontend.app.test_client``"""
+    return web_frontend.app.test_client()
