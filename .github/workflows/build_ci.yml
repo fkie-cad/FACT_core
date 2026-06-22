@@ -87,8 +87,10 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Teams webhook
         if: failure() && github.event_name == 'schedule'
+        env:
+          TEAMS_URL: ${{ secrets.TEAMS_WEBHOOK }}
         run: |
-          curl -X POST ${{ secrets.TEAMS_WEBHOOK }} \
+          curl -X POST "$TEAMS_URL" \
             -H 'Content-Type: application/json' \
             -d '{
               "type": "message",
