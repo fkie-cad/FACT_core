@@ -55,9 +55,28 @@
 <div class="row justify-content-center">
     <div class="col-xl-8 col-lg-12" style="width:100%;column-count:2;column-rule:grey 1px dotted;column-gap:50px">
 
-        <h4>FACT 4.4-dev</h4>
+        <h4>FACT 4.4 (2026-06-23)</h4>
         <ul>
-            <li>ToDo</li>
+            <li>Features:
+                <ul>
+                    <li>Added support for Ubuntu 26.04 and Python 3.14</li>
+                    <li>Added support for aggregate queries in GraphQL</li>
+                    <li>Added more generalized support for distributions based on debian and ubuntu (instead of just supporting Linux Mint)</li>
+                    <li>Improved stability of Redis connection</li>
+                    <li>Added option to configure analysis plugin timeouts through the configuration file</li>
+                </ul>
+            </li>
+            <li>Bug Fixes:
+                <ul>
+                    <li>The "changed text files" comparison feature should correctly consider text files with MIME types other than text/plain now </li>
+                    <li>Fixed a bug in the CPU architechture plugin resulting in failed analyses</li>
+                    <li>Empty blacklists in the plugin config should now correctly result in no files being skipped based on their type</li>
+                    <li>Fixed a bug in the setup of the CVE lookup plugin (caused by SSVC data being added)</li>
+                    <li>Fixed installation errors caued by the deprecation of the pkg_resources package</li>
+                    <li>Fixed a bytes rendering bug in the web frontend</li>
+                    <li>Fixed a filter bug in the comparison results template</li>
+                </ul>
+            </li>
         </ul>
 
         <h4>FACT 4.3 (2026-01-12)</h4>
