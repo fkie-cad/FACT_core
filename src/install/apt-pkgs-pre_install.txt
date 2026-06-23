@@ -1,0 +1,9 @@
+git
+libffi-dev
+lsb-release
+python3-pip
+
+# Docker
+ca-certificates
+curl
+gnupg
