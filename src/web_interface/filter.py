@@ -11,7 +11,7 @@ import stat
 import zlib
 from base64 import b64decode, standard_b64encode
 from collections import defaultdict
-from collections.abc import Container, Hashable, Iterable, Sized
+from collections.abc import Iterable
 from datetime import timedelta
 from operator import itemgetter
 from re import Match
@@ -23,6 +23,7 @@ import bitmath
 import packaging.version
 import semver
 from flask import render_template
+from semver import Version
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.data_conversion import make_unicode_string
@@ -33,6 +34,8 @@ from web_interface.security.authentication import user_has_privilege
 from web_interface.security.privileges import PRIVILEGES
 
 if TYPE_CHECKING:
+    from collections.abc import Container, Hashable, Sized
+
     from objects.file import FileObject
 
 BYTE_FORMAT_THRESHOLD = 2**10
@@ -567,11 +570,7 @@ def get_searchable_crypto_block(crypto_material: str) -> str:
     return sorted(blocks, key=len, reverse=True)[0]
 
 
-def version_is_compatible(
-    version: str | semver.Version,
-    other: str | semver.Version,
-    forgiving: bool = False,
-) -> bool:
+def version_is_compatible(version: str | Version, other: str | Version, forgiving: bool = False) -> bool:
     """A wrapper around ``semver.Version.is_compatible`` that allows non semver versions.
     If :paramref:`forgiving` is True non semver versions will try to be coerced to semver versions.
     If this does not succeed or :paramref:`forgiving` is False then any semver version will
@@ -589,32 +588,27 @@ def version_is_compatible(
 
     :raises ValueError: If both versions are neither semver nor ``packaging.version.Version`` versions.
     """
-    version_is_semver = True
     try:
-        if isinstance(version, str):
-            version = semver.Version.parse(version)
-    except ValueError:
-        version_is_semver = forgiving
-        version = _coerce_version(version)
-
-    other_is_semver = True
-    try:
-        if isinstance(other, str):
-            other = semver.Version.parse(other)
-    except ValueError:
-        other_is_semver = forgiving
-        other = _coerce_version(other)
+        version, version_is_semver = _convert_to_semver(version, forgiving)
+        other, other_is_semver = _convert_to_semver(other, forgiving)
+    except packaging.version.InvalidVersion as invalid_version:
+        raise ValueError(f'Either {version} or {other} is not a valid version') from invalid_version
 
     if version_is_semver ^ other_is_semver:
         return False
-
     if not version_is_semver and not other_is_semver:
-        try:
-            return packaging.version.Version(version) == packaging.version.Version(other)
-        except packaging.version.InvalidVersion as invalid_version:
-            raise ValueError from invalid_version
+        return version == other
 
     return version.is_compatible(other)
+
+
+def _convert_to_semver(version: str | Version, forgiving: bool) -> tuple[Version, bool]:
+    try:
+        if isinstance(version, str):
+            version = Version.parse(version)
+        return version, True
+    except ValueError:
+        return _coerce_version(version), forgiving
 
 
 def _coerce_version(version: str) -> semver.Version:
