@@ -4,11 +4,44 @@
 
     <tr>
         <td>File type</td>
-        <td>{{ analysis_result['full'] }}</td>
+        <td>{{ analysis_result.full }}</td>
     </tr>
     <tr>
         <td>MIME</td>
-        <td>{{ analysis_result['mime'] }}</td>
+        <td>{{ analysis_result.mime }}</td>
     </tr>
+    {% if analysis_result.magika %}
+        <tr>
+            <td>Magika</td>
+            <td class="p-0">
+                <table class="m-0 w-100">
+                    <tr>
+                        <td>Label</td>
+                        <td>{{ analysis_result.magika.label }}</td>
+                    </tr>
+                    <tr>
+                        <td>MIME</td>
+                        <td>{{ analysis_result.magika.mime }}</td>
+                    </tr>
+                    <tr>
+                        <td>Group</td>
+                        <td>{{ analysis_result.magika.group }}</td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>{{ analysis_result.magika.description }}</td>
+                    </tr>
+                    <tr>
+                        <td>is Text</td>
+                        <td>{{ analysis_result.magika.is_text }}</td>
+                    </tr>
+                    <tr>
+                        <td>Confidence</td>
+                        <td>{{ analysis_result.magika.confidence }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    {% endif %}
 
 {% endblock %}
