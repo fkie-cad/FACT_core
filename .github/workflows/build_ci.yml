@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ jammy, bookworm, noble, trixie ]
+        os: [ jammy, bookworm, noble, trixie, resolute ]
         target: ${{ fromJson(needs.generate-matrix.outputs.target) }}
     runs-on: [ self-hosted, linux, x64, "${{ matrix.os }}" ]
     timeout-minutes: 35
@@ -85,3 +85,51 @@ jobs:
           verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Teams webhook
+        if: failure() && github.event_name == 'schedule'
+        env:
+          TEAMS_URL: ${{ secrets.TEAMS_WEBHOOK }}
+        run: |
+          curl -X POST "$TEAMS_URL" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "type": "message",
+              "attachments": [
+                {
+                  "contentType": "application/vnd.microsoft.card.adaptive",
+                  "content": {
+                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                    "type": "AdaptiveCard",
+                    "version": "1.4",
+                    "body": [
+                      {
+                        "type": "TextBlock",
+                        "text": "⚠️ CI build failed",
+                        "weight": "Bolder",
+                        "size": "Large"
+                      },
+                      {
+                        "type": "TextBlock",
+                        "text": "Scheduled master/stable build failed",
+                        "weight": "Bolder"
+                      },
+                      {
+                        "type": "FactSet",
+                        "facts": [
+                          { "title": "Branch", "value": "${{ matrix.target }}" },
+                          { "title": "OS", "value": "${{ matrix.os }}" },
+                          { "title": "Commit", "value": "${{ github.sha }}" }
+                        ]
+                      }
+                    ],
+                    "actions": [
+                      {
+                        "type": "Action.OpenUrl",
+                        "title": "Open Run",
+                        "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }'

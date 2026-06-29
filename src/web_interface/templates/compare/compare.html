@@ -24,38 +24,30 @@
         </tr>
     </thead>
     <tbody>
-    
-    {# --- general information --- #}
+
+        {# --- general information --- #}
         <tr>
             <th colspan="{{ uid_list | length + 1 }}" class="table-head-light" style="text-align:center;">General information</th>
         </tr>
-        {% for feature in result['general'] | sort %}
+        {% for feature, value_dict in result['general'].items() | sort %}
             {% if feature != 'hid' %}
                 <tr>
                     <td style="width: 150px"> {{ feature | replace_underscore }} </td>
-                    {% if result['general'][feature] | all_items_equal %}
+                    {% if value_dict | all_items_equal %}
                         <td colspan="{{ uid_list | length }}" class="text-center text-success">
-                            {% if feature == "size"%}
-                                {{ result['general'][feature][uid_list[0]] | number_format }}
-                            {% else %}
-                                {{ result['general'][feature][uid_list[0]] | list_group | replace_uid_with_hid | safe }}
-                            {% endif %}
+                            {{ value_dict[uid_list[0]] | nice_generic | safe }}
                         </td>
                     {% else %}
                         {% for uid in uid_list %}
                             <td>
-                                {% if feature == "size"%}
-                                    {{ result['general'][feature][uid] | number_format }}
-                                {% else %}
-                                    {{ result['general'][feature][uid] | list_group | replace_uid_with_hid | safe }}
-                                {% endif %}
-                                </td>
+                                {{ value_dict[uid] | nice_generic | safe }}
+                            </td>
                         {% endfor %}
                     {% endif %}
                 </tr>
             {% endif %}
         {% endfor %}
-        
+
         {# --- plugin results --- #}
         
         {% for plugin in result['plugins'] | sort %}

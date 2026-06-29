@@ -80,9 +80,9 @@ class TestScheduleInitialAnalysis:
 
     def test_get_plugin_dict_description(self, analysis_scheduler):
         result = analysis_scheduler.get_plugin_dict()
-        assert (
-            result['file_type'][0] == analysis_scheduler.analysis_plugins['file_type'].metadata.description
-        ), 'description not correct'
+        assert result['file_type'][0] == analysis_scheduler.analysis_plugins['file_type'].metadata.description, (
+            'description not correct'
+        )
 
     @pytest.mark.backend_config_overwrite(
         {
@@ -105,12 +105,12 @@ class TestScheduleInitialAnalysis:
 
     def test_get_plugin_dict_version(self, analysis_scheduler):
         result = analysis_scheduler.get_plugin_dict()
-        assert (
-            result['file_type'][3] == analysis_scheduler.analysis_plugins['file_type'].metadata.version
-        ), 'version not correct'
-        assert (
-            result['file_hashes'][3] == analysis_scheduler.analysis_plugins['file_hashes'].metadata.version
-        ), 'version not correct'
+        assert result['file_type'][3] == analysis_scheduler.analysis_plugins['file_type'].metadata.version, (
+            'version not correct'
+        )
+        assert result['file_hashes'][3] == analysis_scheduler.analysis_plugins['file_hashes'].metadata.version, (
+            'version not correct'
+        )
 
     def test_process_next_analysis_unknown_plugin(self, analysis_scheduler):
         test_fw = Firmware(file_path=get_test_data_dir() / 'get_files_test/testfile1')
@@ -135,7 +135,7 @@ class TestScheduleInitialAnalysis:
         test_fw.scheduled_analysis = ['file_hashes']
         test_fw.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
         analysis_scheduler._start_or_skip_analysis('ExamplePlugin', test_fw)
-        uid, plugin, analysis_result = post_analysis_queue.get(timeout=10)
+        _, plugin, analysis_result = post_analysis_queue.get(timeout=10)
         assert plugin == 'ExamplePlugin'
         assert 'skipped' in analysis_result['result']
 
@@ -190,7 +190,7 @@ class TestAnalysisSchedulerBlacklist:
     def test_get_blacklist_and_whitelist_from_config(self):
         blacklist, whitelist = self.sched._get_blacklist_and_whitelist_from_config('test_plugin')
         assert blacklist == ['type1', 'type2']
-        assert whitelist == []
+        assert whitelist is None
 
     @pytest.mark.backend_config_overwrite(
         {
@@ -397,7 +397,7 @@ class TestAnalysisShouldReanalyse:
             (20, 10, 'foo', '1.0', '1.0', None, False),  # invalid version => not up to date
         ],
     )
-    def test_analysis_is_up_to_date(  # noqa: PLR0913
+    def test_analysis_is_up_to_date(
         self,
         plugin_date,
         dependency_date,

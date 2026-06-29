@@ -8,8 +8,12 @@ import subprocess
 import sys
 from pathlib import Path
 from subprocess import DEVNULL, PIPE, STDOUT, CalledProcessError
+from typing import TYPE_CHECKING
 
 import distro
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 class InstallationError(Exception):
@@ -36,13 +40,13 @@ class OperateInDirectory:
         self._current_working_dir = os.getcwd()  # noqa: PTH109
         os.chdir(self._target_directory)
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> None:
         os.chdir(self._current_working_dir)
         if self._remove:
             remove_folder(self._target_directory)
 
 
-def remove_folder(folder_name: str):
+def remove_folder(folder_name: str) -> None:
     """
     Python equivalent to `rm -rf`. Remove a directory an all included files. If administrative rights are necessary,
     this effectively falls back to `sudo rm -rf`.
@@ -53,12 +57,12 @@ def remove_folder(folder_name: str):
         shutil.rmtree(folder_name)
     except PermissionError:
         logging.debug(f'Falling back on root permission for deleting {folder_name}')
-        subprocess.run(f'sudo rm -rf {folder_name}', shell=True, check=False)
+        subprocess.run(f'sudo rm -rf {folder_name}', shell=True, check=False)  # noqa: S602
     except Exception as exception:
         raise InstallationError(exception) from None
 
 
-def log_current_packages(packages: tuple[str], install: bool = True):
+def log_current_packages(packages: Iterable[str], install: bool = True) -> None:
     """
     Log which packages are installed or removed.
 
@@ -69,8 +73,8 @@ def log_current_packages(packages: tuple[str], install: bool = True):
     logging.info(f'{action} {" ".join(packages)}')
 
 
-def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:
-    cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
+def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error: bool = False) -> str:
+    cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)  # noqa: S602
     if cmd_process.returncode != 0:
         if add_output_on_error:
             error = f'{error}\n{cmd_process.stdout}'
@@ -78,14 +82,14 @@ def _run_shell_command_raise_on_return_code(command: str, error: str, add_output
     return cmd_process.stdout
 
 
-def dnf_update_sources():
+def dnf_update_sources() -> str:
     """
     Update package lists on Fedora / RedHat / Cent systems.
     """
     return _run_shell_command_raise_on_return_code('sudo dnf update -y', 'Unable to update')
 
 
-def dnf_install_packages(*packages: str):
+def dnf_install_packages(*packages: str) -> str:
     """
     Install packages on Fedora / RedHat / Cent systems.
 
@@ -97,7 +101,7 @@ def dnf_install_packages(*packages: str):
     )
 
 
-def dnf_remove_packages(*packages: str):
+def dnf_remove_packages(*packages: str) -> str:
     """
     Remove packages from Fedora / RedHat / Cent systems.
 
@@ -109,7 +113,7 @@ def dnf_remove_packages(*packages: str):
     )
 
 
-def apt_update_sources():
+def apt_update_sources() -> str:
     """
     Update package lists on Ubuntu / Debian / Mint / Kali systems.
     """
@@ -118,7 +122,7 @@ def apt_update_sources():
     )
 
 
-def apt_install_packages(*packages: str):
+def apt_install_packages(*packages: str) -> str:
     """
     Install packages on Ubuntu / Debian / Mint / Kali systems.
 
@@ -132,7 +136,7 @@ def apt_install_packages(*packages: str):
     )
 
 
-def apt_remove_packages(*packages: str):
+def apt_remove_packages(*packages: str) -> str:
     """
     Remove packages from Ubuntu / Debian / Mint / Kali systems.
 
@@ -151,17 +155,17 @@ def check_if_command_in_path(command: str) -> bool:
 
     :param command: Command to check.
     """
-    command_process = subprocess.run(
+    command_process = subprocess.run(  # noqa: S602
         f'command -v {command}', shell=True, stdout=DEVNULL, stderr=DEVNULL, text=True, check=False
     )
     return command_process.returncode == 0
 
 
-def install_github_project(project_path: str, commands: list[str]):
+def install_github_project(project_path: str, commands: list[str]) -> None:
     """
-    Install github project by cloning it, running a set of commands and removing the cloned files afterwards.
+    Install GitHub project by cloning it, running a set of commands and removing the cloned files afterward.
 
-    :param project_path: Github path to project. For FACT this is 'fkie-cad/FACT_core'.
+    :param project_path: GitHub path to project. For FACT this is 'fkie-cad/FACT_core'.
     :param commands: List of commands to run after cloning to install project.
 
     :Example:
@@ -180,7 +184,7 @@ def install_github_project(project_path: str, commands: list[str]):
     with OperateInDirectory(folder_name, remove=True):
         error = None
         for command in commands:
-            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
+            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)  # noqa: S602
             if cmd_process.returncode != 0:
                 error = f'Error while processing github project {project_path}!\n{cmd_process.stdout}'
                 break
@@ -189,9 +193,9 @@ def install_github_project(project_path: str, commands: list[str]):
         raise InstallationError(error)
 
 
-def _checkout_github_project(github_path: str, folder_name: str):
+def _checkout_github_project(github_path: str, folder_name: str) -> None:
     clone_url = f'https://www.github.com/{github_path}'
-    git_process = subprocess.run(
+    git_process = subprocess.run(  # noqa: S602
         f'git clone {clone_url}', shell=True, stdout=DEVNULL, stderr=DEVNULL, text=True, check=False
     )
     if git_process.returncode != 0:
@@ -200,12 +204,19 @@ def _checkout_github_project(github_path: str, folder_name: str):
         raise InstallationError(f'Repository creation failed on folder {folder_name}\n {clone_url}')
 
 
-def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool = False, **kwargs):
+def run_cmd_with_logging(
+    cmd: str,
+    raise_error: bool = True,
+    shell: bool = False,
+    silent: bool = False,
+    **kwargs,
+) -> None:
     """
     Runs `cmd` with subprocess.run, logs the command it executes and logs
-    stderr on non-zero returncode.
+    stderr on non-zero return code.
     All keyword arguments are except `raise_error` passed to subprocess.run.
 
+    :param cmd: the command to execute.
     :param shell: execute the command through the shell.
     :param raise_error: Whether or not an error should be raised when `cmd` fails
     :param silent: don't log in case of error.
@@ -213,7 +224,7 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool =
     logging.debug(f'Running: {cmd}')
     try:
         cmd_ = cmd if shell else shlex.split(cmd)
-        subprocess.run(cmd_, stdout=PIPE, stderr=STDOUT, encoding='UTF-8', shell=shell, check=True, **kwargs)
+        subprocess.run(cmd_, stdout=PIPE, stderr=STDOUT, encoding='UTF-8', shell=shell, check=True, **kwargs)  # noqa: S603
     except CalledProcessError as err:
         if not silent:
             logging.log(logging.ERROR if raise_error else logging.DEBUG, f'Failed to run {cmd}:\n{err.stdout}')
@@ -221,7 +232,7 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool =
             raise err
 
 
-def check_distribution(allow_unsupported=False):
+def check_distribution(allow_unsupported: bool = False) -> str:
     """
     Check if the distribution is supported by the installer.
 
@@ -233,7 +244,7 @@ def check_distribution(allow_unsupported=False):
         distro_data.get('debian_codename', distro_data.get('codename', distro_data.get('version_codename', ''))),
     ).lower()
     logging.debug(f'found distribution: {distro_data["pretty_name"]} (codename: {codename})')
-    supported_codenames = {'jammy', 'noble', 'bookworm', 'trixie', 'kali-rolling'}
+    supported_codenames = {'jammy', 'noble', 'resolute', 'bookworm', 'trixie', 'kali-rolling'}
     if codename in supported_codenames:
         if codename == 'kali-rolling':
             return 'bookworm'
@@ -241,7 +252,7 @@ def check_distribution(allow_unsupported=False):
 
     msg = (
         f'Your Distribution ({distro_data["pretty_name"]} is either deprecated or not supported. '
-        'FACT Installer requires Ubuntu 22.04/24.04, Debian 12 or compatible!'
+        'FACT Installer requires Ubuntu 22.04/24.04/26.04, Debian 12/13 or compatible!'
     )
     if allow_unsupported:
         logging.info(msg)
@@ -250,7 +261,7 @@ def check_distribution(allow_unsupported=False):
     sys.exit(1)
 
 
-def install_pip_packages(package_file: Path):
+def install_pip_packages(package_file: Path) -> None:
     """
     Install or upgrade python packages from file `package_file` using pip. Does not raise an error if the installation
     fails because the package is already installed through the system's package manager. The package file should
@@ -273,14 +284,14 @@ def install_pip_packages(package_file: Path):
             raise
 
 
-def install_single_pip_package(package: str):
+def install_single_pip_package(package: str) -> None:
     command = f'pip3 install -U {package} --prefer-binary'  # prefer binary release to compiling latest
     if not is_virtualenv():
         command = 'sudo -EH ' + command
     run_cmd_with_logging(command, silent=True)
 
 
-def read_package_list_from_file(path: Path):
+def read_package_list_from_file(path: Path) -> list[str]:
     """
     Reads the file at `path` into a list.
     Each line in the file should be either a comment (starts with #) or a
