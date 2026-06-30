@@ -43,7 +43,7 @@ PROGRAM_NAME = 'FACT Installer'
 PROGRAM_VERSION = '1.2'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation script'
 
-FACT_INSTALLER_SKIP_DOCKER = os.getenv('FACT_INSTALLER_SKIP_DOCKER')
+FACT_INSTALLER_SKIP_DOCKER = bool(int(os.getenv('FACT_INSTALLER_SKIP_DOCKER', '0')))
 
 
 def _setup_argparser():
@@ -169,7 +169,7 @@ def install():
     welcome()
     none_chosen = not (args.frontend or args.db or args.backend or args.common)
     # TODO maybe replace this with an cli argument
-    skip_docker = FACT_INSTALLER_SKIP_DOCKER is not None
+    skip_docker = FACT_INSTALLER_SKIP_DOCKER
     # Note that the skip_docker environment variable overrides the cli argument
     only_docker = not skip_docker and none_chosen and (args.backend_docker_images or args.frontend_docker_images)
 
