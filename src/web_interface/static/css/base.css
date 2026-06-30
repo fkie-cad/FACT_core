@@ -157,9 +157,9 @@ body.dark-mode a.nav-link.active {
     border-color: var(--border-color-dark) var(--border-color-dark) var(--background-color-dark) !important;
 }
 
-body.dark-mode :is(pre:not(.CodeMirror-line), .pagination-page-info b, .line-number, .list-group-item-action,
-        .table:not(.table-borderless, .card-table), .list-group-flush, .d2h-file-wrapper, .fixed-table-toolbar,
-        .fixed-table-pagination, .bootstrap-table.fullscreen) {
+body.dark-mode :is(pre:not(.CodeMirror-line, .bg-light, .code-pre), .pagination-page-info b, .line-number,
+        .table:not(.card-table, .bg-light), .list-group-flush:not(.bg-light), .d2h-file-wrapper, .fixed-table-toolbar,
+        .fixed-table-pagination, .bootstrap-table.fullscreen, .list-group-item-action) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-dark) !important;
 }
@@ -190,7 +190,7 @@ body.dark-mode :is(div.card, input, textarea, select, .dropdown-menu, .d2h-wrapp
     border-color: var(--border-color-dark) !important;
 }
 
-body.dark-mode :is(.table.table-borderless, .bg-light, .card-table) {
+body.dark-mode :is(.bg-light, .card-table, .card-table .list-group-flush) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-element-dark) !important;
 }
@@ -357,4 +357,9 @@ body.dark-mode :is(.jstree-hovered, .jstree-clicked) {
 
 body.dark-mode .jstree-search {
     color: var(--link-color-dark) !important;
+}
+
+body.dark-mode .code-pre {
+    color: white !important;
+    background-color: black !important;
 }
