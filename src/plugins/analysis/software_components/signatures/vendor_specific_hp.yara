@@ -8,7 +8,7 @@ rule ChaiVM
     strings:
         $a = /ChaiVM \d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule HP_FTP_print_server
@@ -21,5 +21,5 @@ rule HP_FTP_print_server
     strings:
         $a = /Hewlett-Packard FTP Print Server Version \d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
