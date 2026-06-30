@@ -207,6 +207,24 @@ def test_get_summary_fw(backend_db, common_db):
     assert fw.uid not in summary['file exclusive sum b'], 'parent as origin but should not be'
 
 
+def test_get_reverse_summary_fw(backend_db, common_db):
+    fo, fw = create_fw_with_child_fo()
+    backend_db.insert_multiple_objects(fw, fo)
+
+    summary = common_db.get_summary(fw, 'dummy', reverse=True)
+    assert isinstance(summary, dict), 'summary is not a dict'
+
+    assert fw.uid in summary, 'parent should be in summary'
+    assert fo.uid in summary, 'child should be in summary'
+    assert len(summary[fw.uid]) == len(summary[fo.uid]) == 2, 'each object should include two results'
+
+    assert 'sum a' in summary[fw.uid], 'entry should be in parent summary'
+    assert 'sum a' in summary[fo.uid], 'entry should be in child summary'
+    assert 'fw exclusive sum a' not in summary[fo.uid], 'entry should be in parent, but not child'
+    assert 'file exclusive sum b' in summary[fo.uid], 'exclusive entry of child missing'
+    assert 'file exclusive sum b' not in summary[fw.uid], 'entry should be in child, but not parent'
+
+
 def test_get_summary_fo(backend_db, common_db):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
     backend_db.insert_multiple_objects(fw, parent_fo, child_fo)

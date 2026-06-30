@@ -113,8 +113,24 @@
 
                 {# summary of included files #}
                 {%- if selected_analysis and firmware.files_included -%}
+                    <table class="table table-bordered pb-0 mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        Summary for Included Files
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="summaryOrderSwitch" onchange="reverseSummaryOrder()">
+                                            <label class="custom-control-label" for="summaryOrderSwitch" style="font-weight: normal;">Show inverted summary</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                    </table>
+
                     <button id="summary-button" class="btn list-group-item list-group-item-primary p-2 w-100 mb-3"
-                            onclick="load_summary(uid, selected_analysis);">
+                            onclick="load_summary(uid, selected_analysis, reversed_order=document.getElementById('summaryOrderSwitch').checked);">
                         Load Summary for Included Files
                     </button>
 
