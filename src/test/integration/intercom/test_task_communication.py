@@ -192,11 +192,23 @@ class TestInterComTaskCommunication:
             monkeypatch.setattr('intercom.back_end_binding.config.backend.logging.file_backend', tmp_file.name)
             with ThreadPoolExecutor(max_workers=2) as pool:
                 task_listener = InterComBackEndLogsTask()
+                _queue_get = task_listener.redis.queue_get
+
+                def polling_queue_get(key):
+                    # result might not be available immediately, so we use polling
+                    for _ in range(40):  # timeout: ~2s
+                        if result := _queue_get(key):
+                            return result
+                        sleep(0.05)
+                    return None
+
+                task_listener.redis.queue_get = polling_queue_get
+
                 result_future = pool.submit(intercom_frontend.get_backend_logs)
-                sleep(0.2)  # give the task some time to reach the listener
                 task_future = pool.submit(task_listener.get_next_task)
-                task = task_future.result()
-                result = result_future.result()
+                task = task_future.result(timeout=10)
+                result = result_future.result(timeout=10)
+
             assert task is None, 'task not correct'
             assert result == expected_result.split()
 
