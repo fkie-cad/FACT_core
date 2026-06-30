@@ -5,11 +5,12 @@ import pytest
 
 from statistic.work_load import WorkLoadStatistic
 from storage.db_interface_stats import StatsDbViewer
+from storage.redis_status_interface import RedisStatusInterface
 
 
 @pytest.fixture
 def workload_stat():
-    workload_stat = WorkLoadStatistic(component='test')
+    workload_stat = WorkLoadStatistic(component='frontend')
     yield workload_stat
     workload_stat.shutdown()
 
@@ -20,10 +21,11 @@ def stats_db():
 
 
 @pytest.mark.usefixtures('database_interfaces')
-def test_update_workload_statistic(workload_stat, stats_db):
+def test_update_workload_statistic(workload_stat):
     workload_stat.update()
-    result = stats_db.get_statistic('test')
-    assert result['name'] == 'test', 'name not set'
+    status = RedisStatusInterface()
+    result = status.get_component_status('frontend')
+    assert result['name'] == 'frontend', 'name not set'
     assert isclose(time(), result['last_update'], abs_tol=0.1), 'timestamp not valid'
     assert isinstance(result['platform'], dict), 'platform is not a dict'
     assert isinstance(result['system'], dict), 'system is not a dict'

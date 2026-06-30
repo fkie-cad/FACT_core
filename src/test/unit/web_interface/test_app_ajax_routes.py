@@ -70,10 +70,12 @@ class TestAppAjaxRoutes:
         assert result['number_of_running_analyses'] == 'n/a'
 
     def test_ajax_system_health(self, test_client):
-        DbMock.get_stats_list = lambda *_: [{'foo': 'bar'}]
         result = test_client.get('/ajax/system_health').json
+        assert 'analysisStatus' in result
+        assert result['analysisStatus'] == {'current_analyses': {}, 'recently_finished_analyses': {}}
         assert 'systemHealth' in result
-        assert result['systemHealth'] == [{'foo': 'bar'}]
+        assert len(result['systemHealth']) == 3
+        assert all(isinstance(d, dict) for d in result['systemHealth'])
 
     def test_ajax_get_hex_preview(self, test_client):
         DbMock.peek_in_binary = lambda *_: b'foobar'
