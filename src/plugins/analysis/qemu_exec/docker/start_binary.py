@@ -12,12 +12,12 @@ FILE_PATH = FIRMWARE_ROOT + sys.argv[2]
 TIMEOUT_ERROR_EXIT_CODES = [124, 128 + 9]
 
 
-def get_output_error_and_return_code(command: str) -> tuple[bytes, bytes, int]:
-    process = subprocess.run(command, capture_output=True, shell=True)
+def get_output_error_and_return_code(command: list[str]) -> tuple[bytes, bytes, int]:
+    process = subprocess.run(command, capture_output=True, shell=False)  # nosec B603
     return process.stdout, process.stderr, process.returncode
 
 
-def get_output(command: str) -> dict:
+def get_output(command: list[str]) -> dict:
     std_out, std_err, return_code = get_output_error_and_return_code(command)
     if return_code in TIMEOUT_ERROR_EXIT_CODES:
         return {'error': 'timeout'}
@@ -31,10 +31,12 @@ def encode_as_str(std_out):
 def main():
     result = {}
     for parameter in ['-h', '--help', '-help', '--version', ' ']:
-        command = f'timeout -s SIGKILL 1 qemu-{ARCH} {FILE_PATH} {parameter}'
+        command = ['timeout', '-s', 'SIGKILL', '1', f'qemu-{ARCH}', FILE_PATH, parameter.strip()]
+        if not parameter.strip():
+            command.pop()
         result[parameter] = get_output(command)
 
-    command = f'timeout -s SIGKILL 2 qemu-{ARCH} -strace {FILE_PATH}'
+    command = ['timeout', '-s', 'SIGKILL', '2', f'qemu-{ARCH}', '-strace', FILE_PATH]
     result['strace'] = get_output(command)
     print(dumps(result), flush=True)
 
