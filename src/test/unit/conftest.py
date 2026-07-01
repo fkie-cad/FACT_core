@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Type
-
 import pytest
 from pydantic import BaseModel
 
@@ -124,11 +122,11 @@ class WebInterfaceUnitTestConfig(BaseModel):
     #: A class that can be instanced to mock every ``@property`` of
     #: :py:class:`~web_interface.frontend_database.FrontendDatabase`.
     #: See also: The documentation of :py:class:`FrontendDatabaseMock`
-    database_mock_class: Type = CommonDatabaseMock
+    database_mock_class: type = CommonDatabaseMock
     #: A class mocking :py:class:`~intercom.front_end_binding.InterComFrontEndBinding`
-    intercom_mock_class: Type[CommonIntercomMock] = CommonIntercomMock
+    intercom_mock_class: type[CommonIntercomMock] = CommonIntercomMock
     #: A class mocking :py:class:`~storage.redis_status_interface.RedisStatusInterface`
-    status_mock_class: Type[StatusInterfaceMock] = StatusInterfaceMock
+    status_mock_class: type[StatusInterfaceMock] = StatusInterfaceMock
 
 
 @pytest.fixture

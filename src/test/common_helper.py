@@ -18,8 +18,6 @@ if TYPE_CHECKING:
 
     from werkzeug.test import TestResponse
 
-# ruff: noqa: ANN001, ANN201, ANN205, S101
-
 
 def get_test_data_dir() -> Path:
     """
