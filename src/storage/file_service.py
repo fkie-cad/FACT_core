@@ -23,7 +23,7 @@ class FileService:
         self.data_storage_path = Path(config.backend.firmware_file_storage_directory).absolute()
         self.data_storage_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def store_file(self, file_object: FileObject):
+    def store_file(self, file_object: FileObject) -> None:
         if file_object.binary is None:
             logging.error('Cannot store binary! No binary data specified')
         else:
@@ -32,7 +32,7 @@ class FileService:
             file_object.file_path = destination_path
             file_object.create_binary_from_path()
 
-    def delete_file(self, uid: str):
+    def delete_file(self, uid: str) -> None:
         local_file_path = self.generate_path_from_uid(uid)
         delete_file(local_file_path)
 
