@@ -79,7 +79,7 @@ class UnpackingScheduler:
         self.db_interface = db_interface
 
     @contextmanager
-    def _sync(self) -> Iterator:
+    def _sync(self) -> Iterator[None]:
         try:
             self.sync_lock.acquire()
             yield
@@ -300,7 +300,7 @@ class UnpackingScheduler:
             logging.debug('Throttling down unpacking to reduce memory consumption...')
             sleep(5)
 
-    def start_work_load_monitor(self):  # noqa: ANN201
+    def start_work_load_monitor(self) -> ExceptionSafeProcess:
         work_load_process = ExceptionSafeProcess(target=self._work_load_monitor)
         work_load_process.start()
         return work_load_process
