@@ -39,7 +39,7 @@ class YaraBinarySearchScanner:
         compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b'YARA') else ''
         # -r: recursive, -s: print strings, -N: no follow symlinks
         command = f'yara -r -s -N {compiled_flag} {rule_file_path} {target_path or self.db_path}'
-        yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
+        yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)  # noqa: S602
         return yara_process.stdout
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path: str, firmware_uid: str) -> str:
@@ -126,7 +126,7 @@ class YaraBinarySearchScanner:
         return raw_result
 
     @staticmethod
-    def _prepare_temp_rule_file(temp_rule_file: NamedTemporaryFile, yara_rules: bytes):
+    def _prepare_temp_rule_file(temp_rule_file: NamedTemporaryFile, yara_rules: bytes) -> None:
         compiled_rules = yara.compile(source=yara_rules.decode())
         compiled_rules.save(file=temp_rule_file)
         temp_rule_file.flush()
