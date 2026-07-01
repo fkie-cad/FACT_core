@@ -159,7 +159,11 @@ def filter_relevant_indices(start, arg_values, indices, format_types):
     """
     result = []
     for i in indices:
-        argument = arg_values[start + i]
+        arg_index = start + i
+        if arg_index >= len(arg_values):
+            logging.warning('arg_index {} out of range for arg_values (length: {})'.format(arg_index, len(arg_values)))
+            continue
+        argument = arg_values[arg_index]
         for arg in argument:
             if isinstance(arg, format_types[i]) and string_is_printable(str(arg)):
                 result.append(str(arg))
