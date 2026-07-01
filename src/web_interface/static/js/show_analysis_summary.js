@@ -1,4 +1,4 @@
-function load_summary(uid, selected_analysis, focus=false, reversed_order=false){
+function load_summary(uid, selected_analysis, reversed_order, focus=false){
     $("#summary-button").css("display", "none");
     let summary_gif = $("#loading-summary-gif");
     summary_gif.css("display", "block");

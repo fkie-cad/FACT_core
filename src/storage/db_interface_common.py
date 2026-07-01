@@ -327,7 +327,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             analysis_result['summary'] = self.get_summary(fo, plugin)
         return fo
 
-    def get_summary(self, fo: FileObject, selected_analysis: str, reverse: bool = False) -> Summary | None:
+    def get_summary(self, fo: FileObject, selected_analysis: str, reverse: bool | str = False) -> Summary | None:
         if selected_analysis not in fo.processed_analysis:
             logging.warning(f'Analysis {selected_analysis} not available on {fo.uid}')
             return None
@@ -337,6 +337,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             included_files = fo.list_of_all_included_files or self.get_list_of_all_included_files(fo)
         else:
             included_files = self.get_all_files_in_fw(fo.uid).union({fo.uid})
+        reverse = reverse == 'true' if not isinstance(reverse, bool) else reverse
         return (
             self._collect_reverse_summary_for_uid_list(included_files, selected_analysis)
             if reverse

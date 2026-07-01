@@ -120,7 +120,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         Summary for Included Files
                                         <div class="custom-control custom-switch">
-                                            <input type="checkbox" class="custom-control-input" id="summaryOrderSwitch" onchange="reverseSummaryOrder()">
+                                            <input type="checkbox" class="custom-control-input" id="summaryOrderSwitch" onchange="load_summary(uid, selected_analysis, document.getElementById('summaryOrderSwitch').checked);">
                                             <label class="custom-control-label" for="summaryOrderSwitch" style="font-weight: normal;">Show inverted summary</label>
                                         </div>
                                     </div>
@@ -173,7 +173,7 @@
             const has_children = {{ "true" if firmware.files_included | length > 0  else "false" }};
             if (summary === "true" && has_children && selected_analysis !== "None") {
                 // automatically load summary if URL parameter "load_summary=true" is set
-                load_summary(uid, selected_analysis, focus=true);
+                load_summary(uid, selected_analysis, false, focus=true);
             } else if (preview !== false) {
                 // automatically load preview at address xyz if URL parameter "load_preview=xyz" is set
                 loadPreview(preview, true);

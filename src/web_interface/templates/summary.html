@@ -23,7 +23,7 @@
                 {% else %}
                     <td>{{ item | replace_uid_with_hid_link | safe }}</td>
                     <td>
-                        {{ summary_of_included_files[item] | nice_generic | safe }}
+                        {{ summary_of_included_files[item] | list_group_collapse | safe }}
                     </td>
                 {% endif %}
             </tr>
