@@ -337,7 +337,6 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             included_files = fo.list_of_all_included_files or self.get_list_of_all_included_files(fo)
         else:
             included_files = self.get_all_files_in_fw(fo.uid).union({fo.uid})
-        invert = invert == 'true' if not isinstance(invert, bool) else invert
         return (
             self._collect_inverted_summary_for_uid_list(included_files, selected_analysis)
             if invert

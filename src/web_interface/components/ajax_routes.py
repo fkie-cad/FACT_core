@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from flask import jsonify, render_template
 
-from helperFunctions.data_conversion import none_to_none
+from helperFunctions.data_conversion import boolean_string_to_boolean, none_to_none
 from helperFunctions.database import get_shared_session
 from objects.firmware import Firmware
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
@@ -120,10 +120,13 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_summary/<uid>/<selected_analysis>/<inverted>', GET)
     def ajax_get_summary(self, uid: str, selected_analysis: str, inverted: bool) -> str:
+        inverted = boolean_string_to_boolean(inverted)
+
         with get_shared_session(self.db.frontend) as frontend_db:
             firmware = frontend_db.get_object(uid, analysis_filter=selected_analysis)
             summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis, invert=inverted)
             root_uid = uid if isinstance(firmware, Firmware) else frontend_db.get_root_uid(uid)
+
         return render_template(
             'summary.html',
             summary_of_included_files=summary_of_included_files,
