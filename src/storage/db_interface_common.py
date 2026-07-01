@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import logging
 from operator import or_
-from typing import TYPE_CHECKING, Dict, Iterable, List
+from typing import TYPE_CHECKING
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import Session, aliased
 from sqlalchemy.orm.exc import NoResultFound
 
 from objects.firmware import Firmware
@@ -23,6 +23,8 @@ from storage.schema import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from sqlalchemy.sql import Select
 
     from objects.file import FileObject
@@ -35,7 +37,7 @@ PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible 
     'software_components',
     'users_and_passwords',
 ]
-Summary = Dict[str, List[str]]
+Summary = dict[str, list[str]]
 
 
 class DbInterfaceCommon(ReadOnlyDbInterface):
@@ -249,7 +251,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return path_dict
 
     @staticmethod
-    def _remove_paths_lacking_root_uid(path_dict: dict[str, list[list[str]]], root_uid: str):
+    def _remove_paths_lacking_root_uid(path_dict: dict[str, list[list[str]]], root_uid: str) -> None:
         # remove the paths that don't start with root_uid
         for path_list in path_dict.values():
             for uid_list in path_list[:]:
@@ -304,7 +306,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         with self.get_read_only_session() as session:
             return self._get_files_in_files(session, fo.files_included).union({fo.uid, *fo.files_included})
 
-    def _get_files_in_files(self, session, uid_set: set[str], recursive: bool = True) -> set[str]:
+    def _get_files_in_files(self, session: Session, uid_set: set[str], recursive: bool = True) -> set[str]:
         if not uid_set:
             return set()
         query = select(FileObjectEntry).filter(FileObjectEntry.uid.in_(uid_set))
