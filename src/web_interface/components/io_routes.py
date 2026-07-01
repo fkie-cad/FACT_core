@@ -26,7 +26,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', POST)
-    def post_upload(self):
+    def post_upload(self) -> str:
         try:
             analysis_task = create_analysis_task(request)
         except BadRequestKeyError as error:
@@ -39,7 +39,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', GET)
-    def get_upload(self):
+    def get_upload(self) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             device_class_list = frontend_db.get_device_class_list()
             vendor_list = frontend_db.get_vendor_list()
@@ -61,12 +61,12 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/download/<uid>', GET)
-    def download_binary(self, uid):
+    def download_binary(self, uid: str) -> str | Response:
         return self._prepare_file_download(uid, packed=False)
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/tar-download/<uid>', GET)
-    def download_tar(self, uid):
+    def download_tar(self, uid: str) -> str | Response:
         return self._prepare_file_download(uid, packed=True)
 
     def _prepare_file_download(self, uid: str, packed: bool = False) -> str | Response:
@@ -95,7 +95,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/ida-download/<compare_id>', GET)
-    def download_ida_file(self, compare_id):
+    def download_ida_file(self, compare_id: str) -> Response | str:
         # FixMe: IDA comparison plugin must not add binary strings to the result (not JSON compatible)
         result = self.db.comparison.get_comparison_result(compare_id)
         if result is None:
@@ -107,7 +107,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/radare-view/<uid>', GET)
-    def show_radare(self, uid):
+    def show_radare(self, uid: str) -> Response | str:
         object_exists = self.db.frontend.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
@@ -116,10 +116,10 @@ class IORoutes(ComponentBase):
             return render_template('error.html', message='timeout')
         try:
             host = config.frontend.radare2_url
-            response = requests.post(f'{host}/v1/retrieve', data=binary, verify=False)
+            response = requests.post(f'{host}/v1/retrieve', data=binary, verify=False, timeout=10)  # noqa: S501
             if response.status_code != http.HTTPStatus.OK:
                 raise TimeoutError(response.text)
-            target_link = f"{host}{response.json()['endpoint']}m/"
+            target_link = f'{host}{response.json()["endpoint"]}m/'
             sleep(1)
             return redirect(target_link)
         except (requests.exceptions.ConnectionError, TimeoutError, KeyError) as error:
@@ -127,7 +127,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/pdf-download/<uid>', GET)
-    def download_pdf_report(self, uid):
+    def download_pdf_report(self, uid: str) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             object_exists = frontend_db.exists(uid)
             if not object_exists:
