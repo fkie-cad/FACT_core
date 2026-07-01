@@ -17,17 +17,17 @@ def _upload_firmware_get(test_client, intercom):
     default_plugins = [p for p in plugins if p != 'unpacker' and plugins[p][2]['default']]
     optional_plugins = [p for p in plugins if not (plugins[p][1] or plugins[p][2])]
     for mandatory_plugin in mandatory_plugins:
-        assert (
-            f'id="{mandatory_plugin}"'.encode() not in rv.data
-        ), f'mandatory plugin {mandatory_plugin} found erroneously'
+        assert f'id="{mandatory_plugin}"'.encode() not in rv.data, (
+            f'mandatory plugin {mandatory_plugin} found erroneously'
+        )
     for default_plugin in default_plugins:
-        assert (
-            f'value="{default_plugin}" checked'.encode() in rv.data
-        ), f'default plugin {default_plugin} erroneously unchecked or not found'
+        assert f'value="{default_plugin}" checked'.encode() in rv.data, (
+            f'default plugin {default_plugin} erroneously unchecked or not found'
+        )
     for optional_plugin in optional_plugins:
-        assert (
-            f'value="{optional_plugin}" unchecked'.encode() in rv.data
-        ), f'optional plugin {optional_plugin} erroneously checked or not found'
+        assert f'value="{optional_plugin}" unchecked'.encode() in rv.data, (
+            f'optional plugin {optional_plugin} erroneously checked or not found'
+        )
 
 
 def _show_analysis_page(test_client, frontend_db):
