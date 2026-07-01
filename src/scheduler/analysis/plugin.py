@@ -9,7 +9,7 @@ import queue
 import signal
 import time
 import traceback
-from typing import TYPE_CHECKING, Dict, Type
+from typing import TYPE_CHECKING
 
 import psutil
 import pydantic
@@ -17,11 +17,13 @@ from pydantic import BaseModel, ConfigDict
 
 import config
 from analysis.plugin.plugin import AnalysisFailedError
-from objects.file import FileObject  # noqa: TCH001 # needed by pydantic
+from objects.file import FileObject  # noqa: TC001 # needed by pydantic
 from statistic.analysis_stats import ANALYSIS_STATS_LIMIT
 from storage.file_service import FileService
 
 if TYPE_CHECKING:
+    from types import FrameType
+
     from analysis.plugin import AnalysisPluginV0
 
 
@@ -38,11 +40,11 @@ class PluginRunner:
 
         #: The virtual file path of the file object
         #: See :py:class:`FileObject`.
-        virtual_file_path: Dict
+        virtual_file_path: dict
         #: The path of the file on the disk
         path: str
         #: A dictionary containing plugin names as keys and their analysis as value.
-        dependencies: Dict
+        dependencies: dict
         #: The schedulers state associated with the file that is analyzed.
         #: Here it is just the whole FileObject
         # We need this because the scheduler is using multiple processes which
@@ -58,7 +60,7 @@ class PluginRunner:
         self,
         plugin: AnalysisPluginV0,
         config: Config,
-        schemata: Dict[str, Type[pydantic.BaseModel]],
+        schemata: dict[str, type[pydantic.BaseModel]],
     ):
         self._plugin = plugin
         self._config = config
@@ -97,16 +99,16 @@ class PluginRunner:
         """Returns the amount of workers that currently analyze a file"""
         return sum([worker.is_working() for worker in self._workers])
 
-    def start(self):
+    def start(self) -> None:
         for worker in self._workers:
             worker.start()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         for worker in self._workers:
             if worker.is_alive():
                 worker.terminate()
 
-    def queue_analysis(self, file_object: FileObject):
+    def queue_analysis(self, file_object: FileObject) -> None:
         """Queues the analysis of ``file_object`` with ``self._plugin``.
         The caller of this method has to ensure that the dependencies are fulfilled.
         """
@@ -150,7 +152,7 @@ class Worker(mp.Process):
         #: Timeout in seconds after which the analysis is aborted
         timeout: int
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         plugin: AnalysisPluginV0,
         worker_config: Config,
@@ -175,17 +177,17 @@ class Worker(mp.Process):
         self._is_working = mp.Value('i')
         self._is_working.value = 0
 
-    def is_working(self):
+    def is_working(self) -> bool:
         return self._is_working.value != 0
 
-    def run(self):  # noqa: C901, PLR0912, PLR0915
+    def run(self) -> None:  # noqa: C901, PLR0912, PLR0915
         run = True
         result = None
         recv_conn, send_conn = mp.Pipe(duplex=False)
 
         child_process = None
 
-        def _handle_sigterm(signum, frame):
+        def _handle_sigterm(signum: int, frame: FrameType | None) -> None:
             del signum, frame
             logging.debug(f'{self} received SIGTERM. Shutting down.')
             nonlocal run
@@ -270,7 +272,7 @@ class Worker(mp.Process):
             self._write_result_in_file_object(entry, fw)
             self._out_queue.put(fw)
 
-    def _write_result_in_file_object(self, entry: dict, file_object: FileObject):
+    def _write_result_in_file_object(self, entry: dict, file_object: FileObject) -> None:
         """Takes a file_object and an entry as it is returned by :py:func:`Worker.run`
         and returns a FileObject with the corresponding fields set.
         """
@@ -282,7 +284,7 @@ class Worker(mp.Process):
             file_object.analysis_exception = entry['exception']
 
     @staticmethod
-    def _child_entrypoint(plugin: AnalysisPluginV0, task: PluginRunner.Task, conn: mp.connection.Connection):
+    def _child_entrypoint(plugin: AnalysisPluginV0, task: PluginRunner.Task, conn: mp.connection.Connection) -> None:
         """Processes a single task then returns.
         The result is written to ``conn``.
         Exceptions and formatted tracebacks are also written to ``conn``.
@@ -296,7 +298,7 @@ class Worker(mp.Process):
 
         conn.send(result)
 
-    def _update_duration_stats(self, duration):
+    def _update_duration_stats(self, duration: float) -> None:
         with self._stats.get_lock():
             self._stats[self._stats_idx.value] = duration
             self._stats_idx.value += 1
