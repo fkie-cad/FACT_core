@@ -207,11 +207,11 @@ def test_get_summary_fw(backend_db, common_db):
     assert fw.uid not in summary['file exclusive sum b'], 'parent as origin but should not be'
 
 
-def test_get_reverse_summary_fw(backend_db, common_db):
+def test_get_inverted_summary_fw(backend_db, common_db):
     fo, fw = create_fw_with_child_fo()
     backend_db.insert_multiple_objects(fw, fo)
 
-    summary = common_db.get_summary(fw, 'dummy', reverse=True)
+    summary = common_db.get_summary(fw, 'dummy', invert=True)
     assert isinstance(summary, dict), 'summary is not a dict'
 
     assert fw.uid in summary, 'parent should be in summary'

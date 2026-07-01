@@ -118,18 +118,18 @@ class AjaxRoutes(ComponentBase):
         return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    @AppRoute('/ajax_get_summary/<uid>/<selected_analysis>/<reversed_order>', GET)
-    def ajax_get_summary(self, uid: str, selected_analysis: str, reversed_order: bool) -> str:
+    @AppRoute('/ajax_get_summary/<uid>/<selected_analysis>/<inverted>', GET)
+    def ajax_get_summary(self, uid: str, selected_analysis: str, inverted: bool) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             firmware = frontend_db.get_object(uid, analysis_filter=selected_analysis)
-            summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis, reverse=reversed_order)
+            summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis, invert=inverted)
             root_uid = uid if isinstance(firmware, Firmware) else frontend_db.get_root_uid(uid)
         return render_template(
             'summary.html',
             summary_of_included_files=summary_of_included_files,
             root_uid=root_uid,
             selected_analysis=selected_analysis,
-            reverse_summary=reversed_order,
+            inverted=inverted,
         )
 
     @roles_accepted(*PRIVILEGES['status'])
