@@ -89,6 +89,7 @@ fixable = ["ALL"]
 "test*.py" = ["ARG002", "PLR2004", "ANN", "S101"]
 "conftest.py" = ["ARG001", "ARG002", "ANN", "S101"]
 "common_helper.py" = ["ARG001", "ARG002", "ANN", "S101"]
+"src/test/integration/common.py" = ["ANN"]
 # ignore prints in CLI scripts
 "migrate_db_to_postgresql.py" = ["T201"]
 "manage_users.py" = ["T201"]

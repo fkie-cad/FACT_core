@@ -7,7 +7,7 @@ from test.common_helper import create_test_firmware
 
 
 @pytest.fixture(autouse=True)
-def _autouse_intercom_backend_binding(intercom_backend_binding):  # noqa: ARG001
+def _autouse_intercom_backend_binding(intercom_backend_binding):
     pass
 
 

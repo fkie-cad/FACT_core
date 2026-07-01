@@ -3,7 +3,6 @@ from tempfile import TemporaryDirectory
 from zipfile import ZipFile, is_zipfile
 
 from firmware_import_export import FwExporter, FwImporter
-
 from test.integration.storage.helper import create_fw_with_child_fo
 
 
