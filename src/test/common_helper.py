@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from http import HTTPStatus
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
@@ -14,6 +14,8 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from werkzeug.test import TestResponse
 
 
@@ -259,7 +261,7 @@ class CommonDatabaseMock:
 
     @staticmethod
     def get_hid_dict(uid_set, root_uid):  # noqa: ARG004
-        return {uid: 'hid' for uid in uid_set}
+        return dict.fromkeys(uid_set, 'hid')
 
     @staticmethod
     def get_file_tree_path(uid: str, root_uid=None):
@@ -268,7 +270,7 @@ class CommonDatabaseMock:
         return [[uid]]
 
 
-def fake_exit(self, *args):  # noqa: ARG001
+def fake_exit(self, *args):
     pass
 
 
