@@ -327,7 +327,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             analysis_result['summary'] = self.get_summary(fo, plugin)
         return fo
 
-    def get_summary(self, fo: FileObject, selected_analysis: str, invert: bool | str = False) -> Summary | None:
+    def get_summary(self, fo: FileObject, selected_analysis: str, invert: bool = False) -> Summary | None:
         if selected_analysis not in fo.processed_analysis:
             logging.warning(f'Analysis {selected_analysis} not available on {fo.uid}')
             return None
@@ -337,13 +337,9 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             included_files = fo.list_of_all_included_files or self.get_list_of_all_included_files(fo)
         else:
             included_files = self.get_all_files_in_fw(fo.uid).union({fo.uid})
-        return (
-            self._collect_inverted_summary_for_uid_list(included_files, selected_analysis)
-            if invert
-            else self._collect_summary_for_uid_list(included_files, selected_analysis)
-        )
+        return self._collect_summary_for_uid_list(included_files, selected_analysis, invert)
 
-    def _collect_summary_for_uid_list(self, uid_list: set[str] | list[str], plugin: str) -> Summary:
+    def _collect_summary_for_uid_list(self, uid_list: set[str] | list[str], plugin: str, invert: bool) -> Summary:
         with self.get_read_only_session() as session:
             query = select(AnalysisEntry.uid, AnalysisEntry.summary).filter(
                 AnalysisEntry.plugin == plugin, AnalysisEntry.uid.in_(uid_list)
@@ -351,18 +347,10 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             summary = {}
             for uid, summary_list in session.execute(query):  # type: str, list[str]
                 for item in set(summary_list or []):
-                    summary.setdefault(item, []).append(uid)
-        return summary
-
-    def _collect_inverted_summary_for_uid_list(self, uid_list: set[str] | list[str], plugin: str) -> Summary:
-        with self.get_read_only_session() as session:
-            query = select(AnalysisEntry.uid, AnalysisEntry.summary).filter(
-                AnalysisEntry.plugin == plugin, AnalysisEntry.uid.in_(uid_list)
-            )
-            summary = {}
-            for uid, summary_list in session.execute(query):  # type: str, list[str]
-                for item in set(summary_list or []):
-                    summary.setdefault(uid, []).append(item)
+                    if invert:
+                        summary.setdefault(uid, []).append(item)
+                    else:
+                        summary.setdefault(item, []).append(uid)
         return summary
 
     # ===== tags =====
