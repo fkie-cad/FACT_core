@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import logging
 from time import sleep, time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import config
 from intercom.common_redis_binding import generate_task_id
 from storage.redis_interface import RedisInterface
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 
 class InterComFrontEndBinding:
@@ -17,28 +20,28 @@ class InterComFrontEndBinding:
     def __init__(self):
         self.redis = RedisInterface()
 
-    def add_analysis_task(self, fw):
+    def add_analysis_task(self, fw: FileObject) -> None:
         self._add_to_redis_queue('analysis_task', fw, fw.uid)
 
-    def add_re_analyze_task(self, fw, unpack=True):
+    def add_re_analyze_task(self, fw: FileObject, unpack: bool = True) -> None:
         if unpack:
             self._add_to_redis_queue('re_analyze_task', fw, fw.uid)
         else:
             self._add_to_redis_queue('update_task', fw, fw.uid)
 
-    def add_single_file_task(self, fw):
+    def add_single_file_task(self, fw: FileObject) -> bool:
         return self._request_response_listener(fw, 'single_file_task', 'single_file_task_resp')
 
-    def add_compare_task(self, compare_id, force=False):
+    def add_compare_task(self, compare_id: str, force: bool = False) -> None:
         self._add_to_redis_queue('compare_task', (compare_id, force), compare_id)
 
-    def delete_file(self, uid_list: set[str]):
+    def delete_file(self, uid_list: set[str]) -> None:
         self._add_to_redis_queue('file_delete_task', uid_list)
 
-    def cancel_analysis(self, root_uid: str):
+    def cancel_analysis(self, root_uid: str) -> None:
         self._add_to_redis_queue('cancel_task', root_uid)
 
-    def get_available_analysis_plugins(self):
+    def get_available_analysis_plugins(self) -> dict[str, tuple]:
         plugin_dict = self.redis.get('analysis_plugins', delete=False)
         if plugin_dict is None:
             raise RuntimeError('No available plug-ins found. FACT backend might be down!')
@@ -59,25 +62,27 @@ class InterComFrontEndBinding:
     def get_yara_error(self, yara_rule: str | bytes) -> str | None:
         return self._request_response_listener(yara_rule, 'check_yara_rules_task', 'check_yara_rules_task_resp')
 
-    def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: str | None = None):
+    def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: str | None = None) -> str:
         request_id = generate_task_id(yara_rule_binary)
         self._add_to_redis_queue('binary_search_task', (yara_rule_binary, firmware_uid), request_id)
         return request_id
 
-    def get_binary_search_result(self, request_id):
+    def get_binary_search_result(
+        self, request_id: str
+    ) -> tuple[dict[str, dict[str, list[dict]]] | str, str] | tuple[None, None]:
         result = self._response_listener('binary_search_task_resp', request_id, timeout=time() + 10)
         return result if result is not None else (None, None)
 
-    def get_backend_logs(self):
+    def get_backend_logs(self) -> list[str]:
         return self._request_response_listener(None, 'logs_task', 'logs_task_resp')
 
-    def _request_response_listener(self, input_data, request_connection, response_connection):
+    def _request_response_listener(self, input_data: Any, request_connection: str, response_connection: str) -> Any:  # noqa: ANN401
         request_id = generate_task_id(input_data)
         self._add_to_redis_queue(request_connection, input_data, request_id)
         logging.debug(f'Request sent: {request_connection} -> {request_id}')
         return self._response_listener(response_connection, request_id)
 
-    def _response_listener(self, response_connection, request_id, timeout=None):
+    def _response_listener(self, response_connection: str, request_id: str, timeout: int | float | None = None) -> Any:  # noqa: ANN401
         output_data = None
         if timeout is None:
             timeout = time() + int(config.frontend.communication_timeout)
@@ -90,5 +95,5 @@ class InterComFrontEndBinding:
             sleep(0.1)
         return output_data
 
-    def _add_to_redis_queue(self, key: str, data: Any, task_id: str | None = None):
+    def _add_to_redis_queue(self, key: str, data: Any, task_id: str | None = None) -> None:  # noqa: ANN401
         self.redis.queue_put(key, (data, task_id))
