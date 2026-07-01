@@ -26,7 +26,7 @@ class Compare:
         self._setup_plugins()
         logging.info(f'Comparison plugins available: {", ".join(self.compare_plugins)}')
 
-    def compare(self, uid_list):
+    def compare(self, uid_list: list[str]) -> dict[str, dict]:
         logging.info(f'Comparison in progress: {uid_list}')
         file_service = FileService()
 
@@ -38,13 +38,13 @@ class Compare:
 
         return self.compare_objects(fo_list)
 
-    def compare_objects(self, fo_list):
+    def compare_objects(self, fo_list: list[FileObject]) -> dict[str, dict]:
         return {
             'general': self._create_general_section_dict(fo_list),
             'plugins': self._execute_compare_plugins(fo_list),
         }
 
-    def _create_general_section_dict(self, object_list):
+    def _create_general_section_dict(self, object_list: list[FileObject]) -> dict[str, dict]:
         general = {}
         vfp_data = self._get_vfp_data(object_list)
         for fo in object_list:
@@ -77,11 +77,11 @@ class Compare:
 
     # --- plug-in system ---
 
-    def _setup_plugins(self):
+    def _setup_plugins(self) -> None:
         self.compare_plugins = {}
         self._init_plugins()
 
-    def _init_plugins(self):
+    def _init_plugins(self) -> None:
         for plugin in discover_compare_plugins():
             try:
                 self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(db_interface=self.db_interface)
@@ -102,7 +102,7 @@ def schedule_comparison_plugins(plugin_dict: dict[str, CompareBasePlugin]) -> li
     temp_mark = set()
     sorted_plugins = []
 
-    def visit(plugin_):
+    def visit(plugin_: CompareBasePlugin) -> None:
         if plugin_.NAME in temp_mark:
             raise ValueError('Cyclic dependency or dependency cannot be scheduled')
         if plugin_.NAME not in visited:
