@@ -70,12 +70,23 @@ class FilterClass:
             content = content.replace(uid, f'<a style="text-reset" href="/analysis/{uid}/ro/{root_uid}">{hid}</a>')
         return content
 
-    def _filter_nice_uid_list(self, uids, root_uid=None, selected_analysis=None, filename_only=False):
+    def _filter_nice_uid_list(
+        self,
+        uids,
+        root_uid=None,
+        selected_analysis=None,
+        filename_only=False,
+        nice_list_data: list[dict] | None = None,
+    ):
         root_uid = none_to_none(root_uid)
         if not is_list_of_uids(uids):
             return uids
 
-        analyzed_uids = self.db.frontend.get_data_for_nice_list(uids, root_uid)
+        if nice_list_data:
+            # if multiple "nice lists" are rendered at once, nice_list_data should be prefetched for all files
+            analyzed_uids = [d for d in nice_list_data if d['uid'] in uids]
+        else:
+            analyzed_uids = self.db.frontend.get_data_for_nice_list(uids, root_uid, include_vfp=not filename_only)
         number_of_unanalyzed_files = len(uids) - len(analyzed_uids)
         first_item = analyzed_uids.pop(0)
 
