@@ -1,4 +1,4 @@
-function load_summary(uid, selected_analysis, inverted, focus=false){
+function load_summary(uid, selected_analysis, inverted){
     $("#summary-button").css("display", "none");
     let summary_gif = $("#loading-summary-gif");
     summary_gif.css("display", "block");
@@ -6,9 +6,6 @@ function load_summary(uid, selected_analysis, inverted, focus=false){
         `/ajax_get_summary/${uid}/${selected_analysis}/${inverted}`,
         () => {
             summary_gif.css("display", "none");
-            if (focus === true) {
-                location.href = "#summary-heading";
-            }
         }
     );
 }
