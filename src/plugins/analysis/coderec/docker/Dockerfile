@@ -2,13 +2,15 @@ FROM rust:1.85-slim-bookworm AS builder
 
 WORKDIR /root
 
+# hadolint ignore=DL3008
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libfontconfig1-dev pkg-config curl wget unzip patch && \
+    apt-get install -y --no-install-recommends libfontconfig1-dev pkg-config curl unzip patch && \
     rm -rf /var/lib/apt/lists/*
 
 ARG CODEREC_VER="0.1.2"
 
-RUN wget "https://github.com/vobst/coderec/archive/refs/tags/${CODEREC_VER}.zip" && \
+RUN curl -fsSL "https://github.com/vobst/coderec/archive/refs/tags/${CODEREC_VER}.zip" \
+        -o "${CODEREC_VER}.zip" && \
     unzip "${CODEREC_VER}.zip"
 
 WORKDIR "/root/coderec-${CODEREC_VER}"
@@ -41,6 +43,7 @@ RUN addgroup --gid "$GID" "$GROUPNAME" \
 
 RUN mkdir -p /home/coderec
 
+# hadolint ignore=DL3008
 RUN apt-get update && \
     apt-get install -y --no-install-recommends libfontconfig1 && \
     rm -rf /var/lib/apt/lists/*
