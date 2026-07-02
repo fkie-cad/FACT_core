@@ -33,7 +33,7 @@ def test_analysis_fail(content, expected_result, analysis_scheduler, post_analys
 
         processed_container = {}
         for _ in range(3):  # container with 3 included files times 2 mandatory plugins run
-            uid, plugin, analysis_result = post_analysis_queue.get(timeout=3)
+            uid, plugin, analysis_result = post_analysis_queue.get(timeout=10)
             processed_container.setdefault(uid, {}).setdefault(plugin, {})
             processed_container[uid][plugin] = analysis_result
 

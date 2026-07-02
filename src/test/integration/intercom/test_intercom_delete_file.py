@@ -4,21 +4,19 @@ import pytest
 
 from intercom.back_end_binding import InterComBackEndDeleteFile
 from test.common_helper import CommonDatabaseMock
-from test.integration.common import MockFSOrganizer
+from test.integration.common import MockFileService
 
 
 class UnpackingLockMock:
     @staticmethod
     def unpacking_lock_is_set(uid):
-        if uid == 'locked':
-            return True
-        return False
+        return uid == 'locked'
 
 
 @pytest.fixture
 def mock_listener():
     listener = InterComBackEndDeleteFile(unpacking_locks=UnpackingLockMock(), db_interface=CommonDatabaseMock())
-    listener.fs_organizer = MockFSOrganizer()
+    listener.file_service = MockFileService()
     return listener
 
 

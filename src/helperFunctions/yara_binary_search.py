@@ -10,7 +10,7 @@ import yara
 
 import config
 from storage.db_interface_common import DbInterfaceCommon
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 
 
 class YaraBinarySearchScanner:
@@ -26,7 +26,7 @@ class YaraBinarySearchScanner:
         self.matches = []
         self.db_path = config.backend.firmware_file_storage_directory
         self.db = DbInterfaceCommon()
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
 
     def _execute_yara_search(self, rule_file_path: str | Path, target_path: str | Path | None = None) -> str:
         """
@@ -39,7 +39,7 @@ class YaraBinarySearchScanner:
         compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b'YARA') else ''
         # -r: recursive, -s: print strings, -N: no follow symlinks
         command = f'yara -r -s -N {compiled_flag} {rule_file_path} {target_path or self.db_path}'
-        yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
+        yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)  # noqa: S602
         return yara_process.stdout
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path: str, firmware_uid: str) -> str:
@@ -48,7 +48,7 @@ class YaraBinarySearchScanner:
         return '\n'.join(result)
 
     def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> list[str]:
-        return [self.fs_organizer.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
+        return [self.file_service.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
 
     @staticmethod
     def _parse_raw_result(raw_result: str) -> dict[str, dict[str, list[dict]]]:
@@ -126,7 +126,7 @@ class YaraBinarySearchScanner:
         return raw_result
 
     @staticmethod
-    def _prepare_temp_rule_file(temp_rule_file: NamedTemporaryFile, yara_rules: bytes):
+    def _prepare_temp_rule_file(temp_rule_file: NamedTemporaryFile, yara_rules: bytes) -> None:
         compiled_rules = yara.compile(source=yara_rules.decode())
         compiled_rules.save(file=temp_rule_file)
         temp_rule_file.flush()

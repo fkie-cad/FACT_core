@@ -26,7 +26,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', POST)
-    def post_upload(self):
+    def post_upload(self) -> str:
         try:
             analysis_task = create_analysis_task(request)
         except BadRequestKeyError as error:
@@ -39,7 +39,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', GET)
-    def get_upload(self):
+    def get_upload(self) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             device_class_list = frontend_db.get_device_class_list()
             vendor_list = frontend_db.get_vendor_list()
@@ -61,27 +61,31 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/download/<uid>', GET)
-    def download_binary(self, uid):
+    def download_binary(self, uid: str) -> str | Response:
         return self._prepare_file_download(uid, packed=False)
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/tar-download/<uid>', GET)
-    def download_tar(self, uid):
+    def download_tar(self, uid: str) -> str | Response:
         return self._prepare_file_download(uid, packed=True)
 
     def _prepare_file_download(self, uid: str, packed: bool = False) -> str | Response:
-        if not self.db.frontend.exists(uid):
-            return render_template('uid_not_found.html', uid=uid)
+        with get_shared_session(self.db.frontend) as frontend_db:
+            if not (frontend_db.exists(uid)):
+                return render_template('uid_not_found.html', uid=uid)
+            file_name = frontend_db.get_file_name(uid)
         if packed:
-            result = self.intercom.get_repacked_binary_and_file_name(uid)
+            contents = self.intercom.get_repacked_file(uid)
+            file_name = f'{file_name}.tar.gz'
         else:
-            result = self.intercom.get_binary_and_filename(uid)
-        if result is None:
+            contents = self.intercom.get_file_contents(uid)
+        if contents is None:
             return render_template('error.html', message='timeout')
-        binary, file_name = result
-        response = make_response(binary)
+        if contents == b'':
+            return render_template('error.html', message='file not found')
+        response = make_response(contents)
         response.headers['Content-Disposition'] = f'attachment; filename={file_name}'
-        response.headers['Content-Type'] = 'application/gzip' if packed else self._get_file_download_mime(binary, uid)
+        response.headers['Content-Type'] = 'application/gzip' if packed else self._get_file_download_mime(contents, uid)
         return response
 
     def _get_file_download_mime(self, binary: bytes, uid: str) -> str:
@@ -91,7 +95,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/ida-download/<compare_id>', GET)
-    def download_ida_file(self, compare_id):
+    def download_ida_file(self, compare_id: str) -> Response | str:
         # FixMe: IDA comparison plugin must not add binary strings to the result (not JSON compatible)
         result = self.db.comparison.get_comparison_result(compare_id)
         if result is None:
@@ -103,20 +107,19 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/radare-view/<uid>', GET)
-    def show_radare(self, uid):
+    def show_radare(self, uid: str) -> Response | str:
         object_exists = self.db.frontend.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
-        result = self.intercom.get_binary_and_filename(uid)
-        if result is None:
+        binary = self.intercom.get_file_contents(uid)
+        if binary is None:
             return render_template('error.html', message='timeout')
-        binary, _ = result
         try:
             host = config.frontend.radare2_url
-            response = requests.post(f'{host}/v1/retrieve', data=binary, verify=False)
+            response = requests.post(f'{host}/v1/retrieve', data=binary, verify=False)  # noqa: S113, S501
             if response.status_code != http.HTTPStatus.OK:
                 raise TimeoutError(response.text)
-            target_link = f"{host}{response.json()['endpoint']}m/"
+            target_link = f'{host}{response.json()["endpoint"]}m/'
             sleep(1)
             return redirect(target_link)
         except (requests.exceptions.ConnectionError, TimeoutError, KeyError) as error:
@@ -124,7 +127,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/pdf-download/<uid>', GET)
-    def download_pdf_report(self, uid):
+    def download_pdf_report(self, uid: str) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             object_exists = frontend_db.exists(uid)
             if not object_exists:

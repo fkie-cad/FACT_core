@@ -17,7 +17,7 @@ from helperFunctions.database import get_shared_session
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 from storage.migration import get_current_revision
 
 load()
@@ -36,22 +36,22 @@ class FwExporter:
         self.target_dir = Path(output_dir)
         self.target_dir.mkdir(exist_ok=True)
         self.db_interface = BackendDbInterface()
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
 
-    def export_files(self, uid_list: list[str]):
+    def export_files(self, uid_list: list[str]) -> None:
         with get_shared_session(self.db_interface) as db_session, Progress(*COLUMNS) as progress:
             export_task = progress.add_task('Firmware export', total=len(uid_list))
             for uid in uid_list:
                 self._export_single_file(db_session, uid, progress)
                 progress.advance(export_task)
 
-    def _export_single_file(self, db, fw_uid: str, progress: Progress):
+    def _export_single_file(self, db: BackendDbInterface, fw_uid: str, progress: Progress) -> None:
         included_files = db.get_all_files_in_fw(fw_uid)
         with BytesIO() as buffer:
             with ZipFile(buffer, 'w', ZIP_DEFLATED) as zip_file:
                 file_task = progress.add_task('Fetching files', total=len(included_files) + 1)
                 for fo_uid in included_files.union({fw_uid}):
-                    file_path = self.fs_organizer.generate_path_from_uid(fo_uid)
+                    file_path = self.file_service.generate_path_from_uid(fo_uid)
                     zip_file.writestr(f'files/{fo_uid}', Path(file_path).read_bytes())
                     progress.advance(file_task)
                 progress.remove_task(file_task)
@@ -64,7 +64,7 @@ class FwExporter:
             logger.info(f'Exported firmware {fw_uid} to {target_path}')
 
     @staticmethod
-    def _fetch_db_data(uid: str, all_files: set[str], db, progress: Progress) -> dict:
+    def _fetch_db_data(uid: str, all_files: set[str], db: BackendDbInterface, progress: Progress) -> dict:
         db_data = {
             'db_revision': get_current_revision(),
             'files': [],
@@ -82,11 +82,11 @@ class FwExporter:
 class FwImporter:
     def __init__(self, force: bool):
         self.db_interface = BackendDbInterface()
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
         self.force = force
         self.progress: Progress | None = None
 
-    def import_files(self, file_list: list[str]):
+    def import_files(self, file_list: list[str]) -> None:
         with Progress(*COLUMNS) as progress:
             self.progress = progress
             import_task = progress.add_task('Importing files', total=len(file_list))
@@ -134,11 +134,11 @@ class FwImporter:
             logging.error(f'Error: File {path} is not a ZIP file. {ERROR_MESSAGE}')
             return False
 
-    def _import_files(self, zip_file) -> int:
+    def _import_files(self, zip_file: ZipFile) -> int:
         files = [f for f in zip_file.namelist() if f != 'data.json']
         file_task = self.progress.add_task('Importing files', total=len(files))
         for file in files:
-            self.fs_organizer.store_file(FileObject(binary=zip_file.read(file)))
+            self.file_service.store_file(FileObject(binary=zip_file.read(file)))
             self.progress.advance(file_task)
         self.progress.remove_task(file_task)
         return len(files)
@@ -150,7 +150,9 @@ class FwImporter:
             db_session.add_object(firmware)
             return self._insert_objects_hierarchically(file_objects, firmware.uid, db_session)
 
-    def _insert_objects_hierarchically(self, fo_dict: dict[str, FileObject], root_uid: str, db) -> int:
+    def _insert_objects_hierarchically(
+        self, fo_dict: dict[str, FileObject], root_uid: str, db: BackendDbInterface
+    ) -> int:
         already_added = {root_uid}
         all_uids = already_added.union(fo_dict)
         orphans = {uid for uid, fo in fo_dict.items() if any(parent not in all_uids for parent in fo.parents)}
@@ -171,7 +173,7 @@ class FwImporter:
         return len(already_added)
 
 
-def _parse_args(args=None):
+def _parse_args(args: list[str] | None = None) -> argparse.ArgumentParser:
     if args is None:
         args = sys.argv[1:]
     parser = argparse.ArgumentParser(description='Script to import and export firmware analyses')
@@ -195,7 +197,7 @@ def _parse_args(args=None):
     return parser.parse_args(args)
 
 
-def main():
+def main() -> None:
     args = _parse_args()
     if args.command == 'export':
         FwExporter(args.output).export_files(args.uid_list)

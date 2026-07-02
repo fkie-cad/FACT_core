@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Type
-
 import pytest
 from pydantic import BaseModel
 
@@ -35,18 +33,18 @@ class CommonIntercomMock:
         return b'foobar'
 
     @staticmethod
-    def get_binary_and_filename(uid):
+    def get_file_contents(uid):
         if uid == TEST_FW.uid:
-            return TEST_FW.binary, TEST_FW.file_name
+            return TEST_FW.binary
         if uid == TEST_TEXT_FILE.uid:
-            return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
-        return None
+            return TEST_TEXT_FILE.binary
+        return b''
 
     @staticmethod
-    def get_repacked_binary_and_file_name(uid):
+    def get_repacked_file(uid):
         if uid == TEST_FW.uid:
-            return TEST_FW.binary, f'{TEST_FW.file_name}.tar.gz'
-        return None, None
+            return TEST_FW.binary
+        return b''
 
     @staticmethod
     def add_binary_search_request(*_):
@@ -124,11 +122,11 @@ class WebInterfaceUnitTestConfig(BaseModel):
     #: A class that can be instanced to mock every ``@property`` of
     #: :py:class:`~web_interface.frontend_database.FrontendDatabase`.
     #: See also: The documentation of :py:class:`FrontendDatabaseMock`
-    database_mock_class: Type = CommonDatabaseMock
+    database_mock_class: type = CommonDatabaseMock
     #: A class mocking :py:class:`~intercom.front_end_binding.InterComFrontEndBinding`
-    intercom_mock_class: Type[CommonIntercomMock] = CommonIntercomMock
+    intercom_mock_class: type[CommonIntercomMock] = CommonIntercomMock
     #: A class mocking :py:class:`~storage.redis_status_interface.RedisStatusInterface`
-    status_mock_class: Type[StatusInterfaceMock] = StatusInterfaceMock
+    status_mock_class: type[StatusInterfaceMock] = StatusInterfaceMock
 
 
 @pytest.fixture

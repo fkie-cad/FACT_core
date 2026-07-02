@@ -4,23 +4,24 @@ import json
 import logging
 from pathlib import Path
 from time import time
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import config
 from helperFunctions import magic
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 from unpacker.unpack_base import ExtractionError, UnpackBase
 
 if TYPE_CHECKING:
+    from storage.unpacking_locks import UnpackingLockManager
     from unpacker.extraction_container import ExtractionContainer
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, fs_organizer=None, unpacking_locks=None):
-        self.file_storage_system = FSOrganizer() if fs_organizer is None else fs_organizer
+    def __init__(self, file_service: FileService | None = None, unpacking_locks: UnpackingLockManager | None = None):
+        self.file_service = FileService() if file_service is None else file_service
         self.unpacking_locks = unpacking_locks
 
     def unpack(
@@ -56,14 +57,14 @@ class Unpacker(UnpackBase):
         )
         return extracted_file_objects
 
-    def _store_unpacking_error_skip_info(self, file_object: FileObject, error: Optional[Exception] = None):
+    def _store_unpacking_error_skip_info(self, file_object: FileObject, error: Exception | None = None) -> None:
         file_object.processed_analysis['unpacker'] = self._init_skipped_analysis(
             'Unpacking stopped because extractor raised a exception (possible timeout)',
             'extractor error',
             str(error) if error else 'possible extractor timeout',
         )
 
-    def _store_unpacking_depth_skip_info(self, file_object: FileObject):
+    def _store_unpacking_depth_skip_info(self, file_object: FileObject) -> None:
         file_object.processed_analysis['unpacker'] = self._init_skipped_analysis(
             'Unpacking stopped because maximum unpacking depth was reached',
             'depth reached',
@@ -97,14 +98,14 @@ class Unpacker(UnpackBase):
             if current_file.uid not in extracted_files:
                 # the same file can be contained multiple times in one archive -> only the VFP needs an update
                 self.unpacking_locks.set_unpacking_lock(current_file.uid)
-                self.file_storage_system.store_file(current_file)
+                self.file_service.store_file(current_file)
                 current_file.parent_firmware_uids.add(parent.root_uid)
                 extracted_files[current_file.uid] = current_file
             extracted_files[current_file.uid].virtual_file_path.setdefault(parent.uid, []).append(current_virtual_path)
         extracted_files.pop(parent.uid, None)  # the same file should not be unpacked from itself
         return list(extracted_files.values())
 
-    def _check_path(self, file_object: FileObject):
+    def _check_path(self, file_object: FileObject) -> None:
         if not Path(file_object.file_path).exists():
             logging.error(f'File with path "{file_object.file_path}" not found ({file_object.uid}).')
             error = ExtractionError('File not found')

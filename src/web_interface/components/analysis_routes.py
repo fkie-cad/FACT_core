@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from objects.file import FileObject
 
 
-def get_analysis_view(view_name):
+def get_analysis_view(view_name: str) -> str:
     view_path = Path(get_src_dir()) / f'web_interface/templates/analysis_plugins/{view_name}.html'
     return get_binary_from_file(view_path).decode('utf-8')
 
@@ -50,7 +50,7 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/ro/<root_uid>', GET)
     @AppRoute('/analysis/<uid>/<selected_analysis>', GET)
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', GET)
-    def show_analysis(self, uid, selected_analysis=None, root_uid=None):
+    def show_analysis(self, uid: str, selected_analysis: str | None = None, root_uid: str | None = None) -> str:
         other_versions = None
         all_comparisons = self.db.comparison.page_comparison_results()
         with get_shared_session(self.db.frontend) as frontend_db:
@@ -95,7 +95,7 @@ class AnalysisRoutes(ComponentBase):
             link_target=self._get_link_target(file_obj, root_uid),
         )
 
-    def _get_correct_template(self, selected_analysis: str | None, fw_object: Firmware | FileObject):
+    def _get_correct_template(self, selected_analysis: str | None, fw_object: Firmware | FileObject) -> str:
         if selected_analysis and 'failed' in fw_object.processed_analysis[selected_analysis].get('result', {}):
             return get_template_as_string('analysis_plugins/fail.html')
         if selected_analysis:
@@ -108,7 +108,13 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/<selected_analysis>', POST)
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', POST)
     @AppRoute('/analysis/single-update/<uid>/<plugin>', POST)
-    def start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None, plugin=None):  # noqa: ARG002
+    def start_single_file_analysis(
+        self,
+        uid: str,
+        selected_analysis: str | None = None,  # noqa: ARG002
+        root_uid: str | None = None,  # noqa: ARG002
+        plugin: str | None = None,
+    ) -> dict[str, bool]:
         file_object = self.db.frontend.get_object(uid)
         if plugin:
             file_object.scheduled_analysis = [plugin]
@@ -125,7 +131,7 @@ class AnalysisRoutes(ComponentBase):
             'used': [x for x in all_plugins if x in processed_analysis],
         }
 
-    def _get_analysis_view(self, selected_analysis):
+    def _get_analysis_view(self, selected_analysis: str) -> str:
         if selected_analysis == 'unpacker':
             return self.analysis_unpacker_view
         view = self.db.template.get_view(selected_analysis)
@@ -135,7 +141,7 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', GET)
-    def get_update_analysis(self, uid, re_do=False):
+    def get_update_analysis(self, uid: str, re_do: bool = False) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             old_firmware = frontend_db.get_object(uid=uid)
             if old_firmware is None:
@@ -165,7 +171,7 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', POST)
-    def post_update_analysis(self, uid, re_do=False):
+    def post_update_analysis(self, uid: str, re_do: bool = False) -> str:
         try:
             analysis_task = create_re_analyze_task(request, uid=uid)
         except BadRequestKeyError as error:
@@ -175,9 +181,11 @@ class AnalysisRoutes(ComponentBase):
         self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
         return render_template('upload/upload_successful.html', uid=uid)
 
-    def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
+    def _schedule_re_analysis_task(
+        self, uid: str, analysis_task: dict, re_do: bool, force_reanalysis: bool = False
+    ) -> None:
         if re_do:
-            analysis_task['binary'], _ = self.intercom.get_binary_and_filename(uid)
+            analysis_task['binary'] = self.intercom.get_file_contents(uid)
             base_fw = None
             self.db.admin.delete_firmware(uid, delete_root_file=False)
             # FixMe? do we need to wait for cascade/event listener to finish?
@@ -189,14 +197,14 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/re-do_analysis/<uid>', GET, POST)
-    def redo_analysis(self, uid: str):
+    def redo_analysis(self, uid: str) -> str:
         if request.method == POST:
             return self.post_update_analysis(uid, re_do=True)
         return self.get_update_analysis(uid, re_do=True)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/dependency-graph/<uid>/<root_uid>', GET)
-    def show_elf_dependency_graph(self, uid: str, root_uid: str):
+    def show_elf_dependency_graph(self, uid: str, root_uid: str) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             if root_uid in [None, 'None']:
                 root_uid = frontend_db.get_root_uid(uid)
@@ -212,8 +220,7 @@ class AnalysisRoutes(ComponentBase):
         colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
         if not data_graph_part['nodes']:
             flash(
-                'Error: Graph could not be rendered. '
-                'The file chosen as root must contain a filesystem with binaries.',
+                'Error: Graph could not be rendered. The file chosen as root must contain a filesystem with binaries.',
                 'danger',
             )
             return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
@@ -250,7 +257,7 @@ class AnalysisRoutes(ComponentBase):
         return f'<a href="/analysis/{target_uid}/ro/{root_uid}">{html.escape(full_type)}</a>' if target_uid else None
 
 
-def _add_preset_from_firmware(plugin_dict, fw: Firmware):
+def _add_preset_from_firmware(plugin_dict: dict[str, tuple], fw: Firmware) -> str:
     """
     Adds a preset to plugin_dict with all plugins ticked that are processed on the firmware fw.
     Returns the name of the new preset.
