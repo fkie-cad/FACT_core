@@ -29,7 +29,7 @@
                 element.innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
                 {language: 'dts'}
             ).value;
-        };
+        }
         document.addEventListener('DOMContentLoaded', (event) => {
             document.querySelectorAll('.dt-pre').forEach((element) => {
                 async_highlight(element);
