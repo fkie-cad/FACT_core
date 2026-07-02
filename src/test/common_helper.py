@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from http import HTTPStatus
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
@@ -14,7 +14,11 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from werkzeug.test import TestResponse
+
+# ruff: noqa: ANN001, ANN201, ANN205, S101
 
 
 def get_test_data_dir() -> Path:
@@ -230,7 +234,7 @@ class CommonDatabaseMock:
             return 'test_name'
         return None
 
-    def get_summary(self, fo, selected_analysis):
+    def get_summary(self, fo, selected_analysis, invert, focus=False):
         if fo.uid == TEST_FW.uid and selected_analysis == 'foobar':
             return {'foobar': ['some_uid']}
         return None
@@ -257,7 +261,7 @@ class CommonDatabaseMock:
 
     @staticmethod
     def get_hid_dict(uid_set, root_uid):  # noqa: ARG004
-        return {uid: 'hid' for uid in uid_set}
+        return dict.fromkeys(uid_set, 'hid')
 
     @staticmethod
     def get_file_tree_path(uid: str, root_uid=None):
@@ -266,7 +270,7 @@ class CommonDatabaseMock:
         return [[uid]]
 
 
-def fake_exit(self, *args):  # noqa: ARG001
+def fake_exit(self, *args):
     pass
 
 

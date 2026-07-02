@@ -42,13 +42,19 @@ class DbMock(CommonDatabaseMock):
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestAppAjaxRoutes:
     def test_ajax_get_summary(self, test_client):
-        result = test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/foobar').data
-        assert b'Summary for Included Files' in result
+        result = test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/foobar/false').data
+        assert b'summary-heading' in result
+        assert b'foobar' in result
+        assert b'some_uid' in result
+
+    def test_ajax_get_inverse_summary(self, test_client):
+        result = test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/foobar/true').data
+        assert b'summary-heading' in result
         assert b'foobar' in result
         assert b'some_uid' in result
 
     def test_ajax_get_summary__summary_not_found(self, test_client):
-        result = test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/not_found').data
+        result = test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/not_found/false').data
         assert b'No summary found' in result
 
     def test_ajax_get_common_files_for_compare(self, test_client):
