@@ -1,20 +1,20 @@
 #! /usr/bin/env python3
 """
-    Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2026  Fraunhofer FKIE
+Firmware Analysis and Comparison Tool (FACT)
+Copyright (C) 2015-2026  Fraunhofer FKIE
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import grp
@@ -24,9 +24,8 @@ import resource
 import sys
 from pathlib import Path
 
-from fact_base import FactBase
-
 import config
+from fact_base import FactBase
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
@@ -53,6 +52,7 @@ class FactBackend(FactBase):
             post_unpack=self.analysis_service.start_analysis_of_object,
             analysis_workload=self.analysis_service.get_combined_analysis_workload,
             unpacking_locks=self.unpacking_lock_manager,
+            status=self.analysis_service.status,
         )
         self.compare_service = ComparisonScheduler()
         self.intercom = InterComBackEndBinding(
@@ -62,13 +62,13 @@ class FactBackend(FactBase):
             unpacking_locks=self.unpacking_lock_manager,
         )
 
-    def start(self):
+    def start(self) -> None:
         self.analysis_service.start()
         self.unpacking_service.start()
         self.compare_service.start()
         self.intercom.start()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         super().shutdown()
         self.intercom.shutdown()
         self.compare_service.shutdown()
@@ -78,14 +78,14 @@ class FactBackend(FactBase):
         if not self.args.testing:
             complete_shutdown()
 
-    def _update_component_workload(self):
+    def _update_component_workload(self) -> None:
         self.work_load_stat.update(
             unpacking_workload=self.unpacking_service.get_scheduled_workload(),
             analysis_workload=self.analysis_service.get_scheduled_workload(),
         )
 
     @staticmethod
-    def _create_docker_base_dir():
+    def _create_docker_base_dir() -> None:
         docker_mount_base_dir = Path(config.backend.docker_mount_base_dir)
         docker_mount_base_dir.mkdir(0o770, exist_ok=True)
         docker_gid = grp.getgrnam('docker').gr_gid
@@ -96,7 +96,7 @@ class FactBackend(FactBase):
             # E.g. in FACT_docker the correct group is not the group named 'docker'
             logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
 
-    def _exception_occurred(self):
+    def _exception_occurred(self) -> bool:
         return any(
             (
                 self.unpacking_service.check_exceptions(),
@@ -106,7 +106,7 @@ class FactBackend(FactBase):
         )
 
 
-def _check_ulimit():
+def _check_ulimit() -> None:
     """
     2024-07-16 - the numbers are prone to change over time
 

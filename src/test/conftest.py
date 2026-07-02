@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from multiprocessing import Event, Queue, Value
 from pathlib import Path
-from typing import List, NamedTuple, Type, TypeVar
+from typing import NamedTuple, TypeVar
 
 import pytest
 from pydantic import BaseModel, ConfigDict
 
 import config
 from scheduler.analysis import AnalysisScheduler
+from scheduler.analysis_status import AnalysisStatus
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_connection import ReadOnlyConnection, ReadWriteConnection
@@ -36,7 +37,7 @@ def _assert_fixture_is_requested(request: pytest.FixtureRequest, fixture: str):
     assert fixture in request.fixturenames, f'{request.fixturename} cannot be used without requiring {fixture}'
 
 
-def merge_markers(request, name: str, dtype: Type[T]) -> T:
+def merge_markers(request, name: str, dtype: type[T]) -> T:
     """Merge all markers from closest to farthest. Closer markers overwrite markers that are farther away.
 
     The marker must either get an instance of ``dtype`` as an argument or have one or more keyword arguments.
@@ -123,12 +124,12 @@ class MockIntercom:
     def __init__(self):
         self.deleted_files = []
 
-    def delete_file(self, uid_list: List[str]):
+    def delete_file(self, uid_list: list[str]):
         self.deleted_files.extend(uid_list)
 
 
 @pytest.fixture(scope='session')
-def _database_interfaces():  # noqa: PT005
+def _database_interfaces():
     """Creates the tables that backend needs.
     This is equivalent to executing ``init_postgres.py``.
     """
@@ -202,6 +203,14 @@ def database_interfaces(_database_interfaces) -> DatabaseInterfaces:
         # clean intercom mock
         if hasattr(_database_interfaces.admin.intercom, 'deleted_files'):
             _database_interfaces.admin.intercom.deleted_files.clear()
+
+
+@pytest.fixture
+def analysis_status():
+    status = AnalysisStatus()
+    status.start()
+    yield status
+    status.shutdown()
 
 
 @pytest.fixture
@@ -313,6 +322,7 @@ def analysis_scheduler(  # noqa: PLR0913
     analysis_finished_counter,
     unpacking_lock_manager,
     test_config,
+    analysis_status,
     monkeypatch,
 ) -> AnalysisScheduler:
     """Returns an instance of :py:class:`~scheduler.analysis.AnalysisScheduler`.
@@ -325,6 +335,7 @@ def analysis_scheduler(  # noqa: PLR0913
     _analysis_scheduler = AnalysisScheduler(
         post_analysis=lambda *_: None,
         unpacking_locks=unpacking_lock_manager,
+        status=analysis_status,
     )
 
     fs_organizer = test_config.fs_organizer_class()
@@ -396,6 +407,7 @@ def unpacking_scheduler(
     test_config,
     unpacking_finished_event,
     unpacking_finished_counter,
+    analysis_status,
 ) -> UnpackingScheduler:
     """Returns an instance of :py:class:`~scheduler.unpacking_scheduler.UnpackingScheduler`.
     The scheduler has some extra testing features. See :py:class:`SchedulerTestConfig` for the features.
@@ -418,6 +430,7 @@ def unpacking_scheduler(
         fs_organizer=fs_organizer,
         unpacking_locks=unpacking_lock_manager,
         db_interface=test_config.backend_db_class,
+        status=analysis_status,
     )
     add_task = _unpacking_scheduler.add_task
 
@@ -491,20 +504,20 @@ class SchedulerTestConfig(BaseModel):
     #: Set the class that is used as :py:class:`~storage.db_interface_backend.BackendDbInterface`.
     #: This can be either a mocked class or the actual :py:class:`~storage.db_interface_backend.BackendDbInterface`.
     #: This is used by the :py:func:`analysis_scheduler`
-    backend_db_class: Type
+    backend_db_class: type
     #: Set the class that is used as :py:class:`~storage.db_interface_comparison.ComparisonDbInterface`.
     #: This can be either a mocked class or the actual :py:class:`~storage.db_interface_comparison.ComparisonDbInterface`.  # noqa: E501
     #: This is used by the :py:func:`comparison_scheduler`
-    comparison_db_class: Type
+    comparison_db_class: type
     #: Set the class that is used as :py:class:`~storage.fsorganizer.FSOrganizer`.
     #: This can be either a mocked class or the actual :py:class:`~storage.fsorganizer.FSOrganizer`.
     #: This is used by the :py:func:`unpacking_scheduler` and the :py:func:`analysis_scheduler`.
-    fs_organizer_class: Type
+    fs_organizer_class: type
     #: Set the class that is used as :py:class:`~storage.db_interface_view_sync.ViewUpdater`.
     #: If you set this to the actual :py:class:`~storage.db_interface_view_sync.ViewUpdater` note that the fixture
     #: :py:func:`~test.conftest.database_interfaces` has to be executed before (e.g. by
     #: ``pytest.fixture(autouse=True)``) any of the scheduler fixtures.
-    view_updater_class: Type
+    view_updater_class: type
     #: If set to ``True`` the :py:func:`unpacking_scheduler` and :py:func:`analysis_scheduler` are connected via their
     #: hooks.
     #: To be precise the analysis is started after unpacking.
