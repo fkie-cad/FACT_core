@@ -113,19 +113,34 @@
 
                 {# summary of included files #}
                 {%- if selected_analysis and firmware.files_included -%}
+                    <table class="table table-bordered pb-0 mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        Summary for Included Files
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="summaryOrderSwitch" onchange="create_summary_view();">
+                                            <label class="custom-control-label" for="summaryOrderSwitch" style="font-weight: normal;">Show inverted summary</label>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                    </table>
+
                     <button id="summary-button" class="btn list-group-item list-group-item-primary p-2 w-100 mb-3"
-                            onclick="load_summary(uid, selected_analysis);">
+                            onclick="create_summary_view();">
                         Load Summary for Included Files
                     </button>
 
-                    <div id="summary-div">
-                        <div class="mb-3 border" id="loading-summary-gif" style="display: none; padding: 5px; text-align: center">
+                    <div class="mb-0 border" id="loading-summary-gif" style="display: none; padding: 5px; text-align: center">
                             <p>Loading summary for included files...</p>
-                        </div>
-                        <script>
-                            loadLoadingAnimation('loading-summary-gif');
-                        </script>
                     </div>
+                    <div id="summary-div"></div>
+                    <script>
+                        loadLoadingAnimation('loading-summary-gif');
+                    </script>
                     <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_summary.js') }}"></script>
 
                 {%- endif -%}
@@ -150,6 +165,12 @@
             document.body.append(radare_form);
             radare_form.submit();
         }
+        function create_summary_view(focus=false){
+            load_summary(uid, selected_analysis, document.getElementById('summaryOrderSwitch').checked);
+            if (focus === true) {
+                location.href = "#summary-heading";
+            }
+        }
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
             const summary = urlParams.get('load_summary');
@@ -157,7 +178,7 @@
             const has_children = {{ "true" if firmware.files_included | length > 0  else "false" }};
             if (summary === "true" && has_children && selected_analysis !== "None") {
                 // automatically load summary if URL parameter "load_summary=true" is set
-                load_summary(uid, selected_analysis, focus=true);
+                create_summary_view(focus=true);
             } else if (preview !== false) {
                 // automatically load preview at address xyz if URL parameter "load_preview=xyz" is set
                 loadPreview(preview, true);
