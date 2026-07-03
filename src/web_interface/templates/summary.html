@@ -21,7 +21,7 @@
                         {{ summary_of_included_files[item] | nice_uid_list(root_uid=root_uid, selected_analysis=selected_analysis) | safe }}
                     </td>
                 {% else %}
-                    <td>{{ item | replace_uid_with_hid_link | safe }}</td>
+                    <td style="word-break: break-all;">{{ item | replace_uid_with_hid_link | safe }}</td>
                     <td>
                         {{ summary_of_included_files[item] | list_group_collapse | safe }}
                     </td>
