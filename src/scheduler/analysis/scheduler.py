@@ -106,6 +106,7 @@ class AnalysisScheduler:
         post_analysis: Callable[[str, str, dict], None] | None = None,
         db_interface: BackendDbInterface | None = None,
         unpacking_locks: UnpackingLockManager | None = None,
+        status: AnalysisStatus | None = None,
     ):
         self.analysis_plugins: dict[str, AnalysisPluginV0] = {}
         self._plugin_runners: dict[str, PluginRunner] = {}
@@ -116,7 +117,7 @@ class AnalysisScheduler:
         self.unpacking_locks = unpacking_locks
         self.scheduling_lock = Lock()
 
-        self.status = AnalysisStatus()
+        self.status = status or AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
         self.schedule_processes = []
         self.result_collector_processes = []
