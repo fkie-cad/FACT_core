@@ -2,7 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from ..code.software_components import AnalysisPlugin, _entry_has_no_trailing_version, _get_os_names, get_version
+from ..code.software_components import (
+    AnalysisPlugin,
+    SoftwareMatch,
+    _entry_has_no_trailing_version,
+    get_version,
+)
 
 YARA_TEST_FILE = Path(__file__).parent / 'data' / 'yara_test_file'
 RULE_TEST_FILE = Path(__file__).parent / 'data/signatures/test_signature.yara'
@@ -78,6 +83,12 @@ class TestAnalysisPluginSoftwareComponents:
         assert tags != []
         assert tags[0].value == 'Linux Kernel'
 
-
-def test_get_scanned_software():
-    assert sorted(_get_os_names(RULE_TEST_FILE)) == ['OS1', 'OS2']
+    def test_summarize_os(self, analysis_plugin):
+        result = analysis_plugin.Schema(
+            software_components=[
+                SoftwareMatch(name='Linux Kernel', rule='', matching_strings=[], versions=['3.18.24']),
+            ]
+        )
+        summary = analysis_plugin.summarize(result)
+        assert len(summary) == 1
+        assert summary[-1].endswith('(OS)')

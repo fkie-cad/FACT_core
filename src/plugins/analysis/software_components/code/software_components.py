@@ -52,7 +52,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                     description='identify software components',
                     dependencies=['file_type'],
                     mime_blacklist=MIME_BLACKLIST_NON_EXECUTABLE,
-                    version=Version(1, 0, 0),
+                    version=Version(1, 1, 0),
                     Schema=self.Schema,
                 )
             )
@@ -83,11 +83,12 @@ class AnalysisPlugin(AnalysisPluginV0):
     def summarize(self, result: Schema) -> list[str]:
         summary = set()
         for software in result.software_components:
+            os_ = self._get_os_for_entry(software.name)
             if software.versions:
                 for version in software.versions:
-                    summary.add(f'{software.name} {version}')
+                    summary.add(f'{software.name} {version} (OS)' if os_ else f'{software.name} {version}')
             else:
-                summary.add(software.name)
+                summary.add(f'{software.name} (OS)' if os_ else software.name)
         return sorted(summary)
 
     def get_tags(self, result: Schema, summary: list[str]) -> list[Tag]:
@@ -102,6 +103,12 @@ class AnalysisPlugin(AnalysisPluginV0):
                         tags.append(Tag(name='OS', value=os_, color=TagColor.GREEN, propagate=False))
                         tags.append(Tag(name='OS Version', value=entry, color=TagColor.GREEN, propagate=True))
         return tags
+
+    def _get_os_for_entry(self, entry: str) -> str | None:
+        for os_ in self.OS_LIST:
+            if entry.find(os_) != -1:
+                return os_
+        return None
 
 
 def _get_matching_strings(match: yara.Match) -> list[MatchingString]:
