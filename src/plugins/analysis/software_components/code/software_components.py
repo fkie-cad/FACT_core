@@ -131,7 +131,7 @@ def get_version_for_component(match: yara.Match, file: FileIO) -> list[str]:
                 'function_name': match.meta['_version_function'],
             }
         versions.update(extract_data_from_ghidra(file.name, input_data, config.backend.docker_mount_base_dir))
-    return [v for v in versions if v]
+    return [v for v in versions if v is not None]
 
 
 def get_version(input_string: str, meta_dict: dict) -> str | None:
