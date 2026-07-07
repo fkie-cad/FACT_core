@@ -79,6 +79,11 @@ class TestAppBinarySearch:
         )
         assert 'test_uid' in response
 
+    def test_binary_search_missing_cache(self, test_client):
+        uid_not_in_db = f'{QUERY_CACHE_UID}1234'
+        response = test_client.get(f'/database/browse?query={uid_not_in_db}', follow_redirects=True)
+        assert 'Could not find cached binary search query with ID' in response.data.decode()
+
 
 def _post_binary_search(test_client, query: dict) -> str:
     response = test_client.post(

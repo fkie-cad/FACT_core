@@ -69,7 +69,10 @@ class DatabaseRoutes(ComponentBase):
         page, per_page = extract_pagination_from_request(request)[0:2]
         offset, limit = per_page * (page - 1), per_page
         total = None
-        parameters = self._get_search_parameters(query)
+        try:
+            parameters = self._get_search_parameters(query)
+        except ValueError as error:
+            return render_template('error.html', message=str(error))
 
         if parameters.search_target == SearchParameters.TargetType.graphql:
             where = parameters.query.get('where', {})
@@ -174,6 +177,8 @@ class DatabaseRoutes(ComponentBase):
             query = json.loads(query_str)
         if is_uid(query_str):  # cached binary search
             cached_query = self.db.frontend.get_query_from_cache(query_str)
+            if cached_query is None:
+                raise ValueError(f'Could not find cached binary search query with ID {query_str}')
             query = json.loads(cached_query.query)
             query_title = cached_query.yara_rule
             yara_match_data = cached_query.match_data
