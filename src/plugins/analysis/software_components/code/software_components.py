@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import re
 import string
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+import yara
 from pydantic import BaseModel, Field
 from semver import Version
 
 import config
 from analysis.plugin import AnalysisPluginV0, Tag, addons
 from helperFunctions.tag import TagColor
-from plugins.analysis.software_components.bin import OS_LIST
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 from ..internal.resolve_version_format_string import extract_data_from_ghidra
@@ -18,9 +19,9 @@ from ..internal.resolve_version_format_string import extract_data_from_ghidra
 if TYPE_CHECKING:
     from io import FileIO
 
-    import yara
-
     from plugins.analysis.file_type.code.file_type import AnalysisPlugin as FileTypePlugin
+
+OS_SIGNATURE_FILE = Path(__file__).parent.parent / 'signatures/os.yara'
 
 
 class SoftwareMatch(BaseModel):
@@ -57,6 +58,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             )
         )
         self._yara = addons.Yara(plugin=self)
+        self.OS_LIST = _get_os_names()
 
     def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
         del virtual_file_path
@@ -92,7 +94,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         del result
         tags = []
         for entry in summary:
-            for os_ in OS_LIST:
+            for os_ in self.OS_LIST:
                 if entry.find(os_) != -1:
                     if _entry_has_no_trailing_version(entry, os_):
                         tags.append(Tag(name='OS', value=entry, color=TagColor.GREEN, propagate=True))
@@ -172,3 +174,14 @@ def _strip_leading_zeroes(version_string: str) -> str:
 
 def _is_filtered(match: yara.Match, is_text_file: bool) -> bool:
     return is_text_file and not match.meta.get('match_text_files')
+
+
+def _get_os_names(file: Path = OS_SIGNATURE_FILE) -> set[str]:
+    rules = yara.compile(str(file))
+    os_names = set()
+    for rule in rules:
+        if not rule.meta:
+            continue
+        if software_name := rule.meta.get('software_name'):
+            os_names.add(software_name)
+    return os_names

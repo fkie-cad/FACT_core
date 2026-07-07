@@ -2,9 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from ..code.software_components import AnalysisPlugin, _entry_has_no_trailing_version, get_version
+from ..code.software_components import AnalysisPlugin, _entry_has_no_trailing_version, _get_os_names, get_version
 
 YARA_TEST_FILE = Path(__file__).parent / 'data' / 'yara_test_file'
+RULE_TEST_FILE = Path(__file__).parent / 'data/signatures/test_signature.yara'
 
 
 class MockFileTypeResult:
@@ -76,3 +77,7 @@ class TestAnalysisPluginSoftwareComponents:
         tags = analysis_plugin.get_tags({}, ['Linux Kernel'])
         assert tags != []
         assert tags[0].value == 'Linux Kernel'
+
+
+def test_get_scanned_software():
+    assert sorted(_get_os_names(RULE_TEST_FILE)) == ['OS1', 'OS2']
