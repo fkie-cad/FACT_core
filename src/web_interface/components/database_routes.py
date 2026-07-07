@@ -7,12 +7,14 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from json import JSONDecodeError
+from typing import TYPE_CHECKING
 
 import requests
-from flask import Response, flash, redirect, render_template, request, url_for
+from flask import Request, flash, redirect, render_template, request, url_for
 from gql.transport.exceptions import TransportQueryError
 from graphql import GraphQLSyntaxError
 from sqlalchemy.exc import SQLAlchemyError
+from werkzeug import Response
 
 import config
 from helperFunctions.data_conversion import make_unicode_string
@@ -26,6 +28,9 @@ from web_interface.components.component_base import GET, POST, AppRoute, Compone
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+if TYPE_CHECKING:
+    from storage.db_interface_frontend import MetaEntry
 
 
 @dataclass
@@ -51,7 +56,7 @@ class DatabaseRoutes(ComponentBase):
         super().__init__(*args, **kwargs)
 
     @staticmethod
-    def _add_date_to_query(query, date):
+    def _add_date_to_query(query: dict, date: str) -> dict:
         try:
             start_str = datetime.strptime(date.replace("'", ''), '%B %Y').strftime('%Y-%m')
             date_query = {'release_date': {'$regex': start_str}}
@@ -65,7 +70,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/browse', GET)
-    def browse_database(self, query: str = '{}'):
+    def browse_database(self, query: str = '{}') -> str | Response:
         page, per_page = extract_pagination_from_request(request)[0:2]
         offset, limit = per_page * (page - 1), per_page
         total = None
@@ -141,7 +146,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/browse_binary_search_history', GET)
-    def browse_searches(self):
+    def browse_searches(self) -> str:
         page, per_page, offset = extract_pagination_from_request(request)
         try:
             with get_shared_session(self.db.frontend) as frontend_db:
@@ -206,7 +211,9 @@ class DatabaseRoutes(ComponentBase):
             yara_match_data=yara_match_data,
         )
 
-    def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):
+    def _search_database(
+        self, query: dict, skip: int = 0, limit: int = 0, only_firmwares: bool = False, inverted: bool = False
+    ) -> list[MetaEntry]:
         meta_list = self.db.frontend.generic_search(
             query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted, as_meta=True
         )
@@ -214,7 +221,7 @@ class DatabaseRoutes(ComponentBase):
             raise Exception(meta_list)
         return sorted(meta_list, key=lambda x: x[1].lower())
 
-    def _build_search_query(self):
+    def _build_search_query(self) -> str:
         query = {}
         for key in ['device_class', 'vendor']:
             if request.form.get(key):
@@ -231,7 +238,7 @@ class DatabaseRoutes(ComponentBase):
         return json.dumps(query)
 
     @staticmethod
-    def _add_hash_query_to_query(query, value):
+    def _add_hash_query_to_query(query: dict, value: str) -> None:
         # FIXME: The frontend should not need to know how the plugin is configured
         hash_types = ['md5', 'sha1', 'sha256', 'sha512', 'ripemd160', 'whirlpool']
         hash_query = {f'processed_analysis.file_hashes.{hash_type}': value for hash_type in hash_types}
@@ -239,13 +246,13 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/search', POST)
-    def start_basic_search(self):
+    def start_basic_search(self) -> Response:
         query = self._build_search_query()
         return redirect(url_for('browse_database', query=query))
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/search', GET)
-    def show_basic_search(self):
+    def show_basic_search(self) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             device_classes = frontend_db.get_device_class_list()
             vendors = frontend_db.get_vendor_list()
@@ -256,7 +263,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', POST)
-    def start_advanced_search(self):
+    def start_advanced_search(self) -> str | Response:
         try:
             query = json.loads(request.form['advanced_search'])  # check for syntax errors
             only_firmwares = request.form.get('only_firmwares') is not None
@@ -271,12 +278,12 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', GET)
-    def show_advanced_search(self, error=None):
+    def show_advanced_search(self, error: str | None = None) -> str:
         return render_template('database/database_advanced_search.html', error=error)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/binary_search', GET, POST)
-    def start_binary_search(self):
+    def start_binary_search(self) -> str | Response:
         error = None
         if request.method == 'POST':
             yara_rule_file, firmware_uid, only_firmware = self._get_items_from_binary_search_request(request)
@@ -295,13 +302,13 @@ class DatabaseRoutes(ComponentBase):
         return render_template('database/database_binary_search.html', error=error)
 
     @staticmethod
-    def _get_items_from_binary_search_request(req):
+    def _get_items_from_binary_search_request(req: Request) -> tuple[bytes | None, str | None, bool]:
         yara_rule_file = None
         if req.files.get('file'):
             _, yara_rule_file = get_file_name_and_binary_from_request(req)
         elif req.form['textarea']:
             yara_rule_file = req.form['textarea'].encode()
-        firmware_uid = req.form.get('firmware_uid') if req.form.get('firmware_uid') else None
+        firmware_uid = req.form.get('firmware_uid') or None
         only_firmware = req.form.get('only_firmware') is not None
         return yara_rule_file, firmware_uid, only_firmware
 
@@ -310,7 +317,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/binary_search_results', GET)
-    def get_binary_search_results(self):
+    def get_binary_search_results(self) -> str | Response:
         firmware_dict, error, yara_rules = None, None, None
         if request.args.get('request_id'):
             request_id = request.args.get('request_id')
@@ -347,7 +354,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/quick_search', GET)
-    def start_quick_search(self):
+    def start_quick_search(self) -> str | Response:
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
             return render_template('error.html', message='Search string not found')
@@ -364,7 +371,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/graphql', GET)
-    def get_graphql(self):
+    def get_graphql(self) -> str:
         return render_template(
             'database/database_graphql.html',
             secret=config.frontend.hasura.admin_secret,
@@ -374,7 +381,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/graphql', POST)
-    def post_graphql(self):
+    def post_graphql(self) -> Response:
         where_str = request.form.get('textarea')
         try:
             where = json.loads(where_str)
@@ -400,7 +407,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/graphql', GET, POST)
-    def proxy_graphql(self):
+    def proxy_graphql(self) -> Response:
         """
         Creates a proxy for GraphQL so that we have auth and don't need to expose more ports. Since we assume that the
         user is authenticated to use this endpoint, we add the Hasura headers if they are missing.
@@ -414,6 +421,7 @@ class DatabaseRoutes(ComponentBase):
             data=request.get_data(),
             cookies=request.cookies,
             allow_redirects=False,
+            timeout=60,
         )
         excluded_headers = {
             'connection',
