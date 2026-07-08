@@ -9,7 +9,7 @@ FACTUSER=$(whoami)
 
 echo "Installing pre-install requirements..."
 sudo apt-get update
-sudo apt-get -y install python3-pip git libffi-dev lsb-release jq
+sudo apt-get -y install python3-pip python3-dev git libffi-dev lsb-release build-essential jq
 
 # distro and codename detection
 . /etc/os-release

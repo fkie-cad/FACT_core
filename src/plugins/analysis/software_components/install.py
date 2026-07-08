@@ -5,7 +5,6 @@ import logging
 from pathlib import Path
 
 try:
-    from plugins.analysis.software_components.internal.extract_os_names import extract_names
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
@@ -13,18 +12,14 @@ except ImportError:
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from plugins.analysis.software_components.internal.extract_os_names import extract_names
     from plugins.installer import AbstractPluginInstaller
 
 
 class SoftwareComponentsInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
-    def install_docker_images(self):
+    def install_docker_images(self) -> None:
         self._build_docker_image('fact/format_string_resolver', '../ipc/docker')
-
-    def install_files(self):
-        extract_names()
 
 
 # Alias for generic use

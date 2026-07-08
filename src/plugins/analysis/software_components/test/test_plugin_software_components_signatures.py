@@ -13,16 +13,18 @@ class TestSoftwareSignatureMeta:
         cls.sigTest = SignatureTestingMeta()
 
     def test_check_meta_fields(self):
-        missing_fields = self.sigTest.check_meta_fields(SIGNATURE_PATH)
+        missing_fields, rule_errors = self.sigTest.check_meta_fields(SIGNATURE_PATH)
         assert not missing_fields, f'Missing meta fields: {missing_fields.__str__()}'
+        assert rule_errors == []
 
     def test_check_meta_fields_missing(self):
-        missing_fields = self.sigTest.check_meta_fields(TEST_SIGNATURE_PATH)
+        missing_fields, rule_errors = self.sigTest.check_meta_fields(TEST_SIGNATURE_PATH)
         assert len(missing_fields) == 3
         assert all(
             entry in missing_fields
             for entry in ['website in missing_meta_1', 'description in missing_meta_1', 'ALL in missing_meta_2']
         )
+        assert rule_errors == []
 
 
 class TestAllSoftwareSignaturesMatched:

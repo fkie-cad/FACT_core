@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import re
 import string
-from typing import TYPE_CHECKING, List, Optional
+from pathlib import Path
+from typing import TYPE_CHECKING
 
+import yara
 from pydantic import BaseModel, Field
 from semver import Version
 
 import config
 from analysis.plugin import AnalysisPluginV0, Tag, addons
 from helperFunctions.tag import TagColor
-from plugins.analysis.software_components.bin import OS_LIST
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 from ..internal.resolve_version_format_string import extract_data_from_ghidra
@@ -18,17 +19,19 @@ from ..internal.resolve_version_format_string import extract_data_from_ghidra
 if TYPE_CHECKING:
     from io import FileIO
 
-    import yara
+    from plugins.analysis.file_type.code.file_type import AnalysisPlugin as FileTypePlugin
+
+OS_SIGNATURE_FILE = Path(__file__).parent.parent / 'signatures/os.yara'
 
 
 class SoftwareMatch(BaseModel):
     name: str
-    versions: List[str]
+    versions: list[str]
     rule: str = Field(description='Matching YARA rule name')
-    matching_strings: List[MatchingString]
-    description: Optional[str] = None
-    open_source: Optional[bool] = None
-    website: Optional[str] = Field(None, description='Website URL of the software')
+    matching_strings: list[MatchingString]
+    description: str | None = None
+    open_source: bool | None = None
+    website: str | None = Field(None, description='Website URL of the software')
 
 
 class MatchingString(BaseModel):
@@ -39,7 +42,7 @@ class MatchingString(BaseModel):
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        software_components: List[SoftwareMatch]
+        software_components: list[SoftwareMatch]
 
     def __init__(self):
         super().__init__(
@@ -47,6 +50,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                 self.MetaData(
                     name='software_components',
                     description='identify software components',
+                    dependencies=['file_type'],
                     mime_blacklist=MIME_BLACKLIST_NON_EXECUTABLE,
                     version=Version(1, 0, 0),
                     Schema=self.Schema,
@@ -54,9 +58,12 @@ class AnalysisPlugin(AnalysisPluginV0):
             )
         )
         self._yara = addons.Yara(plugin=self)
+        self.OS_LIST = _get_os_names()
 
     def analyze(self, file_handle: FileIO, virtual_file_path: dict, analyses: dict[str, BaseModel]) -> Schema:
-        del virtual_file_path, analyses
+        del virtual_file_path
+        file_type_analysis: FileTypePlugin.Schema = analyses['file_type']
+        is_text_file = file_type_analysis.mime == 'text/plain'
         return self.Schema(
             software_components=[
                 SoftwareMatch(
@@ -69,6 +76,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                     open_source=match.meta.get('open_source'),
                 )
                 for match in self._yara.match(file_handle)
+                if not _is_filtered(match, is_text_file)
             ]
         )
 
@@ -86,7 +94,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         del result
         tags = []
         for entry in summary:
-            for os_ in OS_LIST:
+            for os_ in self.OS_LIST:
                 if entry.find(os_) != -1:
                     if _entry_has_no_trailing_version(entry, os_):
                         tags.append(Tag(name='OS', value=entry, color=TagColor.GREEN, propagate=True))
@@ -127,10 +135,7 @@ def get_version_for_component(match: yara.Match, file: FileIO) -> list[str]:
 
 
 def get_version(input_string: str, meta_dict: dict) -> str | None:
-    if 'version_regex' in meta_dict:
-        regex = meta_dict['version_regex'].replace('\\\\', '\\')
-    else:
-        regex = r'\d+.\d+(.\d+)?(\w)?'
+    regex = meta_dict['version_regex'].replace('\\\\', '\\') if 'version_regex' in meta_dict else r'\d+.\d+(.\d+)?(\w)?'
     pattern = re.compile(regex)
     version = pattern.search(input_string)
     if version is not None:
@@ -146,7 +151,7 @@ def _get_strings_from_match(match: yara.Match) -> list[str]:
     ]
 
 
-def _entry_has_no_trailing_version(entry, os_string):
+def _entry_has_no_trailing_version(entry: str, os_string: str) -> bool:
     return os_string.strip() == entry.strip()
 
 
@@ -165,3 +170,18 @@ def _strip_leading_zeroes(version_string: str) -> str:
         except ValueError:
             elements.append(element)
     return prefix + '.'.join(elements) + suffix
+
+
+def _is_filtered(match: yara.Match, is_text_file: bool) -> bool:
+    return is_text_file and not match.meta.get('match_text_files')
+
+
+def _get_os_names(file: Path = OS_SIGNATURE_FILE) -> set[str]:
+    rules = yara.compile(str(file))
+    os_names = set()
+    for rule in rules:
+        if not rule.meta:
+            continue
+        if software_name := rule.meta.get('software_name'):
+            os_names.add(software_name)
+    return os_names

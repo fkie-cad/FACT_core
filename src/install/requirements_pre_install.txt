@@ -11,6 +11,11 @@ werkzeug~=3.1.5
 toml==0.10.2
 # needed during installation of cve_lookup plugin
 ijson==3.4.0
+# FixMe: compile signatures during backend startup instead of installation
+# compiling yara signatures (helperFunctions.yara)
+more_itertools~=11.0.2
+psutil~=6.1.1
+yara-python~=4.5.4
 
 git+https://github.com/fkie-cad/common_helper_files.git
 

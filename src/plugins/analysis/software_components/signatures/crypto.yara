@@ -9,7 +9,7 @@ rule OpenSSL
     strings:
         $a = /OpenSSL( \d+\.\d+\.\d+[a-z]?)?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule SSLeay
@@ -22,6 +22,5 @@ rule SSLeay
     strings:
         $a = /SSLeay \d+\.\d+\.\d+[a-z]?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
-

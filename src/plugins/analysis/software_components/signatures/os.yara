@@ -8,7 +8,7 @@ rule VxWorks
     strings:
         $b = /VxWorks[ -]?\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $b and no_text_file
+        $b
 }
 
 rule WindRiverLinux
@@ -21,7 +21,7 @@ rule WindRiverLinux
     strings:
         $b = /wrlinux-\d+\.\d+/ nocase ascii wide
     condition:
-        $b and no_text_file
+        $b
 }
 
 rule LynxOS
@@ -34,7 +34,7 @@ rule LynxOS
     strings:
         $b = /LynxOS \d+\.\d+/ nocase ascii wide
     condition:
-        $b and no_text_file
+        $b
 }
 
 rule OpenWrt
@@ -47,7 +47,7 @@ rule OpenWrt
     strings:
         $b = /([a-zA-Z]+ )?OpenWrt Linux-\d+.\d+\.\d+/ nocase ascii wide
     condition:
-        $b and no_text_file
+        $b
 }
 
 rule FireOS
@@ -60,7 +60,7 @@ rule FireOS
 	strings:
 		$a = /ro.build.version.name=Fire OS \d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule LinuxKernel
@@ -74,7 +74,7 @@ rule LinuxKernel
 		$safe_condition = /Linux version \d\.\d{1,2}\.\d{1,3}(-[\d\w.-]+)?/ nocase ascii wide
 
 	condition:
-		$safe_condition and no_text_file
+		$safe_condition
 
 /* tmporarly removed due to too many false positives */
 /*
@@ -97,7 +97,7 @@ rule CiscoIOS
 		$a = "CW_SYSDESCR$Cisco IOS Software"
 		$b = /Cisco IOS Software,[A-Za-z0-9 .()-]+, Version [^,]+,/ ascii
 	condition:
-		($a or $b) and no_text_file
+		$a or $b
 }
 
 rule ThreadX
@@ -110,7 +110,7 @@ rule ThreadX
 	strings:
 		$a = /ThreadX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule MicroC_OS {
@@ -125,7 +125,7 @@ rule MicroC_OS {
         $b = /(\xc2\xb5|u|micro)c\/os-?[i]{0,3}/ nocase
 
     condition:
-        ($a or $b) and no_text_file
+        $a or $b
 }
 
 rule Contiki
@@ -138,7 +138,7 @@ rule Contiki
 	strings:
 		$a = /Contiki\/\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule eCos
@@ -152,5 +152,5 @@ rule eCos
 	strings:
 		$a = "eCos Release: %d.%d.%d" nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
