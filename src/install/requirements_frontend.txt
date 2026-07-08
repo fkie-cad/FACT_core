@@ -25,7 +25,7 @@ nodeenv~=1.9.1
 werkzeug~=3.1.5
 
 # Used for username validation by flask-security
-bleach~=6.2.0
+bleach~=6.4.0
 
 # Figuring out if the analysis is outdated
 semver~=3.0.4

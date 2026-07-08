@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from operator import or_
-from typing import TYPE_CHECKING, Dict, Iterable, List
+from typing import TYPE_CHECKING
 
 from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import JSONB
@@ -23,6 +23,9 @@ from storage.schema import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from sqlalchemy.orm import Session
     from sqlalchemy.sql import Select
 
     from objects.file import FileObject
@@ -35,7 +38,7 @@ PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible 
     'software_components',
     'users_and_passwords',
 ]
-Summary = Dict[str, List[str]]
+Summary = dict[str, list[str]]
 
 
 class DbInterfaceCommon(ReadOnlyDbInterface):
@@ -249,7 +252,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return path_dict
 
     @staticmethod
-    def _remove_paths_lacking_root_uid(path_dict: dict[str, list[list[str]]], root_uid: str):
+    def _remove_paths_lacking_root_uid(path_dict: dict[str, list[list[str]]], root_uid: str) -> None:
         # remove the paths that don't start with root_uid
         for path_list in path_dict.values():
             for uid_list in path_list[:]:
@@ -299,7 +302,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         with self.get_read_only_session() as session:
             return self._get_files_in_files(session, fo.files_included).union({fo.uid, *fo.files_included})
 
-    def _get_files_in_files(self, session, uid_set: set[str], recursive: bool = True) -> set[str]:
+    def _get_files_in_files(self, session: Session, uid_set: set[str], recursive: bool = True) -> set[str]:
         if not uid_set:
             return set()
         query = select(FileObjectEntry).filter(FileObjectEntry.uid.in_(uid_set))
@@ -324,7 +327,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             analysis_result['summary'] = self.get_summary(fo, plugin)
         return fo
 
-    def get_summary(self, fo: FileObject, selected_analysis: str) -> Summary | None:
+    def get_summary(self, fo: FileObject, selected_analysis: str, invert: bool = False) -> Summary | None:
         if selected_analysis not in fo.processed_analysis:
             logging.warning(f'Analysis {selected_analysis} not available on {fo.uid}')
             return None
@@ -334,9 +337,9 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             included_files = fo.list_of_all_included_files or self.get_list_of_all_included_files(fo)
         else:
             included_files = self.get_all_files_in_fw(fo.uid).union({fo.uid})
-        return self._collect_summary_for_uid_list(included_files, selected_analysis)
+        return self._collect_summary_for_uid_list(included_files, selected_analysis, invert)
 
-    def _collect_summary_for_uid_list(self, uid_list: set[str] | list[str], plugin: str) -> Summary:
+    def _collect_summary_for_uid_list(self, uid_list: set[str] | list[str], plugin: str, invert: bool) -> Summary:
         with self.get_read_only_session() as session:
             query = select(AnalysisEntry.uid, AnalysisEntry.summary).filter(
                 AnalysisEntry.plugin == plugin, AnalysisEntry.uid.in_(uid_list)
@@ -344,7 +347,10 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             summary = {}
             for uid, summary_list in session.execute(query):  # type: str, list[str]
                 for item in set(summary_list or []):
-                    summary.setdefault(item, []).append(uid)
+                    if invert:
+                        summary.setdefault(uid, []).append(item)
+                    else:
+                        summary.setdefault(item, []).append(uid)
         return summary
 
     # ===== tags =====
