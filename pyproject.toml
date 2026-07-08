@@ -70,6 +70,7 @@ ignore = [
     "ANN002",
     "ANN003",
     "ANN204",  # type annotation for special methods (e.g. __init__)
+    "C420",  # dict.fromkeys instead of dict comprehension
     "PERF203",
     "PERF401",
     "RUF001",
@@ -87,7 +88,8 @@ fixable = ["ALL"]
 [tool.ruff.lint.per-file-ignores]
 "test*.py" = ["ARG002", "PLR2004", "ANN", "S101"]
 "conftest.py" = ["ARG001", "ARG002", "ANN", "S101"]
-"common_helper.py" = ["ARG002"]
+"common_helper.py" = ["ARG001", "ARG002", "ANN", "S101"]
+"src/test/integration/common.py" = ["ANN"]
 # ignore prints in CLI scripts
 "migrate_db_to_postgresql.py" = ["T201"]
 "manage_users.py" = ["T201"]

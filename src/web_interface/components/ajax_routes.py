@@ -3,7 +3,7 @@ from __future__ import annotations
 import html
 import logging
 from http import HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from flask import jsonify, render_template
 
@@ -39,7 +39,7 @@ class AjaxRoutes(ComponentBase):
         children = [convert_to_jstree_node(child_node) for child_node in tree.get_list_of_child_nodes()]
         return jsonify(children)
 
-    def _get_exclusive_files(self, compare_id: str, root_uid: str) -> list[str] | None:
+    def _get_exclusive_files(self, compare_id: str | None, root_uid: str | None) -> list[str] | None:
         if compare_id:
             return self.db.comparison.get_exclusive_files(compare_id, root_uid)
         return None
@@ -61,7 +61,7 @@ class AjaxRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_root/<uid>/<root_uid>', GET)
-    def ajax_get_tree_root(self, uid: str, root_uid: str) -> Response:
+    def ajax_get_tree_root(self, uid: str, root_uid: str | None) -> Response:
         root = []
         with get_shared_session(self.db.frontend) as frontend_db:
             for node in frontend_db.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
@@ -84,7 +84,7 @@ class AjaxRoutes(ComponentBase):
             return candidate
         return compare_id.split(';', maxsplit=1)[0]
 
-    def _get_nice_uid_list_html(self, input_data: list[str], root_uid: str) -> str:
+    def _get_nice_uid_list_html(self, input_data: list[str], root_uid: str | None) -> str:
         included_files = self.db.frontend.get_data_for_nice_list(input_data, None)
         number_of_unanalyzed_files = len(input_data) - len(included_files)
         return render_template(
@@ -99,7 +99,7 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_get_binary/<mime_type>/<uid>', GET)
     def ajax_get_binary(self, mime_type: str, uid: str) -> str | None:
         mime_type = mime_type.replace('_', '/')
-        binary = self.intercom.get_binary_and_filename(uid)[0]
+        binary = self.intercom.get_file_contents(uid)
         if is_text_file(mime_type):
             return f'<pre style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
         if is_image(mime_type):
@@ -123,7 +123,7 @@ class AjaxRoutes(ComponentBase):
         inverted = boolean_string_to_boolean(inverted)
 
         with get_shared_session(self.db.frontend) as frontend_db:
-            firmware = frontend_db.get_object(uid, analysis_filter=selected_analysis)
+            firmware = frontend_db.get_object(uid, analysis_filter=[selected_analysis])
             summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis, invert=inverted)
             root_uid = uid if isinstance(firmware, Firmware) else frontend_db.get_root_uid(uid)
 
@@ -158,7 +158,7 @@ class AjaxRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['cancel_analysis'])
     @AppRoute('/ajax/cancel_analysis/<root_uid>', GET)
-    def cancel_analysis(self, root_uid: str) -> tuple[dict, int]:
+    def cancel_analysis(self, root_uid: str) -> tuple[dict, Literal[HTTPStatus.OK]]:
         logging.info(f'Received analysis cancel request for {root_uid}')
         self.intercom.cancel_analysis(root_uid=root_uid)
         return {}, HTTPStatus.OK

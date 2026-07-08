@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
     from objects.file import FileObject
     from scheduler.analysis_status import AnalysisStatus
-    from storage.fsorganizer import FSOrganizer
+    from storage.file_service import FileService
     from storage.unpacking_locks import UnpackingLockManager
 
 
@@ -53,7 +53,7 @@ class UnpackingScheduler:
         self,
         post_unpack: Callable,
         analysis_workload: Callable | None = None,
-        fs_organizer: FSOrganizer | None = None,
+        file_service: FileService | None = None,
         unpacking_locks: UnpackingLockManager | None = None,
         db_interface: type[BackendDbInterface] = BackendDbInterface,
         status: AnalysisStatus | None = None,
@@ -67,7 +67,7 @@ class UnpackingScheduler:
         self.pending_tasks: dict[int, Thread] = {}
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
-        self.unpacker = Unpacker(fs_organizer=fs_organizer, unpacking_locks=unpacking_locks)
+        self.unpacker = Unpacker(file_service=file_service, unpacking_locks=unpacking_locks)
         self.status = status
 
         self.manager = None
@@ -79,7 +79,7 @@ class UnpackingScheduler:
         self.db_interface = db_interface
 
     @contextmanager
-    def _sync(self) -> Iterator:
+    def _sync(self) -> Iterator[None]:
         try:
             self.sync_lock.acquire()
             yield
@@ -300,7 +300,7 @@ class UnpackingScheduler:
             logging.debug('Throttling down unpacking to reduce memory consumption...')
             sleep(5)
 
-    def start_work_load_monitor(self):  # noqa: ANN201
+    def start_work_load_monitor(self) -> ExceptionSafeProcess:
         work_load_process = ExceptionSafeProcess(target=self._work_load_monitor)
         work_load_process.start()
         return work_load_process

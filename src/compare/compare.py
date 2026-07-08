@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from helperFunctions.plugin import discover_compare_plugins
 from helperFunctions.virtual_file_path import get_paths_for_all_parents
 from objects.firmware import Firmware
-from storage.binary_service import BinaryService
+from storage.file_service import FileService
 
 if TYPE_CHECKING:
     from compare.PluginBase import CompareBasePlugin
@@ -26,25 +26,25 @@ class Compare:
         self._setup_plugins()
         logging.info(f'Comparison plugins available: {", ".join(self.compare_plugins)}')
 
-    def compare(self, uid_list):
+    def compare(self, uid_list: list[str]) -> dict[str, dict]:
         logging.info(f'Comparison in progress: {uid_list}')
-        binary_service = BinaryService()
+        file_service = FileService()
 
         fo_list = []
         for uid in uid_list:
             fo = self.db_interface.get_complete_object_including_all_summaries(uid)
-            fo.binary = binary_service.get_binary_and_file_name(fo.uid)[0]
+            fo.binary = file_service.get_file_content(fo)
             fo_list.append(fo)
 
         return self.compare_objects(fo_list)
 
-    def compare_objects(self, fo_list):
+    def compare_objects(self, fo_list: list[FileObject]) -> dict[str, dict]:
         return {
             'general': self._create_general_section_dict(fo_list),
             'plugins': self._execute_compare_plugins(fo_list),
         }
 
-    def _create_general_section_dict(self, object_list):
+    def _create_general_section_dict(self, object_list: list[FileObject]) -> dict[str, dict]:
         general = {}
         vfp_data = self._get_vfp_data(object_list)
         for fo in object_list:
@@ -77,11 +77,11 @@ class Compare:
 
     # --- plug-in system ---
 
-    def _setup_plugins(self):
+    def _setup_plugins(self) -> None:
         self.compare_plugins = {}
         self._init_plugins()
 
-    def _init_plugins(self):
+    def _init_plugins(self) -> None:
         for plugin in discover_compare_plugins():
             try:
                 self.compare_plugins[plugin.ComparePlugin.NAME] = plugin.ComparePlugin(db_interface=self.db_interface)
@@ -102,7 +102,7 @@ def schedule_comparison_plugins(plugin_dict: dict[str, CompareBasePlugin]) -> li
     temp_mark = set()
     sorted_plugins = []
 
-    def visit(plugin_):
+    def visit(plugin_: CompareBasePlugin) -> None:
         if plugin_.NAME in temp_mark:
             raise ValueError('Cyclic dependency or dependency cannot be scheduled')
         if plugin_.NAME not in visited:

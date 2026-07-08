@@ -8,7 +8,7 @@ import yara
 import config
 from helperFunctions.yara import Match, scan_dir, scan_files
 from storage.db_interface_common import DbInterfaceCommon
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 
 
 class YaraBinarySearchScanner:
@@ -23,14 +23,14 @@ class YaraBinarySearchScanner:
         self.matches = []
         self.db_path = config.backend.firmware_file_storage_directory
         self.db = db_interface or DbInterfaceCommon()
-        self.fs_organizer = FSOrganizer()
+        self.file_service = FileService()
 
     def _execute_yara_search_for_single_firmware(self, rule_file: Path, firmware_uid: str) -> list[Match]:
         file_paths = self._get_file_paths_of_files_included_in_fw(firmware_uid)
         return scan_files(rule_file, file_paths)
 
     def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> list[str]:
-        return [self.fs_organizer.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
+        return [self.file_service.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
 
     @staticmethod
     def _convert_matches_to_result(matches: list[Match]) -> dict[str, dict[str, list[dict]]]:
