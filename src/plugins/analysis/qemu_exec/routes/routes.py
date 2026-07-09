@@ -15,7 +15,7 @@ PLUGIN_NAME = 'qemu_exec'
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 
 
-def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface):
+def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface) -> dict[str, dict]:
     results = {}
     with get_shared_session(db_interface) as db:
         this_fo = db.get_object(uid)
@@ -27,7 +27,7 @@ def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInte
     return results
 
 
-def _get_results_from_parent_fo(analysis_entry: dict, uid: str):
+def _get_results_from_parent_fo(analysis_entry: dict, uid: str) -> dict | None:
     if (
         analysis_entry is not None
         and analysis_entry['result'] is not None
@@ -40,13 +40,13 @@ def _get_results_from_parent_fo(analysis_entry: dict, uid: str):
 
 
 class PluginRoutes(ComponentBase):
-    def _init_component(self):
+    def _init_component(self) -> None:
         self._app.add_url_rule(
             '/plugins/qemu_exec/ajax/<uid>', 'plugins/qemu_exec/ajax/<uid>', self._get_analysis_results_of_parent_fo
         )
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def _get_analysis_results_of_parent_fo(self, uid):
+    def _get_analysis_results_of_parent_fo(self, uid: str) -> str:
         results = get_analysis_results_for_included_uid(uid, self.db.frontend)
         return render_template_string(VIEW_PATH.read_text(), results=results)
 
@@ -59,7 +59,7 @@ class PluginRestRoutes(RestResourceBase):
     ENDPOINTS = (('/plugins/qemu_exec/rest/<uid>', ['GET']),)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def get(self, uid):
+    def get(self, uid: str) -> tuple[dict, int]:
         results = get_analysis_results_for_included_uid(uid, self.db.frontend)
         endpoint = self.ENDPOINTS[0][0]
         if not results:
