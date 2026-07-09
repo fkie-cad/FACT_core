@@ -55,16 +55,16 @@ def _result_list_to_dict(results: list[dict]) -> dict[str, dict]:
 
 
 class PluginRoutes(ComponentBase, ParentAnalysisLookupMixin):
-    def _init_component(self):
+    def _init_component(self) -> None:
         self._app.add_url_rule(
             '/plugins/file_system_metadata/ajax/<uid>',
             'plugins/file_system_metadata/ajax/<uid>',
             self._get_analysis_results_of_parent_fo,
         )
-        assert VIEW_PATH.is_file()
+        assert VIEW_PATH.is_file(), f'View of {PLUGIN_NAME} not found'  # noqa: S101
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def _get_analysis_results_of_parent_fo(self, uid):
+    def _get_analysis_results_of_parent_fo(self, uid: str) -> str:
         results = self.get_analysis_results_for_included_uid(uid)
         return render_template_string(VIEW_PATH.read_text(), results=results)
 
@@ -77,7 +77,7 @@ class PluginRestRoutes(RestResourceBase, ParentAnalysisLookupMixin):
     ENDPOINTS = (('/plugins/file_system_metadata/rest/<uid>', ['GET']),)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def get(self, uid: str):
+    def get(self, uid: str) -> tuple[dict, int]:
         results = self.get_analysis_results_for_included_uid(uid)
         endpoint = self.ENDPOINTS[0][0]
         if not results:
