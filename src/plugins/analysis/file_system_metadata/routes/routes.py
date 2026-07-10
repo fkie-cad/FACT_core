@@ -14,13 +14,12 @@ from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-from ..code.file_system_metadata import AnalysisPlugin
-
 if TYPE_CHECKING:
     from web_interface.frontend_database import FrontendDatabase
 
 
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
+PLUGIN_NAME = 'file_system_metadata'
 
 
 class ParentAnalysisLookupMixin:
@@ -31,7 +30,7 @@ class ParentAnalysisLookupMixin:
         with get_shared_session(self.db.frontend) as db:
             vfp = db.get_vfps(uid)
             for parent_uid in vfp:
-                parent_analysis = db.get_analysis(parent_uid, AnalysisPlugin.NAME) or {}
+                parent_analysis = db.get_analysis(parent_uid, PLUGIN_NAME) or {}
                 results.append(_get_results_from_parent_fo(parent_analysis.get('result', {}), parent_uid, vfp))
         return results
 
@@ -56,16 +55,16 @@ def _result_list_to_dict(results: list[dict]) -> dict[str, dict]:
 
 
 class PluginRoutes(ComponentBase, ParentAnalysisLookupMixin):
-    def _init_component(self):
+    def _init_component(self) -> None:
         self._app.add_url_rule(
             '/plugins/file_system_metadata/ajax/<uid>',
             'plugins/file_system_metadata/ajax/<uid>',
             self._get_analysis_results_of_parent_fo,
         )
-        assert VIEW_PATH.is_file()
+        assert VIEW_PATH.is_file(), f'View of {PLUGIN_NAME} not found'  # noqa: S101
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def _get_analysis_results_of_parent_fo(self, uid):
+    def _get_analysis_results_of_parent_fo(self, uid: str) -> str:
         results = self.get_analysis_results_for_included_uid(uid)
         return render_template_string(VIEW_PATH.read_text(), results=results)
 
@@ -78,9 +77,9 @@ class PluginRestRoutes(RestResourceBase, ParentAnalysisLookupMixin):
     ENDPOINTS = (('/plugins/file_system_metadata/rest/<uid>', ['GET']),)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def get(self, uid: str):
+    def get(self, uid: str) -> tuple[dict, int]:
         results = self.get_analysis_results_for_included_uid(uid)
         endpoint = self.ENDPOINTS[0][0]
         if not results:
             error_message(f'no results found for uid {uid}', endpoint, request_data={'uid': uid})
-        return success_message({AnalysisPlugin.NAME: results}, endpoint, request_data={'uid': uid})
+        return success_message({PLUGIN_NAME: results}, endpoint, request_data={'uid': uid})
