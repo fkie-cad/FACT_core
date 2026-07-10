@@ -261,6 +261,7 @@ class Worker(mp.Process):
                 entry['exception'] = (self._plugin.metadata.name, 'An unexpected exception occurred')
             finally:
                 # Don't kill another process if it uses the same PID as our dead worker
+                child_process.join(timeout=5)
                 if child_process.is_alive():
                     child = psutil.Process(pid=child_process.pid)
                     for grandchild in child.children(recursive=True):
@@ -271,6 +272,8 @@ class Worker(mp.Process):
             fw = task.scheduler_state
             self._write_result_in_file_object(entry, fw)
             self._out_queue.put(fw)
+            del fw, task, result, entry
+            result = None
 
     def _write_result_in_file_object(self, entry: dict, file_object: FileObject) -> None:
         """Takes a file_object and an entry as it is returned by :py:func:`Worker.run`

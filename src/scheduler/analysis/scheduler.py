@@ -332,6 +332,7 @@ class AnalysisScheduler:
                 pass
             else:
                 self._process_next_analysis_task(task)
+                del task
         logging.debug(f'Stopped analysis scheduling worker {index}')
 
     def _process_next_analysis_task(self, fw_object: FileObject) -> None:
@@ -535,6 +536,7 @@ class AnalysisScheduler:
                 else:
                     nop = False
                     self._handle_collected_result(fw, plugin_name)
+                    del fw
             if nop:
                 sleep(config.backend.block_delay)
         logging.debug(f'Stopped analysis result collector worker {index}')
