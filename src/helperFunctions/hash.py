@@ -28,5 +28,5 @@ def get_md5(code: bytes | str) -> str:
     return get_hash('md5', code)
 
 
-def get_tlsh_comparison(first, second):
+def get_tlsh_comparison(first: str, second: str) -> int:
     return tlsh.diff(first, second)
