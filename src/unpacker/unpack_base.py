@@ -28,7 +28,7 @@ class ExtractionError(Exception):
 
 class UnpackBase:
     @staticmethod
-    def get_extracted_files_dir(base_dir):
+    def get_extracted_files_dir(base_dir: str | Path) -> Path:
         return Path(base_dir, 'files')
 
     def extract_files_from_file(
@@ -49,12 +49,12 @@ class UnpackBase:
         return [item for item in safe_rglob(Path(tmp_dir, 'files')) if not item.is_dir()]
 
     @staticmethod
-    def _initialize_shared_folder(tmp_dir):
+    def _initialize_shared_folder(tmp_dir: str) -> None:
         for subpath in ['files', 'reports', 'input']:
             Path(tmp_dir, subpath).mkdir(exist_ok=True)
 
     @staticmethod
-    def _extract_with_worker(file_path: str, container: ExtractionContainer, tmp_dir: str):
+    def _extract_with_worker(file_path: str, container: ExtractionContainer, tmp_dir: str) -> None:
         try:
             response = container.start_unpacking(tmp_dir, timeout=WORKER_TIMEOUT)
         except ReadTimeout as error:
@@ -66,7 +66,7 @@ class UnpackBase:
             raise ExtractionError(f'Extraction of {file_path} failed')
 
     @staticmethod
-    def _extract_with_new_container(tmp_dir: str):
+    def _extract_with_new_container(tmp_dir: str) -> None:
         try:
             result = run_docker_container(
                 config.backend.unpacking.docker_image,
@@ -75,7 +75,7 @@ class UnpackBase:
                 mem_limit=f'{config.backend.unpacking.memory_limit}m',
                 mounts=[
                     Mount('/dev/', '/dev/', type='bind'),
-                    Mount('/tmp/extractor', tmp_dir, type='bind'),
+                    Mount('/tmp/extractor', tmp_dir, type='bind'),  # noqa: S108
                 ],
                 command=f'--chown {getuid()}:{getgid()}',
             )
