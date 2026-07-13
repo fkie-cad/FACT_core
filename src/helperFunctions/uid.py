@@ -31,9 +31,7 @@ def is_uid(input_string: AnyStr) -> bool:
     if not isinstance(input_string, str):
         return False
     match = UID_REGEX.match(input_string)
-    if match and match.group(0) == input_string:
-        return True
-    return False
+    return bool(match and match.group(0) == input_string)
 
 
 def is_list_of_uids(input_list: list[AnyStr] | set[AnyStr]) -> bool:
