@@ -61,7 +61,7 @@ def create_re_analyze_task(request: Request, uid: str) -> dict[str, Any]:
     return task
 
 
-def _get_meta_from_request(request: Request):
+def _get_meta_from_request(request: Request) -> dict[str, Any]:
     meta = {
         'device_name': escape(request.form['device_name']),
         'device_part': escape(request.form['device_part']),
@@ -79,12 +79,12 @@ def _get_meta_from_request(request: Request):
     return meta
 
 
-def _get_meta_from_dropdowns(meta, request: Request):
-    for item in meta:
-        if not meta[item] and item in DROPDOWN_FIELDS:
-            dd = request.form[f'{item}_dropdown']
+def _get_meta_from_dropdowns(meta: dict[str, str], request: Request) -> None:
+    for key, value in meta.items():
+        if not value and key in DROPDOWN_FIELDS:
+            dd = request.form[f'{key}_dropdown']
             if dd != 'new entry':
-                meta[item] = escape(dd)
+                meta[key] = escape(dd)
 
 
 def _get_tag_list(tag_string: str | None) -> list[str]:
