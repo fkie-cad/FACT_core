@@ -138,7 +138,7 @@ class FwImporter:
         files = [f for f in zip_file.namelist() if f != 'data.json']
         file_task = self.progress.add_task('Importing files', total=len(files))
         for file in files:
-            self.file_service.store_file(FileObject(binary=zip_file.read(file)))
+            self.file_service.store_file(zip_file.read(file))
             self.progress.advance(file_task)
         self.progress.remove_task(file_task)
         return len(files)

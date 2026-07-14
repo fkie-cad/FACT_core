@@ -3,11 +3,10 @@ from multiprocessing import Event, Lock, Manager
 
 import pytest
 
-from objects.file import FileObject
 from objects.firmware import Firmware
-from test.common_helper import get_test_data_dir
+from test.common_helper import create_test_file_object, get_test_data_dir
 
-TEST_FW = Firmware(file_path=f'{get_test_data_dir()}/container/test_zip.7z')
+TEST_FW = Firmware.from_path(get_test_data_dir() / 'container/test_zip.7z')
 
 
 class MockDb:
@@ -48,9 +47,9 @@ class TestUnpackScheduler:
 
         assert TEST_FW.uid in extracted_files
         assert len(extracted_files[TEST_FW.uid].files_included) == 2, 'not all children of fw found'
-        assert (
-            included_files[0] in extracted_files[TEST_FW.uid].files_included
-        ), 'included container not extracted. Unpacker tar.gz module broken?'
+        assert included_files[0] in extracted_files[TEST_FW.uid].files_included, (
+            'included container not extracted. Unpacker tar.gz module broken?'
+        )
         assert all(f in extracted_files for f in included_files)
         assert len(extracted_files[included_files[0]].files_included) == 1
 
@@ -79,8 +78,7 @@ class TestUnpackScheduler:
 def test_cancel_unpacking(unpacking_scheduler, caplog):
     unpacking_scheduler.sync_lock = Lock()
     unpacking_scheduler.currently_extracted = {}
-    test_fo = FileObject(binary=b'foo')
-    test_fo.uid = 'foo'
+    test_fo = create_test_file_object(uid='foo')
     test_fo.root_uid = TEST_FW.uid
 
     # this should not cause an error even if the FW is not currently being unpacked

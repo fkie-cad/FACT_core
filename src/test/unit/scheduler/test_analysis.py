@@ -11,7 +11,7 @@ from semver import Version
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
 from scheduler.task_scheduler import MANDATORY_PLUGINS
-from test.common_helper import MockFileObject, get_test_data_dir
+from test.common_helper import MockFileObject, create_test_firmware, get_test_data_dir
 from test.mock import mock_patch, mock_spy
 
 
@@ -42,7 +42,7 @@ class TestScheduleInitialAnalysis:
     @pytest.mark.SchedulerTestConfig(start_processes=False)
     def test_schedule_firmware_init_no_analysis_selected(self, analysis_scheduler):
         analysis_scheduler.process_queue = Queue()
-        test_fw = Firmware(binary=b'test')
+        test_fw = create_test_firmware()
         analysis_scheduler.start_analysis_of_object(test_fw)
         test_fw = analysis_scheduler.process_queue.get(timeout=5)
         assert len(test_fw.scheduled_analysis) == len(MANDATORY_PLUGINS), 'Mandatory Plugins not selected'
@@ -51,7 +51,7 @@ class TestScheduleInitialAnalysis:
 
     @pytest.mark.SchedulerTestConfig(start_processes=True)
     def test_whole_run_analysis_selected(self, analysis_scheduler, post_analysis_queue):
-        test_fw = Firmware(file_path=get_test_data_dir() / 'get_files_test/testfile1')
+        test_fw = Firmware.from_path(get_test_data_dir() / 'get_files_test/testfile1')
         test_fw.scheduled_analysis = ['ExamplePlugin']
         analysis_scheduler.start_analysis_of_object(test_fw)
         analysis_results = [post_analysis_queue.get(timeout=10) for _ in range(3)]
@@ -113,7 +113,7 @@ class TestScheduleInitialAnalysis:
         )
 
     def test_process_next_analysis_unknown_plugin(self, analysis_scheduler):
-        test_fw = Firmware(file_path=get_test_data_dir() / 'get_files_test/testfile1')
+        test_fw = Firmware.from_path(get_test_data_dir() / 'get_files_test/testfile1')
         test_fw.scheduled_analysis = ['unknown_plugin']
 
         with mock_spy(analysis_scheduler, '_start_or_skip_analysis') as spy:
@@ -131,7 +131,7 @@ class TestScheduleInitialAnalysis:
         }
     )
     def test_skip_analysis_because_whitelist(self, analysis_scheduler, post_analysis_queue):
-        test_fw = Firmware(file_path=get_test_data_dir() / 'get_files_test/testfile1')
+        test_fw = Firmware.from_path(get_test_data_dir() / 'get_files_test/testfile1')
         test_fw.scheduled_analysis = ['file_hashes']
         test_fw.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
         analysis_scheduler._start_or_skip_analysis('ExamplePlugin', test_fw)

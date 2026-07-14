@@ -70,13 +70,10 @@ class TestInterComTaskCommunication:
     def test_analysis_task(self, intercom_frontend):
         task_listener = InterComBackEndAnalysisTask()
         test_fw = create_test_firmware()
-        test_fw.file_path = None
         intercom_frontend.add_analysis_task(test_fw)
         task = task_listener.get_next_task()
 
         assert task.uid == test_fw.uid, 'uid not correct'
-        assert task.file_path is not None, 'file_path not set'
-        assert Path(task.file_path).exists(), 'file does not exist'
 
     def test_single_file_task(self, intercom_frontend):
         with Manager() as manager:

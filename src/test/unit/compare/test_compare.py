@@ -70,7 +70,7 @@ def test_create_general_section_dict(compare_system):
     assert result['vendor'][fw_one.uid] == 'test_vendor'
     assert result['version'][fw_one.uid] == '0.1'
     assert result['release_date'][fw_one.uid] == '1970-01-01'
-    assert result['size'][fw_one.uid] == len(fw_one.binary)
+    assert result['size'][fw_one.uid] == fw_one.size
     assert result['virtual_file_path'][fw_one.uid] == [fw_one.file_name]
 
 

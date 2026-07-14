@@ -32,11 +32,11 @@ class UnpackBase:
         return Path(base_dir, 'files')
 
     def extract_files_from_file(
-        self, file_path: str, tmp_dir: str, container: ExtractionContainer | None = None
+        self, file_path: Path, tmp_dir: str, container: ExtractionContainer | None = None
     ) -> list[Path]:
         self._initialize_shared_folder(tmp_dir)
         try:
-            shutil.copy2(file_path, str(Path(tmp_dir, 'input', Path(file_path).name)))
+            shutil.copy2(file_path, str(Path(tmp_dir, 'input', file_path.name)))
         except FileNotFoundError:
             logging.exception(f'Error during extraction of {file_path}')
             raise
@@ -54,7 +54,7 @@ class UnpackBase:
             Path(tmp_dir, subpath).mkdir(exist_ok=True)
 
     @staticmethod
-    def _extract_with_worker(file_path: str, container: ExtractionContainer, tmp_dir: str) -> None:
+    def _extract_with_worker(file_path: Path, container: ExtractionContainer, tmp_dir: str) -> None:
         try:
             response = container.start_unpacking(tmp_dir, timeout=WORKER_TIMEOUT)
         except ReadTimeout as error:

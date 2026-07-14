@@ -35,15 +35,14 @@ class CommonIntercomMock:
     @staticmethod
     def get_file_contents(uid):
         if uid == TEST_FW.uid:
-            return TEST_FW.binary
+            return TEST_FW.file_path.read_bytes()
         if uid == TEST_TEXT_FILE.uid:
-            return TEST_TEXT_FILE.binary
+            return TEST_TEXT_FILE.file_path.read_bytes()
         return b''
 
-    @staticmethod
-    def get_repacked_file(uid):
+    def get_repacked_file(self, uid):
         if uid == TEST_FW.uid:
-            return TEST_FW.binary
+            return self.get_file_contents(uid)
         return b''
 
     @staticmethod
@@ -74,6 +73,9 @@ class CommonIntercomMock:
         if 'invalid' in rule:
             return 'SyntaxError: line 1: syntax error, unexpected identifier'
         return ''
+
+    def store_file(self, *_):
+        return True
 
 
 class FrontendDatabaseMock:

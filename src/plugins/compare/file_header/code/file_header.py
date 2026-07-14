@@ -32,7 +32,7 @@ class ComparePlugin(CompareBasePlugin):
 
     def compare_function(self, fo_list: list[FileObject], dependency_results: dict[str, dict]) -> dict:
         del dependency_results
-        binaries = [fo.binary for fo in fo_list]
+        binaries = [self._read_header(fo) for fo in fo_list]
         lower_bound = min(*(len(binary) for binary in binaries), BYTES_TO_SHOW)
 
         offsets = self._get_offsets(lower_bound)
@@ -40,6 +40,11 @@ class ComparePlugin(CompareBasePlugin):
         ascii_representation = self._get_ascii_representation(binaries, lower_bound)
 
         return {'hexdiff': hexdiff, 'offsets': offsets, 'ascii': ascii_representation}
+
+    @staticmethod
+    def _read_header(fo: FileObject) -> bytes:
+        with fo.file_path.open('rb') as fp:
+            return fp.read(BYTES_TO_SHOW)
 
     def _get_ascii_representation(self, binaries: list[bytes], lower_bound: int) -> Markup:
         part = binaries[0][0:lower_bound]

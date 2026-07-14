@@ -16,7 +16,7 @@ import config
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj, create_re_analyze_task
+from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj, create_analysis_task
 from helperFunctions.web_interface import get_template_as_string
 from objects.firmware import Firmware
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
@@ -173,7 +173,7 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/update-analysis/<uid>', POST)
     def post_update_analysis(self, uid: str, re_do: bool = False) -> str:
         try:
-            analysis_task = create_re_analyze_task(request, uid=uid)
+            analysis_task = create_analysis_task(request, uid=uid)
         except BadRequestKeyError as error:
             logging.warning(f'Received invalid update analysis request: Key {KeyError.__str__(error)} is missing!')
             raise

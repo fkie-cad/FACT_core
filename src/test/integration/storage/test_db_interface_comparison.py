@@ -113,8 +113,7 @@ def test_get_vfp_of_included_text_files(backend_db, comparison_db):
 def _create_comparison(uid1='uid1', uid2='uid2'):
     fw_one = create_test_firmware()
     fw_one.uid = uid1
-    fw_two = create_test_firmware()
-    fw_two.set_binary(b'another firmware')
+    fw_two = create_test_firmware(bin_path='container/test.7z')
     fw_two.uid = uid2
     compare_dict = {
         'general': {

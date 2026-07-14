@@ -34,7 +34,7 @@ def create_test_firmware(
     all_files_included_set=False,
     version='0.1',
 ):
-    fw = Firmware(file_path=str(get_test_data_dir() / bin_path))
+    fw: Firmware = Firmware.from_path(get_test_data_dir() / bin_path)
     fw.device_class = device_class
     fw.device_name = device_name
     fw.vendor = vendor
@@ -71,13 +71,13 @@ def create_test_firmware(
 
     fw.processed_analysis.update(processed_analysis)
     if all_files_included_set:
-        fw.list_of_all_included_files = list(fw.files_included)
-        fw.list_of_all_included_files.append(fw.uid)
+        fw.list_of_all_included_files = set(fw.files_included or [])
+        fw.list_of_all_included_files.add(fw.uid)
     return fw
 
 
 def create_test_file_object(bin_path='get_files_test/testfile1', uid=None, analyses=None):
-    fo = FileObject(file_path=str(get_test_data_dir() / bin_path))
+    fo = FileObject.from_path(get_test_data_dir() / bin_path)
     processed_analysis = {
         'dummy': {
             'summary': ['sum a', 'file exclusive sum b'],
@@ -136,8 +136,8 @@ TEST_SEARCH_QUERY = {
 
 
 class MockFileObject:
-    def __init__(self, binary=b'test string', file_path='/bin/ls'):
-        self.binary = binary
+    def __init__(self, uid='abcd_123', file_path='/bin/ls'):
+        self.uid = uid
         self.file_path = file_path
         self.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
 
@@ -295,7 +295,7 @@ def get_firmware_for_rest_upload_test():
 def store_binary_on_file_system(tmp_dir: str, test_object: FileObject | Firmware):
     binary_dir = Path(tmp_dir) / test_object.uid[:2]
     binary_dir.mkdir(parents=True)
-    (binary_dir / test_object.uid).write_bytes(test_object.binary)
+    (binary_dir / test_object.uid).write_bytes(test_object.file_path.read_bytes())
 
 
 def setup_test_tables(db_setup):

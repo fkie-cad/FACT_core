@@ -37,7 +37,7 @@ def test_delete_but_fo_is_in_fw(admin_db, common_db, backend_db):
     fo, fw = create_fw_with_child_fo()
     fw2 = create_test_firmware()
     fw2.uid = 'fw2_uid'
-    fo.parents.append(fw2.uid)
+    fo.parents.add(fw2.uid)
     fo.parent_firmware_uids.add(fw2.uid)
     fo.virtual_file_path.update({fw2.uid: [f'|{fw2.uid}|/some/path']})
     backend_db.insert_multiple_objects(fw, fw2, fo)
@@ -61,10 +61,10 @@ def test_same_fw_multiple_parents(backend_db, admin_db, common_db):
     fw, parent, child = create_fw_with_parent_and_child()
     parent2 = create_test_file_object()
     parent2.uid = 'parent2'
-    parent2.parents.append(fw.uid)
+    parent2.parents.add(fw.uid)
     parent2.parent_firmware_uids.add(fw.uid)
     # child has multiple parents but all in the same FW -> should still be deleted by cascade
-    child.parents.append(parent2.uid)
+    child.parents.add(parent2.uid)
     backend_db.insert_multiple_objects(fw, parent, parent2, child)
 
     admin_db.delete_firmware(fw.uid)

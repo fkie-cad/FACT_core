@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import re
-from typing import AnyStr
+from typing import TYPE_CHECKING, AnyStr
 
 from helperFunctions.data_conversion import make_bytes
-from helperFunctions.hash import get_sha256
+from helperFunctions.hash import get_sha256, get_sha256_for_path
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 UID_REGEX = re.compile(r'[a-f0-9]{64}_[0-9]+')
 
@@ -18,6 +21,12 @@ def create_uid(input_data: bytes) -> str:
     """
     hash_value = get_sha256(input_data)
     size = len(make_bytes(input_data))
+    return f'{hash_value}_{size}'
+
+
+def create_uid_from_path(path: Path) -> str:
+    hash_value = get_sha256_for_path(path)
+    size = path.stat().st_size
     return f'{hash_value}_{size}'
 
 

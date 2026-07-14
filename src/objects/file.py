@@ -1,166 +1,172 @@
-from __future__ import annotations
-
-import logging
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Any, Self
 
-from common_helper_files import get_binary_from_file
-
-from helperFunctions.data_conversion import make_bytes, make_unicode_string
-from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
 from helperFunctions.virtual_file_path import filter_vpf_dict, get_some_vfp
+from storage.file_service import FileService
 
 
+@dataclass(kw_only=True)
 class FileObject:
     """
     FileObject is the primary data structure in FACT.
     It holds all meta information of a file along with analysis results and some internal values for scheduling.
-
-    :param binary: The file in binary representation. Either this or `file_path` has to be present.
-    :param file_name: The file's name.
-    :param file_path: The file's path. Either this or `binary` has to be present.
-    :param scheduled_analysis: A list of analysis plugins that should be run on this file.
     """
 
-    def __init__(
-        self,
-        binary: bytes | None = None,
-        file_name: str | None = None,
-        file_path: str | None = None,
-        scheduled_analysis: Optional[list[str]] = None,
-    ):
-        self._uid = None
+    #: Unique identifier of this file.
+    #: Consisting of the file's sha256 hash, and it's size in the form `hash_size`.
+    uid: str
 
-        #: The set of files included in this file. This is usually true for archives.
-        #: Only lists the next layer, not recursively included files on lower extraction layers.
-        self.files_included = set()
+    #: SHA256 hash of this file's contents.
+    sha256: str
 
-        #: The list of all recursively included files in this file.
-        #: That means files are included that are themselves included in files contained in this file, and so on.
-        #: This value is not set by default as it's expensive to aggregate and takes up a lot of memory.
-        self.list_of_all_included_files = None
+    #: Size of this file in bytes.
+    size: int
 
-        #: List of parent uids.
-        #: A parent in this context is the direct predecessor in a firmware tree.
-        #: Not necessarily it's root.
-        self.parents = []
+    #: The file's name.
+    file_name: str
 
-        #: UID of root (i.e. firmware) object for the given file.
-        #: Useful to associate results of children with firmware.
-        #: Is only set during unpacking / analysis in the backend and *not* if you load the object from the DB!
-        self.root_uid = None
+    #: The set of files included in (i.e. extracted from) this file. This is usually true for archives.
+    #: Only lists the next layer, not recursively included files on lower extraction layers.
+    #: Is set during extraction and when loading from the DB.
+    #: Analogous to :py:const:`FileObject.parents`.
+    files_included: set[str] = field(default_factory=set)
 
-        #: Extraction depth of this object. If outer firmware file, this is 0.
-        #: Every extraction increments this by one.
-        #: For a file inside a squashfs, that is contained inside a tar archive this would be 1 (tar) + 1 (fs) = 2.
-        self.depth = 0
+    #: The list of all recursively included files in this file.
+    #: That means files are included that are themselves included in files contained in this file, and so on.
+    #: This value is not set by default as it's expensive to aggregate and takes up a lot of memory.
+    list_of_all_included_files: set[str] | None = None
 
-        #: Analysis results for this file.
-        #:
-        #: Structure of results:
-        #: The first level of this dict is a pair of ``'plugin_name': <result_dict>`` pairs.
-        #: The result dict can have any content, but always has at least the fields:
-        #:
-        #: * analysis_date - float representing the time of analysis in unix time.
-        #: * plugin_version - str defining the version of each plugin at time of analysis.
-        #: * summary - list holding a summary of each file's result, that can be aggregated.
-        self.processed_analysis = {}
+    #: List of parent uids. Usually set during extraction.
+    #: A parent in this context is a file from which this file was unpacked from.
+    #: One file can have multiple parents (i.e. the same file was extracted from multiple files).
+    #: Analogous to :py:const:`FileObject.files_included`.
+    parents: set[str] = field(default_factory=set)
 
-        #: List of plugins that are scheduled to be run on this file.
-        self.scheduled_analysis = scheduled_analysis
+    #: UID of the root object (in the tree of recursive extraction) for the given file (i.e. the firmware image).
+    #: Useful to associate results of children with firmware.
+    #: Is only set during unpacking / analysis in the backend and *not* if you load the object from the DB!
+    root_uid: str | None = None
 
-        #: List of comments that have been made on this file.
-        #: Comments are dicts with the keys time (float), author (str) and comment (str).
-        self.comments = []
+    #: Extraction depth of this object. If outer firmware file, this is 0.
+    #: Every extraction increments this by one.
+    #: For a file inside a squashfs, that is contained inside a tar archive this would be 1 (tar) + 1 (fs) = 2.
+    depth: int = 0
 
-        #: Set of parent firmware uids.
-        #: Parent uids are from the root object, this file belongs to, not its direct predecessor.
-        #: Thus, as a file can be part of multiple firmware images, this field is a set.
-        #: This field should be closely related to the keys in the virtual file path field.
-        self.parent_firmware_uids = set()
+    #: A list of analysis plugins that should be run on this file.
+    #: Usually set during upload and propagated during unpacking to extracted files.
+    scheduled_analysis: list[str] = field(default_factory=list)
 
-        #: This field can be used for arbitrary temporary storage.
-        #: It will not be persisted to the database, so it dies after the analysis cycle.
-        self.temporary_data = {}
+    #: List of comments that have been made on this file.
+    #: Comments are dicts with the keys time (float), author (str) and comment (str).
+    #: They are not created during unpacking or analysis, so are only available when loading the object from the DB.
+    comments: list[dict] = field(default_factory=list)
 
-        #: Analysis tags for this file.
-        #: An analysis tag has the structure
-        #: ``{tag_name: {'value': value, 'color': color, 'propagate': propagate,}, 'root_uid': root uid}``
-        #: while the first layer of this dict is a key for each plugin.
-        #: So in total you have a dict ``{plugin: [tags, of, plugin], ..}``.
-        self.analysis_tags = {}
+    #: Set of parent firmware uids.
+    #: UIDs from the root objects, this file belongs to (usually not its direct predecessor).
+    #: One file can belong to multiple root objects if it was recursively extracted from them.
+    #: Usually set during unpacking and when the object is loaded from the DB.
+    parent_firmware_uids: set[str] = field(default_factory=set)
 
-        #: If an exception occurred during analysis, this fields stores a tuple
-        #: ``(<plugin name>, <error message>)``
-        #: for debugging purposes and as placeholder in UI.
-        self.analysis_exception = None
+    #: This field can be used for arbitrary temporary storage.
+    #: It will not be persisted to the database, so it dies after the analysis cycle.
+    temporary_data: dict[str, Any] = field(default_factory=dict)
 
-        #: Optional callback method called after the analysis finished in the analysis scheduler
-        self.callback = None
+    #: Analysis tags for this file.
+    #: An analysis tag has the structure
+    #: ``{tag_name: {'value': value, 'color': color, 'propagate': propagate,}, 'root_uid': root uid}``
+    #: while the first layer of this dict is a key for each plugin.
+    #: So in total you have a dict ``{plugin: [tags, of, plugin], ..}``.
+    #: Only set when retrieving the object from the DB. During analysis, tags are part of ``processed_analysis``.
+    analysis_tags: dict[str, list[dict]] = field(default_factory=dict)
 
-        if binary is not None:
-            self.set_binary(binary)
-        else:
-            #: Binary representation of this file in bytes.
-            self.binary = None
+    #: Analysis results for this file.
+    #:
+    #: Structure of results:
+    #: The first level of this dict is a pair of ``'plugin_name': <result_dict>`` pairs.
+    #: The contents are set during analysis in the backend and when loading the object from the DB.
+    #: The result dict can have any content, but always has at least the fields:
+    #:
+    #: * analysis_date - float representing the time of analysis in unix time.
+    #: * plugin_version - str defining the version of each plugin at time of analysis.
+    #: * summary - list holding a summary of each file's result, that can be aggregated.
+    processed_analysis: dict = field(default_factory=dict)
 
-            #: SHA256 hash of this file.
-            self.sha256 = None
+    #: If an exception occurred during analysis, this fields stores a tuple
+    #: ``(<plugin name>, <error message>)``
+    #: for debugging purposes and as placeholder in UI.
+    analysis_exception: tuple[str, str] | None = None
 
-            #: Size of this file in bytes
-            self.size = None
+    #: Optional callback method called after the analysis finished in the analysis scheduler
+    callback: Callable | None = None
 
-        #: Name of this file. Similar to ``file_path``, this probably is generated for carved objects.
-        self.file_name = make_unicode_string(file_name) if file_name is not None else file_name
+    #: The virtual file path (VFP) is not a path on the analysis machine, but rather the file path in the file
+    #: (container, file system, etc.) it was unpacked from during recursive extraction of a firmware image.
+    #: The keys are parent UIDs (see :py:const:`FileObject.parents`) and the values are lists of file paths as strings.
+    #: The reason that the paths are represented by a list is that the same file may be extracted from the same parent
+    #: multiple times.
+    #:
+    virtual_file_path: dict[str, list[str]] = field(default_factory=dict)
 
-        #: The path of this file. Has to be a local path if binary is not set.
-        #: For carved objects, this will likely only be a (generated) name.
-        self.file_path = file_path
-        self.create_binary_from_path()
-
-        #: The virtual file path (vfp) is not a path on the analysis machine but the full path inside a firmware object.
-        #: For a file inside a filesystem, that was itself packed inside an archive this might look like
-        #: `firmware_uid|fs_uid|/etc/hosts` with the pipe sign ( | ) separating extraction levels.
-        #: For files such as symlinks, there can be multiple paths inside a single firmware for one unique file.
-        self.virtual_file_path = {}
-
-    def set_binary(self, binary: bytes) -> None:
-        """
-        Store the binary representation of the file as byte string.
-        Additionally, set binary related metadata (size, hash) and compute uid after that.
-
-        :param binary: file in binary representation
-        """
-        self.binary = make_bytes(binary)
-        self.sha256 = get_sha256(self.binary)
-        self.size = len(self.binary)
-        self._uid = create_uid(binary)
-
-    def create_binary_from_path(self) -> None:
-        if self.file_path is not None:
-            if self.binary is None:
-                self._create_from_file(self.file_path)
-            if self.file_name is None:
-                self.file_name = make_unicode_string(Path(self.file_path).name)
+    _file_path: Path | None = field(init=False, default=None)
 
     @property
-    def uid(self) -> str:
+    def file_path(self) -> Path:
         """
-        Unique identifier of this file.
-        Consisting of the file's sha256 hash, and it's length in the form `hash_length`.
-
-        :return: uid of this file.
+        The file's path in the file system of the backend (not in the firmware!).
         """
-        if self._uid is None and self.binary is not None:
-            self._uid = create_uid(self.binary)
-        return self._uid
+        file_path = self._file_path
+        if file_path is None:
+            file_path = self._file_path = FileService().generate_path_from_uid(self.uid)
+        return file_path
 
-    @uid.setter
-    def uid(self, new_uid: str):
-        if self._uid is not None:
-            logging.warning(f'uid overwrite: Uid might not be related to binary data anymore: {self._uid} -> {new_uid}')
-        self._uid = new_uid
+    @file_path.setter
+    def file_path(self, file_path: Path) -> None:
+        self._file_path = file_path
+
+    @classmethod
+    def from_path(cls, file_path: Path) -> Self:
+        """
+        Only for use in tests!
+        """
+        fo = cls.from_file(file_contents=file_path.read_bytes(), file_name=file_path.name)
+        fo.file_path = file_path
+        return fo
+
+    @classmethod
+    def from_file(
+        cls,
+        file_contents: bytes,
+        file_name: str,
+        scheduled_analysis: list[str] | None = None,
+        root_uid: str | None = None,
+    ) -> Self:
+        return cls.from_uid(
+            uid=create_uid(file_contents),
+            file_name=file_name,
+            scheduled_analysis=scheduled_analysis,
+            root_uid=root_uid,
+        )
+
+    @classmethod
+    def from_uid(
+        cls,
+        uid: str,
+        file_name: str,
+        scheduled_analysis: list[str] | None = None,
+        root_uid: str | None = None,
+    ) -> Self:
+        sha256, size = uid.split('_', maxsplit=1)
+        return cls(
+            uid=uid,
+            file_name=file_name,
+            sha256=sha256,
+            size=int(size),
+            scheduled_analysis=scheduled_analysis or [],
+            root_uid=root_uid,
+        )
 
     def get_hid(self) -> str:
         """
@@ -168,19 +174,9 @@ class FileObject:
         This usually is the file name for extracted files.
         :return: String representing a human-readable identifier for this file.
         """
-        try:
-            return get_some_vfp(self.virtual_file_path)
-        except IndexError:
-            # this should normally not happen outside of tests as file objects are initialized with a "virtual file
-            # path" during unpacking
-            logging.warning(f'Virtual file paths of {self.uid} are emtpy: {self.virtual_file_path}')
-            return self.file_name
+        return get_some_vfp(self.virtual_file_path) or self.file_name
 
-    def _create_from_file(self, file_path: str):
-        self.set_binary(get_binary_from_file(file_path))
-        self.create_binary_from_path()
-
-    def add_included_file(self, file_object: FileObject) -> None:
+    def add_included_file(self, file_object: 'FileObject') -> None:
         """
         This functions adds a file to this object's list of included files.
         The function also takes care of a number of fields for the child object:
@@ -193,7 +189,7 @@ class FileObject:
 
         :param file_object: File that was extracted from the current file
         """
-        file_object.parents.append(self.uid)
+        file_object.parents.add(self.uid)
         file_object.root_uid = self.root_uid
         file_object.depth = self.depth + 1
         file_object.scheduled_analysis = self.scheduled_analysis
@@ -238,17 +234,19 @@ class FileObject:
         }
 
     @classmethod
-    def from_json(cls, json_dict: dict, root_uid: str | None = None) -> FileObject:
-        fo = cls(file_name=json_dict['file_name'])
-        fo.comments = json_dict.get('comments')
-        fo.depth = json_dict.get('depth')
-        fo.files_included = json_dict.get('files_included')
-        fo.processed_analysis = json_dict.get('processed_analysis')
-        fo.sha256 = json_dict.get('sha256') or json_dict.get('uid').split('_')[0]
-        fo.size = json_dict.get('size')
-        fo.uid = json_dict.get('uid')
-        fo.virtual_file_path = json_dict.get('virtual_file_path')
-        # these entries are necessary for correctly filling the included_files_table and fw_files_table
-        fo.parent_firmware_uids = [root_uid] if root_uid else []
-        fo.parents = list(fo.virtual_file_path)
-        return fo
+    def from_json(cls, json_dict: dict, root_uid: str | None = None) -> Self:
+        vfp = json_dict.get('virtual_file_path')
+        return cls(
+            uid=json_dict['uid'],
+            file_name=json_dict['file_name'],
+            comments=json_dict.get('comments', []),
+            depth=json_dict.get('depth', 0),
+            files_included=json_dict.get('files_included', set()),
+            processed_analysis=json_dict.get('processed_analysis', {}),
+            sha256=json_dict.get('sha256') or json_dict['uid'].split('_')[0],
+            size=json_dict.get('size') or int(json_dict['uid'].split('_')[1]),
+            virtual_file_path=vfp or {},
+            # these entries are necessary for correctly filling the included_files_table and fw_files_table
+            parent_firmware_uids={root_uid} if root_uid else set(),
+            parents=set(vfp or {}),
+        )

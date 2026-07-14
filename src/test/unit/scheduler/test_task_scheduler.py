@@ -5,8 +5,8 @@ from dataclasses import dataclass
 import pytest
 from semver import Version
 
-from objects.firmware import Firmware
 from scheduler.task_scheduler import AnalysisTaskScheduler
+from test.common_helper import create_test_firmware
 
 
 @dataclass
@@ -106,7 +106,7 @@ class TestAnalysisScheduling:
         assert set(self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled)) == expected_output
 
     def test_reschedule_failed_analysis_task(self):
-        task = Firmware(binary='foo')
+        task = create_test_firmware()
         error_message = 'There was an exception'
         task.analysis_exception = ('foo', error_message)
         task.scheduled_analysis = ['no_deps', 'bar']

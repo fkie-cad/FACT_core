@@ -11,6 +11,7 @@ from flask_restx.fields import MarshallingError
 
 from helperFunctions.object_conversion import create_meta_dict
 from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
+from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError
 from web_interface.rest.helper import (
@@ -139,9 +140,13 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
 
     def _process_data(self, data: dict) -> dict[str, str]:
         try:
-            data['binary'] = standard_b64decode(data['binary'])
+            file_contents = standard_b64decode(data['binary'])
         except binascii.Error:
             return {'error_message': 'Could not parse binary (must be valid base64!)'}
+        uid = create_uid(file_contents)
+        if not self.intercom.store_file(file_contents, uid):
+            return error_message('Storing file failed.', self.URL, request_data=data)
+        data['uid'] = uid
         firmware_object = convert_analysis_task_to_fw_obj(data)
         self.intercom.add_analysis_task(firmware_object)
         data.pop('binary')

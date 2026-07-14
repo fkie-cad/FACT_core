@@ -21,34 +21,35 @@ def _check_file_presence_and_content(file_path, file_binary):
 
 
 def test_generate_path(file_service):
-    test_binary = b'abcde'
-    file_object = FileObject(test_binary)
+    uid = 'abcd_123'
+    file_object = FileObject.from_uid(uid, file_name='foo')
     file_path = file_service.generate_path(file_object)
-    expected_path = f'{file_service.data_storage_path}/{file_object.uid[:2]}/{file_object.uid}'
+    expected_path = Path(file_service.data_storage_path) / file_object.uid[:2] / file_object.uid
     assert file_path == expected_path
 
 
 def test_store_and_delete_file(file_service):
-    test_binary = b'abcde'
-    file_object = FileObject(test_binary)
+    contents = b'abcde'
+    uid = 'abcd_123'
+    file_object = FileObject.from_uid(uid, file_name='foo')
 
-    file_service.store_file(file_object)
-    expected_path = f'{file_service.data_storage_path}/{file_object.uid[:2]}/{file_object.uid}'
-    _check_file_presence_and_content(expected_path, b'abcde')
+    file_service.store_file(contents, uid)
+    expected_path = Path(file_service.data_storage_path) / file_object.uid[:2] / file_object.uid
+    _check_file_presence_and_content(expected_path, contents)
     assert file_object.file_path == expected_path, 'wrong file path set in file object'
 
     file_service.delete_file(file_object.uid)
-    assert not Path(file_object.file_path).is_file(), 'file not deleted'
+    assert not file_object.file_path.is_file(), 'file not deleted'
 
 
 def test_get_file_content(file_service):
     contents = file_service.get_file_content(TEST_FW)
-    assert contents == TEST_FW.binary, 'invalid result not correct'
+    assert contents == TEST_FW.file_path.read_bytes(), 'invalid result not correct'
 
 
 def test_get_file_content_from_uid(file_service):
     contents = file_service.get_file_content_from_uid(TEST_FW.uid)
-    assert contents == TEST_FW.binary, 'invalid result not correct'
+    assert contents == TEST_FW.file_path.read_bytes(), 'invalid result not correct'
 
 
 def test_get_file_content_invalid_uid(file_service):
