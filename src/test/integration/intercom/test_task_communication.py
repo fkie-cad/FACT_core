@@ -8,6 +8,7 @@ from time import sleep
 
 import pytest
 
+from helperFunctions.uid import create_uid
 from intercom.back_end_binding import (
     InterComBackEndAnalysisTask,
     InterComBackEndBinarySearchTask,
@@ -20,6 +21,7 @@ from intercom.back_end_binding import (
     InterComBackEndRawDownloadTask,
     InterComBackEndReAnalyzeTask,
     InterComBackEndSingleFileTask,
+    InterComBackEndStoreFileTask,
     InterComBackEndTarRepackTask,
 )
 from intercom.common_redis_binding import publish_available_analysis_plugins
@@ -232,3 +234,20 @@ class TestInterComTaskCommunication:
         valid_rule = 'rule valid {condition: true}'
         error = listener.get_response(valid_rule)
         assert error == '', 'the rule should be valid and the error should be None'
+
+    def test_store_file_task(self, intercom_frontend):
+        listener = InterComBackEndStoreFileTask()
+        file_contents = b'foobar'
+        uid = create_uid(file_contents)
+        intercom_frontend.store_file(file_contents, uid)
+        task = listener.get_next_task()
+        assert task == (file_contents, uid), 'task not correct'
+
+        file_path = listener.file_service.generate_path_from_uid(uid)
+        for _ in range(40):  # timeout: ~2s
+            if file_path.is_file():
+                break
+            sleep(0.05)
+
+        assert file_path.is_file()
+        assert file_path.read_bytes() == file_contents

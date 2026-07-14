@@ -12,6 +12,8 @@ class TestObjectsFile:
         assert test_object.sha256 == EXPECTED_SHA, 'correct sha256'
         assert test_object.file_name == 'test_data_file.bin', 'correct file name'
         assert test_object.file_path == file_path, 'correct file path'
+        assert str(test_object).startswith(f'UID: {test_object.uid}\n')
+        assert repr(test_object) == str(test_object)
 
     def test_file_object_from_uid(self):
         test_object = FileObject.from_uid(f'{EXPECTED_SHA}_123', file_name='foo')
