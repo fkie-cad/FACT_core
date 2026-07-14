@@ -1,5 +1,5 @@
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
 
 import pytest
 from common_helper_files import get_binary_from_file
@@ -46,8 +46,8 @@ def test_store_and_delete_file(file_service):
 def test_move_file_to_storage(file_service):
     contents = b'abcde'
     uid = 'abcd_123'
-    with NamedTemporaryFile() as file:
-        path = Path(file.name)
+    with TemporaryDirectory() as tmp_dir:
+        path = Path(tmp_dir) / 'foobar.bin'
         path.write_bytes(contents)
         file_service.move_file_to_storage(path, uid)
         assert path.is_file() is False, 'file not moved'

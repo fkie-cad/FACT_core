@@ -1,5 +1,11 @@
+import sys
 from dataclasses import dataclass, field
-from typing import Self
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    # FixMe: remove when 3.10 is EoL
+    from typing_extensions import Self
 
 from helperFunctions.tag import TagColor
 from objects.file import FileObject

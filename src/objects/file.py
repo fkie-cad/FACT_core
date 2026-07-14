@@ -1,7 +1,14 @@
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Self
+from typing import Any
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    # FixMe: remove when 3.10 is EoL
+    from typing_extensions import Self
 
 from helperFunctions.uid import create_uid
 from helperFunctions.virtual_file_path import filter_vpf_dict, get_some_vfp
