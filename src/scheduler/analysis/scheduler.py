@@ -27,6 +27,7 @@ from statistic.analysis_stats import get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_view_sync import ViewUpdater
 from storage.file_service import FileService
+from storage.redis_interface import RedisInterface, RQueue
 
 from .plugin import PluginRunner, Worker
 
@@ -108,12 +109,15 @@ class AnalysisScheduler:
         unpacking_locks: UnpackingLockManager | None = None,
         status: AnalysisStatus | None = None,
     ):
+        self.redis = RedisInterface()
+        self._redis_scheduler_process_queue_key = '_FACT_sched_proc_q'
+
         self.analysis_plugins: dict[str, AnalysisPluginV0] = {}
         self._plugin_runners: dict[str, PluginRunner] = {}
 
         self._load_plugins()
         self.stop_condition = Value('i', 0)
-        self.process_queue = Queue()
+        self.process_queue = RQueue(self.redis, self._redis_scheduler_process_queue_key)
         self.unpacking_locks = unpacking_locks
         self.scheduling_lock = Lock()
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import time
 from math import ceil
 from pickle import dumps, loads
+from queue import Empty
 from random import randint
 from typing import Any
 
@@ -51,6 +53,13 @@ class RedisInterface:
     def queue_get(self, key: str) -> Any:  # noqa: ANN401
         return self._combine_if_split(self.redis.lpop(key))
 
+    def queue_get_blocking(self, key: str, timeout: int) -> Any:
+        result = self.redis.blpop([key], timeout=timeout)
+        if result is None:
+            return None
+        _, value = result
+        return self._combine_if_split(value)
+
     def _split_if_necessary(self, value: bytes) -> str | bytes:
         return self._store_chunks(value) if len(value) > self.chunk_size else value
 
@@ -90,3 +99,26 @@ class RedisInterface:
         pipeline.delete(key)
         value, _ = pipeline.execute()
         return value
+
+
+class RQueue:
+    """Quacks like a mp.Queue"""
+
+    def __init__(self, redis_interface: RedisInterface, key: str):
+        self.redis_interface = redis_interface
+        self.key = key
+
+    def put(self, value: Any) -> None:
+        self.redis_interface.queue_put(self.key, value)
+
+    def get(self, timeout: int) -> Any:
+        value = self.redis_interface.queue_get_blocking(self.key, timeout)
+        if value is None:
+            raise Empty
+        return value
+
+    def qsize(self) -> int:
+        return self.redis_interface.redis.llen(self.key)
+
+    def close(self) -> None:
+        pass

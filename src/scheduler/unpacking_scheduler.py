@@ -24,6 +24,7 @@ from helperFunctions.process import (
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_base import DbInterfaceError
+from storage.redis_interface import RQueue, RedisInterface
 from unpacker.extraction_container import DOCKER_CLIENT, ExtractionContainer
 from unpacker.unpack import Unpacker
 from unpacker.unpack_base import ExtractionError
@@ -58,10 +59,13 @@ class UnpackingScheduler:
         db_interface: type[BackendDbInterface] = BackendDbInterface,
         status: AnalysisStatus | None = None,
     ):
+        self.redis = RedisInterface()
+        self._redis_scheduler_process_queue_key = '_FACT_upsched_in_q'
+
         self.stop_condition = Value('i', 0)
         self.throttle_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload
-        self.in_queue = Queue()
+        self.in_queue = RQueue(self.redis, self._redis_scheduler_process_queue_key)
         self.work_load_counter = 25
         self.worker_tmp_dirs = []  # type: list[TemporaryDirectory]
         self.pending_tasks: dict[int, Thread] = {}
