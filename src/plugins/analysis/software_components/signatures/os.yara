@@ -76,7 +76,7 @@ rule LinuxKernel
 	condition:
 		$safe_condition
 
-/* tmporarly removed due to too many false positives */
+/* temporarily removed due to too many false positives */
 /*
         $a = /[2-4]\.\d\d?\.\d\d?-[a-z_][a-z\-_]+/ nocase ascii wide
         $b = /gcc-[2-4]\.\d\d?\.\d\d?-[a-z_][a-z\-_]+/ nocase ascii wide
@@ -107,8 +107,9 @@ rule ThreadX
 		open_source = false
 		website = "https://rtos.com/solutions/threadx/real-time-operating-system/"
 		description = "Real Time Operating System"
+		version_regex = "\\d(\\.\\d){1,3}"
 	strings:
-		$a = /ThreadX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
+		$a = /ThreadX [A-Za-z\/ 0-9_-]+ [A-Z]?\d+(\.[\da-z]{1,3}){1,3}( SN: [\d-]+)?/
 	condition:
 		$a
 }
