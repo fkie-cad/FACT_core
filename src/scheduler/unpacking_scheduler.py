@@ -168,6 +168,7 @@ class UnpackingScheduler:
                 task_thread.start()
                 logging.debug(f'Started Worker on {task.uid} ({container.tmp_dir})')
                 self.pending_tasks[container.id_] = task_thread
+                del task
             except NoFreeWorker:
                 logging.debug('No free worker. Sleeping...')
                 sleep(0.2)
