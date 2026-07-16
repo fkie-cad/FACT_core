@@ -25,6 +25,14 @@
     cursor: pointer;
 }
 
+/* caret icon transition from expandable_table macro */
+.caret-icon {
+    transition: transform 0.2s ease;
+}
+[data-toggle="collapse"][aria-expanded="true"] .caret-icon {
+    transform: rotate(180deg);
+}
+
 .bg-fact {
     background-color: #255e54 !important;
 }

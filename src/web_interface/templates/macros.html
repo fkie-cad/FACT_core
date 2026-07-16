@@ -60,3 +60,26 @@
         {{ caller() }}
     </li>
 {% endmacro %}
+
+{% macro expandable_element(title, label, style="primary") %}
+    <div class="card border-{{ style }}">
+        <div class="card-header bg-{{ style }} text-white p-0" data-toggle="collapse"
+             data-target="#{{ label }}" aria-expanded="false"
+             style="cursor: pointer;">
+            <span class="btn btn-sm btn-{{ style }} border-0 w-100 shadow-none">
+                <i class="fas fa-list-ul"></i>
+                {{ title }}
+                <i class="fas fa-caret-down caret-icon"></i>
+            </span>
+        </div>
+        <div id="{{ label }}" class="collapse">
+            {{ caller() }}
+        </div>
+    </div>
+{%- endmacro %}
+
+{% macro link_to_preview(firmware, offset, plugin, root_uid) %}
+    <a href="/analysis/{{ firmware.uid }}/{{ plugin }}/ro/{{ root_uid }}?load_preview={{ offset }}">
+        {{ offset | hex }}
+    </a>
+{%- endmacro %}

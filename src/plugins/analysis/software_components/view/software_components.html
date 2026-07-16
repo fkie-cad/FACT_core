@@ -1,5 +1,7 @@
 {% extends "analysis_plugins/general_information.html" %}
 
+{% import 'macros.html' as macros %}
+
 {% block analysis_result_details %}
 
     {% for software_data in analysis_result.software_components %}
@@ -54,7 +56,8 @@
                     {% endif %}
                     <tr>
                         <td>Matched Sequence</td>
-                        <td class="p-0">
+                        <td>
+                            {% call macros.expandable_element((software_data.matching_strings | length | string) + " Matching Strings", software_data.rule + "-matches") %}
                             <table class="table table-bordered table-sm m-0">
                                 <tr>
                                     <th>identifier</th>
@@ -64,11 +67,14 @@
                                 {% for string_data in software_data.matching_strings %}
                                     <tr>
                                         <td style="min-width: 120px; width: 10%;">{{ string_data.identifier }}</td>
-                                        <td style="min-width: 120px; width: 10%;">{{ string_data.offset }}</td>
+                                        <td style="min-width: 120px; width: 10%;">
+                                            {{ macros.link_to_preview(firmware, string_data.offset, "software_components", root_uid) }}
+                                        </td>
                                         <td>{{ string_data.string }}</td>
                                     </tr>
                                 {% endfor %}
                             </table>
+                            {% endcall %}
                         </td>
                     </tr>
                     </tbody>
