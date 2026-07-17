@@ -15,6 +15,17 @@ class MetadataMock:
     version: Version
 
 
+class MockPlugin:
+    def __init__(self, dependencies: list[str]):
+        self.metadata = MetadataMock(dependencies, Version(1, 0, 0))
+
+
+class MockFo:
+    def __init__(self, scheduled: list[str], done: list[str]):
+        self.scheduled_analysis = scheduled
+        self.processed_analysis = {p: None for p in done}
+
+
 class TestAnalysisScheduling:
     class PluginMock:
         def __init__(self, dependencies):
@@ -129,3 +140,42 @@ class TestAnalysisScheduling:
         }
         result = self.scheduler._smart_shuffle(['p1', 'p2', 'p3'])
         assert result == []
+
+
+PLUGINS = {
+    'A': MockPlugin(dependencies=[]),
+    'B': MockPlugin(dependencies=['A']),
+    'C': MockPlugin(dependencies=['B']),
+    'D': MockPlugin(dependencies=['A', 'B']),
+    'E': MockPlugin(dependencies=[]),
+}
+
+
+@pytest.mark.parametrize(
+    ('scheduled', 'processed', 'expected_remaining'),
+    [
+        # 1. nothing planned -> everything can be removed
+        pytest.param([], ['A', 'B'], set(), id='empty'),
+        # 2. scheduled_analysis None -> like 1.
+        pytest.param(None, ['A', 'B'], set(), id='none'),
+        # 3. C needs B directly (not A) -> A removable, B stays
+        pytest.param(['C'], ['A', 'B'], {'B'}, id='A-removable'),
+        # 4. B needs A -> A stays
+        pytest.param(['B', 'C'], ['A'], {'A'}, id='keep-A'),
+        # 5. Multiple deps
+        pytest.param(['D'], ['A', 'B', 'E'], {'A', 'B'}, id='multi'),
+        # 6. overlapping deps
+        pytest.param(['C', 'D'], ['A', 'B', 'E'], {'A', 'B'}, id='overlap'),
+        # 7. no deps -> remove all
+        pytest.param(['E'], ['A', 'B'], set(), id='no-deps'),
+        # 8. dep missing (should not happen, should not cause an error)
+        pytest.param(['B'], ['E'], set(), id='dep-missing'),
+    ],
+)
+def test_prune_unneeded_results(scheduled, processed, expected_remaining):
+    fo = MockFo(scheduled, processed)
+    scheduler = AnalysisTaskScheduler(PLUGINS)
+
+    scheduler.prune_unneeded_results(fo)
+    remaining = set(fo.processed_analysis)
+    assert remaining == expected_remaining
