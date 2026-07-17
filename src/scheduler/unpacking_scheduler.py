@@ -22,6 +22,7 @@ from helperFunctions.process import (
     stop_processes,
 )
 from objects.firmware import Firmware
+from storage.db_connection import ReadWriteConnection
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_base import DbInterfaceError
 from unpacker.extraction_container import DOCKER_CLIENT, ExtractionContainer
@@ -77,6 +78,7 @@ class UnpackingScheduler:
         self.currently_extracted = None
         self.sync_lock = None
         self.db_interface = db_interface
+        self.db_connection: ReadWriteConnection | None = None  # created in worker init
 
     @contextmanager
     def _sync(self) -> Iterator[None]:
@@ -156,6 +158,7 @@ class UnpackingScheduler:
 
     def extraction_loop(self) -> None:
         logging.debug(f'Starting unpacking scheduler loop (pid={os.getpid()})')
+        self.db_connection = ReadWriteConnection()
         while self.stop_condition.value == 0:
             self.check_pending()
             try:
@@ -222,8 +225,8 @@ class UnpackingScheduler:
             sleep(config.backend.unpacking.delay)  # unpacking may be too fast for the FS to keep up
 
             logging.info(f'Unpacking completed: {task.uid} (extracted files: {len(extracted_objects)})')
-            # each worker needs its own interface because connections are not thread-safe
-            db_interface = self.db_interface()
+            # each worker thread needs its own session, but they can share the (thread-safe) engine/pool
+            db_interface = self.db_interface(connection=self.db_connection)
             try:
                 db_interface.add_object(task)  # save FO before submitting to analysis scheduler
                 self.post_unpack(task)
