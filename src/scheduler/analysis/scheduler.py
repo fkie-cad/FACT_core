@@ -559,6 +559,9 @@ class AnalysisScheduler:
             or fw_object.root_uid is None  # this should only be true if we are dealing with a "single file analysis"
             or self.status.fw_analysis_is_in_progress(fw_object)
         ):
+            # Check for results that are not needed as dependencies for the remaining scheduled analyses and remove them
+            # (They were already stored in the DB in _handle_collected_result, so there is no reason to keep them)
+            self.task_scheduler.prune_unneeded_results(fw_object)
             self.process_queue.put(fw_object)
         else:
             logging.debug(

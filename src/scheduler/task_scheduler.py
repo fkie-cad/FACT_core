@@ -91,3 +91,14 @@ class AnalysisTaskScheduler:
             'plugin_version': self.plugins[plugin].metadata.version,
             'analysis_date': time(),
         }
+
+    def prune_unneeded_results(self, fo: FileObject) -> None:
+        """
+        Important thing to note: We only care about direct dependencies here, because recursive ones are not needed
+        to run an analysis.
+        """
+        still_needed_deps = {
+            dep for plugin in (fo.scheduled_analysis or []) for dep in self.plugins[plugin].metadata.dependencies
+        }
+        for result_to_remove in set(fo.processed_analysis) - still_needed_deps:
+            fo.processed_analysis.pop(result_to_remove, None)
