@@ -3,11 +3,13 @@ from __future__ import annotations
 import logging
 from copy import copy
 from time import time
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 from helperFunctions.merge_generators import shuffled
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from analysis.plugin import AnalysisPluginV0
     from objects.file import FileObject
     from objects.firmware import Firmware
@@ -16,10 +18,10 @@ MANDATORY_PLUGINS = ['file_type', 'file_hashes']
 
 
 class AnalysisTaskScheduler:
-    def __init__(self, plugins):
+    def __init__(self, plugins: dict[str, AnalysisPluginV0]):
         self.plugins: dict[str, AnalysisPluginV0] = plugins
 
-    def schedule_analysis_tasks(self, fo, scheduled_analysis, mandatory=False):
+    def schedule_analysis_tasks(self, fo: FileObject, scheduled_analysis: list[str], mandatory: bool = False) -> None:
         scheduled_analysis = self._add_dependencies_recursively(copy(scheduled_analysis) or [])
         fo.scheduled_analysis = self._smart_shuffle(
             scheduled_analysis + MANDATORY_PLUGINS if mandatory else scheduled_analysis
@@ -69,7 +71,7 @@ class AnalysisTaskScheduler:
             dependency for plugin in scheduled_analyses for dependency in self.plugins[plugin].metadata.dependencies
         }.difference(scheduled_analyses)
 
-    def reschedule_failed_analysis_task(self, fw_object: Firmware | FileObject):
+    def reschedule_failed_analysis_task(self, fw_object: Firmware | FileObject) -> None:
         failed_plugin, cause = fw_object.analysis_exception
         fw_object.processed_analysis[failed_plugin] = self._get_failed_analysis_result(cause, failed_plugin)
         for plugin in fw_object.scheduled_analysis[:]:
