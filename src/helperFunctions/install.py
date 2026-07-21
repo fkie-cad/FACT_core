@@ -244,10 +244,10 @@ def check_distribution(allow_unsupported: bool = False) -> str:
         distro_data.get('debian_codename', distro_data.get('codename', distro_data.get('version_codename', ''))),
     ).lower()
     logging.debug(f'found distribution: {distro_data["pretty_name"]} (codename: {codename})')
-    supported_codenames = {'jammy', 'noble', 'resolute', 'bookworm', 'trixie', 'kali-rolling'}
+    supported_codenames = {'jammy', 'noble', 'resolute', 'trixie', 'kali-rolling'}
     if codename in supported_codenames:
         if codename == 'kali-rolling':
-            return 'bookworm'
+            return 'trixie'
         return codename
 
     msg = (
