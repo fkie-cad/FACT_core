@@ -39,6 +39,7 @@ class MetaEntry(NamedTuple):
     hid: str
     tags: dict
     submission_date: int
+    size: int
 
 
 class CachedQuery(NamedTuple):
@@ -205,7 +206,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         root_hid = self._get_fo_root_hid(entry)
         tags = {self._get_unpacker_name(entry): TagColor.LIGHT_BLUE}
         fo_hid = self._get_hid_fo(entry.uid) or entry.file_name
-        return MetaEntry(entry.uid, f'{root_hid}{fo_hid}', tags, 0)
+        return MetaEntry(entry.uid, f'{root_hid}{fo_hid}', tags, 0, entry.size)
 
     @staticmethod
     def _get_fo_root_hid(entry: FileObjectEntry) -> str:
@@ -224,7 +225,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             self._get_unpacker_name(entry): TagColor.LIGHT_BLUE,
         }
         submission_date = entry.submission_date
-        return MetaEntry(entry.uid, hid, tags, submission_date)
+        return MetaEntry(entry.uid, hid, tags, submission_date, entry.root_object.size)
 
     @staticmethod
     def _get_hid_for_fw_entry(entry: FirmwareEntry) -> str:

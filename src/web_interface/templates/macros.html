@@ -53,7 +53,10 @@
                 </div>
             </a>
             <div class="d-flex justify-content-between align-items-center">
-                <span class="footnote text-muted">{{ firmware.submission_date | nice_unix_time | safe }}</span>
+                <span class="footnote text-muted">
+                    {{ firmware.submission_date | nice_unix_time | safe }},
+                    {{ firmware.size | number_format }}
+                </span>
                 <a href="/download/{{ firmware.uid }}" class="pull-right"><i class="fas fa-download"></i></a>
             </div>
         </div>
