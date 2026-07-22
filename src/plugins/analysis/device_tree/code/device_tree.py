@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from semver import Version
 
@@ -46,7 +46,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         self,
         file_handle: io.FileIO,
         virtual_file_path: dict,
-        analyses: Dict[str, dict],
+        analyses: dict[str, dict],
     ) -> Schema:
         del virtual_file_path, analyses
 
