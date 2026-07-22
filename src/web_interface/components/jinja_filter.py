@@ -17,6 +17,8 @@ from helperFunctions.web_interface import cap_length_of_element, get_color_list
 from web_interface.filter import elapsed_time, random_collapse_id
 
 if TYPE_CHECKING:
+    from flask import Flask
+
     from web_interface.frontend_database import FrontendDatabase
 
 CHART_ELEMENT_COUNT_LIMIT = 100
@@ -27,17 +29,17 @@ class FilterClass:
     This is WEB front end main class
     """
 
-    def __init__(self, app, program_version, db: FrontendDatabase, **_):
+    def __init__(self, app: Flask, program_version: str, db: FrontendDatabase, **_):
         self._program_version = program_version
         self._app = app
         self.db = db
 
         self._setup_filters()
 
-    def _filter_print_program_version(self, *_):
-        return f'{self._program_version}'
+    def _filter_print_program_version(self, *_) -> str:
+        return str(self._program_version)
 
-    def _filter_replace_uid_with_file_name(self, input_data):
+    def _filter_replace_uid_with_file_name(self, input_data: str) -> str:
         tmp = input_data.__str__()
         uid_list = flt.get_all_uids_in_string(tmp)
         with get_shared_session(self.db.frontend) as frontend_db:
@@ -46,7 +48,7 @@ class FilterClass:
                 tmp = tmp.replace(f'>{item}<', f'>{file_name}<')
         return tmp
 
-    def _filter_replace_uid_with_hid(self, input_data, root_uid=None):
+    def _filter_replace_uid_with_hid(self, input_data: str, root_uid: str | None = None) -> str:
         tmp = str(input_data)
         if tmp == 'None':
             return ' '
@@ -55,12 +57,12 @@ class FilterClass:
             tmp = tmp.replace(item, self.db.frontend.get_hid(item, root_uid=root_uid))
         return tmp
 
-    def _filter_replace_comparison_uid_with_hid(self, input_data, root_uid=None):
+    def _filter_replace_comparison_uid_with_hid(self, input_data: str, root_uid: str | None = None) -> str:
         tmp = self._filter_replace_uid_with_hid(input_data, root_uid)
         res = tmp.split(';')
         return '  ||  '.join(res)
 
-    def _filter_replace_uid_with_hid_link(self, input_data, root_uid=None):
+    def _filter_replace_uid_with_hid_link(self, input_data: str, root_uid: str | None = None) -> str:
         content = str(input_data)
         if content == 'None':
             return ' '
@@ -70,7 +72,13 @@ class FilterClass:
             content = content.replace(uid, f'<a style="text-reset" href="/analysis/{uid}/ro/{root_uid}">{hid}</a>')
         return content
 
-    def _filter_nice_uid_list(self, uids, root_uid=None, selected_analysis=None, filename_only=False):
+    def _filter_nice_uid_list(
+        self,
+        uids: list[str],
+        root_uid: str | None = None,
+        selected_analysis: str | None = None,
+        filename_only: bool = False,
+    ) -> str:
         root_uid = none_to_none(root_uid)
         if not is_list_of_uids(uids):
             return uids
@@ -117,13 +125,16 @@ class FilterClass:
             '</span>'
         )
 
-    def check_auth(self, _):
+    @staticmethod
+    def check_auth(*_) -> bool:
         return config.frontend.authentication.enabled
 
-    def data_to_chart_limited(self, data, limit: int | None = None, color_list=None):
+    def data_to_chart_limited(
+        self, data: list[tuple[str, int]], limit: int | None = None, color_list: list[str] | None = None
+    ) -> dict[str, list]:
         limit = self._get_chart_element_count() if limit is None else limit
         try:
-            label_list, value_list = (list(d) for d in zip(*data))
+            label_list, value_list = (list(d) for d in zip(*data, strict=True))
         except ValueError:
             return None
         label_list, value_list = flt.set_limit_for_data_to_chart(label_list, limit, value_list)
@@ -133,18 +144,19 @@ class FilterClass:
             'datasets': [{'data': value_list, 'backgroundColor': color_list}],
         }
 
-    def _get_chart_element_count(self):
+    @staticmethod
+    def _get_chart_element_count() -> int:
         limit = config.frontend.max_elements_per_chart
         if limit > CHART_ELEMENT_COUNT_LIMIT:
             logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
             return CHART_ELEMENT_COUNT_LIMIT
         return limit
 
-    def data_to_chart(self, data):
+    def data_to_chart(self, data: list[tuple[str, int]]) -> dict[str, list]:
         color_list = get_color_list(1) * len(data)
         return self.data_to_chart_limited(data, limit=0, color_list=color_list)
 
-    def _setup_filters(self):
+    def _setup_filters(self) -> None:
         self._app.jinja_env.add_extension('jinja2.ext.do')
         self._app.jinja_env.filters.update(
             {
