@@ -34,7 +34,7 @@ if [ -n "${UBUNTU_CODENAME}" ]; then
 elif [ -n "${DEBIAN_CODENAME}" ]; then
   CODENAME="${DEBIAN_CODENAME}"
 elif  [ "${CODENAME}" = "kali-rolling" ]; then
-  CODENAME=bookworm
+  CODENAME=trixie
 elif [ -z "${CODENAME}" ]; then
   echo "Could not get distribution codename. Please make sure that your distribution is compatible to ubuntu/debian."
   exit 1
@@ -42,7 +42,7 @@ fi
 
 echo "detected distro ${DISTRO} and codename ${CODENAME}"
 
-supported_codenames=("jammy" "noble" "bookworm" "trixie" "kali-rolling")
+supported_codenames=("jammy" "noble" "trixie" "kali-rolling")
 if [[ ! " ${supported_codenames[*]} " =~ ${CODENAME} ]]; then
     echo "Warning: your distribution is outdated or unsupported and the installation may not work as expected."
 fi

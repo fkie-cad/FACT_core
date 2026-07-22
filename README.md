@@ -80,11 +80,11 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 
 It's principally possible to install FACT on any Linux distribution, but the installer is limited to
 
-- Debian 12/13 or compatible (stable)
+- Debian 13 or compatible (stable)
 - Ubuntu 22.04/24.04/26.04 or compatible (stable)
 - Kali (experimental)
 
-Installation on older distributions (e.g. Debian 11 "Bullseye" or Ubuntu 20.04 "Focal") may still work, but is not
+Installation on older distributions (e.g. Debian 12 "Bookworm" or Ubuntu 20.04 "Focal") may still work, but is not
 considered stable, since these distributions have reached their end of life.
 
 FACT requires Python 3.10–3.14 (should be the default in all supported distributions)
