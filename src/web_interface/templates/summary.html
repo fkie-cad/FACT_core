@@ -16,14 +16,18 @@
         {% for item in summary_of_included_files | sort %}
             <tr>
                 {% if not inverted %}
-                    <td>{{ item | wordwrap(width=60, break_long_words=True) }}</td>
+                    <td>
+                        {{ item | replace_critical | wordwrap(width=60, break_long_words=True) | safe }}
+                    </td>
                     <td>
                         {{ summary_of_included_files[item] | nice_uid_list(root_uid=root_uid, selected_analysis=selected_analysis) | safe }}
                     </td>
                 {% else %}
-                    <td style="word-break: break-all;">{{ item | replace_uid_with_hid_link | safe }}</td>
+                    <td style="word-break: break-all;">
+                        {{ item | replace_uid_with_hid_link | safe }}
+                    </td>
                     <td>
-                        {{ summary_of_included_files[item] | list_group_collapse | safe }}
+                        {{ summary_of_included_files[item] | replace_critical | list_group_collapse | safe }}
                     </td>
                 {% endif %}
             </tr>
