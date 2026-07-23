@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import re
-from typing import AnyStr
+from typing import TYPE_CHECKING, AnyStr
 
 from helperFunctions.data_conversion import make_bytes
-from helperFunctions.hash import get_sha256
+from helperFunctions.hash import get_sha256, get_sha256_for_path
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 UID_REGEX = re.compile(r'[a-f0-9]{64}_[0-9]+')
 
@@ -21,6 +24,12 @@ def create_uid(input_data: bytes) -> str:
     return f'{hash_value}_{size}'
 
 
+def create_uid_from_path(path: Path) -> str:
+    hash_value = get_sha256_for_path(path)
+    size = path.stat().st_size
+    return f'{hash_value}_{size}'
+
+
 def is_uid(input_string: AnyStr) -> bool:
     """
     Check if a string is a valid UID
@@ -31,9 +40,7 @@ def is_uid(input_string: AnyStr) -> bool:
     if not isinstance(input_string, str):
         return False
     match = UID_REGEX.match(input_string)
-    if match and match.group(0) == input_string:
-        return True
-    return False
+    return bool(match and match.group(0) == input_string)
 
 
 def is_list_of_uids(input_list: list[AnyStr] | set[AnyStr]) -> bool:

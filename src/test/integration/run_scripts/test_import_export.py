@@ -9,8 +9,8 @@ from test.integration.storage.helper import create_fw_with_child_fo
 def test_import_export(backend_db, admin_db, file_service):
     fo, fw = create_fw_with_child_fo()
     backend_db.insert_multiple_objects(fw, fo)
-    file_service.store_file(fw)
-    file_service.store_file(fo)
+    file_service.store_file(fw.file_path.read_bytes(), fw.uid)
+    file_service.store_file(fo.file_path.read_bytes(), fo.uid)
     assert backend_db.is_firmware(fw.uid)
 
     with TemporaryDirectory() as tmpdir:

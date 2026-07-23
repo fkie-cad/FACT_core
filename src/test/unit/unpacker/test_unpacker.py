@@ -12,8 +12,10 @@ EXTRACTION_DIR = TEST_DATA_DIR / 'files'
 
 
 @pytest.fixture
-def unpacker():
-    return Unpacker(unpacking_locks=UnpackingLockManager())
+def unpacker(monkeypatch):
+    unpacker = Unpacker(unpacking_locks=UnpackingLockManager())
+    monkeypatch.setattr(unpacker.file_service, 'move_file_to_storage', lambda *_: None)
+    return unpacker
 
 
 @pytest.fixture
@@ -60,16 +62,16 @@ class TestUnpackerCore:
     }
 )
 class TestUnpackerCoreMain:
-    test_file_path = str(TEST_DATA_DIR / 'container/test.zip')
+    test_file_path = TEST_DATA_DIR / 'container/test.zip'
 
     def main_unpack_check(self, unpacker, test_object, number_unpacked_files, first_unpacker):
         with TemporaryDirectory() as tmp_dir:
             extracted_files = unpacker.unpack(test_object, tmp_dir)
         assert len(test_object.files_included) == number_unpacked_files, 'not all files added to parent'
         assert len(extracted_files) == number_unpacked_files, 'not all files found'
-        assert (
-            test_object.processed_analysis['unpacker']['result']['plugin_used'] == first_unpacker
-        ), 'Wrong plugin in Meta'
+        assert test_object.processed_analysis['unpacker']['result']['plugin_used'] == first_unpacker, (
+            'Wrong plugin in Meta'
+        )
         assert (
             test_object.processed_analysis['unpacker']['result']['number_of_unpacked_files'] == number_unpacked_files
         ), 'Number of unpacked files wrong in Meta'
@@ -81,11 +83,11 @@ class TestUnpackerCoreMain:
             assert item.depth == parent.depth + 1, 'depth of child not correct'
 
     def test_main_unpack_function(self, unpacker):
-        test_file = FileObject(file_path=self.test_file_path)
+        test_file = FileObject.from_path(self.test_file_path)
         self.main_unpack_check(unpacker, test_file, 3, '7z')
 
     def test_unpacking_depth_reached(self, unpacker):
-        test_file = FileObject(file_path=self.test_file_path)
+        test_file = FileObject.from_path(self.test_file_path)
         test_file.depth = 10
         with TemporaryDirectory() as tmp_dir:
             unpacker.unpack(test_file, tmp_dir)

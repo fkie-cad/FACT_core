@@ -9,6 +9,7 @@ import queue
 import signal
 import time
 import traceback
+from pathlib import Path  # noqa: TC003  # needed by pydantic
 from typing import TYPE_CHECKING
 
 import psutil
@@ -42,7 +43,7 @@ class PluginRunner:
         #: See :py:class:`FileObject`.
         virtual_file_path: dict
         #: The path of the file on the disk
-        path: str
+        path: Path
         #: A dictionary containing plugin names as keys and their analysis as value.
         dependencies: dict
         #: The schedulers state associated with the file that is analyzed.
@@ -125,7 +126,7 @@ class PluginRunner:
         self._in_queue.put(
             PluginRunner.Task(
                 virtual_file_path=file_object.virtual_file_path,
-                path=self._file_service.generate_path(file_object),
+                path=self._file_service.generate_path_from_uid(file_object.uid),
                 dependencies=dependencies,
                 scheduler_state=file_object,
             )
@@ -293,7 +294,7 @@ class Worker(mp.Process):
         Exceptions and formatted tracebacks are also written to ``conn``.
         """
         try:
-            result = plugin.get_analysis(io.FileIO(task.path), task.virtual_file_path, task.dependencies)
+            result = plugin.get_analysis(io.FileIO(str(task.path)), task.virtual_file_path, task.dependencies)
         except AnalysisFailedError as exc:
             result = f'Analysis failed: {exc}'
         except Exception as exc:

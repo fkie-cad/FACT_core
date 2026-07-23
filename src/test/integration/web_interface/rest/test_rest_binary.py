@@ -38,7 +38,7 @@ class TestRestDownload(RestTestBase):
         finally:
             backend_binding.shutdown()
 
-        assert standard_b64encode(test_firmware.binary).decode() in response
+        assert standard_b64encode(test_firmware.file_path.read_bytes()).decode() in response
         assert f'"file_name": "{test_firmware.file_name}"' in response
         assert f'"SHA256": "{test_firmware.sha256}"' in response
 

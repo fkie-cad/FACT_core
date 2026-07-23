@@ -293,14 +293,14 @@ def test_collect_analysis_tags(backend_db, frontend_db):
     tags2 = {'tag_c': {'color': 'success', 'value': 'tag c', 'propagate': True}}
     insert_test_fo(
         backend_db,
-        'fo1',
+        'fo_1',
         analysis={
             'foo': generate_analysis_entry(tags=tags1),
             'bar': generate_analysis_entry(tags=tags2),
         },
     )
 
-    fo = frontend_db.get_object('fo1')
+    fo = frontend_db.get_object('fo_1')
     assert 'foo' in fo.analysis_tags
     assert 'bar' in fo.analysis_tags
     assert set(fo.analysis_tags['foo']) == {'tag_a', 'tag_b'}

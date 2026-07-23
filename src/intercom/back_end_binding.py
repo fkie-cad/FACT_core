@@ -20,7 +20,6 @@ from storage.db_interface_common import DbInterfaceCommon
 from storage.file_service import FileService
 
 if TYPE_CHECKING:
-    from objects.file import FileObject
     from objects.firmware import Firmware
     from scheduler.analysis import AnalysisScheduler
     from scheduler.comparison_scheduler import ComparisonScheduler
@@ -54,6 +53,7 @@ class InterComBackEndBinding:
             InterComBackEndTarRepackTask(),
             InterComBackEndBinarySearchTask(),
             InterComBackEndUpdateTask(self.analysis_service.update_analysis_of_object_and_children),
+            InterComBackEndStoreFileTask(),
             InterComBackEndDeleteFile(
                 unpacking_locks=self.unpacking_locks,
                 db_interface=DbInterfaceCommon(),
@@ -93,14 +93,6 @@ class InterComBackEndBinding:
 class InterComBackEndAnalysisTask(InterComListener):
     CONNECTION_TYPE = 'analysis_task'
 
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.file_service = FileService()
-
-    def pre_process(self, task: FileObject, task_id: str) -> FileObject:  # noqa: ARG002
-        self.file_service.store_file(task)
-        return task
-
 
 class InterComBackEndReAnalyzeTask(InterComListener):
     CONNECTION_TYPE = 're_analyze_task'
@@ -109,14 +101,27 @@ class InterComBackEndReAnalyzeTask(InterComListener):
         super().__init__(*args)
         self.file_service = FileService()
 
-    def pre_process(self, task: Firmware, task_id: str) -> Firmware:  # noqa: ARG002
-        task.file_path = self.file_service.generate_path(task)
-        task.create_binary_from_path()
-        return task
-
 
 class InterComBackEndUpdateTask(InterComBackEndReAnalyzeTask):
     CONNECTION_TYPE = 'update_task'
+
+
+class InterComBackEndStoreFileTask(InterComListenerAndResponder):
+    CONNECTION_TYPE = 'store_file_task'
+    OUTGOING_CONNECTION_TYPE = 'store_file_task_resp'
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.file_service = FileService()
+
+    def get_response(self, task: tuple[bytes, str]) -> bool:
+        contents, uid = task
+        try:
+            self.file_service.store_file(contents, uid)
+            return True
+        except Exception as error:
+            logging.exception(f'Failed to store file {uid}: {error}')
+            return False
 
 
 class InterComBackEndSingleFileTask(InterComListenerAndResponder):

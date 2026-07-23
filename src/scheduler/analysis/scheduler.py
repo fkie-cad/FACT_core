@@ -368,8 +368,6 @@ class AnalysisScheduler:
                 analysis_to_do, 'dependency is missing (could be skipped)'
             )
         else:
-            if file_object.binary is None:
-                self._set_binary(file_object)
             runner = self._plugin_runners[plugin.metadata.name]
             try:
                 runner.queue_analysis(file_object)
@@ -384,12 +382,6 @@ class AnalysisScheduler:
             self.status.add_analysis(file_object, analysis_to_do)
             self.post_analysis(file_object.uid, analysis_to_do, analysis_result)
             self._check_further_process_or_complete(file_object)
-
-    def _set_binary(self, file_object: FileObject) -> None:
-        # the file_object.binary may be missing in case of an update
-        if file_object.file_path is None:
-            file_object.file_path = self.file_service.generate_path(file_object)
-        file_object.create_binary_from_path()
 
     # ---- 1. Is forced update ----
 

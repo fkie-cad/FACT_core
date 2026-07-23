@@ -30,13 +30,13 @@ class TestFileAddition:
         comparison_finished_event,
         post_analysis_queue,
     ):
-        test_fw_1 = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
-        test_fw_2 = Firmware(file_path=f'{get_test_data_dir()}/regression_one')
+        test_fw_1 = Firmware.from_path(get_test_data_dir() / 'container/test.zip')
+        test_fw_2 = Firmware.from_path(get_test_data_dir() / 'regression_one')
 
         for fw in [test_fw_1, test_fw_2]:
             fw.version, fw.vendor, fw.device_name, fw.device_class = ['foo'] * 4
             fw.release_date = '2017-01-01'
-            unpacking_scheduler.unpacker.file_service.store_file(fw)
+            unpacking_scheduler.unpacker.file_service.store_file(fw.file_path.read_bytes(), fw.uid)
             unpacking_scheduler.add_task(fw)
 
         assert analysis_finished_event.wait(timeout=20)

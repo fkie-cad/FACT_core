@@ -306,11 +306,10 @@ def scheduler_test_config(request) -> SchedulerTestConfig:
 
 
 def _store_file_if_it_does_not_exist(file_service, file_object):
-    path = file_service.generate_path(file_object)
+    path = file_service.generate_path_from_uid(file_object.uid)
     if Path(path).exists():
         return
-
-    file_service.store_file(file_object)
+    file_service.store_file(file_object.file_path.read_bytes(), file_object.uid)
 
 
 @pytest.fixture

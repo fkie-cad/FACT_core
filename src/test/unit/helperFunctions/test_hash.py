@@ -1,6 +1,10 @@
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+
 from helperFunctions.hash import (
     get_md5,
     get_sha256,
+    get_sha256_for_path,
 )
 
 TEST_STRING = 'test string'
@@ -10,6 +14,13 @@ TEST_MD5 = '6f8db599de986fab7a21625b7916589c'
 
 def test_get_sha256():
     assert get_sha256(TEST_STRING) == TEST_SHA256, 'not correct from string'
+
+
+def test_get_sha256_for_path():
+    with NamedTemporaryFile() as file:
+        path = Path(file.name)
+        path.write_text(TEST_STRING)
+        assert get_sha256_for_path(path) == TEST_SHA256, 'not correct from string'
 
 
 def test_get_md5():

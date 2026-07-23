@@ -11,7 +11,7 @@ class TestFileAddition:
         backend_db_class=MockDbInterface,
     )
     def test_unpack_and_analyse(self, analysis_scheduler, unpacking_scheduler, post_analysis_queue):
-        test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
+        test_fw = Firmware.from_path(get_test_data_dir() / 'container/test.zip')
         test_fw.release_date = '1970-01-01'
 
         unpacking_scheduler.add_task(test_fw)

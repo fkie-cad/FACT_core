@@ -1,10 +1,17 @@
-from __future__ import annotations
+import sys
+from dataclasses import dataclass, field
 
-from helperFunctions.hash import get_md5
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    # FixMe: remove when 3.10 is EoL
+    from typing_extensions import Self
+
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 
 
+@dataclass(kw_only=True)
 class Firmware(FileObject):
     """
     Uploaded firmware image representation.
@@ -48,53 +55,61 @@ class Firmware(FileObject):
     It is important to understand that said tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
     """  # noqa: E501
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    #: Device name string identifier.
+    #: Can be freely defined during upload.
+    #:
+    #: This attribute is **mandatory** and shall never be `None`.
+    device_name: str | None = None
 
-        #: Device name string identifier.
-        #: Can be freely defined during upload.
-        #:
-        #: This attribute is **mandatory** and shall never be `None`.
-        self.device_name: str | None = None
+    #: Firmware version string identifier.
+    #: Can be freely defined during upload.
+    #:
+    #: This attribute is **mandatory** and shall never be `None`.
+    version: str | None = None
 
-        #: Firmware version string identifier.
-        #: Can be freely defined during upload.
-        #:
-        #: This attribute is **mandatory** and shall never be `None`.
-        self.version: str | None = None
+    #: Device class string identifier.
+    #: Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.  # noqa: E501
+    #: FACT requires a user to categorize analyzed firmware images by this attribute.
+    #: While this attribute is **mandatory**, it can be freely defined during upload.
+    device_class: str | None = None
 
-        #: Device class string identifier.
-        #: Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.  # noqa: E501
-        #: FACT requires a user to categorize analyzed firmware images by this attribute.
-        #: While this attribute is **mandatory**, it can be freely defined during upload.
-        self.device_class: str | None = None
+    #: Device vendor string identifier.
+    #:
+    #: This attribute is **mandatory** and shall never be `None`.
+    vendor: str | None = None
 
-        #: Device vendor string identifier.
-        #:
-        #: This attribute is **mandatory** and shall never be `None`.
-        self.vendor: str | None = None
+    #: Specifies the parts of an embedded system that are contained in this firmware.
+    #: While this meta data string can be freely defined during firmware upload,
+    #: FACT provides a preset of frequently used values: `complete`, `kernel`, `bootloader`, and `root-fs`.
+    #:
+    #: This attribute is **optional**. The firmware image is assumed to be `complete` if the assigned/default value is an empty string.  # noqa: E501
+    part: str = ''
 
-        #: Specifies the parts of an embedded system that are contained in this firmware.
-        #: While this meta data string can be freely defined during firmware upload,
-        #: FACT provides a preset of frequently used values: `complete`, `kernel`, `bootloader`, and `root-fs`.
-        #:
-        #: This attribute is **optional**. The firmware image is assumed to be `complete` if the assigned/default value is an empty string.  # noqa: E501
-        self.part: str = ''
+    #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ `YYYY-MM-DD` format.  # noqa: E501
+    #:
+    #: This attribute is **optional**. The release date is assumed to be the start of UNIX epoch time (`1970-01-01`) if not specificed.  # noqa: E501
+    release_date: str | None = None
 
-        #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ `YYYY-MM-DD` format.  # noqa: E501
-        #:
-        #: This attribute is **optional**. The release date is assumed to be the start of UNIX epoch time (`1970-01-01`) if not specificed.  # noqa: E501
-        self.release_date: str | None = None
+    #: User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {'tag': :class:`helperFunctions.tag.TagColor`} dictionary.  # noqa: E501
+    #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.  # noqa: E501
+    #:
+    #: This attribute is **optional**, the dict may be empty.
+    tags: dict[str, TagColor] = field(default_factory=dict)
 
-        #: User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {'tag': :class:`helperFunctions.tag.TagColor`} dictionary.  # noqa: E501
-        #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.  # noqa: E501
-        #:
-        #: This attribute is **optional**, the dict may be empty.
-        self.tags: dict[str, TagColor] = {}
+    _root_uid: str | None = field(init=False, default=None)
 
-        self.root_uid = self.uid
+    @property
+    def root_uid(self) -> str:
+        root_uid = self._root_uid
+        if root_uid is None:
+            root_uid = self._root_uid = self.uid
+        return root_uid
 
-    def set_part_name(self, part: str):
+    @root_uid.setter
+    def root_uid(self, uid: str) -> None:
+        self._root_uid = uid
+
+    def set_part_name(self, part: str) -> None:
         """
         Setter for `self.part_name`.
 
@@ -106,18 +121,7 @@ class Firmware(FileObject):
         else:
             self.part = part
 
-    def set_binary(self, binary: bytes):
-        """
-        See :meth:`objects.file.FileObject.set_binary`.
-
-        :param binary: binary data of the file object
-        :type binary: bytes
-        """
-        super().set_binary(binary)
-        self.root_uid = self.uid
-        self.md5 = get_md5(binary)
-
-    def set_tag(self, tag: str):
+    def set_tag(self, tag: str) -> None:
         """
         Set a user-defined tag in the color gray.
 
@@ -159,13 +163,13 @@ class Firmware(FileObject):
         return json
 
     @classmethod
-    def from_json(cls, json: dict, root_uid: str | None = None):
-        instance = super().from_json(json, root_uid)
-        instance.device_class = json.get('device_class')
-        instance.device_name = json.get('device_name')
-        instance.part = json.get('part')
-        instance.release_date = json.get('release_date')
-        instance.tags = json.get('tags')
-        instance.vendor = json.get('vendor')
-        instance.version = json.get('version')
-        return instance
+    def from_json(cls, json_dict: dict, root_uid: str | None = None) -> Self:
+        fw = super().from_json(json_dict, root_uid)
+        fw.device_class = json_dict.get('device_class')
+        fw.device_name = json_dict.get('device_name')
+        fw.part = json_dict.get('part', '')
+        fw.release_date = json_dict.get('release_date')
+        fw.tags = json_dict.get('tags', {})
+        fw.vendor = json_dict.get('vendor')
+        fw.version = json_dict.get('version')
+        return fw
