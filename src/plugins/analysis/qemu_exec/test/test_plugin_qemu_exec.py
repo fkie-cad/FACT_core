@@ -48,7 +48,7 @@ class MockUnpacker:
 
 
 @pytest.fixture
-def execute_shell_fails(monkeypatch):  # noqa: PT004
+def execute_shell_fails(monkeypatch):
     monkeypatch.setattr(qemu_exec, 'subprocess.run', CompletedProcess('DONT_CARE', 1))
 
 
@@ -82,7 +82,7 @@ class DockerClientMock:
 
 
 @pytest.fixture
-def execute_docker_error(monkeypatch):  # noqa: PT004
+def execute_docker_error(monkeypatch):
     monkeypatch.setattr('docker.client.from_env', DockerClientMock)
 
 
@@ -96,7 +96,7 @@ def test_find_relevant_files():
     result = sorted(qemu_exec._find_relevant_files(Path(tmp_dir.name), root_path=Path(tmp_dir.name)))
     assert len(result) == 4
 
-    path_list, mime_types = list(zip(*result))
+    path_list, mime_types = list(zip(*result, strict=True))
     for path in ['/lib/ld.so.1', '/lib/libc.so.6', '/test_mips_static', '/usr/bin/test_mips']:
         assert path in path_list
     assert all('MIPS' in mime for mime in mime_types)
