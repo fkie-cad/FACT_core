@@ -429,5 +429,5 @@ class TestQemuExecUnpacker:
             assert 'get_files_test' in content
 
     def test_unpack_fo__path_not_found(self):
-        with self.unpacker.unpack_file('foo/bar') as tmp_dir:
+        with self.unpacker.unpack_file(Path('foo/bar')) as tmp_dir:
             assert tmp_dir is None

@@ -61,8 +61,8 @@ ARCH_TO_BIN_DICT = OrderedDict(
 
 class Unpacker(UnpackBase):
     @contextmanager
-    def unpack_file(self, file_path: str):
-        if not file_path or not Path(file_path).is_file():
+    def unpack_file(self, file_path: Path):
+        if not file_path or not file_path.is_file():
             logging.error(f'could not unpack {file_path}: file not found')
             yield None
             return
@@ -178,7 +178,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         del virtual_file_path
         if analyses['file_type'].mime in EXECUTABLE_TYPES:
             return self._process_included_binary()
-        return self._process_container(file_handle.name)
+        return self._process_container(Path(file_handle.name))
 
     def _process_included_binary(self) -> Schema:
         # File should get analyzed when the parent file (container/file system/etc.) gets passed to this plugin
@@ -188,7 +188,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             included_file_results=[],
         )
 
-    def _process_container(self, file_path: str) -> Schema:
+    def _process_container(self, file_path: Path) -> Schema:
         with self.unpacker.unpack_file(file_path) as extraction_dir:
             return self.Schema(
                 parent_flag=False,
