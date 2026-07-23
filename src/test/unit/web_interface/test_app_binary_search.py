@@ -12,7 +12,7 @@ class DbMock(CommonDatabaseMock):
     @staticmethod
     def generic_search(search_dict: dict, *_, **__):
         if 'test_uid' in str(search_dict) or search_dict == {}:
-            return [MetaEntry('test_uid', 'hid', {}, 0)]
+            return [MetaEntry('test_uid', 'hid', {}, 0, 1337)]
         return []
 
     @staticmethod
@@ -78,6 +78,7 @@ class TestAppBinarySearch:
             },
         )
         assert 'test_uid' in response
+        assert '1.31 KiB' in response
 
     def test_binary_search_missing_cache(self, test_client):
         uid_not_in_db = f'{QUERY_CACHE_UID}1234'
