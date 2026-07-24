@@ -26,6 +26,12 @@ api = Namespace('rest/analysis', description='Request the analysis results of a 
                 'type': 'boolean',
                 'default': 'false',
             },
+            'recursive_summary': {
+                'description': 'Include summary of included files for requested analysis result',
+                'in': 'query',
+                'type': 'boolean',
+                'default': 'false',
+            },
         },
     },
 )
@@ -44,7 +50,22 @@ class RestAnalysis(RestResourceBase):
         """
         Get the analysis results of a specific plugin for a specific file.
         """
-        analysis = self.db.frontend.get_analysis(uid, plugin)
+        recursive_summary, analysis = [], []
+        if 'summary' in request.args:
+            summary_flag = get_boolean_from_request(request.args, 'recursive_summary')
+            if summary_flag:
+                fo = self.db.frontend.get_object(
+                    uid,
+                    analysis_filter=[
+                        plugin,
+                    ],
+                )
+                analysis = fo.processed_analysis[plugin]
+                recursive_summary = self.db.frontend.get_summary(fo, plugin, summary_flag) if fo else []
+
+        if not analysis:
+            analysis = self.db.frontend.get_analysis(uid, plugin)
+
         request_data = {'uid': uid, 'plugin': plugin}
 
         if not analysis:
@@ -56,7 +77,7 @@ class RestAnalysis(RestResourceBase):
                 return_code = HTTPStatus.PRECONDITION_FAILED
             return error_message(message, self.URL, request_data, return_code=return_code)
 
-        return success_message({'analysis': analysis}, self.URL, request_data)
+        return success_message({'analysis': analysis, 'recursive_summary': recursive_summary}, self.URL, request_data)
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @api.doc(
