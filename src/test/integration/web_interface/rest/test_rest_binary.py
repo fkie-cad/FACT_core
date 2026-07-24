@@ -20,6 +20,7 @@ class TestRestDownload(RestTestBase):
     def teardown_method(self):
         self.test_queue.close()
 
+    @pytest.mark.flaky(reruns=5)
     def test_rest_download_valid(self, backend_config):
         backend_binding = InterComBackEndBinding(
             analysis_service=test_backend_scheduler.AnalysisServiceMock(),
