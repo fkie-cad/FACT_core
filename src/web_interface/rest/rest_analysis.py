@@ -50,10 +50,12 @@ class RestAnalysis(RestResourceBase):
         """
         Get the analysis results of a specific plugin for a specific file.
         """
-        skip_summary = 'summary' not in request.args or not get_boolean_from_request(request.args, 'recursive_summary')
+        skip_summary = 'recursive_summary' not in request.args or not get_boolean_from_request(
+            request.args, 'recursive_summary'
+        )
         if skip_summary:
             analysis = self.db.frontend.get_analysis(uid, plugin)
-            recursive_summary = []
+            recursive_summary = {}
         else:
             fo = self.db.frontend.get_object(
                 uid,
@@ -62,7 +64,7 @@ class RestAnalysis(RestResourceBase):
                 ],
             )
             analysis = fo.processed_analysis[plugin] if fo else []
-            recursive_summary = self.db.frontend.get_summary(fo, plugin) if fo else []
+            recursive_summary = self.db.frontend.get_summary(fo, plugin) if fo else {}
 
         request_data = {'uid': uid, 'plugin': plugin}
 
