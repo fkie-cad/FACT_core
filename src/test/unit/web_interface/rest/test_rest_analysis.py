@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from test.common_helper import TEST_FW, CommonDatabaseMock
@@ -18,8 +20,9 @@ class AnalysisDBMock(CommonDatabaseMock):
     @staticmethod
     def get_object(uid):
         if uid == TEST_FW.uid:
-            TEST_FW.processed_analysis = {PLUGIN: ANALYSIS_RESULT}
-            return TEST_FW
+            fw = deepcopy(TEST_FW)
+            fw.processed_analysis = {PLUGIN: ANALYSIS_RESULT}
+            return fw
         return None
 
     def exists(self, uid):
