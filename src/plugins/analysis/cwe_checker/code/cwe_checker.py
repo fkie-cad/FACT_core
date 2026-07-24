@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from docker.types import Mount
 from pydantic import BaseModel
@@ -31,19 +31,19 @@ from helperFunctions.docker import run_docker_container
 if TYPE_CHECKING:
     from io import FileIO
 
-DOCKER_IMAGE = 'fkiecad/cwe_checker:stable'
+DOCKER_IMAGE = 'ghcr.io/fkie-cad/cwe_checker@sha256:e0cde1e4e6abf7ce74c4409f4b93bf8c9a00f52c486b5d7b4e94a84805352151'
 SUPPORTED_ARCHS = ('arm', 'x86', 'x64', 'mips', 'ppc')
 
 
 class CweResult(BaseModel):
     cwe_id: str
-    warnings: List[str]
+    warnings: list[str]
     plugin_version: str
 
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        cwe_results: List
+        cwe_results: list
 
     def __init__(self):
         super().__init__(

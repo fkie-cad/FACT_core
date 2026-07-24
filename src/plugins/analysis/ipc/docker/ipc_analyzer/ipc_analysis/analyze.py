@@ -89,9 +89,17 @@ def process_one_varnode(ghidra_analysis, func, index, varnode, sources, prev):
     if varnode.isAddress():
         addr = varnode.getAddress().getOffset()
         try:
-            result.append(
-                ghidra_analysis.flat_api.getDataAt(ghidra_analysis.flat_api.toAddr(addr)).getValue().getOffset()
-            )
+            data = ghidra_analysis.flat_api.getDataAt(ghidra_analysis.flat_api.toAddr(addr))
+            if data is not None:
+                value = data.getValue()
+                if hasattr(value, 'getOffset'):
+                    result.append(value.getOffset())  # Pointer -> dereference
+                elif isinstance(value, (int, long)):
+                    result.append(value)
+                else:
+                    result.append(addr)  # string or scalar
+            else:
+                result.append(addr)
         except AttributeError:
             result.append(addr)
         return result
