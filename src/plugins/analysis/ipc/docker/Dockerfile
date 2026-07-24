@@ -1,13 +1,11 @@
-FROM fkiecad/ghidra_headless_base:10.2.3 as runtime
+FROM ghcr.io/fkie-cad/ghidra_headless_base:v11.2.1 as runtime
 
 WORKDIR /ipc
 
-RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends python3 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# hadolint ignore=DL3018
+RUN apk add --no-cache python3
 
-COPY ipc_analyzer/ /opt/ghidra/Ghidra/Features/Python/ghidra_scripts/
+COPY ipc_analyzer/ /opt/ghidra/Ghidra/Features/Jython/ghidra_scripts/
 COPY ghidra_headless.py .
 
 ENTRYPOINT ["/ipc/ghidra_headless.py"]

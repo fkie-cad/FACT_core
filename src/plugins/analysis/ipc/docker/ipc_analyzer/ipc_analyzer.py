@@ -1,5 +1,5 @@
 # @category IPC
-
+# -*- coding: utf-8 -*-
 
 # flake8: noqa
 
@@ -157,24 +157,100 @@ def parse_static_data(ghidra_analysis, argument):
     """
     result = []
     for arg in argument:
-        addr = ghidra_analysis.flat_api.toAddr(arg)
-        static_data = ghidra_analysis.flat_api.getDataAt(addr)
-        if static_data is not None:
-            result.append(str(static_data.getDefaultValueRepresentation().strip('"')))
-        else:
-            # Case if the string is less than 5 characters long
+        print("Found format string candidate: {}, {}".format(arg, type(arg)))
+        if isinstance(arg, basestring) and arg.endswith('h'):
             try:
-                byte = ghidra_analysis.flat_api.getByte(addr)
-                c_string = ''
-                for i in range(6):
-                    if byte == 0:
-                        break
-                    c_string += chr(byte)
-                    byte = ghidra_analysis.flat_api.getByte(addr.add(i + 1))
-                result.append(c_string.encode('utf-8').strip())
-            except ghidra.program.model.mem.MemoryAccessException:
+                arg = long(arg.rstrip('h'), 16)
+            except (ValueError, TypeError):
                 result.append(arg)
+                continue
+
+        resolved = _resolve_to_string(ghidra_analysis, arg)
+        if resolved is not None:
+            result.append(resolved)
+        else:
+            result.append(arg)
     return result
+
+
+def _resolve_to_string(ghidra_analysis, addr_long):
+    """
+    Resolves an address to a string. Follows pointers if necessary.
+
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param addr_long: long
+    :return: str or None
+    """
+    addr = ghidra_analysis.flat_api.toAddr(addr_long)
+    static_data = ghidra_analysis.flat_api.getDataAt(addr)
+
+    if static_data is None:
+        return _read_string_at(ghidra_analysis, addr)
+
+    # case 1: is already a string
+    try:
+        value = static_data.getValue()
+        if isinstance(value, basestring):
+            return str(value)
+    except Exception:
+        pass
+
+    # case 2: pointer -> dereference and read string
+    if hasattr(static_data.getDataType(), 'getDataType'):
+        try:
+            value = static_data.getValue()
+            if hasattr(value, 'getOffset'):
+                target_addr = ghidra_analysis.flat_api.toAddr(value.getOffset())
+                return _read_string_at(ghidra_analysis, target_addr)
+        except Exception:
+            pass
+
+    # case 3: getDefaultValueRepresentation is hex
+    repr_value = str(static_data.getDefaultValueRepresentation()).strip('"')
+    if repr_value.endswith('h'):
+        clean = repr_value.rstrip('h')
+        if clean and all(c in '0123456789ABCDEF' for c in clean):
+            try:
+                target_addr = ghidra_analysis.flat_api.toAddr(long(clean, 16))
+                resolved = _read_string_at(ghidra_analysis, target_addr)
+                if resolved:
+                    return resolved
+            except (ValueError, TypeError):
+                pass
+        return None
+    return repr_value  # regular value
+
+
+
+def _read_string_at(ghidra_analysis, addr):
+    """
+    Reads a null-terminated C-string at an address.
+
+    :param ghidra_analysis: instance of GhidraAnalysis
+    :param addr: ghidra.program.model.address.Address
+    :return: str or None
+    """
+    data = ghidra_analysis.flat_api.getDataAt(addr)
+    if data is not None:
+        try:
+            value = data.getValue()
+            if isinstance(value, basestring):
+                return str(value)
+        except Exception:
+            pass
+
+    try:
+        c_string = ''
+        for i in range(256):
+            byte = ghidra_analysis.flat_api.getByte(addr.add(i))
+            if byte == 0:
+                break
+            c_string += chr(byte & 0xFF)
+        if c_string:
+            return c_string
+    except ghidra.program.model.mem.MemoryAccessException:
+        pass
+    return None
 
 
 def parse_open_flags(argument):
