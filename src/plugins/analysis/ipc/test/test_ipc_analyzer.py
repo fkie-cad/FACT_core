@@ -22,7 +22,7 @@ EXPECTED_WRITE_RESULT = {
         {
             'arguments': [
                 '',
-                ['Now is the winter of our discontent\\nMade ' 'glorious summer by this sun of York\\n'],
+                ['Now is the winter of our discontent\nMade glorious summer by this sun of York\n'],
                 [77],
             ],
             'name': 'write',
