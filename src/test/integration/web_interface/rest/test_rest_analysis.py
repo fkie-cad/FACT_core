@@ -39,6 +39,32 @@ class TestRestAnalysis(RestTestBase):
         assert 'error_message' in response.json
         assert 'not found' in response.json['error_message']
 
+    def test_rest_get_analysis_summary_flag(self, backend_db):
+        insert_test_fo(
+            backend_db,
+            'uid',
+            analysis={'file_type': generate_analysis_entry(analysis_result=TYPE_RESULT)},
+        )
+        insert_test_fo(
+            backend_db,
+            'uid2',
+            file_name='test_data_file.bin',
+            analysis={'file_type': generate_analysis_entry(analysis_result=TYPE_RESULT)},
+            parent_fw='uid',
+        )
+
+        response_false = self.test_client.get('/rest/analysis/uid/file_type?recursive_summary=false')
+        assert response_false.status_code == HTTPStatus.OK
+        assert 'analysis' in response_false.json
+        assert 'recursive_summary' in response_false.json
+        assert response_false.json['recursive_summary'] == {}
+
+        response_true = self.test_client.get('/rest/analysis/uid/file_type?recursive_summary=true')
+        assert response_true.status_code == HTTPStatus.OK
+        assert 'analysis' in response_true.json
+        assert 'recursive_summary' in response_true.json
+        assert response_true.json['recursive_summary'] != {}
+
     def test_rest_put_analysis(self, backend_db, monkeypatch):
         insert_test_fo(backend_db, 'uid')
 

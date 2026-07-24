@@ -18,7 +18,7 @@ class AnalysisDBMock(CommonDatabaseMock):
         return None
 
     @staticmethod
-    def get_object(uid):
+    def get_object(uid, analysis_filter=None):  # noqa: ARG004
         if uid == TEST_FW.uid:
             fw = deepcopy(TEST_FW)
             fw.processed_analysis = {PLUGIN: ANALYSIS_RESULT}
@@ -60,6 +60,18 @@ class TestRestAnalysis:
         assert 'analysis' not in result
         assert 'error_message' in result
         assert '"unknown_plugin" not found' in result['error_message']
+
+    def test_get_analysis_summary_true(self, test_client):
+        result = test_client.get(f'/rest/analysis/{UID}/{PLUGIN}?summary=true').json
+
+        assert 'analysis' in result
+        assert result['analysis'] == ANALYSIS_RESULT
+
+    def test_get_analysis_summary_false(self, test_client):
+        result = test_client.get(f'/rest/analysis/{UID}/{PLUGIN}?summary=false').json
+
+        assert 'analysis' in result
+        assert result['analysis'] == ANALYSIS_RESULT
 
     def test_put_analysis(self, test_client):
         result = test_client.put(f'/rest/analysis/{TEST_FW.uid}/{PLUGIN}').json
