@@ -8,7 +8,7 @@ from queue import Empty
 import config
 from compare.compare import Compare
 from helperFunctions.data_conversion import convert_compare_id_to_list
-from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker
+from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker, stop_processes
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
 
@@ -36,8 +36,11 @@ class ComparisonScheduler:
         logging.debug('Shutting down comparison scheduler')
         if self.stop_condition.value == 0:
             self.stop_condition.value = 1
-            self.worker.join()
         self.in_queue.close()
+        stop_processes(
+            [self.worker] if self.worker is not None else [],
+            config.backend.graceful_shutdown_timeout,
+        )
         logging.info('Comparison scheduler offline')
 
     def add_task(self, comparison_task):

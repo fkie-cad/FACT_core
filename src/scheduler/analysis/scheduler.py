@@ -28,7 +28,7 @@ from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_view_sync import ViewUpdater
 from storage.file_service import FileService
 
-from .plugin import PluginRunner, Worker
+from .plugin import PluginRunner
 
 if TYPE_CHECKING:
     import types
@@ -142,17 +142,16 @@ class AnalysisScheduler:
         logging.debug('Shutting down analysis scheduler')
         self.stop_condition.value = 1
         # first shut down scheduling, then analysis plugins and lastly the result collector
-        stop_processes(self.schedule_processes, config.backend.block_delay + 1)
+        stop_processes(self.schedule_processes, config.backend.graceful_shutdown_timeout)
 
         for runner in self._plugin_runners.values():
             runner.shutdown()
+        stop_processes(
+            [worker for runner in self._plugin_runners.values() for worker in runner._workers],
+            config.backend.graceful_shutdown_timeout,
+        )
 
-        for runner in self._plugin_runners.values():
-            for worker in runner._workers:
-                if worker.is_alive():
-                    worker.join(Worker.SIGTERM_TIMEOUT + 1)
-
-        stop_processes(self.result_collector_processes, config.backend.block_delay + 1)
+        stop_processes(self.result_collector_processes, config.backend.graceful_shutdown_timeout)
         self.process_queue.close()
         self.status.shutdown()
         logging.info('Analysis scheduler offline')
