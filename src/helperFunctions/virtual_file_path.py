@@ -14,7 +14,8 @@ def get_paths_for_all_parents(vfp_dict: dict[str, list[str]]) -> list[str]:
 def get_some_vfp(vfp_dict: dict[str, list[str]]) -> str | None:
     """Just get some random virtual file path."""
     for vfp_list in vfp_dict.values():
-        return vfp_list[0]
+        if vfp_list:
+            return vfp_list[0]
     return None
 
 

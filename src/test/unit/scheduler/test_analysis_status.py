@@ -3,9 +3,8 @@ from time import time
 
 import pytest
 
-from objects.file import FileObject
-from objects.firmware import Firmware
 from scheduler.analysis_status import RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC, AnalysisStatus, FwAnalysisStatus
+from test.common_helper import create_test_file_object, create_test_firmware
 
 ROOT_UID = 'root_uid'
 
@@ -24,7 +23,7 @@ class TestAnalysisStatus:
         self.status._worker.redis = MockRedis()
 
     def test_init_firmware(self):
-        fw = Firmware(binary=b'foo')
+        fw = create_test_firmware()
         fw.files_included = ['foo', 'bar']
         self.status.init_firmware(fw)
         self.status._worker._update_status()
@@ -63,7 +62,7 @@ class TestAnalysisStatus:
                 unpacked_files_count=1,
             )
         }
-        fo = FileObject(binary=b'foo')
+        fo = create_test_file_object()
         fo.root_uid = ROOT_UID
         fo.files_included = ['bar', 'new']
         fo.uid = 'foo'
@@ -89,7 +88,7 @@ class TestAnalysisStatus:
                 hid='',
             )
         }
-        fo = FileObject(binary=b'foo')
+        fo = create_test_file_object()
         fo.root_uid = ROOT_UID
         fo.files_included = ['duplicate']
         fo.uid = 'foo'
@@ -111,7 +110,7 @@ class TestAnalysisStatus:
                 total_files_count=3,
             )
         }
-        fo = FileObject(binary=b'foo')
+        fo = create_test_file_object()
         fo.root_uid = ROOT_UID
         fo.uid = 'foo'
         self.status.remove_object(fo)
@@ -132,7 +131,7 @@ class TestAnalysisStatus:
                 total_files_count=3,
             )
         }
-        fo = FileObject(binary=b'foo')
+        fo = create_test_file_object()
         fo.root_uid = ROOT_UID
         fo.uid = 'foo'
         with caplog.at_level(logging.DEBUG):
@@ -152,7 +151,7 @@ class TestAnalysisStatus:
             )
         }
         self.status.recently_finished = {}
-        fo = FileObject(binary=b'foo')
+        fo = create_test_file_object()
         fo.root_uid = ROOT_UID
         fo.uid = 'foo'
         self.status.remove_object(fo)
@@ -173,7 +172,7 @@ class TestAnalysisStatus:
                 total_files_count=3,
             )
         }
-        fo = FileObject(binary=b'foo')
+        fo = create_test_file_object()
         fo.root_uid = ROOT_UID
         fo.uid = 'foo'
         self.status.remove_object(fo)
@@ -204,7 +203,7 @@ class TestAnalysisStatus:
             )
         }
         self.status._currently_analyzed[ROOT_UID] = True
-        fo = FileObject(binary=b'foo')
+        fo = create_test_file_object()
         fo.root_uid = ROOT_UID
         fo.uid = 'foo'
         assert self.status.fw_analysis_is_in_progress(fo)
@@ -232,7 +231,7 @@ class TestAnalysisStatus:
         assert ROOT_UID in self.status._worker.currently_running
 
     def test_add_update(self):
-        fw = Firmware(binary=b'foo')
+        fw = create_test_firmware()
         fw.files_included = ['foo', 'bar']
         self.status.add_update(fw, fw.files_included)
         # _update_status is called twice, because add_object is called first and then add_update
@@ -259,7 +258,7 @@ class TestAnalysisStatus:
             )
         }
         self.status._currently_analyzed[ROOT_UID] = True
-        fo = FileObject(binary=b'foo')
+        fo = create_test_file_object()
         fo.root_uid = ROOT_UID
         fo.uid = 'foo'
 

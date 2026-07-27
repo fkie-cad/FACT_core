@@ -316,7 +316,7 @@ def render_analysis_tags(
         for key, tag in sorted(tags[plugin_name].items(), key=_sort_tags_key):
             if key == 'root_uid':
                 continue
-            color = tag['color'] if tag['color'] in TagColor.ALL else TagColor.BLUE
+            color = tag['color'] if tag['color'] in set(TagColor) else TagColor.BLUE
             output += render_template(
                 'generic_view/tags.html',
                 color=color,

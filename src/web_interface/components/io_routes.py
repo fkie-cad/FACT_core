@@ -16,6 +16,7 @@ from helperFunctions import magic
 from helperFunctions.database import get_shared_session
 from helperFunctions.pdf import build_pdf_report
 from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj, create_analysis_task
+from helperFunctions.uid import create_uid
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -28,12 +29,17 @@ class IORoutes(ComponentBase):
     @AppRoute('/upload', POST)
     def post_upload(self) -> str:
         try:
-            analysis_task = create_analysis_task(request)
+            file_contents = request.files['file'].read()
+            uid = create_uid(file_contents)
+            analysis_task = create_analysis_task(request, uid)
         except BadRequestKeyError as error:
             # we don't want this to fail silently; we want to know what's wrong with the request
             logging.warning(f'Received invalid upload request: Key {KeyError.__str__(error)} is missing!')
             raise
         fw = convert_analysis_task_to_fw_obj(analysis_task)
+        success = self.intercom.store_file(file_contents, uid)
+        if not success:
+            return render_template('error.html', message='Error: Storing the uploaded file failed.')
         self.intercom.add_analysis_task(fw)
         return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
 

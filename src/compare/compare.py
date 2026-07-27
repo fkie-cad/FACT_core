@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from helperFunctions.plugin import discover_compare_plugins
 from helperFunctions.virtual_file_path import get_paths_for_all_parents
 from objects.firmware import Firmware
-from storage.file_service import FileService
 
 if TYPE_CHECKING:
     from compare.PluginBase import CompareBasePlugin
@@ -28,12 +27,10 @@ class Compare:
 
     def compare(self, uid_list: list[str]) -> dict[str, dict]:
         logging.info(f'Comparison in progress: {uid_list}')
-        file_service = FileService()
 
         fo_list = []
         for uid in uid_list:
             fo = self.db_interface.get_complete_object_including_all_summaries(uid)
-            fo.binary = file_service.get_file_content(fo)
             fo_list.append(fo)
 
         return self.compare_objects(fo_list)

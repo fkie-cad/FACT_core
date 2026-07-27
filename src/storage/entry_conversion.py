@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from time import time
+from typing import Any
 
 from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
@@ -11,7 +12,7 @@ from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, Virtua
 
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: list[str] | None = None) -> Firmware:
-    firmware = Firmware()
+    firmware = Firmware.from_uid(uid=fw_entry.uid, file_name=fw_entry.root_object.file_name)
     _populate_fo_data(fw_entry.root_object, firmware, analysis_filter, parent_fw=set())
     firmware.device_name = fw_entry.device_name
     firmware.device_class = fw_entry.device_class
@@ -31,7 +32,7 @@ def file_object_from_entry(
     virtual_file_paths: dict[str, list[str]] | None = None,
     parent_fw: set[str] | None = None,
 ) -> FileObject:
-    file_object = FileObject()
+    file_object = FileObject.from_uid(uid=fo_entry.uid, file_name=fo_entry.file_name)
     _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents, virtual_file_paths, parent_fw)
     return file_object
 
@@ -51,9 +52,7 @@ def _populate_fo_data(
     parents: set[str] | None = None,
     virtual_file_paths: dict[str, list[str]] | None = None,
     parent_fw: set[str] | None = None,
-):
-    file_object.uid = fo_entry.uid
-    file_object.size = fo_entry.size
+) -> None:
     file_object.file_name = fo_entry.file_name
     file_object.virtual_file_path = virtual_file_paths or {}
     file_object.processed_analysis = {
@@ -62,10 +61,10 @@ def _populate_fo_data(
         if analysis_filter is None or analysis_entry.plugin in analysis_filter
     }
     file_object.analysis_tags = _collect_analysis_tags(file_object.processed_analysis)
-    file_object.comments = fo_entry.comments
-    file_object.parents = fo_entry.get_parent_uids() if parents is None else parents
-    file_object.files_included = fo_entry.get_included_uids() if included_files is None else included_files
-    file_object.parent_firmware_uids = fo_entry.get_parent_fw_uids() if parent_fw is None else parent_fw
+    file_object.comments = fo_entry.comments or []
+    file_object.parents = parents or fo_entry.get_parent_uids()
+    file_object.files_included = included_files or fo_entry.get_included_uids()
+    file_object.parent_firmware_uids = parent_fw or fo_entry.get_parent_fw_uids()
 
 
 def _collect_analysis_tags(analysis_dict: dict) -> dict:
@@ -130,7 +129,7 @@ def sanitize(analysis_data: dict) -> dict:
     return analysis_data
 
 
-def _sanitize_value(analysis_data: dict, key: str, value):
+def _sanitize_value(analysis_data: dict, key: str, value: Any) -> None:  # noqa: ANN401
     if isinstance(value, tuple):
         analysis_data[key] = value = list(value)
     if isinstance(value, dict):
@@ -156,7 +155,7 @@ def _sanitize_string(string: str) -> str:
     return string
 
 
-def _sanitize_key(analysis_data: dict, key: str):
+def _sanitize_key(analysis_data: dict, key: str) -> None:
     if '\0' in key:
         analysis_data[key.replace('\0', '')] = analysis_data.pop(key)
 

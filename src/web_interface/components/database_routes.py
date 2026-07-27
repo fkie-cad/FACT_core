@@ -19,7 +19,6 @@ from werkzeug import Response
 import config
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.database import get_shared_session
-from helperFunctions.task_conversion import get_file_name_and_binary_from_request
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from storage.graphql.interface import TEMPLATE_QUERIES, GraphQlInterface, GraphQLSearchError
@@ -305,7 +304,7 @@ class DatabaseRoutes(ComponentBase):
     def _get_items_from_binary_search_request(req: Request) -> tuple[bytes | None, str | None, bool]:
         yara_rule_file = None
         if req.files.get('file'):
-            _, yara_rule_file = get_file_name_and_binary_from_request(req)
+            yara_rule_file = request.files['file'].read()
         elif req.form['textarea']:
             yara_rule_file = req.form['textarea'].encode()
         firmware_uid = req.form.get('firmware_uid') or None

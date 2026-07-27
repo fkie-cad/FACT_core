@@ -12,7 +12,7 @@ from json import JSONDecodeError, loads
 from multiprocessing import Manager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from common_helper_files import get_binary_from_file, safe_rglob
 from docker.errors import DockerException
@@ -30,6 +30,7 @@ from helperFunctions.uid import create_uid
 from unpacker.unpack_base import UnpackBase
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from io import FileIO
 
 PLUGIN_NAME = 'qemu_exec'
@@ -61,8 +62,8 @@ ARCH_TO_BIN_DICT = OrderedDict(
 
 class Unpacker(UnpackBase):
     @contextmanager
-    def unpack_file(self, file_path: str):
-        if not file_path or not Path(file_path).is_file():
+    def unpack_file(self, file_path: Path) -> Iterator[None | str]:
+        if not file_path or not file_path.is_file():
             logging.error(f'could not unpack {file_path}: file not found')
             yield None
             return
@@ -83,7 +84,7 @@ class ParameterResult(BaseModel):
     stderr: str = Field(description='The STDERR output of executing the file.')
 
     @classmethod
-    def from_result(cls, parameter: str, result: dict):
+    def from_result(cls, parameter: str, result: dict) -> ParameterResult:
         return cls(
             parameters=parameter,
             return_code=result['return_code'],
@@ -94,18 +95,18 @@ class ParameterResult(BaseModel):
 
 class ArchResult(BaseModel):
     architecture: str = Field(description='QEMU system ISA that was used for trying to run the executable.')
-    parameter_results: List[ParameterResult] = Field(
+    parameter_results: list[ParameterResult] = Field(
         description=(
             'The file is called with a list of different CLI parameters (no parameter, --help, etc.) and these '
             'are the individual results for each parameter (or combination of parameters if multiple different'
             'parameters produced the same output).'
         )
     )
-    strace: Optional[str] = Field(
+    strace: str | None = Field(
         None,
         description='A system call trace of executing the file (zlib compressed and base64 encoded to reduce size).',
     )
-    error: Optional[str] = None
+    error: str | None = None
 
     @classmethod
     def from_arch_result(cls, arch: str, result_dict: dict) -> ArchResult:
@@ -125,7 +126,7 @@ class FileResult(BaseModel):
     is_executable: bool
     path: str = Field(description='File path of the included file in this file (obtained through unpacking).')
     uid: str
-    extended_results: List[ArchResult] = Field(description='Individual results for all tested architectures')
+    extended_results: list[ArchResult] = Field(description='Individual results for all tested architectures')
 
     @classmethod
     def from_file_dict(cls, uid: str, file_result_dict: dict) -> FileResult:
@@ -148,11 +149,11 @@ class AnalysisPlugin(AnalysisPluginV0):
                 'are generated only for included files).'
             )
         )
-        included_file_results: List[FileResult] = Field(
+        included_file_results: list[FileResult] = Field(
             description='Results for individual included files (unpacked from this file).'
         )
 
-    def __init__(self, unpacker=None):
+    def __init__(self, unpacker: Unpacker | None = None):
         super().__init__(
             metadata=self.MetaData(
                 name=PLUGIN_NAME,
@@ -178,7 +179,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         del virtual_file_path
         if analyses['file_type'].mime in EXECUTABLE_TYPES:
             return self._process_included_binary()
-        return self._process_container(file_handle.name)
+        return self._process_container(Path(file_handle.name))
 
     def _process_included_binary(self) -> Schema:
         # File should get analyzed when the parent file (container/file system/etc.) gets passed to this plugin
@@ -188,7 +189,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             included_file_results=[],
         )
 
-    def _process_container(self, file_path: str) -> Schema:
+    def _process_container(self, file_path: Path) -> Schema:
         with self.unpacker.unpack_file(file_path) as extraction_dir:
             return self.Schema(
                 parent_flag=False,
@@ -246,7 +247,7 @@ def _find_root_path(extracted_files_dir: Path) -> Path:
     return root_path
 
 
-def _process_included_files(file_list: list[tuple[str, str]], root_path: Path):
+def _process_included_files(file_list: list[tuple[str, str]], root_path: Path) -> dict[str, dict]:
     with Manager() as manager:
         with ThreadPoolExecutor(max_workers=8) as executor:
             shared_dict = manager.dict()
@@ -279,14 +280,14 @@ def _get_uid(file_path: str, root_path: Path) -> str:
     return create_uid(get_binary_from_file(str(root_path / file_path[1:])))
 
 
-def _find_arch_suffixes(full_type):
+def _find_arch_suffixes(full_type: str) -> list[str]:
     for arch_string in ARCH_TO_BIN_DICT:
         if arch_string in full_type:
             return ARCH_TO_BIN_DICT[arch_string]
     return []
 
 
-def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_dict: dict, uid: str):
+def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_dict: dict, uid: str) -> None:
     result = check_qemu_executability(file_path, arch_suffix, root_path)
     if result:
         if uid in results_dict:
@@ -297,7 +298,7 @@ def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_
         results_dict[uid] = {'path': file_path, 'results': tmp_dict}
 
 
-def _valid_execution_in_results(results: dict):
+def _valid_execution_in_results(results: dict) -> bool:
     return any(
         _output_without_error_exists(results[arch][option])
         for arch in results
@@ -365,8 +366,8 @@ def process_docker_output(docker_output: dict[str, dict[str, str]]) -> dict[str,
 
 def decode_output_values(result_dict: dict[str, dict[str, str | int]]) -> dict[str, dict[str, str]]:
     result = {}
-    for parameter in result_dict:
-        for key, value in result_dict[parameter].items():
+    for parameter, parameter_dict in result_dict.items():
+        for key, value in parameter_dict.items():
             if isinstance(value, str) and key != 'error':
                 try:
                     str_value = b64decode(value.encode()).decode(errors='replace')
@@ -379,11 +380,11 @@ def decode_output_values(result_dict: dict[str, dict[str, str | int]]) -> dict[s
     return result
 
 
-def _strace_output_exists(docker_output):
+def _strace_output_exists(docker_output: dict) -> bool:
     return 'strace' in docker_output and 'stdout' in docker_output['strace'] and docker_output['strace']['stdout']
 
 
-def process_strace_output(docker_output: dict):
+def process_strace_output(docker_output: dict) -> None:
     docker_output['strace'] = (
         # b64 + zip is still smaller than raw on average
         b64encode(zlib.compress(docker_output['strace']['stdout'].encode())).decode()
@@ -402,13 +403,13 @@ def contains_docker_error(docker_output: str) -> bool:
     return any(error in docker_output for error in QEMU_ERRORS)
 
 
-def replace_empty_strings(docker_output: dict[str, object]):
+def replace_empty_strings(docker_output: dict[str, object]) -> None:
     for key in list(docker_output):
         if key == ' ':
             docker_output[EMPTY] = docker_output.pop(key)
 
 
-def merge_identical_results(results: dict[str, dict[str, str]]):
+def merge_identical_results(results: dict[str, dict[str, str]]) -> None:
     """
     if the results for different parameters (e.g. '-h' and '--help') are identical, merge them
     example input:  {'-h':         {'stdout': 'foo', 'stderr': '', 'return_code': 0},

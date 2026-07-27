@@ -3,6 +3,7 @@ from __future__ import annotations
 import binascii
 import logging
 from base64 import standard_b64decode
+from typing import TYPE_CHECKING
 
 from flask import request
 from flask_restx import Namespace, fields
@@ -10,6 +11,7 @@ from flask_restx.fields import MarshallingError
 
 from helperFunctions.object_conversion import create_meta_dict
 from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
+from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError
 from web_interface.rest.helper import (
@@ -23,6 +25,9 @@ from web_interface.rest.helper import (
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+if TYPE_CHECKING:
+    from werkzeug.datastructures import ImmutableMultiDict
 
 api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
 
@@ -72,7 +77,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
             },
         },
     )
-    def get(self):
+    def get(self) -> tuple[dict, int]:
         """
         Browse the firmware database
         List all available firmware in the database
@@ -91,7 +96,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
             return error_message('Unknown exception on request', self.URL, parameters)
 
     @staticmethod
-    def _get_parameters_from_request(request_parameters):
+    def _get_parameters_from_request(request_parameters: ImmutableMultiDict) -> tuple[dict, bool, bool, int, int]:
         query = get_query(request_parameters)
         recursive = get_boolean_from_request(request_parameters, 'recursive')
         inverted = get_boolean_from_request(request_parameters, 'inverted')
@@ -104,7 +109,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @api.expect(firmware_model)
-    def put(self):
+    def put(self) -> tuple[dict, int]:
         """
         Upload a firmware
         The HTTP body must contain a json document of the structure shown below
@@ -133,11 +138,15 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         logging.debug('Upload Successful!')
         return success_message(result, self.URL, request_data=data)
 
-    def _process_data(self, data):
+    def _process_data(self, data: dict) -> dict[str, str]:
         try:
-            data['binary'] = standard_b64decode(data['binary'])
+            file_contents = standard_b64decode(data['binary'])
         except binascii.Error:
             return {'error_message': 'Could not parse binary (must be valid base64!)'}
+        uid = create_uid(file_contents)
+        if not self.intercom.store_file(file_contents, uid):
+            return error_message('Storing file failed.', self.URL, request_data=data)
+        data['uid'] = uid
         firmware_object = convert_analysis_task_to_fw_obj(data)
         self.intercom.add_analysis_task(firmware_object)
         data.pop('binary')
@@ -161,7 +170,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
             }
         },
     )
-    def get(self, uid):
+    def get(self, uid: str) -> tuple[dict, int]:
         """
         Request a specific firmware
         Get the analysis results of a specific firmware by providing the corresponding uid
@@ -178,14 +187,14 @@ class RestFirmwareGetWithUid(RestResourceBase):
         return success_message({'firmware': fitted_firmware}, self.URL, request_data={'uid': uid})
 
     @staticmethod
-    def _fit_firmware(firmware):
+    def _fit_firmware(firmware: Firmware) -> dict[str, dict]:
         meta = create_meta_dict(firmware)
         analysis = firmware.processed_analysis
         return {'meta_data': meta, 'analysis': analysis}
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @api.expect(firmware_model)
-    def put(self, uid):
+    def put(self, uid: str) -> tuple[dict, int]:
         """
         Update existing firmware analysis
         You can use this endpoint to update a firmware analysis which is already existing
@@ -196,7 +205,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
             return error_message(str(value_error), self.URL, request_data={'uid': uid})
         return self._update_analysis(uid, update)
 
-    def _update_analysis(self, uid, update):
+    def _update_analysis(self, uid: str, update: list[str]) -> tuple[dict, int]:
         firmware = self.db.frontend.get_object(uid)
         if not firmware:
             return error_message(f'No firmware with UID {uid} found', self.URL, {'uid': uid})

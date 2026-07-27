@@ -47,6 +47,9 @@ class InterComFrontEndBinding:
             raise RuntimeError('No available plug-ins found. FACT backend might be down!')
         return plugin_dict
 
+    def store_file(self, file_contents: bytes, uid: str) -> bool:
+        return self._request_response_listener((file_contents, uid), 'store_file_task', 'store_file_task_resp')
+
     def get_file_contents(self, uid: str) -> bytes | None:
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
 

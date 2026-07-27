@@ -30,7 +30,8 @@ class YaraBinarySearchScanner:
         return scan_files(rule_file, file_paths)
 
     def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> list[str]:
-        return [self.file_service.generate_path_from_uid(uid) for uid in self.db.get_all_files_in_fw(fw_uid)]
+        # FixMe: use Path objects
+        return [str(self.file_service.generate_path_from_uid(uid)) for uid in self.db.get_all_files_in_fw(fw_uid)]
 
     @staticmethod
     def _convert_matches_to_result(matches: list[Match]) -> dict[str, dict[str, list[dict]]]:
