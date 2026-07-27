@@ -7,6 +7,7 @@ from test.integration.storage.helper import insert_test_fo
 from test.integration.web_interface.rest.base import RestTestBase
 
 TYPE_RESULT = {'mime': 'mime_type', 'full': 'full type description'}
+TEST_UID = 'abc_123'
 
 
 @pytest.mark.usefixtures('database_interfaces')
@@ -14,11 +15,11 @@ class TestRestAnalysis(RestTestBase):
     def test_rest_get_analysis(self, backend_db):
         insert_test_fo(
             backend_db,
-            'uid',
+            TEST_UID,
             analysis={'file_type': generate_analysis_entry(analysis_result=TYPE_RESULT)},
         )
 
-        response = self.test_client.get('/rest/analysis/uid/file_type')
+        response = self.test_client.get(f'/rest/analysis/{TEST_UID}/file_type')
         assert response.status_code == HTTPStatus.OK
         assert 'analysis' in response.json
         assert response.json['analysis']['result'] == TYPE_RESULT
@@ -31,16 +32,16 @@ class TestRestAnalysis(RestTestBase):
         assert 'No file object with UID' in response.json['error_message']
 
     def test_rest_get_analysis_missing(self, backend_db):
-        insert_test_fo(backend_db, 'uid')
+        insert_test_fo(backend_db, TEST_UID)
 
-        response = self.test_client.get('/rest/analysis/uid/unknown_plugin')
+        response = self.test_client.get(f'/rest/analysis/{TEST_UID}/unknown_plugin')
         assert response.status_code == HTTPStatus.PRECONDITION_FAILED
         assert 'analysis' not in response.json
         assert 'error_message' in response.json
         assert 'not found' in response.json['error_message']
 
     def test_rest_put_analysis(self, backend_db, monkeypatch):
-        insert_test_fo(backend_db, 'uid')
+        insert_test_fo(backend_db, TEST_UID)
 
         monkeypatch.setattr(
             'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
@@ -51,7 +52,7 @@ class TestRestAnalysis(RestTestBase):
             lambda _, __: True,
         )
 
-        response = self.test_client.put('/rest/analysis/uid/file_type')
+        response = self.test_client.put(f'/rest/analysis/{TEST_UID}/file_type')
         assert response.status_code == HTTPStatus.OK
         assert response.json['success'] is True
 
@@ -67,20 +68,20 @@ class TestRestAnalysis(RestTestBase):
         assert 'No file object with UID' in response.json['error_message']
 
     def test_rest_put_analysis_invalid_plugin(self, backend_db, monkeypatch):
-        insert_test_fo(backend_db, 'uid')
+        insert_test_fo(backend_db, TEST_UID)
         monkeypatch.setattr(
             'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
             lambda _: ['file_type'],
         )
 
         unknown_plugin = 'unknown_plugin'
-        response = self.test_client.put(f'/rest/analysis/uid/{unknown_plugin}')
+        response = self.test_client.put(f'/rest/analysis/{TEST_UID}/{unknown_plugin}')
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert 'error_message' in response.json
         assert f'Analysis plugin "{unknown_plugin}" not found' in response.json['error_message']
 
     def test_rest_put_analysis_force(self, backend_db, monkeypatch):
-        insert_test_fo(backend_db, 'uid')
+        insert_test_fo(backend_db, TEST_UID)
         monkeypatch.setattr(
             'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
             lambda _: ['file_type'],
@@ -90,6 +91,6 @@ class TestRestAnalysis(RestTestBase):
             lambda _, fo: fo.force_update is True,
         )
 
-        response = self.test_client.put('/rest/analysis/uid/file_type?force=true')
+        response = self.test_client.put(f'/rest/analysis/{TEST_UID}/file_type?force=true')
         assert response.status_code == HTTPStatus.OK
         assert response.json['success'] is True
