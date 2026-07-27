@@ -72,7 +72,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.get_hid"><code class="docutils literal notranslate"><span class="pre">Firmware.get_hid()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.part"><code class="docutils literal notranslate"><span class="pre">Firmware.part</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.release_date"><code class="docutils literal notranslate"><span class="pre">Firmware.release_date</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.set_binary"><code class="docutils literal notranslate"><span class="pre">Firmware.set_binary()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.root_uid"><code class="docutils literal notranslate"><span class="pre">Firmware.root_uid</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.set_part_name"><code class="docutils literal notranslate"><span class="pre">Firmware.set_part_name()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.set_tag"><code class="docutils literal notranslate"><span class="pre">Firmware.set_tag()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#objects.firmware.Firmware.tags"><code class="docutils literal notranslate"><span class="pre">Firmware.tags</span></code></a></li>
@@ -119,7 +119,7 @@
 <span id="objects-firmware-module"></span><h1>objects.firmware module<a class="headerlink" href="#module-objects.firmware" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="objects.firmware.Firmware">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">objects.firmware.</span></span><span class="sig-name descname"><span class="pre">Firmware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">objects.firmware.</span></span><span class="sig-name descname"><span class="pre">Firmware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files_included=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_of_all_included_files=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduled_analysis=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comments=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_firmware_uids=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporary_data=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_tags=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_analysis=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_exception=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">virtual_file_path=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_name=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_class=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vendor=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">release_date=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileObject</span></code></a></p>
 <p>Uploaded firmware image representation.</p>
 <p>In FACT, we represent an uploaded firmware image as specialized <a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileObject</span></code></a> with supplementary meta data.
@@ -158,9 +158,40 @@ This meta data includes the…</p>
 </ul>
 <p>Additionally, each Firmware can hold user-defined tags that may be used in advanced queries to categorize and filter all firmwares present in the database.
 It is important to understand that said tags are <strong>separately stored</strong> from the <a class="reference internal" href="objects.file.html#objects.file.FileObject.analysis_tags" title="objects.file.FileObject.analysis_tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">objects.file.FileObject.analysis_tags</span></code></a>, which are propagated by analysis plugins.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>uid</strong> (<em>str</em>) – </p></li>
+<li><p><strong>sha256</strong> (<em>str</em>) – </p></li>
+<li><p><strong>size</strong> (<em>int</em>) – </p></li>
+<li><p><strong>file_name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>files_included</strong> (<em>set</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+<li><p><strong>list_of_all_included_files</strong> (<em>set</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – </p></li>
+<li><p><strong>parents</strong> (<em>set</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+<li><p><strong>root_uid</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>depth</strong> (<em>int</em>) – </p></li>
+<li><p><strong>scheduled_analysis</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+<li><p><strong>comments</strong> (<em>list</em><em>[</em><em>dict</em><em>]</em>) – </p></li>
+<li><p><strong>parent_firmware_uids</strong> (<em>set</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+<li><p><strong>temporary_data</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – </p></li>
+<li><p><strong>analysis_tags</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>dict</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>processed_analysis</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>analysis_exception</strong> (<em>tuple</em><em>[</em><em>str</em><em>, </em><em>str</em><em>] </em><em>| </em><em>None</em>) – </p></li>
+<li><p><strong>callback</strong> (<em>Callable</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>virtual_file_path</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>device_name</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>version</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>device_class</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>vendor</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>part</strong> (<em>str</em>) – </p></li>
+<li><p><strong>release_date</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>tags</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor" title="helperFunctions.tag.TagColor"><em>helperFunctions.tag.TagColor</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.device_class">
-<span class="sig-name descname"><span class="pre">device_class</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.device_class" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">device_class</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.device_class" title="Permalink to this definition"></a></dt>
 <dd><p>Device class string identifier.
 Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.  # noqa: E501
 FACT requires a user to categorize analyzed firmware images by this attribute.
@@ -169,7 +200,7 @@ While this attribute is <strong>mandatory</strong>, it can be freely defined dur
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.device_name">
-<span class="sig-name descname"><span class="pre">device_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.device_name" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">device_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.device_name" title="Permalink to this definition"></a></dt>
 <dd><p>Device name string identifier.
 Can be freely defined during upload.</p>
 <p>This attribute is <strong>mandatory</strong> and shall never be <cite>None</cite>.</p>
@@ -177,13 +208,16 @@ Can be freely defined during upload.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.from_json">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.from_json" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.from_json" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>json</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>json_dict</strong> (<em>dict</em>) – </p></li>
 <li><p><strong>root_uid</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Self</em></p>
 </dd>
 </dl>
 </dd></dl>
@@ -201,7 +235,7 @@ Can be freely defined during upload.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.part">
-<span class="sig-name descname"><span class="pre">part</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#objects.firmware.Firmware.part" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">part</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#objects.firmware.Firmware.part" title="Permalink to this definition"></a></dt>
 <dd><p>Specifies the parts of an embedded system that are contained in this firmware.
 While this meta data string can be freely defined during firmware upload,
 FACT provides a preset of frequently used values: <cite>complete</cite>, <cite>kernel</cite>, <cite>bootloader</cite>, and <cite>root-fs</cite>.</p>
@@ -210,21 +244,15 @@ FACT provides a preset of frequently used values: <cite>complete</cite>, <cite>k
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.release_date">
-<span class="sig-name descname"><span class="pre">release_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.release_date" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">release_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.release_date" title="Permalink to this definition"></a></dt>
 <dd><p>Release date string of this firmware version in <a class="reference external" href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> <cite>YYYY-MM-DD</cite> format.  # noqa: E501</p>
 <p>This attribute is <strong>optional</strong>. The release date is assumed to be the start of UNIX epoch time (<cite>1970-01-01</cite>) if not specificed.  # noqa: E501</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="objects.firmware.Firmware.set_binary">
-<span class="sig-name descname"><span class="pre">set_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.set_binary" title="Permalink to this definition"></a></dt>
-<dd><p>See <a class="reference internal" href="objects.file.html#objects.file.FileObject.set_binary" title="objects.file.FileObject.set_binary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">objects.file.FileObject.set_binary()</span></code></a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>binary</strong> (<em>bytes</em>) – binary data of the file object</p>
-</dd>
-</dl>
-</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.root_uid">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">root_uid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#objects.firmware.Firmware.root_uid" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.set_part_name">
@@ -233,6 +261,9 @@ FACT provides a preset of frequently used values: <cite>complete</cite>, <cite>k
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>part</strong> (<em>str</em>) – part identifier, defaults to <cite>complete</cite> if empty string is passed.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -244,6 +275,9 @@ FACT provides a preset of frequently used values: <cite>complete</cite>, <cite>k
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>tag</strong> (<em>str</em>) – Tag identifier</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -272,14 +306,14 @@ It is important to understand that these tags are <strong>separately stored</str
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.vendor">
-<span class="sig-name descname"><span class="pre">vendor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.vendor" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">vendor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.vendor" title="Permalink to this definition"></a></dt>
 <dd><p>Device vendor string identifier.</p>
 <p>This attribute is <strong>mandatory</strong> and shall never be <cite>None</cite>.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="objects.firmware.Firmware.version">
-<span class="sig-name descname"><span class="pre">version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.version" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#objects.firmware.Firmware.version" title="Permalink to this definition"></a></dt>
 <dd><p>Firmware version string identifier.
 Can be freely defined during upload.</p>
 <p>This attribute is <strong>mandatory</strong> and shall never be <cite>None</cite>.</p>

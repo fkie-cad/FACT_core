@@ -80,8 +80,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.task_conversion module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.task_conversion.convert_analysis_task_to_fw_obj"><code class="docutils literal notranslate"><span class="pre">convert_analysis_task_to_fw_obj()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#helperFunctions.task_conversion.create_analysis_task"><code class="docutils literal notranslate"><span class="pre">create_analysis_task()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.task_conversion.create_re_analyze_task"><code class="docutils literal notranslate"><span class="pre">create_re_analyze_task()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.task_conversion.get_file_name_and_binary_from_request"><code class="docutils literal notranslate"><span class="pre">get_file_name_and_binary_from_request()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helperFunctions.task_conversion.get_file_name_from_request"><code class="docutils literal notranslate"><span class="pre">get_file_name_from_request()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
@@ -145,25 +144,8 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.task_conversion.create_analysis_task">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">create_analysis_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.create_analysis_task" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">create_analysis_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.create_analysis_task" title="Permalink to this definition"></a></dt>
 <dd><p>Create an analysis task from the data stored in the flask request object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>request</strong> (<em>Request</em>) – The flask request object.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dict containing the analysis task data.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict[str, Any]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.task_conversion.create_re_analyze_task">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">create_re_analyze_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.create_re_analyze_task" title="Permalink to this definition"></a></dt>
-<dd><p>Create an analysis task for a file that is already in the database.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -181,8 +163,8 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.task_conversion.get_file_name_and_binary_from_request">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">get_file_name_and_binary_from_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.get_file_name_and_binary_from_request" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="helperFunctions.task_conversion.get_file_name_from_request">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.task_conversion.</span></span><span class="sig-name descname"><span class="pre">get_file_name_from_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.task_conversion.get_file_name_from_request" title="Permalink to this definition"></a></dt>
 <dd><p>Retrieves the file name and content from the flask request object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -192,7 +174,7 @@
 <dd class="field-even"><p>A Tuple containing the file name and the file content.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>tuple[str, bytes]</p>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>

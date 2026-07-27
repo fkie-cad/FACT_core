@@ -139,8 +139,6 @@
 </li>
       <li><a href="modules/config.html#config.Frontend.ajax_stats_reload_time">ajax_stats_reload_time (config.Frontend attribute)</a>
 </li>
-      <li><a href="modules/helperFunctions.tag.html#helperFunctions.tag.TagColor.ALL">ALL (helperFunctions.tag.TagColor attribute)</a>
-</li>
       <li>
     analysis.plugin.plugin
 
@@ -206,11 +204,9 @@
 </li>
       <li><a href="modules/plugins.installer.html#plugins.installer.AbstractPluginInstaller.base_path">base_path (plugins.installer.AbstractPluginInstaller attribute)</a>
 </li>
-      <li><a href="modules/config.html#config.Backend.Unpacking.base_port">base_port (config.Backend.Unpacking attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/objects.file.html#objects.file.FileObject.binary">binary (objects.file.FileObject attribute)</a>
+      <li><a href="modules/config.html#config.Backend.Unpacking.base_port">base_port (config.Backend.Unpacking attribute)</a>
 </li>
       <li><a href="modules/config.html#config.Backend.binary_search">binary_search (config.Backend attribute)</a>
 </li>
@@ -312,13 +308,11 @@
 </li>
       <li><a href="modules/helperFunctions.task_conversion.html#helperFunctions.task_conversion.create_analysis_task">create_analysis_task() (in module helperFunctions.task_conversion)</a>
 </li>
-      <li><a href="modules/objects.file.html#objects.file.FileObject.create_binary_from_path">create_binary_from_path() (objects.file.FileObject method)</a>
-</li>
       <li><a href="modules/helperFunctions.object_conversion.html#helperFunctions.object_conversion.create_meta_dict">create_meta_dict() (in module helperFunctions.object_conversion)</a>
 </li>
-      <li><a href="modules/helperFunctions.task_conversion.html#helperFunctions.task_conversion.create_re_analyze_task">create_re_analyze_task() (in module helperFunctions.task_conversion)</a>
-</li>
       <li><a href="modules/helperFunctions.uid.html#helperFunctions.uid.create_uid">create_uid() (in module helperFunctions.uid)</a>
+</li>
+      <li><a href="modules/helperFunctions.uid.html#helperFunctions.uid.create_uid_from_path">create_uid_from_path() (in module helperFunctions.uid)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -408,7 +402,7 @@
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.file_name">file_name (objects.file.FileObject attribute)</a>
 </li>
-      <li><a href="modules/objects.file.html#objects.file.FileObject.file_path">file_path (objects.file.FileObject attribute)</a>
+      <li><a href="modules/objects.file.html#objects.file.FileObject.file_path">file_path (objects.file.FileObject property)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject">FileObject (class in objects.file)</a>
 </li>
@@ -418,17 +412,19 @@
 </li>
       <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.filter_vpf_dict">filter_vpf_dict() (in module helperFunctions.virtual_file_path)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/objects.firmware.html#objects.firmware.Firmware">Firmware (class in objects.firmware)</a>
 </li>
       <li><a href="modules/config.html#config.Backend.firmware_file_storage_directory">firmware_file_storage_directory (config.Backend attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/conftest.html#conftest.firmware_file_storage_directory">firmware_file_storage_directory() (in module conftest)</a>
 </li>
       <li><a href="modules/helperFunctions.logging.html#helperFunctions.logging.ColoringFormatter.format">format() (helperFunctions.logging.ColoringFormatter method)</a>
 </li>
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.format_time">format_time() (in module helperFunctions.web_interface)</a>
+</li>
+      <li><a href="modules/objects.file.html#objects.file.FileObject.from_file">from_file() (objects.file.FileObject class method)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.from_json">from_json() (objects.file.FileObject class method)</a>
 
@@ -436,6 +432,10 @@
         <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.from_json">(objects.firmware.Firmware class method)</a>
 </li>
       </ul></li>
+      <li><a href="modules/objects.file.html#objects.file.FileObject.from_path">from_path() (objects.file.FileObject class method)</a>
+</li>
+      <li><a href="modules/objects.file.html#objects.file.FileObject.from_uid">from_uid() (objects.file.FileObject class method)</a>
+</li>
       <li><a href="modules/config.html#config.Frontend">Frontend (class in config)</a>
 </li>
       <li><a href="modules/config.html#config.frontend">frontend() (in module config)</a>
@@ -482,7 +482,7 @@
 </li>
       <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.get_file_contents">get_file_contents() (test.unit.conftest.CommonIntercomMock static method)</a>
 </li>
-      <li><a href="modules/helperFunctions.task_conversion.html#helperFunctions.task_conversion.get_file_name_and_binary_from_request">get_file_name_and_binary_from_request() (in module helperFunctions.task_conversion)</a>
+      <li><a href="modules/helperFunctions.task_conversion.html#helperFunctions.task_conversion.get_file_name_from_request">get_file_name_from_request() (in module helperFunctions.task_conversion)</a>
 </li>
       <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_hash">get_hash() (in module helperFunctions.hash)</a>
 </li>
@@ -498,21 +498,23 @@
 </li>
       <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_paths_for_all_parents">get_paths_for_all_parents() (in module helperFunctions.virtual_file_path)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.get_plugin_dict">get_plugin_dict() (scheduler.analysis.scheduler.AnalysisScheduler method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_query">get_query() (in module web_interface.rest.helper)</a>
 </li>
       <li><a href="modules/scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.get_queue_len">get_queue_len() (scheduler.analysis.plugin.PluginRunner method)</a>
 </li>
       <li><a href="modules/helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_relative_object_path">get_relative_object_path() (in module helperFunctions.fileSystem)</a>
 </li>
-      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.get_repacked_file">get_repacked_file() (test.unit.conftest.CommonIntercomMock static method)</a>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.get_repacked_file">get_repacked_file() (test.unit.conftest.CommonIntercomMock method)</a>
 </li>
       <li><a href="modules/scheduler.analysis.scheduler.html#scheduler.analysis.scheduler.AnalysisScheduler.get_scheduled_workload">get_scheduled_workload() (scheduler.analysis.scheduler.AnalysisScheduler method)</a>
 </li>
       <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_sha256">get_sha256() (in module helperFunctions.hash)</a>
+</li>
+      <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_sha256_for_path">get_sha256_for_path() (in module helperFunctions.hash)</a>
 </li>
       <li><a href="modules/helperFunctions.database.html#helperFunctions.database.get_shared_session">get_shared_session() (in module helperFunctions.database)</a>
 </li>
@@ -1025,7 +1027,11 @@
       <li><a href="modules/config.html#config.Common.Postgres.ro_user">ro_user (config.Common.Postgres attribute)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.root_uid">root_uid (objects.file.FileObject attribute)</a>
+
+      <ul>
+        <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.root_uid">(objects.firmware.Firmware property)</a>
 </li>
+      </ul></li>
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.ExceptionSafeProcess.run">run() (helperFunctions.process.ExceptionSafeProcess method)</a>
 
       <ul>
@@ -1076,12 +1082,6 @@
 </li>
       <li><a href="modules/test.unit.conftest.html#test.unit.conftest.StatusInterfaceMock.set_analysis_status">set_analysis_status() (test.unit.conftest.StatusInterfaceMock method)</a>
 </li>
-      <li><a href="modules/objects.file.html#objects.file.FileObject.set_binary">set_binary() (objects.file.FileObject method)</a>
-
-      <ul>
-        <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.set_binary">(objects.firmware.Firmware method)</a>
-</li>
-      </ul></li>
       <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.set_part_name">set_part_name() (objects.firmware.Firmware method)</a>
 </li>
       <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.set_tag">set_tag() (objects.firmware.Firmware method)</a>
@@ -1094,8 +1094,6 @@
 </li>
       <li><a href="modules/helperFunctions.merge_generators.html#helperFunctions.merge_generators.shuffled">shuffled() (in module helperFunctions.merge_generators)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/scheduler.analysis.plugin.html#scheduler.analysis.plugin.PluginRunner.shutdown">shutdown() (scheduler.analysis.plugin.PluginRunner method)</a>
 
       <ul>
@@ -1104,6 +1102,8 @@
         <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.shutdown">(test.unit.conftest.CommonIntercomMock method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/scheduler.analysis.plugin.html#scheduler.analysis.plugin.Worker.SIGTERM_TIMEOUT">SIGTERM_TIMEOUT (scheduler.analysis.plugin.Worker attribute)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.size">size (objects.file.FileObject attribute)</a>
@@ -1129,6 +1129,8 @@
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.stop_process">stop_process() (in module helperFunctions.process)</a>
 </li>
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.stop_processes">stop_processes() (in module helperFunctions.process)</a>
+</li>
+      <li><a href="modules/test.unit.conftest.html#test.unit.conftest.CommonIntercomMock.store_file">store_file() (test.unit.conftest.CommonIntercomMock method)</a>
 </li>
       <li><a href="modules/helperFunctions.compare_sets.html#helperFunctions.compare_sets.substring_is_in_list">substring_is_in_list() (in module helperFunctions.compare_sets)</a>
 </li>
@@ -1201,7 +1203,7 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/objects.file.html#objects.file.FileObject.uid">uid (objects.file.FileObject property)</a>
+      <li><a href="modules/objects.file.html#objects.file.FileObject.uid">uid (objects.file.FileObject attribute)</a>
 </li>
       <li><a href="modules/helperFunctions.logging.html#helperFunctions.logging.TerminalColors.UNDERLINE">UNDERLINE (helperFunctions.logging.TerminalColors attribute)</a>
 </li>
