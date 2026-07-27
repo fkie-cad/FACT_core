@@ -162,6 +162,7 @@ class Backend(Common):
 
     intercom_poll_delay: float
     analysis_status_update_interval: float = 4.5
+    graceful_shutdown_timeout: float = 5.0
 
     throw_exceptions: bool
 

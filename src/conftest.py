@@ -105,6 +105,7 @@ def backend_config(request, common_config, firmware_file_storage_directory) -> c
         'ssdeep_ignore': 1,
         'intercom_poll_delay': 0.1,
         'analysis_status_update_interval': 0.2,
+        'graceful_shutdown_timeout': 1,
         'throw_exceptions': True,  # Always throw exceptions to avoid miraculous timeouts in test cases
         'plugin_defaults': {'processes': 1},
         'unpacking': {
