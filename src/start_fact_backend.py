@@ -22,6 +22,7 @@ import logging
 import os
 import resource
 import sys
+from multiprocessing import Process
 from pathlib import Path
 
 import config
@@ -67,6 +68,24 @@ class FactBackend(FactBase):
         self.unpacking_service.start()
         self.compare_service.start()
         self.intercom.start()
+        if self.args.log_level == 'DEBUG':
+            self._print_pid_info()
+
+    def _print_pid_info(self) -> None:
+        logging.debug(f'backend main process: {os.getpid()}')
+        logging.debug(f'unpacking scheduler process: {_get_pids([self.unpacking_service.extraction_process])}')
+        logging.debug(f'unpacking monitoring process: {_get_pids([self.unpacking_service.work_load_process])}')
+        logging.debug(
+            f'unpacking container workers: {", ".join(str(c.container_pid) for c in self.unpacking_service.workers)}'
+        )
+        logging.debug(f'analysis scheduler processes: {_get_pids(self.analysis_service.schedule_processes)}')
+        logging.debug(f'analysis collector processes: {_get_pids(self.analysis_service.result_collector_processes)}')
+        logging.debug(f'analysis status process: {_get_pids([self.analysis_service.status._worker._worker_process])}')
+        for plugin, runner in self.analysis_service._plugin_runners.items():
+            logging.debug(f'plugin {plugin} runners: {_get_pids(runner._workers)}')
+        logging.debug(f'comparison scheduler process: {_get_pids([self.compare_service.worker])}')
+        for listener in self.intercom.listeners:
+            logging.debug(f'intercom {listener.__class__.__name__} process: {_get_pids([listener.process])}')
 
     def shutdown(self) -> None:
         super().shutdown()
@@ -156,6 +175,10 @@ def _check_ulimit() -> None:
     if soft_limit < hard_limit:
         # we are only allowed to increase the soft limit and not the hard limit
         resource.setrlimit(resource.RLIMIT_NOFILE, (hard_limit, hard_limit))
+
+
+def _get_pids(processes: list[Process | None]) -> str:
+    return ', '.join(str(p.pid) for p in processes if p is not None)
 
 
 if __name__ == '__main__':

@@ -31,6 +31,7 @@ class ExtractionContainer:
         self.tmp_dir = tmp_dir
         self.port = config.backend.unpacking.base_port + id_
         self.container_id = None
+        self.container_pid = 0
         self.exception = value
         self._adapter = HTTPAdapter(max_retries=Retry(total=3, backoff_factor=0.1))
 
@@ -60,6 +61,8 @@ class ExtractionContainer:
         )
         self.container_id = container.id
         logging.info(f'Started unpack worker {self.id_}')
+        container.reload()
+        self.container_pid = container.attrs['State'].get('Pid', 0)
 
     def stop(self):
         if self.container_id is None:
