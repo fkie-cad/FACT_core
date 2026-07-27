@@ -19,7 +19,7 @@ from analysis.plugin import AnalysisPluginV0
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, do_threaded, stop_processes
 from objects.firmware import Firmware
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
@@ -144,12 +144,7 @@ class AnalysisScheduler:
         # first shut down scheduling, then analysis plugins and lastly the result collector
         stop_processes(self.schedule_processes, config.backend.graceful_shutdown_timeout)
 
-        for runner in self._plugin_runners.values():
-            runner.shutdown()
-        stop_processes(
-            [worker for runner in self._plugin_runners.values() for worker in runner._workers],
-            config.backend.graceful_shutdown_timeout,
-        )
+        do_threaded(*(runner.shutdown for runner in self._plugin_runners.values()))
 
         stop_processes(self.result_collector_processes, config.backend.graceful_shutdown_timeout)
         self.process_queue.close()

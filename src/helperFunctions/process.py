@@ -1,19 +1,16 @@
 from __future__ import annotations
 
 import logging
+import multiprocessing as mp
 import os
+import threading
 import traceback
-from contextlib import suppress
-from multiprocessing import Pipe, Process
-from typing import TYPE_CHECKING
+from collections.abc import Callable
 
 import psutil
 
 import config
 from helperFunctions.logging import TerminalColors, color_string
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 def complete_shutdown(message: str | None = None) -> None:
@@ -42,7 +39,7 @@ def _proc_is_in_grp(proc: psutil.Process, pgid: int) -> bool:
         return False
 
 
-class ExceptionSafeProcess(Process):
+class ExceptionSafeProcess(mp.Process):
     """
     ExceptionSafeProcess is a subtype of ``multiprocessing.Process`` with added exception handling.
     Opposed to what the name may suggest, the class does not make the process impervious to exceptions.
@@ -57,7 +54,7 @@ class ExceptionSafeProcess(Process):
 
     def __init__(self, *args, reraise: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
-        self._receive_pipe, self._send_pipe = Pipe()
+        self._receive_pipe, self._send_pipe = mp.Pipe()
         self._exception = None
         self._reraise = reraise
 
@@ -67,7 +64,7 @@ class ExceptionSafeProcess(Process):
         be retrieved by accessing ``ExceptionSafeProcess.exception``.
         """
         try:
-            Process.run(self)
+            mp.Process.run(self)
             self._send_pipe.send(None)
         except Exception as exception:
             trace = traceback.format_exc()
@@ -88,7 +85,7 @@ class ExceptionSafeProcess(Process):
         return self._exception
 
 
-def terminate_process_and_children(process: Process | psutil.Process, timeout: float) -> None:
+def terminate_process_and_children(process: mp.Process | psutil.Process, timeout: float) -> None:
     """
     Terminate a process and all of its child processes.
 
@@ -96,7 +93,7 @@ def terminate_process_and_children(process: Process | psutil.Process, timeout: f
     :param timeout: The timeout in seconds. After reaching the timeout, the process is killed.
     """
     try:
-        if isinstance(process, Process):
+        if isinstance(process, mp.Process):
             process = psutil.Process(process.pid)
         procs = process.children(recursive=True)
         procs.insert(0, process)
@@ -171,7 +168,7 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
     return new_process != old_process
 
 
-def stop_processes(processes: list[Process], timeout: float = 10.0, wait: bool = True) -> None:
+def stop_processes(processes: list[mp.Process], timeout: float = 10.0, wait: bool = True) -> None:
     """
     Try to stop processes gracefully in parallel. If a process does not stop until `timeout` is reached, kill it.
 
@@ -179,27 +176,71 @@ def stop_processes(processes: list[Process], timeout: float = 10.0, wait: bool =
     :param timeout: Timeout for joining the process in seconds.
     :param wait: If wait is set, we expect the processes to stop by themselves, so we try to join before terminating.
     """
-    proc_list = []
-    for p in processes:
-        if p.pid is None or not p.is_alive():
-            continue
-        with suppress(psutil.NoSuchProcess):
-            proc_list.append(psutil.Process(p.pid))
-    _stop_proc_list(proc_list, timeout, wait_first=wait)
+    _stop_proc_list(
+        [p for p in processes if p.is_alive()],
+        timeout,
+        wait_first=wait,
+    )
 
 
-def _stop_proc_list(proc_list: list[psutil.Process], timeout: float, wait_first: bool = False) -> None:
+def _stop_proc_list(proc_list: list[mp.Process | psutil.Process], timeout: float, wait_first: bool = False) -> None:
+    do_threaded(
+        *(
+            (stop_process, (p, timeout, wait_first))
+            if isinstance(p, mp.Process)
+            else (_stop_psutil_process, (p, timeout, wait_first))
+            for p in proc_list
+        )
+    )
+
+
+def stop_process(process: mp.Process | psutil.Process, timeout: float = 10.0, wait_first: bool = False) -> None:
+    if isinstance(process, mp.Process):
+        _stop_mp_process(process, timeout, wait_first)
+    else:
+        _stop_psutil_process(process, timeout, wait_first)
+
+
+def _stop_mp_process(process: mp.Process, timeout: float, wait_first: bool = False) -> None:
     if wait_first:
-        _, proc_list = psutil.wait_procs(proc_list, timeout=timeout)
+        process.join(timeout=timeout)
+    process.terminate()
+    process.join(timeout=timeout)
+    if process.is_alive():
+        logging.warning(f'Process {process.pid} did not terminate -> kill')
+        process.kill()
+    process.join(timeout=0)
 
-    for p in proc_list:
-        with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
-            p.terminate()
 
-    _, alive = psutil.wait_procs(proc_list, timeout=timeout)
+def _stop_psutil_process(process: psutil.Process, timeout: float, wait_first: bool = False) -> None:
+    if wait_first:
+        process.wait(timeout=timeout)
+    process.terminate()
+    process.wait(timeout=timeout)
+    if process.is_running():
+        logging.warning(f'Process {process.pid} did not terminate -> kill')
+        process.kill()
+    process.wait(timeout=0)
 
-    for p in alive:
-        with suppress(psutil.NoSuchProcess, psutil.AccessDenied):
-            logging.warning(f'Process {p.pid} did not terminate -> kill')
-            p.kill()
-    psutil.wait_procs(alive, timeout=0)  # reap stopped procs
+
+def do_threaded(*functions: Callable | tuple[Callable, tuple]) -> None:
+    """
+    Run multiple functions concurrently in threads.
+
+    :param functions: Functions to run concurrently. Each entry is either a
+        ``Callable`` or a ``tuple[Callable, tuple[*args]]``.
+    :raises TypeError: If an entry is neither a ``Callable`` nor a tuple.
+    """
+    threads = []
+    for entry in functions:
+        if isinstance(entry, tuple):
+            fun, args = entry
+        elif isinstance(entry, Callable):
+            fun, args = entry, ()
+        else:
+            raise TypeError('Error: expected Callable or tuple[Callable, args]')
+        t = threading.Thread(target=fun, args=args)
+        t.start()
+        threads.append(t)
+    for thread in threads:
+        thread.join()
