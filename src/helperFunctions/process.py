@@ -49,12 +49,18 @@ def _stop_process_by_pid(pid: int):
     try:
         proc = psutil.Process(pid)
         try:
-            proc.wait(5)
-        except psutil.TimeoutExpired as err:
-            logging.warning(f'Timeout while waiting for process to shut down: {err} -> kill')
-            if proc and proc.is_running():
-                proc.kill()
-    except (ChildProcessError, psutil.NoSuchProcess):
+            proc.wait(2.5)
+        except psutil.TimeoutExpired:
+            proc.terminate()
+            try:
+                proc.wait(2.5)
+            except psutil.TimeoutExpired as err:
+                logging.warning(f'Timeout while waiting for process to shut down: {err} -> kill')
+                if proc and proc.is_running():
+                    proc.kill()
+                    with suppress(psutil.TimeoutExpired):
+                        proc.wait(0)
+    except (ChildProcessError, psutil.NoSuchProcess, PermissionError):
         pass  # process shut down itself in the meantime -> nothing to do
 
 
@@ -104,26 +110,30 @@ class ExceptionSafeProcess(Process):
         return self._exception
 
 
-def terminate_process_and_children(process: Process | psutil.Process):
+def terminate_process_and_children(process: Process | psutil.Process) -> None:
     """
-    Terminate a process and all of its child processes recursively.
+    Terminate a process and all of its child processes.
 
     :param process: The process to be terminated.
     """
     try:
         if isinstance(process, Process):
             process = psutil.Process(process.pid)
-        children = process.children(recursive=False)
-        process.terminate()  # try to send SIGTERM first before SIGKILL
-        with suppress(psutil.TimeoutExpired):
-            process.wait(timeout=5)  # give the process and its children some time to exit gracefully
-        for child in children:
-            terminate_process_and_children(child)  # make sure all child processes also stop
-
-        if process.is_running():
-            process.kill()  # if the process still runs after sending SIGTERM: send SIGKILL
+        procs = process.children(recursive=True)
+        procs.insert(0, process)
     except psutil.NoSuchProcess:
-        return  # the process no longer exists (maybe it exited in the meantime)
+        return
+
+    for p in procs:
+        with suppress(psutil.NoSuchProcess):
+            p.terminate()
+
+    _, alive = psutil.wait_procs(procs, timeout=5)
+
+    for p in alive:
+        with suppress(psutil.NoSuchProcess):
+            p.kill()
+    psutil.wait_procs(alive, timeout=0)  # reap stopped procs
 
 
 def start_single_worker(process_index: int, label: str, function: Callable) -> ExceptionSafeProcess:
@@ -164,7 +174,7 @@ def check_worker_exceptions(
              set to `true` and ``False`` otherwise.
     """
     return_value = False
-    for worker_process in process_list:
+    for worker_process in process_list[:]:
         if worker_process.exception:
             _, stack_trace = worker_process.exception
             logging.error(color_string(f'Exception in {worker_label} process:\n{stack_trace}', TerminalColors.FAIL))
