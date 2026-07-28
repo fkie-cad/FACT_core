@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from shutil import move
 from typing import TYPE_CHECKING
 
 from common_helper_files import delete_file, write_binary_to_file
@@ -37,7 +38,7 @@ class FileService:
         """
         destination_path = self.generate_path_from_uid(uid)
         destination_path.parent.mkdir(exist_ok=True)
-        path.replace(destination_path)
+        move(path, destination_path)
 
     def delete_file(self, uid: str) -> None:
         local_file_path = self.generate_path_from_uid(uid)
