@@ -185,10 +185,8 @@ class AnalysisRoutes(ComponentBase):
         self, uid: str, analysis_task: dict, re_do: bool, force_reanalysis: bool = False
     ) -> None:
         if re_do:
-            analysis_task['binary'] = self.intercom.get_file_contents(uid)
             base_fw = None
             self.db.admin.delete_firmware(uid, delete_root_file=False)
-            # FixMe? do we need to wait for cascade/event listener to finish?
         else:
             base_fw = self.db.frontend.get_object(uid)
             base_fw.force_update = force_reanalysis
