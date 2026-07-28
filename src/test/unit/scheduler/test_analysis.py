@@ -346,9 +346,9 @@ class TestAnalysisSkipping:
     def test_is_forced_update(self):
         fo = MockFileObject()
         assert self.scheduler._is_forced_update(fo) is False
-        fo.force_update = False
+        fo.temporary_data['force_update'] = False
         assert self.scheduler._is_forced_update(fo) is False
-        fo.force_update = True
+        fo.temporary_data['force_update'] = True
         assert self.scheduler._is_forced_update(fo) is True
 
 

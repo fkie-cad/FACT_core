@@ -120,7 +120,7 @@ class AnalysisRoutes(ComponentBase):
             file_object.scheduled_analysis = [plugin]
         else:
             file_object.scheduled_analysis = request.form.getlist('analysis_systems')
-        file_object.force_update = request.form.get('force_update') == 'true'
+        file_object.temporary_data['force_update'] = request.form.get('force_update') == 'true'
         success = self.intercom.add_single_file_task(file_object)
         return {'success': success}
 
@@ -191,7 +191,7 @@ class AnalysisRoutes(ComponentBase):
             # FixMe? do we need to wait for cascade/event listener to finish?
         else:
             base_fw = self.db.frontend.get_object(uid)
-            base_fw.force_update = force_reanalysis
+            base_fw.temporary_data['force_update'] = force_reanalysis
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         self.intercom.add_re_analyze_task(fw, unpack=re_do)
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import time
+from copy import deepcopy
 from multiprocessing import Lock, Queue, Value
 from pathlib import Path
 from queue import Empty
@@ -170,7 +171,7 @@ class AnalysisScheduler:
         self.status.add_update(fo, included_files)
         for child_fo in self.db_backend_service.get_objects_by_uid_list(included_files):
             child_fo.root_uid = fo.uid  # set the correct root_uid so that "current analysis stats" work correctly
-            child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
+            child_fo.temporary_data = deepcopy(fo.temporary_data)  # propagate temp data to children
             self.task_scheduler.schedule_analysis_tasks(child_fo, fo.scheduled_analysis, mandatory=True)
             self._check_further_process_or_complete(child_fo)
         self._check_further_process_or_complete(fo)
@@ -387,10 +388,7 @@ class AnalysisScheduler:
 
     @staticmethod
     def _is_forced_update(file_object: FileObject) -> bool:
-        try:
-            return bool(getattr(file_object, 'force_update', False))
-        except AttributeError:
-            return False
+        return bool(file_object.temporary_data.get('force_update', False))
 
     # ---- 2. Analysis present and plugin version unchanged ----
 
