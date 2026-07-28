@@ -457,6 +457,8 @@ class AnalysisScheduler:
         }
 
     def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject) -> bool:
+        if self._blacklist_check_is_disabled(fw_object):
+            return False
         blacklist, whitelist = self._get_blacklist_and_whitelist(next_analysis)
         if not (blacklist or whitelist):
             return False
@@ -499,6 +501,10 @@ class AnalysisScheduler:
             whitelist = []
 
         return blacklist, whitelist
+
+    @staticmethod
+    def _blacklist_check_is_disabled(fw_object: FileObject) -> bool:
+        return bool(fw_object.temporary_data.get('skip_type_check', False))
 
     # ---- result collector functions ----
 

@@ -121,6 +121,7 @@ class AnalysisRoutes(ComponentBase):
         else:
             file_object.scheduled_analysis = request.form.getlist('analysis_systems')
         file_object.temporary_data['force_update'] = request.form.get('force_update') == 'true'
+        file_object.temporary_data['skip_type_check'] = request.form.get('skip_type_check') == 'true'
         success = self.intercom.add_single_file_task(file_object)
         return {'success': success}
 
@@ -178,11 +179,12 @@ class AnalysisRoutes(ComponentBase):
             logging.warning(f'Received invalid update analysis request: Key {KeyError.__str__(error)} is missing!')
             raise
         force_reanalysis = request.form.get('force_reanalysis') == 'true'
-        self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
+        skip_type_check = request.form.get('skip_type_check') == 'true'
+        self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis, skip_type_check)
         return render_template('upload/upload_successful.html', uid=uid)
 
     def _schedule_re_analysis_task(
-        self, uid: str, analysis_task: dict, re_do: bool, force_reanalysis: bool = False
+        self, uid: str, analysis_task: dict, re_do: bool, force_reanalysis: bool = False, skip_type_check: bool = False
     ) -> None:
         if re_do:
             analysis_task['binary'] = self.intercom.get_file_contents(uid)
@@ -191,7 +193,8 @@ class AnalysisRoutes(ComponentBase):
             # FixMe? do we need to wait for cascade/event listener to finish?
         else:
             base_fw = self.db.frontend.get_object(uid)
-            base_fw.temporary_data['force_update'] = force_reanalysis
+        base_fw.temporary_data['force_update'] = force_reanalysis
+        base_fw.temporary_data['skip_type_check'] = skip_type_check
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         self.intercom.add_re_analyze_task(fw, unpack=re_do)
 
