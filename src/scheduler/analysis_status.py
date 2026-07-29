@@ -242,6 +242,7 @@ class AnalysisStatusWorker:
                 'unpacked_count': status.unpacked_files_count,
                 'analyzed_count': status.analyzed_files_count,
                 'start_time': status.start_time,
+                'duration': time() - status.start_time,
                 'total_count': status.total_files_count,
                 'total_count_with_duplicates': status.total_files_with_duplicates,
                 'hid': status.hid,

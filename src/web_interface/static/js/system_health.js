@@ -150,7 +150,7 @@ function updateCurrentAnalyses(analysisData) {
 }
 
 function createCurrentAnalysisItem(data, uid, isFinished = false, isCancelled = false) {
-    const timeString = isFinished ? `Finished in ${getDuration(null, data.duration)}` : `${getDuration(data.start_time)}`;
+    const timeString = isFinished ? `Finished in ${getDuration(data.duration)}` : `${getDuration(data.duration)}`;
     const total = isFinished ? data.total_files_count : data.total_count;
     const showDetails = Boolean(document.getElementById("ca-show-details").checked);
     const width = isFinished || isCancelled || !showDetails ? "30px" : "50%";
@@ -260,8 +260,7 @@ function createIconCell(icon, tooltip, width) {
     `;
 }
 
-function getDuration(start = null, duration = null) {
-    duration = duration != null ? duration : Date.now() / 1000 - start;
+function getDuration(duration) {
     const date = new Date(duration * 1000);
     if (date.getUTCHours() > 0) {
         return date.toUTCString().slice(-12, -4);  // returns something like '01:23:45'
