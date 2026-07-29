@@ -82,6 +82,6 @@ class AnalysisPlugin(AnalysisPluginV0):
         # textual device tree data can contain huge chunks of binary data
         # -> remove them from the result if they are too large
         return DT_BINARY_DATA_REGEX_2.sub(
-            '(BINARY DATA ...)',
-            DT_BINARY_DATA_REGEX_1.sub('(BINARY DATA ...)', device_tree),
+            '"<BINARY DATA ...>"',
+            DT_BINARY_DATA_REGEX_1.sub('"<BINARY DATA ...>"', device_tree),
         )
