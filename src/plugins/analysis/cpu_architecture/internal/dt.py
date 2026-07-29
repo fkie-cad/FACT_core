@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import re
+import logging
 import shlex
 import subprocess
 from pathlib import Path
@@ -17,20 +17,20 @@ def _get_compatible_entry(dts: str) -> str | None:
 
     See the DeviceTree spec for more information https://www.devicetree.org/specifications/
     """
-
-    # Replace every property that is very long (>256 bytes)
-    # This speeds up dtc and should only affect binary data
-    dts = re.sub(r'\t*[0-9a-zA-Z,._+?#-]+ = .{256,}\n', '', dts)
-    with NamedTemporaryFile() as tmp:
-        Path(tmp.name).write_text(dts)
-        dtc_process = subprocess.run(  # noqa: S603
-            shlex.split(f'dtc -I dts -O yaml {tmp.name}'),
-            input=dts,
-            stdout=PIPE,
-            stderr=DEVNULL,
-            text=True,
-            check=True,
-        )
+    try:
+        with NamedTemporaryFile() as tmp:
+            Path(tmp.name).write_text(dts)
+            dtc_process = subprocess.run(  # noqa: S603
+                shlex.split(f'dtc -I dts -O yaml {tmp.name}'),
+                input=dts,
+                stdout=PIPE,
+                stderr=DEVNULL,
+                text=True,
+                check=True,
+            )
+    except subprocess.CalledProcessError:
+        logging.warning('Error in calling device tree compiler.')
+        return None
 
     # FixMe: Why do we need this?
     dt = dtc_process.stdout.replace('!u8', '')
