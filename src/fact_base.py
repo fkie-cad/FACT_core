@@ -55,7 +55,7 @@ class FactBase:
     @staticmethod
     def _get_git_revision() -> str:
         try:
-            proc = run(
+            proc = run(  # noqa: S603
                 split('git rev-parse --short HEAD'),
                 stdout=PIPE,
                 stderr=STDOUT,
@@ -66,7 +66,7 @@ class FactBase:
         except CalledProcessError:
             return 'unknown revision'
 
-    def _register_signal_handlers(self):
+    def _register_signal_handlers(self) -> None:
         # Check whether the process was started by start_fact.py
         parent = ' '.join(psutil.Process(os.getppid()).cmdline())
         started_by_start_fact_py = 'start_fact.py' in parent or 'start_all_installed_fact_components' in parent
@@ -79,23 +79,23 @@ class FactBase:
             signal.signal(signal.SIGINT, self.shutdown_listener)
             signal.signal(signal.SIGTERM, self.shutdown_listener)
 
-    def shutdown_listener(self, signum, _):
+    def shutdown_listener(self, signum, _) -> None:  # noqa: ANN001
         if not _is_main_process():
             return  # all subprocesses also inherit this signal handler (which is intentional for a "clean" shutdown)
         logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
         self.run = False
 
-    def start(self):
+    def start(self) -> None:
         pass
 
-    def _update_component_workload(self):
+    def _update_component_workload(self) -> None:
         self.work_load_stat.update()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         logging.info(f'Shutting down components of {self.PROGRAM_NAME}')
         self.work_load_stat.shutdown()
 
-    def main(self):
+    def main(self) -> None:
         self.start()
         logging.info(f'Successfully started {self.PROGRAM_NAME}')
         counter = 0
@@ -110,7 +110,7 @@ class FactBase:
         self.shutdown()
 
     @staticmethod
-    def do_self_test():
+    def do_self_test() -> None:
         if db_needs_migration():
             logging.error(
                 'The database schema in "storage/schema.py" does not match the schema of the configured database. '
@@ -118,7 +118,7 @@ class FactBase:
             )
             raise DbInterfaceError('Schema mismatch')
 
-    def _check_resource_usage(self):
+    def _check_resource_usage(self) -> None:
         memory_usage = psutil.virtual_memory().percent
         if memory_usage > 95.0:  # noqa: PLR2004
             logging.critical(f'System memory is critically low: {memory_usage}%')
