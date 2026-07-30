@@ -1,3 +1,4 @@
+import grp
 import logging
 import os
 import signal
@@ -51,6 +52,7 @@ class FactBase:
 
         self._register_signal_handlers()
         self.work_load_stat = WorkLoadStatistic(component=self.COMPONENT)
+        self._create_docker_base_dir()
 
     @staticmethod
     def _get_git_revision() -> str:
@@ -126,6 +128,18 @@ class FactBase:
             logging.warning(f'System memory is running low: {memory_usage}%')
         else:
             logging.info(f'System memory usage: {memory_usage}%; open file count: {self.main_proc.num_fds()}')
+
+    @staticmethod
+    def _create_docker_base_dir() -> None:
+        docker_mount_base_dir = Path(config.backend.docker_mount_base_dir)
+        docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+        docker_gid = grp.getgrnam('docker').gr_gid
+        try:
+            os.chown(docker_mount_base_dir, -1, docker_gid)
+        except PermissionError:
+            # If we don't have enough rights to change the permissions we assume they are right
+            # E.g. in FACT_docker the correct group is not the group named 'docker'
+            logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
 
 
 def _is_main_process() -> bool:
