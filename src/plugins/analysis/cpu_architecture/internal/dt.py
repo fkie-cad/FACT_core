@@ -4,7 +4,6 @@ import logging
 import shlex
 import subprocess
 from pathlib import Path
-from subprocess import DEVNULL, PIPE
 from tempfile import NamedTemporaryFile
 
 import yaml
@@ -17,19 +16,17 @@ def _get_compatible_entry(dts: str) -> str | None:
 
     See the DeviceTree spec for more information https://www.devicetree.org/specifications/
     """
-    try:
-        with NamedTemporaryFile() as tmp:
-            Path(tmp.name).write_text(dts)
-            dtc_process = subprocess.run(  # noqa: S603
-                shlex.split(f'dtc -I dts -O yaml {tmp.name}'),
-                input=dts,
-                stdout=PIPE,
-                stderr=DEVNULL,
-                text=True,
-                check=True,
-            )
-    except subprocess.CalledProcessError:
-        logging.warning('Error in calling device tree compiler.')
+    with NamedTemporaryFile() as tmp:
+        Path(tmp.name).write_text(dts)
+        dtc_process = subprocess.run(  # noqa: S603
+            shlex.split(f'dtc -I dts -O yaml {tmp.name}'),
+            input=dts,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    if dtc_process.returncode != 0:
+        logging.warning(f'Error in calling device tree compiler:\n{dtc_process.stderr}')
         return None
 
     # FixMe: Why do we need this?
