@@ -17,15 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import grp
 import logging
 import os
 import resource
 import sys
 from multiprocessing import Process
-from pathlib import Path
 
-import config
 from fact_base import FactBase
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
@@ -45,7 +42,6 @@ class FactBackend(FactBase):
     def __init__(self):
         super().__init__()
         self.unpacking_lock_manager = UnpackingLockManager()
-        self._create_docker_base_dir()
         _check_ulimit()
 
         self.analysis_service = AnalysisScheduler(unpacking_locks=self.unpacking_lock_manager)
@@ -102,18 +98,6 @@ class FactBackend(FactBase):
             unpacking_workload=self.unpacking_service.get_scheduled_workload(),
             analysis_workload=self.analysis_service.get_scheduled_workload(),
         )
-
-    @staticmethod
-    def _create_docker_base_dir() -> None:
-        docker_mount_base_dir = Path(config.backend.docker_mount_base_dir)
-        docker_mount_base_dir.mkdir(0o770, exist_ok=True)
-        docker_gid = grp.getgrnam('docker').gr_gid
-        try:
-            os.chown(docker_mount_base_dir, -1, docker_gid)
-        except PermissionError:
-            # If we don't have enough rights to change the permissions we assume they are right
-            # E.g. in FACT_docker the correct group is not the group named 'docker'
-            logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
 
     def _exception_occurred(self) -> bool:
         return any(
