@@ -143,7 +143,7 @@ def _install_docker_images(radare: bool) -> None:
     # pull pdf report container
     logging.info('Pulling pdf report container')
     docker_process = subprocess.run(  # noqa: S602
-        'docker pull fkiecad/fact_pdf_report',  # noqa: S607
+        f'docker pull {config.frontend.pdf_report_image}',
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
