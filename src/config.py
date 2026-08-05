@@ -113,6 +113,7 @@ class Frontend(Common):
     max_elements_per_chart: int = 10
 
     radare2_url: str
+    pdf_report_image: str
 
     hasura: Frontend.Hasura
 
