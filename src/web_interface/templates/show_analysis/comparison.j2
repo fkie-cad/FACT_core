@@ -18,18 +18,17 @@
 
         <div class="collapse m-0" id="comparison-list">
             <div class="jumbotron float-right mx-2 mb-0 p-3" style="width: auto; max-width: 650px;">
-                <span class="mt-0 text-center" style="font-size: larger">Firmware Selected for Comparison</span>
+                <span class="mt-0 text-center" style="font-size: larger">Files Selected for Comparison</span>
                 <hr style="margin: 12px">
                 <table>
                     <tr>
                         <td style="width: 10px; vertical-align: top;">
                             {% for compare_uid in uids_for_comparison %}
                                 <div class="col-xs-12 p-0">
-                                <span class="m-0" style="padding: 2px; display: inline-flex;">
-                                    <span class="close" style="font-size: 20px"
-                                          onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}/{{ root_uid }}'">
-                                        &times;
-                                    </span>
+                                <span class="m-0" style="padding: 2px; display: inline-flex; cursor: pointer;">
+                                    <i class="fas fa-trash-can mr-1"
+                                       onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}/{{ root_uid }}'">
+                                    </i>
                                     <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}"
                                           style="margin-left: 3px">{{ compare_uid | replace_uid_with_hid | safe }}</span>
                                 </span>
@@ -67,6 +66,8 @@
                                 </div>
                                 <script src="{{ url_for('static', filename='js/start_compare.js') }}"></script>
                             </td>
+                        {% else %}
+                            <div>Please select at least one more file for comparison.</div>
                         {% endif %}
                     </tr>
                 </table>

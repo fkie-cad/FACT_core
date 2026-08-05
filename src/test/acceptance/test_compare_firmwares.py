@@ -8,7 +8,7 @@ class TestAcceptanceCompareFirmwares:
         rv = test_client.get(f'/analysis/{test_fw_a.uid}')
         assert test_fw_a.uid in rv.data.decode()
         rv = test_client.get(f'/comparison/add/{test_fw_a.uid}', follow_redirects=True)
-        assert 'Firmware Selected for Comparison' in rv.data.decode()
+        assert 'Files Selected for Comparison' in rv.data.decode()
 
         rv = test_client.get(f'/analysis/{test_fw_c.uid}')
         assert test_fw_c.uid in rv.data.decode()
