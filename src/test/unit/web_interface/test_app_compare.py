@@ -6,7 +6,7 @@ from test.common_helper import COMPARISON_ID, TEST_FW, TEST_FW_2
 def test_add_firmwares_to_compare(test_client):
     with test_client:
         rv = test_client.get(f'/comparison/add/{TEST_FW.uid}', follow_redirects=True)
-        assert 'Firmware Selected for Comparison' in rv.data.decode()
+        assert 'Files Selected for Comparison' in rv.data.decode()
         assert 'uids_for_comparison' in session
         assert TEST_FW.uid in session['uids_for_comparison']
 
