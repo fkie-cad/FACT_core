@@ -47,7 +47,7 @@
                             <tr>
                                 <td>Individual Results:</td>
                                 <td class="p-0">
-                                    <table class="table table-bordered m-0" style="width: 100%">
+                                    <table class="table table-bordered m-0" style="width: 100%; overflow-wrap: break-word;">
                                     {% for arch_result in file_result.extended_results %}
                                         <tr>
                                             {% set rowspan = (arch_result.parameter_results | length) * 3 %}
