@@ -86,3 +86,9 @@ class TestRestAnalysis:
 
         assert 'success' in result, 'missing field in result'
         assert result['success'], 'put should be successful'
+
+    def test_put_analysis_skip_type_check(self, test_client):
+        result = test_client.put(f'/rest/analysis/{TEST_FW.uid}/{PLUGIN}?skip_type_check=true').json
+
+        assert 'success' in result, 'missing field in result'
+        assert result['success'], 'put should be successful'
