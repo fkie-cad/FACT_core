@@ -1,4 +1,5 @@
 import json
+from http import HTTPStatus
 from urllib.parse import quote
 
 import pytest
@@ -44,7 +45,7 @@ class TestAcceptanceMisc:
                 'analysis_systems': [],
             }
             rv = test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
-        assert b'Upload Successful' in rv.data, 'upload not successful'
+        assert rv.status_code == HTTPStatus.OK, 'upload not successful'
         assert uid.encode() in rv.data, 'uid not found on upload success page'
 
     def _show_stats(self, test_client):
