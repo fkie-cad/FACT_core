@@ -73,7 +73,7 @@ def filter_out_illegal_characters(string: str | None) -> str | None:
     """
     if string is None:
         return string
-    return re.sub(f'[^\\w {SPECIAL_CHARACTERS}!.-]', '', string)
+    return re.sub(f'[^\\w {SPECIAL_CHARACTERS}!./-]', '', string)
 
 
 def get_template_as_string(view_name: str) -> str:

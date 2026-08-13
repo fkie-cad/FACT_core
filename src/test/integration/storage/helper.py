@@ -68,14 +68,21 @@ def insert_test_fw(  # noqa: PLR0913
     return test_fw
 
 
-def insert_test_fo(
-    backend_db, uid, file_name='test.zip', size=1, analysis: dict | None = None, parent_fw=None, comments=None
+def insert_test_fo(  # noqa: PLR0913
+    backend_db,
+    uid,
+    file_name='test.zip',
+    size=1,
+    analysis: dict | None = None,
+    parent_fw=None,
+    comments=None,
+    vfp=None,
 ):
     test_fo = create_test_file_object()
     test_fo.uid = uid
     test_fo.file_name = file_name
     test_fo.size = size
-    test_fo.virtual_file_path = {}
+    test_fo.virtual_file_path = vfp or {}
     if analysis:
         test_fo.processed_analysis = analysis
     if parent_fw:
