@@ -13,12 +13,9 @@ class DbMock(CommonDatabaseMock):
 
 @pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
 class TestRestFileObject:
-    def test_empty_uid(self, test_client):
-        result = test_client.get('/rest/file_object/').data
-        assert b'404 Not Found' in result
-
-    def test_get_all_objects(self, test_client):
-        result = test_client.get('/rest/file_object').json
+    @pytest.mark.parametrize('url', ['/rest/file_object', '/rest/file_object/'])
+    def test_get_all_objects(self, test_client, url):
+        result = test_client.get(url).json
         assert 'error_message' not in result
 
     def test_paging(self, test_client):
