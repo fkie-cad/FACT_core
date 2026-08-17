@@ -176,6 +176,8 @@ ajax-stats-reload-time = 10000
 # otherwise it must be set to "http://localhost:8000"
 radare2-url = "http://localhost:8000"
 # communication-timeout = 60
+# PDF report docker image
+pdf-report-image = "ghcr.io/fkie-cad/fact_pdf_report:v1.0.1"
 
 
 [frontend.authentication]
