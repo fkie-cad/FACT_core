@@ -7,6 +7,7 @@ from pathlib import Path
 from shlex import split
 from subprocess import PIPE, STDOUT, CalledProcessError, run
 from time import sleep
+from types import FrameType
 
 import config
 
@@ -81,7 +82,7 @@ class FactBase:
             signal.signal(signal.SIGINT, self.shutdown_listener)
             signal.signal(signal.SIGTERM, self.shutdown_listener)
 
-    def shutdown_listener(self, signum, _) -> None:  # noqa: ANN001
+    def shutdown_listener(self, signum: int, _: FrameType | None) -> None:
         if not _is_main_process():
             return  # all subprocesses also inherit this signal handler (which is intentional for a "clean" shutdown)
         logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
@@ -106,10 +107,16 @@ class FactBase:
             sleep(5)
             if self.args.testing:
                 break
+            if self._exception_occurred():
+                logging.error(f'Exception occurred, shutting down {self.PROGRAM_NAME}')
+                break
             if not counter % 12:  # only check every minute
                 self._check_resource_usage()
             counter += 1
         self.shutdown()
+
+    def _exception_occurred(self) -> bool:
+        return False
 
     @staticmethod
     def do_self_test() -> None:
