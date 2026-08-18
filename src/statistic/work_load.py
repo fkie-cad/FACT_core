@@ -16,20 +16,25 @@ from version import __VERSION__
 
 
 class WorkLoadStatistic:
-    def __init__(self, component):
+    def __init__(self, component: str):
         self.component = component
         self.status = RedisStatusInterface()
         self.platform_information = self._get_platform_information()
         logging.debug(f'{self.component}: Online')
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         logging.debug(f'{self.component}: shutting down -> set offline message')
         self.status.set_component_status(
             self.component,
             {'name': self.component, 'status': 'offline', 'last_update': time()},
         )
 
-    def update(self, unpacking_workload=None, analysis_workload=None, compare_workload=None):
+    def update(
+        self,
+        unpacking_workload: dict | None = None,
+        analysis_workload: dict | None = None,
+        compare_workload: dict | None = None,
+    ) -> None:
         stats = {
             'name': self.component,
             'status': 'online',
@@ -46,7 +51,7 @@ class WorkLoadStatistic:
         self.status.set_component_status(self.component, stats)
 
     @staticmethod
-    def _get_system_information():
+    def _get_system_information() -> dict:
         memory_usage = psutil.virtual_memory()
         try:
             disk_usage = psutil.disk_usage(config.backend.firmware_file_storage_directory)
@@ -71,7 +76,7 @@ class WorkLoadStatistic:
         }
 
     @staticmethod
-    def _get_platform_information():
+    def _get_platform_information() -> dict:
         operating_system = f'{distro.id()} {distro.version()}'
         python_version = '.'.join(str(x) for x in sys.version_info[0:3])
         fact_version = __VERSION__

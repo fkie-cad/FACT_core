@@ -24,7 +24,12 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd:
-    def __init__(self, db: FrontendDatabase | None = None, intercom=None, status_interface=None):
+    def __init__(
+        self,
+        db: FrontendDatabase | None = None,
+        intercom: type[InterComFrontEndBinding] | None = None,
+        status_interface: RedisStatusInterface | None = None,
+    ):
         self.program_version = __VERSION__
         self.intercom = InterComFrontEndBinding() if intercom is None else intercom()
         self.db = FrontendDatabase() if db is None else db
@@ -33,7 +38,7 @@ class WebFrontEnd:
         self._setup_app()
         logging.info(f'Web front end online (PID={os.getpid()})')
 
-    def _setup_app(self):
+    def _setup_app(self) -> None:
         self.app = create_app()
         self.user_db, self.user_datastore = add_flask_security_to_app(self.app)
         base_args = {'app': self.app, 'db': self.db, 'intercom': self.intercom, 'status': self.status_interface}
@@ -52,6 +57,6 @@ class WebFrontEnd:
         PluginRoutes(**base_args, api=rest_base.api)
         FilterClass(self.app, self.program_version, self.db)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         logging.info(f'Shutting down Web front end (PID={os.getpid()})')
         self.sse.shutdown()
