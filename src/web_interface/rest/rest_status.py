@@ -14,7 +14,7 @@ class RestStatus(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Error'})
-    def get(self):
+    def get(self) -> tuple[dict, int]:
         """
         Request system status
         Request a json document showing the system state of FACT, similar to the system health page of the GUI
@@ -40,7 +40,7 @@ class RestStatus(RestResourceBase):
         return success_message(response, self.URL)
 
     @staticmethod
-    def _condense_plugin_information(plugins):
+    def _condense_plugin_information(plugins: dict) -> dict:
         plugins.pop('unpacker', None)
 
         for name, information in plugins.items():
