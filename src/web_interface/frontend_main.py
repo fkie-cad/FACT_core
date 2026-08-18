@@ -24,7 +24,12 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd:
-    def __init__(self, db: FrontendDatabase | None = None, intercom=None, status_interface=None):
+    def __init__(
+        self,
+        db: FrontendDatabase | None = None,
+        intercom: type[InterComFrontEndBinding] | None = None,
+        status_interface: type[RedisStatusInterface] | None = None,
+    ):
         self.program_version = __VERSION__
         self.intercom = InterComFrontEndBinding() if intercom is None else intercom()
         self.db = FrontendDatabase() if db is None else db
@@ -34,7 +39,7 @@ class WebFrontEnd:
         self._register_jinja_functions()
         logging.info('Web front end online')
 
-    def _setup_app(self):
+    def _setup_app(self) -> None:
         self.app = create_app()
         self.user_db, self.user_datastore = add_flask_security_to_app(self.app)
         base_args = {'app': self.app, 'db': self.db, 'intercom': self.intercom, 'status': self.status_interface}
@@ -52,7 +57,7 @@ class WebFrontEnd:
         PluginRoutes(**base_args, api=rest_base.api)
         FilterClass(self.app, self.db)
 
-    def _register_jinja_functions(self):
+    def _register_jinja_functions(self) -> None:
         # add functions from the module to the globals in jinja so that the functions can be called from templates
         for function_name, function in getmembers(jinja_functions, isfunction):
             if (
