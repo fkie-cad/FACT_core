@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from queue import Empty
+
 import pytest
 from pydantic import BaseModel
 
@@ -117,6 +119,34 @@ class StatusInterfaceMock:
     def get_analysis_status(self):
         return self._status
 
+    def get_component_status(self, component):
+        return {'name': component, 'status': 'foo'}
+
+
+class FakeSSEQueue:
+    def get(self, timeout=None):
+        raise Empty  # forces the generator to emit a heartbeat immediately
+
+    def put(self, item, block=True):
+        pass
+
+
+class FakeSSEPublisher:
+    def __init__(self, *_, **__):
+        self.last_status: dict[str, str] = {}
+
+    def get_last_status_snapshot(self):
+        return []
+
+    def add_subscriber(self):
+        return FakeSSEQueue()
+
+    def remove_subscriber(self, _queue):
+        pass
+
+    def shutdown(self):
+        pass
+
 
 class WebInterfaceUnitTestConfig(BaseModel):
     """A class configuring the :py:func:`web_frontend` fixture."""
@@ -158,6 +188,7 @@ def web_frontend(request, monkeypatch, intercom_task_list) -> WebFrontEnd:
         return _UserDbMock(), db_mock_instance
 
     monkeypatch.setattr('web_interface.frontend_main.add_flask_security_to_app', _add_flask_security_to_app_mock)
+    monkeypatch.setattr('web_interface.components.sse_routes.RedisSSEPublisher', FakeSSEPublisher)
 
     monkeypatch.setattr(IntercomMockClass, 'task_list', intercom_task_list)
     # Note: The intercom argument is only the class. It gets instanced when intercom access in needed by `ConnectTo`.
