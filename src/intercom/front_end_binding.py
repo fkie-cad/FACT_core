@@ -62,6 +62,9 @@ class InterComFrontEndBinding:
     def get_repacked_file(self, uid: str) -> bytes | None:
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
 
+    def get_recursively_repacked_file(self, uid: str) -> bytes | None:
+        return self._request_response_listener(uid, 'recursive_tar_repack_task', 'recursive_tar_repack_task_resp')
+
     def get_yara_error(self, yara_rule: str | bytes) -> str | None:
         return self._request_response_listener(yara_rule, 'check_yara_rules_task', 'check_yara_rules_task_resp')
 

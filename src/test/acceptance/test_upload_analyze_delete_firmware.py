@@ -1,3 +1,5 @@
+import io
+import tarfile
 from pathlib import Path
 
 import pytest
@@ -57,6 +59,14 @@ def _check_ajax_on_demand_binary_load(test_client):
     assert b'test file' in rv.data
 
 
+def _check_tar_downloads(test_client):
+    for route in ['/tar-download', '/recursive-tar-download']:
+        rv = test_client.get(f'{route}/{test_fw_a.uid}')
+        with tarfile.open(fileobj=io.BytesIO(rv.data)) as tar_file:
+            file_names = ', '.join(tar_file.getnames())
+        assert 'testfile1' in file_names, f'test files could not be found in tar download ({route})'
+
+
 def _show_analysis_details_file_type(test_client):
     rv = test_client.get(f'/analysis/{test_fw_a.uid}/file_type')
     assert b'application/zip' in rv.data
@@ -101,6 +111,7 @@ def test_upload_show_analysis_delete(test_client, analysis_finished_event, front
     _show_analysis_details_file_type(test_client)
     _check_ajax_file_tree_routes(test_client)
     _check_ajax_on_demand_binary_load(test_client)
+    _check_tar_downloads(test_client)
     _show_home_page(test_client)
     _re_do_analysis_get(test_client)
     _delete_firmware(test_client)

@@ -4,9 +4,11 @@ import difflib
 import logging
 from multiprocessing import Manager
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
 import yara
+from common_helper_files import get_binary_from_file
 
 import config
 from helperFunctions.process import stop_processes
@@ -18,8 +20,11 @@ from intercom.common_redis_binding import (
 )
 from storage.db_interface_common import DbInterfaceCommon
 from storage.file_service import FileService
+from unpacker.tar_repack import TarPacker
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from objects.firmware import Firmware
     from scheduler.analysis import AnalysisScheduler
     from scheduler.comparison_scheduler import ComparisonScheduler
@@ -50,7 +55,8 @@ class InterComBackEndBinding:
             InterComBackEndCompareTask(self.compare_service.add_task),
             InterComBackEndRawDownloadTask(),
             InterComBackEndFileDiffTask(db_interface=DbInterfaceCommon()),
-            InterComBackEndTarRepackTask(),
+            InterComBackEndTarRepackTask(db_interface=DbInterfaceCommon()),
+            InterComBackEndRecursiveTarRepackTask(db_interface=DbInterfaceCommon()),
             InterComBackEndBinarySearchTask(),
             InterComBackEndUpdateTask(self.analysis_service.update_analysis_of_object_and_children),
             InterComBackEndStoreFileTask(),
@@ -216,12 +222,39 @@ class InterComBackEndTarRepackTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'tar_repack_task'
     OUTGOING_CONNECTION_TYPE = 'tar_repack_task_resp'
 
-    def __init__(self, *args):
+    def __init__(self, *args, db_interface: DbInterfaceCommon):
         super().__init__(*args)
-        self.binary_service = FileService()
+        self.db_interface = db_interface
+        self.file_service = FileService()
 
     def get_response(self, task: str) -> bytes:
-        return self.binary_service.get_repacked_file_as_bytes(task) or b''
+        packer = TarPacker(db=self.db_interface, file_service=self.file_service)
+        return _pack_to_bytes(task, packer.pack_included_files, 'InterComBackEndTarRepackTask')
+
+
+class InterComBackEndRecursiveTarRepackTask(InterComListenerAndResponder):
+    CONNECTION_TYPE = 'recursive_tar_repack_task'
+    OUTGOING_CONNECTION_TYPE = 'recursive_tar_repack_task_resp'
+
+    def __init__(self, *args, db_interface: DbInterfaceCommon):
+        super().__init__(*args)
+        self.db_interface = db_interface
+        self.file_service = FileService()
+
+    def get_response(self, task: str) -> bytes:
+        packer = TarPacker(db=self.db_interface, file_service=self.file_service)
+        return _pack_to_bytes(task, packer.pack_included_files_recursively, 'InterComBackEndRecursiveTarRepackTask')
+
+
+def _pack_to_bytes(uid: str, pack_callable: Callable[[str, str], None], error_label: str) -> bytes:
+    try:
+        with TemporaryDirectory(prefix=f'FACT_{error_label}', dir=config.backend.temp_dir_path) as tmp_dir:
+            output_file = Path(tmp_dir) / 'download.tar.gz'
+            pack_callable(uid, str(output_file))
+            return get_binary_from_file(output_file) if output_file.is_file() else b''
+    except Exception as error:
+        logging.error(f'[{error_label}]: Could not pack {uid}: {error}')
+        return b''
 
 
 class InterComBackEndBinarySearchTask(InterComListenerAndResponder):

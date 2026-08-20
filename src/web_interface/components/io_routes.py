@@ -68,27 +68,39 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/download/<uid>', GET)
     def download_binary(self, uid: str) -> str | Response:
-        return self._prepare_file_download(uid, packed=False)
+        return self._prepare_file_download(uid)
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/tar-download/<uid>', GET)
     def download_tar(self, uid: str) -> str | Response:
         return self._prepare_file_download(uid, packed=True)
 
-    def _prepare_file_download(self, uid: str, packed: bool = False) -> str | Response:
+    @roles_accepted(*PRIVILEGES['download'])
+    @AppRoute('/recursive-tar-download/<uid>', GET)
+    def download_recursive_tar(self, uid: str) -> str | Response:
+        return self._prepare_file_download(uid, packed=True, recursive=True)
+
+    def _prepare_file_download(self, uid: str, packed: bool = False, recursive: bool = False) -> str | Response:
         with get_shared_session(self.db.frontend) as frontend_db:
             if not (frontend_db.exists(uid)):
                 return render_template('uid_not_found.html', uid=uid)
+            if packed and recursive and not frontend_db.is_firmware(uid):
+                return render_template('error.html', message='Recursive tar download is only available for firmware')
             file_name = frontend_db.get_file_name(uid)
+
         if packed:
-            contents = self.intercom.get_repacked_file(uid)
             file_name = f'{file_name}.tar.gz'
+            if recursive:
+                contents = self.intercom.get_recursively_repacked_file(uid)
+            else:
+                contents = self.intercom.get_repacked_file(uid)
         else:
             contents = self.intercom.get_file_contents(uid)
         if contents is None:
             return render_template('error.html', message='timeout')
         if contents == b'':
             return render_template('error.html', message='file not found')
+
         response = make_response(contents)
         response.headers['Content-Disposition'] = f'attachment; filename={file_name}'
         response.headers['Content-Type'] = 'application/gzip' if packed else self._get_file_download_mime(contents, uid)

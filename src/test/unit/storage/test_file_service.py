@@ -4,7 +4,6 @@ from tempfile import TemporaryDirectory
 import pytest
 from common_helper_files import get_binary_from_file
 
-from helperFunctions import magic
 from objects.file import FileObject
 from storage.file_service import FileService
 from test.common_helper import TEST_FW, store_binary_on_file_system
@@ -67,17 +66,6 @@ def test_get_file_content_from_uid(file_service):
 def test_get_file_content_invalid_uid(file_service):
     contents = file_service.get_file_content_from_uid('invalid_uid')
     assert contents is None, 'should be none'
-
-
-def test_get_repacked_file(file_service):
-    tar = file_service.get_repacked_file_as_bytes(TEST_FW.uid)
-    file_type = magic.from_buffer(tar, mime=False)
-    assert 'gzip compressed data' in file_type, 'Result is not an tar.gz file'
-
-
-def test_get_repacked_file_invalid_uid(file_service):
-    binary = file_service.get_repacked_file_as_bytes('invalid_uid')
-    assert binary is None, 'should be none'
 
 
 def test_get_partial_file(file_service):

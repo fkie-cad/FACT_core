@@ -97,6 +97,51 @@ def test_all_files_in_fw(backend_db, common_db):
     assert common_db.get_all_files_in_fw(fw.uid) == {child_fo.uid, parent_fo.uid}
 
 
+def test_get_all_files_of_type_in_fw(backend_db, common_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    # both parent_fo and child_fo default to MIME 'test_type'; override child_fo's mime
+    child_fo.processed_analysis['file_type'] = generate_analysis_entry(
+        analysis_result={'mime': 'application/x-executable'}
+    )
+    backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
+
+    # sanity check: both files are in the firmware
+    assert set(common_db.get_all_files_in_fw(fw.uid)) == {parent_fo.uid, child_fo.uid}
+
+    # only parent_fo has the default 'test_type' mime
+    assert set(common_db.get_all_files_of_type_in_fw(fw.uid, 'test_type')) == {parent_fo.uid}
+
+    # only child_fo has the custom mime
+    assert common_db.get_all_files_of_type_in_fw(fw.uid, 'application/x-executable') == [child_fo.uid]
+
+    # no files match this mime type
+    assert common_db.get_all_files_of_type_in_fw(fw.uid, 'image/png') == []
+
+    # unknown firmware uid -> empty list
+    assert common_db.get_all_files_of_type_in_fw('nonexistent_uid', 'test_type') == []
+
+
+def test_get_all_files_of_type_in_fo(backend_db, common_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    # parent_fo and child_fo default to MIME 'test_type'; override child_fo's mime
+    child_fo.processed_analysis['file_type'] = generate_analysis_entry(
+        analysis_result={'mime': 'application/x-executable'}
+    )
+    backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
+
+    # direct children of fw is only parent_fo
+    assert common_db.get_all_files_of_type_in_fo(fw.uid, 'test_type') == [parent_fo.uid]
+    assert common_db.get_all_files_of_type_in_fo(fw.uid, 'application/x-executable') == []
+
+    # direct children of parent_fo is only child_fo
+    assert common_db.get_all_files_of_type_in_fo(parent_fo.uid, 'test_type') == []
+    assert common_db.get_all_files_of_type_in_fo(parent_fo.uid, 'application/x-executable') == [child_fo.uid]
+
+    # no files match this mime type / unknown uid -> empty list
+    assert common_db.get_all_files_of_type_in_fo(fw.uid, 'image/png') == []
+    assert common_db.get_all_files_of_type_in_fo('nonexistent_uid', 'test_type') == []
+
+
 def test_all_files_in_fo(backend_db, common_db):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
     backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
