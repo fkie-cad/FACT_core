@@ -21,6 +21,9 @@
         {{ button_tooltip('Download raw file', 'bdown-button', '/download/', 'file-download') }}
         {% if firmware.files_included %}
             {{ button_tooltip('Download included files as tar.gz', 'tdown-button', '/tar-download/', 'file-archive') }}
+            {% if firmware.vendor %}
+                {{ button_tooltip('Download included files recursively as tar.gz', 'rtdown-button', '/recursive-tar-download/', 'box-open') }}
+            {% endif %}
         {% endif %}
         {% if firmware.vendor %}
             {{ button_tooltip('Download report as PDF', 'pdown-button', '/pdf-download/', 'file-pdf') }}

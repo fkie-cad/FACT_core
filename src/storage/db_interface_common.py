@@ -302,10 +302,34 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             query = select(fw_files_table.c.file_uid).where(fw_files_table.c.root_uid == fw_uid)
             return set(session.execute(query).scalars())
 
+    def get_all_files_of_type_in_fw(self, fw_uid: str, mime: str) -> list[str]:
+        """Get a list of UIDs of all files (recursively) contained in a firmware that have a specific MIME type."""
+        with self.get_read_only_session() as session:
+            query = (
+                select(fw_files_table.c.file_uid)
+                .join(AnalysisEntry, AnalysisEntry.uid == fw_files_table.c.file_uid)
+                .filter(fw_files_table.c.root_uid == fw_uid)
+                .filter(AnalysisEntry.plugin == 'file_type')
+                .filter(AnalysisEntry.result['mime'].astext == mime)
+            )
+            return list(session.execute(query).scalars())
+
     def get_all_files_in_fo(self, fo: FileObject) -> set[str]:
         """Get a set of UIDs of all files (recursively) contained in a file"""
         with self.get_read_only_session() as session:
             return self._get_files_in_files(session, fo.files_included).union({fo.uid, *fo.files_included})
+
+    def get_all_files_of_type_in_fo(self, uid: str, mime: str) -> list[str]:
+        """Get a list of UIDs of all files directly included in (i.e. unpacked from) a file of a specific MIME type."""
+        with self.get_read_only_session() as session:
+            query = (
+                select(included_files_table.c.child_uid)
+                .join(AnalysisEntry, AnalysisEntry.uid == included_files_table.c.child_uid)
+                .filter(included_files_table.c.parent_uid == uid)
+                .filter(AnalysisEntry.plugin == 'file_type')
+                .filter(AnalysisEntry.result['mime'].astext == mime)
+            )
+            return list(session.execute(query).scalars())
 
     def _get_files_in_files(self, session: Session, uid_set: set[str], recursive: bool = True) -> set[str]:
         if not uid_set:
