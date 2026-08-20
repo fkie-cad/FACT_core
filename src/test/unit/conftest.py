@@ -45,6 +45,11 @@ class CommonIntercomMock:
             return self.get_file_contents(uid)
         return b''
 
+    def get_recursively_repacked_file(self, uid):
+        if uid == TEST_FW.uid:
+            return self.get_file_contents(uid)
+        return b''
+
     @staticmethod
     def add_binary_search_request(*_):
         return 'binary_search_id'

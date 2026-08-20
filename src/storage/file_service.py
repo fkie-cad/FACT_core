@@ -9,7 +9,6 @@ from common_helper_files import delete_file, write_binary_to_file
 
 import config
 from helperFunctions.uid import create_uid
-from unpacker.tar_repack import TarRepack
 
 if TYPE_CHECKING:
     from objects.file import FileObject
@@ -67,10 +66,3 @@ class FileService:
         with file_path.open('rb') as fp:
             fp.seek(offset)
             return fp.read(length)
-
-    def get_repacked_file_as_bytes(self, uid: str) -> bytes | None:
-        repack_service = TarRepack()
-        file_path = self.generate_path_from_uid(uid)
-        if not file_path.is_file():
-            return None
-        return repack_service.tar_repack(file_path)

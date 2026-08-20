@@ -20,6 +20,7 @@ from intercom.back_end_binding import (
     InterComBackEndPeekBinaryTask,
     InterComBackEndRawDownloadTask,
     InterComBackEndReAnalyzeTask,
+    InterComBackEndRecursiveTarRepackTask,
     InterComBackEndSingleFileTask,
     InterComBackEndStoreFileTask,
     InterComBackEndTarRepackTask,
@@ -159,16 +160,35 @@ class TestInterComTaskCommunication:
         assert result == b'foobar', 'retrieved binary not correct'
 
     def test_tar_repack_task(self, intercom_frontend, monkeypatch):
-        monkeypatch.setattr('intercom.back_end_binding.FileService.get_repacked_file_as_bytes', lambda *_: b'test')
+        def _mock_pack(_self, _fw_uid, output_file):
+            Path(output_file).write_bytes(b'test')
+
+        monkeypatch.setattr('intercom.back_end_binding.TarPacker.pack_included_files', _mock_pack)
         monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
         result = intercom_frontend.get_repacked_file('valid_uid')
         assert result is None, 'should be none because of timeout'
 
-        task_listener = InterComBackEndTarRepackTask()
+        task_listener = InterComBackEndTarRepackTask(db_interface=None)
         task = task_listener.get_next_task()
         assert task == 'valid_uid', 'task not correct'
         result = intercom_frontend.get_repacked_file('valid_uid_0.0')
+        assert result == b'test', 'retrieved binary not correct'
+
+    def test_recursive_tar_repack_task(self, intercom_frontend, monkeypatch):
+        def _mock_pack(_self, _fw_uid, output_file):
+            Path(output_file).write_bytes(b'test')
+
+        monkeypatch.setattr('intercom.back_end_binding.TarPacker.pack_included_files_recursively', _mock_pack)
+        monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
+
+        result = intercom_frontend.get_recursively_repacked_file('valid_uid')
+        assert result is None, 'should be none because of timeout'
+
+        task_listener = InterComBackEndRecursiveTarRepackTask(db_interface=None)
+        task = task_listener.get_next_task()
+        assert task == 'valid_uid', 'task not correct'
+        result = intercom_frontend.get_recursively_repacked_file('valid_uid_0.0')
         assert result == b'test', 'retrieved binary not correct'
 
     def test_binary_search_task(self, intercom_frontend, monkeypatch):
