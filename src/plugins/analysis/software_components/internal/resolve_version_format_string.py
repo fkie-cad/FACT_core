@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -40,11 +39,7 @@ def extract_data_from_ghidra(file_path: str, input_data: dict, path: str) -> lis
 
         try:
             output_file = (tmp_dir_path / DOCKER_OUTPUT_FILE).read_text()
-            return filter_implausible_results(json.loads(output_file))
+            return json.loads(output_file)
         except (json.JSONDecodeError, FileNotFoundError):
             logging.debug('[FSR]: output file could not be read')
             return []
-
-
-def filter_implausible_results(version_list: list[str]):
-    return [version for version in version_list if re.search(r'\d\.\d', version)]
