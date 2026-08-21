@@ -241,7 +241,7 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/file-reference-graph/<uid>/<root_uid>', GET)
-    def show_file_reference_graph(self, uid: str, root_uid: str | None = None):
+    def show_file_reference_graph(self, uid: str, root_uid: str | None = None) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             data, edges = frontend_db.get_data_for_file_graph(uid)
         mime_types = {entry.mime for entry in data}

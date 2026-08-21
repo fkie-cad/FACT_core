@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import pydantic
 from pydantic import Field
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(pydantic.BaseModel):
-        filepaths: List[str] = Field(description='Array of file paths that were referenced in the file')
+        filepaths: list[str] = Field(description='Array of file paths that were referenced in the file')
 
     def __init__(self):
         super().__init__(
@@ -33,7 +33,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         self._yara = addons.Yara(plugin=self)
         self.min_length = getattr(config.backend.plugin.get(self.metadata.name, {}), 'min-length', 5)
 
-    def summarize(self, result):
+    def summarize(self, result: Schema) -> list[str]:
         return ['filepaths'] if result.filepaths else []
 
     def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:

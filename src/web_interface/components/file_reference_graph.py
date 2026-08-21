@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from web_interface.components.dependency_graph import DepGraphData
 
 EXECUTABLE_MIMES = {
