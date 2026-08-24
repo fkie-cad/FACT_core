@@ -71,16 +71,16 @@ class AnalysisPlugin(AnalysisPluginV0):
         self.memory_limit = getattr(config.backend.plugin.get(self.metadata.name, None), 'memory_limit', '4G')
         self.swap_limit = getattr(config.backend.plugin.get(self.metadata.name, None), 'memswap_limit', '4G')
 
-    def _log_version_string(self):
+    def _log_version_string(self) -> str:
         output = self._run_cwe_checker_to_get_version_string()
-        if output is None:
+        if not output:
             logging.error('Could not get version string from cwe_checker.')
         else:
             logging.debug(f'Version is {output}')
         return output
 
     @staticmethod
-    def _run_cwe_checker_to_get_version_string():
+    def _run_cwe_checker_to_get_version_string() -> str:
         result = run_docker_container(
             DOCKER_IMAGE,
             combine_stderr_stdout=True,
@@ -104,7 +104,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         return result.stdout
 
     @staticmethod
-    def _parse_cwe_checker_output(output):
+    def _parse_cwe_checker_output(output: str) -> dict[str, dict]:
         tmp = defaultdict(list)
         j_doc = json.loads(output)
         for warning in j_doc:
