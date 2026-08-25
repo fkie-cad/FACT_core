@@ -6,9 +6,10 @@ rule VxWorks
 		website = "http://www.windriver.com/products/vxworks/"
 		description = "Real Time Operating System by WindRiver"
     strings:
-        $b = /VxWorks[ -]?\d+\.\d+(\.\d+)?/ nocase ascii wide
+        $a = /[vV]x[wW]orks[ -]?\d\.\d+\.?\d?\x00/
+        $b = /VxWorks \d\.\d+\.?\d? SMP\x00/
     condition:
-        $b
+        any of them
 }
 
 rule WindRiverLinux
