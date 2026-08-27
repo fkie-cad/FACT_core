@@ -2,20 +2,22 @@ from __future__ import annotations
 
 import logging
 from collections import Counter
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, List, Tuple
+from collections.abc import Callable, Iterable, Iterator
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import column, func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import InstrumentedAttribute, aliased
 
 from storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
+from storage.safe_types import _unescape_json, _unescape_string
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 
 if TYPE_CHECKING:
     from sqlalchemy.sql import Select
 
-Stats = List[Tuple[str, int]]
-RelativeStats = List[Tuple[str, int, float]]  # stats with relative share as third element
+Stats = list[tuple[str, int]]
+RelativeStats = list[tuple[str, int, float]]  # stats with relative share as third element
 
 
 class StatsUpdateDbInterface(ReadWriteDbInterface):
@@ -143,7 +145,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             if self._filter_is_not_empty(q_filter):
                 query = self._join_fw_or_fo(query, is_firmware=False)
                 query = query.filter_by(**q_filter)
-            return _sort_tuples(session.execute(query))
+            return _sort_tuples((_unescape_json(value), count) for value, count in session.execute(query))
 
     def count_values_in_summary(self, plugin: str, q_filter: dict | None = None, firmware: bool = False) -> Stats:
         """
@@ -158,7 +160,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             query = self._join_fw_or_fo(query, firmware)
             if self._filter_is_not_empty(q_filter):
                 query = query.filter_by(**q_filter)
-            return count_occurrences(session.execute(query).scalars())
+            return count_occurrences([_unescape_string(s) for s in session.execute(query).scalars()])
 
     def get_arch_stats(self, q_filter: dict | None = None) -> list[tuple[str, int, str]]:
         """
@@ -182,7 +184,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             )
             if self._filter_is_not_empty(q_filter):
                 query = query.filter_by(**q_filter)
-            return list(session.execute(query))
+            return [(_unescape_string(arch), count, uid) for arch, count, uid in session.execute(query)]
 
     def get_unpacking_file_types(self, summary_key: str, q_filter: dict | None = None) -> Stats:
         with self.get_read_only_session() as session:
@@ -265,8 +267,9 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
 
             result = {}
             for software_dict, count in session.execute(query):
-                result.setdefault(software_dict['name'], 0)
-                result[software_dict['name']] += count
+                software = _unescape_json(software_dict)
+                result.setdefault(software['name'], 0)
+                result[software['name']] += count
             return _sort_tuples(result.items())
 
     @staticmethod
@@ -297,7 +300,7 @@ def count_occurrences(result_list: list[str]) -> Stats:
     return _sort_tuples(Counter(result_list).items())
 
 
-def _sort_tuples(query_result: Iterable[Tuple[str, int]]) -> Stats:
+def _sort_tuples(query_result: Iterable[tuple[str, int]]) -> Stats:
     # Sort stats tuples by count in ascending order
     return sorted(
         _convert_to_tuples(query_result), key=lambda e: (e[1], e[0]) if not isinstance(e[0], dict) else (e[1],)

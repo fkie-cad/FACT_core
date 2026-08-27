@@ -19,6 +19,8 @@ from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Session, backref, declarative_base, mapped_column, relationship
 
+from storage.safe_types import SafeJSONB, SafeString
+
 Base = declarative_base()
 UID = VARCHAR(78)
 
@@ -58,7 +60,7 @@ class AnalysisEntry(Base):
         comment='The date the analysis was performed.',
     )
     summary = mapped_column(
-        ARRAY(VARCHAR, dimensions=1),
+        ARRAY(SafeString, dimensions=1),
         nullable=True,
         comment=(
             'The summary of the analysis. This is an array of strings which represent important results to be'
@@ -66,7 +68,7 @@ class AnalysisEntry(Base):
         ),
     )
     tags = mapped_column(
-        MutableDict.as_mutable(JSONB),
+        MutableDict.as_mutable(SafeJSONB),
         nullable=True,
         comment=(
             'A JSON object containing all tags set by the plugin during analysis. Tags can be propagated, meaning they '
@@ -75,7 +77,7 @@ class AnalysisEntry(Base):
         ),
     )
     result = mapped_column(
-        MutableDict.as_mutable(JSONB),
+        MutableDict.as_mutable(SafeJSONB),
         nullable=True,
         comment='The result of the analysis in JSON format.',
     )
@@ -339,7 +341,7 @@ class FirmwareEntry(Base):
         comment='Which part of the firmware this entry represents (complete, kernel, bootloader, or root FS).',
     )
     firmware_tags = mapped_column(
-        ARRAY(VARCHAR, dimensions=1),
+        ARRAY(SafeString, dimensions=1),
         comment='Tags that were set by the user during upload.',
     )
 
@@ -351,14 +353,14 @@ class ComparisonEntry(Base):
 
     comparison_id = mapped_column(VARCHAR, primary_key=True)
     submission_date = mapped_column(Float, nullable=False)
-    data = mapped_column(MutableDict.as_mutable(JSONB))
+    data = mapped_column(MutableDict.as_mutable(SafeJSONB))
 
 
 class StatsEntry(Base):
     __tablename__ = 'stats'
 
     name = mapped_column(VARCHAR, primary_key=True)
-    data = mapped_column(MutableDict.as_mutable(JSONB), nullable=False)
+    data = mapped_column(MutableDict.as_mutable(SafeJSONB), nullable=False)
 
 
 class SearchCacheEntry(Base):
@@ -367,7 +369,7 @@ class SearchCacheEntry(Base):
     uid = mapped_column(UID, primary_key=True)
     query = mapped_column(VARCHAR, nullable=False)  # the query that searches for the files that the YARA rule matched
     yara_rule = mapped_column(VARCHAR, nullable=False)
-    match_data = mapped_column(MutableDict.as_mutable(JSONB), nullable=True)
+    match_data = mapped_column(MutableDict.as_mutable(SafeJSONB), nullable=True)
 
 
 class WebInterfaceTemplateEntry(Base):

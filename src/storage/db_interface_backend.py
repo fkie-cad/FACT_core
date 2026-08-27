@@ -17,6 +17,7 @@ from storage.entry_conversion import (
     create_firmware_entry,
     create_vfp_entries,
     sanitize,
+    sanitize_list,
 )
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath, included_files_table
 
@@ -112,6 +113,12 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             result = analysis_dict.get('result', {})
             if result is not None:
                 sanitize(result)
+            summary = analysis_dict.get('summary')
+            if summary is not None:
+                sanitize_list(summary)
+            tags = analysis_dict.get('tags')
+            if tags is not None:
+                sanitize(tags)
 
             analysis = AnalysisEntry(
                 uid=uid,
@@ -119,8 +126,8 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 plugin_version=self._sanitize_plugin_version(analysis_dict['plugin_version']),
                 system_version=analysis_dict.get('system_version'),
                 analysis_date=analysis_dict['analysis_date'],
-                summary=analysis_dict.get('summary'),
-                tags=analysis_dict.get('tags'),
+                summary=summary,
+                tags=tags,
                 result=result,
                 file_object=fo_backref,
             )
@@ -207,7 +214,11 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             entry.system_version = analysis_data.get('system_version')
             entry.analysis_date = analysis_data['analysis_date']
             entry.summary = analysis_data.get('summary')
+            if entry.summary is not None:
+                sanitize_list(entry.summary)
             entry.tags = analysis_data.get('tags')
+            if entry.tags is not None:
+                sanitize(entry.tags)
             result = analysis_data.get('result', {})
             if result is not None:
                 sanitize(result)
