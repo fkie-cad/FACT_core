@@ -1,6 +1,7 @@
 # This is a working example configuration for FACT
 # Options that have a default value are commented out with their default set.
 [common]
+# Directory used by plugins for temporary files (must already exist; e.g. used by binwalk and tar_repack)
 # temp-dir-path = "/tmp"
 
 # Directory that will be used to share data from the host to docker containers
@@ -13,10 +14,11 @@ fact-db = 3
 test-db = 13
 host = "localhost"
 port = 6379
-# Set the password for redis here if you have AUTH enabled
+# Set the password for Redis here if you have AUTH enabled
 # password =
 
 [common.logging]
+# Logging level (one of DEBUG, INFO, WARNING, ERROR)
 # level = "WARNING"
 # file_backend = "/tmp/fact_backend.log"
 # file_frontend = "/tmp/fact_frontend.log"
@@ -58,25 +60,29 @@ plugins = []
 
 [backend]
 firmware-file-storage-directory = "/media/data/fact_fw_data"
+# Wait for this long if queues are empty:
 block-delay = 0.1
+# Minimum ssdeep similarity (0–100) for two files to be considered "similar" by the file_coverage
+# compare plugin (similarities at or below this value are ignored)
 ssdeep-ignore = 1
+# The intercom listeners will poll Redis in this interval
 intercom-poll-delay = 1.0
+# The status of FACT on the system health page will be updated in this interval
 analysis-status-update-interval = 4.5
+# Number of analysis scheduling worker processes (check if the analysis should be skipped and pass file to plugin
+# queues):
 scheduling-worker-count = 4
+# Number of analysis result collector processes (gather plugin results)
 collector-worker-count = 2
+# If true, exceptions in workers propagate and stop the component; if false (default), failing
+# workers are logged and restarted where possible
 throw-exceptions = false
 
-
-[backend.plugin-defaults]
-# Default number of processes for plugins.
-# Can be overwritten by setting backend.plugin.processes
-processes = 2
-# Overwrite plugin timeout (in seconds) for all plugins. Can also be set for individual plugins.
-# timeout = 300
-
 [backend.unpacking]
+# Number of parallel unpacking workers
 processes = 4
-# file types in whitelist are not extracted
+# The extractor will not try to extract files from files of these types (despite the name, this is a skip-list, not an
+# allow-list):
 whitelist = [
     "application/x-object",
     "application/x-shockwave-flash",
@@ -91,22 +97,47 @@ whitelist = [
     "video/quicktime",
     "video/x-msvideo",
 ]
-# extract until this layer
+# Recursively extract files until this depth is reached:
 max-depth = 8
-# Memory limit in MiB.
+# Memory limit of the extractor container in MiB.
 # memory-limit = 2048
+# Temporarily stop unpacking if the cumulative size of all analysis plugin input queues and the analysis scheduler
+# input queue is larger than this value:
 throttle-limit = 100
-# tcp port(s) for task server
+# Base TCP port for the unpacker task servers; each extractor container uses base-port + its id
 base-port = 9900
 # if you experience FileNotFound errors during unpacking, increasing this value slightly might help
 delay = 0.0
-# the extractor runs containerized using this image/tag
+# The extractor runs containerized using this image/tag
 docker-image = "fkiecad/fact_extractor:latest"
 
 [backend.binary-search]
 # maximum number of matching strings stored per match
 max-strings-per-match = 10
 
+[backend.plugin-defaults]
+# Default number of processes for plugins.
+# Can be overridden by setting backend.plugin.processes
+processes = 2
+# Override plugin timeout (in seconds) for all plugins. Can also be set for individual plugins.
+# timeout = 300
+
+# Individual plugin configurations can be set like this: (this is optional; if a plugin has no entry, the defaults from
+# [backend.plugin-defaults] will be used)
+# [[backend.plugin]]
+# name = "name of the plugin"
+# Apart from the name field, all entries are optional
+# processes = 2  # number of workers for this plugin (overrides the default value in [backend.plugin-defaults])
+# Timeout for individual analyses (overrides the default value in [backend.plugin-defaults] and also the value from
+# the plugin's metadata field in the source code):
+# timeout = 300
+# A blacklist or whitelist can be used to determine on which types of files the plugin runs (other files will be
+# skipped). If a blacklist is defined, the plugin will not run on these types of files. If a whitelist is defined, the
+# plugin will only run on those types of files. This overrides the blacklist or whitelist which is usually defined in
+# the plugin's metadata (in the source code). You can only define a blacklist or a whitelist (defining both does not
+# make sense and will cause an error to be logged; the blacklist is then ignored).
+# mime_blacklist = ["MIME type 1", "MIME type 2", ...]
+# mime_whitelist = ["MIME type 1", "MIME type 2", ...]
 
 [[backend.plugin]]
 name = "cpu_architecture"
@@ -115,14 +146,15 @@ processes = 4
 [[backend.plugin]]
 name = "cve_lookup"
 processes = 4
-# CVE scores greater or equal to this value are shown as "critical"
+# CVE scores greater than or equal to this value are shown as "critical"
 min-critical-score = 9.0
-# match CVE entries without versions constraints (`false` by default due to the high risk of false positives)
+# match CVE entries without version constraints (`false` by default due to the high risk of false positives)
 match-any = false
 
 [[backend.plugin]]
 name = "cwe_checker"
 processes = 2
+# cwe_checker runs in a container with this memory limit:
 memory-limit = "4G"
 # see https://docs.docker.com/config/containers/resource_constraints/#--memory-swap-details
 # unintuitively, if memswap-limit is set to the same value as memory-limit, the swap will *not* be used
@@ -138,6 +170,9 @@ processes = 4
 
 [[backend.plugin]]
 name = "file_hashes"
+# List of hashes that will be computed by the plugin. Must be a subset of `hashlib.algorithms_guaranteed` (see
+# https://docs.python.org/3/library/hashlib.html#hashlib.algorithms_guaranteed). MD5 and SHA256 are mandatory and will
+# always be included.
 hashes = [
     "md5",
     "sha1",
@@ -157,6 +192,7 @@ processes = 4
 
 [[backend.plugin]]
 name = "printable_strings"
+# Minimum length of strings to extract (defaults to 8 if unset)
 min-length = 6
 
 [[backend.plugin]]
@@ -166,23 +202,30 @@ processes = 4
 
 
 [frontend]
+# Default number of entries shown in search and browse:
 results-per-page = 10
+# Number of most recently analyzed firmware images shown on the home page:
 # number-of-latest-firmwares-to-display = 10
+# Interval (in milliseconds) at which the home page reloads its AJAX statistics (e.g. number of running analyses)
 ajax-stats-reload-time = 10000
+# Maximum number of elements (e.g. bars/slices) shown in charts on the statistics pages (hard-capped at 100)
 # max-elements-per-chart = 10
 
 # This is used in redirecting to the radare web service.
 # If you use our nginx config this must be set to "https://localhost/radare"
 # otherwise it must be set to "http://localhost:8000"
 radare2-url = "http://localhost:8000"
+# Timeout (in seconds) for frontend-backend intercom request/response communication
 # communication-timeout = 60
 
 
 [frontend.authentication]
+# Enable user authentication for the web UI
 enabled = false
 user-database = "sqlite:////media/data/fact_auth_data/fact_users.db"
 password-salt = "5up3r5tr0n6_p455w0rd_5417"
 
 
 [frontend.hasura]
+# Admin secret for the Hasura GraphQL engine
 admin-secret = "4dM1n_S3cR3T_changemeplz"
