@@ -23,7 +23,11 @@ class MagikaResult(BaseModel):
 
 
 class AnalysisPlugin(AnalysisPluginV0):
+    """Plugin for analyzing the file type of a document."""
+
     class Schema(BaseModel):
+        """Schema for frontend output."""
+
         mime: str = Field(
             description="The file's mimetype.",
         )
