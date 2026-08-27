@@ -1,3 +1,4 @@
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -25,7 +26,7 @@ def test_analysis_fail(content, expected_result, analysis_scheduler, post_analys
     with NamedTemporaryFile() as tmp_file:
         tmp_file.write(content)
         tmp_file.flush()
-        test_fw = Firmware(file_path=tmp_file.name)
+        test_fw = Firmware.from_path(Path(tmp_file.name))
         test_fw.release_date = '1970-01-01'
         test_fw.scheduled_analysis = ['ExamplePlugin']
 
@@ -33,7 +34,7 @@ def test_analysis_fail(content, expected_result, analysis_scheduler, post_analys
 
         processed_container = {}
         for _ in range(3):  # container with 3 included files times 2 mandatory plugins run
-            uid, plugin, analysis_result = post_analysis_queue.get(timeout=3)
+            uid, plugin, analysis_result = post_analysis_queue.get(timeout=10)
             processed_container.setdefault(uid, {}).setdefault(plugin, {})
             processed_container[uid][plugin] = analysis_result
 

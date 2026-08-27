@@ -49,7 +49,7 @@ The next challenge is to find out as much about the firmware as possible to iden
 Challenge: Firmware Comparison
 -----------------------------------------------
 
-In many cases you might want to compare Firmware samples.
+In many cases you might want to compare Firmware images.
 For instance, you might want to know if and where a manufacturer fixed an issue in a new firmware version.
 Or you might want to know if the firmware on your device is the original firmware of provided by the manufacturer.
 If they differ, you want to know which parts are changed for further investigation.
@@ -71,8 +71,9 @@ You can search for byte patterns on all unpacked files as well as any kind of an
 Easy to Install! Easy to Use!
 ==================================
 
-FACT provides an installation script for Ubuntu 18.04 that installs FACT as well as all dependencies automatically.
-The installation script supports Ubuntu 19.04, Debian 9, Debian 10, Kali 2019.4, as well.
+FACT provides an installation script that installs FACT as well as all dependencies automatically.
+The installation script supports stable Ubuntu LTS and Debian versions.
+There is also experimental support for Kali Linux.
 However, there might be minor issues on these, because we do not actively develop on these platforms. If you find a bug please tell us.
 Have a look at the  `README <https://github.com/fkie-cad/FACT_core/blob/master/README.md>`_ for more details.
 Furthermore, there is a web GUI so that you can start right away without any further knowledge about FACT or the firmware you want to look at.
@@ -81,8 +82,8 @@ Furthermore, there is a web GUI so that you can start right away without any fur
 Easy to Extend! Easy to Integrate!
 ======================================
 
-FACT is based on a plug-in concept.
-Extractors, analysis features and compare functionalities are implemented as plug-ins.
+FACT is based on a plugin concept.
+Extractors, analysis features and comparison functionalities are implemented as plugins.
 More details can be found in the `Developer’s Manual <https://github.com/fkie-cad/FACT_core/wiki>`_.
 Integration is easy as well since we provide a REST API covering almost all of FACT’s features.
 More Details can be found in our `REST API documentation <https://github.com/fkie-cad/FACT_core/wiki/Rest-API>`_.
@@ -124,12 +125,12 @@ Contributing
 ==================================
 
 There are many ways to contribute to FACT.
-For instance, you can write an unpacking, compare or analysis plug-in.
-You can develop your plug-in in your own repository under your favorite license.
+For instance, you can write an unpacking, comparison or analysis plugin.
+You can develop your plugin in your own repository under your favorite license.
 It can be added to a local FACT installation as git submodule.
 Have a look at `FACT’s Developer’s Manual <https://github.com/fkie-cad/FACT_core/wiki>`_ for more details.
-If you developed a plug-in, we would love to hear about it.
-We are going to provide a list of all available plug-ins.
+If you developed a plugin, we would love to hear about it.
+We are going to provide a list of all available plugins.
 You are welcome to improve the FACT_core as well.
 Please have a look at our `Coding Guidelines <https://github.com/fkie-cad/FACT_core/wiki/coding-guidelines>`_ before creating a pull request.
 No matter how you would like to contribute: If you have any question, do not hesitate to ask.

@@ -26,11 +26,12 @@ from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from statistic.analysis_stats import get_plugin_stats
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_view_sync import ViewUpdater
-from storage.fsorganizer import FSOrganizer
+from storage.file_service import FileService
 
 from .plugin import PluginRunner, Worker
 
 if TYPE_CHECKING:
+    import types
     from collections.abc import Callable
 
     from objects.file import FileObject
@@ -103,8 +104,9 @@ class AnalysisScheduler:
     def __init__(
         self,
         post_analysis: Callable[[str, str, dict], None] | None = None,
-        db_interface=None,
+        db_interface: BackendDbInterface | None = None,
         unpacking_locks: UnpackingLockManager | None = None,
+        status: AnalysisStatus | None = None,
     ):
         self.analysis_plugins: dict[str, AnalysisPluginV0] = {}
         self._plugin_runners: dict[str, PluginRunner] = {}
@@ -115,16 +117,16 @@ class AnalysisScheduler:
         self.unpacking_locks = unpacking_locks
         self.scheduling_lock = Lock()
 
-        self.status = AnalysisStatus()
+        self.status = status or AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
         self.schedule_processes = []
         self.result_collector_processes = []
 
-        self.fs_organizer = FSOrganizer()
-        self.db_backend_service = db_interface if db_interface else BackendDbInterface()
-        self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
+        self.file_service = FileService()
+        self.db_backend_service = db_interface or BackendDbInterface()
+        self.post_analysis = post_analysis or self.db_backend_service.add_analysis
 
-    def start(self):
+    def start(self) -> None:
         self.status.start()
         self._start_scheduling_processes()
         self._start_result_collector()
@@ -132,7 +134,7 @@ class AnalysisScheduler:
         logging.info('Analysis scheduler online')
         logging.info(f'Analysis plugins available: {self._format_available_plugins()}')
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Shutdown the runner process, the result collector and all plugin processes. A multiprocessing.Value is set to
         notify all attached processes of the impending shutdown. Afterward, queues are closed once it's safe.
@@ -155,7 +157,7 @@ class AnalysisScheduler:
         self.status.shutdown()
         logging.info('Analysis scheduler offline')
 
-    def update_analysis_of_object_and_children(self, fo: FileObject):
+    def update_analysis_of_object_and_children(self, fo: FileObject) -> None:
         """
         This function is used to analyze an object and all its recursively included objects without repeating the
         extraction process. Scheduled analyses are propagated to the included objects.
@@ -173,7 +175,7 @@ class AnalysisScheduler:
             self._check_further_process_or_complete(child_fo)
         self._check_further_process_or_complete(fo)
 
-    def start_analysis_of_object(self, fo: FileObject):
+    def start_analysis_of_object(self, fo: FileObject) -> None:
         """
         This function is used to start analysis of a firmware object. The function registers the firmware with the
         status module such that the progress of the firmware and its included files is tracked.
@@ -184,7 +186,7 @@ class AnalysisScheduler:
         self.task_scheduler.schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
         self._check_further_process_or_complete(fo)
 
-    def update_analysis_of_single_object(self, fo: FileObject):
+    def update_analysis_of_single_object(self, fo: FileObject) -> None:
         """
         This function is used to add analysis tasks for a single file. This function has no side effects, so the object
         is simply iterated until all scheduled analyses are processed or skipped.
@@ -204,18 +206,18 @@ class AnalysisScheduler:
             plugins.append(f'{plugin_name} {self.analysis_plugins[plugin_name].metadata.version}')
         return ', '.join(plugins)
 
-    def cancel_analysis(self, root_uid: str):
+    def cancel_analysis(self, root_uid: str) -> None:
         self.status.cancel_analysis(root_uid)
 
     # ---- plugin initialization ----
 
-    def _remove_example_plugins(self):
+    def _remove_example_plugins(self) -> None:
         plugins = ['dummy_plugin_for_testing_only', 'ExamplePlugin']
         for plugin in plugins:
             self._plugin_runners.pop(plugin, None)
             self.analysis_plugins.pop(plugin, None)
 
-    def _load_plugins(self):
+    def _load_plugins(self) -> None:
         schemata = {}
 
         for plugin_module in discover_analysis_plugins():
@@ -237,9 +239,17 @@ class AnalysisScheduler:
             except (AttributeError, KeyError):
                 process_count = config.backend.plugin_defaults.processes
 
+            # if a timeout value is set in the plugin's configuration use that. If not, use the value from the plugin
+            # defaults. If that is not set either, use the value from the plugin's metadata
+            plugin_timeout = (
+                getattr(config.backend.plugin.get(plugin.metadata.name, {}), 'timeout', None)
+                or getattr(config.backend.plugin_defaults, 'timeout', None)
+                or plugin.metadata.timeout
+            )
+            logging.debug(f'Plugin {plugin.metadata.name} uses timeout {plugin_timeout} seconds.')
             runner_config = PluginRunner.Config(
                 process_count=process_count,
-                timeout=plugin.metadata.timeout,
+                timeout=plugin_timeout,
             )
             runner = PluginRunner(plugin, runner_config, schemata)
             self._plugin_runners[plugin.metadata.name] = runner
@@ -285,7 +295,7 @@ class AnalysisScheduler:
                 thread_count = config.backend.plugin[plugin].processes
             except (AttributeError, KeyError):
                 thread_count = config.backend.plugin_defaults.processes
-            # TODO this should not be a tuple but rather a dictionary/class
+            # FixMe this should not be a tuple but rather a dictionary/class
             result[plugin] = (
                 self.analysis_plugins[plugin].metadata.description,
                 mandatory_flag,
@@ -299,13 +309,13 @@ class AnalysisScheduler:
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
 
-    def _start_plugin_runners(self):
+    def _start_plugin_runners(self) -> None:
         for runner in self._plugin_runners.values():
             runner.start()
 
     # ---- task runner functions ----
 
-    def _start_scheduling_processes(self):
+    def _start_scheduling_processes(self) -> None:
         self.schedule_processes = [
             ExceptionSafeProcess(target=self._task_runner, args=(i,))
             for i in range(config.backend.scheduling_worker_count)
@@ -313,7 +323,7 @@ class AnalysisScheduler:
         for process in self.schedule_processes:
             process.start()
 
-    def _task_runner(self, index: int = 0):
+    def _task_runner(self, index: int = 0) -> None:
         logging.debug(f'Started analysis scheduling worker {index} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             try:
@@ -322,9 +332,10 @@ class AnalysisScheduler:
                 pass
             else:
                 self._process_next_analysis_task(task)
+                del task
         logging.debug(f'Stopped analysis scheduling worker {index}')
 
-    def _process_next_analysis_task(self, fw_object: FileObject):
+    def _process_next_analysis_task(self, fw_object: FileObject) -> None:
         self.unpacking_locks.release_unpacking_lock(fw_object.uid)
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
@@ -333,7 +344,7 @@ class AnalysisScheduler:
         else:
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
-    def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject):
+    def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject) -> None:
         plugin = self.analysis_plugins[analysis_to_do]
         analysis_result = None
         if not self._is_forced_update(file_object) and self._analysis_is_already_in_db_and_up_to_date(
@@ -357,8 +368,6 @@ class AnalysisScheduler:
                 analysis_to_do, 'dependency is missing (could be skipped)'
             )
         else:
-            if file_object.binary is None:
-                self._set_binary(file_object)
             runner = self._plugin_runners[plugin.metadata.name]
             try:
                 runner.queue_analysis(file_object)
@@ -373,12 +382,6 @@ class AnalysisScheduler:
             self.status.add_analysis(file_object, analysis_to_do)
             self.post_analysis(file_object.uid, analysis_to_do, analysis_result)
             self._check_further_process_or_complete(file_object)
-
-    def _set_binary(self, file_object: FileObject):
-        # the file_object.binary may be missing in case of an update
-        if file_object.file_path is None:
-            file_object.file_path = self.fs_organizer.generate_path(file_object)
-        file_object.create_binary_from_path()
 
     # ---- 1. Is forced update ----
 
@@ -439,7 +442,7 @@ class AnalysisScheduler:
                 return False
         return True
 
-    def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
+    def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject) -> None:
         db_entry = self.db_backend_service.get_analysis(fw_object.uid, analysis_to_do)
         fw_object.processed_analysis[analysis_to_do] = db_entry
 
@@ -455,7 +458,7 @@ class AnalysisScheduler:
             },
         }
 
-    def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject):
+    def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject) -> bool:
         blacklist, whitelist = self._get_blacklist_and_whitelist(next_analysis)
         if not (blacklist or whitelist):
             return False
@@ -474,19 +477,19 @@ class AnalysisScheduler:
             self._add_completed_analysis_results_to_file_object('file_type', fw_object)
         return fw_object.processed_analysis['file_type']['result']['mime'].lower()
 
-    def _get_blacklist_and_whitelist(self, next_analysis: str) -> tuple[list, list]:
+    def _get_blacklist_and_whitelist(self, next_analysis: str) -> tuple[list[str], list[str]]:
         blacklist, whitelist = self._get_blacklist_and_whitelist_from_config(next_analysis)
-        if not (blacklist or whitelist):
+        if blacklist is None and whitelist is None:
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(next_analysis)
-        return blacklist, whitelist
+        return blacklist or [], whitelist or []
 
     @staticmethod
-    def _get_blacklist_and_whitelist_from_config(analysis_plugin: str) -> tuple[list, list]:
-        blacklist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_blacklist', [])
-        whitelist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_whitelist', [])
+    def _get_blacklist_and_whitelist_from_config(analysis_plugin: str) -> tuple[list[str] | None, list[str] | None]:
+        blacklist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_blacklist', None)
+        whitelist = getattr(config.backend.plugin.get(analysis_plugin, None), 'mime_whitelist', None)
         return blacklist, whitelist
 
-    def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> tuple[list, list]:
+    def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> tuple[list[str], list[str]]:
         try:
             blacklist = self.analysis_plugins[analysis_plugin].metadata.mime_blacklist
         except AttributeError:
@@ -501,7 +504,7 @@ class AnalysisScheduler:
 
     # ---- result collector functions ----
 
-    def _start_result_collector(self):
+    def _start_result_collector(self) -> None:
         self.result_collector_processes = [
             ExceptionSafeProcess(target=self._result_collector, args=(i,))
             for i in range(config.backend.collector_worker_count)
@@ -509,7 +512,7 @@ class AnalysisScheduler:
         for process in self.result_collector_processes:
             process.start()
 
-    def _result_collector(self, index: int = 0):
+    def _result_collector(self, index: int = 0) -> None:
         # Collects the results from the plugins and writes them in FileObject.processed_analysis
         logging.debug(f'Started analysis result collector worker {index} (pid={os.getpid()})')
         while self.stop_condition.value == 0:
@@ -525,11 +528,12 @@ class AnalysisScheduler:
                 else:
                     nop = False
                     self._handle_collected_result(fw, plugin_name)
+                    del fw
             if nop:
                 sleep(config.backend.block_delay)
         logging.debug(f'Stopped analysis result collector worker {index}')
 
-    def _handle_collected_result(self, fo: FileObject, plugin_name: str):
+    def _handle_collected_result(self, fo: FileObject, plugin_name: str) -> None:
         if fo.analysis_exception:
             self.task_scheduler.reschedule_failed_analysis_task(fo)
         if plugin_name in fo.processed_analysis:
@@ -537,7 +541,7 @@ class AnalysisScheduler:
             self.post_analysis(fo.uid, plugin_name, fo.processed_analysis[plugin_name])
         self._check_further_process_or_complete(fo)
 
-    def _check_further_process_or_complete(self, fw_object):
+    def _check_further_process_or_complete(self, fw_object: FileObject) -> None:
         if not fw_object.scheduled_analysis:
             logging.info(f'Analysis Completed: {fw_object.uid}')
             self.status.remove_object(fw_object)
@@ -547,6 +551,9 @@ class AnalysisScheduler:
             or fw_object.root_uid is None  # this should only be true if we are dealing with a "single file analysis"
             or self.status.fw_analysis_is_in_progress(fw_object)
         ):
+            # Check for results that are not needed as dependencies for the remaining scheduled analyses and remove them
+            # (They were already stored in the DB in _handle_collected_result, so there is no reason to keep them)
+            self.task_scheduler.prune_unneeded_results(fw_object)
             self.process_queue.put(fw_object)
         else:
             logging.debug(
@@ -555,7 +562,7 @@ class AnalysisScheduler:
             )
 
     @staticmethod
-    def _do_callback(fw_object: FileObject):
+    def _do_callback(fw_object: FileObject) -> None:
         if fw_object.callback is not None:
             try:
                 fw_object.callback()
@@ -564,7 +571,7 @@ class AnalysisScheduler:
 
     # ---- miscellaneous functions ----
 
-    def get_combined_analysis_workload(self):
+    def get_combined_analysis_workload(self) -> int:
         runner_queue_sum = sum([runner.get_queue_len() for runner in self._plugin_runners.values()])
         return self.process_queue.qsize() + runner_queue_sum
 
@@ -621,7 +628,7 @@ def _fix_system_version(system_version: str | None) -> str:
     return system_version.replace('_', '-') if system_version else '0'
 
 
-def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObject):
+def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObject) -> bool:
     return any(
         dep not in fw_object.processed_analysis
         or 'result' not in fw_object.processed_analysis[dep]
@@ -634,7 +641,7 @@ def _dependencies_are_unfulfilled(plugin: AnalysisPluginV0, fw_object: FileObjec
     )
 
 
-def _sync_view(plugin_module, plugin_name):
+def _sync_view(plugin_module: types.ModuleType, plugin_name: str) -> None:
     view_path = _get_view_path(plugin_module, plugin_name)
 
     if view_path is None:
@@ -648,7 +655,7 @@ def _sync_view(plugin_module, plugin_name):
     )
 
 
-def _get_view_path(plugin_module, plugin_name) -> Path | None:
+def _get_view_path(plugin_module: types.ModuleType, plugin_name: str) -> Path | None:
     views_dir = Path(plugin_module.__file__).parent.parent / 'view'
     view_files = list(views_dir.iterdir()) if views_dir.is_dir() else []
 
@@ -659,5 +666,6 @@ def _get_view_path(plugin_module, plugin_name) -> Path | None:
     if len(view_files) > 1:
         raise RuntimeError(f'{plugin_name}: Plug-in provides more than one view!')
 
-    assert len(view_files) == 1
+    if len(view_files) != 1:
+        raise RuntimeError(f'{plugin_name}: Unexpected view file count!')
     return view_files[0]

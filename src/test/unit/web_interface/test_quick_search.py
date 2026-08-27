@@ -27,7 +27,7 @@ class DbMock(CommonDatabaseMock):
             result.append(TEST_FW_2.uid)
 
         if as_meta:
-            return [MetaEntry(uid, 'hid', {}, 0) for uid in result]
+            return [MetaEntry(uid, 'hid', {}, 0, 1337) for uid in result]
         return result
 
     def get_object(self, uid: str, analysis_filter=None):

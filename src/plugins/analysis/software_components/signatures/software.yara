@@ -25,7 +25,7 @@ rule Bash
 	strings:
 		$a = /Bash version \d+\.\d+(.\d+)?/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule BusyBox
@@ -38,7 +38,7 @@ rule BusyBox
 	strings:
 		$a = /BusyBox v\d+\.\d+(.\d+)?/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule jQuery
@@ -48,6 +48,7 @@ rule jQuery
 		open_source = true
 		website = "http://www.jquery.com"
 		description = "java script library"
+		match_text_files = true
 	strings:
 		$a =  /jQuery v\d+\.\d+/ nocase ascii wide
 	condition:
@@ -65,7 +66,7 @@ rule Perl
 		$a = "This is perl"
 		$b = /perl\d?\/\d\.\d+\.\d+/ ascii
 	condition:
-		$a and $b and no_text_file
+		$a and $b
 }
 
 rule PHP
@@ -79,7 +80,7 @@ rule PHP
 		$a = "PHP %s (%s) (built: %s %s)"
 		$b = /X-Powered-By: PHP\/\d+\.\d+\.\d+/ ascii
 	condition:
-		($a or $b) and no_text_file
+		$a or $b
 }
 
 rule Realtek_SDK
@@ -92,7 +93,7 @@ rule Realtek_SDK
 	strings:
 		$a = "MiniIGD %s (%s)."
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule redis
@@ -108,6 +109,6 @@ rule redis
         $b = "Redis version=%s"
         $c = "Redis needs to enable the AOF"
     condition:
-        ($a or $b) and $c and no_text_file
+        ($a or $b) and $c
 }
 

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from scheduler.analysis import plugin
 from statistic.analysis_stats import get_plugin_stats
-from test.common_helper import create_test_firmware
+from test.common_helper import create_test_firmware, get_test_data_dir
 
 
 @dataclass
@@ -32,9 +32,9 @@ class MockPlugin:
         return 1
 
 
-class MockFSOrganizer:
-    def generate_path(self, fw):
-        return fw.file_path
+class MockFileService:
+    def generate_path_from_uid(self, uid):
+        return get_test_data_dir() / 'container/test.zip'
 
 
 @pytest.fixture
@@ -46,7 +46,7 @@ def mock_runner():
         runner_config,
         {MockDependency.metadata.name: MockDependency.Schema},
     )
-    runner._fsorganizer = MockFSOrganizer()
+    runner._file_service = MockFileService()
     yield runner
     runner.shutdown()
 

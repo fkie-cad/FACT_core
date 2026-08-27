@@ -7,7 +7,7 @@ rule lighttpd {
 	strings:
 		$a = /lighttpd[-\/]\d+\.\d+\.\d+/ ascii
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule GoAhead
@@ -20,7 +20,7 @@ rule GoAhead
 	strings:
 		$a = /GoAhead-Webs/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule mini_httpd
@@ -33,7 +33,7 @@ rule mini_httpd
 	strings:
 		$a = /mini_httpd\/\d\.\d+ \d{2}[a-z]{3}\d{4}/ ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule nginx
@@ -46,7 +46,7 @@ rule nginx
 	strings:
 		$a = /nginx version: nginx\/\d+\.\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule eCosWebServer
@@ -61,5 +61,5 @@ rule eCosWebServer
 		$a = "eCos Embedded Web Server" nocase ascii wide
 		$b = "Server: %s" nocase ascii wide
 	condition:
-		$a and $b and no_text_file
+		$a and $b
 }

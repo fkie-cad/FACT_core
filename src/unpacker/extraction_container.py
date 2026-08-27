@@ -31,10 +31,11 @@ class ExtractionContainer:
         self.tmp_dir = tmp_dir
         self.port = config.backend.unpacking.base_port + id_
         self.container_id = None
+        self.container_pid = 0
         self.exception = value
         self._adapter = HTTPAdapter(max_retries=Retry(total=3, backoff_factor=0.1))
 
-    def start(self):
+    def start(self) -> None:
         if self.container_id is not None:
             raise RuntimeError('Already running.')
 
@@ -44,8 +45,8 @@ class ExtractionContainer:
             if 'port is already allocated' in str(exception):
                 self._recover_from_port_in_use(exception)
 
-    def _start_container(self):
-        volume = Mount('/tmp/extractor', self.tmp_dir.name, read_only=False, type='bind')
+    def _start_container(self) -> None:
+        volume = Mount('/tmp/extractor', self.tmp_dir.name, read_only=False, type='bind')  # noqa: S108
         container = DOCKER_CLIENT.containers.run(
             image=config.backend.unpacking.docker_image,
             ports={'5000/tcp': self.port},
@@ -60,21 +61,23 @@ class ExtractionContainer:
         )
         self.container_id = container.id
         logging.info(f'Started unpack worker {self.id_}')
+        container.reload()
+        self.container_pid = container.attrs['State'].get('Pid', 0)
 
-    def stop(self):
+    def stop(self) -> None:
         if self.container_id is None:
             raise RuntimeError('Container is not running.')
 
         logging.info(f'Stopping unpack worker {self.id_}')
         self._remove_container()
 
-    def set_exception(self):
+    def set_exception(self):  # noqa: ANN201
         return self.exception.set(1)
 
     def exception_occurred(self) -> bool:
         return self.exception.get() == 1
 
-    def _remove_container(self, container: Container | None = None):
+    def _remove_container(self, container: Container | None = None) -> None:
         if not container:
             container = self._get_container()
         container.stop(timeout=5)
@@ -86,13 +89,13 @@ class ExtractionContainer:
     def _get_container(self) -> Container:
         return DOCKER_CLIENT.containers.get(self.container_id)
 
-    def restart(self):
+    def restart(self) -> None:
         self.stop()
         self.exception.set(0)
         self.container_id = None
         self.start()
 
-    def _recover_from_port_in_use(self, exception: Exception):
+    def _recover_from_port_in_use(self, exception: Exception) -> None:
         logging.warning('Extractor port already in use -> trying to remove old container...')
         for running_container in DOCKER_CLIENT.containers.list():
             if self._is_extractor_container(running_container) and self._has_same_port(running_container):

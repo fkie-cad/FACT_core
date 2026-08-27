@@ -2,14 +2,14 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
-class MockFSOrganizer:
+class MockFileService:
     def __init__(self, *_, **__):
         self._data_folder = TemporaryDirectory()
 
     def store_file(self, file_object):
         destination_path = Path(self.generate_path_from_uid(file_object.uid))
-        destination_path.write_bytes(file_object.binary)
-        file_object.file_path = str(destination_path)
+        destination_path.write_bytes(file_object.file_path.read_bytes())
+        file_object.file_path = destination_path
 
     def delete_file(self, uid):
         file_path = Path(self._data_folder.name, uid)

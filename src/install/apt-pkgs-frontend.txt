@@ -3,3 +3,6 @@ nodejs
 
 # for file tree icons
 papirus-icon-theme
+
+# uWSGI
+libcrypt-dev

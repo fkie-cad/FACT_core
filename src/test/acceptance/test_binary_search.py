@@ -34,9 +34,7 @@ class TestAcceptanceBinarySearch:
         assert b'No request ID found' in rv.data
 
     @pytest.mark.SchedulerTestConfig(
-        # fmt: off
-        # 4 Files and 2 plugins
-        items_to_analyze=4 * 2,
+        items_to_analyze=4 * 2,  # 4 Files and 2 plugins
     )
     @pytest.mark.usefixtures('intercom_backend_binding')
     def test_binary_search(self, test_client, analysis_finished_event):

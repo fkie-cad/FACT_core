@@ -34,6 +34,7 @@ def intercom_backend_binding(unpacking_lock_manager, analysis_scheduler, compari
         unpacking_service=unpacking_scheduler,
         unpacking_locks=unpacking_lock_manager,
     )
+    _intercom_backend_binding.listeners[0].redis.redis.flushdb()
     _intercom_backend_binding.start()
 
     yield _intercom_backend_binding

@@ -8,7 +8,7 @@ from test.integration.common import MockDbInterface
 @pytest.mark.SchedulerTestConfig(backend_db_class=MockDbInterface)
 class TestFileAddition:
     def test_unpack_only(self, unpacking_scheduler, post_unpack_queue):
-        test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
+        test_fw = Firmware.from_path(get_test_data_dir() / 'container/test.zip')
 
         unpacking_scheduler.add_task(test_fw)
 

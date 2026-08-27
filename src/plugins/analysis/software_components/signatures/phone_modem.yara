@@ -8,5 +8,5 @@ rule siproxd
 	strings:
 		$a = /siproxd-\d+\.\d+\.\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }

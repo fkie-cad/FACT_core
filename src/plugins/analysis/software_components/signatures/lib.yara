@@ -8,7 +8,7 @@ rule libFLAC
     strings:
         $a = /libFLAC \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule liblzma {
@@ -22,7 +22,7 @@ rule liblzma {
         $a = "lzma_version_number"
         $b = "lzma_version_string"
     condition:
-        $a and $b and no_text_file
+        $a and $b
 }
 
 rule libogg
@@ -35,7 +35,7 @@ rule libogg
     strings:
         $a = /libogg-\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule libVorbis
@@ -48,7 +48,7 @@ rule libVorbis
     strings:
         $a = /libVorbis \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule PH7
@@ -61,7 +61,7 @@ rule PH7
     strings:
         $a = /PH7\/\d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule FileX
@@ -74,7 +74,7 @@ rule FileX
 	strings:
 		$a = /FileX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }
 
 rule liblua
@@ -87,5 +87,5 @@ rule liblua
 	strings:
 		$a = /Lua: Lua \d\.\d+(\.\d+)? Copyright \(C\) 1994-\d+/ nocase ascii wide
 	condition:
-		$a and no_text_file
+		$a
 }

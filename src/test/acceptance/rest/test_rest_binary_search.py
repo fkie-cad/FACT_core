@@ -12,9 +12,9 @@ MATCH_FILE_UID = 'd558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b7
 
 class TestRestBinarySearch:
     @pytest.mark.usefixtures('intercom_backend_binding')
-    def test_binary_search(self, test_client, fsorganizer):
+    def test_binary_search(self, test_client, file_service):
         self._upload_firmware(test_client)
-        self._wait_for_binary(Path(fsorganizer.generate_path_from_uid(MATCH_FILE_UID)))
+        self._wait_for_binary(Path(file_service.generate_path_from_uid(MATCH_FILE_UID)))
         search_id = self._post_binary_search(test_client)
         self._get_binary_search_result(test_client, search_id)
 

@@ -8,7 +8,7 @@ rule EFIshell
     strings:
         $a = /EFI Shell Version \d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }
 
 rule BootAgent
@@ -21,5 +21,5 @@ rule BootAgent
     strings:
         $a = /Boot Agent CL v\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }

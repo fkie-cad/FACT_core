@@ -38,7 +38,8 @@ class ReadOnlyDbInterface:
             logging.exception(f'{message}: {err}')
             raise DbInterfaceError(message) from err
         finally:
-            self.ro_session.invalidate()
+            if self.ro_session is not None:
+                self.ro_session.close()
             self.ro_session = None
 
 
@@ -60,4 +61,4 @@ class ReadWriteDbInterface(ReadOnlyDbInterface):
             logging.exception(f'{message}: {err}')
             raise DbInterfaceError(message) from err
         finally:
-            session.invalidate()
+            session.close()

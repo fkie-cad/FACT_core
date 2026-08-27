@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 
 from helperFunctions.data_conversion import (
+    boolean_string_to_boolean,
     convert_compare_id_to_list,
     convert_str_to_bool,
     convert_time_to_str,
@@ -70,6 +71,25 @@ def test_get_value_of_first_key(input_data, expected):
 @pytest.mark.parametrize(('input_data', 'expected'), [(None, None), ('None', None), ('foo', 'foo')])
 def test_none_to_none(input_data, expected):
     assert none_to_none(input_data) == expected
+
+
+@pytest.mark.parametrize(
+    ('input_data', 'expected'),
+    [(True, True), ('True', True), ('true', True), (False, False), ('False', False), ('false', False)],
+)
+def test_boolean_string_to_boolean(input_data, expected):
+    assert boolean_string_to_boolean(input_data) == expected
+
+
+def test_boolean_string_to_boolean_raises():
+    with pytest.raises(ValueError, match='does not seem to be a boolean value'):
+        boolean_string_to_boolean('anything else')
+
+    with pytest.raises(ValueError, match='does not seem to be a boolean value'):
+        boolean_string_to_boolean('')
+
+    with pytest.raises(ValueError, match='does not seem to be a boolean value'):
+        boolean_string_to_boolean(None)
 
 
 @pytest.mark.parametrize(

@@ -65,6 +65,10 @@ class TestRestFirmware(RestTestBase):
             'intercom.front_end_binding.InterComFrontEndBinding.get_available_analysis_plugins',
             lambda _: ['dummy'],
         )
+        monkeypatch.setattr(
+            'intercom.front_end_binding.InterComFrontEndBinding.store_file',
+            lambda *_: True,
+        )
         rv = self.test_client.put('/rest/firmware', json=UPLOAD_DATA, follow_redirects=True)
         assert b'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17' in rv.data
         assert b'"status": 0' in rv.data

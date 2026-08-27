@@ -24,7 +24,7 @@ def make_bytes(data: AnyStr | list[int]) -> bytes:
     return bytes(data)
 
 
-def make_unicode_string(code: Any) -> str:
+def make_unicode_string(code: Any) -> str:  # noqa: ANN401
     """
     Convert a (byte) string or some arbitrary object into a string.
     """
@@ -87,7 +87,15 @@ def none_to_none(input_data: str | None) -> str | None:
     return None if input_data == 'None' else input_data
 
 
-def convert_time_to_str(time_obj: Any) -> str:
+def boolean_string_to_boolean(boolean: str | bool) -> bool:
+    if any(boolean == a for a in [True, 'true', 'True']):
+        return True
+    if any(boolean == a for a in [False, 'false', 'False']):
+        return False
+    raise ValueError(f'{boolean} does not seem to be a boolean value')
+
+
+def convert_time_to_str(time_obj: Any) -> str:  # noqa: ANN401
     """
     Convert a time object to a string. The time object may be a datetime.date object or a string. If it is anything else,
     the output defaults to `"1970-01-01"`.

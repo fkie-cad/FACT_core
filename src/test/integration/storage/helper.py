@@ -14,7 +14,7 @@ TEST_FW = create_test_firmware()
 
 
 def add_included_file(fo: FileObject, parent: FileObject, root_fw: Firmware, paths: list[str] | None = None):
-    fo.parents.append(parent.uid)
+    fo.parents.add(parent.uid)
     fo.parent_firmware_uids.add(root_fw.uid)
     parent.files_included.add(fo.uid)
     fo.virtual_file_path[parent.uid] = paths or ['/some/path']
@@ -31,7 +31,7 @@ def create_fw_with_parent_and_child():
     # fw -> parent_fo -> child_fo
     parent_fo, fw = create_fw_with_child_fo()
     child_fo = create_test_file_object()
-    child_fo.uid = 'test_uid'
+    child_fo.uid = 'child_1'
     add_included_file(child_fo, parent_fo, fw, [f'/folder/{child_fo.file_name}'])
     return fw, parent_fo, child_fo
 

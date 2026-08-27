@@ -1,19 +1,19 @@
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
+{% if analysis_result["matches"] %}
+<tr>
+    <td>Match</td>
+    <td class="p-0 m-0">
+        <table class="table table-bordered m-0" style="width: 100%;">
+            <colgroup>
+                <col style="width: 130px">
+                <col style="width: auto">
+            </colgroup>
 
-    </table>
-    <table class="table table-bordered">
-        <colgroup>
-            <col style="width: 50px">
-            <col style="width: 150px">
-            <col style="width: 600px">
-        </colgroup>
-        <tbody class="table-analysis">
-            {% for match_dict in analysis_result["matches"] %}
+            <tbody class="table-analysis">
+                {% for match_dict in analysis_result["matches"] %}
                 <tr>
-                    {% set row_count = 3 + (1 if match_dict.meta.date else 0) + (1 if match_dict.meta.author else 0) %}
-                    <td class="table-head-light" rowspan={{ row_count }}>{{ loop.index - 1 }}</td>
                     <td class="table-head-light">Matched Rule</td>
                     <td class="table-head-light">{{ match_dict['rule'] }} </td>
                 </tr>
@@ -40,26 +40,32 @@
                     <td class="p-0 m-0">
                         <table class="table table-bordered" style="margin:0;">
                             <colgroup>
-                                <col style="width: 75px">
-                                <col style="width: 525px">
+                                <col style="width: 10%">
+                                <col style="width: 10%">
+                                <col style="width: 30%">
+                                <col style="width: 50%">
                             </colgroup>
                             <tr>
                                 <td class="table-head-light">offset</td>
                                 <td class="table-head-light">name</td>
-                                <td class="table-head-light" style="width: 30%;">value</td>
+                                <td class="table-head-light" style="width: 30%;">bytes value</td>
                                 <td class="table-head-light" style="width: 60%;">value hex</td>
                             </tr>
-                            {% for offset, name, matched_string in match_dict['strings'] %}
+                                {% for s in match_dict.strings %}
                                 <tr>
-                                    <td> 0x{{ '0%x' % offset }} </td>
-                                    <td> {{ name[1:] }} </td>
-                                    <td> {{ matched_string }} </td>
-                                    <td style="font-family: monospace;"> {{ matched_string | str_to_hex }} </td>
+                                    <td>0x{{ '%x' % s.offset }}</td>
+                                    <td>{{ s.name }}</td>
+                                    <td>{{ s.hex_value | hex_to_bytes }}</td>
+                                    <td style="font-family: monospace;">{{ s.hex_value }} </td>
                                 </tr>
-                            {% endfor %}
+                                {% endfor %}
                         </table>
                     </td>
                 </tr>
-            {% endfor %}
-        </tbody>
+                {% endfor %}
+            </tbody>
+        </table>
+    </td>
+</tr>
+{% endif %}
 {% endblock %}

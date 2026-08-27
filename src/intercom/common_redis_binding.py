@@ -6,7 +6,7 @@ import pickle
 from multiprocessing import Process, Value
 from threading import Thread
 from time import sleep, time
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from redis.exceptions import RedisError
 
@@ -14,13 +14,18 @@ import config
 from helperFunctions.hash import get_sha256
 from storage.redis_interface import RedisInterface
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def generate_task_id(input_data: Any) -> str:
+Task = TypeVar('Task')  # generic Task type; concrete type depends on the listener
+
+
+def generate_task_id(input_data: Any) -> str:  # noqa: ANN401
     serialized_data = pickle.dumps(input_data)
     return f'{get_sha256(serialized_data)}_{time()}'
 
 
-def publish_available_analysis_plugins(plugin_dict: dict[str, tuple]):
+def publish_available_analysis_plugins(plugin_dict: dict[str, tuple]) -> None:
     redis = RedisInterface()
     redis.set('analysis_plugins', plugin_dict)
 
@@ -33,20 +38,19 @@ class InterComListener:
     CONNECTION_TYPE = 'test'  # unique for each listener
 
     def __init__(self, processing_function: Callable[[Any], None] | None = None):
-        super().__init__()
         self.redis = RedisInterface()
         self.process = None
         self.processing_function = processing_function
         self.stop_condition = Value('i', 0)
 
-    def start(self):
+    def start(self) -> None:
         self.process = Process(target=self._worker)
         self.process.start()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         self.stop_condition.value = 1
 
-    def _worker(self):
+    def _worker(self) -> None:
         logging.debug(f'{self.CONNECTION_TYPE} listener started (pid={os.getpid()})')
         while self.stop_condition.value == 0:
             task = self.get_next_task()
@@ -56,7 +60,7 @@ class InterComListener:
                 self.processing_function(task)
         logging.debug(f'{self.CONNECTION_TYPE} listener stopped')
 
-    def get_next_task(self):
+    def get_next_task(self):  # noqa: ANN201
         try:
             task_obj = self.redis.queue_get(self.CONNECTION_TYPE)
         except RedisError as exc:
@@ -69,7 +73,7 @@ class InterComListener:
             return task
         return None
 
-    def pre_process(self, task, task_id):  # noqa: ARG002
+    def pre_process(self, task: Task, task_id: str) -> Task:  # noqa: ARG002
         """
         optional pre-processing of a task
         """
@@ -83,19 +87,18 @@ class InterComListenerAndResponder(InterComListener):
 
     OUTGOING_CONNECTION_TYPE = 'test'
 
-    def pre_process(self, task, task_id):
+    def pre_process(self, task: Task, task_id: str) -> Task:
         logging.debug(f'request received: {self.CONNECTION_TYPE} -> {task_id}')
-        # fetch the response in a different thread so that the listener is not blocked while waiting for the result
         tread = Thread(target=self._get_response_asynchronously, args=(task, task_id))
         tread.start()
         return task
 
-    def _get_response_asynchronously(self, task, task_id):
+    def _get_response_asynchronously(self, task, task_id) -> None:  # noqa: ANN001
         response = self.get_response(task)
         self.redis.set(task_id, response)
         logging.debug(f'response sent: {self.OUTGOING_CONNECTION_TYPE} -> {task_id}')
 
-    def get_response(self, task):
+    def get_response(self, task):  # noqa: ANN001, ANN201
         """
         this function must be implemented by the sub_class
         """

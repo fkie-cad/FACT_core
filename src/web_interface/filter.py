@@ -316,7 +316,7 @@ def render_analysis_tags(
         for key, tag in sorted(tags[plugin_name].items(), key=_sort_tags_key):
             if key == 'root_uid':
                 continue
-            color = tag['color'] if tag['color'] in TagColor.ALL else TagColor.BLUE
+            color = tag['color'] if tag['color'] in set(TagColor) else TagColor.BLUE
             output += render_template(
                 'generic_view/tags.html',
                 color=color,
@@ -553,12 +553,6 @@ def linter_reformat_issues(issues: list[dict]) -> dict[str, list[dict[str, str]]
         content = {'line': issue['line'], 'column': issue['column'], 'message': issue['message']}
         reformatted[symbol].append(content)
     return reformatted
-
-
-def hide_dts_binary_data(device_tree: str) -> str:
-    # textual device tree data can contain huge chunks of binary data -> hide them from view if they are too large
-    device_tree = re.sub(r'\[[0-9a-f ]{32,}]', '(BINARY DATA ...)', device_tree)
-    return re.sub(r'<(0x[0-9a-f]+ ?){10,}>', '(BINARY DATA ...)', device_tree)
 
 
 def get_searchable_crypto_block(crypto_material: str) -> str:

@@ -30,7 +30,7 @@ class DbMock(CommonDatabaseMock):
             elif TEST_FW_2.uid not in result:
                 result.append(TEST_FW_2.uid)
         if as_meta:
-            return [MetaEntry(uid, 'hid', {}, 0) for uid in result]
+            return [MetaEntry(uid, 'hid', {}, 0, 1337) for uid in result]
         return result
 
 

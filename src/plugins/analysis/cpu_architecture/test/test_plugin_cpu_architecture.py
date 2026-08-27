@@ -10,6 +10,7 @@ from plugins.analysis.kernel_config.code.kernel_config import AnalysisPlugin as 
 
 dt_file = Path(__file__).parent / 'data/dt.dts'
 dts = dt_file.read_text()
+broken_dts = dts.replace('"<BINARY_DATA ...>"', '(BINARY_DATA ...)')
 
 
 @dataclass
@@ -23,6 +24,7 @@ class MockDeviceTreeSchema:
 
 
 _mock_device_tree_analysis = MockDeviceTreeSchema(device_trees=[MockDeviceTree(string=dts)])
+_broken_device_tree_analysis = MockDeviceTreeSchema(device_trees=[MockDeviceTree(string=broken_dts)])
 
 _mock_kernel_config_analysis_mips = KConfPlugin.Schema(is_kernel_config=True, kernel_config='CONFIG_CPU_MIPS32_R2=y\n')
 _mock_kernel_config_analysis_arm = KConfPlugin.Schema(is_kernel_config=True, kernel_config='CONFIG_CPU_V7=y\n')
@@ -31,6 +33,11 @@ _mock_kernel_config_analysis_arm = KConfPlugin.Schema(is_kernel_config=True, ker
 def test_dt_construct_result():
     result = dt.construct_result({'device_tree': _mock_device_tree_analysis})
     assert 'arm,cortex-a9' in result
+
+
+def test_dt_construct_result_broken_dts():
+    result = dt.construct_result({'device_tree': _broken_device_tree_analysis})
+    assert not result
 
 
 def test_kconfig_construct_result():
@@ -206,9 +213,9 @@ def test_elf_construct_result(expected_str, path):
 def test_metadatadetector_get_device_architecture(architecture, bitness, endianness, full_file_type):
     dependency_result = {'file_type': TypePlugin.Schema(mime='x-executable', full=full_file_type)}
     result = metadata.construct_result(dependency_result)
-    assert (
-        f'{architecture}, {bitness}, {endianness} (M)' in result
-    ), f'architecture not correct: expected {architecture}'
+    assert f'{architecture}, {bitness}, {endianness} (M)' in result, (
+        f'architecture not correct: expected {architecture}'
+    )
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)

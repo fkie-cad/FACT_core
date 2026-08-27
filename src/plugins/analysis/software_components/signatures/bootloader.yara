@@ -8,5 +8,5 @@ rule UBoot
     strings:
         $a = /U-Boot \d+\.\d+\.\d+/ nocase ascii wide
     condition:
-        $a and no_text_file
+        $a
 }

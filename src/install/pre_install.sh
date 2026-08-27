@@ -9,7 +9,7 @@ FACTUSER=$(whoami)
 
 echo "Installing pre-install requirements..."
 sudo apt-get update
-sudo apt-get -y install python3-pip git libffi-dev lsb-release
+sudo apt-get -y install python3-pip python3-dev git libffi-dev lsb-release build-essential jq
 
 # distro and codename detection
 . /etc/os-release
@@ -34,7 +34,7 @@ if [ -n "${UBUNTU_CODENAME}" ]; then
 elif [ -n "${DEBIAN_CODENAME}" ]; then
   CODENAME="${DEBIAN_CODENAME}"
 elif  [ "${CODENAME}" = "kali-rolling" ]; then
-  CODENAME=bookworm
+  CODENAME=trixie
 elif [ -z "${CODENAME}" ]; then
   echo "Could not get distribution codename. Please make sure that your distribution is compatible to ubuntu/debian."
   exit 1
@@ -42,7 +42,7 @@ fi
 
 echo "detected distro ${DISTRO} and codename ${CODENAME}"
 
-supported_codenames=("jammy" "noble" "bookworm" "trixie" "kali-rolling")
+supported_codenames=("jammy" "noble" "trixie" "kali-rolling")
 if [[ ! " ${supported_codenames[*]} " =~ ${CODENAME} ]]; then
     echo "Warning: your distribution is outdated or unsupported and the installation may not work as expected."
 fi
@@ -101,5 +101,7 @@ $PREFIX pip install -U pip setuptools wheel
 $PREFIX pip install -r ./requirements_pre_install.txt --prefer-binary
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
+
+bash fix_executable_bits.sh
 
 exit 0
