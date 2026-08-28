@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from collections import Counter
-from collections.abc import Callable, Iterable, Iterator
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import column, func, select
@@ -14,6 +13,8 @@ from storage.safe_types import _unescape_json, _unescape_string
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Iterator
+
     from sqlalchemy.sql import Select
 
 Stats = list[tuple[str, int]]
@@ -25,11 +26,11 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
     Statistic module backend interface
     """
 
-    def update_statistic(self, identifier: str, content_dict: dict):
+    def update_statistic(self, identifier: str, content_dict: dict) -> None:
         logging.debug(f'Updating {identifier} statistics')
         try:
             with self.get_read_write_session() as session:
-                entry: StatsEntry = session.get(StatsEntry, identifier)
+                entry: StatsEntry | None = session.get(StatsEntry, identifier)
                 if entry is None:  # no old entry in DB -> create new one
                     entry = StatsEntry(name=identifier, data=content_dict)
                     session.add(entry)
@@ -55,7 +56,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         aggregation_function: Callable,
         q_filter: dict | None = None,
         firmware: bool = False,
-    ) -> Any:
+    ) -> Any:  # noqa: ANN401
         """
         :param field: The field that is aggregated (e.g. `FileObjectEntry.size`)
         :param aggregation_function: The aggregation function (e.g. `func.sum`)
@@ -85,7 +86,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             sum_ = session.execute(query).scalar()
             return int(sum_) if sum_ is not None else 0
 
-    def count_distinct_values(self, key: InstrumentedAttribute, q_filter=None) -> Stats:
+    def count_distinct_values(self, key: InstrumentedAttribute, q_filter: dict | None = None) -> Stats:
         """
         Get a sorted list of tuples with all unique values of a column `key` and the count of occurrences.
         E.g. key=FileObjectEntry.file_name, result: [('some.other.file', 1), ('some.file', 2)]
@@ -101,7 +102,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             return _sort_tuples(session.execute(query))
 
     def count_distinct_in_analysis(
-        self, key: InstrumentedAttribute, plugin: str, firmware: bool = False, q_filter=None
+        self, key: InstrumentedAttribute, plugin: str, firmware: bool = False, q_filter: dict | None = None
     ) -> Stats:
         """
         Count distinct values in analysis results: Get a list of tuples with all unique values of a key `key`
@@ -126,7 +127,9 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 query = query.filter_by(**q_filter)
             return _sort_tuples(session.execute(query))
 
-    def count_distinct_values_in_array(self, key: InstrumentedAttribute, plugin: str, q_filter=None) -> Stats:
+    def count_distinct_values_in_array(
+        self, key: InstrumentedAttribute, plugin: str, q_filter: dict | None = None
+    ) -> Stats:
         """
         Get a list of tuples with all unique values of an array stored under `key` and the count of occurrences.
 
@@ -282,7 +285,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         return query
 
     @staticmethod
-    def _join_all(query):
+    def _join_all(query: Select) -> Select:
         # join all FOs (root fw objects and included objects)
         query = query.join(FileObjectEntry, AnalysisEntry.uid == FileObjectEntry.uid)
         return query.join(
@@ -307,7 +310,7 @@ def _sort_tuples(query_result: Iterable[tuple[str, int]]) -> Stats:
     )
 
 
-def _convert_to_tuples(query_result) -> Iterator[tuple[str, int]]:
+def _convert_to_tuples(query_result: Iterable[tuple[str, int]]) -> Iterator[tuple[str, int]]:
     # results from the DB query will be of type `Row` and not actual tuples -> convert
     # (otherwise they cannot be serialized as JSON and not be saved in the stats DB)
     return (tuple(item) if not isinstance(item, tuple) else item for item in query_result)
@@ -324,9 +327,9 @@ class StatsDbViewer(ReadOnlyDbInterface):
     Statistic module frontend interface
     """
 
-    def get_statistic(self, identifier) -> dict | None:
+    def get_statistic(self, identifier: str) -> dict | None:
         with self.get_read_only_session() as session:
-            entry: StatsEntry = session.get(StatsEntry, identifier)
+            entry: StatsEntry | None = session.get(StatsEntry, identifier)
             if entry is None:
                 return None
             return self._stats_entry_to_dict(entry)
