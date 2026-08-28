@@ -439,7 +439,7 @@ class VirtualFilePath(Base):
 
 
 @event.listens_for(Session, 'persistent_to_deleted')
-def delete_file_orphans(session, deleted_object):
+def delete_file_orphans(session: Session, deleted_object: Base) -> None:
     """
     If a firmware is deleted, delete all "orphaned" files: files that do not belong to any firmware anymore (and also
     are not a firmware themselves).
