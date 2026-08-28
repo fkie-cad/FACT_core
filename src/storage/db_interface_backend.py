@@ -22,7 +22,7 @@ from storage.entry_conversion import (
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath, included_files_table
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
+    from sqlalchemy.orm import Relationship, Session
 
     from objects.file import FileObject
 
@@ -30,24 +30,24 @@ if TYPE_CHECKING:
 class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     # ===== Create / INSERT =====
 
-    def add_object(self, fw_object: FileObject):
+    def add_object(self, fw_object: FileObject) -> None:
         if self.exists(fw_object.uid):
             self.update_object(fw_object)
         else:
             self.insert_object(fw_object)
 
-    def insert_multiple_objects(self, *objects: FileObject):
+    def insert_multiple_objects(self, *objects: FileObject) -> None:
         """Convenience method mostly for tests. Careful: order does matter!"""
         for obj in objects:
             self.insert_object(obj)
 
-    def insert_object(self, fw_object: FileObject):
+    def insert_object(self, fw_object: FileObject) -> None:
         if isinstance(fw_object, Firmware):
             self.insert_firmware(fw_object)
         else:
             self.insert_file_object(fw_object)
 
-    def insert_file_object(self, file_object: FileObject):
+    def insert_file_object(self, file_object: FileObject) -> None:
         with self.get_read_write_session() as session:
             fo_entry = create_file_object_entry(file_object)
             self._update_parents(file_object.parent_firmware_uids, file_object.parents, fo_entry, session)
@@ -57,12 +57,12 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def _update_parents(
         self, root_fw_uids: list[str], parent_uids: list[str], fo_entry: FileObjectEntry, session: Session
-    ):
+    ) -> None:
         self._update_entries(session, fo_entry.root_firmware, root_fw_uids, 'root')
         self._update_entries(session, fo_entry.parent_files, parent_uids, 'parent')
 
     @staticmethod
-    def _update_entries(session: Session, db_column, uid_list: list[str], label: str):
+    def _update_entries(session: Session, db_column: Relationship, uid_list: list[str], label: str) -> None:
         entry_list = [session.get(FileObjectEntry, uid) for uid in uid_list]
         if entry_list and not any(entry_list):  # => all None
             raise DbInterfaceError(f'Trying to add object but no {label} object was found in DB: {uid_list}')
@@ -72,7 +72,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             elif fo_entry and fo_entry not in db_column:
                 db_column.append(fo_entry)
 
-    def insert_firmware(self, firmware: Firmware):
+    def insert_firmware(self, firmware: Firmware) -> None:
         with self.get_read_write_session() as session:
             fo_entry = create_file_object_entry(firmware)
             # references in fo_entry (e.g. analysis or included files) are populated automatically
@@ -80,7 +80,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             analyses = create_analysis_entries(firmware, fo_entry)
             session.add_all([fo_entry, firmware_entry, *analyses])
 
-    def add_analysis(self, uid: str, plugin: str, analysis_dict: dict):
+    def add_analysis(self, uid: str, plugin: str, analysis_dict: dict) -> None:
         try:
             if self.analysis_exists(uid, plugin):
                 self.update_analysis(uid, plugin, analysis_dict)
@@ -102,7 +102,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             query = select(AnalysisEntry.uid).filter_by(uid=uid, plugin=plugin)
             return bool(session.execute(query).scalar())
 
-    def insert_analysis(self, uid: str, plugin: str, analysis_dict: dict):
+    def insert_analysis(self, uid: str, plugin: str, analysis_dict: dict) -> None:
         with self.get_read_write_session() as session:
             fo_backref = session.get(FileObjectEntry, uid)
             if fo_backref is None:
@@ -139,7 +139,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             return str(plugin_version)
         return plugin_version
 
-    def add_vfp(self, parent_uid: str, child_uid: str, paths: list[str]):
+    def add_vfp(self, parent_uid: str, child_uid: str, paths: list[str]) -> None:
         """Adds a new "virtual file path" for file `child_uid` with path `path` in `parent_uid`"""
         with self.get_read_write_session() as session:
             vfp_list = [
@@ -153,7 +153,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             for vfp in vfp_list:
                 session.merge(vfp)  # use merge in case paths exist already
 
-    def add_child_to_parent(self, parent_uid: str, child_uid: str):
+    def add_child_to_parent(self, parent_uid: str, child_uid: str) -> None:
         with self.get_read_write_session() as session:
             statement = included_files_table.insert().values(parent_uid=parent_uid, child_uid=child_uid)
             with suppress(IntegrityError):
@@ -162,7 +162,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     # ===== Update / UPDATE =====
 
-    def update_object(self, fw_object: FileObject):
+    def update_object(self, fw_object: FileObject) -> None:
         if isinstance(fw_object, Firmware):
             if not self.is_firmware(fw_object.uid):
                 # special case: Trying to upload a file as firmware that is already in the DB as part of another
@@ -175,7 +175,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             self.update_firmware(fw_object)
         self.update_file_object(fw_object)
 
-    def update_firmware(self, firmware: Firmware):
+    def update_firmware(self, firmware: Firmware) -> None:
         with self.get_read_write_session() as session:
             entry: FirmwareEntry = session.get(FirmwareEntry, firmware.uid)
             entry.release_date = firmware.release_date
@@ -186,7 +186,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             entry.device_part = firmware.part
             entry.firmware_tags = firmware.tags
 
-    def update_file_object(self, file_object: FileObject):
+    def update_file_object(self, file_object: FileObject) -> None:
         with self.get_read_write_session() as session:
             entry = session.get(FileObjectEntry, file_object.uid)
             if entry is None:
@@ -203,11 +203,11 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 self._update_virtual_file_path(file_object, session)
 
     @staticmethod
-    def _update_virtual_file_path(file_object: FileObject, session: Session):
+    def _update_virtual_file_path(file_object: FileObject, session: Session) -> None:
         for vfp in create_vfp_entries(file_object):
             session.merge(vfp)  # session.merge will insert or update (if it is already in the DB)
 
-    def update_analysis(self, uid: str, plugin: str, analysis_data: dict):
+    def update_analysis(self, uid: str, plugin: str, analysis_data: dict) -> None:
         with self.get_read_write_session() as session:
             entry = session.get(AnalysisEntry, (uid, plugin))
             entry.plugin_version = self._sanitize_plugin_version(analysis_data['plugin_version'])
@@ -224,7 +224,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 sanitize(result)
             entry.result = result
 
-    def update_file_object_parents(self, file_uid: str, root_uid: str, parent_uid):
+    def update_file_object_parents(self, file_uid: str, root_uid: str, parent_uid: str) -> None:
         with self.get_read_write_session() as session:
             fo_entry = session.get(FileObjectEntry, file_uid)
             self._update_parents([root_uid], [parent_uid], fo_entry, session)
