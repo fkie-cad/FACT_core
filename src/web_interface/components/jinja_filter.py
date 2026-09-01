@@ -131,7 +131,7 @@ class FilterClass:
 
     def data_to_chart_limited(
         self, data: list[tuple[str, int]], limit: int | None = None, color_list: list[str] | None = None
-    ) -> dict[str, list]:
+    ) -> dict[str, list] | None:
         limit = self._get_chart_element_count() if limit is None else limit
         try:
             label_list, value_list = (list(d) for d in zip(*data, strict=True))
@@ -152,7 +152,7 @@ class FilterClass:
             return CHART_ELEMENT_COUNT_LIMIT
         return limit
 
-    def data_to_chart(self, data: list[tuple[str, int]]) -> dict[str, list]:
+    def data_to_chart(self, data: list[tuple[str, int]]) -> dict[str, list] | None:
         color_list = get_color_list(1) * len(data)
         return self.data_to_chart_limited(data, limit=0, color_list=color_list)
 
@@ -169,6 +169,7 @@ class FilterClass:
                 'data_to_chart_limited': self.data_to_chart_limited,
                 'data_to_chart_with_value_percentage_pairs': flt.data_to_chart_with_value_percentage_pairs,
                 'decompress': flt.decompress,
+                'decompress_lzma': flt.decompress_lzma,
                 'dict_to_json': json.dumps,
                 'fix_cwe': flt.fix_cwe,
                 'format_duration': flt.format_duration,
