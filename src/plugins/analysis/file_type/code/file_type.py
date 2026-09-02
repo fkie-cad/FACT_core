@@ -14,9 +14,9 @@ if TYPE_CHECKING:
 
 
 class MagikaResult(BaseModel):
-    label: str
+    label: str  # simple to understand content type
     mime: str
-    group: str
+    group: str  # broader category for lable e.g., "code", "document", "media"....
     description: str
     is_text: bool
     confidence: float
@@ -45,7 +45,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             metadata=self.MetaData(
                 name='file_type',
                 description='identify the file type',
-                version=Version(1, 0, 0),
+                version=Version(1, 1, 0),
                 Schema=AnalysisPlugin.Schema,
             ),
         )
