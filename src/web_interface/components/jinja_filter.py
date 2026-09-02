@@ -11,10 +11,9 @@ import config
 import web_interface.filter as flt
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import get_shared_session
-from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
-from web_interface.filter import elapsed_time, random_collapse_id
+from web_interface.filter import random_collapse_id
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -163,24 +162,18 @@ class FilterClass:
                 'all_items_equal': lambda data: len({str(value) for value in data.values()}) == 1,
                 'as_ascii_table': flt.as_ascii_table,
                 'auth_enabled': self.check_auth,
-                'base64_encode': flt.encode_base64_filter,
-                'bytes_to_str': flt.bytes_to_str_filter,
                 'data_to_chart': self.data_to_chart,
                 'data_to_chart_limited': self.data_to_chart_limited,
                 'data_to_chart_with_value_percentage_pairs': flt.data_to_chart_with_value_percentage_pairs,
                 'decompress': flt.decompress,
                 'dict_to_json': json.dumps,
                 'fix_cwe': flt.fix_cwe,
-                'format_duration': flt.format_duration,
-                'format_string_list_with_offset': flt.filter_format_string_list_with_offset,
                 'get_canvas_height': flt.get_canvas_height,
-                'get_searchable_crypto_block': flt.get_searchable_crypto_block,
                 'get_unique_keys_from_list_of_dicts': flt.get_unique_keys_from_list_of_dicts,
                 'group_dict_list_by_key': flt.group_dict_list_by_key,
                 'group_changed_text_files': flt.group_path_dict_by_dirs,
                 'hex': hex,
                 'hex_to_bytes': lambda h: str(bytes.fromhex(h))[2:-1],
-                'infection_color': flt.infection_color,
                 'is_list': lambda item: isinstance(item, list),
                 'is_text_file_or_image': flt.is_text_file_or_image,
                 'json_dumps': json.dumps,
@@ -188,9 +181,6 @@ class FilterClass:
                 'link_cwe': flt.replace_cwe_with_link,
                 'list_group': flt.list_group,
                 'list_group_collapse': flt.list_group_collapse,
-                'list_to_line_break_string': flt.list_to_line_break_string,
-                'list_to_line_break_string_no_sort': flt.list_to_line_break_string_no_sort,
-                'md5_hash': get_md5,
                 'max': max,
                 'min': min,
                 'nice_generic': flt.generic_nice_representation,
@@ -202,8 +192,6 @@ class FilterClass:
                 'number_format': flt.byte_number_filter,
                 'octal_to_readable': flt.octal_to_readable,
                 'print_program_version': self._filter_print_program_version,
-                'regex_meta': flt.comment_out_regex_meta_chars,
-                'remaining_time': elapsed_time,
                 'render_analysis_tags': flt.render_analysis_tags,
                 'render_changed_text_files': flt.render_changed_text_files,
                 'render_query_title': flt.render_query_title,
@@ -215,7 +203,6 @@ class FilterClass:
                 'replace_underscore': flt.replace_underscore_filter,
                 'version_is_compatible': flt.version_is_compatible,
                 'to_set': set,
-                'sort_chart_list_by_name': flt.sort_chart_list_by_name,
                 'sort_chart_list_by_value': flt.sort_chart_list_by_value,
                 'sort_comments': flt.sort_comments,
                 'sort_cve': flt.sort_cve_results,
@@ -226,8 +213,6 @@ class FilterClass:
                 ),
                 'sort_roles': flt.sort_roles_by_number_of_privileges,
                 'sort_users': flt.sort_users_by_name,
-                'str_to_hex': flt.str_to_hex,
-                'text_highlighter': flt.text_highlighter,
                 'uids_to_link': flt.uids_to_link,
                 'user_has_role': flt.user_has_role,
                 'version_links': flt.create_firmware_version_links,
