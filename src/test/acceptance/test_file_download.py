@@ -1,6 +1,3 @@
-import io
-import tarfile
-
 import pytest
 
 from test.common_helper import create_test_firmware
@@ -24,13 +21,6 @@ class TestAcceptanceDownloadFile:
         assert contents in rv.data, 'firmware download unsuccessful'
         assert 'attachment; filename=test.zip' in rv.headers['Content-Disposition']
 
-    def _start_tar_download(self, test_client, uid, contents):
-        rv = test_client.get(f'/tar-download/{uid}')
-        assert contents not in rv.data, 'tar download yielded original file instead of tar archive'
-        with tarfile.open(fileobj=io.BytesIO(rv.data)) as tar_file:
-            file_names = ', '.join(tar_file.getnames())
-        assert 'testfile1' in file_names, 'test files could not be found in tar download'
-
     def test_firmware_download(self, backend_db, file_service, test_client):
         test_fw = create_test_firmware()
         contents = test_fw.file_path.read_bytes()
@@ -40,4 +30,3 @@ class TestAcceptanceDownloadFile:
 
         self._show_analysis_page(test_client, test_fw)
         self._start_binary_download(test_client, test_fw.uid, contents)
-        self._start_tar_download(test_client, test_fw.uid, contents)

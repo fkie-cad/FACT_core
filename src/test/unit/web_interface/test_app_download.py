@@ -17,6 +17,9 @@ class DbMock(CommonDatabaseMock):
     def get_analysis(self, uid, plugin):
         return {'mime': 'application/x-foobar'}
 
+    def is_firmware(self, uid):
+        return uid == TEST_FW.uid
+
     def get_file_name(self, uid):
         if uid == TEST_FW.uid:
             return TEST_FW.file_name
@@ -47,3 +50,17 @@ def test_app_tar_download(test_client):
     assert TEST_FW.file_path.read_bytes() in rv.data
     assert 'attachment; filename=test.zip' in rv.headers['Content-Disposition']
     assert rv.headers['Content-Type'] == 'application/gzip'
+
+
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
+def test_app_recursive_tar_download(test_client):
+    rv = test_client.get(f'/recursive-tar-download/{TEST_FW.uid}')
+    assert TEST_FW.file_path.read_bytes() in rv.data
+    assert 'attachment; filename=test.zip.tar.gz' in rv.headers['Content-Disposition']
+    assert rv.headers['Content-Type'] == 'application/gzip'
+
+
+@pytest.mark.WebInterfaceUnitTestConfig(database_mock_class=DbMock)
+def test_app_recursive_tar_download_not_firmware(test_client):
+    rv = test_client.get(f'/recursive-tar-download/{TEST_TEXT_FILE.uid}')
+    assert b'only available for firmware' in rv.data
