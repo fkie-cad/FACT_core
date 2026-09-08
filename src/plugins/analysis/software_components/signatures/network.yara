@@ -64,6 +64,36 @@ rule curl
         $a
 }
 
+rule ClashConfiguration
+{
+	meta:
+		software_name = "Clash-compatible proxy"
+		open_source = true
+		website = "https://wiki.metacubex.one/"
+		description = "Clash-compatible proxy configuration identified by its external controller and proxy settings"
+		match_text_files = true
+		// Configuration endpoints are not software versions.
+		version_regex = "(?!)"
+	strings:
+		// Mihomo v1.19.30 RawConfig field names:
+		// https://github.com/MetaCubeX/mihomo/blob/ac017cdd246ce8bd547653d927e7bf77d7ee73d5/config/config.go#L419-L450
+		// Controller syntax: https://wiki.metacubex.one/en/config/general/#external-control-restful-api
+		// RawConfig fields are top-level. Reject indentation so nested examples and
+		// block-scalar text are not mistaken for active configuration.
+		$controller = /(^([\xEF][\xBB][\xBF])?|[\r\n])("external-controller"|'external-controller'|external-controller)[ \t]*:[ \t]*(((localhost|[A-Za-z]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*|((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9]))?:([0-9]{1,4}|[0-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))|"((localhost|[A-Za-z]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*|((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])|\[(::|[0-9A-Fa-f]{1,4}:[0-9A-Fa-f:]*|[0-9A-Fa-f:]*:[0-9A-Fa-f]{1,4})\])?:([0-9]{1,4}|[0-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))"|'((localhost|[A-Za-z]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*|((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])|\[(::|[0-9A-Fa-f]{1,4}:[0-9A-Fa-f:]*|[0-9A-Fa-f:]*:[0-9A-Fa-f]{1,4})\])?:([0-9]{1,4}|[0-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))')([ \t]+#[^\r\n]*|[ \t]*)([\r\n]|$)/ ascii
+		$proxy_groups = /(^|[\r\n])("proxy-groups"|'proxy-groups'|proxy-groups)[ \t]*:/ ascii
+		$proxies = /(^|[\r\n])("proxies"|'proxies'|proxies)[ \t]*:/ ascii
+		$rule_providers = /(^|[\r\n])("rule-providers"|'rule-providers'|rule-providers)[ \t]*:/ ascii
+		$subsequent_document = /[\r\n]---([ \t]+#[^\r\n]*)?[ \t]*([\r\n]|$)/ ascii
+	condition:
+		$controller and 1 of ($proxy_groups, $proxies, $rule_providers) and
+		(not $subsequent_document or
+			(@controller < @subsequent_document and
+				(($proxy_groups and @proxy_groups < @subsequent_document) or
+				 ($proxies and @proxies < @subsequent_document) or
+				 ($rule_providers and @rule_providers < @subsequent_document))))
+}
+
 rule dhcp6c
 {
 	meta:
