@@ -174,7 +174,7 @@ name.</p>
 like for example TIMEOUT you have to put the following in your test:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">AnalysisPluginTestConfig</span><span class="p">(</span>
     <span class="n">plugin_class</span><span class="o">=</span><span class="n">MyFancyPlugin</span><span class="p">,</span>
-    <span class="c1"># Actually don&#39;t start the processes in the fixture</span>
+    <span class="c1"># Actually don't start the processes in the fixture</span>
     <span class="n">start_processes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">my_fancy_test</span><span class="p">(</span><span class="n">analysis_plugin</span><span class="p">,</span> <span class="n">monkeypatch</span><span class="p">):</span>
