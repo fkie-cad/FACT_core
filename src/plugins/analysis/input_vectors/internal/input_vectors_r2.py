@@ -31,18 +31,16 @@ class RadareAPI:
         result = []
         string_list = self.api.cmdj('izj')
         for string in string_list:
-            decoded_str = base64.b64decode(string['string']).decode()
-            if re.match(regex, decoded_str) is not None:
-                result.append(decoded_str)
+            if re.match(regex, string['string']) is not None:
+                result.append(string['string'])
         return result
 
     def get_possible_url_paths(self, regex):
         result = []
         string_list = self.api.cmdj('izj')
         for string in string_list:
-            decoded_str = base64.b64decode(string['string']).decode()
-            if decoded_str.startswith('/') and re.search(regex, decoded_str) is None:
-                result.append(decoded_str)
+            if string['string'].startswith('/') and re.search(regex, string['string']) is None:
+                result.append(string['string'])
         return result
 
     @staticmethod

@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from docker.types import Mount
 from pydantic import BaseModel
@@ -31,19 +31,19 @@ from helperFunctions.docker import run_docker_container
 if TYPE_CHECKING:
     from io import FileIO
 
-DOCKER_IMAGE = 'fkiecad/cwe_checker:stable'
+DOCKER_IMAGE = 'ghcr.io/fkie-cad/cwe_checker@sha256:e0cde1e4e6abf7ce74c4409f4b93bf8c9a00f52c486b5d7b4e94a84805352151'
 SUPPORTED_ARCHS = ('arm', 'x86', 'x64', 'mips', 'ppc')
 
 
 class CweResult(BaseModel):
     cwe_id: str
-    warnings: List[str]
+    warnings: list[str]
     plugin_version: str
 
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        cwe_results: List
+        cwe_results: list
 
     def __init__(self):
         super().__init__(
@@ -71,16 +71,16 @@ class AnalysisPlugin(AnalysisPluginV0):
         self.memory_limit = getattr(config.backend.plugin.get(self.metadata.name, None), 'memory_limit', '4G')
         self.swap_limit = getattr(config.backend.plugin.get(self.metadata.name, None), 'memswap_limit', '4G')
 
-    def _log_version_string(self):
+    def _log_version_string(self) -> str:
         output = self._run_cwe_checker_to_get_version_string()
-        if output is None:
+        if not output:
             logging.error('Could not get version string from cwe_checker.')
         else:
             logging.debug(f'Version is {output}')
         return output
 
     @staticmethod
-    def _run_cwe_checker_to_get_version_string():
+    def _run_cwe_checker_to_get_version_string() -> str:
         result = run_docker_container(
             DOCKER_IMAGE,
             combine_stderr_stdout=True,
@@ -104,7 +104,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         return result.stdout
 
     @staticmethod
-    def _parse_cwe_checker_output(output):
+    def _parse_cwe_checker_output(output: str) -> dict[str, dict]:
         tmp = defaultdict(list)
         j_doc = json.loads(output)
         for warning in j_doc:
