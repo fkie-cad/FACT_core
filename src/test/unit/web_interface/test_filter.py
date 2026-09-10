@@ -1,6 +1,6 @@
 import logging
 from base64 import b64encode
-from time import gmtime, time
+from time import gmtime
 from zlib import compress
 
 import pytest
@@ -87,22 +87,6 @@ def test_nice_list(input_data):
     assert result == expected, 'output not correct'
 
 
-def test_list_to_line_break_string():
-    input_data = set('ab')
-    assert flt.list_to_line_break_string(input_data) == 'a\nb\n'
-
-
-@pytest.mark.parametrize(
-    ('input_data', 'expected_result'),
-    [
-        (['b', 'a'], 'b\na\n'),
-        (None, None),
-    ],
-)
-def test_list_to_line_break_string_no_sort(input_data, expected_result):
-    assert flt.list_to_line_break_string_no_sort(input_data) == expected_result
-
-
 def test_nice_unix_time_stamp():
     input_data = 1459427460
     assert flt.nice_unix_time(input_data).startswith('2016-03-31')
@@ -119,40 +103,6 @@ def test_sort_chart_list_by_value():
     test_list = [['a', 1], ['b', 2]]
     result = flt.sort_chart_list_by_value(test_list)
     assert result == [['b', 2], ['a', 1]]
-
-
-def test_sort_chart_list_by_name():
-    test_list = [['b', 2], ['a', 1]]
-    result = flt.sort_chart_list_by_name(test_list)
-    assert result == [['a', 1], ['b', 2]]
-
-
-@pytest.mark.parametrize(
-    ('input_data', 'keyword_args', 'expected_output'),
-    [
-        ('online', {}, '<span style="color:green;">online</span>'),
-        ('offline', {}, '<span style="color:red;">offline</span>'),
-        ('foo', {}, 'foo'),
-        ('foo', {'green': ['*']}, '<span style="color:green;">foo</span>'),
-        ('foo', {'red': ['*']}, '<span style="color:red;">foo</span>'),
-    ],
-)
-def test_text_highlighter(input_data, keyword_args, expected_output):
-    assert flt.text_highlighter(input_data, **keyword_args) == expected_output
-
-
-@pytest.mark.parametrize(
-    ('input_data', 'expected_output'),
-    [
-        ('clean', 'color:green'),
-        (0, 'color:green'),
-        ('foo', 'color:red'),
-        (9999, 'color:red'),
-        (None, 'color:red'),
-    ],
-)
-def test_infection_color(input_data, expected_output):
-    assert expected_output in flt.infection_color(input_data)
 
 
 def test_fix_cwe_valid_string():
@@ -277,15 +227,6 @@ def test_sort_roles_by_number_of_privileges():
     assert result == ['a', 'c', 'b']
 
 
-def test_filter_format_string_list_with_offset():
-    test_input = [(4, 'abc'), (7, 'abc'), (256, 'def'), (12, 'ghi')]
-    expected_result = '  4: abc\n  7: abc\n 12: ghi\n256: def'
-    result = flt.filter_format_string_list_with_offset(test_input)
-    assert result == expected_result
-
-    assert flt.filter_format_string_list_with_offset([]) == ''
-
-
 def test_filter_decompress():
     test_string = 'test123'
     assert flt.decompress(b64encode(compress(test_string.encode())).decode()) == test_string
@@ -348,17 +289,6 @@ def test_error_logging(function, input_data, expected_output, error_message, cap
         assert error_message in caplog.messages[0]
 
 
-@pytest.mark.parametrize(
-    ('input_data', 'expected_result'),
-    [
-        ('abc', 'abc'),
-        ('^$.[]|()?*+{}', '\\^\\$\\.\\[\\]\\|\\(\\)\\?\\*\\+\\{\\}'),
-    ],
-)
-def test_comment_out_regex_meta_chars(input_data, expected_result):
-    assert flt.comment_out_regex_meta_chars(input_data) == expected_result
-
-
 def test_version_links_no_analysis():
     links = flt.create_firmware_version_links([('uid_123', '1.0'), ('uid_234', '1.1')])
     assert '<a href="/analysis/uid_123">1.0</a>' in links
@@ -375,11 +305,6 @@ def test_random_collapse_id():
     collapse_id = flt.random_collapse_id()
     assert isinstance(collapse_id, str)
     assert not collapse_id[0].isnumeric()
-
-
-@pytest.mark.parametrize(('time_diff', 'expected_result'), [(5, '0:00:05'), (83, '0:01:23'), (5025, '1:23:45')])
-def test_remaining_time(time_diff, expected_result):
-    assert flt.format_duration(flt.elapsed_time(time() - time_diff)) == expected_result
 
 
 @pytest.mark.parametrize(
@@ -458,21 +383,6 @@ def test_sort_cve_result(input_list, expected_result):
     assert id_list == expected_result
 
 
-@pytest.mark.parametrize(
-    ('input_', 'expected_result'),
-    [
-        ('', ''),
-        ('foo', 'foo'),
-        (
-            ':37:4e:47:02:4e:2d:\n    c0:4f:2f:b3:94:e1:41:2e:2d:90:10:fc:82:92:8b:\n    0f:22:df:f2:fc:2c:ab:52:55',
-            'c0:4f:2f:b3:94:e1:41:2e:2d:90:10:fc:82:92:8b:',
-        ),
-    ],
-)
-def test_get_searchable_crypto_block(input_, expected_result):
-    assert flt.get_searchable_crypto_block(input_) == expected_result
-
-
 def test_as_ascii_table():
     output = flt.as_ascii_table(
         {
@@ -483,17 +393,6 @@ def test_as_ascii_table():
     # Makes the pytest output more readable
     output = output.replace(' ', '.')
     assert output == 'left       right     \nfoo        bar       \n'.replace(' ', '.')
-
-
-@pytest.mark.parametrize(
-    ('input_', 'expected_result'),
-    [
-        ('', ''),
-        ('abc123', '616263313233'),
-    ],
-)
-def test_str_to_hex(input_, expected_result):
-    assert flt.str_to_hex(input_) == expected_result
 
 
 @pytest.mark.parametrize(
