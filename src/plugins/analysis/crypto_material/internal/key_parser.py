@@ -45,7 +45,7 @@ def _determine_format_string(length: int | None) -> str | None:
     return LENGTH_TO_FORMAT[length]
 
 
-def read_asn1_key(file_handle: io.FileIO, offset: int):
+def read_asn1_key(file_handle: io.FileIO, offset: int) -> str | None:
     file_handle.seek(offset)
     start = int.from_bytes(file_handle.read(1), byteorder='little')
     if start not in TLV_KNOWN_STARTS:
@@ -64,7 +64,7 @@ def read_asn1_key(file_handle: io.FileIO, offset: int):
         return None
 
 
-def read_pkcs_cert(file_handle: io.FileIO, offset: int):
+def read_pkcs_cert(file_handle: io.FileIO, offset: int) -> str | None:
     file_handle.seek(offset)
     value = int.from_bytes(file_handle.read(1), byteorder='little')
     if value not in TLV_KNOWN_STARTS:
@@ -79,7 +79,7 @@ def read_pkcs_cert(file_handle: io.FileIO, offset: int):
         return None
 
 
-def read_ssl_cert(file_handle: io.FileIO, start: int, end: int):
+def read_ssl_cert(file_handle: io.FileIO, start: int, end: int) -> str | None:
     try:
         file_handle.seek(start)
         key_data = file_handle.read(end - start + 25)
