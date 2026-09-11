@@ -54,6 +54,7 @@ def read_asn1_key(file_handle: io.FileIO, offset: int):
         file_handle.seek(offset)
         key_data = _read_der_key(file_handle=file_handle, offset=offset)
         key = ssl.load_privatekey(ssl.FILETYPE_ASN1, key_data)
+        # FixMe: this produces a deprecation warning -> create actual structured output instead of text
         return make_unicode_string(ssl.dump_privatekey(ssl.FILETYPE_TEXT, key))
     except ssl.Error:
         logging.debug('Found PKCS#8 key signature, but looks false positive')
