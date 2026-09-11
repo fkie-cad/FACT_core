@@ -29,10 +29,8 @@ def test_get_mitigation_stats(stats_updater, backend_db):
     assert stats_updater.get_exploit_mitigations_stats() == {'exploit_mitigations': []}
 
     mitigation_plugin_summaries = [
-        [
-            ['RELRO disabled', 'NX disabled', 'CANARY disabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
-            ['RELRO disabled', 'NX enabled', 'CANARY enabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
-        ]
+        ['RELRO disabled', 'NX disabled', 'CANARY disabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
+        ['RELRO disabled', 'NX enabled', 'CANARY enabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
     ]
     _add_objects_with_summary('exploit_mitigations', mitigation_plugin_summaries, backend_db)
 
@@ -63,7 +61,7 @@ def test_get_vulnerability_stats(stats_updater, backend_db):
     assert sorted(stats) == [('Heartbleed', 2), ('WPA_Key_Hardcoded', 1)]
 
 
-def _add_objects_with_summary(plugin, summary_list, backend_db):
+def _add_objects_with_summary(plugin, summary_list: list[list[str]], backend_db):
     root_fw = create_test_firmware()
     root_fw.vendor = 'test_vendor'
     root_fw.uid = 'root_fw'
@@ -246,7 +244,9 @@ def test_get_executable_stats(backend_db, stats_updater):
         ('statically linked', 1, 0.25),
         ('section info missing', 1, 0.25),
     ]
-    for (expected_label, expected_count, expected_percentage), (label, count, percentage, _) in zip(expected, stats):
+    for (expected_label, expected_count, expected_percentage), (label, count, percentage, _) in zip(
+        expected, stats, strict=True
+    ):
         assert label == expected_label
         assert count == expected_count
         assert percentage == expected_percentage
