@@ -1,8 +1,8 @@
-cryptography~=46.0.5
+cryptography==50.0.1
 MarkupSafe~=2.1.5
 networkx~=3.1
 Pillow~=12.2.0
-pyopenssl~=26.0.0
+pyopenssl==26.4.0
 pyyaml~=6.0.2
 
 # For plugin definition
