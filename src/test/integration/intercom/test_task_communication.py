@@ -29,6 +29,13 @@ from intercom.front_end_binding import InterComFrontEndBinding
 from test.common_helper import create_test_firmware
 from test.mock import mock_patch
 
+MOCK_TASK_ID = 'valid_uid_0.0'
+
+
+@pytest.fixture(autouse=True)
+def _mock_task_id(monkeypatch):
+    monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: MOCK_TASK_ID)
+
 
 class AnalysisServiceMock:
     @staticmethod
@@ -120,7 +127,6 @@ class TestInterComTaskCommunication:
 
     def test_raw_download_task(self, monkeypatch, intercom_frontend):
         monkeypatch.setattr('intercom.back_end_binding.FileService.get_file_content_from_uid', lambda *_: b'test')
-        monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
         result = intercom_frontend.get_file_contents('valid_uid')
         assert result is None, 'should be none because of timeout'
@@ -128,11 +134,10 @@ class TestInterComTaskCommunication:
         task_listener = InterComBackEndRawDownloadTask()
         task = task_listener.get_next_task()
         assert task == 'valid_uid', 'task not correct'
-        result = intercom_frontend.get_file_contents('valid_uid_0.0')
+        result = intercom_frontend.get_file_contents(MOCK_TASK_ID)
         assert result == b'test', 'retrieved binary not correct'
 
     def test_file_diff_task(self, monkeypatch, intercom_frontend):
-        monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda _: 'valid_uid_0.0')
         monkeypatch.setattr('intercom.back_end_binding.FileService', FileServiceMock)
 
         result = intercom_frontend.get_file_diff(('uid1', 'uid2'))
@@ -147,7 +152,6 @@ class TestInterComTaskCommunication:
 
     def test_peek_binary_task(self, monkeypatch, intercom_frontend):
         monkeypatch.setattr('intercom.back_end_binding.FileService.get_partial_file_content', lambda *_: b'foobar')
-        monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
         result = intercom_frontend.peek_in_binary('valid_uid', 0, 512)
         assert result is None, 'should be none because of timeout'
@@ -160,7 +164,6 @@ class TestInterComTaskCommunication:
 
     def test_tar_repack_task(self, intercom_frontend, monkeypatch):
         monkeypatch.setattr('intercom.back_end_binding.FileService.get_repacked_file_as_bytes', lambda *_: b'test')
-        monkeypatch.setattr('intercom.front_end_binding.generate_task_id', lambda *_: 'valid_uid_0.0')
 
         result = intercom_frontend.get_repacked_file('valid_uid')
         assert result is None, 'should be none because of timeout'
@@ -168,7 +171,7 @@ class TestInterComTaskCommunication:
         task_listener = InterComBackEndTarRepackTask()
         task = task_listener.get_next_task()
         assert task == 'valid_uid', 'task not correct'
-        result = intercom_frontend.get_repacked_file('valid_uid_0.0')
+        result = intercom_frontend.get_repacked_file(MOCK_TASK_ID)
         assert result == b'test', 'retrieved binary not correct'
 
     def test_binary_search_task(self, intercom_frontend, monkeypatch):
@@ -239,15 +242,15 @@ class TestInterComTaskCommunication:
         listener = InterComBackEndStoreFileTask()
         file_contents = b'foobar'
         uid = create_uid(file_contents)
-        intercom_frontend.store_file(file_contents, uid)
+
+        result = intercom_frontend.store_file(file_contents, uid)
+        assert result is None, 'should be none because of timeout'
+
         task = listener.get_next_task()
         assert task == (file_contents, uid), 'task not correct'
 
+        result = intercom_frontend.store_file(file_contents, uid)
+        assert result is True, 'file was not stored successfully'
         file_path = listener.file_service.generate_path_from_uid(uid)
-        for _ in range(40):  # timeout: ~2s
-            if file_path.is_file():
-                break
-            sleep(0.05)
-
         assert file_path.is_file()
         assert file_path.read_bytes() == file_contents
