@@ -45,7 +45,7 @@ def _determine_format_string(length: int | None) -> str | None:
     return LENGTH_TO_FORMAT[length]
 
 
-def read_asn1_key(file_handle: io.FileIO, offset: int):
+def read_asn1_key(file_handle: io.FileIO, offset: int) -> str | None:
     file_handle.seek(offset)
     start = int.from_bytes(file_handle.read(1), byteorder='little')
     if start not in TLV_KNOWN_STARTS:
@@ -54,6 +54,7 @@ def read_asn1_key(file_handle: io.FileIO, offset: int):
         file_handle.seek(offset)
         key_data = _read_der_key(file_handle=file_handle, offset=offset)
         key = ssl.load_privatekey(ssl.FILETYPE_ASN1, key_data)
+        # FixMe: this produces a deprecation warning -> create actual structured output instead of text
         return make_unicode_string(ssl.dump_privatekey(ssl.FILETYPE_TEXT, key))
     except ssl.Error:
         logging.debug('Found PKCS#8 key signature, but looks false positive')
@@ -63,7 +64,7 @@ def read_asn1_key(file_handle: io.FileIO, offset: int):
         return None
 
 
-def read_pkcs_cert(file_handle: io.FileIO, offset: int):
+def read_pkcs_cert(file_handle: io.FileIO, offset: int) -> str | None:
     file_handle.seek(offset)
     value = int.from_bytes(file_handle.read(1), byteorder='little')
     if value not in TLV_KNOWN_STARTS:
@@ -78,7 +79,7 @@ def read_pkcs_cert(file_handle: io.FileIO, offset: int):
         return None
 
 
-def read_ssl_cert(file_handle: io.FileIO, start: int, end: int):
+def read_ssl_cert(file_handle: io.FileIO, start: int, end: int) -> str | None:
     try:
         file_handle.seek(start)
         key_data = file_handle.read(end - start + 25)
