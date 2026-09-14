@@ -5,6 +5,7 @@ from time import sleep, time
 from typing import TYPE_CHECKING, Any
 
 import config
+from helperFunctions.types import PluginData
 from intercom.common_redis_binding import generate_task_id
 from storage.redis_interface import RedisInterface
 
@@ -41,11 +42,11 @@ class InterComFrontEndBinding:
     def cancel_analysis(self, root_uid: str) -> None:
         self._add_to_redis_queue('cancel_task', root_uid)
 
-    def get_available_analysis_plugins(self) -> dict[str, tuple]:
+    def get_available_analysis_plugins(self) -> dict[str, PluginData]:
         plugin_dict = self.redis.get('analysis_plugins', delete=False)
         if plugin_dict is None:
             raise RuntimeError('No available plug-ins found. FACT backend might be down!')
-        return plugin_dict
+        return {k: PluginData(*v) for k, v in plugin_dict.items()}
 
     def store_file(self, file_contents: bytes, uid: str) -> bool:
         return self._request_response_listener((file_contents, uid), 'store_file_task', 'store_file_task_resp')

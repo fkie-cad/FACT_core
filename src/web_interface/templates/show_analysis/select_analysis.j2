@@ -36,14 +36,14 @@
                 <form class="form-horizontal" id="modal-form" action="" method=post enctype=multipart/form-data>
                     <p>Add new analysis</p>
                     {% for system in available_plugins.unused | sort %}
-                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
+                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system].description | safe }}" style="display: block">
                             <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
                         </label>
                     {% endfor %}
                     <hr />
                     <p>Update analysis</p>
                     {% for system in available_plugins.used | sort %}
-                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
+                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system].description | safe }}" style="display: block">
                             <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
                         </label>
                     {% endfor %}

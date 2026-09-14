@@ -9,31 +9,37 @@
     </td>
 {% endmacro %}
 
-{% macro plugin_card(plugin_name) %}
-    {% set description, _, __, version, dependencies, blacklist, whitelist, threads = plugins[plugin_name] %}
+{% macro plugin_card(plugin_name, plugin_data) %}
     <div class="card m-2" style="width: 430px;">
         <div class="card-body">
             <h5 class="card-title">{{ plugin_name }}</h5>
-            <h6 class="card-subtitle mb-2 text-muted">{{ version }}</h6>
+            <h6 class="card-subtitle mb-2 text-muted">{{ plugin_data.version }}</h6>
 
             <div class="collapse m-0 p-0 mt-3" id="{{ plugin_name }}">
                 <span class="card-text">
-                    {{ description }}
+                    {{ plugin_data.description }}
                 </span>
                 <table class="table table-borderless mb-0 table-sm">
                     <tr>
                         {{ icon_tooltip_desk('project-diagram', 'Plugin dependencies') }}
-                        <td>{{ dependencies | list_group_collapse | safe}}</td>
+                        <td>{{ plugin_data.dependencies | list_group_collapse | safe}}</td>
                     </tr>
                     <tr>
                         {{ icon_tooltip_desk('flag', 'Blacklisted file types') }}
-                        <td>{{ blacklist | list_group_collapse | safe }}</td>
+                        <td>{{ plugin_data.blacklist | list_group_collapse | safe }}</td>
                     </tr>
                     <tr>
                         {{ icon_tooltip_desk('flag', 'Whitelisted file types', icon_class='far') }}
-                        <td>{{ whitelist | list_group_collapse | safe }}</td>
+                        <td>{{ plugin_data.whitelist | list_group_collapse | safe }}</td>
                     </tr>
-
+                    <tr>
+                        {{ icon_tooltip_desk('clone', 'Worker count') }}
+                        <td>
+                            <div class="ml-3">
+                                {{ plugin_data.worker_count }}
+                            </div>
+                        </td>
+                    </tr>
                 </table>
             </div>
 
@@ -53,9 +59,9 @@
 </div>
 {% if plugins %}
     <div class="row justify-content-center">
-        {% for plugin_name in plugins | sort %}
+        {% for plugin_name, plugin_data in plugins.items() | sort %}
             {% if plugin_name != "unpacker" %}
-                {{ plugin_card(plugin_name) }}
+                {{ plugin_card(plugin_name, plugin_data) }}
             {% endif %}
         {% endfor %}
     </div>

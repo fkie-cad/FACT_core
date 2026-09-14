@@ -61,14 +61,13 @@
         </tr>
 
         {% set version_database = analysis_metadata['plugin_version'] %}
-        {% set version_backend = analysis_plugin_dict.get(selected_analysis, (None, None, None, None))[3] %}
 
-        {% if version_backend == None %}
+        {% if selected_analysis not in analysis_plugin_dict %}
             <tr>
                 <td class="table-danger">Plugin not found</td>
                 <td>The analysis plugin that belongs to this analysis result was not loaded, so the result cannot be rendered.</td>
             </tr>
-        {% elif selected_analysis == 'unpacker' or version_database | version_is_compatible(version_backend, True) %}
+        {% elif selected_analysis == 'unpacker' or version_database | version_is_compatible(analysis_plugin_dict[selected_analysis].version, True) %}
             {% if analysis_result is not none and 'skipped' not in analysis_result %}
                 {% block analysis_result_details %}
 
@@ -78,7 +77,7 @@
             <tr>
                 <td class="table-warning">Analysis outdated</td>
                 <td id="analysis-outdated-td">
-                    The backend plugin version ({{ version_backend | string }}) is incompatible with
+                    The backend plugin version ({{ analysis_plugin_dict[selected_analysis].version | string }}) is incompatible with
                     the version ({{ version_database | string }}) of the analysis result.
 
                     <button class="btn btn-primary btn-sm" onclick="startSingleAnalysis()">

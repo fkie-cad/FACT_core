@@ -20,6 +20,7 @@ from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from helperFunctions.types import PluginData
 from objects.firmware import Firmware
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
@@ -258,55 +259,46 @@ class AnalysisScheduler:
         if not os.getenv('PYTEST_CURRENT_TEST'):
             self._remove_example_plugins()
 
-    def get_plugin_dict(self) -> dict:
+    def get_plugin_dict(self) -> dict[str, PluginData]:
         """
-        Get information regarding all loaded plugins in the form of a dictionary with the following form:
-
-        .. code-block:: python
-
-            {
-                NAME: (
-                    str: DESCRIPTION,
-                    bool: mandatory,
-                    dict: plugin_sets,
-                    str: VERSION,
-                    list: DEPENDENCIES,
-                    list: MIME_BLACKLIST,
-                    list: MIME_WHITELIST,
-                    str: config.threads
-                )
-            }
-
+        Get information regarding all loaded plugins in the form of a dictionary.
         Mandatory plugins are not shown in the analysis selection but always executed. Default plugins are pre-selected
         in the analysis selection.
 
         :return: dict with information regarding all loaded plugins
         """
         plugin_list = self._get_list_of_available_plugins()
-        plugin_sets = config.backend.analysis_preset
         result = {}
         for plugin in plugin_list:
-            current_plugin_plugin_sets = {}
+            preset_dict = {}
             mandatory_flag = plugin in MANDATORY_PLUGINS
-            for plugin_set in plugin_sets:
-                current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set].plugins
+            for preset_name, preset_plugin_list in config.backend.analysis_preset.items():
+                preset_dict[preset_name] = plugin in preset_plugin_list.plugins
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
             try:
                 thread_count = config.backend.plugin[plugin].processes
             except (AttributeError, KeyError):
                 thread_count = config.backend.plugin_defaults.processes
-            # FixMe this should not be a tuple but rather a dictionary/class
-            result[plugin] = (
+            result[plugin] = PluginData(
                 self.analysis_plugins[plugin].metadata.description,
                 mandatory_flag,
-                dict(current_plugin_plugin_sets),
+                dict(preset_dict),
                 str(self.analysis_plugins[plugin].metadata.version),
                 self.analysis_plugins[plugin].metadata.dependencies,
                 blacklist,
                 whitelist,
                 thread_count,
             )
-        result['unpacker'] = ('Additional information provided by the unpacker', True, False)
+        result['unpacker'] = PluginData(
+            'Additional information provided by the unpacker',
+            True,
+            {},
+            '',
+            [],
+            config.backend.unpacking.whitelist,
+            [],
+            config.backend.unpacking.processes,
+        )
         return result
 
     def _start_plugin_runners(self) -> None:
