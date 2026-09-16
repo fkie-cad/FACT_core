@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import typing
-from typing import List
 
 import pydantic
 from pydantic import Field
@@ -33,7 +32,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             ),
         )
 
-    def summarize(self, result: Schema) -> List[str]:
+    def summarize(self, result: Schema) -> list[str]:
         return [result.mime]
 
     def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:

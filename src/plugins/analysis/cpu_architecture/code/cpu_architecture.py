@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from semver import Version
@@ -19,7 +19,7 @@ class Architecture(BaseModel):
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        architectures: List[Architecture]
+        architectures: list[Architecture]
 
     def __init__(self):
         super().__init__(

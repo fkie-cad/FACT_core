@@ -10,7 +10,7 @@ from base64 import b64encode
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, List, NamedTuple, Optional
+from typing import TYPE_CHECKING, NamedTuple
 
 from docker.types import Mount
 from pydantic import BaseModel, Field
@@ -75,30 +75,30 @@ class FileMetadata(BaseModel):
     path: str = Field(
         description="The file's path",
     )
-    user: Optional[str] = Field(
+    user: str | None = Field(
         default=None,
         description="The user name of the file's owner",
     )
-    uid: Optional[int] = Field(
+    uid: int | None = Field(
         default=None,
         description="The user ID of the file's owner",
     )
-    group: Optional[str] = Field(
+    group: str | None = Field(
         default=None,
         description="The group name of the file's owner",
     )
-    gid: Optional[int] = Field(
+    gid: int | None = Field(
         default=None,
         description="The group ID of the file's owner",
     )
     modification_time: float = Field(
         description="The time of the file's last modification (as UNIX timestamp)",
     )
-    access_time: Optional[float] = Field(
+    access_time: float | None = Field(
         None,
         description="The time of the file's last access (as UNIX timestamp)",
     )
-    creation_time: Optional[float] = Field(
+    creation_time: float | None = Field(
         None,
         description="The time of the file's creation (as UNIX timestamp)",
     )
@@ -120,7 +120,7 @@ class AnalysisPlugin(AnalysisPluginV0):
     NAME = 'file_system_metadata'
 
     class Schema(BaseModel):
-        files: List[FileMetadata] = Field(
+        files: list[FileMetadata] = Field(
             description='An array of metadata objects (each representing the results of a contained file)',
         )
 
@@ -309,11 +309,11 @@ def _file_mode_contains_bit(file_mode: str, bit: int) -> bool:
 
 
 def _get_mounted_file_mode(stats: StatResult) -> str:
-    return oct(stats.mode)[2:]
+    return f'{stats.mode:o}'
 
 
 def _get_tar_file_mode_str(file_info: tarfile.TarInfo) -> str:
-    return oct(file_info.mode)[2:]
+    return f'{file_info.mode:o}'
 
 
 def _has_correct_type(mime_type: str) -> bool:
@@ -322,6 +322,6 @@ def _has_correct_type(mime_type: str) -> bool:
 
 def _filemode_str_to_int(filemode: str) -> int:
     result = 0
-    for char, lookup in zip(filemode, REVERSE_FILEMODE_LOOKUP):
+    for char, lookup in zip(filemode, REVERSE_FILEMODE_LOOKUP, strict=True):
         result += lookup.get(char, 0)
     return result

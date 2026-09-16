@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Self
 
 from pydantic import BaseModel, Field
 from semver import Version
@@ -11,6 +11,7 @@ from semver import Version
 from analysis.plugin import AnalysisPluginV0
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
     from io import FileIO
 
 FILE_IGNORES = {'README', 'README.md', 'README.txt', 'INSTALL', 'VERSION'}
@@ -27,43 +28,43 @@ class InitType(str, Enum):
 
 
 class SystemDData(BaseModel):
-    exec_start: Optional[str] = None
-    description: Optional[str] = None
+    exec_start: str | None = None
+    description: str | None = None
 
 
 class InitTabData(BaseModel):
-    sysinit: Optional[str] = None
-    respawn: Optional[str] = None
+    sysinit: str | None = None
+    respawn: str | None = None
 
 
 class UpstartData(BaseModel):
-    exec: Optional[str] = None
-    pre_start: Optional[str] = None
-    description: Optional[str] = None
+    exec: str | None = None
+    pre_start: str | None = None
+    description: str | None = None
 
 
 class SysVInitData(BaseModel):
-    description: Optional[str] = None
-    short_description: Optional[str] = None
+    description: str | None = None
+    short_description: str | None = None
 
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        init_type: Optional[InitType] = Field(
+        init_type: InitType | None = Field(
             None, description='The type of init system that was identified for this file'
         )
-        data: Optional[Union[SystemDData, InitTabData, UpstartData, SysVInitData]] = Field(
+        data: SystemDData | InitTabData | UpstartData | SysVInitData | None = Field(
             None,
             description='Optional meta information and init data contained in this init script',
         )
         is_init: bool = False
 
         @classmethod
-        def __get_validators__(cls):
+        def __get_validators__(cls) -> Iterator[Callable]:
             yield cls.validate
 
         @classmethod
-        def validate(cls, value):
+        def validate(cls, value: dict) -> Self:
             init_type = value.get('init_type')
             if init_type == InitType.systemd:
                 value['data'] = SystemDData(**value['data'])

@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 DOCKER_IMAGE = 'input-vectors:latest'
 TIMEOUT_IN_SECONDS = 120
-CONTAINER_TARGET_PATH = '/tmp/input'
+CONTAINER_TARGET_PATH = '/tmp/input'  # noqa: S108
 
 
 class InputVector(BaseModel):

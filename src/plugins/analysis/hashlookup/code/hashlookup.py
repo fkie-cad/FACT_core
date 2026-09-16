@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any
 
 import requests
 from pydantic import BaseModel, Field, model_validator
@@ -25,7 +25,7 @@ class ValidatorModel(BaseModel):
 
     @model_validator(mode='before')
     @classmethod
-    def _normalize_keys(cls, values):
+    def _normalize_keys(cls, values: Any) -> Any:  # noqa: ANN401
         if isinstance(values, dict):
             return {k.replace('-', '_').replace(':', '_'): v for k, v in values.items()}
         return values
@@ -34,24 +34,24 @@ class ValidatorModel(BaseModel):
 class OperatingSystem(BaseModel):
     OpSystemCode: str = Field(description='Operating system ID')
     OpSystemName: str
-    OpSystemVersion: Optional[str] = None
-    MfgCode: Optional[str] = Field(None, description='vendor or manufacturer ID')
+    OpSystemVersion: str | None = None
+    MfgCode: str | None = Field(None, description='vendor or manufacturer ID')
 
 
 class Product(BaseModel):
     ProductCode: int = Field(description='software product ID')
     ProductName: str
-    ApplicationType: Optional[str] = Field(None, description='general use of the software product')
-    Language: Optional[str] = Field(None, description='language(s) used in the software product')
-    MfgCode: Optional[str] = Field(None, description='vendor or manufacturer ID')
-    OpSystemCode: Optional[str] = Field(None, description='operating system version ID')
-    ProductVersion: Optional[str] = Field(None, description='version of the software product')
+    ApplicationType: str | None = Field(None, description='general use of the software product')
+    Language: str | None = Field(None, description='language(s) used in the software product')
+    MfgCode: str | None = Field(None, description='vendor or manufacturer ID')
+    OpSystemCode: str | None = Field(None, description='operating system version ID')
+    ProductVersion: str | None = Field(None, description='version of the software product')
 
 
 class File(ValidatorModel):
     SHA_1: str = Field(description='SHA-1 hash (hex, uppercase)')
-    PackageName: Optional[str] = None
-    PackageMaintainer: Optional[str] = None
+    PackageName: str | None = None
+    PackageMaintainer: str | None = None
 
 
 class AnalysisPlugin(AnalysisPluginV0):
@@ -64,31 +64,31 @@ class AnalysisPlugin(AnalysisPluginV0):
         SHA_1: str = Field(None, description='SHA-1 hash (hex, uppercase)')
         SHA_256: str = Field(None, description='SHA-256 hash (hex, uppercase)')
 
-        db: Optional[str] = Field(None, description='Db where the file come from')
-        TLSH: Optional[str] = Field(None, description='TLSH fuzzy hash')
-        CRC32: Optional[str] = Field(None, description='CRC32 checksum of the file')
-        SSDEEP: Optional[str] = Field(None, description='SSDEEP fuzzy hash')
-        source: Optional[str] = Field(None, description='Source of the file')
-        parents: List[Optional[File]] = Field(
+        db: str | None = Field(None, description='Db where the file come from')
+        TLSH: str | None = Field(None, description='TLSH fuzzy hash')
+        CRC32: str | None = Field(None, description='CRC32 checksum of the file')
+        SSDEEP: str | None = Field(None, description='SSDEEP fuzzy hash')
+        source: str | None = Field(None, description='Source of the file')
+        parents: list[File | None] = Field(
             None, description='represent the relationships with other hashlookup objects'
         )
-        children: List[Optional[File]] = Field(
+        children: list[File | None] = Field(
             None, description='represent the relationships with other hashlookup objects'
         )
-        ProductCode: Optional[Product] = Field(None, description='associated software product')
-        SpecialCode: Optional[str] = Field(None, description='Special file signatures (e.g. M: malicious, S: special)')
-        OpSystemCode: Optional[OperatingSystem] = Field(None, description='associated Operating system')
-        RDS_package_id: Optional[str] = Field(None, description='nist NSRL RDS package ID')
-        hashlookup_trust: Optional[int] = None
-        insert_timestamp: Optional[str] = None
-        SHA_512: Optional[str] = Field(None, description='SHA-512 hash (hex, uppercase)')
-        mimetype: Optional[str] = Field(None, description='Guessed mimetype of the file')
-        tar_gname: Optional[str] = Field(None, description='Group name used to create the Tar archive')
-        tar_uname: Optional[str] = Field(None, description='User name used to create the Tar archive')
-        nsrl_sha256: Optional[str] = Field(
+        ProductCode: Product | None = Field(None, description='associated software product')
+        SpecialCode: str | None = Field(None, description='Special file signatures (e.g. M: malicious, S: special)')
+        OpSystemCode: OperatingSystem | None = Field(None, description='associated Operating system')
+        RDS_package_id: str | None = Field(None, description='nist NSRL RDS package ID')
+        hashlookup_trust: int | None = None
+        insert_timestamp: str | None = None
+        SHA_512: str | None = Field(None, description='SHA-512 hash (hex, uppercase)')
+        mimetype: str | None = Field(None, description='Guessed mimetype of the file')
+        tar_gname: str | None = Field(None, description='Group name used to create the Tar archive')
+        tar_uname: str | None = Field(None, description='User name used to create the Tar archive')
+        nsrl_sha256: str | None = Field(
             None, description='Specifies if the file SHA-256 comes from the original NSRL SHA-1 to SHA-256 list'
         )
-        KnownMalicious: Optional[str] = Field(
+        KnownMalicious: str | None = Field(
             None, description='List of source considering the hashed file as being malicious'
         )
 
@@ -132,6 +132,6 @@ class AnalysisPlugin(AnalysisPluginV0):
 def _look_up_hash(sha2_hash: str) -> dict:
     try:
         url = f'https://hashlookup.circl.lu/lookup/sha256/{sha2_hash}'
-        return requests.get(url, headers={'accept': 'application/json'}).json()
+        return requests.get(url, headers={'accept': 'application/json'}).json()  # noqa: S113
     except (requests.ConnectionError, json.JSONDecodeError) as error:
         raise AnalysisFailedError('Failed to connect to circl.lu hashlookup API') from error

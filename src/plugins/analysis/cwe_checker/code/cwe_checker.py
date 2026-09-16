@@ -89,7 +89,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         )
         return result.stdout
 
-    def _run_cwe_checker_in_docker(self, file_path: str) -> bytes:
+    def _run_cwe_checker_in_docker(self, file_path: str) -> str:
         result = run_docker_container(
             DOCKER_IMAGE,
             combine_stderr_stdout=True,

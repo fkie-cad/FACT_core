@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from itertools import chain
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import pydantic
 from pydantic import Field
@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(pydantic.BaseModel):
-        unix: List[CredentialResult] = Field(description='The list of found UNIX credentials.')
-        http: List[CredentialResult] = Field(description='The list of found HTTP basic auth credentials.')
-        mosquitto: List[CredentialResult] = Field(description='The list of found Mosquitto MQTT broker credentials.')
+        unix: list[CredentialResult] = Field(description='The list of found UNIX credentials.')
+        http: list[CredentialResult] = Field(description='The list of found HTTP basic auth credentials.')
+        mosquitto: list[CredentialResult] = Field(description='The list of found Mosquitto MQTT broker credentials.')
 
     def __init__(self):
         super().__init__(

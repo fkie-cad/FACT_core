@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from semver import Version
@@ -36,9 +36,9 @@ class CheckSec(BaseModel):
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
         is_kernel_config: bool
-        kernel_config: Optional[str] = None
-        checksec: Optional[CheckSec] = None
-        hardening: Optional[List[HardeningCheckResult]] = None
+        kernel_config: str | None = None
+        checksec: CheckSec | None = None
+        hardening: list[HardeningCheckResult] | None = None
 
     def __init__(self):
         super().__init__(
@@ -133,5 +133,5 @@ def object_is_kernel_image(software_analysis: SoftwarePlugin.Schema) -> bool:
     return any('linux kernel' in component.name.lower() for component in software_analysis.software_components)
 
 
-def _has_filename(file_name, vfp_dict: dict[str, list[str]]) -> bool:
+def _has_filename(file_name: str, vfp_dict: dict[str, list[str]]) -> bool:
     return any(file_name == Path(path).name for path_list in vfp_dict.values() for path in path_list)

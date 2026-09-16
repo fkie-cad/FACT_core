@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from hashlib import algorithms_guaranteed
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import lief
 import ssdeep
@@ -36,20 +36,20 @@ class AnalysisPlugin(AnalysisPluginV0):
         # from hashlib
         md5: str = Field(description="md5 hash of the file's content")
         sha256: str = Field(description="sha256 hash of the file's content")
-        sha1: Optional[str] = Field(description="sha1 hash of the file's content", default=None)
-        sha224: Optional[str] = Field(description="sha224 hash of the file's content", default=None)
-        sha384: Optional[str] = Field(description="sha384 hash of the file's content", default=None)
-        sha512: Optional[str] = Field(description="sha512 hash of the file's content", default=None)
-        blake2b: Optional[str] = Field(description="blake2b hash of the file's content", default=None)
-        blake2s: Optional[str] = Field(description="blake2s hash of the file's content", default=None)
-        sha3_224: Optional[str] = Field(description="sha3_224 hash of the file's content", default=None)
-        sha3_256: Optional[str] = Field(description="sha3_256 hash of the file's content", default=None)
-        sha3_384: Optional[str] = Field(description="sha3_384 hash of the file's content", default=None)
-        sha3_512: Optional[str] = Field(description="sha3_512 hash of the file's content", default=None)
+        sha1: str | None = Field(description="sha1 hash of the file's content", default=None)
+        sha224: str | None = Field(description="sha224 hash of the file's content", default=None)
+        sha384: str | None = Field(description="sha384 hash of the file's content", default=None)
+        sha512: str | None = Field(description="sha512 hash of the file's content", default=None)
+        blake2b: str | None = Field(description="blake2b hash of the file's content", default=None)
+        blake2s: str | None = Field(description="blake2s hash of the file's content", default=None)
+        sha3_224: str | None = Field(description="sha3_224 hash of the file's content", default=None)
+        sha3_256: str | None = Field(description="sha3_256 hash of the file's content", default=None)
+        sha3_384: str | None = Field(description="sha3_384 hash of the file's content", default=None)
+        sha3_512: str | None = Field(description="sha3_512 hash of the file's content", default=None)
 
-        ssdeep: Optional[str] = Field(description="ssdeep hash of the file's content", default=None)
-        tlsh: Optional[str] = Field(description="tlsh hash of the file's content", default=None)
-        imphash: Optional[str] = Field(
+        ssdeep: str | None = Field(description="ssdeep hash of the file's content", default=None)
+        tlsh: str | None = Field(description="tlsh hash of the file's content", default=None)
+        imphash: str | None = Field(
             description='import hash: the MD5 hash of the sorted imported functions (ELF files only)',
             default=None,
         )

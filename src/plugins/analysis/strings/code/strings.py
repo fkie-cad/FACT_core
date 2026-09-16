@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from re import Pattern
-from typing import TYPE_CHECKING, Iterable, List
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 from semver import Version
@@ -13,6 +13,7 @@ from plugins.analysis.strings.internal.string_eval import calculate_relevance_sc
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from io import FileIO
 
 STRING_REGEXES = [
@@ -29,7 +30,7 @@ class StringMatch(BaseModel):
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        strings: List[StringMatch] = Field(description='An array of ASCII strings contained in this file.')
+        strings: list[StringMatch] = Field(description='An array of ASCII strings contained in this file.')
 
     def __init__(self):
         super().__init__(

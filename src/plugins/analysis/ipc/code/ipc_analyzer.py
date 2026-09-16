@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any
 
 from docker.types import Mount
 from pydantic import BaseModel, Field
@@ -23,13 +23,13 @@ class FunctionCall(BaseModel):
         # Refer to sink_function_names in ../docker/ipc_analyzer/ipy_analyzer.py for a list of supported functions
         description='The name of the function.',
     )
-    target: Union[str, int] = Field(
+    target: str | int = Field(
         description=(
             'The first argument of the function call. '
             'For all supported functions, this is either a pathname or a file descriptor.'
         ),
     )
-    arguments: List[Any] = Field(
+    arguments: list[Any] = Field(
         description=(
             'The remaining arguments of the function call. Arguments of type `char*` are rendered as strings. '
             'Arguments of type `char**` are rendered as array of strings. Integer arrays are rendered as such. '
@@ -40,7 +40,7 @@ class FunctionCall(BaseModel):
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        calls: List[FunctionCall] = Field(description='An array of IPC function calls.')
+        calls: list[FunctionCall] = Field(description='An array of IPC function calls.')
 
     def __init__(self):
         metadata = self.MetaData(
