@@ -25,13 +25,16 @@ class YaraBinarySearchScanner:
         self.db = db_interface or DbInterfaceCommon()
         self.file_service = FileService()
 
-    def _execute_yara_search_for_single_firmware(self, rule_file: Path, firmware_uid: str) -> list[Match]:
-        file_paths = self._get_file_paths_of_files_included_in_fw(firmware_uid)
+    def _execute_single_file_yara_search(self, rule_file: Path, uid: str) -> list[Match]:
+        file_paths = self._get_file_paths_of_included_files(uid)
         return scan_files(rule_file, file_paths)
 
-    def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> list[str]:
+    def _get_file_paths_of_included_files(self, uid: str) -> list[str]:
         # FixMe: use Path objects
-        return [str(self.file_service.generate_path_from_uid(uid)) for uid in self.db.get_all_files_in_fw(fw_uid)]
+        return [
+            str(self.file_service.generate_path_from_uid(included_uid))
+            for included_uid in self.db.get_list_of_all_included_files(uid)
+        ]
 
     @staticmethod
     def _convert_matches_to_result(matches: list[Match]) -> dict[str, dict[str, list[dict]]]:
@@ -67,17 +70,17 @@ class YaraBinarySearchScanner:
         :return: dict of matching rules with lists of (unique) matched UIDs as values or an error message.
         """
         with NamedTemporaryFile() as temp_rule_file:
-            yara_rules, firmware_uid = task
+            yara_rules, uid = task
             try:
                 self._prepare_temp_rule_file(temp_rule_file, yara_rules)
-                matches = self._get_matches(firmware_uid, Path(temp_rule_file.name))
+                matches = self._get_matches(uid, Path(temp_rule_file.name))
                 return self._convert_matches_to_result(matches)
             except yara.SyntaxError as yara_error:
                 return f'There seems to be an error in the rule file:\n{yara_error}'
 
-    def _get_matches(self, firmware_uid: str | None, rule_file: Path) -> list[Match]:
-        if firmware_uid is not None:
-            return self._execute_yara_search_for_single_firmware(rule_file, firmware_uid)
+    def _get_matches(self, uid: str | None, rule_file: Path) -> list[Match]:
+        if uid is not None:
+            return self._execute_single_file_yara_search(rule_file, uid)
         return scan_dir(rule_file, Path(self.db_path))
 
     @staticmethod
