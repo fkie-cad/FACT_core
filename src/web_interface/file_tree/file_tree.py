@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, NamedTuple, Optional
+from typing import TYPE_CHECKING, NamedTuple
 
 from web_interface.file_tree.file_tree_node import FileTreeNode
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 WEB_BASE_PATH = Path(__file__).parent.parent
 ICON_URL_BASE = 'static/file_icons'
@@ -194,7 +197,7 @@ class VirtualPathFileTree:
         self.parent_uid = parent_uid
         self.fo_data: FileTreeData = fo_data
         self.whitelist = whitelist
-        self.virtual_file_paths: Optional[list[str]] = (
+        self.virtual_file_paths: list[str] | None = (
             fo_data.virtual_file_path.get(parent_uid) if fo_data.virtual_file_path else None
         )
 
@@ -235,9 +238,6 @@ class VirtualPathFileTree:
             has_children=self._has_children(),
             mode=mode,
         )
-
-    def _get_file_name(self, current_virtual_path: list[str]) -> str:
-        return current_virtual_path[0] if current_virtual_path else self.fo_data.file_name
 
     def _has_children(self) -> bool:
         if self.whitelist:

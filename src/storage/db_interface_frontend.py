@@ -5,9 +5,8 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NamedTuple
 
-from sqlalchemy import Column, ColumnElement, Integer, Select, cast, func, or_, select
+from sqlalchemy import Column, Integer, Select, cast, func, or_, select
 
-from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_some_vfp
 from objects.firmware import Firmware
@@ -29,7 +28,8 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from flask_sqlalchemy.session import Session
+    from sqlalchemy import ColumnElement
+    from sqlalchemy.orm import Session
 
 RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
 
@@ -121,10 +121,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
         for uid, vfp_dict in vfp_data.items():
             hid_dict[uid] = get_some_vfp(vfp_dict)
         return hid_dict
-
-    @staticmethod
-    def _get_current_vfp(vfp: dict[str, list[str]]) -> list[str]:
-        return get_value_of_first_key(vfp)
 
     # --- misc. ---
 
