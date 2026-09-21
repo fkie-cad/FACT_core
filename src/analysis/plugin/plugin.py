@@ -50,8 +50,11 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
 
         #: Name of the plugin
         name: str
-        #: The plugins description.
+        #: The plugin's description.
         description: str
+        #: Optional shorter description for tooltips. Uses field
+        #: :py:attr:`~AnalysisPluginV0.MetaData.description` as fallback if not set.
+        tooltip: str | None = None
         #: Pydantic model of the object returned by :py:func:`~AnalysisPluginV0.analyze`.
         #: Note that we cannot allow pydantic dataclasses because they lack the `schema` method
         Schema: type
@@ -88,6 +91,8 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
 
     def __init__(self, metadata: MetaData):
         self.metadata: AnalysisPluginV0.MetaData = metadata
+        if metadata.tooltip is None:  # fallback: if optional tooltip is not set, use description
+            metadata.tooltip = metadata.description
 
     # The type MetaData.Schema
     Schema = typing.TypeVar('Schema')

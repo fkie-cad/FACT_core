@@ -10,3 +10,4 @@ class PluginData(NamedTuple):
     blacklist: list
     whitelist: list
     worker_count: int
+    tooltip: str

@@ -12,7 +12,7 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 class CommonIntercomMock:
     task_list = None
-    _common_fields = ('0.0', [], [], [], 1)
+    _common_fields = ('0.0', [], [], [], 1, 'test tooltip')
 
     def __init__(self, *_, **__):
         pass
@@ -27,7 +27,9 @@ class CommonIntercomMock:
                 'optional plugin description', False, {'default': False}, *self._common_fields
             ),
             'file_type': PluginData('file_type plugin', False, {'default': False}, *self._common_fields),
-            'unpacker': PluginData('Additional information provided by the unpacker', True, {}, '', [], [], [], 1),
+            'unpacker': PluginData(
+                'Additional information provided by the unpacker', True, {}, '', [], [], [], 1, 'unpacker tooltip'
+            ),
         }
 
     def shutdown(self):

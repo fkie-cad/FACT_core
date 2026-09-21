@@ -288,9 +288,12 @@ class AnalysisScheduler:
                 blacklist,
                 whitelist,
                 thread_count,
+                self.analysis_plugins[plugin].metadata.tooltip,
             )
+
+        unpacker_description = 'Additional information provided by the unpacker'
         result['unpacker'] = PluginData(
-            'Additional information provided by the unpacker',
+            unpacker_description,
             True,
             {},
             '',
@@ -298,6 +301,7 @@ class AnalysisScheduler:
             config.backend.unpacking.whitelist,
             [],
             config.backend.unpacking.processes,
+            unpacker_description,
         )
         return result
 

@@ -143,7 +143,7 @@
                                 {% if not plugin_data.mandatory %}
                                     <div id="{{ plugin }}">
                                         <label class="checkbox-inline" data-toggle="tooltip"
-                                               title="{{ plugin_data.description | safe }}">
+                                               title="{{ plugin_data.tooltip | safe }}">
                                             <input type=checkbox name="analysis_systems"
                                                    value="{{ plugin }}"
                                                    {% if plugin_data.presets[selected_preset] %}checked{% endif %}>

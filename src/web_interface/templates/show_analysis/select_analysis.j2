@@ -8,7 +8,7 @@
         <tbody>
             {% for analysis_plugin in firmware.processed_analysis | sort %}
                 <tr>
-                    <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
+                    <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, {'tooltip': 'not available'}).tooltip | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
                         {{ analysis_plugin | replace_underscore }}
                     </td>
                 </tr>
@@ -36,14 +36,14 @@
                 <form class="form-horizontal" id="modal-form" action="" method=post enctype=multipart/form-data>
                     <p>Add new analysis</p>
                     {% for system in available_plugins.unused | sort %}
-                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system].description | safe }}" style="display: block">
+                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system].tooltip | safe }}" style="display: block">
                             <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
                         </label>
                     {% endfor %}
                     <hr />
                     <p>Update analysis</p>
                     {% for system in available_plugins.used | sort %}
-                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system].description | safe }}" style="display: block">
+                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system].tooltip | safe }}" style="display: block">
                             <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
                         </label>
                     {% endfor %}
