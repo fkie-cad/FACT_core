@@ -38,9 +38,12 @@ class AnalysisPlugin(AnalysisPluginV0):
                 self.MetaData(
                     name='printable_strings',
                     description=(
-                        'Extracts printable strings from a file and assigns a relevance score based on a predefined '
-                        'ruleset.'
+                        'Extracts printable ASCII strings from the file (similar to the unix strings command, but '
+                        'with a configurable minimum length) and assigns a relevance score based on a predefined '
+                        'ruleset. Useful for finding URLs, command names, error messages, and other human-readable '
+                        'artifacts.'
                     ),
+                    tooltip='extract printable strings and assign a relevance score',
                     version=Version(1, 0, 0),
                     mime_blacklist=MIME_BLACKLIST_COMPRESSED,
                     Schema=self.Schema,

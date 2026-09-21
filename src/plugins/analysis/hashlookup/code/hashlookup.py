@@ -98,9 +98,13 @@ class AnalysisPlugin(AnalysisPluginV0):
                 self.MetaData(
                     name='hashlookup',
                     description=(
-                        'Querying the circl.lu hash library to identify known binaries. The library contains file '
-                        'hashes for multiple *nix distributions and the NIST software reference library.'
+                        "Queries CIRCL's hashlookup service (hashlookup.circl.lu) by SHA-256 to identify "
+                        'known-legitimate files. The public CIRCL database aggregates known-good file hashes (NIST '
+                        'NSRL, Windows builds, Linux distributions, Snap, CDNJS) and serves as a prevalence / '
+                        'known-good service, not a malware feed. Requires internet access; offline runs are reported '
+                        'as skipped, not as missing data.'
                     ),
+                    tooltip='identify known binaries via the circl.lu hash library',
                     dependencies=['file_hashes'],
                     mime_blacklist=[*MIME_BLACKLIST_NON_EXECUTABLE, *MIME_BLACKLIST_COMPRESSED],
                     version=Version(1, 0, 0),

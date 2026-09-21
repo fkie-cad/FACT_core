@@ -47,9 +47,11 @@ class AnalysisPlugin(AnalysisPluginV0):
                     name='kernel_config',
                     dependencies=['file_type', 'software_components'],
                     description=(
-                        'Heuristics to find and analyze Linux Kernel configurations via checksec and '
-                        'kconfig-hardened-check'
+                        'Detects Linux kernel configurations (.config files, or IKCONFIG sections extracted from '
+                        'compiled kernels) and analyzes them for missing hardening options using checksec and '
+                        'kconfig-hardened-check.'
                     ),
+                    tooltip='find and analyze Linux kernel configurations',
                     mime_blacklist=MIME_BLACKLIST_NON_EXECUTABLE,
                     version=Version(1, 0, 0),
                     Schema=self.Schema,

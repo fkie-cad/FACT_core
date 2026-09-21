@@ -61,7 +61,11 @@ class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
         metadata = self.MetaData(
             name='crypto_material',
-            description='detects crypto material like SSH keys and SSL certificates',
+            description=(
+                'Detects embedded cryptographic material such as public/private keys, PGP key blocks, and SSL '
+                'certificates by matching YARA rules against file contents.'
+            ),
+            tooltip='detects crypto material like SSH keys and SSL certificates',
             version=Version(1, 0, 0),
             mime_blacklist=['filesystem', *MIME_BLACKLIST_COMPRESSED],
             Schema=self.Schema,

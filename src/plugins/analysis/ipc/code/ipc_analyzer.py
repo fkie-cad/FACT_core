@@ -46,7 +46,13 @@ class AnalysisPlugin(AnalysisPluginV0):
         metadata = self.MetaData(
             name='ipc_analyzer',
             dependencies=['file_type'],
-            description='Inter-Process Communication Analysis',
+            description=(
+                'Identifies inter-process communication mechanisms used by the firmware (shared files, shared memory, '
+                'named pipes, message queues) by analyzing IPC-related function calls (e.g. open, shm_open, mkfifo, '
+                'msgget, msgsnd) in ELF binaries via Ghidra decompilation. It also tracks system and exec family '
+                'calls as potential IPC entry points.'
+            ),
+            tooltip='Inter-Process Communication Analysis',
             mime_whitelist=[
                 'application/x-executable',
                 'application/x-object',

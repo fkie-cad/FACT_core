@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 from semver import Version
@@ -64,7 +64,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             yield cls.validate
 
         @classmethod
-        def validate(cls, value: dict) -> Self:
+        def validate(cls, value: dict) -> AnalysisPlugin.Schema:
             init_type = value.get('init_type')
             if init_type == InitType.systemd:
                 value['data'] = SystemDData(**value['data'])
@@ -82,7 +82,11 @@ class AnalysisPlugin(AnalysisPluginV0):
                 self.MetaData(
                     name='init_systems',
                     mime_whitelist=['text/plain'],
-                    description='detect and analyze initialization scripts',
+                    description=(
+                        'Identifies the init system used by the firmware (e.g. systemd, SysV init, upstart, inittab, '
+                        'rc, and runit) and extracts service / startup configuration when present.'
+                    ),
+                    tooltip='detect and analyze initialization scripts',
                     version=Version(1, 0, 0),
                     Schema=self.Schema,
                 )

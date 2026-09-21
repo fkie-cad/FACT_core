@@ -99,7 +99,12 @@ class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
         metadata = self.MetaData(
             name='crypto_hints',
-            description='find indicators of specific crypto algorithms',
+            description=(
+                'Scans files for indicators of specific cryptographic algorithms using a set of YARA rules. It matches '
+                'characteristic constants, lookup tables, magic numbers, prime numbers, and ASN.1/S-MIME object '
+                'identifiers (e.g. AES S-boxes) to detect which crypto primitives a binary likely contains.'
+            ),
+            tooltip='find indicators of specific crypto algorithms',
             version=Version(0, 3, 0),
             Schema=AnalysisPlugin.Schema,
         )

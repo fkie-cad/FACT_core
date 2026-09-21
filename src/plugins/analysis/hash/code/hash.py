@@ -58,7 +58,13 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(
             metadata=self.MetaData(
                 name='file_hashes',
-                description='calculate different hash values of the file',
+                description=(
+                    'Computes cryptographic and fuzzy hashes of the file for identification and deduplication across '
+                    'the database. MD5 and SHA-256 are always computed; additional hashlib algorithms (e.g. sha1, '
+                    'sha512, blake2, sha3) are computed when enabled in the plugin configuration. ssdeep, tlsh, and '
+                    'imphash (for ELF files) are always computed.'
+                ),
+                tooltip='calculate different hash values of the file',
                 version=Version(1, 3, 0),
                 dependencies=['file_type'],
                 Schema=self.Schema,

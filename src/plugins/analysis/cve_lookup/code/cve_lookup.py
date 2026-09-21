@@ -44,7 +44,11 @@ class AnalysisPlugin(AnalysisPluginV0):
             metadata=(
                 self.MetaData(
                     name='cve_lookup',
-                    description='lookup CVE vulnerabilities',
+                    description=(
+                        'Looks up known CVEs (Common Vulnerabilities and Exposures) for each software component '
+                        'identified by the software_components plugin, using a local CVE-to-CPE SQLite database.'
+                    ),
+                    tooltip='lookup CVE vulnerabilities',
                     mime_blacklist=MIME_BLACKLIST_NON_EXECUTABLE,
                     version=Version(1, 0, 0),
                     dependencies=['software_components'],

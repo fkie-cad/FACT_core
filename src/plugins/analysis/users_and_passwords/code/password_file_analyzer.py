@@ -33,8 +33,11 @@ class AnalysisPlugin(AnalysisPluginV0):
             metadata=self.MetaData(
                 name='users_and_passwords',
                 description=(
-                    'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
+                    'Searches for user/password entries in standard locations (e.g. /etc/passwd, /etc/shadow, '
+                    '/etc/master.passwd) as well as httpd and Mosquitto MQTT broker credential files. Parses them, '
+                    'extracts cleartext passwords, and attempts to crack weak password hashes.'
                 ),
+                tooltip='search for password files and try to crack the passwords',
                 version=Version(1, 1, 0),
                 Schema=self.Schema,
                 mime_blacklist=MIME_BLACKLIST_NON_EXECUTABLE,

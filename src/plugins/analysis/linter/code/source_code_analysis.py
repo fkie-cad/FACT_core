@@ -61,7 +61,11 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(
             metadata=self.MetaData(
                 name='source_code_analysis',
-                description='This plugin implements static code analysis for multiple scripting languages',
+                description=(
+                    'Runs language-specific linters (eslint, luacheck, pylint, rubocop, shellcheck, phpstan) on '
+                    'script files found inside the firmware and reports code-quality issues.'
+                ),
+                tooltip='static code analysis for multiple scripting languages',
                 version=Version(0, 7, 3),
                 Schema=AnalysisPlugin.Schema,
                 mime_whitelist=['text/', 'application/javascript'],

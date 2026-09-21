@@ -40,7 +40,12 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(
             metadata=self.MetaData(
                 name='binwalk',
-                description='binwalk signature and entropy analysis',
+                description=(
+                    "Runs binwalk's signature and entropy analysis on the file. Identifies file signatures (images, "
+                    'archives, etc.), cryptographic material, and firmware components (e.g. bootloaders) and produces '
+                    'an entropy graph that highlights compressed or encrypted regions.'
+                ),
+                tooltip='binwalk signature and entropy analysis',
                 version=Version(1, 0, 0),
                 Schema=self.Schema,
                 mime_blacklist=['audio/', 'image/', 'video/', 'text/', *MIME_BLACKLIST_COMPRESSED],

@@ -101,7 +101,13 @@ class AnalysisPlugin(AnalysisPluginV0):
             metadata=(
                 self.MetaData(
                     name='information_leaks',
-                    description='Find leaked information like compilation artifacts',
+                    description=(
+                        'Detects embedded development information that should not ship in production firmware — '
+                        'build-machine paths (e.g. /home, /root, /var/www), VCS repository metadata (.git, .svn), IDE '
+                        'and toolchain configs (CLion, VSCode, Eclipse, IAR, Keil), shell history files, and URLs with '
+                        'embedded credentials.'
+                    ),
+                    tooltip='find leaked development information like compilation artifacts',
                     dependencies=['file_type'],
                     version=Version(1, 0, 0),
                     mime_whitelist=[

@@ -166,7 +166,12 @@ class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
         metadata = self.MetaData(
             name='elf_analysis',
-            description='Analyzes and tags ELF executables and libraries',
+            description=(
+                'Analyzes ELF binaries (executables, shared libraries, kernel modules) using LIEF. Extracts headers, '
+                "sections, segments, symbols, and dynamic entries, and classifies the binary's behavior (crypto, "
+                'network, file_system, memory_operations, randomize) based on imported functions and libraries.'
+            ),
+            tooltip='analyze and tag ELF executables and libraries',
             version=Version(1, 0, 1),
             Schema=self.Schema,
             mime_whitelist=[

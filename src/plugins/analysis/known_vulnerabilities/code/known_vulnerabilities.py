@@ -40,7 +40,11 @@ class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
         metadata = self.MetaData(
             name='known_vulnerabilities',
-            description='Rule based detection of known vulnerabilities like Heartbleed',
+            description=(
+                'Detects well-known vulnerabilities (e.g. Heartbleed, the XZ backdoor, NetUSB / CVE-2021-45608) via '
+                'a combination of YARA rules and version-based component matching against software_components results.'
+            ),
+            tooltip='detect known vulnerabilities like Heartbleed',
             dependencies=['file_hashes', 'software_components'],
             version=Version(1, 0, 0),
             Schema=self.Schema,

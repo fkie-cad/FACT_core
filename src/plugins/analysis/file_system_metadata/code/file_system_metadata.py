@@ -129,8 +129,11 @@ class AnalysisPlugin(AnalysisPluginV0):
             name=self.NAME,
             dependencies=['file_type'],
             description=(
-                'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
+                'Extracts per-file metadata from file-system images (ext2/3/4, squashfs, btrfs, jfs, hfs, romfs, xfs, '
+                'yaffs) and tar archives contained in firmware: owner UID/GID, mode bits, timestamps, and '
+                'SUID/SGID/sticky-bit flags.'
             ),
+            tooltip='extract file system metadata from file system images in firmware',
             version=Version(1, 2, 0),
             Schema=self.Schema,
             timeout=30,
