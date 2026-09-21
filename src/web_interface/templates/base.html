@@ -58,7 +58,7 @@
 
 <body>
 
-<nav role="navigation" class="navbar navbar-expand-lg navbar-light flex-column flex-md-row bg-fact">
+<nav role="navigation" class="navbar navbar-expand-lg navbar-light flex-column flex-md-row bg-fact fixed-top p-1">
     <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggler">
         <span class="sr-only">Toggle navigation</span>
         <span class="navbar-toggler-icon"></span>
@@ -183,7 +183,7 @@
     </div>
 </nav>
 
-<div class="container-fluid" style="width: 90%">
+<div class="container-fluid" style="width: 90%; margin-top: 64px;">
     <!-- flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
