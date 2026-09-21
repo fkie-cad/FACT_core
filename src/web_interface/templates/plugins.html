@@ -1,56 +1,8 @@
 {% extends "base.html" %}
 
+{% import 'macros.html' as macros %}
+
 {% set active_page = "Info" %}
-
-{% macro icon_tooltip_desk(icon, tooltip, icon_class=None) %}
-    {% set icon_class = icon_class if icon_class else 'fas' %}
-    <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}">
-        <i class="{{ icon_class }} fa-{{ icon }}"></i>
-    </td>
-{% endmacro %}
-
-{% macro plugin_card(plugin_name, plugin_data) %}
-    <div class="card m-2" style="width: 430px;">
-        <div class="card-body">
-            <h5 class="card-title">{{ plugin_name }}</h5>
-            <h6 class="card-subtitle mb-2 text-muted">{{ plugin_data.version }}</h6>
-
-            <div class="collapse m-0 p-0 mt-3" id="{{ plugin_name }}">
-                <span class="card-text">
-                    {{ plugin_data.description }}
-                </span>
-                <table class="table table-borderless mb-0 table-sm">
-                    <tr>
-                        {{ icon_tooltip_desk('project-diagram', 'Plugin dependencies') }}
-                        <td>{{ plugin_data.dependencies | list_group_collapse | safe}}</td>
-                    </tr>
-                    <tr>
-                        {{ icon_tooltip_desk('flag', 'Blacklisted file types') }}
-                        <td>{{ plugin_data.blacklist | list_group_collapse | safe }}</td>
-                    </tr>
-                    <tr>
-                        {{ icon_tooltip_desk('flag', 'Whitelisted file types', icon_class='far') }}
-                        <td>{{ plugin_data.whitelist | list_group_collapse | safe }}</td>
-                    </tr>
-                    <tr>
-                        {{ icon_tooltip_desk('clone', 'Worker count') }}
-                        <td>
-                            <div class="ml-3">
-                                {{ plugin_data.worker_count }}
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            {% set button_id = "bt-" + plugin_name %}
-            <button class="btn btn-outline-secondary btn-sm btn-block mt-3" data-toggle="collapse" data-target="#{{ plugin_name }}" onclick="toggleCaretIcon('{{ button_id }}')">
-                <i id="{{ button_id }}" class="fas fa-caret-down"></i>
-            </button>
-
-        </div>
-    </div>
-{% endmacro %}
 
 {% block body %}
 
@@ -61,7 +13,9 @@
     <div class="row justify-content-center">
         {% for plugin_name, plugin_data in plugins.items() | sort %}
             {% if plugin_name != "unpacker" %}
-                {{ plugin_card(plugin_name, plugin_data) }}
+                <div class="col-12 col-lg-6 col-xl-4 m-0 p-2">
+                    {{ macros.plugin_card(plugin_name, plugin_data) }}
+                </div>
             {% endif %}
         {% endfor %}
     </div>

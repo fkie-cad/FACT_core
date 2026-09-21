@@ -148,8 +148,23 @@
                                                    value="{{ plugin }}"
                                                    {% if plugin_data.presets[selected_preset] %}checked{% endif %}>
                                             <span style="font-family: courier,monospace;">{{ plugin | replace_underscore }}</span>
-                                            <br>
                                         </label>
+                                        <button type="button" class="badge badge-pill badge-primary ml-1 p-0"
+                                                data-toggle="modal" data-target="#plugin-info-{{ plugin }}"
+                                                title="show plugin info">
+                                            <i class="far fa-circle-question"></i>
+                                        </button>
+                                        <br>
+
+                                        <div class="modal fade" id="plugin-info-{{ plugin }}" tabindex="-1" role="dialog">
+                                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-body p-0">
+                                                        {{ macros.plugin_card(plugin, plugin_data, unique_id="info-" + plugin, show_collapse=False) }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 {%- endif %}
                             {%- endfor %}
@@ -183,6 +198,12 @@
             </div>
             <script>
                 loadLoadingAnimation('loading-img');
+            </script>
+            <script>
+                function toggleCaretIcon(button_id) {
+                    const element = document.getElementById(button_id);
+                    ["fa-caret-down", "fa-caret-up"].forEach(class_name => element.classList.toggle(class_name));
+                }
             </script>
         </div>
     </div>
