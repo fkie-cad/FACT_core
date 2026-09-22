@@ -200,6 +200,8 @@ def test_nice_number(input_data, expected):
     ('input_data', 'expected'),
     [
         (b'abc', 'abc'),
+        ('<b>x</b>', '&lt;b&gt;x&lt;/b&gt;'),
+        (b'<b>x</b>', '&lt;b&gt;x&lt;/b&gt;'),
         (1234, '1,234'),
         (
             [1, 3],
@@ -208,14 +210,46 @@ def test_nice_number(input_data, expected):
             '\t<li class="list-group-item">3</li>\n'
             '</ul>\n',
         ),
-        ({'a': 1}, 'a: 1<br />'),
+        (
+            {'a': 1},
+            '<table class="table table-bordered table-sm m-0">\n<tbody>\n\t<tr>\n'
+            '\t\t<td>a</td>\n\t\t<td class="">1</td>\n\t</tr>\n</tbody>\n</table>',
+        ),
+        (True, 'True'),
+        (False, 'False'),
         (gmtime(0), '1970-01-01 - 00:00:00'),
-        ('a_b', 'a b'),
-        (gmtime, gmtime),
+        ('a_b', 'a_b'),
+        (gmtime, '&lt;built-in function gmtime&gt;'),
     ],
 )
 def test_generic_nice_representation(input_data, expected):
     assert flt.generic_nice_representation(input_data) == expected
+
+
+def test_nice_dict_recursive_rendering():
+    result = flt.nice_dict({'outer': {'inner_list': [1, 2], 'inner_dict': {'x': True}, 'inner_str': 'a_b'}})
+    assert result.startswith('<table class="table table-bordered table-sm m-0">')
+    assert 'outer' in result
+    # nested dict rendered as another bootstrap table
+    assert '\t\t<td>inner dict</td>' in result
+    assert '<table class="table table-bordered table-sm m-0">' in result
+    # nested list rendered as a list group
+    assert '<ul class="list-group list-group-flush">' in result
+    assert 'True' in result  # bool must not be rendered as int
+    assert 'a_b' in result  # nested leaf strings keep underscores (values are data, not keys)
+
+
+def test_nice_dict_escapes_html_in_keys_and_values():
+    result = flt.nice_dict({'<script>': '<b>x</b>', 'list': ['<i>y</i>']})
+    # key escaped
+    assert '&lt;script&gt;' in result
+    assert '<script>' not in result
+    # dict value escaped
+    assert '&lt;b&gt;x&lt;/b&gt;' in result
+    assert '<b>x</b>' not in result
+    # list item escaped
+    assert '&lt;i&gt;y&lt;/i&gt;' in result
+    assert '<i>y</i>' not in result
 
 
 @pytest.mark.parametrize(('score', 'class_'), [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
