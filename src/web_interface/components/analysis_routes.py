@@ -132,8 +132,6 @@ class AnalysisRoutes(ComponentBase):
         }
 
     def _get_analysis_view(self, selected_analysis: str) -> str:
-        if selected_analysis == 'unpacker':
-            return self.analysis_unpacker_view
         view = self.db.template.get_view(selected_analysis)
         if view:
             return view.decode('utf-8')
