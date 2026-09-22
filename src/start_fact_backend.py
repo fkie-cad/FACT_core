@@ -29,6 +29,7 @@ from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
+from storage.db_interface_view_sync import ViewUpdater
 from storage.unpacking_locks import UnpackingLockManager
 
 ULIMIT_MIN = 1_024
@@ -43,6 +44,9 @@ class FactBackend(FactBase):
         super().__init__()
         self.unpacking_lock_manager = UnpackingLockManager()
         _check_ulimit()
+
+        # clear template table before loading plugins (otherwise removed templates would stay in the DB forever)
+        ViewUpdater().clear_views()
 
         self.analysis_service = AnalysisScheduler(unpacking_locks=self.unpacking_lock_manager)
         self.unpacking_service = UnpackingScheduler(

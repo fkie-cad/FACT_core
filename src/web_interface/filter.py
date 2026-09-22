@@ -53,7 +53,7 @@ def _nice_recursive(i: Any, escape: bool = True) -> str:  # noqa: ANN401
             return list_group(i, escape=escape)
         case dict():
             return nice_dict(i, escape=escape)
-        case bool():  # bool is a subclass of int, so this must be checked before int
+        case bool():
             return str(i)
         case float() | int():
             return nice_number_filter(i)
