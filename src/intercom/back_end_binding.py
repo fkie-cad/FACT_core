@@ -66,6 +66,7 @@ class InterComBackEndBinding:
             InterComBackEndLogsTask(),
             InterComBackEndCancelTask(self._cancel_task),
             InterComBackEndCheckYaraRuleTask(),
+            InterComBackEndUpdateWorkerConfigTask(self._update_worker_config),
         ]
 
     def start(self) -> None:
@@ -73,6 +74,9 @@ class InterComBackEndBinding:
         for listener in self.listeners:
             listener.start()
         logging.info('Intercom online')
+
+    def publish_available_analysis_plugins(self) -> None:
+        publish_available_analysis_plugins(self.analysis_service.get_plugin_dict())
 
     def shutdown(self) -> None:
         for listener in self.listeners:
@@ -88,6 +92,13 @@ class InterComBackEndBinding:
         logging.warning(f'Cancelling unpacking and analysis of {root_uid}.')
         self.unpacking_service.cancel_unpacking(root_uid)
         self.analysis_service.cancel_analysis(root_uid)
+
+    def _update_worker_config(self, task: dict[str, int]) -> None:
+        self.analysis_service.set_plugin_process_count(task)
+
+
+class InterComBackEndUpdateWorkerConfigTask(InterComListener):
+    CONNECTION_TYPE = 'update_worker_config_task'
 
 
 class InterComBackEndAnalysisTask(InterComListener):

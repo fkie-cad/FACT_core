@@ -94,6 +94,9 @@ class FactBackend(FactBase):
             complete_shutdown()
 
     def _update_component_workload(self) -> None:
+        if self.analysis_service.apply_pending_worker_configs():
+            # plugin info (including live worker counts) changed, so republish it
+            self.intercom.publish_available_analysis_plugins()
         self.work_load_stat.update(
             unpacking_workload=self.unpacking_service.get_scheduled_workload(),
             analysis_workload=self.analysis_service.get_scheduled_workload(),

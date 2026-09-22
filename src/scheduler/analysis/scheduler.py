@@ -121,6 +121,9 @@ class AnalysisScheduler:
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
         self.schedule_processes = []
         self.result_collector_processes = []
+        #: Worker-count change requests submitted via intercom, applied by the backend main
+        #: process. This queue (not the worker lists) is safe to use from forked child processes.
+        self._worker_config_queue: Queue = Queue()
 
         self.file_service = FileService()
         self.db_backend_service = db_interface or BackendDbInterface()
@@ -291,10 +294,8 @@ class AnalysisScheduler:
             for plugin_set in plugin_sets:
                 current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set].plugins
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
-            try:
-                thread_count = config.backend.plugin[plugin].processes
-            except (AttributeError, KeyError):
-                thread_count = config.backend.plugin_defaults.processes
+            # live worker count (may differ from the configured value after a live adjustment)
+            thread_count = len(self._plugin_runners[plugin]._workers)
             # FixMe this should not be a tuple but rather a dictionary/class
             result[plugin] = (
                 self.analysis_plugins[plugin].metadata.description,
@@ -312,6 +313,48 @@ class AnalysisScheduler:
     def _start_plugin_runners(self) -> None:
         for runner in self._plugin_runners.values():
             runner.start()
+
+    def set_plugin_process_count(self, plugin_process_count: dict[str, int]) -> bool:
+        """Request a live change of worker counts, keyed by plugin name.
+
+        The change is applied asynchronously by the backend main process (see
+        :meth:`apply_pending_worker_configs`). This method is safe to call from forked child
+        processes (e.g. intercom listeners). The dict is validated up front and rejected as a
+        unit if any plugin is unknown or any count is invalid. Returns ``False`` on rejection.
+        """
+        if not plugin_process_count:
+            return False
+        for plugin_name, process_count in plugin_process_count.items():
+            if plugin_name not in self._plugin_runners:
+                logging.error(f'Cannot adjust worker count: unknown plugin {plugin_name!r}')
+                return False
+            if process_count < 1:
+                logging.error(
+                    f'Cannot adjust worker count for {plugin_name}: must be >= 1, got {process_count}'
+                )
+                return False
+        self._worker_config_queue.put(plugin_process_count)
+        return True
+
+    def apply_pending_worker_configs(self) -> bool:
+        """Apply pending worker-count changes in the backend main process.
+
+        Must be called from the process owning ``self._plugin_runners``. Returns ``True`` if
+        any change was applied so callers can republish plugin information.
+        """
+        changed = False
+        while True:
+            try:
+                plugin_process_count = self._worker_config_queue.get_nowait()
+            except Empty:
+                return changed
+            for plugin_name, process_count in plugin_process_count.items():
+                runner = self._plugin_runners.get(plugin_name)
+                if runner is None:
+                    continue
+                runner.update_worker_count(process_count)
+                logging.info(f'Adjusted worker count of plugin {plugin_name} to {process_count}')
+                changed = True
 
     # ---- task runner functions ----
 

@@ -8,8 +8,10 @@ from unittest import mock
 import pytest
 from semver import Version
 
+from objects.file import FileObject
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
+from scheduler.analysis.plugin import PluginRunner, Worker
 from scheduler.task_scheduler import MANDATORY_PLUGINS
 from test.common_helper import MockFileObject, create_test_firmware, get_test_data_dir
 from test.mock import mock_patch, mock_spy
@@ -452,3 +454,161 @@ def test_combined_analysis_workload(monkeypatch):
         sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
         scheduler.process_queue.close()
         dummy_runner._in_queue.close()
+
+
+class WorkerCountRunner:
+    """Fake PluginRunner-like object recording ``update_worker_count`` calls."""
+
+    def __init__(self):
+        self.counts = []
+
+    def update_worker_count(self, count):
+        self.counts.append(count)
+
+
+def test_set_plugin_process_count_validates(monkeypatch):
+    monkeypatch.setattr(AnalysisScheduler, '__init__', lambda *_: None)
+    scheduler = AnalysisScheduler()
+    scheduler._worker_config_queue = Queue()
+    runner = WorkerCountRunner()
+    scheduler._plugin_runners = {'dummy': runner}
+
+    try:
+        assert not scheduler.set_plugin_process_count({}), 'empty request should be rejected'
+        assert not scheduler.set_plugin_process_count({'unknown': 2}), 'unknown plugin should be rejected'
+        assert not scheduler.set_plugin_process_count({'dummy': 0}), 'count < 1 should be rejected'
+        assert not scheduler.set_plugin_process_count({'dummy': -1}), 'count < 1 should be rejected'
+        assert scheduler.set_plugin_process_count({'dummy': 4}), 'valid request should be accepted'
+        assert not scheduler.set_plugin_process_count({'dummy': 1, 'unknown': 2}), 'a bad entry rejects the whole dict'
+
+        sleep(0.1)  # allow the mp.Queue feeder thread to flush the put
+        assert scheduler.apply_pending_worker_configs(), 'the single valid request should be applied'
+        assert runner.counts == [4]
+    finally:
+        scheduler._worker_config_queue.close()
+
+
+def test_set_and_apply_pending_worker_configs(monkeypatch):
+    monkeypatch.setattr(AnalysisScheduler, '__init__', lambda *_: None)
+    scheduler = AnalysisScheduler()
+    scheduler._worker_config_queue = Queue()
+    runner = WorkerCountRunner()
+    scheduler._plugin_runners = {'dummy': runner}
+
+    try:
+        assert scheduler.set_plugin_process_count({'dummy': 4})
+        assert scheduler.set_plugin_process_count({'dummy': 1})
+
+        sleep(0.1)  # allow the mp.Queue feeder thread to flush the puts
+        assert scheduler.apply_pending_worker_configs(), 'pending configs should be applied'
+        assert runner.counts == [4, 1]
+        assert not scheduler.apply_pending_worker_configs(), 'no pending configs left to apply'
+
+        # a request for an unknown plugin is drained but not applied
+        scheduler._worker_config_queue.put({'unknown': 3})
+        sleep(0.1)
+        assert not scheduler.apply_pending_worker_configs()
+        assert runner.counts == [4, 1]
+    finally:
+        scheduler._worker_config_queue.close()
+
+
+class TestPluginRunnerUpdateWorkerCount:
+    class PluginMock:
+        class Metadata:
+            name = 'mock'
+
+        metadata = Metadata()
+
+    def _make_runner(self, process_count):
+        runner_config = PluginRunner.Config(process_count=process_count, timeout=60)
+        return PluginRunner(plugin=self.PluginMock(), config=runner_config, schemata={})
+
+    def test_grow_adds_new_workers(self, monkeypatch):
+        started = []
+
+        def _record_start(worker):
+            started.append(worker)
+
+        monkeypatch.setattr(Worker, 'start', _record_start)
+        runner = self._make_runner(process_count=2)
+        assert len(runner._workers) == 2
+
+        runner.update_worker_count(5)
+
+        assert len(runner._workers) == 5
+        assert len(started) == 3, 'only the newly added workers should be started'
+        assert all(isinstance(worker, Worker) for worker in runner._workers)
+
+    def test_shrink_removes_excess_workers(self):
+        # workers are not started -> terminable()/join() are no-ops, but the list must shrink
+        runner = self._make_runner(process_count=4)
+
+        runner.update_worker_count(1)
+
+        assert len(runner._workers) == 1
+
+    def test_same_count_is_no_op(self):
+        runner = self._make_runner(process_count=3)
+        runner.update_worker_count(3)
+        assert len(runner._workers) == 3
+
+
+class _SleepingPlugin:
+    """Plugin whose analysis runs long enough that a worker is mid-analysis when terminated."""
+
+    class Metadata:
+        name = 'mock'
+
+    metadata = Metadata()
+
+    @staticmethod
+    def get_analysis(_file_handle, _virtual_file_path, _dependencies):
+        sleep(2)
+        return {'analyzed': True}
+
+
+class TestShrinkPreservesInFlightResult:
+    """Regression: shrinking (SIGTERM) a worker that is mid-analysis must still deliver the
+    in-flight result to the out_queue, otherwise the file never completes and analysis
+    progress gets stuck (see the worker's SIGTERM handling)."""
+
+    def test_terminated_worker_still_delivers_result(self, tmp_path):
+        test_file = tmp_path / 'test.bin'
+        test_file.write_bytes(b'data')
+
+        runner = PluginRunner(
+            plugin=_SleepingPlugin(),
+            config=PluginRunner.Config(process_count=1, timeout=10),
+            schemata={},
+        )
+        runner.start()
+        try:
+            runner._in_queue.put(
+                PluginRunner.Task(
+                    virtual_file_path={},
+                    path=test_file,
+                    dependencies={},
+                    scheduler_state=FileObject(uid='abc_4', sha256='0' * 64, size=4, file_name='test.bin'),
+                )
+            )
+
+            for _ in range(100):
+                if runner.get_active_worker_count() == 1:
+                    break
+                sleep(0.05)
+            else:
+                pytest.fail('worker did not start analyzing the file')
+
+            # shrink to zero workers -> terminate the in-flight worker mid-analysis
+            runner.update_worker_count(0)
+
+            result = runner.out_queue.get(timeout=10)
+            assert result.processed_analysis['mock'] == {'analyzed': True}
+        finally:
+            runner.shutdown()
+            for worker in runner._workers:
+                if worker.is_alive():
+                    worker.join(Worker.SIGTERM_TIMEOUT + 1)
+            runner._in_queue.close()
+            runner.out_queue.close()

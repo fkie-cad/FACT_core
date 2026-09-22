@@ -47,6 +47,9 @@ class InterComFrontEndBinding:
             raise RuntimeError('No available plug-ins found. FACT backend might be down!')
         return plugin_dict
 
+    def set_plugin_process_count(self, plugin_process_count: dict[str, int]) -> None:
+        self._add_to_redis_queue('update_worker_config_task', plugin_process_count)
+
     def store_file(self, file_contents: bytes, uid: str) -> bool:
         return self._request_response_listener((file_contents, uid), 'store_file_task', 'store_file_task_resp')
 

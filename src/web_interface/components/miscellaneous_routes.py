@@ -4,7 +4,7 @@ from pathlib import Path
 from time import time
 from typing import TYPE_CHECKING
 
-from flask import redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask_security import login_required
 
 import config
@@ -17,6 +17,9 @@ from web_interface.security.privileges import PRIVILEGES
 
 if TYPE_CHECKING:
     from collections.abc import Sized
+
+#: length of an analysis plugin's entry in ``get_plugin_dict()`` (the 'unpacker' entry is shorter)
+ANALYSIS_PLUGIN_INFO_LENGTH = 8
 
 
 class MiscellaneousRoutes(ComponentBase):
@@ -111,6 +114,29 @@ class MiscellaneousRoutes(ComponentBase):
         backend_logs = '\n'.join(self.intercom.get_backend_logs())
         frontend_logs = '\n'.join(self._get_frontend_logs())
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
+
+    @roles_accepted(*PRIVILEGES['view_logs'])
+    @AppRoute('/admin/analysis_workers', GET, POST)
+    def analysis_workers(self) -> str:
+        plugins = self.intercom.get_available_analysis_plugins()
+        requested_counts: dict[str, int] = {}
+        if request.method == 'POST':
+            for plugin, worker_count in request.form.items():
+                try:
+                    requested_counts[plugin] = int(worker_count)
+                except ValueError:
+                    flash(f'Invalid worker count for plugin {plugin}.', 'danger')
+            if requested_counts:
+                self.intercom.set_plugin_process_count(requested_counts)
+            flash('Worker counts updated. Changes take effect within a few seconds.', 'success')
+        plugin_infos = []
+        for plugin, info in plugins.items():
+            if len(info) == ANALYSIS_PLUGIN_INFO_LENGTH:
+                # After a POST the requested counts may not be reflected in the (backend
+                # republished) live state yet, so show the target values optimistically.
+                count = requested_counts.get(plugin, info[7])
+                plugin_infos.append((plugin, info[0], count))
+        return render_template('analysis_workers.html', plugin_infos=plugin_infos)
 
     def _get_frontend_logs(self):
         frontend_logs = Path(config.frontend.logging.file_frontend)

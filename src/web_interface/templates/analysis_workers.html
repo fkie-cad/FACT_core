@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% set active_page = "Admin" %}
+{% block body %}
+<div class="row justify-content-center mt-4">
+    <div class="col-xl-8 col-lg-12">
+        <h3 class="mb-3">Analysis Worker Counts</h3>
+        <p>
+            Adjust the number of worker processes each analysis plugin may use. Changes are applied
+            live by the backend and are held in memory only (a backend restart reverts to the
+            configured values). When reducing the count, active workers finish their current
+            analysis before exiting, so no results are lost.
+        </p>
+        <form method="post">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Plugin</th>
+                        <th>Description</th>
+                        <th class="text-right">Workers</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for plugin, description, worker_count in plugin_infos %}
+                    <tr>
+                        <td>{{ plugin }}</td>
+                        <td>{{ description }}</td>
+                        <td class="text-right">
+                            <input type="number" min="1" name="{{ plugin }}" value="{{ worker_count }}"
+                                   class="form-control text-right" style="width: 100px; display: inline-block;">
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div class="text-right">
+                <button type="submit" class="btn btn-primary">Apply</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 
 import ctypes
 import io
@@ -7,6 +8,7 @@ import multiprocessing as mp
 import multiprocessing.connection
 import queue
 import signal
+import threading
 import time
 import traceback
 from pathlib import Path  # noqa: TC003  # needed by pydantic
@@ -76,22 +78,59 @@ class PluginRunner:
         self._stats_idx = mp.Value('i', 0)
 
         self._file_service = FileService()
+        # guards the ``_workers`` list against concurrent grow/shrink operations
+        self._worker_lock = threading.Lock()
 
         worker_config = Worker.Config(
             timeout=self._config.timeout,
         )
-        self._workers = [
-            Worker(
-                plugin=plugin,
-                worker_config=worker_config,
-                in_queue=self._in_queue,
-                out_queue=self.out_queue,
-                stats=self.stats,
-                stats_count=self.stats_count,
-                stats_idx=self._stats_idx,
-            )
-            for _ in range(self._config.process_count)
-        ]
+        self._workers = [self._create_worker(worker_config, idx) for idx, _ in enumerate(range(self._config.process_count))]
+
+    def _create_worker(self, worker_config: Worker.Config, idx: int) -> Worker:
+        return Worker(
+            plugin=self._plugin,
+            worker_config=worker_config,
+            in_queue=self._in_queue,
+            out_queue=self.out_queue,
+            stats=self.stats,
+            stats_count=self.stats_count,
+            stats_idx=self._stats_idx,
+            name=f'{self._plugin.metadata.name} worker {idx}',
+        )
+
+    def update_worker_count(self, new_count: int) -> None:
+        """Adjust the number of worker processes for ``self._plugin``.
+
+        Growing starts new workers. Shrinking signals the excess workers to terminate
+        cleanly — each finishes any in-flight analysis before exiting, so no results are
+        lost — and waits for them to exit.
+
+        This must be called from the process that owns ``self._workers`` (the backend main
+        process), since the worker list is not shared with forked child processes.
+        """
+        with self._worker_lock:
+            current = len(self._workers)
+            if new_count == current:
+                return
+            if new_count > current:
+                worker_config = Worker.Config(timeout=self._config.timeout)
+                additional_workers = new_count - current
+                logging.warning(f'[{self._plugin.metadata.name}]: starting {additional_workers} additional workers')
+                for idx in range(additional_workers):
+                    worker = self._create_worker(worker_config, current + idx)
+                    worker.start()
+                    self._workers.append(worker)
+                return
+            # shrink: ask the excess workers to finish their current analysis and exit
+            removed = self._workers[new_count:]
+            self._workers = self._workers[:new_count]
+            workers_to_remove = current - new_count
+            logging.warning(f'[{self._plugin.metadata.name}]: stopping {workers_to_remove} workers')
+            for worker in removed:
+                if worker.is_alive():
+                    worker.terminate()
+                    # wait for the worker to finish its in-flight analysis and exit (results preserved)
+                    worker.join(timeout=Worker.SIGTERM_TIMEOUT + 1)
 
     def get_queue_len(self) -> int:
         return self._in_queue.qsize()
@@ -162,8 +201,9 @@ class Worker(mp.Process):
         stats: mp.Array,
         stats_count: mp.Value,
         stats_idx: mp.Value,
+        name: str,
     ):
-        super().__init__(name=f'{plugin.metadata.name} worker')
+        super().__init__(name=name)
         self._plugin = plugin
         self._worker_config = worker_config
 
@@ -178,6 +218,8 @@ class Worker(mp.Process):
         self._is_working = mp.Value('i')
         self._is_working.value = 0
 
+        self.name = name
+
     def is_working(self) -> bool:
         return self._is_working.value != 0
 
@@ -190,21 +232,16 @@ class Worker(mp.Process):
 
         def _handle_sigterm(signum: int, frame: FrameType | None) -> None:
             del signum, frame
-            logging.debug(f'{self} received SIGTERM. Shutting down.')
+            logging.warning(f'{self.name} received SIGTERM. Shutting down.')
+            # Only tell the run loop to stop. Do NOT read ``recv_conn`` or raise here: the
+            # main loop also reads ``recv_conn``, so consuming the in-flight result inside
+            # this handler would corrupt that read (the worker would either block forever
+            # on the now-empty pipe or silently drop the result). Leaving the receive to
+            # the run loop lets the worker finish its current analysis, put it on the
+            # out_queue and only then exit, so in-flight results are preserved on a clean
+            # shutdown/shrink instead of being lost.
             nonlocal run
-            nonlocal result
             run = False
-
-            if child_process is None:
-                return
-
-            if not child_process.is_alive():
-                return
-
-            if not recv_conn.poll(self.SIGTERM_TIMEOUT):
-                raise self.TimeoutError(self.SIGTERM_TIMEOUT)
-
-            result = recv_conn.recv()
 
         signal.signal(signal.SIGTERM, _handle_sigterm)
 
@@ -215,7 +252,7 @@ class Worker(mp.Process):
             except queue.Empty:
                 continue
 
-            analysis_description = f'{self._plugin.metadata.name} analysis on {task.scheduler_state.uid}'
+            analysis_description = f'{self.name} analysis on {task.scheduler_state.uid}'
 
             entry = {}
             try:
@@ -275,6 +312,8 @@ class Worker(mp.Process):
             self._out_queue.put(fw)
             del fw, task, result, entry
             result = None
+
+        logging.warning(f'{self.name} stopped')
 
     def _write_result_in_file_object(self, entry: dict, file_object: FileObject) -> None:
         """Takes a file_object and an entry as it is returned by :py:func:`Worker.run`
