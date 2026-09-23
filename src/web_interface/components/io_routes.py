@@ -50,9 +50,7 @@ class IORoutes(ComponentBase):
             device_class_list = frontend_db.get_device_class_list()
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
-        analysis_plugins = {
-            k: t[:3] for k, t in self.intercom.get_available_analysis_plugins().items() if k != 'unpacker'
-        }
+        analysis_plugins = {k: t for k, t in self.intercom.get_available_analysis_plugins().items() if k != 'unpacker'}
         return render_template(
             'upload/upload.html',
             device_classes=device_class_list,

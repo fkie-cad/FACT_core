@@ -114,14 +114,13 @@
                         <th class="status-th">Stats</th>
                     </tr>
                     {% for plugin_name, plugin_data in analysis_plugin_info.items() %}
-                        {% set description, _, __, version, dependencies, blacklist, whitelist, threads = plugin_data %}
                         <tr>
                             <td style="word-break: break-all; overflow-wrap: break-word;">{{ plugin_name }}</td>
 
                             <td class="status-td" data-toggle="tooltip" data-placement="bottom" title="number of concurrent workers">
                                 <span class="status-span">
                                     <i class="fas fa-align-justify text-muted status-fa"></i>
-                                    <div>{{ threads }}</div>
+                                    <div>{{ plugin_data.worker_count }}</div>
                                 </span>
                             </td>
 

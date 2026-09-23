@@ -37,7 +37,7 @@ function change_selected_plugins(preset_name) {
         const plugin_checkbox = document.getElementById(plugin_name);
         if (plugin_checkbox != null) {
             // plugin_data is a tuple, and the third element is the dict containing preset info
-            let [_, __, preset] = plugin_data;
+            let [, , preset] = plugin_data;
             plugin_checkbox.firstElementChild.firstElementChild.checked = preset[preset_name];
         }
     }

@@ -31,6 +31,7 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 if TYPE_CHECKING:
+    from helperFunctions.types import PluginData
     from objects.file import FileObject
 
 
@@ -144,14 +145,14 @@ class AnalysisRoutes(ComponentBase):
     def get_update_analysis(self, uid: str, re_do: bool = False) -> str:
         with get_shared_session(self.db.frontend) as frontend_db:
             old_firmware = frontend_db.get_object(uid=uid)
-            if old_firmware is None:
+            if old_firmware is None or not isinstance(old_firmware, Firmware):
                 return render_template('uid_not_found.html', uid=uid)
 
             device_class_list = frontend_db.get_device_class_list()
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
 
-        plugin_dict = {k: t[:3] for k, t in self.intercom.get_available_analysis_plugins().items() if k != 'unpacker'}
+        plugin_dict = {k: t for k, t in self.intercom.get_available_analysis_plugins().items() if k != 'unpacker'}
         current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
         analysis_presets = [current_analysis_preset, *list(config.frontend.analysis_preset)]
 
@@ -255,7 +256,7 @@ class AnalysisRoutes(ComponentBase):
         return f'<a href="/analysis/{target_uid}/ro/{root_uid}">{html.escape(full_type)}</a>' if target_uid else None
 
 
-def _add_preset_from_firmware(plugin_dict: dict[str, tuple], fw: Firmware) -> str:
+def _add_preset_from_firmware(plugin_dict: dict[str, PluginData], fw: Firmware) -> str:
     """
     Adds a preset to plugin_dict with all plugins ticked that are processed on the firmware fw.
     Returns the name of the new preset.
@@ -267,7 +268,7 @@ def _add_preset_from_firmware(plugin_dict: dict[str, tuple], fw: Firmware) -> st
         previously_processed_plugins.remove('unpacker')
     for plugin in previously_processed_plugins:
         if plugin in plugin_dict:
-            plugin_dict[plugin][2][preset_name] = True
+            plugin_dict[plugin].presets[preset_name] = True
         else:
             logging.warning(f'Previously used analysis plugin {plugin} not found for update preset')
 

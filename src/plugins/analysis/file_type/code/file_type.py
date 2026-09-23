@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import typing
-from typing import List
 
 import pydantic
 from pydantic import Field
@@ -27,13 +26,17 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(
             metadata=self.MetaData(
                 name='file_type',
-                description='identify the file type',
+                description=(
+                    "Identifies the file's MIME type and full type description via libmagic. The result is used for "
+                    'MIME-based filtering by most other plugins.'
+                ),
+                tooltip='identify the file type',
                 version=Version(1, 0, 0),
                 Schema=AnalysisPlugin.Schema,
             ),
         )
 
-    def summarize(self, result: Schema) -> List[str]:
+    def summarize(self, result: Schema) -> list[str]:
         return [result.mime]
 
     def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:

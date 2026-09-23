@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from itertools import chain
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import pydantic
 from pydantic import Field
@@ -24,17 +24,20 @@ if TYPE_CHECKING:
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(pydantic.BaseModel):
-        unix: List[CredentialResult] = Field(description='The list of found UNIX credentials.')
-        http: List[CredentialResult] = Field(description='The list of found HTTP basic auth credentials.')
-        mosquitto: List[CredentialResult] = Field(description='The list of found Mosquitto MQTT broker credentials.')
+        unix: list[CredentialResult] = Field(description='The list of found UNIX credentials.')
+        http: list[CredentialResult] = Field(description='The list of found HTTP basic auth credentials.')
+        mosquitto: list[CredentialResult] = Field(description='The list of found Mosquitto MQTT broker credentials.')
 
     def __init__(self):
         super().__init__(
             metadata=self.MetaData(
                 name='users_and_passwords',
                 description=(
-                    'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
+                    'Searches for user/password entries in standard locations (e.g. /etc/passwd, /etc/shadow, '
+                    '/etc/master.passwd) as well as httpd and Mosquitto MQTT broker credential files. Parses them, '
+                    'extracts cleartext passwords, and attempts to crack weak password hashes.'
                 ),
+                tooltip='search for password files and try to crack the passwords',
                 version=Version(1, 1, 0),
                 Schema=self.Schema,
                 mime_blacklist=MIME_BLACKLIST_NON_EXECUTABLE,

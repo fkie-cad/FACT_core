@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import BaseModel
 
+from helperFunctions.types import PluginData
 from test.common_helper import TEST_FW, TEST_TEXT_FILE, CommonDatabaseMock
 from test.conftest import merge_markers
 from web_interface.frontend_main import WebFrontEnd
@@ -11,18 +12,24 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 class CommonIntercomMock:
     task_list = None
-    _common_fields = ('0.0', [], [], [], 1)
+    _common_fields = ('0.0', [], [], [], 1, 'test tooltip')
 
     def __init__(self, *_, **__):
         pass
 
     def get_available_analysis_plugins(self):
         return {
-            'default_plugin': ('default plugin description', False, {'default': True}, *self._common_fields),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *self._common_fields),
-            'optional_plugin': ('optional plugin description', False, {'default': False}, *self._common_fields),
-            'file_type': ('file_type plugin', False, {'default': False}, *self._common_fields),
-            'unpacker': ('Additional information provided by the unpacker', True, False),
+            'default_plugin': PluginData('default plugin description', False, {'default': True}, *self._common_fields),
+            'mandatory_plugin': PluginData(
+                'mandatory plugin description', True, {'default': False}, *self._common_fields
+            ),
+            'optional_plugin': PluginData(
+                'optional plugin description', False, {'default': False}, *self._common_fields
+            ),
+            'file_type': PluginData('file_type plugin', False, {'default': False}, *self._common_fields),
+            'unpacker': PluginData(
+                'Additional information provided by the unpacker', True, {}, '', [], [], [], 1, 'unpacker tooltip'
+            ),
         }
 
     def shutdown(self):

@@ -6,7 +6,7 @@ import string
 import warnings
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING
 
 import lief
 from pydantic import BaseModel, Field
@@ -16,6 +16,7 @@ from analysis.plugin import AnalysisPluginV0, Tag
 from helperFunctions.tag import TagColor
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from io import FileIO
 
 # disable lief logging in cases where it cannot parse sections types or tags
@@ -78,7 +79,7 @@ class ElfHeader(BaseModel):
 
 
 class ElfSection(BaseModel):
-    flags: List[str]
+    flags: list[str]
     name: str
     size: int
     type: str
@@ -100,7 +101,7 @@ class ElfSection(BaseModel):
 
 class ElfSegment(BaseModel):
     file_offset: int
-    flags: List[str]
+    flags: list[str]
     physical_address: int
     physical_size: int
     type: str
@@ -123,9 +124,9 @@ class ElfSegment(BaseModel):
 class DynamicEntry(BaseModel):
     tag: str
     value: int
-    library: Optional[str] = None
-    flags: Optional[List[str]] = None
-    array: Optional[List[str]] = None
+    library: str | None = None
+    flags: list[str] | None = None
+    array: list[str] | None = None
 
     @classmethod
     def from_lief_dyn_entry(cls, entry: lief.ELF.DynamicEntry) -> DynamicEntry:
@@ -152,20 +153,25 @@ class InfoSectionData(BaseModel):
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
         header: ElfHeader
-        sections: List[ElfSection]
-        segments: List[ElfSegment]
-        dynamic_entries: List[DynamicEntry]
-        exported_functions: List[ElfSymbol]
-        imported_functions: List[ElfSymbol]
-        libraries: List[str]
-        mod_info: Optional[Dict[str, str]] = Field(description='Key value pairs with Linux kernel module information.')
-        note_sections: List[InfoSectionData]
-        behavior_classes: List[str] = Field(description='List of behavior classes (e.g. "crypto" or "network").')
+        sections: list[ElfSection]
+        segments: list[ElfSegment]
+        dynamic_entries: list[DynamicEntry]
+        exported_functions: list[ElfSymbol]
+        imported_functions: list[ElfSymbol]
+        libraries: list[str]
+        mod_info: dict[str, str] | None = Field(description='Key value pairs with Linux kernel module information.')
+        note_sections: list[InfoSectionData]
+        behavior_classes: list[str] = Field(description='List of behavior classes (e.g. "crypto" or "network").')
 
     def __init__(self):
         metadata = self.MetaData(
             name='elf_analysis',
-            description='Analyzes and tags ELF executables and libraries',
+            description=(
+                'Analyzes ELF binaries (executables, shared libraries, kernel modules) using LIEF. Extracts headers, '
+                "sections, segments, symbols, and dynamic entries, and classifies the binary's behavior (crypto, "
+                'network, file_system, memory_operations, randomize) based on imported functions and libraries.'
+            ),
+            tooltip='analyze and tag ELF executables and libraries',
             version=Version(1, 0, 1),
             Schema=self.Schema,
             mime_whitelist=[

@@ -51,11 +51,16 @@ class AnalysisPlugin(AnalysisPluginV0):
                 self.MetaData(
                     name='cwe_checker',
                     description=(
-                        'This plugin checks ELF binaries for several CWEs (Common Weakness Enumeration) like'
-                        'CWE-243 (Creation of chroot Jail Without Changing Working Directory) and'
-                        'CWE-676 (Use of Potentially Dangerous Function).'
-                        'Due to the nature of static analysis, this plugin may run for a long time.'
+                        'Runs the cwe_checker static analyzer (in Docker) on ELF binaries to detect Common Weakness '
+                        'Enumeration (CWE) issues — e.g. CWE-243 (chroot without chdir) and CWE-676 (potentially '
+                        'dangerous function use). cwe_checker uses Ghidra to disassemble binaries into a common '
+                        'intermediate representation and applies analyses ranging from simple heuristics to '
+                        'abstract-interpretation-based data flow analysis. Results are heuristic: both false positives '
+                        'and false negatives are expected, so findings are leads for manual analysis rather than '
+                        'confirmed vulnerabilities. Due to the nature of static analysis, this plugin may run for a '
+                        'long time.'
                     ),
+                    tooltip='check ELF binaries for common weaknesses (CWEs)',
                     dependencies=['cpu_architecture', 'file_type'],
                     mime_whitelist=[
                         'application/x-executable',
@@ -89,7 +94,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         )
         return result.stdout
 
-    def _run_cwe_checker_in_docker(self, file_path: str) -> bytes:
+    def _run_cwe_checker_in_docker(self, file_path: str) -> str:
         result = run_docker_container(
             DOCKER_IMAGE,
             combine_stderr_stdout=True,

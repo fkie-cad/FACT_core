@@ -17,6 +17,8 @@ from storage.redis_interface import RedisInterface
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from helperFunctions.types import PluginData
+
 Task = TypeVar('Task')  # generic Task type; concrete type depends on the listener
 
 
@@ -25,7 +27,7 @@ def generate_task_id(input_data: Any) -> str:  # noqa: ANN401
     return f'{get_sha256(serialized_data)}_{time()}'
 
 
-def publish_available_analysis_plugins(plugin_dict: dict[str, tuple]) -> None:
+def publish_available_analysis_plugins(plugin_dict: dict[str, PluginData]) -> None:
     redis = RedisInterface()
     redis.set('analysis_plugins', plugin_dict)
 
