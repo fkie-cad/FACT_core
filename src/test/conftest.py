@@ -358,13 +358,12 @@ def analysis_scheduler(  # noqa: PLR0913
 
     def _post_analysis_hook(*args):
         post_analysis_queue.put(args)
+        if test_config.pipeline:
+            _analysis_scheduler.db_backend_service.add_analysis(*args)
         analysis_finished_counter.value += 1
         # We use == here instead of >= to not set the thing when items_to_analyze is 0
         if analysis_finished_counter.value == test_config.items_to_analyze:
             analysis_finished_event.set()
-
-        if test_config.pipeline:
-            _analysis_scheduler.db_backend_service.add_analysis(*args)
 
     _analysis_scheduler.post_analysis = _post_analysis_hook
 
