@@ -2,32 +2,24 @@
 
 {% block analysis_result %}
 
-    <table id="show-analysis-table" class="table table-bordered"  style="table-layout: fixed; overflow-wrap: anywhere;">
+    <div class="analysis-subsection-header d-flex justify-content-between align-items-center">
+        <span>Analysis results of <samp>{{ selected_analysis }}</samp> for file <samp>{{ firmware.file_name }}</samp></span>
+        <div class="custom-control custom-switch" style="min-width: 150px;">
+            <input type="checkbox" class="custom-control-input" id="rawResultSwitch">
+            <label class="custom-control-label" for="rawResultSwitch" style="font-weight: normal;">
+                Show JSON
+            </label>
+            <button class="btn btn-outline-secondary btn-sm" type="submit" style="padding: 2px 5px;"
+                    onclick="copyRawAnalysis()" data-toggle="tooltip" title="copy raw result">
+                <i class="far fa-copy"></i>
+            </button>
+        </div>
+    </div>
+    <table id="show-analysis-table" class="table table-bordered table-flush mb-0"  style="table-layout: fixed; overflow-wrap: anywhere;">
         <colgroup>
-            <col style="width: 12.5%">
-            <col style="width: 87.5%">
+            <col style="width: 20%">
+            <col style="width: 80%">
         </colgroup>
-        <thead class="thead-light">
-        <tr>
-            <th colspan="2">
-                <div class="d-flex justify-content-between align-items-center">
-                        <span>
-                            Showing Analysis: {{ selected_analysis | replace_underscore }}
-                        </span>
-                    <div class="custom-control custom-switch">
-                        <input type="checkbox" class="custom-control-input" id="rawResultSwitch">
-                        <label class="custom-control-label" for="rawResultSwitch" style="font-weight: normal;">
-                            Show Raw Result (JSON)
-                        </label>
-                        <button class="btn btn-outline-secondary btn-sm" type="submit" style="padding: 2px 5px;"
-                                onclick="copyRawAnalysis()" data-toggle="tooltip" title="copy raw result">
-                            <i class="far fa-copy"></i>
-                        </button>
-                    </div>
-                </div>
-            </th>
-        </tr>
-        </thead>
         <tbody class="table-analysis" id="analysis-table-body">
         {% if analysis_result['skipped'] %}
             <tr class="analysis-meta">

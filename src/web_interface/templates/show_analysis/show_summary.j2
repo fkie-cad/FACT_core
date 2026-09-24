@@ -1,0 +1,22 @@
+<div class="analysis-subsection-header d-flex justify-content-between align-items-center flex-wrap">
+    Summary for all Extracted Files
+    <div class="custom-control custom-switch">
+        <input type="checkbox" class="custom-control-input" id="summaryOrderSwitch" onchange="create_summary_view();">
+        <label class="custom-control-label" for="summaryOrderSwitch" style="font-weight: normal;">Show inverted summary</label>
+    </div>
+</div>
+
+<button id="summary-button" type="button" class="btn btn-primary btn-block"
+        style="border-radius: 0 0 calc(var(--radius) - 1px) 0;" onclick="create_summary_view();">
+    <i class="fas fa-cart-flatbed"></i>
+    Load Summary
+</button>
+
+<div class="mb-0" id="loading-summary-gif" style="display: none; padding: 5px; text-align: center">
+    <p>Loading summary for extracted files...</p>
+</div>
+<div id="summary-div"></div>
+<script>
+    loadLoadingAnimation('loading-summary-gif');
+</script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_summary.js') }}"></script>
