@@ -22,14 +22,14 @@ class DbConnection:
             address = '/var/run/postgresql'
         port = config.common.postgres.port
 
-        database = db_name if db_name else config.common.postgres.database
+        self.database = db_name if db_name else config.common.postgres.database
         engine_url = URL.create(
             'postgresql',
             username=user,
             password=password,
             host=address,
             port=port,
-            database=database,
+            database=self.database,
         )
         self.engine = create_engine(engine_url, pool_size=100, future=True, **kwargs)
         self.session_maker = sessionmaker(bind=self.engine, future=True)  # future=True => sqlalchemy 2.0 support
