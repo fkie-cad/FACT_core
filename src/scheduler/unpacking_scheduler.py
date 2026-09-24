@@ -42,9 +42,6 @@ class NoFreeWorker(RuntimeError):  # noqa: N818
     pass
 
 
-THROTTLE_INTERVAL = 2
-
-
 class UnpackingScheduler:
     """
     This scheduler performs unpacking on firmware objects
@@ -112,7 +109,7 @@ class UnpackingScheduler:
         self.in_queue.close()
         stop_processes(
             [self.work_load_process, self.extraction_process],
-            THROTTLE_INTERVAL,
+            config.backend.unpacking.throttle_interval,
         )
         self.stop_containers()
         self._clean_tmp_dirs()
@@ -331,7 +328,7 @@ class UnpackingScheduler:
                 message += ' (throttled)'
 
             log_function(color_string(message, TerminalColors.WARNING))
-            sleep(THROTTLE_INTERVAL)
+            sleep(config.backend.unpacking.throttle_interval)
         logging.debug('Stopped unpacking work load monitor')
 
     def _get_combined_analysis_workload(self) -> int:
