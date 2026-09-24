@@ -6,7 +6,18 @@ import pytest
 from objects.firmware import Firmware
 
 REGULAR_RESULT = {
-    'dependant_analysis': {'full': 'ASCII text, with no line terminators', 'mime': 'text/plain'},
+    'dependant_analysis': {
+        'full': 'ASCII text, with no line terminators',
+        'magika': {
+            'confidence': 0.7856149077415466,
+            'description': 'Generic text document',
+            'group': 'text',
+            'is_text': True,
+            'label': 'txt',
+            'mime': 'text/plain',
+        },
+        'mime': 'text/plain',
+    },
     'first_byte': '6e',
     'name': 'b55f174c36fd4f56ecc04931099300014d4014377c73af1fa433e258a9b38604_14',
     'number': 42,
