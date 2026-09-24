@@ -1,0 +1,55 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+    {% for category, result_list in analysis_result.vulnerabilities | groupby("category") %}
+        <tr>
+            <td>{{ category | safe }}</td>
+            <td class="p-0">
+                <table class="table table-bordered m-0 w-100">
+                    {% for rule_results in result_list | sort(attribute="name") %}
+                        <tr>
+                            <td style="width: 20%">{{ rule_results.name | safe }}</td>
+                            <td class="p-0">
+                                <table class="table table-bordered table-sm m-0 w-100">
+                                    {% if rule_results.url %}
+                                        <tr>
+                                            <td>url</td>
+                                            <td><a href="{{ rule_results.url | safe }}">{{ rule_results.url | safe }}</a></td>
+                                        </tr>
+                                    {% endif %}
+                                    {% for key in ["author", "description", "cve", "architecture"] %}
+                                        {% if rule_results.get(key) %}
+                                            <tr>
+                                                <td class="w-25">{{ key }}</td>
+                                                <td>{{ rule_results.get(key) | link_cve | safe }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <tr>
+                                        <td>variants</td>
+                                        <td class="p-0">
+                                            <table class="table table-bordered table-sm m-0 w-100">
+                                                {% for variant_data in rule_results.variants %}
+                                                    <tr>
+                                                        <td>{{ variant_data.name | safe }}</td>
+                                                        {% if variant_data.match %}
+                                                            <td class="table-danger w-50">{{ variant_data.output | safe }}</td>
+                                                        {% else %}
+                                                            <td class="table-success w-50">{{ variant_data.output | safe }}</td>
+                                                        {% endif %}
+                                                    </tr>
+                                                {% endfor %}
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+    {% endfor %}
+
+{% endblock %}
+
