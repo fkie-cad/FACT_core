@@ -54,11 +54,11 @@
             </tr>
         {% endif %}
         <tr>
-            {{ field_with_icon('project-diagram', file_tree_paths | nice_virtual_path_list(root_uid) | list_group_collapse | safe, 'Complete file paths in container', 5) }}
+            {{ field_with_icon('project-diagram', file_tree_paths | nice_virtual_path_list(root_uid) | list_group_collapse(escape=False) | safe, 'Complete file paths in container', 5) }}
         </tr>
         {% if other_versions %}
             <tr>
-                {{ field_with_icon('clone', other_versions | version_links(selected_analysis) | list_group_collapse | safe, 'Other versions', 5) }}
+                {{ field_with_icon('clone', other_versions | version_links(selected_analysis) | list_group_collapse(escape=False) | safe, 'Other versions', 5) }}
             </tr>
         {% endif %}
     </tbody>

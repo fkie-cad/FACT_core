@@ -2,11 +2,15 @@
 
 {% block analysis_result_details %}
 
-{% for key in analysis_result | sort %}
-    <tr>
-        <td>{{ key }}</td>
-        <td><pre class="border rounded p-2 bg-light" style="white-space: pre-wrap;"><code>{{ analysis_result[key] | nice_generic | safe }}</code></pre></td>
-    </tr>
+{% for key, value in analysis_result.items() | sort %}
+    {% if value is not none %}
+        <tr>
+            <td>{{ key | replace_underscore }}</td>
+            <td {% if value is mapping %}class="p-0"{% endif %}>
+                {{ value | nice_generic | safe }}
+            </td>
+        </tr>
+    {% endif %}
 {% endfor %}
 
 {% endblock %}

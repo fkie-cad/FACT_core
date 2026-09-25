@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import binascii
+import html
 import ipaddress
 import json
 import logging
@@ -38,23 +39,46 @@ if TYPE_CHECKING:
 BYTE_FORMAT_THRESHOLD = 2**10
 
 
-def generic_nice_representation(i: Any) -> str:  # noqa: ANN401
+def _escape_html(data: str) -> str:
+    """HTML-escape a leaf data value so analysis results cannot inject markup."""
+    return html.escape(str(data))
+
+
+def _nice_recursive(i: Any, escape: bool = True) -> str:  # noqa: ANN401
+    """Render a data value, recursing into lists/dicts, optionally HTML-escaping leaf values."""
     match i:
         case struct_time():
-            output = strftime('%Y-%m-%d - %H:%M:%S', i)
+            formatted = strftime('%Y-%m-%d - %H:%M:%S', i)
         case list():
-            output = list_group(i)
+            return list_group(i, escape=escape)
         case dict():
-            output = nice_dict(i)
+            return nice_dict(i, escape=escape)
+        case bool():
+            return str(i)
         case float() | int():
-            output = nice_number_filter(i)
+            return nice_number_filter(i)
         case str():
-            output = replace_underscore_filter(i)
+            formatted = i
         case bytes():
-            output = bytes_to_str_filter(i)
+            formatted = bytes_to_str_filter(i)
         case _:
-            output = i
-    return output
+            formatted = str(i)
+    return _nice_str(formatted, escape)
+
+
+def _nice_str(string: str, escape: bool) -> str:
+    if escape:
+        string = _escape_html(string)
+    if '\n' in string:
+        # multi-line strings are rendered in a code block
+        string = (
+            f'<pre class="border rounded p-2 m-0 bg-light"><code style="white-space: pre-wrap;">{string}</code></pre>'
+        )
+    return string
+
+
+def generic_nice_representation(i: Any, escape: bool = True) -> str:  # noqa: ANN401
+    return _nice_recursive(i, escape=escape)
 
 
 def nice_number_filter(i: int | float | None) -> str:
@@ -91,7 +115,7 @@ def replace_underscore_filter(string: str) -> str:
     return string.replace('_', ' ')
 
 
-def list_group(input_data: Iterable) -> str:
+def list_group(input_data: Iterable, escape: bool = True) -> str:
     if not isinstance(input_data, Iterable):
         return str(input_data)
     if isinstance(input_data, bytes):
@@ -99,13 +123,13 @@ def list_group(input_data: Iterable) -> str:
     input_data = _get_sorted_list(input_data)
     http_list = '<ul class="list-group list-group-flush">\n'
     for item in input_data:
-        http_list += f'\t<li class="list-group-item">{_handle_generic_data(item)}</li>\n'
+        http_list += f'\t<li class="list-group-item">{_nice_recursive(item, escape=escape)}</li>\n'
     http_list += '</ul>\n'
     return http_list
 
 
-def list_group_collapse(input_data: Iterable, btn_class: str | None = None) -> str:
-    formatted_data = [_handle_generic_data(item) for item in _get_sorted_list(input_data)]
+def list_group_collapse(input_data: Iterable, btn_class: str | None = None, escape: bool = True) -> str:
+    formatted_data = [_nice_recursive(item, escape=escape) for item in _get_sorted_list(input_data)]
     if input_data:
         collapse_id = random_collapse_id()
         first_item = formatted_data.pop(0)
@@ -119,21 +143,26 @@ def list_group_collapse(input_data: Iterable, btn_class: str | None = None) -> s
     return ''
 
 
-def _handle_generic_data(input_data: Any) -> str:  # noqa: ANN401
-    if isinstance(input_data, dict):
-        return nice_dict(input_data)
-    return str(input_data)
-
-
-def nice_dict(input_data: dict) -> str:
+def nice_dict(input_data: dict, escape: bool = True) -> str:
     if not isinstance(input_data, dict):
         return str(input_data)
-    tmp = ''
-    key_list = list(input_data)
-    key_list.sort()
-    for item in key_list:
-        tmp += f'{item}: {input_data[item]}<br />'
-    return tmp
+    rows = '\n'.join(
+        (
+            f'\t<tr>\n'
+            f'\t\t<td>{_escape_html(replace_underscore_filter(key))}</td>\n'
+            f'\t\t<td class="{_get_class(value)}">{_nice_recursive(value, escape=escape)}</td>\n'
+            f'\t</tr>'
+        )
+        for key, value in sorted(input_data.items())
+    )
+    return f'<table class="table table-bordered table-sm m-0">\n<tbody>\n{rows}\n</tbody>\n</table>'
+
+
+def _get_class(value: Any) -> str:  # noqa: ANN401
+    """dicts inside dicts are rendered without padding"""
+    if isinstance(value, dict):
+        return 'p-0'
+    return ''
 
 
 def list_to_line_break_string(input_data: list | None) -> str | None:
