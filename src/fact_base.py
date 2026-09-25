@@ -93,6 +93,9 @@ class FactBase:
     def _update_component_workload(self) -> None:
         self.work_load_stat.update()
 
+    def _maintain_components(self) -> None:
+        """Periodic housekeeping in the main process (e.g. restarting worker processes). Override if needed."""
+
     def shutdown(self) -> None:
         logging.info(f'Shutting down components of {self.PROGRAM_NAME}')
         self.work_load_stat.shutdown()
@@ -103,6 +106,7 @@ class FactBase:
         counter = 0
         while self.run:
             self._update_component_workload()
+            self._maintain_components()
             sleep(5)
             if self.args.testing:
                 break
