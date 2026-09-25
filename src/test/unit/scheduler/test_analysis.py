@@ -10,6 +10,7 @@ from semver import Version
 
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
+from scheduler.analysis.scheduler import _get_plugin_process_count
 from scheduler.task_scheduler import MANDATORY_PLUGINS
 from test.common_helper import MockFileObject, create_test_firmware, get_test_data_dir
 from test.mock import mock_patch, mock_spy
@@ -452,3 +453,28 @@ def test_combined_analysis_workload(monkeypatch):
         sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
         scheduler.process_queue.close()
         dummy_runner._in_queue.close()
+
+
+@pytest.mark.backend_config_overwrite(
+    {
+        'plugin_defaults': {'processes': 2},
+        'plugin': {
+            'plugin_with_processes': {'name': 'plugin_with_processes', 'processes': 4},
+            'plugin_without_processes': {'name': 'plugin_without_processes'},
+        },
+    }
+)
+@pytest.mark.parametrize(
+    ('ignore_plugin_processes', 'plugin_name', 'expected_count'),
+    [
+        (False, 'plugin_with_processes', 4),
+        (False, 'plugin_without_processes', 2),
+        (False, 'unconfigured_plugin', 2),
+        (True, 'plugin_with_processes', 2),
+        (True, 'plugin_without_processes', 2),
+        (True, 'unconfigured_plugin', 2),
+    ],
+)
+def test_get_plugin_process_count(backend_config, ignore_plugin_processes, plugin_name, expected_count):
+    backend_config.plugin_defaults.ignore_plugin_processes = ignore_plugin_processes
+    assert _get_plugin_process_count(plugin_name) == expected_count
