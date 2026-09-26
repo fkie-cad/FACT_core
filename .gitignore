@@ -7,6 +7,7 @@ src/analysis/signatures/
 src/plugins/*/*/bin
 src/plugins/analysis/crypto_hints/signatures/crypto_signatures.yar
 src/plugins/analysis/cve_lookup/internal/database/cve_cpe.db
+src/plugins/analysis/cve_lookup/internal/database/version.json
 src/plugins/analysis/qemu_exec/test/data/test_tmp_dir
 src/plugins/analysis/qemu_exec/test/data/test_tmp_dir_2
 src/plugins/analysis/users_and_passwords/internal/passwords/10k-most-common.txt

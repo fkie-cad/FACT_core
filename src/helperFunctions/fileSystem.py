@@ -21,6 +21,15 @@ def get_template_dir() -> Path:
     return Path(get_src_dir()) / 'web_interface' / 'templates'
 
 
+def get_bin_dir() -> Path:
+    """
+    Retrieves the absolute path of the bin directory.
+
+    :return: The (absolute) path of the bin directory.
+    """
+    return Path(get_src_dir()) / 'bin'
+
+
 def get_relative_object_path(path: Path, offset_path: Path) -> str:
     """
     FACT extraction unpacks files into a temporary directory. These files have to be offset to get the path relative
@@ -52,9 +61,10 @@ def file_is_empty(file_path: Path) -> bool:
         return False
     except Exception as exception:
         logging.error(f'Unexpected Exception: {type(exception)} {exception!s}')
+        return False
 
 
-def get_config_dir():
+def get_config_dir() -> str:
     """
     Returns the absolute path of the config directory
     """
