@@ -433,6 +433,24 @@ def test_get_latest_comments(frontend_db, backend_db):
     assert result[1]['uid'] == 'fo2_uid'
 
 
+def test_get_comments_for_firmware(frontend_db, backend_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    backend_db.insert_object(fw)
+    assert frontend_db.get_comments_for_firmware(fw.uid) == {}
+    parent_fo.comments = [{'author': 'anonymous', 'comment': 'comment1', 'time': '1'}]
+    child_fo.comments = [
+        {'author': 'anonymous', 'comment': 'comment2', 'time': '2'},
+        {'author': 'anonymous', 'comment': 'comment3', 'time': '3'},
+    ]
+    backend_db.insert_multiple_objects(parent_fo, child_fo)
+    agg_comments = frontend_db.get_comments_for_firmware(fw.uid)
+    assert len(agg_comments) == 2
+    assert parent_fo.uid in agg_comments
+    assert child_fo.uid in agg_comments
+    assert len(agg_comments[child_fo.uid]) == 2
+    assert agg_comments[parent_fo.uid][0]['comment'] == 'comment1'
+
+
 def test_generate_file_tree_level(frontend_db, backend_db):
     child_fo, parent_fw = create_fw_with_child_fo()
     child_fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'sometype'})

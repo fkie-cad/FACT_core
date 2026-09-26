@@ -71,10 +71,14 @@
                 {% if link_target %}
                     ({{ link_target | safe }})
                 {% endif %}
-                <br />
+                <br/>
                 {% if firmware.analysis_tags or firmware.tags %}
-                    {{ firmware.analysis_tags | render_analysis_tags(uid, root_uid) | safe }}{{ firmware.tags | render_fw_tags | safe }}<br />
+                    {{ firmware.analysis_tags | render_analysis_tags(uid, root_uid) | safe }}{{ firmware.tags | render_fw_tags | safe }}
                 {% endif %}
+                {% if firmware.comments %}
+                    {{ {"Comments": "secondary"} | render_fw_tags | safe }}
+                {% endif %}
+                <br/>
                 <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
             </h3>
             {% if all_analyzed_flag %}
