@@ -9,7 +9,7 @@ from storage.schema import WebInterfaceTemplateEntry
 
 
 class ViewUpdater(ReadWriteDbInterface):
-    def update_view(self, plugin_name: str, content: bytes):
+    def update_view(self, plugin_name: str, content: bytes) -> None:
         with self.get_read_write_session() as session:
             entry = session.get(WebInterfaceTemplateEntry, plugin_name)
             if entry is None:

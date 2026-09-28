@@ -50,12 +50,12 @@ class UwsgiServer:
         self.config_path = config_path
         self.process = None
 
-    def start(self):
+    def start(self) -> None:
         config_parameter = f' --pyargv {self.config_path}' if self.config_path else ''
         command = f'uwsgi --thunder-lock --ini  {get_config_dir()}/uwsgi_config.ini{config_parameter}'
-        self.process = Popen(split(command), cwd=get_src_dir())
+        self.process = Popen(split(command), cwd=get_src_dir())  # noqa: S603
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         if self.process:
             try:
                 self.process.send_signal(signal.SIGINT)
@@ -76,7 +76,7 @@ class FactFrontend(FactBase):
         if not self.args.no_radare and not _is_werkzeug_reloader_child():
             run_cmd_with_logging(f'docker compose -f {COMPOSE_YAML} up -d')
 
-    def main(self):
+    def main(self) -> None:
         if getattr(self.args, 'development', False):
             self._run_development_server()
             return
@@ -99,7 +99,7 @@ class FactFrontend(FactBase):
             if not _is_werkzeug_reloader_child():  # only clean up once in the parent process (not on every reload)
                 self.shutdown()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         super().shutdown()
         if self.server:
             self.server.shutdown()
