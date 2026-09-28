@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import logging
 
+from sqlalchemy import select
+
 from storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
 from storage.schema import WebInterfaceTemplateEntry
 
 
 class ViewUpdater(ReadWriteDbInterface):
-    def update_view(self, plugin_name: str, content: bytes):
+    def update_view(self, plugin_name: str, content: bytes) -> None:
         with self.get_read_write_session() as session:
             entry = session.get(WebInterfaceTemplateEntry, plugin_name)
             if entry is None:
@@ -25,3 +27,9 @@ class ViewReader(ReadOnlyDbInterface):
             if entry is None:
                 return None
             return entry.template
+
+    def get_all_views(self) -> dict[str, bytes]:
+        with self.get_read_only_session() as session:
+            return {
+                entry.plugin: entry.template for entry in session.execute(select(WebInterfaceTemplateEntry)).scalars()
+            }

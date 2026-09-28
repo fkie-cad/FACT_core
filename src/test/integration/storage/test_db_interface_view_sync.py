@@ -12,3 +12,15 @@ def test_view_sync_interface():
     updater.update_view('foo', TEST_TEMPLATE)
 
     assert reader.get_view('foo') == TEST_TEMPLATE
+
+
+def test_get_all_views():
+    updater = ViewUpdater()
+    reader = ViewReader()
+
+    assert reader.get_all_views() == {}
+
+    updater.update_view('foo', TEST_TEMPLATE)
+    updater.update_view('bar', b'other template')
+
+    assert reader.get_all_views() == {'foo': TEST_TEMPLATE, 'bar': b'other template'}
