@@ -1,52 +1,143 @@
-async function getSystemHealthData() {
-    const response = await fetch("/ajax/system_health");
-    return response.json();
+class StatusMonitor {
+    constructor() {
+        this.eventSource = null;
+        this.initialReconnectDelay = 1000;
+        this.reconnectDelay = this.initialReconnectDelay;
+        this.maxReconnectDelay = 30000;
+        this.reconnectTimer = null;
+        // the server closes streams regularly and the browser reconnects automatically
+        // -> only show the frontend as offline if the reconnect does not succeed in time
+        this.offlineDelay = 5000;
+        this.offlineTimer = null;
+    }
+
+    connect() {
+        if (this.eventSource) {
+            return;  // already connected
+        }
+        this.eventSource = new EventSource('/status-stream');
+
+        this.eventSource.onopen = () => {
+            clearTimeout(this.offlineTimer);
+            this.offlineTimer = null;
+            this.reconnectDelay = this.initialReconnectDelay;
+        };
+
+        this.eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.hasOwnProperty('type') && data.type === "heartbeat") {
+                // just a heartbeat, no data -> do nothing
+            } else if (data.hasOwnProperty('name')) {
+                updateSystemHealth(data);
+            } else if (data.hasOwnProperty('current_analyses')) {
+                updateCurrentAnalyses(data);
+            } else {
+                console.log(`Error: unexpected event: ${JSON.stringify(data)}`);
+            }
+        };
+
+        this.eventSource.onerror = () => {
+            if (this.eventSource.readyState === EventSource.CLOSED) {
+                // the browser gave up (e.g. error status or wrong content type) -> reconnect manually with backoff
+                console.log(`Lost connection to FACT server. Reconnecting in ${this.reconnectDelay / 1000}s...`);
+                this.disconnect();
+                this.setOffline();
+                this.reconnectTimer = setTimeout(() => this.connect(), this.reconnectDelay);
+                this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay);
+            } else if (this.offlineTimer === null) {
+                // the browser is reconnecting automatically
+                this.offlineTimer = setTimeout(() => this.setOffline(), this.offlineDelay);
+            }
+        };
+    }
+
+    disconnect() {
+        clearTimeout(this.reconnectTimer);
+        clearTimeout(this.offlineTimer);
+        this.reconnectTimer = null;
+        this.offlineTimer = null;
+        if (this.eventSource) {
+            this.eventSource.close();
+            this.eventSource = null;
+        }
+    }
+
+    setOffline() {
+        updateSystemHealth({name: "frontend", status: "offline"});
+    }
 }
 
-async function updateSystemHealth() {
-    getSystemHealthData().then(data => data.systemHealth.map(entry => {
-        const statusElement = document.getElementById(`${entry._id}-status`);
-        statusElement.innerText = entry.status;
-        if (entry.status === "offline") {
-            statusElement.classList.add('text-danger');
-            statusElement.classList.remove('text-success');
-            return;
+const monitor = new StatusMonitor();
+
+document.addEventListener('DOMContentLoaded', () => {
+    // the first messages (snapshot) arrive immediately, so the DOM must be ready before we connect
+    if (!document.hidden) {
+        monitor.connect();
+    }
+});
+
+document.addEventListener('visibilitychange', () => {
+    // don't keep a connection (and a server thread) open for tabs in the background
+    if (document.hidden) {
+        monitor.disconnect();
+    } else {
+        monitor.connect();
+    }
+});
+
+window.addEventListener('pagehide', () => monitor.disconnect());
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted && !document.hidden) {
+        monitor.connect();  // page was restored from the back/forward cache
+    }
+});
+
+
+function updateSystemHealth(entry) {
+    const statusElement = document.getElementById(`${entry.name}-status`);
+    if (statusElement == null) {
+        // an unknown/frontend-only component may not have a status element on this page
+        return;
+    }
+    statusElement.innerText = entry.status;
+    if (entry.status === "offline") {
+        statusElement.classList.add('text-danger');
+        statusElement.classList.remove('text-success');
+        return;
+    }
+    statusElement.classList.remove('text-danger');
+    statusElement.classList.add('text-success');
+    document.getElementById(`${entry.name}-os`).innerText = entry.platform.os;
+    document.getElementById(`${entry.name}-python`).innerText = entry.platform.python;
+    document.getElementById(`${entry.name}-version`).innerText = entry.platform.fact_version;
+    document.getElementById(`${entry.name}-cpu`).innerText = `${entry.system.cpu_cores} cores (${entry.system.virtual_cpu_cores} threads) @ ${entry.system.cpu_percentage}%`;
+    updateProgressBarElement(`${entry.name}-memory`, entry.system.memory_percent, entry.system.memory_used, entry.system.memory_total);
+    updateProgressBarElement(`${entry.name}-disk`, entry.system.disk_percent, entry.system.disk_used, entry.system.disk_total);
+    if (entry.name === "backend") {
+        const queueElement = document.getElementById("backend-unpacking-queue");
+        if (entry.unpacking.unpacking_queue > 500) {
+            queueElement.classList.add("text-warning");
+        } else {
+            queueElement.classList.remove("text-warning");
         }
-        statusElement.classList.remove('text-danger');
-        statusElement.classList.add('text-success');
-        document.getElementById(`${entry._id}-os`).innerText = entry.platform.os;
-        document.getElementById(`${entry._id}-python`).innerText = entry.platform.python;
-        document.getElementById(`${entry._id}-version`).innerText = entry.platform.fact_version;
-        document.getElementById(`${entry._id}-cpu`).innerText = `${entry.system.cpu_cores} cores (${entry.system.virtual_cpu_cores} threads) @ ${entry.system.cpu_percentage}%`;
-        updateProgressBarElement(`${entry._id}-memory`, entry.system.memory_percent, entry.system.memory_used, entry.system.memory_total);
-        updateProgressBarElement(`${entry._id}-disk`, entry.system.disk_percent, entry.system.disk_used, entry.system.disk_total);
-        if (entry._id === "backend") {
-            const queueElement = document.getElementById("backend-unpacking-queue");
-            if (entry.unpacking.unpacking_queue > 500) {
-                queueElement.classList.add("text-warning");
-            } else {
-                queueElement.classList.remove("text-warning");
-            }
-            queueElement.innerText = entry.unpacking.unpacking_queue.toString();
+        queueElement.innerText = entry.unpacking.unpacking_queue.toString();
 
-            const throttleElement = document.getElementById("backend-unpacking-throttle-indicator");
-            if (entry.unpacking.is_throttled) {
-                throttleElement.innerHTML = '<i class="far fa-pause-circle fa-lg"></i>';
-            } else {
-                throttleElement.innerHTML = '';
-            }
-
-            const analysisQueueElement = document.getElementById("backend-analysis-queue");
-            analysisQueueElement.innerText = entry.analysis.analysis_main_scheduler.toString();
-
-            Object.entries(entry.analysis.plugins).map(([pluginName, pluginData], index) => {
-                if (!pluginName.includes("dummy")) {
-                    updatePluginCard(pluginName, pluginData);
-                }
-            });
-            updateCurrentAnalyses(data.analysisStatus);
+        const throttleElement = document.getElementById("backend-unpacking-throttle-indicator");
+        if (entry.unpacking.is_throttled) {
+            throttleElement.innerHTML = '<i class="far fa-pause-circle fa-lg"></i>';
+        } else {
+            throttleElement.innerHTML = '';
         }
-    }));
+
+        const analysisQueueElement = document.getElementById("backend-analysis-queue");
+        analysisQueueElement.innerText = entry.analysis.analysis_main_scheduler.toString();
+
+        Object.entries(entry.analysis.plugins).forEach(([pluginName, pluginData]) => {
+            if (!pluginName.includes("dummy")) {
+                updatePluginCard(pluginName, pluginData);
+            }
+        });
+    }
 }
 
 function updateProgressBarElement(elementId, percent, used, total) {
@@ -114,9 +205,18 @@ function updatePluginRuntimeStatsTooltip(pluginData, pluginName) {
     const stats_element = $(`#${pluginName}-stats`);
     if (stats_element.attr("data-original-title") !== stats) {
         // only update the tooltip if the stats actually changed
-        stats_element
-            .attr("data-original-title", stats)
-            .tooltip('update');
+        stats_element.attr("data-original-title", stats);
+        // `.tooltip('update')` only repositions; refresh the visible tooltip's content directly.
+        // Bootstrap 4 marks a shown tooltip by setting `aria-describedby` on its trigger element.
+        const shownId = stats_element.attr("aria-describedby");
+        if (shownId) {
+            const tooltipElement = document.getElementById(shownId);
+            const tooltipInner = tooltipElement ? tooltipElement.querySelector('.tooltip-inner') : null;
+            if (tooltipInner) {
+                tooltipInner.innerHTML = stats;
+            }
+        }
+        stats_element.tooltip('update');
     }
 }
 
@@ -132,21 +232,28 @@ function getPluginRuntimeStats(stats) {
     }
 }
 
+let tooltipsInitialized = false;
+
 function updateCurrentAnalyses(analysisData) {
     const currentAnalysesElement = document.getElementById("current-analyses");
+
+    // dispose only the tooltips whose triggers live inside the container we are about to rebuild;
+    $('#current-analyses [data-toggle="tooltip"]').tooltip('dispose');
+
     const currentAnalysesHTML = [].concat(
         Object.entries(analysisData.current_analyses)
             .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid)),
         Object.entries(analysisData.recently_finished_analyses)
             .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid, true)),
-        Object.entries(analysisData.recently_canceled_analyses)
+        Object.entries(analysisData.recently_canceled_analyses || {})
             .map(([uid, analysisStats]) => createCurrentAnalysisItem(analysisStats, uid, false, true)),
     ).join("\n");
     currentAnalysesElement.innerHTML = currentAnalysesHTML !== "" ? currentAnalysesHTML : "No analysis in progress";
-    document.querySelectorAll('div[role=tooltip]').forEach((element) => {
-        element.remove();
-    });
-    $("body").tooltip({selector: '[data-toggle="tooltip"]'});  // update tooltips for dynamically created elements
+    if (!tooltipsInitialized) {
+        // delegate tooltip handling for dynamically created elements; set up once to avoid stacking
+        $("body").tooltip({selector: '[data-toggle="tooltip"]'});
+        tooltipsInitialized = true;
+    }
 }
 
 function createCurrentAnalysisItem(data, uid, isFinished = false, isCancelled = false) {
