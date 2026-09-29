@@ -170,7 +170,7 @@ if __name__ == '__main__':
     try:
         backend.main()
         sys.exit(0)
-    except OSError as error:
+    except (OSError, RuntimeError) as error:
         logging.exception(f'Exception during start: {error}')
         backend.shutdown()
         sys.exit(1)
