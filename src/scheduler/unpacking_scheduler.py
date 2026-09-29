@@ -5,7 +5,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager, suppress
 from multiprocessing import Manager, Queue, Value
-from queue import Empty
+from queue import Empty, SimpleQueue
 from tempfile import TemporaryDirectory
 from threading import Thread
 from time import sleep
@@ -38,10 +38,6 @@ if TYPE_CHECKING:
     from storage.unpacking_locks import UnpackingLockManager
 
 
-class NoFreeWorker(RuntimeError):  # noqa: N818
-    pass
-
-
 THROTTLE_INTERVAL = 2
 
 
@@ -66,6 +62,7 @@ class UnpackingScheduler:
         self.work_load_counter = 25
         self.worker_tmp_dirs = []  # type: list[TemporaryDirectory]
         self.pending_tasks: dict[int, Thread] = {}
+        self.free_workers: SimpleQueue[int] | None = None  # lives in the extraction loop process
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
         self.unpacker = Unpacker(file_service=file_service, unpacking_locks=unpacking_locks)
@@ -159,41 +156,44 @@ class UnpackingScheduler:
     def extraction_loop(self) -> None:
         logging.debug(f'Starting unpacking scheduler loop (pid={os.getpid()})')
         self.db_connection = ReadWriteConnection()
+        # the worker threads put the ID of their container back into this queue as soon as they are done -> we don't
+        # need to poll for free workers and a new task can be started immediately
+        self.free_workers = SimpleQueue()
+        for container in self.workers:
+            self.free_workers.put(container.id_)
+        container = None
         while self.stop_condition.value == 0:
-            self.check_pending()
             try:
-                container = self.get_free_worker()
+                if container is None:
+                    container = self._get_free_worker()
                 task = self.in_queue.get(timeout=1)
-                task_thread = Thread(
-                    target=self._work_thread_wrapper,
-                    kwargs={'task': task, 'container': container},
-                )
-                task_thread.start()
-                logging.debug(f'Started Worker on {task.uid} ({container.tmp_dir})')
-                self.pending_tasks[container.id_] = task_thread
-                del task
-            except NoFreeWorker:
-                logging.debug('No free worker. Sleeping...')
-                sleep(0.2)
-            except Empty:
-                pass
+            except Empty:  # timeouts are needed so that the stop condition is checked regularly
+                continue
+            task_thread = Thread(
+                target=self._work_thread_wrapper,
+                kwargs={'task': task, 'container': container},
+            )
+            self.pending_tasks[container.id_] = task_thread
+            task_thread.start()
+            logging.debug(f'Started Worker on {task.uid} ({container.tmp_dir})')
+            container = None
+            del task
         logging.debug('Stopped unpacking scheduler loop')
 
-    def check_pending(self) -> None:
-        for container_id, thread in list(self.pending_tasks.items()):
-            if not thread.is_alive():
-                thread.join()
-                container = self.workers[container_id]
-                if container.exception_occurred():
-                    container.restart()
-                    self.workers[container_id] = container  # force update of manager
-                self.pending_tasks.pop(container_id)
-
-    def get_free_worker(self) -> ExtractionContainer:
-        for container in self.workers:
-            if container.id_ not in self.pending_tasks:
-                return container
-        raise NoFreeWorker()
+    def _get_free_worker(self) -> ExtractionContainer:
+        """
+        Wait until a worker is free (raises `Empty` after a timeout). Containers are restarted if an exception occurred.
+        """
+        if self.free_workers is None or self.workers is None:
+            raise RuntimeError('Unpacking scheduler has not been started')
+        container_id = self.free_workers.get(timeout=1)
+        if (thread := self.pending_tasks.pop(container_id, None)) is not None:
+            thread.join()
+        container = self.workers[container_id]
+        if container.exception_occurred():
+            container.restart()
+            self.workers[container_id] = container  # force update of manager
+        return container
 
     def _work_thread_wrapper(self, task: FileObject, container: ExtractionContainer) -> None:
         """
@@ -204,6 +204,8 @@ class UnpackingScheduler:
             self.work_thread(task, container)
         except Exception:
             logging.exception(f'Exception occurred during unpacking of {task.uid}')
+        finally:
+            self.free_workers.put(container.id_)
 
     def work_thread(self, task: FileObject, container: ExtractionContainer) -> None:
         if isinstance(task, Firmware):
