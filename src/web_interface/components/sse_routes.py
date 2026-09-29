@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from queue import Empty
+from time import monotonic
 from typing import TYPE_CHECKING
 
 from flask import Response
@@ -17,6 +18,10 @@ if TYPE_CHECKING:
 
 HEARTBEAT = json.dumps({'type': 'heartbeat'})
 CLIENT_POLL_TIMEOUT = 10
+# Streams are closed regularly (the browser reconnects automatically and receives a fresh snapshot). Otherwise, a
+# graceful uWSGI reload would wait for open streams until the worker mercy timeout (60s) runs out.
+MAX_STREAM_DURATION = 30
+RECONNECT_DELAY_MS = 1000
 
 
 class SseRoutes(ComponentBase):
@@ -32,8 +37,6 @@ class SseRoutes(ComponentBase):
             mimetype='text/event-stream',
             headers={
                 'Cache-Control': 'no-cache',
-                'Connection': 'keep-alive',
-                'Access-Control-Allow-Origin': '*',
                 'X-Accel-Buffering': 'no',
             },
         )
@@ -41,17 +44,22 @@ class SseRoutes(ComponentBase):
     def _event_generator(self) -> Iterator[str]:
         logging.debug('[system health SSE]: Received subscription request')
         client_queue = self.sse_publisher.add_subscriber()
+        deadline = monotonic() + MAX_STREAM_DURATION
 
         try:
+            yield f'retry: {RECONNECT_DELAY_MS}\n\n'
             for status in self.sse_publisher.get_last_status_snapshot():
                 yield _sse_message(status)
 
-            while True:
+            while (remaining := deadline - monotonic()) > 0:
                 try:
-                    data = client_queue.get(timeout=CLIENT_POLL_TIMEOUT)
-                    yield _sse_message(data)
+                    data = client_queue.get(timeout=min(CLIENT_POLL_TIMEOUT, remaining))
                 except Empty:
                     yield _sse_message(HEARTBEAT)
+                    continue
+                if data is None:  # publisher shutdown
+                    return
+                yield _sse_message(data)
         except GeneratorExit:
             pass
         finally:

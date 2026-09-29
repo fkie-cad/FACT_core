@@ -4,7 +4,6 @@ from time import time
 import pytest
 
 from statistic.work_load import WorkLoadStatistic
-from storage.db_interface_stats import StatsDbViewer
 from storage.redis_status_interface import RedisStatusInterface
 
 
@@ -13,11 +12,6 @@ def workload_stat():
     workload_stat = WorkLoadStatistic(component='frontend')
     yield workload_stat
     workload_stat.shutdown()
-
-
-@pytest.fixture
-def stats_db():
-    return StatsDbViewer()
 
 
 @pytest.mark.usefixtures('database_interfaces')

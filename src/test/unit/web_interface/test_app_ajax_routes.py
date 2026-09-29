@@ -34,8 +34,6 @@ class DbMock(CommonDatabaseMock):
             }
         if identifier == 'release_date':
             return {'date_histogram_data': [['July 2014', 1]]}
-        if identifier == 'backend':
-            return {'system': {'cpu_percentage': 13.37}, 'analysis': {'current_analyses': [None, None]}}
         return None
 
 
@@ -68,8 +66,8 @@ class TestAppAjaxRoutes:
         assert result['backend_cpu_percentage'] == '13.37%'
         assert result['number_of_running_analyses'] == 2
 
-    def test_ajax_get_system_stats_error(self, test_client):
-        with mock_patch(DbMock, 'get_statistic', lambda *_: {}):
+    def test_ajax_get_system_stats_error(self, test_client, web_frontend):
+        with mock_patch(web_frontend.status_interface, 'get_component_status', lambda *_: None):
             result = test_client.get('/ajax/stats/system').json
 
         assert result['backend_cpu_percentage'] == 'n/a'

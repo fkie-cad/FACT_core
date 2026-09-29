@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import atexit
 import logging
 import pickle
 import sys
@@ -46,8 +45,10 @@ def create_web_interface() -> WebFrontEnd:
 
 web_interface = create_web_interface()
 app = web_interface.app
-atexit.register(web_interface.shutdown)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5000, threaded=True)
+    try:
+        app.run(debug=True, host='127.0.0.1', port=5000, threaded=True)
+    finally:
+        web_interface.shutdown()

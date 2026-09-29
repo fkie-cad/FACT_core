@@ -4,21 +4,32 @@ import json
 import logging
 import os
 import threading
-from queue import Full, Queue
+from contextlib import suppress
+from queue import Empty, Full, Queue
 from typing import TYPE_CHECKING
 
 from storage.redis_interface import get_redis_from_cfg
-from storage.redis_status_interface import PUBSUB_CHANNEL
+from storage.redis_status_interface import COMPONENT_STATUS_REDIS_KEYS, PUBSUB_CHANNEL, RedisStatusInterface
 
 if TYPE_CHECKING:
     from redis import Redis
 
 UPDATE_INTERVAL = 1
+INITIAL_RECONNECT_BACKOFF = 1
+MAX_RECONNECT_BACKOFF = 30
+ANALYSIS_STATUS_KEY = 'current_analyses'
 
 
 class RedisSSEPublisher:
-    def __init__(self, redis_client: Redis | None = None, *, start_listener: bool = True):
+    def __init__(
+        self,
+        redis_client: Redis | None = None,
+        status_interface: RedisStatusInterface | None = None,
+        *,
+        start_listener: bool = True,
+    ):
         self.redis = redis_client or get_redis_from_cfg()
+        self.status_interface = status_interface or RedisStatusInterface()
 
         self.subscribers: set[Queue] = set()
         self.pubsub = None
@@ -38,12 +49,13 @@ class RedisSSEPublisher:
 
     def _redis_listener(self) -> None:
         logging.debug(f'[system health SSE]: started listener thread (PID={os.getpid()}, TID={threading.get_ident()})')
-        backoff = 1
+        backoff = INITIAL_RECONNECT_BACKOFF
         while not self._should_stop.is_set():
             try:
                 self.pubsub = self.redis.pubsub()
                 self.pubsub.subscribe(PUBSUB_CHANNEL)
-                backoff = 1
+                self._init_snapshot()
+                backoff = INITIAL_RECONNECT_BACKOFF
                 while not self._should_stop.is_set():
                     message = self.pubsub.get_message(timeout=UPDATE_INTERVAL)
                     if message and message['type'] == 'message':
@@ -61,9 +73,21 @@ class RedisSSEPublisher:
             self.pubsub = None
             if not self._should_stop.is_set():
                 self._should_stop.wait(backoff)  # wakes immediately on shutdown
-                backoff = min(backoff * 2, 30)
+                backoff = min(backoff * 2, MAX_RECONNECT_BACKOFF)
         self._listener_stopped.set()
         logging.debug(f'[system health SSE]: stopped listener thread (PID={os.getpid()}, TID={threading.get_ident()})')
+
+    def _init_snapshot(self) -> None:
+        """
+        Initialize the snapshot with the current state from Redis. Otherwise, clients connecting to a freshly started
+        worker would not get any data until the next update is published.
+        """
+        statuses = [self.status_interface.get_component_status(component) for component in COMPONENT_STATUS_REDIS_KEYS]
+        statuses.append(self.status_interface.get_analysis_status())
+        with self._lock:
+            for status in statuses:
+                if status:
+                    self.last_status[_get_status_key(status)] = json.dumps(status, sort_keys=True)
 
     def _handle_message(self, message: dict) -> None:
         try:
@@ -71,27 +95,23 @@ class RedisSSEPublisher:
         except json.JSONDecodeError:
             logging.error(f'[system health SSE]: Error parsing JSON in message: {message}')
             return
-        key = data.get('name', 'current_analyses')
+        key = _get_status_key(data)
         json_data = json.dumps(data, sort_keys=True)
 
-        dead: list[Queue] = []
         with self._lock:
             if json_data == self.last_status.get(key):
                 return  # if the data did not change, we don't send an update
             self.last_status[key] = json_data
-            for queue in list(self.subscribers):
+            for queue in self.subscribers:
                 try:
-                    queue.put(json_data, block=False)
+                    queue.put_nowait(json_data)
                 except Full:
                     # drop the oldest pending update so the client catches up to the latest state
-                    try:
+                    # (the client may have emptied the queue in the meantime -> Empty is no problem)
+                    with suppress(Empty):
                         queue.get_nowait()
-                        queue.put(json_data, block=False)
-                    except Exception as e:
-                        logging.debug(f'[system health SSE]: dropping unresponsive subscriber: {e}')
-                        dead.append(queue)
-            for queue in dead:
-                self.subscribers.discard(queue)
+                    # can't be full again: queues are only filled while holding the lock
+                    queue.put_nowait(json_data)
 
     def get_last_status_snapshot(self) -> list[str]:
         with self._lock:
@@ -111,11 +131,20 @@ class RedisSSEPublisher:
 
     def shutdown(self) -> None:
         self._should_stop.set()
+        self._stop_subscribers()
         if self.proc is not None:
             if not self._listener_stopped.wait(timeout=UPDATE_INTERVAL + 0.1):
                 logging.warning('[system health SSE]: listener did not stop in time')
             self.proc.join(timeout=2)
         self._cleanup()
+
+    def _stop_subscribers(self) -> None:
+        # a `None` in the queue signals the event generator to end the stream
+        with self._lock:
+            for queue in self.subscribers:
+                with suppress(Empty):
+                    queue.get_nowait()  # make room in case the queue is full
+                queue.put_nowait(None)
 
     def _cleanup(self) -> None:
         if self._cleanup_done:
@@ -129,3 +158,7 @@ class RedisSSEPublisher:
                 self.pubsub = None
         except Exception as e:
             logging.exception(f'[system health SSE]: Error during cleanup: {e}')
+
+
+def _get_status_key(status: dict) -> str:
+    return status.get('name', ANALYSIS_STATUS_KEY)

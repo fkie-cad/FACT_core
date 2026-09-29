@@ -120,6 +120,8 @@ class StatusInterfaceMock:
         return self._status
 
     def get_component_status(self, component):
+        if component == 'backend':
+            return {'name': component, 'status': 'online', 'system': {'cpu_percentage': 13.37}}
         return {'name': component, 'status': 'foo'}
 
 

@@ -138,7 +138,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/ajax/stats/system', GET)
     def get_system_stats(self) -> dict[str, str | int]:
-        backend_data = self.db.stats_viewer.get_statistic('backend')
+        backend_data = self.status.get_component_status('backend')
         analysis_status = self.status.get_analysis_status()
         try:
             return {
