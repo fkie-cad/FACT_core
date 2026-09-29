@@ -23,6 +23,14 @@ if TYPE_CHECKING:
     from requests.adapters import Response
 
 DOCKER_CLIENT = docker.from_env()
+# the firmware storage directory is mounted read-only at this path inside the container, so that files can be unpacked
+# without copying them to the shared folder first
+CONTAINER_FW_STORAGE_DIR = '/fact_fw_data'
+REQUIRED_EXTRACTOR_FEATURES = {'input_path'}
+
+
+class ExtractorOutdatedError(RuntimeError):
+    pass
 
 
 class ExtractionContainer:
@@ -47,11 +55,14 @@ class ExtractionContainer:
 
     def _start_container(self) -> None:
         volume = Mount('/tmp/extractor', self.tmp_dir.name, read_only=False, type='bind')  # noqa: S108
+        storage_dir = Path(config.backend.firmware_file_storage_directory).resolve()
+        storage_dir.mkdir(parents=True, exist_ok=True)
+        fw_storage = Mount(CONTAINER_FW_STORAGE_DIR, str(storage_dir), read_only=True, type='bind')
         container = DOCKER_CLIENT.containers.run(
             image=config.backend.unpacking.docker_image,
             ports={'5000/tcp': self.port},
             mem_limit=f'{config.backend.unpacking.memory_limit}m',
-            mounts=[volume],
+            mounts=[volume, fw_storage],
             volumes={'/dev': {'bind': '/dev', 'mode': 'rw'}},
             privileged=True,
             detach=True,
@@ -119,14 +130,38 @@ class ExtractionContainer:
         container = self._get_container()
         return container.logs().decode(errors='replace')
 
-    def start_unpacking(self, tmp_dir: str, timeout: int | None = None) -> Response:
+    def start_unpacking(self, tmp_dir: str, input_path: str | None = None, timeout: int | None = None) -> Response:
+        """
+        Start the extraction in the container. If `input_path` (the path of the input file relative to the firmware
+        storage directory) is set, the container reads the file directly from the storage. Otherwise, the file is
+        expected to be in the "input" folder inside `tmp_dir`.
+        """
         response = self._check_connection()
         if response.status_code != HTTPStatus.OK:
             return response
         url = f'http://localhost:{self.port}/start/{Path(tmp_dir).name}'
-        return requests.get(url, timeout=timeout)
+        params = {'input': input_path} if input_path else None
+        return requests.get(url, params=params, timeout=timeout)
 
-    def _check_connection(self) -> Response:
+    def check_compatibility(self) -> None:
+        """
+        Make sure that the extractor image supports all features that are required by FACT (older versions of the
+        extractor do not return a list of features in the /status response).
+        """
+        # the container may have just been started -> wait longer for it to become ready
+        response = self._check_connection(retries=Retry(total=8, backoff_factor=0.2))
+        try:
+            features = set(response.json().get('features', []))
+        except (ValueError, AttributeError):
+            features = set()
+        if missing := REQUIRED_EXTRACTOR_FEATURES - features:
+            image = config.backend.unpacking.docker_image
+            raise ExtractorOutdatedError(
+                f'The extractor docker image "{image}" is outdated (missing features: {", ".join(sorted(missing))}). '
+                f'Please update it (e.g. with "docker pull {image}").'
+            )
+
+    def _check_connection(self, retries: Retry | None = None) -> Response:
         """
         Try to access the /status endpoint of the container to make sure the container is ready.
         The `self._adapter` includes a retry in order to wait if the connection cannot be established directly.
@@ -134,5 +169,5 @@ class ExtractionContainer:
         """
         url = f'http://localhost:{self.port}/status'
         with requests.Session() as session:
-            session.mount('http://', self._adapter)
+            session.mount('http://', HTTPAdapter(max_retries=retries) if retries else self._adapter)
             return session.get(url, timeout=5)
