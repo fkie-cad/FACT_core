@@ -5,6 +5,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager, suppress
 from multiprocessing import Manager, Queue, Value
+from pathlib import Path
 from queue import Empty, SimpleQueue
 from tempfile import TemporaryDirectory
 from threading import Thread
@@ -25,7 +26,7 @@ from objects.firmware import Firmware
 from storage.db_connection import ReadWriteConnection
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_base import DbInterfaceError
-from unpacker.extraction_container import DOCKER_CLIENT, ExtractionContainer
+from unpacker.extraction_container import DOCKER_CLIENT, ExtractionContainer, ExtractorOutdatedError
 from unpacker.unpack import Unpacker
 from unpacker.unpack_base import ExtractionError
 
@@ -141,12 +142,14 @@ class UnpackingScheduler:
     def create_containers(self) -> None:
         logging.info(f'Starting unpacking workers... (tag: {config.backend.unpacking.docker_image})')
         self._validate_container_image()
+        _warn_if_on_different_file_systems()
         for id_ in range(config.backend.unpacking.processes):
             tmp_dir = TemporaryDirectory(dir=config.backend.docker_mount_base_dir)
             container = ExtractionContainer(id_=id_, tmp_dir=tmp_dir, value=self.manager.Value('i', 0))
             container.start()
             self.workers.append(container)
             self.worker_tmp_dirs.append(tmp_dir)
+        self._check_extractor_compatibility()
 
     def stop_containers(self) -> None:
         if self.workers:
@@ -303,7 +306,7 @@ class UnpackingScheduler:
             if self.throttle_condition.value == 0:
                 self.in_queue.put(item)
                 break
-            logging.debug('Throttling down unpacking to reduce memory consumption...')
+            logging.info('Throttling down unpacking to reduce memory consumption...')
             sleep(5)
 
     def start_work_load_monitor(self) -> ExceptionSafeProcess:
@@ -359,6 +362,16 @@ class UnpackingScheduler:
         if self.currently_extracted is not None and root_uid in self.currently_extracted:
             self.currently_extracted.pop(root_uid)
 
+    def _check_extractor_compatibility(self) -> None:
+        if not self.workers:
+            return
+        try:
+            self.workers[0].check_compatibility()
+        except ExtractorOutdatedError as error:
+            logging.critical(f'{error} Could not start unpacking scheduler.')
+            self.stop_containers()
+            raise
+
     @staticmethod
     def _validate_container_image() -> None:
         try:
@@ -369,3 +382,14 @@ class UnpackingScheduler:
                 f'Could not start unpacking scheduler.'
             )
             raise
+
+
+def _warn_if_on_different_file_systems() -> None:
+    mount_dir = Path(config.backend.docker_mount_base_dir)
+    storage_dir = Path(config.backend.firmware_file_storage_directory)
+    with suppress(OSError):
+        if mount_dir.stat().st_dev != storage_dir.stat().st_dev:
+            logging.warning(
+                f'The docker mount base dir ({mount_dir}) and the firmware storage directory ({storage_dir}) are not '
+                'on the same file system. Extracted files must be copied instead of moved, which is slower.'
+            )
