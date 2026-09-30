@@ -66,6 +66,6 @@ class AnalysisPlugin(AnalysisPluginV0):
                 group=magika_result.output.group,
                 description=magika_result.output.description,
                 is_text=magika_result.output.is_text,
-                confidence=magika_result.score,
+                confidence=round(magika_result.score, 4),
             ),
         )
