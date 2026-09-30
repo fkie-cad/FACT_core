@@ -17,7 +17,6 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 from web_interface.file_tree.jstree_conversion import convert_to_jstree_node
 from web_interface.filter import (
     bytes_to_str_filter,
-    encode_base64_filter,
     is_image,
     is_text_file,
 )
@@ -105,7 +104,7 @@ class AjaxRoutes(ComponentBase):
         if is_image(mime_type):
             return (
                 '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; '
-                f'text-align: center"><img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" '
+                f'text-align: center"><img src="data:image/{mime_type[6:]} ;base64,{bytes.decode(binary)}" '
                 'style="max-width:100%"></div>'
             )
         return None
