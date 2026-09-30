@@ -9,7 +9,7 @@ REGULAR_RESULT = {
     'dependant_analysis': {
         'full': 'ASCII text, with no line terminators',
         'magika': {
-            'confidence': 0.7856149077415466,
+            'confidence': 0.7856,
             'description': 'Generic text document',
             'group': 'text',
             'is_text': True,
