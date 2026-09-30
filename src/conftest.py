@@ -5,7 +5,6 @@ import logging
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Type
 
 import pytest
 from pydantic import BaseModel, ConfigDict, Field
@@ -41,7 +40,7 @@ def common_config(request, docker_mount_base_dir) -> config.Common:
 
     config.load()
     test_config = {
-        'temp_dir_path': '/tmp',
+        'temp_dir_path': '/tmp',  # noqa: S108
         'docker_mount_base_dir': docker_mount_base_dir,
         'redis': dict(
             {
@@ -59,9 +58,9 @@ def common_config(request, docker_mount_base_dir) -> config.Common:
         ),
         'logging': {
             # Use different logfiles to prevent writing in the actual logfiles
-            'file_backend': '/tmp/fact_tests_backend.log',
-            'file_frontend': '/tmp/fact_tests_frontend.log',
-            'file_database': '/tmp/fact_tests_database.log',
+            'file_backend': '/tmp/fact_tests_backend.log',  # noqa: S108
+            'file_frontend': '/tmp/fact_tests_frontend.log',  # noqa: S108
+            'file_database': '/tmp/fact_tests_database.log',  # noqa: S108
             'level': 'DEBUG',  # Use lowest loglevel for tests
         },
         'postgres': {
@@ -139,6 +138,7 @@ def frontend_config(request, common_config) -> config.Frontend:
         'ajax_stats_reload_time': 10000,
         'max_elements_per_chart': 10,
         'radare2_url': 'http://localhost:8000',
+        'pdf_report_image': config.frontend.pdf_report_image,
         'communication_timeout': 60,
         'authentication': {
             'enabled': False,
@@ -184,7 +184,7 @@ class AnalysisPluginTestConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
-    plugin_class: Type[AnalysisPluginV0] = AnalysisPluginV0
+    plugin_class: type[AnalysisPluginV0] = AnalysisPluginV0
     #: Whether or not to start the workers (see ``AnalysisPlugin.start``).
     #: Not supported for AnalysisPluginV0
     start_processes: bool = False
@@ -238,11 +238,11 @@ def analysis_plugin(request, _patch_config):
     # FIXME now with AnalysisPluginV0 analysis plugins became way simpler
     # We might want to delete everything from AnalysisPluginTestConfig in the future
     PluginClass = test_config.plugin_class  # noqa: N806
-    assert (
-        test_config.init_kwargs == {}
-    ), 'AnalysisPluginTestConfig.init_kwargs must be empty for AnalysisPluginV0 instances'
-    assert (
-        not test_config.start_processes
-    ), 'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
+    assert test_config.init_kwargs == {}, (
+        'AnalysisPluginTestConfig.init_kwargs must be empty for AnalysisPluginV0 instances'
+    )
+    assert not test_config.start_processes, (
+        'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
+    )
 
     return PluginClass()
