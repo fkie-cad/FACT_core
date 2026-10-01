@@ -14,9 +14,13 @@ if TYPE_CHECKING:
 
 
 class MagikaResult(BaseModel):
-    label: str  # simple to understand content type
+    label: str = Field(
+        description='simple to understand content type.',
+    )
     mime: str
-    group: str  # broader category for lable e.g., "code", "document", "media"....
+    group: str = Field(
+        description="broader category for lable e.g., 'code', 'document', 'media'....",
+    )
     description: str
     is_text: bool
     confidence: float
