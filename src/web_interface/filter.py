@@ -170,15 +170,6 @@ def nice_unix_time(unix_time_stamp: int | float) -> str:
     return strftime('%Y-%m-%d %H:%M:%S', tmp)
 
 
-def sort_chart_list_by_name(input_data: list) -> list:
-    try:
-        input_data.sort(key=lambda x: x[0])
-    except (AttributeError, IndexError, KeyError, TypeError):
-        logging.exception(f'Could not sort chart list {input_data}')
-        return []
-    return input_data
-
-
 def sort_chart_list_by_value(input_data: list) -> list:
     try:
         input_data.sort(key=lambda x: x[1], reverse=True)

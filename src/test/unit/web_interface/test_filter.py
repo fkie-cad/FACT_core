@@ -275,7 +275,6 @@ def test_grp_changed_text_file_data(input_dict, expected_result):
             'Could not sort list',
         ),
         (flt.sort_comments, UNSORTABLE_LIST, [], 'Could not sort comment list'),
-        (flt.sort_chart_list_by_name, UNSORTABLE_LIST, [], 'Could not sort chart list'),
         (flt.sort_chart_list_by_value, UNSORTABLE_LIST, [], 'Could not sort chart list'),
     ],
 )
