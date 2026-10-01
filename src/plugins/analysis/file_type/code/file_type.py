@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import cache
 from typing import TYPE_CHECKING
 
 from magika import Magika
@@ -11,6 +12,14 @@ from helperFunctions import magic
 
 if TYPE_CHECKING:
     import io
+
+
+@cache
+def _get_magika() -> Magika:
+    # Magika uses an onnxruntime session which segfaults if it is destroyed in a forked child process (e.g. if the GC
+    # of the child collects a reference cycle containing the session). Therefore, the instance is created lazily and
+    # kept alive for the lifetime of the process (it is never garbage collected).
+    return Magika()
 
 
 class MagikaResult(BaseModel):
@@ -44,7 +53,6 @@ class AnalysisPlugin(AnalysisPluginV0):
         )
 
     def __init__(self):
-        self.magika = Magika()
         super().__init__(
             metadata=self.MetaData(
                 name='file_type',
@@ -59,7 +67,7 @@ class AnalysisPlugin(AnalysisPluginV0):
 
     def analyze(self, file_handle: io.FileIO, virtual_file_path: str, analyses: dict) -> Schema:
         del virtual_file_path, analyses
-        magika_result = self.magika.identify_path(file_handle.name)
+        magika_result = _get_magika().identify_path(file_handle.name)
 
         return AnalysisPlugin.Schema(
             mime=magic.from_file(file_handle.name, mime=True),
