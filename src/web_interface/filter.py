@@ -9,14 +9,13 @@ import random
 import re
 import stat
 import zlib
-from base64 import b64decode, standard_b64encode
+from base64 import b64decode
 from collections import defaultdict
-from collections.abc import Container, Hashable, Iterable, Sized
-from datetime import timedelta
+from collections.abc import Hashable, Iterable, Sized
 from operator import itemgetter
 from re import Match
 from string import ascii_letters
-from time import localtime, strftime, struct_time, time
+from time import localtime, strftime, struct_time
 from typing import TYPE_CHECKING, Any
 
 import bitmath
@@ -51,7 +50,7 @@ def generic_nice_representation(i: Any) -> str:  # noqa: ANN401
         case str():
             output = replace_underscore_filter(i)
         case bytes():
-            output = bytes_to_str_filter(i)
+            output = make_unicode_string(i)
         case _:
             output = i
     return output
@@ -79,14 +78,6 @@ def byte_number_filter(i: int, verbose: bool = False) -> str:
     return output
 
 
-def encode_base64_filter(string: bytes) -> str:
-    return standard_b64encode(string).decode('utf-8')
-
-
-def bytes_to_str_filter(string: bytes) -> str:
-    return make_unicode_string(string)
-
-
 def replace_underscore_filter(string: str) -> str:
     return string.replace('_', ' ')
 
@@ -95,7 +86,7 @@ def list_group(input_data: Iterable) -> str:
     if not isinstance(input_data, Iterable):
         return str(input_data)
     if isinstance(input_data, bytes):
-        input_data = bytes_to_str_filter(input_data)
+        input_data = make_unicode_string(input_data)
     input_data = _get_sorted_list(input_data)
     http_list = '<ul class="list-group list-group-flush">\n'
     for item in input_data:
@@ -134,17 +125,6 @@ def nice_dict(input_data: dict) -> str:
     for item in key_list:
         tmp += f'{item}: {input_data[item]}<br />'
     return tmp
-
-
-def list_to_line_break_string(input_data: list | None) -> str | None:
-    input_data = _get_sorted_list(input_data)
-    return list_to_line_break_string_no_sort(input_data)
-
-
-def list_to_line_break_string_no_sort(input_data: list | None) -> str | None:
-    if isinstance(input_data, list):
-        return '\n'.join(input_data) + '\n'
-    return input_data
 
 
 def uids_to_link(input_data: str, root_uid: str | None = None) -> str:
@@ -188,46 +168,6 @@ def nice_unix_time(unix_time_stamp: int | float) -> str:
         return str(unix_time_stamp)
     tmp = localtime(unix_time_stamp)
     return strftime('%Y-%m-%d %H:%M:%S', tmp)
-
-
-def infection_color(input_data: str | int) -> str:
-    """
-    sets color to green if zero or clean
-    else sets color to red
-    """
-    return text_highlighter(input_data, green=['clean', 0], red=['*'])
-
-
-def text_highlighter(
-    input_data: str | int,
-    green: Container = ('clean', 'online', 0),
-    red: Container = ('offline',),
-) -> str:
-    """
-    sets color to green if input found in green
-    sets color to red if input found in red
-    else do not set color
-    special character * for all inputs available
-    """
-    html = '<span style="color:{color};">{content}</span>'
-    if input_data in green:
-        return html.format(color='green', content=input_data)
-    if input_data in red:
-        return html.format(color='red', content=input_data)
-    if '*' in green:
-        return html.format(color='green', content=input_data)
-    if '*' in red:
-        return html.format(color='red', content=input_data)
-    return str(input_data)
-
-
-def sort_chart_list_by_name(input_data: list) -> list:
-    try:
-        input_data.sort(key=lambda x: x[0])
-    except (AttributeError, IndexError, KeyError, TypeError):
-        logging.exception(f'Could not sort chart list {input_data}')
-        return []
-    return input_data
 
 
 def sort_chart_list_by_value(input_data: list) -> list:
@@ -281,17 +221,6 @@ def set_limit_for_data_to_chart(label_list: list, limit: int, value_list: list) 
 
 def get_canvas_height(dataset: Sized, maximum: int = 11, bar_height: int = 5) -> int:
     return min(len(dataset), maximum) * bar_height + 4
-
-
-def comment_out_regex_meta_chars(input_data: str) -> str:
-    """
-    comments out chars used by regular expressions in the input string
-    """
-    meta_chars = ['^', '$', '.', '[', ']', '|', '(', ')', '?', '*', '+', '{', '}']
-    for char in meta_chars:
-        if char in input_data:
-            input_data = input_data.replace(char, f'\\{char}')
-    return input_data
 
 
 def render_fw_tags(tag_dict: dict, size: int = 14) -> str:
@@ -372,12 +301,6 @@ def sort_roles_by_number_of_privileges(roles: list[str], privileges: dict[str, l
     return sorted(roles, key=lambda role: len(inverted_privileges[role]))
 
 
-def filter_format_string_list_with_offset(offset_tuples: list[tuple[int, str]]) -> str:
-    max_offset_len = len(str(max(list(zip(*offset_tuples, strict=True))[0]))) if offset_tuples else 0
-    lines = [f'{offset: >{max_offset_len}}: {repr(string)[1:-1]}' for offset, string in sorted(offset_tuples)]
-    return '\n'.join(lines)
-
-
 def decompress(string: str) -> str:
     try:
         return zlib.decompress(b64decode(string)).decode()
@@ -428,14 +351,6 @@ def create_firmware_version_links(
         template = '<a href="/analysis/{}">{}</a>'
 
     return [template.format(uid, version) for uid, version in firmware_list]
-
-
-def elapsed_time(start_time: float) -> int:
-    return round(time() - start_time)
-
-
-def format_duration(duration: float) -> str:
-    return str(timedelta(seconds=duration))
 
 
 def render_changed_text_files(changed_text_files: dict) -> str:
@@ -555,12 +470,6 @@ def linter_reformat_issues(issues: list[dict]) -> dict[str, list[dict[str, str]]
     return reformatted
 
 
-def get_searchable_crypto_block(crypto_material: str) -> str:
-    """crypto material plugin results contain spaces and line breaks -> get a contiguous block without those"""
-    blocks = crypto_material.replace(' ', '').split('\n')
-    return sorted(blocks, key=len, reverse=True)[0]
-
-
 def version_is_compatible(
     version: str | semver.Version,
     other: str | semver.Version,
@@ -656,10 +565,6 @@ def _file_mode_to_type(mode: int) -> str:
         if is_type_fun(mode):
             return f', {file_type}'
     return ''
-
-
-def str_to_hex(string: str) -> str:
-    return string.encode(errors='replace').hex()
 
 
 KNOWN_TEXT_MIME_TYPES = {  # that don't start with text/
