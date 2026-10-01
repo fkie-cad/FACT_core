@@ -9,7 +9,7 @@ import random
 import re
 import stat
 import zlib
-from base64 import b64decode, standard_b64encode
+from base64 import b64decode
 from collections import defaultdict
 from collections.abc import Hashable, Iterable, Sized
 from operator import itemgetter
@@ -50,7 +50,7 @@ def generic_nice_representation(i: Any) -> str:  # noqa: ANN401
         case str():
             output = replace_underscore_filter(i)
         case bytes():
-            output = bytes_to_str_filter(i)
+            output = make_unicode_string(i)
         case _:
             output = i
     return output
@@ -78,14 +78,6 @@ def byte_number_filter(i: int, verbose: bool = False) -> str:
     return output
 
 
-def encode_base64_filter(string: bytes) -> str:
-    return standard_b64encode(string).decode('utf-8')
-
-
-def bytes_to_str_filter(string: bytes) -> str:
-    return make_unicode_string(string)
-
-
 def replace_underscore_filter(string: str) -> str:
     return string.replace('_', ' ')
 
@@ -94,7 +86,7 @@ def list_group(input_data: Iterable) -> str:
     if not isinstance(input_data, Iterable):
         return str(input_data)
     if isinstance(input_data, bytes):
-        input_data = bytes_to_str_filter(input_data)
+        input_data = make_unicode_string(input_data)
     input_data = _get_sorted_list(input_data)
     http_list = '<ul class="list-group list-group-flush">\n'
     for item in input_data:

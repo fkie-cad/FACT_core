@@ -117,10 +117,6 @@ def test_replace_underscore():
     assert flt.replace_underscore_filter('a_b') == 'a b'
 
 
-def test_base64_filter():
-    assert flt.encode_base64_filter(b'test') == 'dGVzdA=='
-
-
 @pytest.mark.parametrize(
     ('input_data', 'verbose', 'expected'),
     [
