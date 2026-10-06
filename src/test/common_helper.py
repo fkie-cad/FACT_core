@@ -140,6 +140,7 @@ class MockFileObject:
         self.uid = uid
         self.file_path = file_path
         self.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
+        self.temporary_data = {}
 
 
 class CommonDatabaseMock:
