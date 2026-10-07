@@ -2,8 +2,8 @@ from copy import deepcopy
 
 import pytest
 
+from conftest import CommonIntercomMock
 from test.common_helper import TEST_FW, CommonDatabaseMock
-from test.unit.conftest import CommonIntercomMock
 
 PLUGIN = 'existing_plugin'
 UID = 'existing_uid'
