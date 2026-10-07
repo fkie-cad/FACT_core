@@ -5,8 +5,6 @@ import sys
 from hashlib import new
 from typing import TYPE_CHECKING
 
-import tlsh
-
 from helperFunctions.data_conversion import make_bytes
 
 if TYPE_CHECKING:
@@ -45,7 +43,3 @@ def get_sha256_for_path(path: Path) -> str:
 
 def get_md5(code: bytes | str) -> str:
     return get_hash('md5', code)
-
-
-def get_tlsh_comparison(first: str, second: str) -> int:
-    return tlsh.diff(first, second)
