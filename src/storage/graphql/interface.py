@@ -84,7 +84,7 @@ class GraphQlInterface:
     def __init__(self):
         if config.frontend is None:
             config.load()
-        url = f'http://localhost:{config.frontend.hasura.port}/v1/graphql'
+        url = f'http://{config.frontend.hasura.host}:{config.frontend.hasura.port}/v1/graphql'
         headers = {
             'Content-Type': 'application/json',
             'X-Hasura-Role': 'admin',
