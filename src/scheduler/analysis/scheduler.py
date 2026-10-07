@@ -19,7 +19,7 @@ from analysis.plugin import AnalysisPluginV0
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, do_threaded, stop_processes
 from objects.firmware import Firmware
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
@@ -28,7 +28,7 @@ from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_view_sync import ViewUpdater
 from storage.file_service import FileService
 
-from .plugin import PluginRunner, Worker
+from .plugin import PluginRunner
 
 if TYPE_CHECKING:
     import types
@@ -142,17 +142,11 @@ class AnalysisScheduler:
         logging.debug('Shutting down analysis scheduler')
         self.stop_condition.value = 1
         # first shut down scheduling, then analysis plugins and lastly the result collector
-        stop_processes(self.schedule_processes, config.backend.block_delay + 1)
+        stop_processes(self.schedule_processes, config.backend.graceful_shutdown_timeout)
 
-        for runner in self._plugin_runners.values():
-            runner.shutdown()
+        do_threaded(*(runner.shutdown for runner in self._plugin_runners.values()))
 
-        for runner in self._plugin_runners.values():
-            for worker in runner._workers:
-                if worker.is_alive():
-                    worker.join(Worker.SIGTERM_TIMEOUT + 1)
-
-        stop_processes(self.result_collector_processes, config.backend.block_delay + 1)
+        stop_processes(self.result_collector_processes, config.backend.graceful_shutdown_timeout)
         self.process_queue.close()
         self.status.shutdown()
         logging.info('Analysis scheduler offline')

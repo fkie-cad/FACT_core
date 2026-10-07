@@ -112,7 +112,7 @@ class UnpackingScheduler:
         self.in_queue.close()
         stop_processes(
             [self.work_load_process, self.extraction_process],
-            THROTTLE_INTERVAL,
+            config.backend.graceful_shutdown_timeout,
         )
         self.stop_containers()
         self._clean_tmp_dirs()
