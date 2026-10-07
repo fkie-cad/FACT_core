@@ -217,7 +217,23 @@ def test_insert_analysis(backend_db, common_db):
     assert db_fo.processed_analysis[plugin] == new_analysis_data
 
 
-def test_insert_analysis_error(backend_db, common_db):
+def test_insert_analysis_roundtrip(backend_db, common_db):
+    backend_db.insert_file_object(TEST_FO)
+    analysis = {
+        'analysis_date': 1.0,
+        'plugin_version': '0.1.0',
+        'system_version': '0.1.0',
+        'summary': [],
+        'tags': {},
+        'result': {'key': ('a', 'b\0'), 'foo': 'bar\0', 'surrogate': '\udcc4'},
+    }
+    plugin = 'foo'
+    backend_db.add_analysis(TEST_FO.uid, plugin, analysis)
+    db_fo = common_db.get_object(TEST_FO.uid)
+    assert db_fo.processed_analysis[plugin]['result'] == {'foo': 'bar\0', 'key': ['a', 'b\0'], 'surrogate': '\udcc4'}
+
+
+def test_insert_analysis_bytes_error(backend_db, common_db):
     backend_db.insert_file_object(TEST_FO)
     illegal_analysis = {
         'analysis_date': 1.0,
@@ -225,12 +241,11 @@ def test_insert_analysis_error(backend_db, common_db):
         'system_version': '0.1.0',
         'summary': [],
         'tags': {},
-        'result': {'key': ('a', 'b\0'), 'foo': 'bar\0'},
+        'result': {'key': b'bytes'},
     }
     plugin = 'foo'
     backend_db.add_analysis(TEST_FO.uid, plugin, illegal_analysis)
-    db_fo = common_db.get_object(TEST_FO.uid)
-    assert db_fo.processed_analysis[plugin]['result'] == {'foo': 'bar', 'key': ['a', 'b']}
+    assert plugin not in common_db.get_object(TEST_FO.uid).processed_analysis
 
 
 def test_update_analysis(backend_db, common_db):

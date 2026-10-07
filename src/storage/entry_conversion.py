@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import logging
+import json
 from datetime import datetime
 from time import time
 from typing import Any
@@ -8,6 +8,7 @@ from typing import Any
 from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
+from storage.db_interface_base import DbSerializationError
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, VirtualFilePath
 
 
@@ -35,13 +36,6 @@ def file_object_from_entry(
     file_object = FileObject.from_uid(uid=fo_entry.uid, file_name=fo_entry.file_name)
     _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents, virtual_file_paths, parent_fw)
     return file_object
-
-
-def _convert_vfp_entries_to_dict(vfp_list: list[VirtualFilePath]) -> dict[str, list[str]]:
-    result = {}
-    for vfp_entry in vfp_list or []:
-        result.setdefault(vfp_entry.parent_uid, []).append(vfp_entry.file_path)
-    return result
 
 
 def _populate_fo_data(
@@ -99,7 +93,6 @@ def create_vfp_entries(file_object: FileObject) -> list[VirtualFilePath]:
 
 
 def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
-    sanitize(file_object.virtual_file_path)
     return FileObjectEntry(
         uid=file_object.uid,
         sha256=file_object.sha256,
@@ -116,60 +109,66 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
     )
 
 
+_JSON_SCALAR_TYPES = (str, int, float, bool, type(None))
+_JSON_CONVERTIBLE_TYPES = (tuple, set, frozenset)
+
+
 def sanitize(analysis_data: dict) -> dict:
     """
     Makes a Python dict JSON compatible so that it can be stored in the database.
-    Null bytes are not legal in PostgreSQL JSON columns, so we remove them.
-    Tuples are not JSON compatible and immutable (i.e. the values cannot be sanitized), so they are converted to lists.
+    Keys that are JSON scalar types (int, float, bool, None) are coerced to strings using the same representation that
+    json.dumps uses. Tuples, sets and frozensets are not JSON compatible and immutable (i.e. the values cannot be
+    sanitized), so they are converted to lists.
+    Any other non-JSON-compatible value or key is rejected with a DbSerializationError.
+    Null bytes and lone surrogates in strings are handled reversibly by the DB types (SafeJSONB/SafeString), so they
+    are not sanitized here.
     """
     for key, value in list(analysis_data.items()):
-        _sanitize_value(analysis_data, key, value)
-        _sanitize_key(analysis_data, key)
+        new_key = _sanitize_key(analysis_data, key)
+        _sanitize_value(analysis_data, new_key, value)
 
     return analysis_data
 
 
+def _sanitize_key(analysis_data: dict, key: Any) -> str:  # noqa: ANN401
+    if not isinstance(key, _JSON_SCALAR_TYPES):
+        raise DbSerializationError(f'key of type {type(key).__name__} is not JSON serializable: {key!r}')
+    if isinstance(key, str):
+        return key
+    str_key = json.dumps(key)  # int/float/bool/None -> '1', '1.5', 'true', 'false', 'null', 'Infinity', 'NaN'
+    analysis_data[str_key] = analysis_data.pop(key)
+    return str_key
+
+
 def _sanitize_value(analysis_data: dict, key: str, value: Any) -> None:  # noqa: ANN401
-    if isinstance(value, tuple):
+    if isinstance(value, _JSON_CONVERTIBLE_TYPES):
         analysis_data[key] = value = list(value)
     if isinstance(value, dict):
         sanitize(value)
-    elif isinstance(value, str):
-        analysis_data[key] = _sanitize_string(value)
     elif isinstance(value, list):
-        _sanitize_list(value)
-    elif isinstance(value, bytes):
-        logging.warning(
-            f'Plugin result contains bytes entry. '
-            f'Plugin results should only contain JSON compatible data structures!:\n\t{value!r}'
+        sanitize_list(value)
+    elif isinstance(value, _JSON_SCALAR_TYPES):
+        pass
+    else:
+        raise DbSerializationError(
+            f'value of type {type(value).__name__} for key {key!r} is not JSON serializable: {value!r}'
         )
-        analysis_data[key] = value.decode(errors='replace')
 
 
-def _sanitize_string(string: str) -> str:
-    string = string.replace('\0', '')
-    try:
-        string.encode()
-    except UnicodeEncodeError:
-        string = string.encode(errors='replace').decode()
-    return string
-
-
-def _sanitize_key(analysis_data: dict, key: str) -> None:
-    if '\0' in key:
-        analysis_data[key.replace('\0', '')] = analysis_data.pop(key)
-
-
-def _sanitize_list(value: list) -> list:
+def sanitize_list(value: list) -> list:
     for index, element in enumerate(list(value)):
-        if isinstance(element, tuple):
+        if isinstance(element, _JSON_CONVERTIBLE_TYPES):
             value[index] = element = list(element)  # noqa: PLW2901
         if isinstance(element, dict):
             sanitize(element)
         elif isinstance(element, list):
-            _sanitize_list(element)
-        elif isinstance(element, str):
-            value[index] = _sanitize_string(element)
+            sanitize_list(element)
+        elif isinstance(element, _JSON_SCALAR_TYPES):
+            pass
+        else:
+            raise DbSerializationError(
+                f'value of type {type(element).__name__} in list is not JSON serializable: {element!r}'
+            )
     return value
 
 
@@ -181,8 +180,8 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
             plugin_version=analysis_data.get('plugin_version'),
             system_version=analysis_data.get('system_version'),
             analysis_date=analysis_data.get('analysis_date'),
-            summary=_sanitize_list(analysis_data.get('summary', [])),
-            tags=analysis_data.get('tags'),
+            summary=sanitize_list(analysis_data.get('summary', [])),
+            tags=sanitize(analysis_data.get('tags') or {}),
             result=sanitize(analysis_data.get('result', {})),
             file_object=fo_backref,
         )
