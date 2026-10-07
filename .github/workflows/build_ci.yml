@@ -67,6 +67,8 @@ jobs:
           . venv/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
           echo venv $VIRTUAL_ENV
+      - name: Record disk usage (before)
+        run: echo "DISK_USED_BEFORE=$(df --output=used / | tail -1 | tr -d ' ')" >> $GITHUB_ENV
       - name: Pre-Installation
         shell: 'script -q -e -c "bash {0}"'
         run: ./src/install/pre_install.sh
@@ -74,6 +76,21 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./src/install.py -U -R -N -L DEBUG
+      - name: Disk usage delta
+        run: |
+          BEFORE=${{ env.DISK_USED_BEFORE }}
+          AFTER=$(df --output=used / | tail -1 | tr -d ' ')
+          DELTA=$((AFTER - BEFORE))
+          echo "Disk used before: $((BEFORE / 1024)) MiB"
+          echo "Disk used after:  $((AFTER / 1024)) MiB"
+          echo "Increase:         $((DELTA / 1024)) MiB ($DELTA KiB)"
+          echo "::notice::Installation increased disk usage by $((DELTA / 1024)) MiB"
+          {
+            echo "## Disk Usage"
+            echo "| Before | After | Increase |"
+            echo "|--------|-------|----------|"
+            echo "| $((BEFORE / 1024)) MiB | $((AFTER / 1024)) MiB | $((DELTA / 1024)) MiB |"
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Unit Tests
         shell: 'script -q -e -c "bash {0}"'
         run: |
