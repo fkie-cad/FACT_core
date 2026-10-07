@@ -156,6 +156,23 @@ class FilterClass:
         color_list = get_color_list(1) * len(data)
         return self.data_to_chart_limited(data, limit=0, color_list=color_list)
 
+    @classmethod
+    def _replace_critical_with_badge(cls, strings: str | list[str]) -> str | list[str]:
+        if isinstance(strings, str):
+            return cls._replace_critical_str_with_badge(strings)
+        if isinstance(strings, list):
+            if not strings:
+                return []
+            return cls._replace_critical_str_with_badge('§'.join(strings)).split('§')
+        raise ValueError('Expected str or list of str')
+
+    @staticmethod
+    def _replace_critical_str_with_badge(string: str) -> str:
+        return string.replace(
+            '(CRITICAL)',
+            '<span class="badge badge-danger ml-2 p-1" style="font-size: 14px;">critical</span>',
+        )
+
     def _setup_filters(self) -> None:
         self._app.jinja_env.add_extension('jinja2.ext.do')
         self._app.jinja_env.filters.update(
@@ -209,6 +226,7 @@ class FilterClass:
                 'render_query_title': flt.render_query_title,
                 'render_fw_tags': flt.render_fw_tags,
                 'replace_comparison_uid_with_hid': self._filter_replace_comparison_uid_with_hid,
+                'replace_critical': self._replace_critical_with_badge,
                 'replace_uid_with_file_name': self._filter_replace_uid_with_file_name,
                 'replace_uid_with_hid_link': self._filter_replace_uid_with_hid_link,
                 'replace_uid_with_hid': self._filter_replace_uid_with_hid,
