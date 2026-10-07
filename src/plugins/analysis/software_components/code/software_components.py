@@ -12,7 +12,7 @@ from semver import Version
 import config
 from analysis.plugin import AnalysisPluginV0, Tag, addons
 from helperFunctions.tag import TagColor
-from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE, MIME_ELF
 
 from ..internal.resolve_version_format_string import extract_data_from_ghidra
 
@@ -70,7 +70,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                     name=match.meta.get('software_name'),
                     rule=match.rule,
                     matching_strings=_get_matching_strings(match),
-                    versions=get_version_for_component(match, file_handle),
+                    versions=get_version_for_component(match, file_handle, file_type_analysis.mime),
                     description=match.meta.get('description'),
                     website=match.meta.get('website'),
                     open_source=match.meta.get('open_source'),
@@ -123,22 +123,39 @@ def _get_matching_strings(match: yara.Match) -> list[MatchingString]:
     ]
 
 
-def get_version_for_component(match: yara.Match, file: FileIO) -> list[str]:
+def get_version_for_component(match: yara.Match, file: FileIO, mime: str) -> list[str]:
     matching_strings = _get_strings_from_match(match)
     versions = {get_version(matching_str, match.meta) for matching_str in matching_strings}
-    if any(k in match.meta for k in ('format_string', '_version_function')):
-        if match.meta.get('format_string'):
-            input_data = {
-                'mode': 'format_string',
-                'key_string_list': [s for s in matching_strings if '%s' in s],
-            }
-        else:
-            input_data = {
-                'mode': 'version_function',
-                'function_name': match.meta['_version_function'],
-            }
-        versions.update(extract_data_from_ghidra(file.name, input_data, config.backend.docker_mount_base_dir))
+    if 'format_string' in match.meta and mime in MIME_ELF:
+        versions.update(_get_format_string_versions(file.name, matching_strings))
+    if '_version_function' in match.meta:
+        versions.update(_get_version_from_version_func(file.name, match.meta['_version_function']))
     return [v for v in versions if v is not None]
+
+
+def _get_format_string_versions(file_path: str, matching_strings: list[str]) -> list[str]:
+    key_strings = [s for s in matching_strings if ('%s' in s or '%d' in s)]
+    if not key_strings:
+        return []
+    return extract_data_from_ghidra(
+        file_path,
+        {
+            'mode': 'format_string',
+            'key_string_list': key_strings,
+        },
+        config.backend.docker_mount_base_dir,
+    )
+
+
+def _get_version_from_version_func(file_path: str, version_function: str) -> list[str]:
+    return extract_data_from_ghidra(
+        file_path,
+        {
+            'mode': 'version_function',
+            'function_name': version_function,
+        },
+        config.backend.docker_mount_base_dir,
+    )
 
 
 def get_version(input_string: str, meta_dict: dict) -> str | None:

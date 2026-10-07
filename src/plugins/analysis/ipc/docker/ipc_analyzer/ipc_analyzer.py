@@ -9,6 +9,7 @@ import sys
 from collections import OrderedDict
 
 from ghidra.app.decompiler import DecompileOptions, DecompInterface
+from ghidra.program.model.block import BasicBlockModel
 from ghidra.program.model.symbol import RefType
 from ghidra.util.task import ConsoleTaskMonitor
 
@@ -34,6 +35,9 @@ class GhidraAnalysis:
         self.monitor = ConsoleTaskMonitor()
         self.flat_api = ghidra.program.flatapi.FlatProgramAPI(self.current_program, self.monitor)
         self.decompiler = self.set_up_decompiler(self.current_program)
+        self.block_model = BasicBlockModel(self.current_program)
+        self.referents_cache = {}
+        self.callsite_cache = {}
         self.sink_function_names = [
             # os.system and exec() family
             'system',  # int system(const char *command);
