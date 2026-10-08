@@ -1,0 +1,6 @@
+external-controller: 127.0.0.1:9090
+proxy-groups:
+  - name: Router
+    type: select
+    proxies:
+      - DIRECT
