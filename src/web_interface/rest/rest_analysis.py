@@ -26,6 +26,12 @@ api = Namespace('rest/analysis', description='Request the analysis results of a 
                 'type': 'boolean',
                 'default': 'false',
             },
+            'skip_type_check': {
+                'description': 'Disable type checking (plugin blacklists and whitelists).',
+                'in': 'query',
+                'type': 'boolean',
+                'default': 'false',
+            },
         },
     },
 )
@@ -84,7 +90,9 @@ class RestAnalysis(RestResourceBase):
         file_object.scheduled_analysis = [plugin]
         if 'force' in request.args:
             force_flag = get_boolean_from_request(request.args, 'force')
-            file_object.force_update = force_flag
+            file_object.temporary_data['force_update'] = force_flag
+        if 'skip_type_check' in request.args:
+            file_object.temporary_data['skip_type_check'] = get_boolean_from_request(request.args, 'skip_type_check')
         success = self.intercom.add_single_file_task(file_object)
 
         if success:

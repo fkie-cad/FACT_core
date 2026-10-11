@@ -219,6 +219,16 @@ class TestAnalysisSchedulerBlacklist:
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
         assert blacklisted is True
 
+    def test_next_analysis_is_blacklisted__skip(self):
+        self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['blacklisted_type'])
+        self.file_object.processed_analysis['file_type']['result']['mime'] = 'blacklisted_type'
+        try:
+            self.file_object.temporary_data['skip_type_check'] = True
+            blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
+            assert blacklisted is False
+        finally:
+            self.file_object.temporary_data = {}
+
     def test_next_analysis_is_blacklisted__not_blacklisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=[])
         self.file_object.processed_analysis['file_type']['result']['mime'] = 'not_blacklisted_type'
@@ -346,9 +356,9 @@ class TestAnalysisSkipping:
     def test_is_forced_update(self):
         fo = MockFileObject()
         assert self.scheduler._is_forced_update(fo) is False
-        fo.force_update = False
+        fo.temporary_data['force_update'] = False
         assert self.scheduler._is_forced_update(fo) is False
-        fo.force_update = True
+        fo.temporary_data['force_update'] = True
         assert self.scheduler._is_forced_update(fo) is True
 
 
