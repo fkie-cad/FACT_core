@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from semver import Version
@@ -18,14 +19,16 @@ if TYPE_CHECKING:
 
     from plugins.analysis.software_components.code.software_components import AnalysisPlugin as SoftwarePlugin
 
-DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
+DB_DIR = Path(__file__).parent.parent / 'internal/database'
+DB_PATH = str(DB_DIR / 'cve_cpe.db')
+VERSION_PATH = DB_DIR / 'version.json'
 
 
 class CveResult(BaseModel):
     software_name: str
-    cve_list: List[CveMatch]
+    cve_list: list[CveMatch]
 
-    def __lt__(self, other):
+    def __lt__(self, other: CveMatch):
         if not isinstance(other, self.__class__):
             raise TypeError(f'Wrong type: {type(other)}')
         return self.software_name < other.software_name  # to enable sorting
@@ -37,9 +40,13 @@ class AnalysisPlugin(AnalysisPluginV0):
     """
 
     class Schema(BaseModel):
-        cve_results: List[CveResult]
+        cve_results: list[CveResult]
 
     def __init__(self):
+        try:
+            system_version = json.loads(VERSION_PATH.read_text()).get('version')
+        except (json.JSONDecodeError, FileNotFoundError):
+            system_version = None
         super().__init__(
             metadata=(
                 self.MetaData(
@@ -49,6 +56,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                     version=Version(1, 0, 0),
                     dependencies=['software_components'],
                     Schema=self.Schema,
+                    system_version=system_version,
                 )
             )
         )
@@ -99,7 +107,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             if self._entry_has_critical_rating(cve.scores)
         ]
 
-    def _software_has_critical_cve(self, cve_list: List[CveMatch]) -> bool:
+    def _software_has_critical_cve(self, cve_list: list[CveMatch]) -> bool:
         """
         Check if any entry in the given dictionary of CVEs has a critical rating.
         """
