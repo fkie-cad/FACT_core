@@ -27,7 +27,6 @@ Contents
    modules/analysis
    modules/config
    modules/conftest
-   modules/test
    modules/helperFunctions
    modules/objects
    modules/plugins

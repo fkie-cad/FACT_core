@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 import helperFunctions.fileSystem
-from test.unit.conftest import CommonIntercomMock
+from conftest import CommonIntercomMock
 
 
 class MockIntercom(CommonIntercomMock):
