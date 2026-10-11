@@ -10,3 +10,9 @@ MIME_BLACKLIST_COMPRESSED = [
     'application/x-xz',
     'application/zip',
 ]
+MIME_ELF = [
+    'application/x-executable',
+    'application/x-pie-executable',
+    'application/x-object',
+    'application/x-sharedlib',
+]
