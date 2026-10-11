@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
 
+from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_base import ReadOnlyDbInterface
 from storage.entry_conversion import analysis_entry_to_dict, file_object_from_entry, firmware_from_entry
@@ -25,10 +26,7 @@ from storage.schema import (
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from sqlalchemy.orm import Session
     from sqlalchemy.sql import Select
-
-    from objects.file import FileObject
 
 PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
     'crypto_material',
@@ -291,10 +289,12 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== included files. =====
 
-    def get_list_of_all_included_files(self, fo: FileObject) -> set[str]:
-        if isinstance(fo, Firmware):
-            return self.get_all_files_in_fw(fo.uid)
-        return self.get_all_files_in_fo(fo)
+    def get_list_of_all_included_files(self, fo_or_uid: FileObject | str) -> set[str]:
+        if isinstance(fo_or_uid, FileObject):
+            fo = fo_or_uid
+            return self.get_all_files_in_fw(fo.uid) if isinstance(fo, Firmware) else self.get_all_files_in_fo(fo.uid)
+        uid = fo_or_uid
+        return self.get_all_files_in_fw(uid) if self.is_firmware(uid) else self.get_all_files_in_fo(uid)
 
     def get_all_files_in_fw(self, fw_uid: str) -> set[str]:
         """Get a set of UIDs of all files (recursively) contained in a firmware"""
@@ -302,19 +302,20 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             query = select(fw_files_table.c.file_uid).where(fw_files_table.c.root_uid == fw_uid)
             return set(session.execute(query).scalars())
 
-    def get_all_files_in_fo(self, fo: FileObject) -> set[str]:
+    def get_all_files_in_fo(self, uid: str) -> set[str]:
         """Get a set of UIDs of all files (recursively) contained in a file"""
         with self.get_read_only_session() as session:
-            return self._get_files_in_files(session, fo.files_included).union({fo.uid, *fo.files_included})
-
-    def _get_files_in_files(self, session: Session, uid_set: set[str], recursive: bool = True) -> set[str]:
-        if not uid_set:
-            return set()
-        query = select(FileObjectEntry).filter(FileObjectEntry.uid.in_(uid_set))
-        included_files = {child.uid for fo in session.execute(query).scalars() for child in fo.included_files}
-        if recursive and included_files:
-            included_files.update(self._get_files_in_files(session, included_files))
-        return included_files
+            # recursive query for included files
+            bottom_query = (
+                select(included_files_table).where(included_files_table.c.parent_uid == uid).cte(recursive=True)
+            )
+            parent_table = aliased(included_files_table)
+            recursive_parent_child_query = select(parent_table).join(
+                bottom_query, parent_table.c.parent_uid == bottom_query.c.child_uid
+            )
+            final_query = bottom_query.union_all(recursive_parent_child_query)
+            included_files = set(session.execute(select(final_query.c.child_uid)).scalars())
+            return included_files.union({uid})
 
     # ===== summary =====
 
