@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from itertools import permutations
 from pathlib import Path
 
 import requests
@@ -17,7 +18,15 @@ except ImportError:
 
 HTML_OK = 200
 HTML_BAD_REQUEST = 400
-TRACKED_TABLES = ('analysis', 'file_object', 'firmware', 'fw_files', 'included_files', 'virtual_file_path')
+TRACKED_TABLES = (
+    'analysis',
+    'file_object',
+    'firmware',
+    'fw_files',
+    'included_files',
+    'virtual_file_path',
+    'unpacking',
+)
 RELATIONSHIPS = {
     'pg_create_object_relationship': [
         # table, name, constraint
@@ -64,6 +73,7 @@ class HasuraSetup:
             self._add_database(db_args)
         self._track_tables()
         self._add_relationships()
+        self._add_view_relationship()
         self._add_ro_user_role_to_tables()
         logging.info('Hasura initialization successful')
 
@@ -162,6 +172,28 @@ class HasuraSetup:
                     raise HasuraInitError(
                         f'Failed to add constraint {name} on table {table}: {response.json().get("error")}'
                     )
+
+    def _add_view_relationship(self):
+        for source, target in permutations(['unpacking', 'file_object']):
+            query = {
+                'type': 'pg_create_object_relationship',
+                'args': {
+                    'table': {'name': source, 'schema': 'public'},
+                    'name': target,
+                    'source': self.db_name,
+                    'using': {
+                        'manual_configuration': {
+                            'remote_table': target,
+                            'column_mapping': {'uid': 'uid'},
+                        }
+                    },
+                },
+            }
+            response = requests.post(self.url, headers=self.headers, json=query)
+            if response.status_code != HTML_OK:
+                if _was_already_added(response):
+                    continue
+                raise HasuraInitError(f'Failed to add relationships on view unpacking: {response.json().get("error")}')
 
     def _db_was_already_added(self) -> bool:
         query = {'type': 'pg_get_source_tables', 'args': {'source': self.db_name}}
