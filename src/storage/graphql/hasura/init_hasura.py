@@ -48,7 +48,9 @@ class HasuraInitError(Exception):
 class HasuraSetup:
     def __init__(self, db_name: str | None = None, testing: bool = False):
         self.db_name = db_name or config.common.postgres.database
-        self.url = f'http://localhost:{config.frontend.hasura.port}/v1/metadata'
+        host = config.frontend.hasura.host
+        port = config.frontend.hasura.port
+        self.url = f'http://{host}:{port}/v1/metadata'
         self.headers = {
             'Content-Type': 'application/json',
             'X-Hasura-Role': 'admin',
