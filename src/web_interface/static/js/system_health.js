@@ -5,7 +5,7 @@ async function getSystemHealthData() {
 
 async function updateSystemHealth() {
     getSystemHealthData().then(data => data.systemHealth.map(entry => {
-        const statusElement = document.getElementById(`${entry._id}-status`);
+        const statusElement = document.getElementById(`${entry.name}-status`);
         statusElement.innerText = entry.status;
         if (entry.status === "offline") {
             statusElement.classList.add('text-danger');
@@ -14,13 +14,13 @@ async function updateSystemHealth() {
         }
         statusElement.classList.remove('text-danger');
         statusElement.classList.add('text-success');
-        document.getElementById(`${entry._id}-os`).innerText = entry.platform.os;
-        document.getElementById(`${entry._id}-python`).innerText = entry.platform.python;
-        document.getElementById(`${entry._id}-version`).innerText = entry.platform.fact_version;
-        document.getElementById(`${entry._id}-cpu`).innerText = `${entry.system.cpu_cores} cores (${entry.system.virtual_cpu_cores} threads) @ ${entry.system.cpu_percentage}%`;
-        updateProgressBarElement(`${entry._id}-memory`, entry.system.memory_percent, entry.system.memory_used, entry.system.memory_total);
-        updateProgressBarElement(`${entry._id}-disk`, entry.system.disk_percent, entry.system.disk_used, entry.system.disk_total);
-        if (entry._id === "backend") {
+        document.getElementById(`${entry.name}-os`).innerText = entry.platform.os;
+        document.getElementById(`${entry.name}-python`).innerText = entry.platform.python;
+        document.getElementById(`${entry.name}-version`).innerText = entry.platform.fact_version;
+        document.getElementById(`${entry.name}-cpu`).innerText = `${entry.system.cpu_cores} cores (${entry.system.virtual_cpu_cores} threads) @ ${entry.system.cpu_percentage}%`;
+        updateProgressBarElement(`${entry.name}-memory`, entry.system.memory_percent, entry.system.memory_used, entry.system.memory_total);
+        updateProgressBarElement(`${entry.name}-disk`, entry.system.disk_percent, entry.system.disk_used, entry.system.disk_total);
+        if (entry.name === "backend") {
             const queueElement = document.getElementById("backend-unpacking-queue");
             if (entry.unpacking.unpacking_queue > 500) {
                 queueElement.classList.add("text-warning");
