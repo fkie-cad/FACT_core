@@ -1,26 +1,20 @@
 from __future__ import annotations
 
 import logging
-import os
+import multiprocessing as mp
 import traceback
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import suppress
-from multiprocessing import Pipe, Process
-from threading import Thread
-from typing import TYPE_CHECKING
 
 import psutil
 
 import config
 from helperFunctions.logging import TerminalColors, color_string
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
 
 def complete_shutdown(message: str | None = None) -> None:
     """
-    Shutdown all FACT processes (of the currently running component) by sending a signal to the process group.
+    Shutdown all remaining subprocesses of the currently running FACT component.
 
     :param message: Optional message to be displayed before the shutdown.
     """
@@ -30,35 +24,13 @@ def complete_shutdown(message: str | None = None) -> None:
     _stop_remaining_fact_processes()
 
 
-def _stop_remaining_fact_processes():
-    """Find subprocesses of this process group and stop them."""
-    pgid = os.getpgrp()
-    futures = []
-    with ThreadPoolExecutor() as pool:
-        for proc in psutil.process_iter():
-            try:
-                if os.getpgid(proc.pid) == pgid and proc.pid != pgid:
-                    futures.append(pool.submit(_stop_process_by_pid, proc.pid))
-            except ProcessLookupError:
-                pass
-        for future in futures:
-            future.result()  # call result to make sure all threads are finished and there are no exceptions
+def _stop_remaining_fact_processes() -> None:
+    """Find all remaining subprocesses of this process (recursively) and stop them."""
+    fact_subprocesses = psutil.Process().children(recursive=True)
+    _stop_proc_list(fact_subprocesses, config.backend.graceful_shutdown_timeout, wait_first=True)
 
 
-def _stop_process_by_pid(pid: int):
-    try:
-        proc = psutil.Process(pid)
-        try:
-            proc.wait(5)
-        except psutil.TimeoutExpired as err:
-            logging.warning(f'Timeout while waiting for process to shut down: {err} -> kill')
-            if proc and proc.is_running():
-                proc.kill()
-    except (ChildProcessError, psutil.NoSuchProcess):
-        pass  # process shut down itself in the meantime -> nothing to do
-
-
-class ExceptionSafeProcess(Process):
+class ExceptionSafeProcess(mp.Process):
     """
     ExceptionSafeProcess is a subtype of ``multiprocessing.Process`` with added exception handling.
     Opposed to what the name may suggest, the class does not make the process impervious to exceptions.
@@ -73,17 +45,17 @@ class ExceptionSafeProcess(Process):
 
     def __init__(self, *args, reraise: bool = True, **kwargs):
         super().__init__(*args, **kwargs)
-        self._receive_pipe, self._send_pipe = Pipe()
+        self._receive_pipe, self._send_pipe = mp.Pipe()
         self._exception = None
         self._reraise = reraise
 
-    def run(self):
+    def run(self) -> None:
         """
         Starts the execution of the process. Any exception happening in the process will be reraised and may
         be retrieved by accessing ``ExceptionSafeProcess.exception``.
         """
         try:
-            Process.run(self)
+            mp.Process.run(self)
             self._send_pipe.send(None)
         except Exception as exception:
             trace = traceback.format_exc()
@@ -104,26 +76,21 @@ class ExceptionSafeProcess(Process):
         return self._exception
 
 
-def terminate_process_and_children(process: Process | psutil.Process):
+def terminate_process_and_children(process: mp.Process | psutil.Process, timeout: float) -> None:
     """
-    Terminate a process and all of its child processes recursively.
+    Terminate a process and all of its child processes.
 
     :param process: The process to be terminated.
+    :param timeout: The timeout in seconds. After reaching the timeout, the process is killed.
     """
     try:
-        if isinstance(process, Process):
+        if isinstance(process, mp.Process):
             process = psutil.Process(process.pid)
-        children = process.children(recursive=False)
-        process.terminate()  # try to send SIGTERM first before SIGKILL
-        with suppress(psutil.TimeoutExpired):
-            process.wait(timeout=5)  # give the process and its children some time to exit gracefully
-        for child in children:
-            terminate_process_and_children(child)  # make sure all child processes also stop
-
-        if process.is_running():
-            process.kill()  # if the process still runs after sending SIGTERM: send SIGKILL
+        procs = process.children(recursive=True)
+        procs.insert(0, process)
     except psutil.NoSuchProcess:
-        return  # the process no longer exists (maybe it exited in the meantime)
+        return
+    _stop_proc_list(procs, timeout=timeout)
 
 
 def start_single_worker(process_index: int, label: str, function: Callable) -> ExceptionSafeProcess:
@@ -164,11 +131,11 @@ def check_worker_exceptions(
              set to `true` and ``False`` otherwise.
     """
     return_value = False
-    for worker_process in process_list:
+    for worker_process in process_list[:]:
         if worker_process.exception:
             _, stack_trace = worker_process.exception
             logging.error(color_string(f'Exception in {worker_label} process:\n{stack_trace}', TerminalColors.FAIL))
-            terminate_process_and_children(worker_process)
+            terminate_process_and_children(worker_process, config.backend.graceful_shutdown_timeout)
             process_list.remove(worker_process)
             if config.backend.throw_exceptions:
                 return_value = True
@@ -192,26 +159,95 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
     return new_process != old_process
 
 
-def stop_processes(processes: list[Process], timeout: float = 10.0):
+def stop_processes(processes: list[mp.Process | None], timeout: float = 10.0, wait: bool = True) -> None:
     """
     Try to stop processes gracefully in parallel. If a process does not stop until `timeout` is reached, kill it.
 
-    :param processes: The list of processes that should be stopped.
+    :param processes: The list of processes that should be stopped. ``None`` entries are ignored.
     :param timeout: Timeout for joining the process in seconds.
+    :param wait: If wait is set, we expect the processes to stop by themselves, so we try to join before terminating.
     """
-    thread_list = []
-    for process in processes:
-        if process is None:
-            continue
-        thread = Thread(target=stop_process, args=(process, timeout))
-        thread.start()
-        thread_list.append(thread)
-    for thread in thread_list:
-        thread.join()
+    _stop_proc_list(
+        [p for p in processes if p is not None and p.is_alive()],
+        timeout,
+        wait_first=wait,
+    )
 
 
-def stop_process(process: Process, timeout: float = 10.0):
-    """Try to stop a single process gracefully. If it does not stop until `timeout` is reached, kill it."""
+def _stop_proc_list(proc_list: list[mp.Process | psutil.Process], timeout: float, wait_first: bool = False) -> None:
+    do_threaded(
+        *(
+            (stop_process, (p, timeout, wait_first))
+            if isinstance(p, mp.Process)
+            else (_stop_psutil_process, (p, timeout, wait_first))
+            for p in proc_list
+        )
+    )
+
+
+def stop_process(process: mp.Process | psutil.Process, timeout: float = 10.0, wait_first: bool = False) -> None:
+    if isinstance(process, mp.Process):
+        _stop_mp_process(process, timeout, wait_first)
+    else:
+        _stop_psutil_process(process, timeout, wait_first)
+
+
+def _stop_mp_process(process: mp.Process, timeout: float, wait_first: bool = False) -> None:
+    if wait_first:
+        process.join(timeout=timeout)
+    process.terminate()
     process.join(timeout=timeout)
     if process.is_alive():
+        logging.warning(f'Process {process.pid} did not terminate -> kill')
         process.kill()
+    process.join(timeout=0)
+
+
+def _stop_psutil_process(process: psutil.Process, timeout: float, wait_first: bool = False) -> None:
+    try:
+        if wait_first and _wait_for_psutil_process(process, timeout):
+            return
+        process.terminate()
+        if _wait_for_psutil_process(process, timeout):
+            return
+        logging.warning(f'Process {process.pid} did not terminate -> kill')
+        process.kill()
+        _wait_for_psutil_process(process, timeout)
+    except psutil.NoSuchProcess:
+        pass  # process exited in the meantime -> nothing to do
+
+
+def _wait_for_psutil_process(process: psutil.Process, timeout: float) -> bool:
+    """Wait for the process to exit. Returns ``True`` if it exited and ``False`` if the timeout was reached."""
+    try:
+        process.wait(timeout=timeout)
+    except psutil.TimeoutExpired:
+        return False
+    return True
+
+
+def do_threaded(*functions: Callable | tuple[Callable, tuple]) -> None:
+    """
+    Run multiple functions concurrently in threads and wait for all of them to finish.
+    Exceptions raised by the functions are logged but not re-raised, as this is used during shutdown where
+    one failing component must not prevent the others from being stopped.
+
+    :param functions: Functions to run concurrently. Each entry is either a
+        ``Callable`` or a ``tuple[Callable, tuple[*args]]``.
+    :raises TypeError: If an entry is neither a ``Callable`` nor a tuple.
+    """
+    calls = []
+    for entry in functions:
+        if isinstance(entry, tuple):
+            calls.append(entry)
+        elif isinstance(entry, Callable):
+            calls.append((entry, ()))
+        else:
+            raise TypeError('Error: expected Callable or tuple[Callable, args]')
+    if not calls:
+        return
+    with ThreadPoolExecutor(max_workers=len(calls)) as pool:
+        futures = [pool.submit(fun, *args) for fun, args in calls]
+    for future in futures:
+        if (error := future.exception()) is not None:
+            logging.error(f'Exception in thread: {error}', exc_info=error)

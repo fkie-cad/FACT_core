@@ -1,25 +1,25 @@
 #! /usr/bin/env python3
 """
-    Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2026  Fraunhofer FKIE
+Firmware Analysis and Comparison Tool (FACT)
+Copyright (C) 2015-2026  Fraunhofer FKIE
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 from __future__ import annotations
 
 import logging
-import os
 import signal
 import sys
 from pathlib import Path
@@ -34,6 +34,7 @@ from helperFunctions.program_setup import setup_argparser, setup_logging
 
 if TYPE_CHECKING:
     import argparse
+    from types import FrameType
 
 
 class FactStarter:
@@ -43,10 +44,10 @@ class FactStarter:
     def __init__(self):
         self.run = False
 
-    def start(self):
+    def start(self) -> None:
         self.run = True
 
-        def _handle_sigterm(signum, frame):
+        def _handle_sigterm(signum: int, frame: FrameType | None) -> None:
             del signum, frame
             self.shutdown()
 
@@ -70,11 +71,11 @@ class FactStarter:
         _terminate_process(frontend_process)
         _terminate_process(db_process)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         self.run = False
 
 
-def _evaluate_optional_args(args: argparse.Namespace):
+def _evaluate_optional_args(args: argparse.Namespace) -> str:
     optional_args = ''
     if args.testing:
         optional_args += ' -t'
@@ -91,27 +92,23 @@ def _start_component(component: str, args: argparse.Namespace) -> Popen | None:
     logging.info(f'starting {component}')
     optional_args = _evaluate_optional_args(args)
     command = (
-        f'{script_path} '
-        f'-l {getattr(config.common.logging, f"file_{component}")} '
-        f'-L {args.log_level} '
-        f'{optional_args} '
+        f'{script_path} -l {getattr(config.common.logging, f"file_{component}")} -L {args.log_level} {optional_args} '
     )
 
     if args.config_file is not None:
         command += f'-C {args.config_file}'
 
-    return Popen(split(command))
+    # start the component in a new session, so that signals sent to the starter (e.g. Ctrl+C) don't reach it
+    return Popen(split(command), start_new_session=True)  # noqa: S603
 
 
-def _terminate_process(process: Popen | None):
+def _terminate_process(process: Popen | None) -> None:
     if process is not None:
         try:
-            os.kill(process.pid, signal.SIGUSR1)
+            process.terminate()
             process.wait(timeout=60)
         except TimeoutExpired:
             process.kill()
-        except ProcessLookupError:
-            pass
 
 
 if __name__ == '__main__':

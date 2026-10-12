@@ -5,7 +5,7 @@ import logging
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Type
+from typing import TYPE_CHECKING
 
 import pytest
 from pydantic import BaseModel, ConfigDict, Field
@@ -15,9 +15,12 @@ import config
 from analysis.plugin import AnalysisPluginV0
 from test.conftest import merge_markers
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 
 @pytest.fixture
-def docker_mount_base_dir() -> str:
+def docker_mount_base_dir() -> Iterator[str]:
     docker_gid = grp.getgrnam('docker').gr_gid
 
     with TemporaryDirectory(prefix='fact-docker-mount-base-dir') as tmp_dir:
@@ -27,7 +30,7 @@ def docker_mount_base_dir() -> str:
 
 
 @pytest.fixture
-def firmware_file_storage_directory() -> str:
+def firmware_file_storage_directory() -> Iterator[str]:
     with TemporaryDirectory(prefix='fact-firmware-file-storage-directory') as tmp_dir:
         yield tmp_dir
 
@@ -41,7 +44,7 @@ def common_config(request, docker_mount_base_dir) -> config.Common:
 
     config.load()
     test_config = {
-        'temp_dir_path': '/tmp',
+        'temp_dir_path': '/tmp',  # noqa: S108
         'docker_mount_base_dir': docker_mount_base_dir,
         'redis': dict(
             {
@@ -59,9 +62,9 @@ def common_config(request, docker_mount_base_dir) -> config.Common:
         ),
         'logging': {
             # Use different logfiles to prevent writing in the actual logfiles
-            'file_backend': '/tmp/fact_tests_backend.log',
-            'file_frontend': '/tmp/fact_tests_frontend.log',
-            'file_database': '/tmp/fact_tests_database.log',
+            'file_backend': '/tmp/fact_tests_backend.log',  # noqa: S108
+            'file_frontend': '/tmp/fact_tests_frontend.log',  # noqa: S108
+            'file_database': '/tmp/fact_tests_database.log',  # noqa: S108
             'level': 'DEBUG',  # Use lowest loglevel for tests
         },
         'postgres': {
@@ -105,6 +108,7 @@ def backend_config(request, common_config, firmware_file_storage_directory) -> c
         'ssdeep_ignore': 1,
         'intercom_poll_delay': 0.1,
         'analysis_status_update_interval': 0.2,
+        'graceful_shutdown_timeout': 0.1,
         'throw_exceptions': True,  # Always throw exceptions to avoid miraculous timeouts in test cases
         'plugin_defaults': {'processes': 1},
         'unpacking': {
@@ -184,7 +188,7 @@ class AnalysisPluginTestConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     #: The class of the plugin to be tested. It will most probably be called ``AnalysisPlugin``.
-    plugin_class: Type[AnalysisPluginV0] = AnalysisPluginV0
+    plugin_class: type[AnalysisPluginV0] = AnalysisPluginV0
     #: Whether or not to start the workers (see ``AnalysisPlugin.start``).
     #: Not supported for AnalysisPluginV0
     start_processes: bool = False
@@ -238,11 +242,11 @@ def analysis_plugin(request, _patch_config):
     # FIXME now with AnalysisPluginV0 analysis plugins became way simpler
     # We might want to delete everything from AnalysisPluginTestConfig in the future
     PluginClass = test_config.plugin_class  # noqa: N806
-    assert (
-        test_config.init_kwargs == {}
-    ), 'AnalysisPluginTestConfig.init_kwargs must be empty for AnalysisPluginV0 instances'
-    assert (
-        not test_config.start_processes
-    ), 'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
+    assert test_config.init_kwargs == {}, (
+        'AnalysisPluginTestConfig.init_kwargs must be empty for AnalysisPluginV0 instances'
+    )
+    assert not test_config.start_processes, (
+        'AnalysisPluginTestConfig.start_processes cannot be True for AnalysisPluginV0 instances'
+    )
 
     return PluginClass()

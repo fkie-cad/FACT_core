@@ -62,6 +62,7 @@ block-delay = 0.1
 ssdeep-ignore = 1
 intercom-poll-delay = 1.0
 analysis-status-update-interval = 4.5
+graceful-shutdown-timeout = 5
 scheduling-worker-count = 4
 collector-worker-count = 2
 throw-exceptions = false
