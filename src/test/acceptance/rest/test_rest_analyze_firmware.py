@@ -29,7 +29,7 @@ def _rest_search(test_client):
 
 
 def _rest_search_fw_only(test_client):
-    query = json.dumps({'sha256': test_container_uid.split('_')[0]})
+    query = json.dumps({'sha256': test_container_uid.split('_', maxsplit=1)[0]})
     rv = test_client.get(f'/rest/firmware?query={urllib.parse.quote(query)}', follow_redirects=True)
     assert test_container_uid.encode() in rv.data, 'test firmware not found in rest search'
 
