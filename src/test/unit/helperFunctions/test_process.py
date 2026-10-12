@@ -10,7 +10,9 @@ from helperFunctions.process import (
     ExceptionSafeProcess,
     _stop_psutil_process,
     check_worker_exceptions,
+    do_threaded,
     new_worker_was_started,
+    stop_processes,
 )
 
 check_exceptions_finished = Event()
@@ -109,3 +111,26 @@ def test_stop_psutil_process_already_stopped():
     ps_proc = psutil.Process(proc.pid)
     proc.wait()
     _stop_psutil_process(ps_proc, timeout=0.2, wait_first=True)  # should not raise
+
+
+def test_stop_processes_ignores_none():
+    stop_processes([None], timeout=0.1)  # should not raise
+
+
+def _raise(message: str):
+    raise ValueError(message)
+
+
+def test_do_threaded():
+    results = []
+    do_threaded(lambda: results.append(1), (results.append, (2,)))
+    assert sorted(results) == [1, 2]
+
+
+def test_do_threaded_logs_exceptions(caplog):
+    results = []
+    with caplog.at_level(logging.ERROR):
+        do_threaded((_raise, ('first',)), (_raise, ('second',)), lambda: results.append(1))  # should not raise
+    assert results == [1], 'other functions should still run'
+    assert 'first' in caplog.text
+    assert 'second' in caplog.text

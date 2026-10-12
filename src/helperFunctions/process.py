@@ -3,9 +3,9 @@ from __future__ import annotations
 import logging
 import multiprocessing as mp
 import os
-import threading
 import traceback
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 
 import psutil
 
@@ -168,16 +168,16 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
     return new_process != old_process
 
 
-def stop_processes(processes: list[mp.Process], timeout: float = 10.0, wait: bool = True) -> None:
+def stop_processes(processes: list[mp.Process | None], timeout: float = 10.0, wait: bool = True) -> None:
     """
     Try to stop processes gracefully in parallel. If a process does not stop until `timeout` is reached, kill it.
 
-    :param processes: The list of processes that should be stopped.
+    :param processes: The list of processes that should be stopped. ``None`` entries are ignored.
     :param timeout: Timeout for joining the process in seconds.
     :param wait: If wait is set, we expect the processes to stop by themselves, so we try to join before terminating.
     """
     _stop_proc_list(
-        [p for p in processes if p.is_alive()],
+        [p for p in processes if p is not None and p.is_alive()],
         timeout,
         wait_first=wait,
     )
@@ -237,22 +237,26 @@ def _wait_for_psutil_process(process: psutil.Process, timeout: float) -> bool:
 
 def do_threaded(*functions: Callable | tuple[Callable, tuple]) -> None:
     """
-    Run multiple functions concurrently in threads.
+    Run multiple functions concurrently in threads and wait for all of them to finish.
+    Exceptions raised by the functions are logged but not re-raised, as this is used during shutdown where
+    one failing component must not prevent the others from being stopped.
 
     :param functions: Functions to run concurrently. Each entry is either a
         ``Callable`` or a ``tuple[Callable, tuple[*args]]``.
     :raises TypeError: If an entry is neither a ``Callable`` nor a tuple.
     """
-    threads = []
+    calls = []
     for entry in functions:
         if isinstance(entry, tuple):
-            fun, args = entry
+            calls.append(entry)
         elif isinstance(entry, Callable):
-            fun, args = entry, ()
+            calls.append((entry, ()))
         else:
             raise TypeError('Error: expected Callable or tuple[Callable, args]')
-        t = threading.Thread(target=fun, args=args)
-        t.start()
-        threads.append(t)
-    for thread in threads:
-        thread.join()
+    if not calls:
+        return
+    with ThreadPoolExecutor(max_workers=len(calls)) as pool:
+        futures = [pool.submit(fun, *args) for fun, args in calls]
+    for future in futures:
+        if (error := future.exception()) is not None:
+            logging.error(f'Exception in thread: {error}', exc_info=error)

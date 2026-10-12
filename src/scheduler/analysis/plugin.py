@@ -107,7 +107,7 @@ class PluginRunner:
     def shutdown(self) -> None:
         for worker in self._workers:
             if worker.pid is None:
-                return  # worker was never started
+                continue  # worker was never started
             if worker.is_alive():
                 worker.terminate()
             worker.join(Worker.SIGTERM_TIMEOUT + 1)

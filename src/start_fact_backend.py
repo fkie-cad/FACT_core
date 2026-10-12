@@ -21,9 +21,7 @@ import logging
 import os
 import resource
 import sys
-from collections.abc import Callable
 from multiprocessing import Process
-from threading import Thread
 
 from fact_base import FactBase
 from helperFunctions.process import complete_shutdown, do_threaded
@@ -96,12 +94,6 @@ class FactBackend(FactBase):
         )
         if not self.args.testing:
             complete_shutdown()
-
-    @staticmethod
-    def _start_thread(function: Callable) -> Thread:
-        thread = Thread(target=function)
-        thread.start()
-        return thread
 
     def _update_component_workload(self) -> None:
         self.work_load_stat.update(
