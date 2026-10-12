@@ -213,14 +213,26 @@ def _stop_mp_process(process: mp.Process, timeout: float, wait_first: bool = Fal
 
 
 def _stop_psutil_process(process: psutil.Process, timeout: float, wait_first: bool = False) -> None:
-    if wait_first:
-        process.wait(timeout=timeout)
-    process.terminate()
-    process.wait(timeout=timeout)
-    if process.is_running():
+    try:
+        if wait_first and _wait_for_psutil_process(process, timeout):
+            return
+        process.terminate()
+        if _wait_for_psutil_process(process, timeout):
+            return
         logging.warning(f'Process {process.pid} did not terminate -> kill')
         process.kill()
-    process.wait(timeout=0)
+        _wait_for_psutil_process(process, timeout)
+    except psutil.NoSuchProcess:
+        pass  # process exited in the meantime -> nothing to do
+
+
+def _wait_for_psutil_process(process: psutil.Process, timeout: float) -> bool:
+    """Wait for the process to exit. Returns ``True`` if it exited and ``False`` if the timeout was reached."""
+    try:
+        process.wait(timeout=timeout)
+    except psutil.TimeoutExpired:
+        return False
+    return True
 
 
 def do_threaded(*functions: Callable | tuple[Callable, tuple]) -> None:
