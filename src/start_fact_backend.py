@@ -84,16 +84,19 @@ class FactBackend(FactBase):
             logging.debug(f'intercom {listener.__class__.__name__} process: {_get_pids([listener.process])}')
 
     def shutdown(self) -> None:
-        do_threaded(
-            super().shutdown,
-            self.intercom.shutdown,
-            self.compare_service.shutdown,
-            self.unpacking_service.shutdown,
-            self.analysis_service.shutdown,
-            self.unpacking_lock_manager.shutdown,
-        )
-        if not self.args.testing:
-            complete_shutdown()
+        try:
+            self.intercom.shutdown()  # stop accepting new tasks first
+            do_threaded(
+                super().shutdown,
+                self.compare_service.shutdown,
+                self.unpacking_service.shutdown,
+                self.analysis_service.shutdown,
+            )
+            self.unpacking_lock_manager.shutdown()  # the locks are used by all other components => shut down last
+        finally:
+            # make sure that no processes are left over (even if there was an exception) so that the backend can't hang
+            if not self.args.testing:
+                complete_shutdown()
 
     def _update_component_workload(self) -> None:
         self.work_load_stat.update(
