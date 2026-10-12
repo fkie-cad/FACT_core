@@ -9,7 +9,7 @@ class RedisStatusInterface:
     def __init__(self):
         self.redis = RedisInterface()
 
-    def set_analysis_status(self, status: dict):
+    def set_analysis_status(self, status: dict) -> None:
         self.redis.set(ANALYSIS_STATUS_REDIS_KEY, json.dumps(status))
 
     def get_analysis_status(self) -> dict:
