@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import logging
-import os
 import signal
 import sys
 from pathlib import Path
@@ -99,18 +98,17 @@ def _start_component(component: str, args: argparse.Namespace) -> Popen | None:
     if args.config_file is not None:
         command += f'-C {args.config_file}'
 
-    return Popen(split(command))  # noqa: S603
+    # start the component in a new session, so that signals sent to the starter (e.g. Ctrl+C) don't reach it
+    return Popen(split(command), start_new_session=True)  # noqa: S603
 
 
 def _terminate_process(process: Popen | None) -> None:
     if process is not None:
         try:
-            os.kill(process.pid, signal.SIGUSR1)
+            process.terminate()
             process.wait(timeout=60)
         except TimeoutExpired:
             process.kill()
-        except ProcessLookupError:
-            pass
 
 
 if __name__ == '__main__':

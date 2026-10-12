@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import multiprocessing as mp
-import os
 import traceback
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -15,7 +14,7 @@ from helperFunctions.logging import TerminalColors, color_string
 
 def complete_shutdown(message: str | None = None) -> None:
     """
-    Shutdown all FACT processes (of the currently running component) by sending a signal to the process group.
+    Shutdown all remaining subprocesses of the currently running FACT component.
 
     :param message: Optional message to be displayed before the shutdown.
     """
@@ -26,17 +25,9 @@ def complete_shutdown(message: str | None = None) -> None:
 
 
 def _stop_remaining_fact_processes() -> None:
-    """Find subprocesses of this process group and stop them."""
-    pgid = os.getpgrp()
-    fact_subprocesses = [p for p in psutil.process_iter() if _proc_is_in_grp(p, pgid)]
+    """Find all remaining subprocesses of this process (recursively) and stop them."""
+    fact_subprocesses = psutil.Process().children(recursive=True)
     _stop_proc_list(fact_subprocesses, config.backend.graceful_shutdown_timeout, wait_first=True)
-
-
-def _proc_is_in_grp(proc: psutil.Process, pgid: int) -> bool:
-    try:
-        return os.getpgid(proc.pid) == pgid and proc.pid != pgid
-    except (ProcessLookupError, PermissionError):
-        return False
 
 
 class ExceptionSafeProcess(mp.Process):
