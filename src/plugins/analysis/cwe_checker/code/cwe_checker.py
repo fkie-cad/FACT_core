@@ -27,11 +27,11 @@ from semver import Version
 import config
 from analysis.plugin import AnalysisFailedError, AnalysisPluginV0
 from helperFunctions.docker import run_docker_container
+from plugins.analysis.cwe_checker.internal.docker import DOCKER_IMAGE
 
 if TYPE_CHECKING:
     from io import FileIO
 
-DOCKER_IMAGE = 'ghcr.io/fkie-cad/cwe_checker@sha256:e0cde1e4e6abf7ce74c4409f4b93bf8c9a00f52c486b5d7b4e94a84805352151'
 SUPPORTED_ARCHS = ('arm', 'x86', 'x64', 'mips', 'ppc')
 
 
