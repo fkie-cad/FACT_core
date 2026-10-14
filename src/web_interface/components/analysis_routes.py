@@ -7,7 +7,6 @@ from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from common_helper_files import get_binary_from_file
 from flask import flash, render_template, render_template_string, request
 from flask_login.utils import current_user
 from werkzeug.exceptions import BadRequestKeyError
@@ -33,17 +32,13 @@ from web_interface.security.privileges import PRIVILEGES
 if TYPE_CHECKING:
     from objects.file import FileObject
 
-
-def get_analysis_view(view_name: str) -> str:
-    view_path = Path(get_src_dir()) / f'web_interface/templates/analysis_plugins/{view_name}.html'
-    return get_binary_from_file(view_path).decode('utf-8')
+GENERIC_TEMPLATE_PATH = Path(get_src_dir()) / 'web_interface/templates/analysis_plugins/generic.html'
 
 
 class AnalysisRoutes(ComponentBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.analysis_generic_view = get_analysis_view('generic')
-        self.analysis_unpacker_view = get_analysis_view('unpacker')
+        self.analysis_generic_view = GENERIC_TEMPLATE_PATH.read_text()
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/analysis/<uid>', GET)
@@ -132,8 +127,6 @@ class AnalysisRoutes(ComponentBase):
         }
 
     def _get_analysis_view(self, selected_analysis: str) -> str:
-        if selected_analysis == 'unpacker':
-            return self.analysis_unpacker_view
         view = self.db.template.get_view(selected_analysis)
         if view:
             return view.decode('utf-8')

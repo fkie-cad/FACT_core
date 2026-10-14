@@ -12,3 +12,18 @@ def test_view_sync_interface():
     updater.update_view('foo', TEST_TEMPLATE)
 
     assert reader.get_view('foo') == TEST_TEMPLATE
+
+
+def test_clear_views_removes_all_templates():
+    updater = ViewUpdater()
+    reader = ViewReader()
+
+    updater.update_view('foo', TEST_TEMPLATE)
+    updater.update_view('bar', TEST_TEMPLATE)
+    assert reader.get_view('foo') == TEST_TEMPLATE
+    assert reader.get_view('bar') == TEST_TEMPLATE
+
+    updater.clear_views()
+
+    assert reader.get_view('foo') is None
+    assert reader.get_view('bar') is None
