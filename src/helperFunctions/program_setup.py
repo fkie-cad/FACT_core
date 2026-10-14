@@ -1,20 +1,21 @@
 """
-    Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2026  Fraunhofer FKIE
+Firmware Analysis and Comparison Tool (FACT)
+Copyright (C) 2015-2026  Fraunhofer FKIE
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -29,13 +30,17 @@ from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
 
 
-def setup_argparser(name, description, command_line_options=sys.argv, version=__VERSION__):
+def setup_argparser(
+    name: str, description: str, command_line_options: list[str] | None = None, version: str = __VERSION__
+) -> argparse.Namespace:
     """
     Sets up an ArgumentParser with some default flags and parses
     command_line_options.
 
     :return: The populated namespace from ArgumentParser.parse_args
     """
+    if command_line_options is None:
+        command_line_options = sys.argv
 
     parser = argparse.ArgumentParser(description=f'{name} - {description}')
     parser.add_argument('-V', '--version', action='version', version=f'{name} {version}')
@@ -52,10 +57,17 @@ def setup_argparser(name, description, command_line_options=sys.argv, version=__
         '-t', '--testing', default=False, action='store_true', help='shutdown system after one iteration'
     )
     parser.add_argument('--no-radare', default=False, action='store_true', help="don't start radare server")
+    parser.add_argument(
+        '-D',
+        '--development',
+        default=False,
+        action='store_true',
+        help='start the frontend Flask server in development mode (auto-reload on change)',
+    )
     return parser.parse_args(command_line_options[1:])
 
 
-def _get_logging_config(args, component) -> tuple[str | None, int | None, int]:
+def _get_logging_config(args: argparse.Namespace | None, component: str) -> tuple[str | None, int | None, int]:
     """
     Returns a tuple of (logfile, file_loglevel, console_loglevel) read from args and the config file.
     The loglevel is returned as an integer.
@@ -74,14 +86,14 @@ def _get_logging_config(args, component) -> tuple[str | None, int | None, int]:
         with suppress(ValueError):
             setattr(config.common.logging, f'file_{component}', logfile)
     elif component not in ['frontend', 'backend', 'database']:
-        logfile = f'/tmp/fact_{component}.log'
+        logfile = f'/tmp/fact_{component}.log'  # noqa: S108
     else:
         logfile = getattr(config.common.logging, f'file_{component}')
 
     return logfile, file_loglevel, console_loglevel
 
 
-def setup_logging(args, component):
+def setup_logging(args: argparse.Namespace, component: str) -> None:
     logfile, file_loglevel, console_loglevel = _get_logging_config(args, component)
 
     log_format = {'fmt': '[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', 'datefmt': '%Y-%m-%d %H:%M:%S'}
