@@ -43,7 +43,7 @@ def test_unused_jinja_filter() -> None:
     for search_dir in search_dirs:
         if not search_dir.is_dir():
             continue
-        for file_path in templates_dir.rglob('*'):
+        for file_path in search_dir.rglob('*'):
             if file_path.is_file() and file_path.suffix.lower() in template_suffixes:
                 contents.append(file_path.read_text(encoding='utf-8', errors='ignore'))
 
