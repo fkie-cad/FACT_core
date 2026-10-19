@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 
 import pytest
@@ -18,5 +20,9 @@ def test_detect_type_of_file(analysis_plugin):
 
     assert result.mime == 'application/zip', 'mime-type not detected correctly'
     assert result.full.startswith('Zip archive data,'), 'full type not correct'
+    assert result.magika.label == 'zip'
+    assert result.magika.group == 'archive'
+    assert result.magika.mime == 'application/zip'
+    assert result.magika.confidence > 0.8
 
     assert summary == ['application/zip']
