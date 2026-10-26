@@ -71,6 +71,8 @@ throw-exceptions = false
 # Default number of processes for plugins.
 # Can be overwritten by setting backend.plugin.processes
 processes = 2
+# If true, ignore the processes setting of individual plugins and use the default above for all plugins
+ignore-plugin-processes = true
 # Overwrite plugin timeout (in seconds) for all plugins. Can also be set for individual plugins.
 # timeout = 300
 
