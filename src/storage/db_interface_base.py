@@ -55,7 +55,7 @@ class ReadWriteDbInterface(ReadOnlyDbInterface):
             session.commit()
         except (SQLAlchemyError, DbInterfaceError) as err:
             session.rollback()
-            if 'not JSON serializable' in str(err):
+            if isinstance(err, DbSerializationError) or 'not JSON serializable' in str(err):
                 raise DbSerializationError() from err
             message = 'Database error when trying to write to the database'
             logging.exception(f'{message}: {err}')

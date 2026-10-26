@@ -13,6 +13,7 @@ from helperFunctions.virtual_file_path import get_some_vfp
 from objects.firmware import Firmware
 from storage.db_interface_common import DbInterfaceCommon
 from storage.query_conversion import build_generic_search_query, build_query_from_dict, query_parent_firmware
+from storage.safe_types import _unescape_string
 from storage.schema import (
     AnalysisEntry,
     FileObjectEntry,
@@ -143,7 +144,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def get_tag_list(self) -> list[str]:
         with self.get_read_only_session() as session:
             query = select(func.unnest(FirmwareEntry.firmware_tags)).distinct()
-            return sorted(session.execute(query).scalars())
+            return sorted(_unescape_string(tag) for tag in session.execute(query).scalars())
 
     def get_device_name_dict(self) -> dict[str, dict[str, list[str]]]:
         device_name_dict = {}
