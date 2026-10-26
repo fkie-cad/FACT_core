@@ -151,6 +151,10 @@ class Backend(Common):
 
     scheduling_worker_count: int = 4
     collector_worker_count: int = 2
+    #: Analysis scheduling and result collector processes are restarted after processing this many tasks. Memory
+    #: allocated during the (de)serialization of the objects passed through the queues is not returned to the OS
+    #: while the process runs, so restarting them regularly frees it again. ``0`` disables the restarts.
+    scheduling_max_tasks_per_process: int = 10_000
 
     unpacking: Backend.Unpacking
     binary_search: Backend.BinarySearch

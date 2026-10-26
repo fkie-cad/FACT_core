@@ -71,6 +71,7 @@ class FactBackend(FactBase):
         logging.debug(f'backend main process: {os.getpid()}')
         logging.debug(f'unpacking scheduler process: {_get_pids([self.unpacking_service.extraction_process])}')
         logging.debug(f'unpacking monitoring process: {_get_pids([self.unpacking_service.work_load_process])}')
+        logging.debug(f'unpacking locks manager process: {self.unpacking_lock_manager.manager._process.pid}')
         logging.debug(
             f'unpacking container workers: {", ".join(str(c.container_pid) for c in self.unpacking_service.workers)}'
         )
@@ -98,6 +99,9 @@ class FactBackend(FactBase):
             unpacking_workload=self.unpacking_service.get_scheduled_workload(),
             analysis_workload=self.analysis_service.get_scheduled_workload(),
         )
+
+    def _maintain_components(self) -> None:
+        self.analysis_service.restart_retiring_processes()
 
     def _exception_occurred(self) -> bool:
         return any(

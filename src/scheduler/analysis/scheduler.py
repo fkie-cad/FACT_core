@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from multiprocessing import Lock, Queue, Value
+from multiprocessing import Array, Lock, Queue, Value
 from pathlib import Path
 from queue import Empty
 from time import sleep
@@ -19,7 +19,12 @@ from analysis.plugin import AnalysisPluginV0
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import discover_analysis_plugins
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
+from helperFunctions.process import (
+    ExceptionSafeProcess,
+    check_worker_exceptions,
+    start_single_worker,
+    stop_processes,
+)
 from objects.firmware import Firmware
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
@@ -36,6 +41,9 @@ if TYPE_CHECKING:
 
     from objects.file import FileObject
     from storage.unpacking_locks import UnpackingLockManager
+
+SCHEDULER_LABEL = 'Analysis-Scheduler'
+COLLECTOR_LABEL = 'Analysis-Collector'
 
 
 class AnalysisScheduler:
@@ -121,6 +129,11 @@ class AnalysisScheduler:
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
         self.schedule_processes = []
         self.result_collector_processes = []
+        #: flags (one per process slot) that are set by processes which reached the task limit and are about to exit
+        self._retiring_schedulers = Array('b', config.backend.scheduling_worker_count)
+        self._retiring_collectors = Array('b', config.backend.collector_worker_count)
+        #: processes that were already replaced but may still be flushing their queue buffers
+        self._retired_processes: list[ExceptionSafeProcess] = []
 
         self.file_service = FileService()
         self.db_backend_service = db_interface or BackendDbInterface()
@@ -142,7 +155,7 @@ class AnalysisScheduler:
         logging.debug('Shutting down analysis scheduler')
         self.stop_condition.value = 1
         # first shut down scheduling, then analysis plugins and lastly the result collector
-        stop_processes(self.schedule_processes, config.backend.block_delay + 1)
+        stop_processes(self.schedule_processes + self._retired_processes, config.backend.block_delay + 1)
 
         for runner in self._plugin_runners.values():
             runner.shutdown()
@@ -317,15 +330,14 @@ class AnalysisScheduler:
 
     def _start_scheduling_processes(self) -> None:
         self.schedule_processes = [
-            ExceptionSafeProcess(target=self._task_runner, args=(i,))
+            start_single_worker(i, SCHEDULER_LABEL, self._task_runner)
             for i in range(config.backend.scheduling_worker_count)
         ]
-        for process in self.schedule_processes:
-            process.start()
 
     def _task_runner(self, index: int = 0) -> None:
         logging.debug(f'Started analysis scheduling worker {index} (pid={os.getpid()})')
-        while self.stop_condition.value == 0:
+        processed_tasks = 0
+        while self.stop_condition.value == 0 and not _task_limit_reached(processed_tasks):
             try:
                 task = self.process_queue.get(timeout=config.backend.block_delay)
             except Empty:
@@ -333,7 +345,10 @@ class AnalysisScheduler:
             else:
                 self._process_next_analysis_task(task)
                 del task
-        logging.debug(f'Stopped analysis scheduling worker {index}')
+                processed_tasks += 1
+        if self.stop_condition.value == 0:
+            self._retiring_schedulers[index] = 1
+        logging.debug(f'Stopped analysis scheduling worker {index} after {processed_tasks} tasks')
 
     def _process_next_analysis_task(self, fw_object: FileObject) -> None:
         self.unpacking_locks.release_unpacking_lock(fw_object.uid)
@@ -506,16 +521,15 @@ class AnalysisScheduler:
 
     def _start_result_collector(self) -> None:
         self.result_collector_processes = [
-            ExceptionSafeProcess(target=self._result_collector, args=(i,))
+            start_single_worker(i, COLLECTOR_LABEL, self._result_collector)
             for i in range(config.backend.collector_worker_count)
         ]
-        for process in self.result_collector_processes:
-            process.start()
 
     def _result_collector(self, index: int = 0) -> None:
         # Collects the results from the plugins and writes them in FileObject.processed_analysis
         logging.debug(f'Started analysis result collector worker {index} (pid={os.getpid()})')
-        while self.stop_condition.value == 0:
+        processed_tasks = 0
+        while self.stop_condition.value == 0 and not _task_limit_reached(processed_tasks):
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
                 runner = self._plugin_runners[plugin.metadata.name]
@@ -529,9 +543,12 @@ class AnalysisScheduler:
                     nop = False
                     self._handle_collected_result(fw, plugin_name)
                     del fw
+                    processed_tasks += 1
             if nop:
                 sleep(config.backend.block_delay)
-        logging.debug(f'Stopped analysis result collector worker {index}')
+        if self.stop_condition.value == 0:
+            self._retiring_collectors[index] = 1
+        logging.debug(f'Stopped analysis result collector worker {index} after {processed_tasks} tasks')
 
     def _handle_collected_result(self, fo: FileObject, plugin_name: str) -> None:
         if fo.analysis_exception:
@@ -612,6 +629,44 @@ class AnalysisScheduler:
             }
         return workload
 
+    def restart_retiring_processes(self) -> None:
+        """
+        Scheduling and result collector processes exit after ``scheduling_max_tasks_per_process`` tasks, since the
+        memory allocated for passing objects through the queues is not returned to the OS while they are running.
+        Replace processes that announced their exit with new ones. Must be called from the process that owns the
+        process lists (the backend main process).
+
+        The replacement must be started as soon as the exit is announced and not only after the process has exited:
+        An exiting process first has to flush the buffers of all queues it has put objects into (including the
+        ``process_queue``). If all consumers of the ``process_queue`` were exiting at the same time, nobody would read
+        from it, and they would block each other forever.
+        """
+        if self.stop_condition.value != 0:
+            return  # the scheduler is shutting down
+        self._replace_retiring_processes(
+            self.schedule_processes, self._retiring_schedulers, SCHEDULER_LABEL, self._task_runner
+        )
+        self._replace_retiring_processes(
+            self.result_collector_processes, self._retiring_collectors, COLLECTOR_LABEL, self._result_collector
+        )
+        for process in [p for p in self._retired_processes if not p.is_alive()]:
+            process.join()
+            self._retired_processes.remove(process)
+
+    def _replace_retiring_processes(
+        self, processes: list[ExceptionSafeProcess], retiring_flags: Array, label: str, function: Callable
+    ) -> None:
+        for list_index, process in enumerate(processes):
+            slot = int(process.name.rsplit('-', 1)[-1])
+            if not retiring_flags[slot]:
+                continue
+            retiring_flags[slot] = 0
+            self._retired_processes.append(process)
+            processes[list_index] = start_single_worker(slot, label, function)
+            logging.info(
+                f'Restarted {label} process {slot} to free memory (pid {process.pid} -> {processes[list_index].pid})'
+            )
+
     def check_exceptions(self) -> bool:
         """
         Iterate all attached processes and see if an exception occurred in any. Depending on configuration, plugin
@@ -620,6 +675,11 @@ class AnalysisScheduler:
         :return: Boolean value stating if any attached process ran into an exception
         """
         return check_worker_exceptions(self.schedule_processes + self.result_collector_processes, 'Scheduler')
+
+
+def _task_limit_reached(processed_tasks: int) -> bool:
+    limit = config.backend.scheduling_max_tasks_per_process
+    return 0 < limit <= processed_tasks
 
 
 def _fix_system_version(system_version: str | None) -> str:
