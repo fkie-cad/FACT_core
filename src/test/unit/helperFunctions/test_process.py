@@ -5,8 +5,17 @@ from time import sleep
 import pytest
 
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
+from storage.db_connection import _engines
 
 check_exceptions_finished = Event()
+
+
+@pytest.fixture(autouse=True)
+def _clear_db_engines():
+    saved = set(_engines)
+    _engines.clear()
+    yield
+    _engines.update(saved)
 
 
 def breaking_process(wait: bool = False):
