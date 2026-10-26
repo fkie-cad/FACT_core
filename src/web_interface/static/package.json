@@ -1,16 +1,16 @@
 {
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.2",
-    "@graphiql/plugin-explorer": "^3.0.2",
-    "@graphiql/toolkit": "^0.9.1",
+    "@graphiql/plugin-explorer": "^4.0.6",
     "@highlightjs/cdn-assets": "^11.8.0",
     "bootstrap": "^4.6.2",
     "bootstrap-datepicker": "^1.9.0",
     "bootstrap-select": "^1.13.18",
     "bootstrap-table": "^1.23.5",
     "chart.js": "^2.3.0",
+    "codemirror": "^5.65.21",
     "diff2html": "^3.4.56",
-    "graphiql": "^3.2.3",
+    "graphiql": "^4.1.2",
     "highlightjs-line-numbers.js": "^2.9.0",
     "jquery": "^3.5.0",
     "json5": "^2.2.3",
@@ -23,5 +23,11 @@
   },
   "license": "GPL-3.0-only",
   "name": "FACT_core-static",
+  "overrides": {
+    "graphiql-explorer": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
+  },
   "version": "0.0.0"
 }
