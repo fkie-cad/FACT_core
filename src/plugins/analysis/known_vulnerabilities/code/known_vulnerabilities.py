@@ -42,7 +42,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             name='known_vulnerabilities',
             description='Rule based detection of known vulnerabilities like Heartbleed',
             dependencies=['file_hashes', 'software_components'],
-            version=Version(1, 0, 0),
+            version=Version(1, 0, 1),
             Schema=self.Schema,
         )
         super().__init__(metadata=metadata)
@@ -81,7 +81,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             matched_vulnerabilities.extend(self._check_netusb_vulnerability(path))
 
         # CVE-2024-3094 XZ Backdoor secondary detection
-        if 'liblzma' in software_by_name and not any(vuln == 'xz_backdoor' for vuln, _ in yara_result):
+        if 'liblzma' in software_by_name and not any(vuln.name == 'xz_backdoor' for vuln in yara_result):
             matched_vulnerabilities.extend(_check_xz_backdoor(software_by_name['liblzma']))
         return matched_vulnerabilities
 
