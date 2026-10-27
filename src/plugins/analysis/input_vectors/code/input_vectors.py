@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 DOCKER_IMAGE = 'input-vectors:latest'
 TIMEOUT_IN_SECONDS = 120
-CONTAINER_TARGET_PATH = '/tmp/input'
+CONTAINER_TARGET_PATH = '/tmp/input'  # noqa: S108
 
 
 class InputVector(BaseModel):
@@ -50,7 +50,11 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(
             metadata=self.MetaData(
                 name='input_vectors',
-                description='Determines possible input vectors of an ELF executable like stdin, network, or syscalls.',
+                description=(
+                    'Enumerates input vectors of an ELF executable (e.g. stdin, network, and syscalls) that an '
+                    'attacker could target, mapping the externally-reachable attack surface of the firmware.'
+                ),
+                tooltip='determine possible input vectors of an ELF executable',
                 version=Version(1, 0, 0),
                 Schema=self.Schema,
                 mime_whitelist=[

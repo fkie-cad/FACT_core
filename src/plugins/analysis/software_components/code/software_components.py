@@ -49,7 +49,12 @@ class AnalysisPlugin(AnalysisPluginV0):
             metadata=(
                 self.MetaData(
                     name='software_components',
-                    description='identify software components',
+                    description=(
+                        'Identifies software components embedded in the firmware (e.g. BusyBox, OpenSSL, libcurl, '
+                        'OpenSSH, Linux kernel) via YARA rules and extracts version numbers when present. The output '
+                        'drives downstream CVE matching by cve_lookup and known_vulnerabilities.'
+                    ),
+                    tooltip='identify software components',
                     dependencies=['file_type'],
                     mime_blacklist=MIME_BLACKLIST_NON_EXECUTABLE,
                     version=Version(1, 1, 0),

@@ -55,7 +55,15 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(
             metadata=self.MetaData(
                 name='ip_and_uri_finder',
-                description='Search file for IP addresses and URIs based on regular expressions.',
+                description=(
+                    'Searches the file for IP addresses (v4 and v6) and URIs using regular expressions, and '
+                    'geolocates each IP against the local GeoLite2 database. From the extracted URIs it builds an '
+                    'interesting_uris shortlist via a substring heuristic: bare IPs are dropped, URIs matching a '
+                    'benign-domain denylist are removed, and only URIs containing one of a small fixed allowlist of '
+                    'tokens (e.g. get, set, post, send, firmware, router) are kept. The allowlist is tuned for '
+                    'consumer-router admin / CGI endpoints, so both false positives and false negatives are expected.'
+                ),
+                tooltip='search file for IP addresses and URIs',
                 version=Version(1, 2, 0),
                 Schema=self.Schema,
                 mime_whitelist=[

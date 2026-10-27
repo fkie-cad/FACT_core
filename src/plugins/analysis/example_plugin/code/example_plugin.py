@@ -41,7 +41,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         )
         super().__init__(metadata=metadata)
 
-    def summarize(self, result):
+    def summarize(self, result: Schema) -> list[str]:
         del result
         return ['big-file', 'binary']
 

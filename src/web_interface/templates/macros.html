@@ -86,3 +86,62 @@
         {{ offset | hex }}
     </a>
 {%- endmacro %}
+
+{% macro render_card_list(list_) %}
+    {% if list_ %}
+        {{ list_ | list_group_collapse | safe }}
+    {% else %}
+        <div class="ml-3">&mdash;</div>
+    {% endif %}
+{%- endmacro %}
+
+{% macro icon_tooltip_desk(icon, tooltip, icon_class=None) %}
+    {% set icon_class = icon_class if icon_class else 'fas' %}
+    <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}">
+        <i class="{{ icon_class }} fa-{{ icon }}"></i>
+    </td>
+{% endmacro %}
+
+{% macro plugin_card(plugin_name, plugin_data, unique_id=None, show_collapse=True) %}
+    {% set card_id = unique_id if unique_id else plugin_name %}
+    <div class="card m-0 w-100">
+        <div class="card-body">
+            <h5 class="card-title">{{ plugin_name }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{ plugin_data.version }}</h6>
+
+            <div class="{% if not show_collapse %}collapse.show{% endif %} m-0 p-0 mt-3" id="{{ card_id }}">
+                <span class="card-text">
+                    {{ plugin_data.description }}
+                </span>
+                <table class="table table-borderless mb-0 table-sm">
+                    <tr>
+                        {{ icon_tooltip_desk('project-diagram', 'Plugin dependencies') }}
+                        <td>{{ render_card_list(plugin_data.dependencies) }}</td>
+                    </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('flag', 'Blacklisted file types') }}
+                        <td>{{ render_card_list(plugin_data.blacklist) }}</td>
+                    </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('flag', 'Whitelisted file types', icon_class='far') }}
+                        <td>{{ render_card_list(plugin_data.whitelist) }}</td>
+                    </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('clone', 'Worker count') }}
+                        <td>
+                            <div class="ml-3">{{ plugin_data.worker_count }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            {% if show_collapse %}
+                {% set button_id = "bt-" + card_id %}
+                <button type="button" class="btn btn-outline-secondary btn-sm btn-block mt-3" data-toggle="collapse" data-target="#{{ card_id }}" onclick="toggleCaretIcon('{{ button_id }}')">
+                    <i id="{{ button_id }}" class="fas fa-caret-down"></i>
+                </button>
+            {% endif %}
+
+        </div>
+    </div>
+{% endmacro %}

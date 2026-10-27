@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 import pydantic
 from docker.types import Mount
@@ -36,28 +36,24 @@ class AnalysisPlugin(AnalysisPluginV0):
         class Issue(pydantic.BaseModel):
             """A linting issue."""
 
-            symbol: Optional[str] = Field(
+            symbol: str | None = Field(
                 description=(
                     "An identifier for the linting type. E.g. 'unused-import' (pylint).\n"
                     'Note that this field is linter specific.'
                 ),
             )
-            type: Optional[str] = Field(None, description="E.g. 'warning' or 'error'")
+            type: str | None = Field(None, description="E.g. 'warning' or 'error'")
             message: str = Field(
-                description=(
-                    # fmt: off
-                    'The human readable description of the issue.\n' 'Note that this field is linter specific.'
-                ),
+                description=('The human readable description of the issue.\nNote that this field is linter specific.'),
             )
             line: int = Field(description='The line in the file where the issue occurred')
             column: int = Field(description='The column in the file where the issue occurred')
 
-        language: Optional[str] = Field(description='The language. Is set to None when no language is detected.')
+        language: str | None = Field(description='The language. Is set to None when no language is detected.')
         linguist: dict = Field(description='The dict output by `linguist --json`.')
-        issues: Optional[List[Issue]] = Field(
+        issues: list[Issue] | None = Field(
             description=(
-                # fmt: off
-                'A list of issues the linter for ``script_type`` found.\n' 'Is set to None if no linter is available.'
+                'A list of issues the linter for ``script_type`` found.\nIs set to None if no linter is available.'
             ),
         )
 
@@ -65,7 +61,11 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(
             metadata=self.MetaData(
                 name='source_code_analysis',
-                description='This plugin implements static code analysis for multiple scripting languages',
+                description=(
+                    'Runs language-specific linters (eslint, luacheck, pylint, rubocop, shellcheck, phpstan) on '
+                    'script files found inside the firmware and reports code-quality issues.'
+                ),
+                tooltip='static code analysis for multiple scripting languages',
                 version=Version(0, 7, 3),
                 Schema=AnalysisPlugin.Schema,
                 mime_whitelist=['text/', 'application/javascript'],

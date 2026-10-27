@@ -3,6 +3,7 @@ from http import HTTPStatus
 import pytest
 
 from helperFunctions.data_conversion import make_bytes
+from helperFunctions.types import PluginData
 from test.common_helper import (
     TEST_FW,
     TEST_FW_2,
@@ -29,7 +30,7 @@ class IntercomMock(CommonIntercomMock):
         plugins = super().get_available_analysis_plugins()
         plugins.update(
             {
-                'failed_analysis': ('plugin description', False, {'default': True}, *self._common_fields),
+                'failed_analysis': PluginData('plugin description', False, {'default': True}, *self._common_fields),
             }
         )
 
@@ -52,8 +53,7 @@ class TestAppShowAnalysis:
     def test_app_show_analysis_get_valid_fw(self, test_client):
         result = test_client.get(f'/analysis/{TEST_FW.uid}').data
         assert b'<strong>UID:</strong> ' + make_bytes(TEST_FW.uid) in result
-        assert b'data-toggle="tooltip" title="mandatory plugin description"' in result
-        assert b'data-toggle="tooltip" title="optional plugin description"' in result
+        assert b'data-toggle="tooltip" title="test tooltip"' in result
         assert b'test text' in result, 'general info: file type is missing'
 
         # check release date not available

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from semver import Version
@@ -19,14 +19,19 @@ class Architecture(BaseModel):
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        architectures: List[Architecture]
+        architectures: list[Architecture]
 
     def __init__(self):
         super().__init__(
             metadata=(
                 self.MetaData(
                     name='cpu_architecture',
-                    description='identify CPU architecture',
+                    description=(
+                        'Identifies the CPU instruction set architecture (ISA) of an executable or the target system '
+                        'by combining four detection methods: ELF header inspection, device-tree (DTB) analysis, '
+                        'kernel-config inspection, and file metadata.'
+                    ),
+                    tooltip='identify CPU architecture',
                     mime_blacklist=[
                         'application/msword',
                         'application/pdf',

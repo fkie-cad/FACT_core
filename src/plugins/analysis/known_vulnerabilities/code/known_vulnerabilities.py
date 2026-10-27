@@ -4,7 +4,7 @@ import json
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from docker.errors import DockerException
 from docker.types import Mount
@@ -26,21 +26,25 @@ VULNERABILITIES = vulnerabilities()
 
 class Vulnerability(BaseModel):
     name: str
-    link: Optional[str] = None
-    score: Optional[str] = None
-    description: Optional[str] = None
-    reliability: Optional[str] = None
-    additional_data: Optional[dict] = None
+    link: str | None = None
+    score: str | None = None
+    description: str | None = None
+    reliability: str | None = None
+    additional_data: dict | None = None
 
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        vulnerabilities: List[Vulnerability]
+        vulnerabilities: list[Vulnerability]
 
     def __init__(self):
         metadata = self.MetaData(
             name='known_vulnerabilities',
-            description='Rule based detection of known vulnerabilities like Heartbleed',
+            description=(
+                'Detects well-known vulnerabilities (e.g. Heartbleed, the XZ backdoor, NetUSB / CVE-2021-45608) via '
+                'a combination of YARA rules and version-based component matching against software_components results.'
+            ),
+            tooltip='detect known vulnerabilities like Heartbleed',
             dependencies=['file_hashes', 'software_components'],
             version=Version(1, 0, 0),
             Schema=self.Schema,

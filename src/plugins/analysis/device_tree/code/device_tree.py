@@ -22,7 +22,12 @@ class AnalysisPlugin(AnalysisPluginV0):
     def __init__(self):
         metadata = self.MetaData(
             name='device_tree',
-            description='get the device tree in text from the device tree blob',
+            description=(
+                'Extracts and parses Linux device tree blobs (.dtb), which describe the target hardware to the '
+                'kernel — CPU layout, memory map, peripherals, and SoC/board identification. Useful for identifying '
+                'the exact hardware target of a firmware image.'
+            ),
+            tooltip='get the device tree in text from the device tree blob',
             version=Version(3, 0, 0),
             system_version=None,
             mime_blacklist=[*MIME_BLACKLIST_COMPRESSED, 'audio', 'image', 'video'],

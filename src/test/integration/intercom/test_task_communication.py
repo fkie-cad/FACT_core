@@ -115,7 +115,9 @@ class TestInterComTaskCommunication:
         assert result == ('valid_id', False)
 
     def test_analysis_plugin_publication(self, intercom_frontend):
-        plugin_dict = {'test_plugin': ('test plugin description', True, {}, '1.0.0', [], [], [], 2)}
+        plugin_dict = {
+            'test_plugin': ('test plugin description', True, {}, '1.0.0', [], [], [], 2, 'test plugin tooltip')
+        }
         publish_available_analysis_plugins(plugin_dict)
         plugins = intercom_frontend.get_available_analysis_plugins()
         assert len(plugins) == 1, 'Not all plug-ins found'

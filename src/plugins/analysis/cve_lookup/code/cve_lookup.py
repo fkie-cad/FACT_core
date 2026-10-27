@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 from semver import Version
@@ -23,9 +23,9 @@ DB_PATH = str(Path(__file__).parent / '../internal/database/cve_cpe.db')
 
 class CveResult(BaseModel):
     software_name: str
-    cve_list: List[CveMatch]
+    cve_list: list[CveMatch]
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> bool:  # noqa: ANN401
         if not isinstance(other, self.__class__):
             raise TypeError(f'Wrong type: {type(other)}')
         return self.software_name < other.software_name  # to enable sorting
@@ -37,14 +37,18 @@ class AnalysisPlugin(AnalysisPluginV0):
     """
 
     class Schema(BaseModel):
-        cve_results: List[CveResult]
+        cve_results: list[CveResult]
 
     def __init__(self):
         super().__init__(
             metadata=(
                 self.MetaData(
                     name='cve_lookup',
-                    description='lookup CVE vulnerabilities',
+                    description=(
+                        'Looks up known CVEs (Common Vulnerabilities and Exposures) for each software component '
+                        'identified by the software_components plugin, using a local CVE-to-CPE SQLite database.'
+                    ),
+                    tooltip='lookup CVE vulnerabilities',
                     mime_blacklist=MIME_BLACKLIST_NON_EXECUTABLE,
                     version=Version(1, 0, 0),
                     dependencies=['software_components'],
@@ -99,7 +103,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             if self._entry_has_critical_rating(cve.scores)
         ]
 
-    def _software_has_critical_cve(self, cve_list: List[CveMatch]) -> bool:
+    def _software_has_critical_cve(self, cve_list: list[CveMatch]) -> bool:
         """
         Check if any entry in the given dictionary of CVEs has a critical rating.
         """

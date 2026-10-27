@@ -107,6 +107,7 @@ autodoc_mock_imports = [
     'tlsh',
     'toml',
     'uwsgi',
+    'web_interface.security.decorator',
     'werkzeug',
     'wtforms',
     'xmltodict',

@@ -157,7 +157,12 @@ class AnalysisPlugin(AnalysisPluginV0):
         super().__init__(
             metadata=self.MetaData(
                 name=PLUGIN_NAME,
-                description='test if included binaries can be executed with QEMU system and collect the output',
+                description=(
+                    'Attempts to execute included binaries inside QEMU emulation to determine their supported '
+                    'architectures, capture help output, and identify CLI arguments. Useful for understanding what '
+                    'a binary does without full static reverse engineering.'
+                ),
+                tooltip='test if included binaries can be executed with QEMU system',
                 dependencies=['file_type'],
                 version=Version(1, 0, 0),
                 Schema=self.Schema,

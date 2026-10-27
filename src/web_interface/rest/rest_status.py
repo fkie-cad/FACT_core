@@ -1,5 +1,6 @@
 from flask_restx import Namespace
 
+from helperFunctions.types import PluginData
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -14,7 +15,7 @@ class RestStatus(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Error'})
-    def get(self):
+    def get(self) -> tuple[dict, int]:
         """
         Request system status
         Request a json document showing the system state of FACT, similar to the system health page of the GUI
@@ -40,11 +41,9 @@ class RestStatus(RestResourceBase):
         return success_message(response, self.URL)
 
     @staticmethod
-    def _condense_plugin_information(plugins):
-        plugins.pop('unpacker', None)
-
-        for name, information in plugins.items():
-            description, _, _, version, _, _, _, _ = information
-            plugins[name] = {'description': description, 'version': version}
-
-        return plugins
+    def _condense_plugin_information(plugins: dict[str, PluginData]) -> dict[str, dict]:
+        return {
+            name: {'description': data.description, 'version': data.version}
+            for name, data in plugins.items()
+            if name != 'unpacker'
+        }
