@@ -163,6 +163,15 @@ min-length = 6
 name = "users_and_passwords"
 processes = 4
 
+[[backend.plugin]]
+name = "hashlookup"
+processes = 2
+# configure a custom hash lookup server (should provide the /lookup/sha256/{hash} endpoint and return JSON)
+server = "https://hashlookup.circl.lu"
+# set to true to enable local bloom filter matching (no internet connection or local server required); this expects the
+# bloom filter file `hashlookup-full.bloom` to be present in the bin directory of the plugin. Either download it and put
+# it there manually or run `python3 src/plugins/analysis/hashlookup/install.py --local`
+local-only = false
 
 
 [frontend]
