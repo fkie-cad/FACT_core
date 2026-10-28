@@ -1,8 +1,10 @@
 from http import HTTPStatus
+from pathlib import Path
 
 import pytest
 
 from helperFunctions.data_conversion import make_bytes
+from helperFunctions.fileSystem import get_src_dir
 from test.common_helper import (
     TEST_FW,
     TEST_FW_2,
@@ -12,6 +14,7 @@ from test.common_helper import (
     generate_analysis_entry,
 )
 from test.unit.conftest import CommonIntercomMock
+from web_interface.components.analysis_routes import _find_plugin_view_files
 
 FAILED_FO = create_test_file_object(
     uid='failed_uid',
@@ -101,3 +104,10 @@ class TestAppShowAnalysis:
         assert 'Failed' in template
         assert 'reason for fail' in template
         assert 'class="table-danger"' in template, 'failed result should be rendered in "danger" style'
+
+
+def test_find_plugin_view_files():
+    view_path = Path(get_src_dir()) / 'plugins/analysis/hash/view/hash.html'
+    stored_views = {'file_hashes': view_path.read_bytes(), 'unknown_plugin': b'no matching file'}
+
+    assert _find_plugin_view_files(stored_views) == {'file_hashes': view_path}
