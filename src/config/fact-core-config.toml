@@ -152,6 +152,14 @@ name = "input_vectors"
 processes = 4
 
 [[backend.plugin]]
+name = "ip_and_uri_finder"
+# Interesting URIs and URLs are a subset of regular matches that is computed by filtering the results.
+# The filters are defined in plugins/analysis/ip_and_uri_finder/internal/interesting_uris.py.
+# Optional custom filters can be defined by editing and commenting in the lines below:
+# interesting-uri-blacklist = []
+# interesting-uri-whitelist = []
+
+[[backend.plugin]]
 name = "kernel_config"
 processes = 4
 
