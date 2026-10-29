@@ -17,7 +17,7 @@ function init_preview() {
             }
         );
     }
-    preview_button.scrollIntoView();
+    document.getElementById("preview-section").scrollIntoView();
     offset_input.focus();
 }
 
@@ -35,9 +35,9 @@ async function highlightCode(jqElement, lineNumbering = false, sizeLimit = 10485
 
 function loadPreview(offset = null, focus = false) {
     let resourcePath;
-    document.getElementById("preview_button").onclick = () => false;
+    preview_button.style.display = "none";
+    document.getElementById("preview-div").style.display = "block";
     if (focus && offset !== null) {
-        document.getElementById("preview-div").classList.add("show");
         offset_input.value = offset;
     }
     if (isTextOrImage) {
@@ -79,7 +79,7 @@ function validateHexPreviewInputs() {
     return valid;
 }
 
-preview_button.onclick = loadPreview;
+preview_button.onclick = () => loadPreview();
 let rawResultIsHighlighted = false;
 const toggleSwitch = document.getElementById("rawResultSwitch");
 const analysisTable = document.getElementById("analysis-table-body");

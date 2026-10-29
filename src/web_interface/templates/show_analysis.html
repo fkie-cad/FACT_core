@@ -79,7 +79,7 @@
             </h3>
             {% if all_analyzed_flag %}
                 <div class="alert alert-warning">
-                    <strong>Warning!</strong> Not all included files are fully analyzed yet! Only analyzed files are shown.
+                    <strong>Warning!</strong> Not all extracted files are fully analyzed yet! Only analyzed files are shown.
                 </div>
             {% endif %}
         </div>
@@ -100,55 +100,38 @@
     {# File tree section #}
     {% include "show_analysis/file_tree.j2" %}
 
-    <div class="row">
-        {# Select analysis section #}
-        {% include "show_analysis/select_analysis.j2" %}
+    {# Analysis selection + results section #}
+    <div class="row mb-3">
+        <div class="col-lg-12">
+            <div class="analysis-section">
+                <div class="analysis-section-header">Analysis Results</div>
+                <div class="row border analysis-section-body p-0 m-0">
 
-        {# Showing analysis section #}
-        {% block complete_analysis_block %}
+                    {# Select analysis section #}
+                    {% include "show_analysis/select_analysis.j2" %}
 
-            <div class="col-lg-10">
-                {% block analysis_result %}
-                {% endblock %}
+                    <div class="col-lg-10 p-0">
+                    {% block complete_analysis_block %}
 
-                {# summary of included files #}
-                {%- if selected_analysis and firmware.files_included -%}
-                    <table class="table table-bordered pb-0 mb-0">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        Summary for Included Files
-                                        <div class="custom-control custom-switch">
-                                            <input type="checkbox" class="custom-control-input" id="summaryOrderSwitch" onchange="create_summary_view();">
-                                            <label class="custom-control-label" for="summaryOrderSwitch" style="font-weight: normal;">Show inverted summary</label>
-                                        </div>
-                                    </div>
-                                </th>
-                            </tr>
-                        </thead>
-                    </table>
+                        {% block analysis_result %}
+                        {% endblock %}
 
-                    <button id="summary-button" class="btn list-group-item list-group-item-primary p-2 w-100 mb-3"
-                            onclick="create_summary_view();">
-                        Load Summary for Included Files
-                    </button>
+                    {% endblock %}
 
-                    <div class="mb-0 border" id="loading-summary-gif" style="display: none; padding: 5px; text-align: center">
-                            <p>Loading summary for included files...</p>
+                    {%- if selected_analysis and firmware.files_included -%}
+
+                        {# show summary section #}
+                        {% include "show_analysis/show_summary.j2" %}
+
+                    {%- endif -%}
                     </div>
-                    <div id="summary-div"></div>
-                    <script>
-                        loadLoadingAnimation('loading-summary-gif');
-                    </script>
-                    <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_summary.js') }}"></script>
-
-                {%- endif -%}
+                </div>
             </div>
+        </div>
+    </div>
 
-        {% endblock %}
-
-        {# preview section #}
+    {# preview section #}
+    <div class="row mb-3">
         {% include "show_analysis/preview.j2" %}
     </div>
 

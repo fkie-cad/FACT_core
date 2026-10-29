@@ -1,25 +1,21 @@
-<div class="col-lg-2">
-    <table class="table table-sm table-hover">
-        <thead class="thead-light">
-            <tr>
-                <th>Analysis Results</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for analysis_plugin in firmware.processed_analysis | sort %}
-                <tr>
-                    <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
-                        {{ analysis_plugin | replace_underscore }}
-                    </td>
-                </tr>
-            {% endfor %}
-            <tr>
-                <td class="table-head-light clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
-                    <i class="fas fa-play-circle"></i> Run additional analysis
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<div class="col-lg-2 p-0 analysis-plugin-select">
+    <div class="analysis-plugin-list">
+        <table class="table table-sm table-hover mb-0">
+            <tbody>
+                {% for analysis_plugin in firmware.processed_analysis | sort %}
+                    <tr>
+                        <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
+                            {{ analysis_plugin | replace_underscore }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn btn-primary btn-block" data-toggle="modal" data-target="#add_single_file_analysis_modal"
+            style="border-radius: 0 0 0 calc(var(--radius) - 1px);">
+        <i class="fas fa-play-circle"></i> Run analysis
+    </button>
 </div>
 
 {# add single file analysis modal #}
@@ -28,7 +24,7 @@
         <div class="modal-content">
 
             <div class="modal-header d-flex justify-content-between align-items-center">
-                <h5 class="modal-title">Add analysis to file</h5>
+                <h5 class="modal-title">Run analysis on file {{ firmware.file_name }}</h5>
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
             </div>
 
@@ -61,6 +57,15 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // if the plugin list is scrollable, scroll the selected plugin into view (only the list, not the whole page)
+        const pluginList = document.querySelector('.analysis-plugin-list');
+        const selectedPlugin = pluginList.querySelector('.table-primary');
+        if (selectedPlugin !== null) {
+            const offset = selectedPlugin.getBoundingClientRect().top - pluginList.getBoundingClientRect().top;
+            pluginList.scrollTop += offset - (pluginList.clientHeight - selectedPlugin.clientHeight) / 2;
+        }
+    });
     document.addEventListener('DOMContentLoaded', () => {
         // overwrites the submit action of the "Run additional analysis" modal button
         // and waits for the result before refreshing the page
