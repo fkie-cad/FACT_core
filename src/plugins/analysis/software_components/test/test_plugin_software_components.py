@@ -10,6 +10,7 @@ from ..code.software_components import (
 )
 
 YARA_TEST_FILE = Path(__file__).parent / 'data' / 'yara_test_file'
+CLASH_CONFIG_TEST_FILE = Path(__file__).parent / 'data' / 'clash_config.yaml'
 RULE_TEST_FILE = Path(__file__).parent / 'data/signatures/test_signature.yara'
 
 
@@ -17,6 +18,12 @@ class MockFileTypeResult:
     def __init__(self):
         self.full = 'full type'
         self.mime = 'application/octet-stream'
+
+
+class MockTextFileTypeResult:
+    def __init__(self):
+        self.full = 'ASCII text'
+        self.mime = 'text/plain'
 
 
 @pytest.mark.AnalysisPluginTestConfig(plugin_class=AnalysisPlugin)
@@ -43,6 +50,16 @@ class TestAnalysisPluginSoftwareComponents:
         summary = analysis_plugin.summarize(results)
         assert len(summary) == 1, 'Number of summary results not correct'
         assert 'Test Software 0.1.3' in summary
+
+    def test_analyze_clash_configuration(self, analysis_plugin):
+        with CLASH_CONFIG_TEST_FILE.open('rb') as file_handle:
+            result = analysis_plugin.analyze(file_handle, {}, {'file_type': MockTextFileTypeResult()})
+
+        clash_matches = [match for match in result.software_components if match.rule == 'ClashConfiguration']
+        assert len(clash_matches) == 1
+        assert clash_matches[0].name == 'Clash-compatible proxy'
+        assert clash_matches[0].versions == []
+        assert analysis_plugin.summarize(result) == ['Clash-compatible proxy']
 
     @pytest.mark.parametrize(
         ('version', 'expected_output', 'meta_dict'),
