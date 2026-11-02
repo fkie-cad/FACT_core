@@ -195,12 +195,23 @@
           const root = ReactDOM.createRoot(document.getElementById('graphiql'));
           const fetcher = GraphiQL.createFetcher({url: '/graphql'});
           const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
-          const graphiql = React.createElement(GraphiQL, {
-              fetcher,
-              defaultEditorToolsVisibility: true,
-              plugins: [explorerPlugin],
-          });
-          root.render(graphiql);
+          let graphiqlDark = null;
+          function renderGraphiQL(dark) {
+            if (dark === graphiqlDark) return;  // GraphiQL also changes the classes on <body>
+            graphiqlDark = dark;
+            root.render(React.createElement(GraphiQL, {
+                fetcher,
+                defaultEditorToolsVisibility: true,
+                plugins: [explorerPlugin],
+                // follow FACT's dark mode switch instead of the OS setting
+                forcedTheme: dark ? "dark" : "light",
+            }));
+          }
+          renderGraphiQL(isDark());
+          // re-render when dark mode is toggled (dark_mode.js toggles the class on <body>)
+          new MutationObserver(() => {
+            renderGraphiQL(document.body.classList.contains("dark-mode"));
+          }).observe(document.body, {attributes: true, attributeFilter: ["class"]});
           const cm = CodeMirror.fromTextArea(document.getElementById('textarea'), {
             lineNumbers: true,
             mode: { name: "javascript", json: true },
