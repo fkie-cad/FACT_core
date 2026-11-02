@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from dataclasses import KW_ONLY, dataclass, field
 from multiprocessing import Queue
-from time import sleep
+from queue import Empty
+from time import sleep, time
 from unittest import mock
 
 import pytest
@@ -60,6 +62,52 @@ class TestScheduleInitialAnalysis:
         assert set(analysis_results) == {'file_type', 'ExamplePlugin', 'file_hashes'}
         assert analysis_results['ExamplePlugin']['result']['first_byte'] == '74'
         assert analysis_results['ExamplePlugin']['summary'] == ['big-file', 'binary']
+
+    @pytest.mark.backend_config_overwrite({'scheduling_max_tasks_per_process': 1})
+    @pytest.mark.SchedulerTestConfig(start_processes=True)
+    def test_whole_run_with_process_restarts(self, analysis_scheduler, post_analysis_queue):
+        processes = analysis_scheduler.schedule_processes + analysis_scheduler.result_collector_processes
+        process_count, old_pids = len(processes), {p.pid for p in processes}
+        test_fw = Firmware.from_path(get_test_data_dir() / 'get_files_test/testfile1')
+        test_fw.scheduled_analysis = ['ExamplePlugin']
+        analysis_scheduler.start_analysis_of_object(test_fw)
+
+        # each process exits after one task -> the analysis only finishes if they are restarted
+        analysis_results = []
+        deadline = time() + 20
+        while len(analysis_results) < 3 and time() < deadline:
+            analysis_scheduler.restart_retiring_processes()
+            with suppress(Empty):
+                analysis_results.append(post_analysis_queue.get(timeout=0.5))
+
+        assert {plugin for _, plugin, _ in analysis_results} == {'file_type', 'ExamplePlugin', 'file_hashes'}
+        processes = analysis_scheduler.schedule_processes + analysis_scheduler.result_collector_processes
+        assert len(processes) == process_count
+        assert old_pids - {p.pid for p in processes}, 'processes should have been restarted'
+
+    @pytest.mark.SchedulerTestConfig(start_processes=False)
+    def test_retiring_process_is_replaced_before_it_exits(self, analysis_scheduler, monkeypatch):
+        # an exiting process may block until its queue buffers are flushed -> the replacement must not wait for it
+        still_exiting = mock.MagicMock(is_alive=lambda: True)
+        still_exiting.name = 'Analysis-Scheduler-Worker-1'
+        other = mock.MagicMock(is_alive=lambda: True)
+        other.name = 'Analysis-Scheduler-Worker-0'
+        analysis_scheduler.schedule_processes = [other, still_exiting]
+        analysis_scheduler._retiring_schedulers[1] = 1
+        replacement = mock.MagicMock()
+        monkeypatch.setattr('scheduler.analysis.scheduler.start_single_worker', lambda *_: replacement)
+
+        analysis_scheduler.restart_retiring_processes()
+
+        assert analysis_scheduler.schedule_processes == [other, replacement]
+        assert analysis_scheduler._retired_processes == [still_exiting]
+        assert analysis_scheduler._retiring_schedulers[1] == 0
+
+        still_exiting.is_alive = lambda: False
+        analysis_scheduler.restart_retiring_processes()
+        assert analysis_scheduler._retired_processes == []
+        still_exiting.join.assert_called_once()
+        analysis_scheduler.schedule_processes = []  # the mocks cannot be stopped during teardown
 
     def test_expected_plugins_are_found(self, analysis_scheduler):
         result = analysis_scheduler.get_plugin_dict()
