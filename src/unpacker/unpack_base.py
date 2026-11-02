@@ -35,14 +35,19 @@ class UnpackBase:
         self, file_path: Path, tmp_dir: str, container: ExtractionContainer | None = None
     ) -> list[Path]:
         self._initialize_shared_folder(tmp_dir)
-        try:
-            shutil.copy2(file_path, str(Path(tmp_dir, 'input', file_path.name)))
-        except FileNotFoundError:
-            logging.exception(f'Error during extraction of {file_path}')
-            raise
+        # if the file is in the firmware storage (which is mounted read-only in the extraction container), the
+        # container can read it directly and we don't need to copy it to the shared folder
+        storage_path = _get_path_relative_to_storage(file_path) if container else None
+        if storage_path is None:
+            # FixMe: still used by TarRepack and qemu_exec plugin
+            try:
+                shutil.copy2(file_path, str(Path(tmp_dir, 'input', file_path.name)))
+            except FileNotFoundError:
+                logging.exception(f'Error during extraction of {file_path}')
+                raise
 
         if container:
-            self._extract_with_worker(file_path, container, tmp_dir)
+            self._extract_with_worker(file_path, container, tmp_dir, storage_path)
         else:  # start new container
             self._extract_with_new_container(tmp_dir)
 
@@ -54,9 +59,11 @@ class UnpackBase:
             Path(tmp_dir, subpath).mkdir(exist_ok=True)
 
     @staticmethod
-    def _extract_with_worker(file_path: Path, container: ExtractionContainer, tmp_dir: str) -> None:
+    def _extract_with_worker(
+        file_path: Path, container: ExtractionContainer, tmp_dir: str, storage_path: str | None = None
+    ) -> None:
         try:
-            response = container.start_unpacking(tmp_dir, timeout=WORKER_TIMEOUT)
+            response = container.start_unpacking(tmp_dir, input_path=storage_path, timeout=WORKER_TIMEOUT)
         except ReadTimeout as error:
             raise ExtractionError('Timeout during extraction.') from error
         except requests.exceptions.ConnectionError as error:
@@ -89,3 +96,11 @@ class UnpackBase:
             error = f'Failed to execute docker extractor with code {err.returncode}:\n{err.stdout}'
             logging.error(error)
             raise RuntimeError(error) from err
+
+
+def _get_path_relative_to_storage(file_path: Path) -> str | None:
+    storage_dir = Path(config.backend.firmware_file_storage_directory).resolve()
+    resolved_path = file_path.resolve()
+    if not resolved_path.is_relative_to(storage_dir) or not resolved_path.is_file():
+        return None
+    return str(resolved_path.relative_to(storage_dir))
