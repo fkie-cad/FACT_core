@@ -1,8 +1,22 @@
 from __future__ import annotations
 
+import os
+import socket
+import subprocess
 from types import SimpleNamespace
 
-from test.leftovers import TEST_EXTRACTOR_PORTS, DbClient, find_leftovers, get_application_name
+import psutil
+import pytest
+
+from test.leftovers import (
+    TEST_EXTRACTOR_PORTS,
+    DbClient,
+    _get_cmdline,
+    _LocalProcessFinder,
+    _normalize_host,
+    find_leftovers,
+    get_application_name,
+)
 
 CONNECTED_AT = 1000.0  # when the PostgreSQL connections were opened
 
@@ -139,3 +153,53 @@ def test_only_unknown_processes():
 
     assert message is not None
     assert 'no local process found: check for other test runs, e.g. on other hosts' in message
+
+
+def test_local_process_finder_by_address():
+    with socket.create_server(('127.0.0.1', 0)) as server, socket.create_connection(server.getsockname()) as client:
+        host, port = client.getsockname()
+        found = _LocalProcessFinder().by_address(host, port)
+
+    assert found is not None
+    assert found.pid == os.getpid()
+    assert _LocalProcessFinder().by_address('127.0.0.1', 1) is None  # nothing connects from a privileged port
+
+
+def test_local_process_finder_by_pid_and_process_group():
+    finder = _LocalProcessFinder()
+    process = subprocess.Popen(['sleep', '60'], start_new_session=True)  # noqa: S607 (the leader of a new group)
+    try:
+        found = finder.by_pid(process.pid)
+        assert found is not None
+        assert found.pid == process.pid
+        assert finder.get_process_group(process.pid) == process.pid
+        assert [found.pid for found in finder.by_process_group(process.pid)] == [process.pid]
+    finally:
+        process.kill()
+        process.wait()
+
+    assert finder.by_pid(process.pid) is None
+    assert finder.get_process_group(process.pid) is None
+    assert finder.by_process_group(process.pid) == []
+
+
+def test_process_that_ended_during_the_check():
+    process = subprocess.Popen(['sleep', '60'])  # noqa: S607
+    ended = psutil.Process(process.pid)
+    process.kill()
+    process.wait()
+
+    assert _get_cmdline(ended) == ['?']
+
+
+@pytest.mark.parametrize(
+    ('host', 'expected'),
+    [
+        ('127.0.0.1', '127.0.0.1'),
+        ('::ffff:127.0.0.1', '127.0.0.1'),  # an IPv4 client of a server that listens on IPv6
+        ('[::1]', '::1'),  # how Redis writes IPv6 addresses
+        ('::1', '::1'),
+    ],
+)
+def test_normalize_host(host, expected):
+    assert _normalize_host(host) == expected
