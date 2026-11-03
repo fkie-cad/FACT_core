@@ -12,7 +12,16 @@ from pydantic.v1.utils import deep_update
 
 import config
 from analysis.plugin import AnalysisPluginV0
+from test import graceful_sigterm
 from test.conftest import merge_markers
+from test.leftovers import TEST_EXTRACTOR_IMAGE, TEST_EXTRACTOR_PORTS, get_application_name
+
+
+def pytest_configure():
+    # a terminated test run tears down its backend instead of leaving it running (see `test/graceful_sigterm.py`)
+    graceful_sigterm.install()
+    # name this run's database connections, also those of forked processes (see `test/leftovers.py`)
+    os.environ['PGAPPNAME'] = get_application_name(os.getpid())
 
 
 @pytest.fixture
@@ -113,8 +122,8 @@ def backend_config(request, common_config, firmware_file_storage_directory) -> c
             'memory_limit': 2048,
             'throttle_limit': 50,
             'delay': 0.0,
-            'base_port': 9900,
-            'docker_image': 'fkiecad/fact_extractor:latest',
+            'base_port': TEST_EXTRACTOR_PORTS.start,
+            'docker_image': TEST_EXTRACTOR_IMAGE,
         },
         'binary_search': {'max_strings_per_match': 10},
         'plugin': {
