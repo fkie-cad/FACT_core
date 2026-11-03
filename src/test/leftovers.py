@@ -124,7 +124,7 @@ class _Report:
         if main_pid in self._own_pids:
             return
         main = self._find_process.by_pid(main_pid)
-        if main is not None and _get_create_time(main) <= connected_at:
+        if main is not None and main.create_time() <= connected_at:
             self._add_process(main, target)
         elif main is None and (processes := self._find_process.by_process_group(main_pid)):
             # the main process has ended: it was the leader of their process group if a shell started pytest
@@ -255,13 +255,6 @@ def _get_cmdline(process: ProcessInfo) -> list[str]:
         return process.cmdline()
     except (psutil.AccessDenied, psutil.NoSuchProcess):
         return ['?']
-
-
-def _get_create_time(process: ProcessInfo) -> float:
-    try:
-        return process.create_time()
-    except psutil.NoSuchProcess:
-        return float('inf')
 
 
 def _get_children(process: ProcessInfo) -> Sequence[ProcessInfo]:
