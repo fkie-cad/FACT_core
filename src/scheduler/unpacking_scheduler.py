@@ -152,9 +152,17 @@ class UnpackingScheduler:
             self.worker_tmp_dirs.append(tmp_dir)
 
     def stop_containers(self) -> None:
-        if self.workers:
-            with ThreadPoolExecutor(max_workers=len(self.workers)) as pool:
-                pool.map(lambda container: container.stop(), self.workers)
+        if not self.workers:
+            return
+        with ThreadPoolExecutor(max_workers=len(self.workers)) as pool:
+            futures = {pool.submit(container.stop): container for container in self.workers}
+        for future, container in futures.items():
+            # a container that is not stopped keeps its port: the next start has to remove it first
+            if (error := future.exception()) is not None:
+                logging.error(
+                    f'Could not stop unpack worker {container.id_} (container {container.container_id}, '
+                    f'port {container.port}): {error}'
+                )
 
     def extraction_loop(self) -> None:
         logging.debug(f'Starting unpacking scheduler loop (pid={os.getpid()})')

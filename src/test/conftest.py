@@ -26,6 +26,7 @@ from storage.file_service import FileService
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import clear_test_tables, setup_test_tables
 from test.integration.common import MockDbInterface as BackEndDbInterfaceMock
+from test.leftovers import check_for_leftovers
 
 T = TypeVar('T')
 
@@ -138,6 +139,8 @@ def _database_interfaces():
     # We just patch it here.
     with pytest.MonkeyPatch.context() as mpk:
         config.load()
+        # before this run's own connections: another test run or the leftovers of an aborted one break this one
+        check_for_leftovers()
         # Make sure to match the config here with the one in src/conftest.py:common_config
         sections = {
             'postgres': {
@@ -180,6 +183,7 @@ def _database_interfaces():
         admin = AdminDbInterface(intercom=MockIntercom())
         stats_update = StatsUpdateDbInterface(connection=rw_connection)
 
+    clear_test_tables(db_setup)  # an aborted test run leaves its tables (and rows) behind
     setup_test_tables(db_setup)
 
     yield DatabaseInterfaces(common, backend, frontend, frontend_editing, admin, comparison, stats_update)
