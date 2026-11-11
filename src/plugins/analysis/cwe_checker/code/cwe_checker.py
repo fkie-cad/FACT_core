@@ -5,11 +5,15 @@ Please note that these checks are heuristics and the checks are static.
 This means that there are definitely false positives and false negatives. The objective of this
 plugin is to find potentially interesting binaries that deserve a deep manual analysis or intensive fuzzing.
 
-Currently, the cwe_checker supports the following architectures:
+Currently, the plugin runs the cwe_checker on the following architectures:
 - Intel x86 (32 and 64 bits)
 - ARM
 - PowerPC
 - Mips
+- RISC-V
+- LoongArch
+- SPARC V9 (64 bit)
+32-bit SPARC (V7/V8) is excluded because the cwe_checker crashes on it.
 """
 
 from __future__ import annotations
@@ -32,7 +36,9 @@ from plugins.analysis.cwe_checker.internal.docker import DOCKER_IMAGE
 if TYPE_CHECKING:
     from io import FileIO
 
-SUPPORTED_ARCHS = ('arm', 'x86', 'x64', 'mips', 'ppc')
+# Matched against the lowercase file type. 'sparc v9' deliberately excludes 32-bit SPARC
+# ("SPARC" / "SPARC32PLUS"), where the cwe_checker aborts with a panic.
+SUPPORTED_ARCHS = ('arm', 'x86', 'x64', 'mips', 'ppc', 'risc-v', 'loongarch', 'sparc v9')
 
 
 class CweResult(BaseModel):
@@ -62,7 +68,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                         'application/x-pie-executable',
                         'application/x-sharedlib',
                     ],
-                    version=Version(1, 0, 1),
+                    version=Version(1, 1, 0),
                     Schema=self.Schema,
                 )
             )

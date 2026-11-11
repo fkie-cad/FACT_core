@@ -46,8 +46,21 @@ class TestCweCheckerFunctions:
         assert len(result.keys()) == 1
         assert isinstance(result['CWE676'], dict)
 
-    def test_is_supported_arch(self, analysis_plugin):
-        assert analysis_plugin._is_supported_arch(FILE_TYPE_ANALYSIS)
+    @pytest.mark.parametrize(
+        ('full_type', 'expected'),
+        [
+            (FILE_TYPE_ANALYSIS.full, True),
+            ('ELF 64-bit LSB executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV)', True),
+            ('ELF 32-bit LSB executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV)', True),
+            ('ELF 64-bit LSB executable, LoongArch, version 1 (SYSV), dynamically linked', True),
+            ('ELF 64-bit MSB executable, SPARC V9, relaxed memory ordering, version 1 (SYSV)', True),
+            ('ELF 32-bit MSB executable, SPARC32PLUS, V8+ Required, total store ordering, version 1 (SYSV)', False),
+            ('ELF 32-bit MSB executable, SPARC, version 1 (SYSV), dynamically linked', False),
+        ],
+    )
+    def test_is_supported_arch(self, analysis_plugin, full_type, expected):
+        file_type = FileTypePlugin.Schema(full=full_type, mime='application/x-executable')
+        assert analysis_plugin._is_supported_arch(file_type) == expected
 
     def test_analyze_and_summarize(self, analysis_plugin: AnalysisPlugin):
         with TEST_FILE.open('rb') as fp:
