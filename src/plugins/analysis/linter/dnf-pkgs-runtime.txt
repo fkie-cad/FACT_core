@@ -1,5 +1,4 @@
 lua
 lua-devel
 luarocks
-nodejs
 ShellCheck

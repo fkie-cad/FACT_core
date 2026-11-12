@@ -17,7 +17,6 @@ __pycache__
 docsrc/_build/
 docs/.buildinfo/
 src/bin
-src/web_interface/static/nodeenv/
 src/web_interface/static/node_modules
 src/web_interface/static/file_icons
 FACT_export
