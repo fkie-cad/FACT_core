@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import html
 import logging
+from base64 import standard_b64encode
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Literal
 
 from flask import jsonify, render_template
 
-from helperFunctions.data_conversion import boolean_string_to_boolean, none_to_none
+from helperFunctions.data_conversion import boolean_string_to_boolean, make_unicode_string, none_to_none
 from helperFunctions.database import get_shared_session
 from objects.firmware import Firmware
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
@@ -16,8 +17,6 @@ from web_interface.file_tree.file_tree import remove_virtual_path_from_root
 from web_interface.file_tree.file_tree_node import FileTreeNode
 from web_interface.file_tree.jstree_conversion import convert_to_jstree_node
 from web_interface.filter import (
-    bytes_to_str_filter,
-    encode_base64_filter,
     is_image,
     is_text_file,
 )
@@ -101,11 +100,12 @@ class AjaxRoutes(ComponentBase):
         mime_type = mime_type.replace('_', '/')
         binary = self.intercom.get_file_contents(uid)
         if is_text_file(mime_type):
-            return f'<pre style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
+            return f'<pre style="white-space: pre-wrap">{html.escape(make_unicode_string(binary))}</pre>'
         if is_image(mime_type):
+            base64_str = standard_b64encode(binary).decode('utf-8')
             return (
                 '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; '
-                f'text-align: center"><img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" '
+                f'text-align: center"><img src="data:image/{mime_type[6:]} ;base64,{base64_str}" '
                 'style="max-width:100%"></div>'
             )
         return None
