@@ -1,15 +1,11 @@
 import logging
 import os
-import re
-import shutil
 import subprocess
 from contextlib import suppress
 from pathlib import Path
-from shlex import split
 from subprocess import PIPE, STDOUT
 
 import distro
-from packaging.version import parse as parse_version
 
 import config
 from helperFunctions.install import (
@@ -25,34 +21,35 @@ from helperFunctions.install import (
 from storage.graphql.util import get_env
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
-INSTALL_DIR = Path(__file__).parent
+INSTALL_DIR = Path(__file__).resolve().parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 STATIC_WEB_DIR = INSTALL_DIR.parent / 'web_interface' / 'static'
+BUN_VERSION_FILE = INSTALL_DIR / 'bun-version.txt'
+BUN_INSTALL_DIR = INSTALL_DIR / '.tools' / 'bun'
 CONFIG_DIR = INSTALL_DIR.parent / 'config'
 MIME_ICON_DIR = STATIC_WEB_DIR / 'file_icons'
 ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/Papirus/24x24')
-NODEENV_DIR = 'nodeenv'
 
 
-def execute_commands_and_raise_on_return_code(commands, error=None):
+def execute_commands_and_raise_on_return_code(commands: list[str], error: str | None = None) -> None:
     for command in commands:
-        bad_return = error if error else f'execute {command}'
-        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)
+        bad_return = error or f'execute {command}'
+        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)  # noqa: S602
         if cmd_process.returncode != 0:
             raise InstallationError(f'Failed to {bad_return}\n{cmd_process.stdout}')
 
 
-def _create_directory_for_authentication():
+def _create_directory_for_authentication() -> None:
     logging.info('Creating directory for authentication')
 
     dburi = config.frontend.authentication.user_database
 
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
-    mkdir_process = subprocess.run(
+    mkdir_process = subprocess.run(  # noqa: S602
         f'sudo mkdir -p --mode=0744 {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
     )
-    chown_process = subprocess.run(
+    chown_process = subprocess.run(  # noqa: S602
         f'sudo chown {os.getuid()}:{os.getgid()} {factauthdir}',
         shell=True,
         stdout=PIPE,
@@ -69,7 +66,7 @@ def _create_directory_for_authentication():
         )
 
 
-def _install_nginx():
+def _install_nginx() -> None:
     if distro.id() != 'fedora':
         apt_install_packages('nginx')
     else:
@@ -86,15 +83,15 @@ def _install_nginx():
             error='restore selinux context',
         )
     if not Path('/run/nginx.pid').exists():
-        proc = subprocess.run('sudo service nginx restart', shell=True, capture_output=True, text=True, check=False)
+        proc = subprocess.run('sudo service nginx restart', shell=True, capture_output=True, text=True, check=False)  # noqa: S602, S607
         if proc.returncode != 0:
             raise InstallationError(f'Failed to start nginx\n{proc.stderr}')
-    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, capture_output=True, text=True, check=False)
+    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, capture_output=True, text=True, check=False)  # noqa: S602, S607
     if nginx_process.returncode != 0:
         raise InstallationError(f'Failed to start nginx\n{nginx_process.stderr}')
 
 
-def _generate_and_install_certificate():
+def _generate_and_install_certificate() -> None:
     logging.info('Generating self-signed certificate')
     execute_commands_and_raise_on_return_code(
         [
@@ -107,7 +104,7 @@ def _generate_and_install_certificate():
     )
 
 
-def _configure_nginx():
+def _configure_nginx() -> None:
     logging.info('Configuring nginx')
     with OperateInDirectory(CONFIG_DIR):
         execute_commands_and_raise_on_return_code(
@@ -124,27 +121,37 @@ def _configure_nginx():
         )
 
 
-def _install_docker_images(radare):
+def _install_docker_images(radare: bool) -> None:
     if radare:
         logging.info('Initializing docker container for radare')
 
         with OperateInDirectory('radare'):
-            docker_compose_process = subprocess.run(
-                'docker compose build', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
+            docker_compose_process = subprocess.run(  # noqa: S602
+                'docker compose build',  # noqa: S607
+                shell=True,
+                stdout=PIPE,
+                stderr=STDOUT,
+                text=True,
+                check=False,
             )
             if docker_compose_process.returncode != 0:
                 raise InstallationError(f'Failed to initialize radare container:\n{docker_compose_process.stdout}')
 
     # pull pdf report container
     logging.info('Pulling pdf report container')
-    docker_process = subprocess.run(
-        'docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False
+    docker_process = subprocess.run(  # noqa: S602
+        'docker pull fkiecad/fact_pdf_report',  # noqa: S607
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        text=True,
+        check=False,
     )
     if docker_process.returncode != 0:
         raise InstallationError(f'Failed to pull pdf report container:\n{docker_process.stdout}')
 
 
-def _copy_mime_icons():
+def _copy_mime_icons() -> None:
     # copy mime icons to the static folder so that they can be used by the web server
     for source, target in [
         ('mimetypes', 'mimetypes'),
@@ -158,47 +165,61 @@ def _copy_mime_icons():
         run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
-def _install_nodejs(nodejs_version: str = '22'):
-    latest_version = _find_latest_node_version(nodejs_version)
-    with OperateInDirectory(STATIC_WEB_DIR):
-        if Path(NODEENV_DIR).is_dir() and not _node_version_is_up_to_date(latest_version):
-            shutil.rmtree(NODEENV_DIR)
+def _install_bun() -> None:
+    logging.info('Installing Bun')
+    bun_version = BUN_VERSION_FILE.read_text(encoding='utf-8').strip()
+    bun_executable = BUN_INSTALL_DIR / 'bin' / 'bun'
 
-        if Path(NODEENV_DIR).is_dir():
-            logging.info('Skipping nodeenv installation (already exists)')
-        else:
-            run_cmd_with_logging(f'nodeenv {NODEENV_DIR} --node={latest_version} --prebuilt')
-        run_cmd_with_logging(f'. {NODEENV_DIR}/bin/activate && npm install --no-fund .', shell=True)
+    env = {
+        **os.environ,
+        'BUN_INSTALL': str(BUN_INSTALL_DIR),
+        'PATH': f'{bun_executable.parent}{os.pathsep}{os.environ.get("PATH", os.defpath)}',
+    }
 
-
-def _find_latest_node_version(target_version: str) -> str:
-    proc = subprocess.run(split('nodeenv --list'), capture_output=True, text=True, check=False)
-    if proc.returncode != 0:
-        raise InstallationError(f'nodejs installation failed. Is nodeenv installed?\n{proc.stderr}')
-    available_versions = [
-        parse_version(v) for v in re.split(r'[\n\t ]', proc.stderr) if v and v.startswith(target_version)
-    ]
-    if not available_versions:
-        raise InstallationError(f'No nodejs installation candidates found for version "{target_version}"')
-    return str(max(available_versions))
-
-
-def _node_version_is_up_to_date(nodejs_version: str) -> bool:
     try:
-        proc = subprocess.run(split('./nodeenv/bin/node --version'), capture_output=True, text=True, check=True)
-        installed_version = proc.stdout.strip().lstrip('v')
-        return installed_version == nodejs_version
-    except (subprocess.CalledProcessError, OSError):  # venv dir exists but node is not installed correctly
-        return False
+        proc = subprocess.run(  # noqa: S603
+            [str(bun_executable), '--version'],
+            capture_output=True,
+            text=True,
+            check=True,
+            env=env,
+        )
+        installed_version = proc.stdout.strip()
+    except (subprocess.CalledProcessError, OSError):
+        installed_version = None
+
+    if installed_version != bun_version:
+        logging.info('Installing Bun %s', bun_version)
+
+        installer = subprocess.run(
+            ['curl', '-fsSL', 'https://bun.com/install'],  # noqa: S607
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+
+        run_cmd_with_logging(
+            f'bash -s bun-v{bun_version}',
+            env=env,
+            input=installer,
+        )
+
+    run_cmd_with_logging(
+        f'{bun_executable} install --frozen-lockfile',
+        env=env,
+        cwd=STATIC_WEB_DIR,
+    )
+
+    logging.info('Bun installation complete')
 
 
-def _init_hasura():
+def _init_hasura() -> None:
     with OperateInDirectory(INSTALL_DIR.parent / 'storage' / 'graphql' / 'hasura'):
         run_cmd_with_logging('docker compose up -d', env=get_env())
         run_cmd_with_logging('python3 init_hasura.py')
 
 
-def main(skip_docker, radare, nginx, skip_hasura):
+def main(skip_docker: bool, radare: bool, nginx: bool, skip_hasura: bool) -> int:
     if distro.id() != 'fedora':
         pkgs = read_package_list_from_file(INSTALL_DIR / 'apt-pkgs-frontend.txt')
         apt_install_packages(*pkgs)
@@ -213,7 +234,7 @@ def main(skip_docker, radare, nginx, skip_hasura):
 
     install_pip_packages(PIP_DEPENDENCIES)
 
-    _install_nodejs()
+    _install_bun()
 
     # create user database
     _create_directory_for_authentication()
