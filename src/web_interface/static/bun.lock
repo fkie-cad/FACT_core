@@ -9,7 +9,6 @@
         "@graphiql/plugin-explorer": "^3.0.2",
         "@graphiql/toolkit": "^0.9.1",
         "@highlightjs/cdn-assets": "^11.8.0",
-        "FACT_core-static": ".",
         "bootstrap": "^4.6.2",
         "bootstrap-datepicker": "^1.9.0",
         "bootstrap-select": "^1.13.18",
@@ -151,8 +150,6 @@
     "@types/hammerjs": ["@types/hammerjs@2.0.46", "", {}, "sha512-ynRvcq6wvqexJ9brDMS4BnBLzmr0e14d6ZJTEShTBWKymQiHwlAyGu0ZPEFI2Fh1U53F7tN9ufClWM5KvqkKOw=="],
 
     "@types/tern": ["@types/tern@0.23.9", "", { "dependencies": { "@types/estree": "*" } }, "sha512-ypzHFE/wBzh+BlH6rrBgS5I/Z7RD21pGhZ2rltb/+ZrVM1awdZwjx7hE5XfuYgHWk9uvV5HLZN3SloevCAp3Bw=="],
-
-    "FACT_core-static": ["FACT_core-static@root:", {}],
 
     "abbrev": ["abbrev@1.1.1", "", {}, "sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q=="],
 
