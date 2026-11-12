@@ -63,7 +63,6 @@ jobs:
       - name: venv Setup
         run: |
           sudo apt install -y python3-venv unzip
-          sudo apt install -y python3-venv
           python3 -m venv venv
           . venv/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
