@@ -1,15 +1,11 @@
 import logging
 import os
-import re
-import shutil
 import subprocess
 from contextlib import suppress
 from pathlib import Path
-from shlex import split
 from subprocess import PIPE, STDOUT
 
 import distro
-from packaging.version import parse as parse_version
 
 import config
 from helperFunctions.install import (
@@ -25,13 +21,14 @@ from helperFunctions.install import (
 from storage.graphql.util import get_env
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
-INSTALL_DIR = Path(__file__).parent
+INSTALL_DIR = Path(__file__).resolve().parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 STATIC_WEB_DIR = INSTALL_DIR.parent / 'web_interface' / 'static'
+BUN_VERSION_FILE = INSTALL_DIR / 'bun-version.txt'
+BUN_INSTALL_DIR = INSTALL_DIR / '.tools' / 'bun'
 CONFIG_DIR = INSTALL_DIR.parent / 'config'
 MIME_ICON_DIR = STATIC_WEB_DIR / 'file_icons'
 ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/Papirus/24x24')
-NODEENV_DIR = 'nodeenv'
 
 
 def execute_commands_and_raise_on_return_code(commands: list[str], error: str | None = None) -> None:
@@ -168,38 +165,52 @@ def _copy_mime_icons() -> None:
         run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
-def _install_nodejs(nodejs_version: str = '22') -> None:
-    latest_version = _find_latest_node_version(nodejs_version)
-    with OperateInDirectory(STATIC_WEB_DIR):
-        if Path(NODEENV_DIR).is_dir() and not _node_version_is_up_to_date(latest_version):
-            shutil.rmtree(NODEENV_DIR)
+def _install_bun() -> None:
+    logging.info('Installing Bun')
+    bun_version = BUN_VERSION_FILE.read_text(encoding='utf-8').strip()
+    bun_executable = BUN_INSTALL_DIR / 'bin' / 'bun'
 
-        if Path(NODEENV_DIR).is_dir():
-            logging.info('Skipping nodeenv installation (already exists)')
-        else:
-            run_cmd_with_logging(f'nodeenv {NODEENV_DIR} --node={latest_version} --prebuilt')
-        run_cmd_with_logging(f'. {NODEENV_DIR}/bin/activate && npm install --no-fund .', shell=True)  # noqa: S604
+    env = {
+        **os.environ,
+        'BUN_INSTALL': str(BUN_INSTALL_DIR),
+        'PATH': f'{bun_executable.parent}{os.pathsep}{os.environ.get("PATH", os.defpath)}',
+    }
 
-
-def _find_latest_node_version(target_version: str) -> str:
-    proc = subprocess.run(split('nodeenv --list'), capture_output=True, text=True, check=False)  # noqa: S603
-    if proc.returncode != 0:
-        raise InstallationError(f'nodejs installation failed. Is nodeenv installed?\n{proc.stderr}')
-    available_versions = [
-        parse_version(v) for v in re.split(r'[\n\t ]', proc.stderr) if v and v.startswith(target_version)
-    ]
-    if not available_versions:
-        raise InstallationError(f'No nodejs installation candidates found for version "{target_version}"')
-    return str(max(available_versions))
-
-
-def _node_version_is_up_to_date(nodejs_version: str) -> bool:
     try:
-        proc = subprocess.run(split('./nodeenv/bin/node --version'), capture_output=True, text=True, check=True)  # noqa: S603
-        installed_version = proc.stdout.strip().lstrip('v')
-        return installed_version == nodejs_version
-    except (subprocess.CalledProcessError, OSError):  # venv dir exists but node is not installed correctly
-        return False
+        proc = subprocess.run(  # noqa: S603
+            [str(bun_executable), '--version'],
+            capture_output=True,
+            text=True,
+            check=True,
+            env=env,
+        )
+        installed_version = proc.stdout.strip()
+    except (subprocess.CalledProcessError, OSError):
+        installed_version = None
+
+    if installed_version != bun_version:
+        logging.info('Installing Bun %s', bun_version)
+
+        installer = subprocess.run(
+            ['curl', '-fsSL', 'https://bun.com/install'],  # noqa: S607
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+
+        run_cmd_with_logging(
+            f'bash -s bun-v{bun_version}',
+            env=env,
+            input=installer,
+        )
+
+    run_cmd_with_logging(
+        f'{bun_executable} install --frozen-lockfile',
+        env=env,
+        cwd=STATIC_WEB_DIR,
+    )
+
+    logging.info('Bun installation complete')
 
 
 def _init_hasura() -> None:
@@ -223,7 +234,7 @@ def main(skip_docker: bool, radare: bool, nginx: bool, skip_hasura: bool) -> int
 
     install_pip_packages(PIP_DEPENDENCIES)
 
-    _install_nodejs()
+    _install_bun()
 
     # create user database
     _create_directory_for_authentication()
