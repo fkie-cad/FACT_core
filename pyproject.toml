@@ -82,6 +82,10 @@ backend = [
     "pyopenssl==26.4.0",
     "pyyaml~=6.0.2",
 ]
+docs = [
+    "Sphinx==6.2.1",
+    "sphinx_rtd_theme==1.2.2",
+]
 lint = [
     "pre-commit==4.5.1",
 ]
