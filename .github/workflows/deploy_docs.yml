@@ -12,19 +12,14 @@ jobs:
     # check out repository
     - uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v10.3.3
       with:
         python-version: '3.11'
 
-    - name: install deps
-      run: |
-        python3 -m pip install --upgrade pip wheel setuptools
-        python3 -m pip install -r ./docsrc/doc_dependencies.txt
-
     - name: Build Docs
       run: |
-        make -C docsrc html
+        uv run --locked --only-group docs make -C docsrc html
         touch ./docsrc/_build/html/.nojekyll
 
     - name: Deploy Docs to gh-pages

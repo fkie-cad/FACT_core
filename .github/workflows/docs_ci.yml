@@ -11,15 +11,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v10.3.3
       with:
         python-version: '3.11'
 
-    - name: install deps
-      run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install -r ./docsrc/doc_dependencies.txt
-        
     - name: Build Docs
-      run: make -C docsrc html
+      run: uv run --locked --only-group docs make -C docsrc html

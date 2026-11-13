@@ -1,0 +1,6 @@
+[project]
+name = "fact-plugin-users_and_passwords"
+version = "1.1.0"
+dependencies = [
+    "common_helper_passwords @ git+https://github.com/fkie-cad/common_helper_passwords.git",
+]

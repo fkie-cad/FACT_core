@@ -1,0 +1,6 @@
+[project]
+name = "fact-plugin-source_code_analysis"
+version = "0.7.3"
+dependencies = [
+    "pylint==4.0.9",
+]

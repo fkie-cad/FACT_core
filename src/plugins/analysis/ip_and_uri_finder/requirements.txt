@@ -1,3 +1,0 @@
-git+https://github.com/fkie-cad/common_analysis_ip_and_uri.git
-geoip2==4.7.0
-
