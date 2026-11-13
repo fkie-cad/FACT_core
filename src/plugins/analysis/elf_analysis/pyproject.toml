@@ -1,0 +1,4 @@
+[project]
+name = "fact-plugin-elf_analysis"
+version = "1.0.1"
+dependencies = []
