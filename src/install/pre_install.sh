@@ -9,7 +9,9 @@ FACTUSER=$(whoami)
 
 echo "Installing pre-install requirements..."
 sudo apt-get update
-sudo apt-get -y install python3-pip python3-dev git libffi-dev lsb-release build-essential jq
+sudo apt-get -y install python3-dev git libffi-dev lsb-release build-essential jq curl
+# build dependencies of FACT's core Python packages (ssdeep, python-magic)
+sudo apt-get -y install libfuzzy-dev libmagic-dev
 
 # distro and codename detection
 . /etc/os-release
@@ -90,15 +92,18 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
-IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
-PREFIX=""
-if [[ $IS_VENV == "False" ]]
-then
-  echo -e "\\033[31mWarning: It is highly discouraged to install FACT without a virtual environment because of the risk of conflicts with system Python packages!\\033[0m"
-  PREFIX="sudo -EH python3 -m"
+echo "Installing Python dependencies with uv"
+if ! command -v uv > /dev/null; then
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  export PATH="$HOME/.local/bin:$PATH"
 fi
-$PREFIX pip install -U pip setuptools wheel
-$PREFIX pip install -r ./requirements_pre_install.txt --prefer-binary
+# install into the active venv if there is one, otherwise into uv's default .venv in the repository root
+if [ -n "${VIRTUAL_ENV}" ]; then
+  uv sync --locked --inexact --no-default-groups --active
+else
+  uv sync --locked --inexact --no-default-groups
+  echo "Created venv $(realpath ../../.venv). Activate it before running install.py: . $(realpath ../../.venv)/bin/activate"
+fi
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 

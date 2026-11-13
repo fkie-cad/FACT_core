@@ -2,7 +2,9 @@
 
 Each plugin is a package `<name>/` with `code/<name>.py` defining `class AnalysisPlugin(AnalysisPluginV0)`
 (`src/analysis/plugin/plugin.py`). Optional subdirectories: `test/`, `view/` (Jinja2 template for the result),
-`routes/` (custom frontend routes), `internal/` (helper code), `install.py` (dependencies, run by `src/install.py`).
+`routes/` (custom frontend routes), `internal/` (helper code), `install.py` (system packages, files and docker images,
+run by `src/install.py`), `pyproject.toml` (Python dependencies; the plugin is a uv workspace member, so run `uv lock`
+after changing them).
 
 ## How plugins are run
 

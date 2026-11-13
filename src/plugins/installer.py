@@ -7,7 +7,6 @@ from pathlib import Path
 import distro
 
 from helperFunctions.install import (
-    install_pip_packages,
     read_package_list_from_file,
     run_cmd_with_logging,
 )
@@ -44,7 +43,6 @@ class AbstractPluginInstaller:
         cwd = os.getcwd()  # noqa: PTH109
         os.chdir(self.base_path)
         self.install_system_packages()
-        self.install_pip_packages()
         self.install_other_packages()
 
         self.install_files()
@@ -84,17 +82,9 @@ class AbstractPluginInstaller:
 
         run_cmd_with_logging(f'sudo {pgk_mgr_cmd} {pkgs_to_install}')
 
-    def install_pip_packages(self) -> None:
-        """
-        Install packages with pip
-        """
-        requirements_path = self.base_path / 'requirements.txt'
-        if requirements_path.exists():
-            install_pip_packages(requirements_path)
-
     def install_other_packages(self) -> None:
         """
-        Install packages with package managers other than pip/dnf/apt.
+        Install packages with package managers other than uv/dnf/apt.
         """
 
     def install_files(self) -> None:

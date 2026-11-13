@@ -82,7 +82,7 @@ class FactBase:
             signal.signal(signal.SIGTERM, self.shutdown_listener)
 
     def shutdown_listener(self, signum, _) -> None:  # noqa: ANN001
-        if not _is_main_process():
+        if os.getpid() != self.main_proc.pid:
             return  # all subprocesses also inherit this signal handler (which is intentional for a "clean" shutdown)
         logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
         self.run = False
@@ -140,7 +140,3 @@ class FactBase:
             # If we don't have enough rights to change the permissions we assume they are right
             # E.g. in FACT_docker the correct group is not the group named 'docker'
             logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
-
-
-def _is_main_process() -> bool:
-    return os.getpid() == os.getpgrp()

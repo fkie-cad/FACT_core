@@ -2,11 +2,9 @@ import logging
 import subprocess
 from contextlib import suppress
 from pathlib import Path
-from platform import python_version_tuple
 from subprocess import PIPE, STDOUT
 
 import distro
-from packaging.version import parse as parse_version
 
 from helperFunctions.install import (
     InstallationError,
@@ -15,30 +13,13 @@ from helperFunctions.install import (
     apt_update_sources,
     dnf_install_packages,
     dnf_update_sources,
-    install_pip_packages,
-    is_virtualenv,
     read_package_list_from_file,
     run_cmd_with_logging,
+    uv_sync,
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent
-PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_common.txt'
-
-
-def install_pip() -> None:
-    python_version = '.'.join(python_version_tuple())
-    if parse_version(python_version) < parse_version('3.10.0'):
-        logging.warning('Your Python version is outdated. Please upgrade it.')
-        pip_link = f'https://bootstrap.pypa.io/pip/{python_version}/get-pip.py'
-    else:
-        pip_link = 'https://bootstrap.pypa.io/get-pip.py'
-
-    logging.info('Installing python3 pip')
-    for command in [f'wget {pip_link}', 'sudo -EH python3 get-pip.py', 'rm get-pip.py']:
-        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True, check=False)  # noqa: S602
-        if cmd_process.returncode != 0:
-            raise InstallationError(f'Error in pip installation for python3:\n{cmd_process.stdout}')
 
 
 def main() -> int:
@@ -59,14 +40,7 @@ def main() -> int:
 
     _install_fw_magic()
 
-    if not is_virtualenv():
-        install_pip()
-    elif distro.id() != 'fedora':
-        run_cmd_with_logging('pip install -U pip setuptools wheel')
-    else:
-        # on fedora, extra setuptools will break some system tools like selinux ones
-        run_cmd_with_logging('pip install -U pip wheel')
-    install_pip_packages(PIP_DEPENDENCIES)
+    uv_sync()
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):

@@ -17,16 +17,14 @@ from helperFunctions.install import (
     OperateInDirectory,
     apt_install_packages,
     dnf_install_packages,
-    install_pip_packages,
-    is_virtualenv,
     read_package_list_from_file,
     run_cmd_with_logging,
+    uv_sync,
 )
 from storage.graphql.util import get_env
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
-PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 STATIC_WEB_DIR = INSTALL_DIR.parent / 'web_interface' / 'static'
 CONFIG_DIR = INSTALL_DIR.parent / 'config'
 MIME_ICON_DIR = STATIC_WEB_DIR / 'file_icons'
@@ -216,12 +214,7 @@ def main(skip_docker: bool, radare: bool, nginx: bool, skip_hasura: bool) -> int
         pkgs = read_package_list_from_file(INSTALL_DIR / 'dnf-pkgs-frontend.txt')
         dnf_install_packages(*pkgs)
 
-    # flask-security is not maintained anymore and replaced by flask-security-too.
-    # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
-    pip = 'pip' if is_virtualenv() else 'sudo -EH pip3'
-    run_cmd_with_logging(f'{pip} uninstall -y flask-security')
-
-    install_pip_packages(PIP_DEPENDENCIES)
+    uv_sync('--group frontend')
 
     _install_nodejs()
 
