@@ -1,4 +1,4 @@
-#!/usr/bin/env python3  # noqa: EXE001
+#!/usr/bin/env python3
 
 import logging
 import urllib.request
@@ -23,10 +23,10 @@ BINWALK_VERSION = '2.4.1'
 class BinwalkInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
-    def build(self):
+    def build(self) -> None:
         url_binwalk = f'https://github.com/OSPG/binwalk/archive/refs/tags/v{BINWALK_VERSION}.tar.gz'
         dest_binwalk = f'binwalk-v{BINWALK_VERSION}.tar.gz'
-        urllib.request.urlretrieve(url_binwalk, dest_binwalk)
+        urllib.request.urlretrieve(url_binwalk, dest_binwalk)  # noqa: S310
 
         run_cmd_with_logging(f'tar -xf {dest_binwalk}')
 

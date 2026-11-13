@@ -39,7 +39,7 @@ class AbstractPluginInstaller:
         self.build_path = self.base_path / 'build'
         self.skip_docker = skip_docker
 
-    def install(self):
+    def install(self) -> None:
         """Completely install the plugin."""
         cwd = os.getcwd()  # noqa: PTH109
         os.chdir(self.base_path)
@@ -62,12 +62,12 @@ class AbstractPluginInstaller:
 
         os.chdir(cwd)
 
-    def install_docker_images(self):
+    def install_docker_images(self) -> None:
         """
         Build/Pull docker images
         """
 
-    def install_system_packages(self):
+    def install_system_packages(self) -> None:
         """
         Install packages with apt/dnf
         """
@@ -84,7 +84,7 @@ class AbstractPluginInstaller:
 
         run_cmd_with_logging(f'sudo {pgk_mgr_cmd} {pkgs_to_install}')
 
-    def install_pip_packages(self):
+    def install_pip_packages(self) -> None:
         """
         Install packages with pip
         """
@@ -92,27 +92,27 @@ class AbstractPluginInstaller:
         if requirements_path.exists():
             install_pip_packages(requirements_path)
 
-    def install_other_packages(self):
+    def install_other_packages(self) -> None:
         """
         Install packages with package managers other than pip/dnf/apt.
         """
 
-    def install_files(self):
+    def install_files(self) -> None:
         """
         Download and install files.
         """
 
-    def build(self):
+    def build(self) -> None:
         """
         Build and install projects that can't be installed through a package
         manager
         """
 
-    def _build_docker_image(self, tag: str, dockerfile_path: Path | None = None):
+    def _build_docker_image(self, tag: str, dockerfile_path: Path | None = None) -> None:
         if not dockerfile_path:
             dockerfile_path = self.base_path / 'docker'
         run_cmd_with_logging(f'docker build -t {tag} {dockerfile_path}')
 
 
-def _read_packages(package_file: Path):
+def _read_packages(package_file: Path) -> list[str]:
     return read_package_list_from_file(package_file) if package_file.exists() else []
