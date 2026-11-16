@@ -11,7 +11,7 @@ from time import time
 from typing import TYPE_CHECKING
 
 import config
-from helperFunctions.process import stop_process
+from helperFunctions.process import stop_processes
 from storage.redis_status_interface import RedisStatusInterface
 
 if TYPE_CHECKING:
@@ -118,7 +118,7 @@ class AnalysisStatusWorker:
         if self._running.value == 1:
             self._running.value = 0
             if self._worker_process is not None:
-                stop_process(self._worker_process, timeout=10)
+                stop_processes([self._worker_process], timeout=config.backend.graceful_shutdown_timeout)
 
     def _worker_loop(self) -> None:
         logging.debug(f'starting analysis status worker (pid: {os.getpid()})')

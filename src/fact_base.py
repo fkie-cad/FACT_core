@@ -69,21 +69,12 @@ class FactBase:
             return 'unknown revision'
 
     def _register_signal_handlers(self) -> None:
-        # Check whether the process was started by start_fact.py
-        parent = ' '.join(psutil.Process(os.getppid()).cmdline())
-        started_by_start_fact_py = 'start_fact.py' in parent or 'start_all_installed_fact_components' in parent
-        if started_by_start_fact_py:
-            signal.signal(signal.SIGUSR1, self.shutdown_listener)
-            signal.signal(signal.SIGINT, lambda *_: None)
-            signal.signal(signal.SIGTERM, lambda *_: None)
-            os.setpgid(os.getpid(), os.getpid())  # reset pgid to self so that "complete_shutdown" doesn't run amok
-        else:
-            signal.signal(signal.SIGINT, self.shutdown_listener)
-            signal.signal(signal.SIGTERM, self.shutdown_listener)
+        signal.signal(signal.SIGINT, self.shutdown_listener)
+        signal.signal(signal.SIGTERM, self.shutdown_listener)
+        # forked subprocesses would otherwise inherit the shutdown handlers of the main process
+        os.register_at_fork(after_in_child=_reset_signal_handlers)
 
     def shutdown_listener(self, signum, _) -> None:  # noqa: ANN001
-        if not _is_main_process():
-            return  # all subprocesses also inherit this signal handler (which is intentional for a "clean" shutdown)
         logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
         self.run = False
 
@@ -142,5 +133,11 @@ class FactBase:
             logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
 
 
-def _is_main_process() -> bool:
-    return os.getpid() == os.getpgrp()
+def _reset_signal_handlers() -> None:
+    """
+    Reset the signal handlers in forked subprocesses: SIGINT is ignored, because it is sent to the whole process group
+    when pressing Ctrl+C in a terminal and the main process should shut down its subprocesses in an orderly fashion.
+    SIGTERM is reset to the default handler, so that subprocesses can be terminated.
+    """
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
