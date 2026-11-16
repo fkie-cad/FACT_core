@@ -17,26 +17,25 @@ CHUNK_MAGIC = b'$CHUNKED$'
 SEPARATOR = '#'
 
 
+def get_redis_from_cfg() -> Redis:
+    pool = ConnectionPool(
+        host=config.common.redis.host,
+        port=config.common.redis.port,
+        db=config.common.redis.fact_db,
+        password=config.common.redis.password,
+        max_connections=200,
+        socket_connect_timeout=5,
+        socket_keepalive=True,
+        retry_on_timeout=True,
+    )
+    retry = Retry(ExponentialBackoff(), 3)
+    return Redis(connection_pool=pool, retry=retry)
+
+
 class RedisInterface:
     def __init__(self, chunk_size: int = REDIS_MAX_VALUE_SIZE):
         self.chunk_size = chunk_size
-        redis_db = config.common.redis.fact_db
-        redis_host = config.common.redis.host
-        redis_port = config.common.redis.port
-        redis_pw = config.common.redis.password
-
-        pool = ConnectionPool(
-            host=redis_host,
-            port=redis_port,
-            db=redis_db,
-            password=redis_pw,
-            max_connections=200,
-            socket_connect_timeout=5,
-            socket_keepalive=True,
-            retry_on_timeout=True,
-        )
-        retry = Retry(ExponentialBackoff(), 3)
-        self.redis = Redis(connection_pool=pool, retry=retry)
+        self.redis = get_redis_from_cfg()
 
     def set(self, key: str, value: Any) -> None:  # noqa: ANN401
         self.redis.set(key, self._split_if_necessary(dumps(value)))

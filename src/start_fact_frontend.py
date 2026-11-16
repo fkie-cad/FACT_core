@@ -1,20 +1,20 @@
 #! /usr/bin/env python3
 """
-    Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2026  Fraunhofer FKIE
+Firmware Analysis and Comparison Tool (FACT)
+Copyright (C) 2015-2026  Fraunhofer FKIE
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import annotations
@@ -27,12 +27,14 @@ import tempfile
 from shlex import split
 from subprocess import Popen, TimeoutExpired
 
+import psutil
+
+from helperFunctions.process import terminate_process_and_children
+
 try:
     from fact_base import FactBase
 except (ImportError, ModuleNotFoundError):
     sys.exit(1)
-
-from typing import Optional
 
 from helperFunctions.fileSystem import get_config_dir, get_src_dir
 from helperFunctions.install import run_cmd_with_logging
@@ -41,23 +43,23 @@ COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 
 
 class UwsgiServer:
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: str | None = None):
         self.config_path = config_path
         self.process = None
 
-    def start(self):
+    def start(self) -> None:
         config_parameter = f' --pyargv {self.config_path}' if self.config_path else ''
         command = f'uwsgi --thunder-lock --ini  {get_config_dir()}/uwsgi_config.ini{config_parameter}'
-        self.process = Popen(split(command), cwd=get_src_dir())
+        self.process = Popen(split(command), cwd=get_src_dir())  # noqa: S603
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         if self.process:
             try:
                 self.process.send_signal(signal.SIGINT)
-                self.process.wait(timeout=30)
+                self.process.wait(timeout=10)
             except TimeoutExpired:
-                logging.error('frontend did not stop in time -> kill')
-                self.process.kill()
+                logging.error(f'frontend process (PID={self.process.pid}) did not stop in time -> kill')
+                terminate_process_and_children(psutil.Process(self.process.pid))
 
 
 class FactFrontend(FactBase):
@@ -71,7 +73,7 @@ class FactFrontend(FactBase):
         if not self.args.no_radare:
             run_cmd_with_logging(f'docker compose -f {COMPOSE_YAML} up -d')
 
-    def main(self):
+    def main(self) -> None:
         with tempfile.NamedTemporaryFile() as fp:
             fp.write(pickle.dumps(self.args))
             fp.flush()
@@ -80,7 +82,7 @@ class FactFrontend(FactBase):
 
             super().main()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         super().shutdown()
         if self.server:
             self.server.shutdown()
