@@ -336,8 +336,8 @@ class AnalysisScheduler:
 
     def _task_runner(self, index: int = 0) -> None:
         logging.debug(f'Started analysis scheduling worker {index} (pid={os.getpid()})')
-        processed_tasks = 0
-        while self.stop_condition.value == 0 and not _task_limit_reached(processed_tasks):
+        processed_tasks, last_task_time = 0, time.monotonic()
+        while self.stop_condition.value == 0 and not _should_retire(processed_tasks, last_task_time):
             try:
                 task = self.process_queue.get(timeout=config.backend.block_delay)
             except Empty:
@@ -346,6 +346,7 @@ class AnalysisScheduler:
                 self._process_next_analysis_task(task)
                 del task
                 processed_tasks += 1
+                last_task_time = time.monotonic()
         if self.stop_condition.value == 0:
             self._retiring_schedulers[index] = 1
         logging.debug(f'Stopped analysis scheduling worker {index} after {processed_tasks} tasks')
@@ -528,8 +529,8 @@ class AnalysisScheduler:
     def _result_collector(self, index: int = 0) -> None:
         # Collects the results from the plugins and writes them in FileObject.processed_analysis
         logging.debug(f'Started analysis result collector worker {index} (pid={os.getpid()})')
-        processed_tasks = 0
-        while self.stop_condition.value == 0 and not _task_limit_reached(processed_tasks):
+        processed_tasks, last_task_time = 0, time.monotonic()
+        while self.stop_condition.value == 0 and not _should_retire(processed_tasks, last_task_time):
             nop = True
             for plugin_name, plugin in self.analysis_plugins.items():
                 runner = self._plugin_runners[plugin.metadata.name]
@@ -544,6 +545,7 @@ class AnalysisScheduler:
                     self._handle_collected_result(fw, plugin_name)
                     del fw
                     processed_tasks += 1
+                    last_task_time = time.monotonic()
             if nop:
                 sleep(config.backend.block_delay)
         if self.stop_condition.value == 0:
@@ -631,8 +633,9 @@ class AnalysisScheduler:
 
     def restart_retiring_processes(self) -> None:
         """
-        Scheduling and result collector processes exit after ``scheduling_max_tasks_per_process`` tasks, since the
-        memory allocated for passing objects through the queues is not returned to the OS while they are running.
+        Scheduling and result collector processes exit after ``scheduling_max_tasks_per_process`` tasks (or after
+        being idle for ``scheduling_max_idle_time`` seconds if they processed any tasks), since the memory allocated
+        for passing objects through the queues is not returned to the OS while they are running.
         Replace processes that announced their exit with new ones. Must be called from the process that owns the
         process lists (the backend main process).
 
@@ -677,9 +680,13 @@ class AnalysisScheduler:
         return check_worker_exceptions(self.schedule_processes + self.result_collector_processes, 'Scheduler')
 
 
-def _task_limit_reached(processed_tasks: int) -> bool:
-    limit = config.backend.scheduling_max_tasks_per_process
-    return 0 < limit <= processed_tasks
+def _should_retire(processed_tasks: int, last_task_time: float) -> bool:
+    task_limit = config.backend.scheduling_max_tasks_per_process
+    if 0 < task_limit <= processed_tasks:
+        return True
+    # a process that has not processed any tasks yet holds no memory that a restart would free
+    idle_limit = config.backend.scheduling_max_idle_time
+    return 0 < idle_limit <= time.monotonic() - last_task_time and processed_tasks > 0
 
 
 def _fix_system_version(system_version: str | None) -> str:

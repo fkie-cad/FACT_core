@@ -4,7 +4,7 @@ from contextlib import suppress
 from dataclasses import KW_ONLY, dataclass, field
 from multiprocessing import Queue
 from queue import Empty
-from time import sleep, time
+from time import monotonic, sleep, time
 from unittest import mock
 
 import pytest
@@ -12,9 +12,12 @@ from semver import Version
 
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
+from scheduler.analysis.scheduler import _should_retire
 from scheduler.task_scheduler import MANDATORY_PLUGINS
 from test.common_helper import MockFileObject, create_test_firmware, get_test_data_dir
 from test.mock import mock_patch, mock_spy
+
+IDLE_TIME = 0.5
 
 
 class ViewUpdaterMock:
@@ -84,6 +87,40 @@ class TestScheduleInitialAnalysis:
         processes = analysis_scheduler.schedule_processes + analysis_scheduler.result_collector_processes
         assert len(processes) == process_count
         assert old_pids - {p.pid for p in processes}, 'processes should have been restarted'
+
+    # with one process each, all of them are guaranteed to process tasks
+    @pytest.mark.backend_config_overwrite(
+        {'scheduling_max_idle_time': IDLE_TIME, 'scheduling_worker_count': 1, 'collector_worker_count': 1}
+    )
+    @pytest.mark.SchedulerTestConfig(start_processes=True)
+    def test_idle_processes_are_restarted_only_after_work(self, analysis_scheduler, post_analysis_queue):
+        def _get_pids():
+            return {
+                p.pid for p in analysis_scheduler.schedule_processes + analysis_scheduler.result_collector_processes
+            }
+
+        old_pids = _get_pids()
+        test_fw = Firmware.from_path(get_test_data_dir() / 'get_files_test/testfile1')
+        test_fw.scheduled_analysis = ['ExamplePlugin']
+        analysis_scheduler.start_analysis_of_object(test_fw)
+        for _ in range(3):
+            post_analysis_queue.get(timeout=10)
+
+        # the processes did work -> they are restarted after being idle for IDLE_TIME seconds
+        deadline = time() + 10
+        while not old_pids.isdisjoint(_get_pids()) and time() < deadline:
+            analysis_scheduler.restart_retiring_processes()
+            sleep(0.05)
+        pids_after_restart = _get_pids()
+        assert old_pids.isdisjoint(pids_after_restart), 'all processes should have been restarted'
+        assert len(pids_after_restart) == len(old_pids)
+
+        # the replacements did no work -> they are not restarted again (nothing to wait for, so the time must pass)
+        deadline = time() + IDLE_TIME + 0.5
+        while time() < deadline:
+            analysis_scheduler.restart_retiring_processes()
+            sleep(0.05)
+        assert _get_pids() == pids_after_restart
 
     @pytest.mark.SchedulerTestConfig(start_processes=False)
     def test_retiring_process_is_replaced_before_it_exits(self, analysis_scheduler, monkeypatch):
@@ -500,3 +537,21 @@ def test_combined_analysis_workload(monkeypatch):
         sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
         scheduler.process_queue.close()
         dummy_runner._in_queue.close()
+
+
+@pytest.mark.parametrize(
+    ('task_limit', 'idle_limit', 'processed_tasks', 'idle_time', 'expected'),
+    [
+        (10, 60, 0, 0, False),
+        (10, 60, 10, 0, True),  # task limit reached
+        (0, 60, 10_000, 0, False),  # task limit disabled
+        (10, 60, 1, 61, True),  # idle after work
+        (10, 60, 1, 59, False),  # not idle long enough
+        (10, 60, 0, 1_000, False),  # idle, but never did any work
+        (10, 0, 1, 1_000, False),  # idle limit disabled
+    ],
+)
+def test_should_retire(backend_config, monkeypatch, task_limit, idle_limit, processed_tasks, idle_time, expected):
+    monkeypatch.setattr(backend_config, 'scheduling_max_tasks_per_process', task_limit)
+    monkeypatch.setattr(backend_config, 'scheduling_max_idle_time', idle_limit)
+    assert _should_retire(processed_tasks, last_task_time=monotonic() - idle_time) is expected
