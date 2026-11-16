@@ -340,6 +340,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         with self.get_read_only_session() as session:
             db_query = select(FileObjectEntry.uid)
             db_query = self._apply_offset_and_limit(db_query, offset, limit)
+            db_query = db_query.order_by(FileObjectEntry.uid.asc())
             return list(session.execute(db_query).scalars())
 
     # --- missing/failed analyses ---
