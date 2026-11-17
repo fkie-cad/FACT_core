@@ -142,6 +142,7 @@ class Backend(Common):
 
     class PluginDefaults(BaseModel):
         processes: int
+        ignore_plugin_processes: bool = False
         timeout: int | float | None = None
 
     class Plugin(BaseModel):

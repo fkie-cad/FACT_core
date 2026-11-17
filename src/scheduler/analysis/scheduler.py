@@ -234,10 +234,7 @@ class AnalysisScheduler:
             if not isinstance(plugin, AnalysisPluginV0):
                 continue
 
-            try:
-                process_count = config.backend.plugin[plugin.metadata.name].processes
-            except (AttributeError, KeyError):
-                process_count = config.backend.plugin_defaults.processes
+            process_count = _get_plugin_process_count(plugin.metadata.name)
 
             # if a timeout value is set in the plugin's configuration use that. If not, use the value from the plugin
             # defaults. If that is not set either, use the value from the plugin's metadata
@@ -291,10 +288,7 @@ class AnalysisScheduler:
             for plugin_set in plugin_sets:
                 current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set].plugins
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
-            try:
-                thread_count = config.backend.plugin[plugin].processes
-            except (AttributeError, KeyError):
-                thread_count = config.backend.plugin_defaults.processes
+            thread_count = _get_plugin_process_count(plugin)
             # FixMe this should not be a tuple but rather a dictionary/class
             result[plugin] = (
                 self.analysis_plugins[plugin].metadata.description,
@@ -620,6 +614,14 @@ class AnalysisScheduler:
         :return: Boolean value stating if any attached process ran into an exception
         """
         return check_worker_exceptions(self.schedule_processes + self.result_collector_processes, 'Scheduler')
+
+
+def _get_plugin_process_count(plugin_name: str) -> int:
+    defaults = config.backend.plugin_defaults
+    if defaults.ignore_plugin_processes:
+        return defaults.processes
+    process_count = getattr(config.backend.plugin.get(plugin_name), 'processes', None)
+    return defaults.processes if process_count is None else process_count
 
 
 def _fix_system_version(system_version: str | None) -> str:
