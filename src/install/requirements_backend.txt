@@ -1,7 +1,8 @@
 cryptography==50.0.1
 MarkupSafe~=2.1.5
 networkx~=3.1
-Pillow~=12.2.0
+Pillow==12.3.0; python_version < "3.11"
+Pillow==13.0.0; python_version >= "3.11"
 pyopenssl==26.4.0
 pyyaml~=6.0.2
 
