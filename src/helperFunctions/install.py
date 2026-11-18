@@ -285,7 +285,8 @@ def install_pip_packages(package_file: Path) -> None:
 
 
 def install_single_pip_package(package: str) -> None:
-    command = f'pip3 install -U {package} --prefer-binary'  # prefer binary release to compiling latest
+    # quote the package: it may contain an environment marker with spaces, e.g. `foo==1.0; python_version < "3.11"`
+    command = f'pip3 install -U {shlex.quote(package)} --prefer-binary'  # prefer binary release to compiling latest
     if not is_virtualenv():
         command = 'sudo -EH ' + command
     run_cmd_with_logging(command, silent=True)
