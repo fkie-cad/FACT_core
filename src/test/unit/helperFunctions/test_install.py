@@ -8,6 +8,7 @@ from helperFunctions.install import (
     InstallationError,
     OperateInDirectory,
     _run_shell_command_raise_on_return_code,
+    install_single_pip_package,
     read_package_list_from_file,
 )
 
@@ -69,3 +70,14 @@ def test_read_package_list_from_file():
     packages = read_package_list_from_file(path)
 
     assert set(packages) == set(expected_packages)
+
+
+def test_install_single_pip_package_with_environment_marker(monkeypatch):
+    calls = []
+    monkeypatch.setattr('helperFunctions.install.subprocess.run', lambda cmd, **_: calls.append(cmd))
+    requirement = 'Pillow==12.3.0; python_version < "3.11"'
+
+    install_single_pip_package(requirement)
+
+    assert len(calls) == 1
+    assert requirement in calls[0]
