@@ -10,10 +10,12 @@ from requests.adapters import HTTPAdapter, Retry
 
 try:
     import config
+    from storage.graphql.util import get_db_url
 except ImportError:
     SRC_DIR = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_DIR))
     import config
+    from storage.graphql.util import get_db_url
 
 HTML_OK = 200
 HTML_BAD_REQUEST = 400
@@ -102,9 +104,8 @@ class HasuraSetup:
     def _get_db_url(self) -> dict | str:
         if not self.testing:
             return {'from_env': 'FACT_DB_URL'}
-        user = config.common.postgres.ro_user
-        pw = config.common.postgres.ro_pw
-        return f'postgresql://{user}:{pw}@/fact_test?host=/var/run/postgresql'
+        postgres = config.common.postgres
+        return get_db_url(postgres.test_database, postgres.ro_user, postgres.ro_pw)
 
     def drop_database(self) -> None:
         query = {

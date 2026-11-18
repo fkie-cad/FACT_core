@@ -35,6 +35,7 @@ except (ImportError, ModuleNotFoundError):
 
 from helperFunctions.fileSystem import get_config_dir, get_src_dir
 from helperFunctions.install import run_cmd_with_logging
+from storage.graphql.util import update_hasura_containers
 
 COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 
@@ -67,6 +68,7 @@ class FactFrontend(FactBase):
     def __init__(self):
         super().__init__()
         self.server = None
+        update_hasura_containers()
         if not self.args.no_radare:
             run_cmd_with_logging(f'docker compose -f {COMPOSE_YAML} up -d')
 
