@@ -178,7 +178,8 @@ body.dark-mode :is(.d2h-file-wrapper, .d2h-code-side-linenumber) {
     border-color: var(--border-color-dark) !important;
 }
 
-body.dark-mode :is(a:link, a:visited, a:active) {
+/* GraphiQL brings its own dark theme, so it is excluded from the generic overrides */
+body.dark-mode :is(a:link, a:visited, a:active):not(:where(.graphiql-container *)) {
     color: var(--link-color-dark);
 }
 
@@ -187,12 +188,12 @@ body.dark-mode :is(.navbar-light .navbar-nav > li > a, .list-group-item > a, .li
     color: var(--text-color-dark) !important;
 }
 
-body.dark-mode :is(a:hover, .navbar-light .navbar-nav > li > a:hover) {
+body.dark-mode :is(a:hover, .navbar-light .navbar-nav > li > a:hover):not(:where(.graphiql-container *)) {
     color: var(--link-color-hover-dark);
 }
 
 body.dark-mode :is(div.card, input, textarea, select, .dropdown-menu, .d2h-wrapper, .d2h-file-header,
-        .d2h-info, .modal-content, a.page-link, span.page-link, .btn-light, .jumbotron, .custom-file-label) {
+        .d2h-info, .modal-content, a.page-link, span.page-link, .btn-light, .jumbotron, .custom-file-label):not(:where(.graphiql-container *)) {
     color: var(--text-color-dark) !important;
     background-color: var(--background-color-element-dark) !important;
     border-color: var(--border-color-dark) !important;
