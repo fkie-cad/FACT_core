@@ -39,11 +39,26 @@ def get_analysis_view(view_name: str) -> str:
     return get_binary_from_file(view_path).decode('utf-8')
 
 
+def _find_plugin_view_files(stored_views: dict[str, bytes]) -> dict[str, Path]:
+    view_files = {
+        path.read_bytes(): path for path in Path(get_src_dir()).glob('plugins/analysis/*/view/*') if path.is_file()
+    }
+    result = {}
+    for plugin, content in stored_views.items():
+        if content in view_files:
+            result[plugin] = view_files[content]
+        else:
+            logging.debug(f'Could not find view file for plugin {plugin}: it will not be reloaded on change')
+    return result
+
+
 class AnalysisRoutes(ComponentBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.analysis_generic_view = get_analysis_view('generic')
         self.analysis_unpacker_view = get_analysis_view('unpacker')
+        # in development mode, views are read directly from the file system instead of going through the DB
+        self._plugin_view_files = _find_plugin_view_files(self.db.template.get_all_views()) if self._app.debug else {}
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/analysis/<uid>', GET)
@@ -133,11 +148,13 @@ class AnalysisRoutes(ComponentBase):
 
     def _get_analysis_view(self, selected_analysis: str) -> str:
         if selected_analysis == 'unpacker':
-            return self.analysis_unpacker_view
+            return get_analysis_view('unpacker') if self._app.debug else self.analysis_unpacker_view
+        if selected_analysis in self._plugin_view_files:
+            return self._plugin_view_files[selected_analysis].read_text()
         view = self.db.template.get_view(selected_analysis)
         if view:
             return view.decode('utf-8')
-        return self.analysis_generic_view
+        return get_analysis_view('generic') if self._app.debug else self.analysis_generic_view
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', GET)

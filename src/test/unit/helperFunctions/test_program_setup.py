@@ -1,13 +1,13 @@
 import logging
 from pathlib import Path
 
-from helperFunctions.program_setup import _get_logging_config, setup_logging
+from helperFunctions.program_setup import _get_logging_config, setup_argparser, setup_logging
 from test.common_helper import get_test_data_dir
 
 
 class ArgumentMock:
     config_file = f'{get_test_data_dir()}/load_cfg_test'
-    log_file = '/tmp/fact_test_argument_log_file.log'
+    log_file = '/tmp/fact_test_argument_log_file.log'  # noqa: S108
     log_level = 'DEBUG'
     silent = False
     debug = False
@@ -26,3 +26,19 @@ def test_setup_logging():
     logger = logging.getLogger()
     assert logger.getEffectiveLevel() == logging.NOTSET
     assert Path(ArgumentMock.log_file).exists()
+
+
+def test_setup_argparser_development_flag():
+    args = setup_argparser(
+        'FACT Frontend',
+        'Firmware Analysis and Compare Tool Frontend',
+        command_line_options=['start_fact_frontend.py', '--development'],
+    )
+    assert args.development is True
+
+
+def test_setup_argparser_development_flag_default():
+    args = setup_argparser(
+        'FACT Frontend', 'Firmware Analysis and Compare Tool Frontend', command_line_options=['start_fact_frontend.py']
+    )
+    assert args.development is False
