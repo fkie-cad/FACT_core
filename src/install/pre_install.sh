@@ -83,6 +83,12 @@ sudo apt-get -o Dpkg::Options::="--force-confnew" install -y \
 
 sudo systemctl enable docker
 
+# install bun
+if ! command -v bun &> /dev/null && [ ! -x "$HOME/.bun/bin/bun" ]; then
+  curl -fsSL https://bun.sh/install | bash
+fi
+export PATH="$HOME/.bun/bin:$PATH"
+
 # add fact-user to docker group
 if [ ! "$(getent group docker)" ]
 then
