@@ -22,7 +22,7 @@ class RestStatus(RestResourceBase):
         components = ['frontend', 'database', 'backend']
         status = {}
         for component in components:
-            status[component] = self.db.stats_viewer.get_statistic(component)
+            status[component] = self.status.get_component_status(component)
 
         plugins = self.intercom.get_available_analysis_plugins()
 

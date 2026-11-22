@@ -151,8 +151,9 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/ajax/system_health', GET)
     def get_system_health_update(self) -> dict[str, list[dict] | dict]:
+        components = ('backend', 'frontend', 'database')
         return {
-            'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database'),
+            'systemHealth': [status for c in components if (status := self.status.get_component_status(c))],
             'analysisStatus': self.status.get_analysis_status(),
         }
 

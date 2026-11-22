@@ -117,6 +117,9 @@ class StatusInterfaceMock:
     def get_analysis_status(self):
         return self._status
 
+    def get_component_status(self, component):
+        return {'name': component, 'status': 'foo'}
+
 
 class WebInterfaceUnitTestConfig(BaseModel):
     """A class configuring the :py:func:`web_frontend` fixture."""
