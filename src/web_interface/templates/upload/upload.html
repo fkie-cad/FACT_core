@@ -14,6 +14,8 @@
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/loading.js') }}"></script>
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='node_modules/axios/dist/axios.min.js') }}"></script>
     <script>
         $(window).bind("pageshow", function (_) {
             // if we come back to the page, make sure that the loading gif is not covering up the form
@@ -40,7 +42,7 @@
 {%- block body -%}
 
     <div class="row justify-content-center">
-        <div class="col-xl-6 col-lg-8 mt-4">
+        <div class="col-xl-6 col-lg-8 mt-4" id="upload-form-container">
             {%- if is_reanalysis %}
                 <h3 class="mb-1">{{ title }} of</h3>
                 <h5 class="mb-3">{{ firmware.uid | replace_uid_with_hid }}</h5>
@@ -50,7 +52,7 @@
 
             <div id="form">
                 <form class="form-horizontal" action="" method=post enctype=multipart/form-data
-                      onsubmit="return showImg()">
+                      onsubmit="return showImg()" id="upload-form">
 
                     {# File #}
                     <div class="input-group mb-3">
@@ -185,6 +187,64 @@
                 loadLoadingAnimation('loading-img');
             </script>
         </div>
+        <div class="col-xl-6 col-lg-8 mt-4" id="upload-progress-container" style="display: none;">
+            <div class="progress mt-4" style="height: 25px;" id="upload-progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0;">
+                    0%
+                </div>
+            </div>
+            <div id="upload-status">
+                <h5 class="mt-4" style="text-align: center;">
+                    Please wait while upload is in progress.
+                </h5>
+            </div>
+        </div>
     </div>
+
+    <script>
+        function updateProgress(progressBarElement, progressPercentage) {
+            progressBarElement.style.width = `${progressPercentage}%`;
+            progressBarElement.setAttribute('aria-valuenow', progressPercentage);
+            progressBarElement.textContent = `${progressPercentage}%`;
+        }
+
+        const form = document.getElementById('upload-form');
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+            document.getElementById("upload-form-container").style.display = "none";
+            document.getElementById("upload-progress-container").style.display = "block";
+            const progressBarContainer = document.getElementById('upload-progress');
+            const progressBar = progressBarContainer.querySelector('.progress-bar');
+
+            updateProgress(progressBar, 0);
+            axios.post(location.pathname, formData, {
+                headers: {'Content-Type': 'multipart/form-data'},
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    updateProgress(progressBar, percentCompleted);
+                }
+            })
+                .then((response) => {
+                    progressBar.classList.remove('progress-bar-animated');
+                    progressBar.classList.add('bg-success');
+                    const uid = response.data;
+                    document.getElementById('upload-status').innerHTML = `
+                        <div class="alert alert-success mt-4">
+                            <h3 class="alert-heading">Upload Successful</h3>
+                            <hr />
+                            The analysis results will be available <a href="/analysis/${uid}"><i class="fas fa-arrow-up-right-from-square"></i> here</a> when ready.
+                            You can monitor the analysis and unpacking progress <a href="/system_health"><i class="fas fa-arrow-up-right-from-square"></i> here</a>.
+                        </div>
+                    `
+                })
+                .catch((error) => {
+                    progressBar.classList.remove('progress-bar-animated');
+                    progressBar.classList.add('bg-danger');
+                    progressBar.textContent = `Error during upload: ${error}`;
+                });
+        });
+    </script>
 
 {%- endblock -%}

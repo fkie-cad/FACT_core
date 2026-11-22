@@ -41,7 +41,7 @@ class IORoutes(ComponentBase):
         if not success:
             return render_template('error.html', message='Error: Storing the uploaded file failed.')
         self.intercom.add_analysis_task(fw)
-        return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
+        return analysis_task['uid']
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/upload', GET)

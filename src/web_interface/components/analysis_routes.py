@@ -179,7 +179,7 @@ class AnalysisRoutes(ComponentBase):
             raise
         force_reanalysis = request.form.get('force_reanalysis') == 'true'
         self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
-        return render_template('upload/upload_successful.html', uid=uid)
+        return uid
 
     def _schedule_re_analysis_task(
         self, uid: str, analysis_task: dict, re_do: bool, force_reanalysis: bool = False
