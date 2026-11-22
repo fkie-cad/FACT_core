@@ -61,3 +61,21 @@ class FilterClassMock:
 def test_data_to_chart_limited(input_data, limit, expected_result):
     result = FilterClass.data_to_chart_limited(FilterClassMock(), input_data, limit=limit)
     assert result == expected_result
+
+
+CRITICAL_SPAN = '<span class="badge badge-danger ml-2 p-1" style="font-size: 14px;">critical</span>'
+
+
+@pytest.mark.parametrize(
+    ('strings', 'expected_output'),
+    [
+        ('', ''),
+        ('foo', 'foo'),
+        ('OpenSSL 0.9.8l (CRITICAL)', f'OpenSSL 0.9.8l {CRITICAL_SPAN}'),
+        ([], []),
+        (['foo'], ['foo']),
+        (['foo (CRITICAL)', 'bar (CRITICAL)'], [f'foo {CRITICAL_SPAN}', f'bar {CRITICAL_SPAN}']),
+    ],
+)
+def test_replace_critical_with_badge(strings, expected_output):
+    assert FilterClass._replace_critical_with_badge(strings) == expected_output
