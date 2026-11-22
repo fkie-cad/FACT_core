@@ -88,7 +88,7 @@ class TestRestAnalysis(RestTestBase):
         )
         monkeypatch.setattr(
             'intercom.front_end_binding.InterComFrontEndBinding.add_single_file_task',
-            lambda _, fo: fo.force_update is True,
+            lambda _, fo: fo.temporary_data['force_update'] is True,
         )
 
         response = self.test_client.put(f'/rest/analysis/{TEST_UID}/file_type?force=true')

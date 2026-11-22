@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from copy import deepcopy
 from pathlib import Path
 from time import time
 from typing import TYPE_CHECKING
@@ -99,6 +100,7 @@ class Unpacker(UnpackBase):
                 uid = create_uid_from_path(path)
             current_file = FileObject.from_uid(uid, file_name=path.name)
             current_virtual_path = get_relative_object_path(path, extraction_dir)
+            current_file.temporary_data = deepcopy(parent.temporary_data)
             current_file.temporary_data['parent_fo_type'] = magic.from_file(parent.file_path, mime=True)
 
             if current_file.uid not in extracted_files:
