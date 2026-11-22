@@ -149,6 +149,32 @@ def test_get_complete_object(backend_db, common_db):
     assert isinstance(result, FileObject)
     expected_summary = {'entry1': [parent_fo.uid], 'entry2': [parent_fo.uid, child_fo.uid], 'entry3': [child_fo.uid]}
     _summary_is_equal(expected_summary, result.processed_analysis['test_plugin']['summary'])
+    _summary_is_equal(expected_summary, common_db.get_fo_summary_for_plugin(parent_fo, 'test_plugin'))
+
+
+def test_get_summary(backend_db, common_db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    fw.processed_analysis['test_plugin'] = generate_analysis_entry(summary=['entry0'])
+    parent_fo.processed_analysis['test_plugin'] = generate_analysis_entry(summary=['entry1', 'entry2'])
+    child_fo.processed_analysis['test_plugin'] = generate_analysis_entry(summary=['entry2', 'entry3'])
+    backend_db.insert_multiple_objects(fw, parent_fo, child_fo)
+
+    expected_summary = {
+        'entry0': [fw.uid],
+        'entry1': [parent_fo.uid],
+        'entry2': [parent_fo.uid, child_fo.uid],
+        'entry3': [child_fo.uid],
+    }
+    fw_summary = common_db.get_all_summaries(fw)['test_plugin']
+    _summary_is_equal(expected_summary, fw_summary)
+    fw_plugin_summary = common_db.get_summary(fw, 'test_plugin')
+    _summary_is_equal(expected_summary, fw_plugin_summary)
+
+    expected_summary.pop('entry0')
+    fo_summary = common_db.get_all_summaries(parent_fo)['test_plugin']
+    _summary_is_equal(expected_summary, fo_summary)
+    fo_plugin_summary = common_db.get_summary(parent_fo, 'test_plugin')
+    _summary_is_equal(expected_summary, fo_plugin_summary)
 
 
 def _summary_is_equal(expected_summary, summary):
