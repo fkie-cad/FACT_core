@@ -22,8 +22,9 @@ class TestRestStatistics(RestTestBase):
             'known_vulnerabilities', {'known_vulnerabilities': [['BackDoor_String', 1]]}
         )
 
-    def test_rest_request_all_statistics(self):
-        st = self.test_client.get('/rest/statistics', follow_redirects=True)
+    @pytest.mark.parametrize('url', ['/rest/statistics', '/rest/statistics/'])
+    def test_rest_request_all_statistics(self, url):
+        st = self.test_client.get(url, follow_redirects=True)
         st_dict = json.loads(st.data)
 
         assert b'file_type' in st.data
@@ -49,7 +50,3 @@ class TestRestStatistics(RestTestBase):
         st = self.test_client.get('/rest/statistics/non_existent_stat', follow_redirects=True)
 
         assert b'A statistic with the ID non_existent_stat does not exist' in st.data
-
-    def test_rest_request_invalid_data(self):
-        st = self.test_client.get('/rest/statistics/', follow_redirects=True)
-        assert b'404 Not Found' in st.data
