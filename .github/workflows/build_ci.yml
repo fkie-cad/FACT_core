@@ -74,12 +74,22 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./src/install.py -U -R -N -L DEBUG
+      - name: activate multiprocessing coverage only on master
+        if: github.ref_name == 'master'
+        run: |
+          sed -i 's/"thread"/"thread", "multiprocessing"/g' pyproject.toml
       - name: Unit Tests
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          python3 -m pip install codecov
-          pytest --cov=.
+          if [ ${{ github.ref_name }} == "stable" ];
+          then
+            pytest
+          else
+            python3 -m pip install codecov
+            pytest --cov=.
+          fi
       - name: Upload coverage to Codecov
+        if: github.ref_name != 'stable'
         uses: codecov/codecov-action@v4
         with:
           verbose: true
