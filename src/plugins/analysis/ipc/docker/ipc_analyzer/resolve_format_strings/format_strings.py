@@ -95,7 +95,10 @@ def get_format_string_function_calls(ghidra_analysis, basic_block):
                 logging.error('ERROR: CALL, but not to address: {}'.format(pcode_op))
                 continue
             # If the CALL is a format string function, save this callsite
-            func_name = ghidra_analysis.flat_api.getFunctionAt(called_varnode.getAddress()).name
+            function = ghidra_analysis.flat_api.getFunctionAt(called_varnode.getAddress())
+            if function is None:
+                continue
+            func_name = function.name
             if func_name in ghidra_analysis.format_string_function_names:
                 call_sites.append(pcode_op)
     return call_sites
