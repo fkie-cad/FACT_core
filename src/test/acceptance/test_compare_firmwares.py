@@ -38,11 +38,22 @@ class TestAcceptanceCompareFirmwares:
 
     def _show_analysis_without_compare_list(self, test_client):
         rv = test_client.get(f'/analysis/{test_fw_a.uid}')
-        assert b'Show list of known comparisons' not in rv.data
+        line = self._find_line_containing_key('old-compare-button', rv.data.decode())
+        assert line is not None
+        assert 'disabled' in line
 
     def _show_analysis_with_compare_list(self, test_client):
         rv = test_client.get(f'/analysis/{test_fw_a.uid}')
-        assert b'Show list of known comparisons' in rv.data
+        line = self._find_line_containing_key('old-compare-button', rv.data.decode())
+        assert line is not None
+        assert 'disabled' not in line
+
+    def _find_line_containing_key(self, key: str, content: str) -> str | None:
+        lines = content.splitlines()
+        for line in lines:
+            if key in line:
+                return line
+        return None
 
     # 8 files and 2 plugins
     @pytest.mark.SchedulerTestConfig(items_to_analyze=8 * 2)

@@ -1,77 +1,144 @@
-{% macro button_collapse(button_id, icon, target, tooltip) %}
-    <button id="{{ button_id }}" data-toggle="collapse" data-target="#{{ target }}" class="btn btn-outline-secondary">
-        <i class="fas fa-{{ icon }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}"></i>
+{% macro dropdown_item(label, id, icon, url=None, onclick=None, disabled=False, tooltip=None, disabled_tooltip=None, toggle=None) %}
+    {% set tooltip = disabled_tooltip if (disabled and disabled_tooltip) else tooltip %}
+    {% set onclick_value = onclick if onclick else ("window.location.href = '{}/{}'".format(url, firmware.uid) if url else "#") %}
+
+    {% if disabled and tooltip %}
+        {# normally, tooltips cannot be displayed for disabled elements; this is a workaround #}
+        <span class="d-block" data-toggle="tooltip" data-placement="right" data-delay='{"show": 500, "hide": 100}' title="{{ tooltip }}" tabindex="0">
+    {% endif %}
+    <button id="{{ id }}" class="dropdown-item" onclick="{{ onclick_value }}"
+            {%- if toggle %} data-toggle="collapse" data-target="#{{ toggle }}" {% endif -%}
+            {%- if disabled %} disabled {% endif -%}
+            {%- if tooltip and not disabled %} data-toggle="tooltip" data-placement="right" data-delay='{"show": 500, "hide": 100}' title="{{ tooltip }}" {% endif -%}>
+        <i class="fas fa-{{ icon }} mr-1"></i> {{ label }}
+    </button>
+    {% if disabled and tooltip %}
+        </span>
+    {% endif %}
+{% endmacro %}
+
+{% macro dropdown_confirm_item(label, id, icon, warning, url) %}
+    <button id="{{ id }}" class="dropdown-item" onclick="$('#confirm-modal-title').text('{{ warning }}'); $('#confirm-modal-proceed').attr('href', '{{ url }}{{ firmware.uid }}'); $('#confirm-modal').modal('show');"
+            data-toggle="tooltip" data-placement="right" data-delay='{"show": 1000, "hide": 100}' title="{{ warning }}">
+        <i class="fas fa-{{ icon }} mr-1"></i> {{ label }}
     </button>
 {% endmacro %}
 
-{% macro button_tooltip(tooltip, id, url, icon, onclick=None, danger=False, disabled=False) %}
-    {% set button_class = "btn-danger" if danger else "btn-outline-secondary" %}
-    {% set onclick_value = onclick if onclick else "window.location.href = '" + url + firmware.uid + "'" %}
+{% macro dropdown_menu(label, icon) %}
+    <div class="btn-group mr-1 mb-2" role="group" aria-label="Analysis, download and admin buttons">
+        <div class="btn-group" role="group">
+            {% set label_id = label.lower().replace(" ", "-") %}
+            <button id="{{ label_id }}-dropdown" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-{{ icon }} mr-1"></i> {{ label }}
+            </button>
+            <div class="dropdown-menu" aria-labelledby="{{ label_id }}-dropdown">
 
-    <button id="{{ id }}" class="btn {{ button_class }}" onclick="{{ onclick_value }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}" {% if disabled %}disabled{% endif %}>
-        <i class="fas fa-{{ icon }}"></i>
-    </button>
+                {{ caller() }}
+
+            </div>
+        </div>
+    </div>
 {% endmacro %}
 
-<div class="btn-toolbar mb-4" role="toolbar" aria-label="Analysis, download and admin buttons">
+<div class="btn-toolbar mb-2" role="toolbar" aria-label="Analysis, download and admin buttons">
 
-    <div class="btn-group mr-2 mb-2" role="group" aria-label="Download buttons">
-        <button class="btn btn-secondary">Download</button>
+    {% call dropdown_menu("Download", "download") %}
+        {{ dropdown_item('Download this file', 'bdown-button', 'file-download', url='/download/') }}
+        {{ dropdown_item(
+            'Download included files', 'tdown-button', 'file-archive',
+            disabled=not firmware.files_included,
+            url='/tar-download/',
+            tooltip='Download all files that were unpacked from this file as .tar.gz archive',
+            disabled_tooltip='Only available if files were extracted from this file.')
+        }}
+        {{ dropdown_item(
+            'Download report as PDF', 'pdown-button', 'file-pdf',
+            disabled=not firmware.vendor,
+            url='/pdf-download/',
+            tooltip='Create a PDF report that summarizes the most important results of the analysis and download it.',
+            disabled_tooltip='Only available for the whole firmware image, not for extracted files.')
+        }}
+    {% endcall %}
 
-        {{ button_tooltip('Download raw file', 'bdown-button', '/download/', 'file-download') }}
-        {% if firmware.files_included %}
-            {{ button_tooltip('Download included files as tar.gz', 'tdown-button', '/tar-download/', 'file-archive') }}
-        {% endif %}
-        {% if firmware.vendor %}
-            {{ button_tooltip('Download report as PDF', 'pdown-button', '/pdf-download/', 'file-pdf') }}
-        {% endif %}
-    </div>
-
-    <div class="btn-group mr-2 mb-2" aria-label="Analysis buttons">
-        <button class="btn btn-secondary">Analysis</button>
-
-        {{ button_tooltip('View in radare', 'radare-button', None, 'terminal', onclick='radare_view()') }}
-        {% if not firmware.files_included %}
-            {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', danger=False, disabled=True) }}
-        {% else %}
-            {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', "window.location.href='/dependency-graph/{}/{}'".format(firmware.uid, root_uid)) }}
-        {% endif %}
-        {% if firmware.vendor %}
-            {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
-            {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
-        {% endif %}
-    </div>
+    {% call dropdown_menu("Analysis", "microscope") %}
+        {{ dropdown_item(
+            'View in radare', 'radare-button', 'terminal',
+            tooltip='Open the file in the GUI of the reverse engineering framework Radare2.',
+            onclick='radare_view()')
+        }}
+        {{ dropdown_item(
+            'Show dependency graph', 'graph-button', 'project-diagram',
+            disabled=not firmware.files_included,
+            url='/dependency-graph/',
+            onclick="window.location.href='/dependency-graph/{}/{}'".format(firmware.uid, root_uid),
+            tooltip='The graph shows dependencies between ELF files unpacked from this file (linked libraries and executables) and symbolic links. The ELF analysis plugin must have run on included files.',
+            disabled_tooltip='Only available if there are included files (i.e. files were unpacked from this file).')
+        }}
+        {{ dropdown_item(
+            'Update analysis', 'update-button', 'redo-alt',
+            disabled=not firmware.vendor,
+            url='/update-analysis/',
+            tooltip='Run additional analysis plugins on all files in this firmware image or update existing analyses.',
+            disabled_tooltip='Only available for the whole firmware image, not for extracted files.')
+        }}
+        {{ dropdown_item(
+            'YARA search', 'yara-button', 'search',
+            disabled=not firmware.vendor,
+            url='/database/binary_search?firmware_uid=',
+            tooltip='Search trough the contents of the unpacked files using YARA rules (strings, byte patterns or regular expressions).',
+            disabled_tooltip='Only available for the whole firmware image, not for extracted files.')
+        }}
+    {% endcall %}
 
     {% if firmware.vendor and user_has_admin_clearance %}
-        <div class="btn-group mr-2 mb-2" role="group" aria-label="Admin buttons">
-            <button class="btn btn-secondary">Admin</button>
-
-            {{ button_collapse('redo-button', 'redo-alt', 'redo-button-div', 'Redo analysis') }}
-            <span class="collapse" id="redo-button-div">
-                {{ button_tooltip('Confirm removal of current results and comments', 'confirm-redo', '/admin/re-do_analysis/', 'check', danger=True) }}
-            </span>
-
-            <span class="collapse" id="delete-button-div">
-                {{ button_tooltip('Confirm removal of results and comments', 'confirm-delete', '/admin/delete/', 'check', danger=True) }}
-            </span>
-            {{ button_collapse('delete-button', 'trash-alt', 'delete-button-div', 'Delete firmware') }}
-        </div>
-
+        {% call dropdown_menu("Admin", "user-tie") %}
+            {{ dropdown_confirm_item('Redo analysis', 'redo-button', 'redo-alt', 'All results, unpacked files and comments will be removed. After that, the firmware will be analyzed as if it was newly uploaded.', '/admin/re-do_analysis/') }}
+            {{ dropdown_confirm_item('Delete firmware', 'delete-button', 'trash-alt', 'All results, unpacked files and comments will be removed.', '/admin/delete/') }}
+        {% endcall %}
     {% endif %}
-    <div class="btn-group d-flex align-items-start">
-        <div class="btn btn-secondary">Comparisons</div>
-        {% if known_comparisons %}
-            {{ button_collapse('old-compare-button', 'hdd', 'known-comparisons', 'Show list of known comparisons') }}
-        {% endif %}
-        {% if not uids_for_comparison or uid not in uids_for_comparison %}
-            <button id="add-compare" class="btn btn-outline-secondary" onclick="window.location.href = '/comparison/add/{{firmware.uid}}/{{root_uid}}'" data-toggle="tooltip" data-placement="bottom" title="Add to comparison">
-                <i class="fas fa-plus"></i>
-            </button>
-        {% endif %}
 
-        {% if uids_for_comparison %}
-            {{ button_collapse('new-compare-button', 'list-ul', 'comparison-list', 'Show firmware selected for comparison') }}
-        {% endif %}
+    {% call dropdown_menu("Comparison", "copy") %}
+        {{ dropdown_item(
+            'Show list of known comparisons', 'old-compare-button', 'hdd',
+            disabled=not known_comparisons,
+            toggle='known-comparisons',
+            tooltip='Show list of existing comparisons that this file was part of.',
+            disabled_tooltip='No existing comparisons found with this file.')
+        }}
+        {{ dropdown_item(
+            'Select for comparison', 'add-compare', 'cart-arrow-down',
+            disabled=uids_for_comparison and uid in uids_for_comparison,
+            onclick="window.location.href = '/comparison/add/{}/{}'".format(firmware.uid, root_uid),
+            tooltip='Add this file to the set of files selected for comparison. To start the comparison, use "Show selected files" after selecting multiple files.',
+            disabled_tooltip='File is already selected for comparison. To start the comparison, use "Show selected files" after selecting multiple files.')
+        }}
+        {{ dropdown_item(
+            'Show selected files', 'new-compare-button', 'basket-shopping',
+            disabled=not uids_for_comparison,
+            toggle='comparison-list',
+            tooltip='Show files currently selected for comparison and start the comparison.',
+            disabled_tooltip='No files selected for comparison.')
+        }}
+    {% endcall %}
+</div>
+
+<div class="modal fade" id="confirm-modal" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Please Confirm</h5>
+                <div></div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-modal-title"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <a id="confirm-modal-proceed" class="btn btn-danger text-white" href="#">Proceed</a>
+            </div>
+        </div>
     </div>
-
 </div>

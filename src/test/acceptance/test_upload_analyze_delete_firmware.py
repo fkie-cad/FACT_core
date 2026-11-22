@@ -40,7 +40,7 @@ def _show_analysis_page(test_client, frontend_db):
     assert b'test_part' in rv.data
     assert b'unknown' in rv.data
     assert test_fw_a.file_name.encode() in rv.data, 'file name not found'
-    assert b'Admin</button>' in rv.data, 'admin options not shown with disabled auth'
+    assert b'admin-dropdown' in rv.data, 'admin options not shown with disabled auth'
 
 
 def _check_ajax_file_tree_routes(test_client):
