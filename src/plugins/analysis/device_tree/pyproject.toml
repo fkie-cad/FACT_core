@@ -1,0 +1,4 @@
+[project]
+name = "fact-plugin-device_tree"
+version = "3.0.0"
+dependencies = []

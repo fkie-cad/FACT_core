@@ -17,14 +17,13 @@ from helperFunctions.install import (
     OperateInDirectory,
     apt_install_packages,
     dnf_install_packages,
-    install_pip_packages,
     read_package_list_from_file,
+    uv_sync,
 )
 from helperFunctions.yara import compile_signatures_of_plugin
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent
-PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_backend.txt'
 
 
 def main(skip_docker: bool) -> int:
@@ -35,7 +34,8 @@ def main(skip_docker: bool) -> int:
         pkgs = read_package_list_from_file(INSTALL_DIR / 'dnf-pkgs-backend.txt')
         dnf_install_packages(*pkgs)
 
-    install_pip_packages(PIP_DEPENDENCIES)
+    # backend dependencies and the dependencies of all plugins (workspace members)
+    uv_sync('--group backend', '--all-packages')
 
     _install_checksec()
 

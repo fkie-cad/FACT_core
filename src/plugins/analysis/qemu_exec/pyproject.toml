@@ -1,0 +1,4 @@
+[project]
+name = "fact-plugin-qemu_exec"
+version = "1.0.0"
+dependencies = []

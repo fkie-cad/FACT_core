@@ -1,0 +1,6 @@
+[project]
+name = "fact-plugin-file_type"
+version = "1.1.0"
+dependencies = [
+    "magika==1.0.3",
+]

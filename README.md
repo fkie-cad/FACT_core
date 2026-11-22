@@ -119,8 +119,11 @@ There is also a dockerized version, but it is currently unmaintained.
 
 You can start FACT by executing the `start_fact.py` script.
 The script detects all installed components automatically.
+FACT's Python dependencies are installed in a virtual environment (see [INSTALL.md](INSTALL.md#virtual-environment)),
+so you need to activate it first:
 
 ```sh
+. .venv/bin/activate
 src/start_fact.py
 ```
 
@@ -173,6 +176,7 @@ Currently available additional plugins:
 The script `src/firmware_import_export.py` can be used to export unpacked files and analysis results and import them
 into another FACT instance.
 The data is stored as a ZIP archive, and this is also the format the script expects during import.
+Like FACT itself, the script needs the activated venv.
 To export files and analysis data of analyzed firmware images, run
 
 ```shell

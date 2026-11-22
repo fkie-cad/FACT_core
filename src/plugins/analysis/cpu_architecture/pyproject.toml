@@ -1,0 +1,6 @@
+[project]
+name = "fact-plugin-cpu_architecture"
+version = "1.0.0"
+dependencies = [
+    "pyelftools==0.32",
+]

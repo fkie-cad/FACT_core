@@ -12,17 +12,15 @@ FACT relies on newer software versions than the ones provided by the Ubuntu repo
 Execute the following commands (not as `root`!):
 
 ```shell
-sudo apt update && sudo apt install -y git python3-venv
+sudo apt update && sudo apt install -y git
 git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
-python3 -m venv ~/venv
-. ~/venv/bin/activate
 ~/FACT_core/src/install/pre_install.sh
 ```
 
 Then reboot (e.g., with `sudo reboot`) or log out and back in and afterward run
 
 ```shell
-. ~/venv/bin/activate
+. ~/FACT_core/.venv/bin/activate
 ~/FACT_core/src/install.py
 ~/FACT_core/start_all_installed_fact_components
 ```
@@ -35,13 +33,11 @@ Use `Ctrl + c` in your terminal to shut down FACT.
 > will only work for the current shell, you still need to reboot before being able to use docker normally)
 
 ```shell
-sudo apt update && sudo apt install -y git python3-venv
+sudo apt update && sudo apt install -y git
 git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
-python3 -m venv ~/venv
-. ~/venv/bin/activate
 ~/FACT_core/src/install/pre_install.sh
 newgrp docker << END
-. ~/venv/bin/activate
+. ~/FACT_core/.venv/bin/activate
 python3 FACT_core/src/install.py
 END
 ```
@@ -54,31 +50,28 @@ Then continue the installation as usual.
 
 ### Virtual environment
 
-It is highly advisable to install FACT in a virtual python environment to avoid conflicts with system python packages.
-Python usually comes with its own `venv` module but for a packaged python installations in distributions like Ubuntu or
-Debian you may need to install the `python3-venv` package first:
+FACT is installed in a virtual python environment (venv) to avoid conflicts with system python packages.
+Its Python dependencies are managed with [uv](https://docs.astral.sh/uv/) (`pyproject.toml` and `uv.lock`).
+`pre_install.sh` installs uv (if it is missing) and the Python dependencies:
 
-```shell
-sudo apt install -y python3-venv
-```
+- If a venv is active when you run `pre_install.sh`, the dependencies are installed into it.
+- Otherwise, `pre_install.sh` creates the venv `.venv` in the FACT_core directory.
 
-Now you can create a virtual environment with:
-
-```shell
-python3 -m venv .venv
-```
-
-Before using your new venv, you need to activate it:
+Before running `src/install.py` or starting FACT, you need to activate the venv:
 
 ```shell
 # this is for bash and compatible shells. If you use a different shell, you may need a different script from .venv/bin/
 source .venv/bin/activate
 ```
 
-For more information, see the [official documentation](https://docs.python.org/3/library/venv.html).
-Now that the venv is active, you can start with the installation of FACT as usual.
-Please mind that you always need to activate the venv before you can start FACT.
-If you have an existing FACT installation without venv, you can create one, activate it, and rerun the installation.
+The installer adds the dependencies of the installed components (frontend, backend, plug-ins) to the active venv.
+For development (running the tests, linting), also install the `dev` dependency group (with the venv activated):
+
+```shell
+uv sync --locked --inexact --active --all-packages
+```
+
+If you have an existing FACT installation without venv, rerun `pre_install.sh` and the installation.
 
 ## Simple (non-distributed) setup
 
@@ -106,6 +99,26 @@ Create the `firmware_file_storage_directory` defined in `fact-core-config.toml`.
 Make sure that the log directory exists as well.
 
 If you have any additional plug-ins, copy/clone them into corresponding `src/plugins/` directory.
+Every directory in `src/plugins/analysis/` is part of FACT's uv workspace, so each analysis plug-in needs a
+`pyproject.toml` in its directory that declares its Python dependencies (see the existing plug-ins, e.g.
+[file_type](src/plugins/analysis/file_type/pyproject.toml)):
+
+```toml
+[project]
+name = "fact-plugin-my_plugin"
+version = "0.1.0"
+dependencies = [
+    "some-package==1.2.3",  # or `dependencies = []` if the plug-in has no Python dependencies
+]
+```
+
+Otherwise, the installation fails with an error like
+``Workspace member `.../src/plugins/analysis/my_plugin` is missing a `pyproject.toml` ``.
+This also happens with leftover plug-in directories, e.g. directories containing only `__pycache__` after switching
+git branches: delete them.
+If a directory should not be treated as a plug-in, add it to the `exclude` list under `[tool.uv.workspace]` in
+the `pyproject.toml` in the root of the repository instead.
+After adding or changing a plug-in's `pyproject.toml`, update the lockfile with `uv lock`.
 
 :exclamation: **Reboot before executing the src/install.py** :exclamation:
 :exclamation: **You have to do the above steps before you do anything else** :exclamation:
@@ -113,9 +126,10 @@ If you have any additional plug-ins, copy/clone them into corresponding `src/plu
 ### Main installation
 
 :customs: **The installation script installs a lot of dependencies that may have different licenses**
-After reboot, enter the FACT_core directory and execute:
+After reboot, enter the FACT_core directory, activate the venv and execute:
 
 ```sh
+. .venv/bin/activate
 src/install.py
 ```
 
@@ -174,7 +188,8 @@ On additional notes regarding the setup of the radare web GUI see the extensive 
 
 ## Update an older Installation
 
-Simply checkout the new sources, rerun the `src/install/pre_install.sh` and then `src/install.py`.
+Simply checkout the new sources, rerun the `src/install/pre_install.sh` and then `src/install.py` (with the venv
+activated, see [Virtual environment](#virtual-environment)).
 Rebooting is not necessary if docker is already present.
 For tarball installations, the easiest way is to back up the config files, remove the FACT folder, extract the new one
 and put the configuration back in.

@@ -16,4 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-__VERSION__ = '4.5-dev'
+from pathlib import Path
+
+import toml
+
+__VERSION__ = toml.load(Path(__file__).parent.parent / 'pyproject.toml')['project']['version']

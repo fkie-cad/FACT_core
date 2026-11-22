@@ -15,6 +15,8 @@ import distro
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+REPO_ROOT = Path(__file__).parent.parent.parent
+
 
 class InstallationError(Exception):
     """
@@ -261,34 +263,34 @@ def check_distribution(allow_unsupported: bool = False) -> str:
     sys.exit(1)
 
 
-def install_pip_packages(package_file: Path) -> None:
+def uv_sync(*args: str) -> None:
     """
-    Install or upgrade python packages from file `package_file` using pip. Does not raise an error if the installation
-    fails because the package is already installed through the system's package manager. The package file should
-    have one package per line (empty lines and comments are allowed).
+    Install FACT's Python dependencies from `uv.lock` into the virtual environment running the installer. The sync is
+    additive: packages installed by an earlier sync (e.g. of another component) are kept.
 
-    :param package_file: The path to the package file.
+    :param args: additional arguments for `uv sync`, e.g. `--group frontend`.
     """
-    for package in read_package_list_from_file(package_file):
-        try:
-            install_single_pip_package(package)
-        except CalledProcessError as error:
-            # don't fail if a package is already installed using apt and can't be upgraded
-            if error.stdout is not None and 'distutils installed' in error.stdout:
-                logging.warning(
-                    f'Pip package {package} is already installed with distutils. '
-                    f'This may Cause problems:\n{error.stdout}'
-                )
-                continue
-            logging.error(f'Pip package {package} could not be installed:\n{error.stderr or error.stdout}')
-            raise
-
-
-def install_single_pip_package(package: str) -> None:
-    command = f'pip3 install -U {package} --prefer-binary'  # prefer binary release to compiling latest
     if not is_virtualenv():
-        command = 'sudo -EH ' + command
-    run_cmd_with_logging(command, silent=True)
+        raise InstallationError(
+            'FACT must be installed in a virtual environment. Please run src/install/pre_install.sh and activate the '
+            'virtual environment it created (or the one you created yourself) before running the installer.'
+        )
+    command = (
+        f'{shlex.quote(_find_uv())} sync --locked --inexact --no-default-groups '
+        f'--project {shlex.quote(str(REPO_ROOT))} {" ".join(args)}'
+    )
+    # install into the venv of the running interpreter, regardless of whether it is activated or uv's default `.venv`
+    run_cmd_with_logging(command, env={**os.environ, 'UV_PROJECT_ENVIRONMENT': sys.prefix})
+
+
+def _find_uv() -> str:
+    if uv := shutil.which('uv'):
+        return uv
+    # default installation path of pre_install.sh, which may not be in PATH (e.g. before logging in again)
+    uv_path = Path.home() / '.local' / 'bin' / 'uv'
+    if uv_path.is_file():
+        return str(uv_path)
+    raise InstallationError('uv not found. Please run src/install/pre_install.sh to install it.')
 
 
 def read_package_list_from_file(path: Path) -> list[str]:

@@ -1,0 +1,4 @@
+[project]
+name = "fact-plugin-ipc_analyzer"
+version = "1.0.0"
+dependencies = []
