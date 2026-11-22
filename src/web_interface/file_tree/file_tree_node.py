@@ -33,7 +33,7 @@ class FileTreeNode:
         self.root_uid = root_uid
         self.virtual = virtual
         self.name = name
-        self.size = size
+        self._size = size
         self.mode = mode
         self.type = mime_type
         self.has_children = has_children
@@ -109,3 +109,9 @@ class FileTreeNode:
         :return: The id, consisting of the name and ``virtual`` (whether the node is a directory)
         """
         return self.name, self.virtual
+
+    @property
+    def size(self) -> int | None:
+        if self._size is None and self.virtual:  # virtual = directory
+            self._size = sum(child.size for child in self.get_list_of_child_nodes() if child.size is not None)
+        return self._size
