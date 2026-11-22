@@ -269,6 +269,10 @@ class CommonDatabaseMock:
             return [[root_uid, uid]]
         return [[uid]]
 
+    @staticmethod
+    def get_comments_for_firmware(uid: str):  # noqa: ARG004
+        return {}
+
 
 def fake_exit(self, *args):
     pass
