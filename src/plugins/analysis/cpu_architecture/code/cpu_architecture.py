@@ -39,7 +39,7 @@ class AnalysisPlugin(AnalysisPluginV0):
                         'video',
                     ],
                     dependencies=['file_type', 'kernel_config', 'device_tree'],
-                    version=Version(1, 0, 0),
+                    version=Version(1, 1, 0),
                     Schema=self.Schema,
                 )
             )
