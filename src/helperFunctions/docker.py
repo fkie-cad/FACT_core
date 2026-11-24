@@ -27,7 +27,7 @@ def run_docker_container(
     :raises requests.exceptions.ReadTimeout: If the timeout was reached
     :raises docker.errors.APIError: If the communication with docker fails
     """
-    # TODO verify that bind mounts in kwargs["mounts"] only contain files in docker-mount-base-dir
+    # FIXME verify that bind mounts in kwargs["mounts"] only contain files in docker-mount-base-dir
     # If they don't just copy them to docker-mount-base-dir and change the mounts
 
     client = docker.client.from_env()
@@ -63,7 +63,7 @@ def run_docker_container(
             container.remove()
 
     # We do not know the docker entrypoint so we just insert a generic "entrypoint"
-    command = kwargs.get('command', None)
+    command = kwargs.get('command')
     if isinstance(command, str):
         args = 'entrypoint' + command
     elif isinstance(command, list):
