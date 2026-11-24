@@ -1,27 +1,28 @@
 from __future__ import annotations
 
-import importlib
+import importlib.util
 import logging
 import sys
-from importlib.machinery import SourceFileLoader
 from pathlib import Path
+from typing import TYPE_CHECKING, Literal
 
 from helperFunctions.fileSystem import get_src_dir
 
+if TYPE_CHECKING:
+    from types import ModuleType
 
-def discover_analysis_plugins() -> list:
+
+def discover_analysis_plugins() -> list[ModuleType]:
     """Returns a list of modules where each module is an analysis plugin."""
     return _import_plugins('analysis')
 
 
-def discover_compare_plugins() -> list:
+def discover_compare_plugins() -> list[ModuleType]:
     """Returns a list of modules where each module is a compare plugin."""
     return _import_plugins('compare')
 
 
-def _import_plugins(plugin_type):
-    assert plugin_type in ['analysis', 'compare']
-
+def _import_plugins(plugin_type: Literal['analysis', 'compare']) -> list[ModuleType]:
     plugins = []
     src_dir = get_src_dir()
     for plugin_file in Path(src_dir).glob(f'plugins/{plugin_type}/*/code/*.py'):
@@ -32,13 +33,14 @@ def _import_plugins(plugin_type):
         # If it isn't we can't do relative imports of the `internal` modules
         module_name = str(plugin_file).replace('/', '.')[len(src_dir + '/') : -len('.py')]
 
-        loader = SourceFileLoader(module_name, str(plugin_file))
-        spec = importlib.util.spec_from_loader(loader.name, loader)
+        spec = importlib.util.spec_from_file_location(module_name, plugin_file)
+        if spec is None:
+            continue
         plugin_module = importlib.util.module_from_spec(spec)
 
         sys.modules[spec.name] = plugin_module
         try:
-            loader.exec_module(plugin_module)
+            spec.loader.exec_module(plugin_module)
             plugins.append(plugin_module)
         except Exception:
             sys.modules.pop(spec.name)
