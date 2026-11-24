@@ -84,7 +84,7 @@ class ExtractionContainer:
         with suppress(DockerException):
             container.kill()
         with suppress(DockerException):
-            container.remove()
+            container.remove(v=True)
 
     def _get_container(self) -> Container:
         return DOCKER_CLIENT.containers.get(self.container_id)

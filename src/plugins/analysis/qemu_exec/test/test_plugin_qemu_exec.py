@@ -62,7 +62,7 @@ class ContainerMock:
         pass
 
     @staticmethod
-    def remove():
+    def remove(**_):
         pass
 
     @staticmethod

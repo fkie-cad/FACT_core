@@ -60,7 +60,7 @@ def run_docker_container(
     finally:
         with suppress(DockerException):
             container.stop()
-            container.remove()
+            container.remove(v=True)
 
     # We do not know the docker entrypoint so we just insert a generic "entrypoint"
     command = kwargs.get('command')
