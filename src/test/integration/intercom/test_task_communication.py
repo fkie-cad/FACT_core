@@ -164,8 +164,8 @@ class TestInterComTaskCommunication:
         assert result == b'foobar', 'retrieved binary not correct'
 
     def test_tar_repack_task(self, intercom_frontend, monkeypatch):
-        def _mock_pack(_self, _fw_uid, output_file):
-            Path(output_file).write_bytes(b'test')
+        def _mock_pack(_self, _fw_uid, output):
+            output.write(b'test')
 
         monkeypatch.setattr('intercom.back_end_binding.TarPacker.pack_included_files', _mock_pack)
 
@@ -179,8 +179,8 @@ class TestInterComTaskCommunication:
         assert result == b'test', 'retrieved binary not correct'
 
     def test_recursive_tar_repack_task(self, intercom_frontend, monkeypatch):
-        def _mock_pack(_self, _fw_uid, output_file):
-            Path(output_file).write_bytes(b'test')
+        def _mock_pack(_self, _fw_uid, output):
+            output.write(b'test')
 
         monkeypatch.setattr('intercom.back_end_binding.TarPacker.pack_included_files_recursively', _mock_pack)
 

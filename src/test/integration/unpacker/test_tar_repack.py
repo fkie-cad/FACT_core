@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import tarfile
-from tempfile import TemporaryDirectory
+from io import BytesIO
 
 import pytest
 
@@ -25,12 +25,11 @@ def test_tar_repack(common_db, file_service, unpacking_scheduler, unpacking_fini
 
 
 def _pack_included_files(packer, uid):
-    with TemporaryDirectory() as tmp_dir:
-        output_file = f'{tmp_dir}/download.tar.gz'
-        packer.pack_included_files(uid, output_file)
-
-        with tarfile.open(output_file, 'r:gz') as tar:
-            names = tar.getnames()
+    buffer = BytesIO()
+    packer.pack_included_files(uid, buffer)
+    buffer.seek(0)
+    with tarfile.open(fileobj=buffer, mode='r:gz') as tar:
+        names = tar.getnames()
 
     assert sorted(names) == [
         'testfile1.zip',
@@ -39,12 +38,11 @@ def _pack_included_files(packer, uid):
 
 
 def _pack_included_files_recursively(packer, uid):
-    with TemporaryDirectory() as tmp_dir:
-        output_file = f'{tmp_dir}/download.tar.gz'
-        packer.pack_included_files_recursively(uid, output_file)
-
-        with tarfile.open(output_file, 'r:gz') as tar:
-            names = tar.getnames()
+    buffer = BytesIO()
+    packer.pack_included_files_recursively(uid, buffer)
+    buffer.seek(0)
+    with tarfile.open(fileobj=buffer, mode='r:gz') as tar:
+        names = tar.getnames()
 
     assert sorted(names) == [
         'testfile1.zip',
