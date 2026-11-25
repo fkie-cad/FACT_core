@@ -19,10 +19,90 @@
     --link-color-dark: #4a9fff;
     --link-color-hover-light: #0277ff;
     --link-color-hover-dark: #fff;
+    --fhg-color-dark: #255e54;
+    --fhg-color-light: #d0e3e0;
+    --radius: 7px;
 }
 
 .clickable {
     cursor: pointer;
+}
+
+.analysis-section {
+     border-radius: var(--radius);
+}
+
+.analysis-section-header {
+    background-color: var(--fhg-color-light);
+    color: var(--fhg-color-dark);
+    border-radius: var(--radius) var(--radius) 0 0;
+    font-size: 1.1rem;
+    font-weight: 520;
+    padding: 6px 6px 6px 18px;
+}
+
+/* switches/checkboxes in the header should not inherit the larger header font (their indicator is positioned for 1rem) */
+.analysis-section-header .custom-control {
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+.btn, .btn-sm, .btn-lg, .btn-group-sm > .btn,
+.form-control, .custom-select, .input-group-text,
+.dropdown-menu, .alert, .card, .modal-content {
+    border-radius: var(--radius);
+}
+
+.analysis-section-body {
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.analysis-plugin-select {
+    border-right: 1px solid #dee2e6;
+}
+
+/* only sticky if the plugin list is displayed next to the results (and not above them) */
+@media (min-width: 992px) {
+    .analysis-plugin-select {
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+        max-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    /* the list scrolls if it is too long, so that the "Run analysis" button stays visible */
+    .analysis-plugin-list {
+        overflow-y: auto;
+    }
+}
+
+.analysis-subsection-header {
+    background-color: var(--element-color-secondary-light);
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 500;
+    padding: 6px 12px;
+}
+/* separate subsections from the content above (the first one is already separated by the section border) */
+.analysis-subsection-header:not(:first-child) {
+    border-top: 1px solid #dee2e6;
+}
+
+/* tables inside a section body use the (rounded) body border instead of their own outer border */
+.table-flush {
+    border: 0;
+}
+.table-flush tr:first-child > * {
+    border-top: 0;
+}
+.table-flush tr:last-child > * {
+    border-bottom: 0;
+}
+.table-flush tr > :first-child {
+    border-left: 0;
+}
+.table-flush tr > :last-child {
+    border-right: 0;
 }
 
 /* caret icon transition from expandable_table macro */
@@ -34,7 +114,7 @@
 }
 
 .bg-fact {
-    background-color: #255e54 !important;
+    background-color: var(--fhg-color-dark) !important;
 }
 
 /* links: set unified link text color and remove underline */
@@ -269,8 +349,13 @@ body.dark-mode :is(.alert-danger, .table-danger, .table-danger > td) {
     border-color: var(--element-color-danger-light) !important;
 }
 
-body.dark-mode :is(.table-bordered, .table-bordered td, .table-bordered th, .border-light, .table td, .table th, .border,
+body.dark-mode :is(.table-bordered, .table-bordered td, .table-bordered th, .border-light, .table td, .table th, .border, .border-bottom, .border-right, .analysis-plugin-select,
         .form-control, .CodeMirror:not(.cm-s-graphiql)) {
+    border-color: var(--border-color-dark) !important;
+}
+
+body.dark-mode .analysis-subsection-header {
+    background-color: var(--element-color-secondary-dark);
     border-color: var(--border-color-dark) !important;
 }
 
@@ -348,6 +433,11 @@ body.dark-mode :is(.table-hover td:hover, .table-hover th:hover, .table-hover tr
         .list-group-item-action:hover, .dropdown-item:hover) {
     background-color: var(--element-color-secondary-dark) !important;
     color: var(--text-color-dark) !important;
+}
+
+body.dark-mode .analysis-section-header {
+    background-color: var(--fhg-color-dark);
+    color: var(--fhg-color-light);
 }
 
 /* browse X table hover animation */

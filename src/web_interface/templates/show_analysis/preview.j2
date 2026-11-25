@@ -1,49 +1,51 @@
 {%- if "file_type" in firmware.processed_analysis -%}
     <div class="col-lg-12">
-        <div class="list-group">
-            <button id="preview_button" data-toggle="collapse" data-target="#preview-div"
-                    class="list-group-item list-group-item-primary p-2">
-                Show Preview
-                <i class="fas fa-caret-down"></i>
-            </button>
-            <div id="preview-div" class="collapse border rounded-bottom p-3">
-                <div class="form-row" id="hex-preview-form" style="display: none;">
-                    <div class="col-auto">
-                        <div class="input-group input-group-sm mb-2">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">Offset</div>
+        <div class="analysis-section" id="preview-section">
+            <div class="analysis-section-header">File Preview</div>
+            <div class="border analysis-section-body">
+                <button id="preview_button" type="button" class="btn btn-primary btn-block"
+                        style="border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);">
+                    Show File Preview
+                </button>
+                <div id="preview-div" class="p-3" style="display: none;">
+                    <div class="form-row" id="hex-preview-form" style="display: none;">
+                        <div class="col-auto">
+                            <div class="input-group input-group-sm mb-2">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">Offset</div>
+                                </div>
+                                <input type="text" class="form-control" id="hex-preview-offset" value="0"
+                                       onkeydown="if(event.key === 'Enter') loadPreview();">
                             </div>
-                            <input type="text" class="form-control" id="hex-preview-offset" value="0"
-                                   onkeydown="if(event.key === 'Enter') loadPreview();">
                         </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="input-group input-group-sm mb-2">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">Length</div>
+                        <div class="col-auto">
+                            <div class="input-group input-group-sm mb-2">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">Length</div>
+                                </div>
+                                <input type="number" min="1" class="form-control" id="hex-preview-length" value="512"
+                                       onkeydown="if(event.key === 'Enter') loadPreview();">
                             </div>
-                            <input type="number" min="1" class="form-control" id="hex-preview-length" value="512"
-                                   onkeydown="if(event.key === 'Enter') loadPreview();">
+                        </div>
+                        <div class="col-auto">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="...">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="loadPreview();">Update</button>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="movePreviewOffset(true);">
+                                    <i class="fa-solid fa-circle-chevron-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="movePreviewOffset(false);">
+                                    <i class="fa-solid fa-circle-chevron-right"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-auto">
-                        <div class="btn-group btn-group-sm" role="group" aria-label="...">
-                            <button type="button" class="btn btn-primary btn-sm" onclick="loadPreview();">Update</button>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="movePreviewOffset(true);">
-                                <i class="fa-solid fa-circle-chevron-left"></i>
-                            </button>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="movePreviewOffset(false);">
-                                <i class="fa-solid fa-circle-chevron-right"></i>
-                            </button>
-                        </div>
+                    <div id="preview-loading-gif" class="border" style="display: block; padding: 5px; text-align: center">
                     </div>
+                    <script>
+                        loadLoadingAnimation('preview-loading-gif');
+                    </script>
+                    <div id="preview-content" class="m-0 mt-2 p-0"></div>
                 </div>
-                <div id="preview-loading-gif" class="border" style="display: block; padding: 5px; text-align: center">
-                </div>
-                <script>
-                    loadLoadingAnimation('preview-loading-gif');
-                </script>
-                <div id="preview-content" class="m-0 mt-2 p-0"></div>
             </div>
 
             <script>
