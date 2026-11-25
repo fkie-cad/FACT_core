@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from ipaddress import ip_address
 
+import config
 from helperFunctions.compare_sets import substring_is_in_list
 
 WHITELIST = [
@@ -51,9 +52,11 @@ BLACKLIST = [
 
 
 def find_interesting_uris(list_of_ips_and_uris: list[str]) -> list[str]:
+    blacklist = getattr(config.backend.plugin.get('ip_and_uri_finder', None), 'interesting_uri_blacklist', BLACKLIST)
+    whitelist = getattr(config.backend.plugin.get('ip_and_uri_finder', None), 'interesting_uri_whitelist', WHITELIST)
     uris_dict = remove_ip_v4_v6_addresses(list_of_ips_and_uris)
-    blacklisted = blacklist_ip_and_uris(BLACKLIST, uris_dict)
-    return whitelist_ip_and_uris(WHITELIST, blacklisted)
+    blacklisted = blacklist_ip_and_uris(blacklist, uris_dict) if blacklist else uris_dict
+    return whitelist_ip_and_uris(whitelist, blacklisted) if whitelist else blacklisted
 
 
 def blacklist_ip_and_uris(blacklist: list[str], ip_and_uri_list: list[str]) -> list[str]:
