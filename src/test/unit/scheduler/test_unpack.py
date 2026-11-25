@@ -1,9 +1,12 @@
 import logging
 from multiprocessing import Event, Lock, Manager
+from queue import Empty, SimpleQueue
+from threading import Thread
 
 import pytest
 
 from objects.firmware import Firmware
+from scheduler.unpacking_scheduler import UnpackingScheduler
 from test.common_helper import create_test_file_object, get_test_data_dir
 
 TEST_FW = Firmware.from_path(get_test_data_dir() / 'container/test_zip.7z')
@@ -93,3 +96,34 @@ def test_cancel_unpacking(unpacking_scheduler, caplog):
     with caplog.at_level(logging.DEBUG):
         unpacking_scheduler.work_thread(test_fo, None)
     assert any('Cancelling unpacking' in m for m in caplog.messages)
+
+
+class MockContainer:
+    def __init__(self, id_: int, exception: bool = False):
+        self.id_ = id_
+        self.exception = exception
+        self.restarted = False
+
+    def exception_occurred(self) -> bool:
+        return self.exception
+
+    def restart(self):
+        self.restarted = True
+
+
+@pytest.mark.parametrize('exception', [False, True])
+def test_get_free_worker(exception):
+    scheduler = UnpackingScheduler(post_unpack=lambda *_: None)
+    scheduler.workers = [MockContainer(0), MockContainer(1, exception=exception)]
+    scheduler.free_workers = SimpleQueue()
+    scheduler.pending_tasks[1] = thread = Thread(target=lambda: None)
+    thread.start()
+
+    with pytest.raises(Empty):
+        scheduler._get_free_worker()  # no worker is free
+
+    scheduler.free_workers.put(1)
+    container = scheduler._get_free_worker()
+    assert container.id_ == 1
+    assert container.restarted is exception
+    assert 1 not in scheduler.pending_tasks
