@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
+    from typing import BinaryIO
 
     from storage.db_interface_common import DbInterfaceCommon
     from storage.file_service import FileService
@@ -19,16 +20,16 @@ class TarPacker:
         self.db = db
         self.file_service = file_service
 
-    def pack_included_files(self, parent_uid: str, output_file: str) -> None:
+    def pack_included_files(self, parent_uid: str, output: BinaryIO) -> None:
         vfp_dict = self.db.get_vfps_in_parent(parent_uid)
         symlinks = set(self.db.get_all_files_of_type_in_fo(parent_uid, 'inode/symlink'))
 
-        with tarfile.open(output_file, 'w:gz') as tar:
+        with tarfile.open(fileobj=output, mode='w:gz') as tar:
             for uid, path_list in vfp_dict.items():
                 system_path = self.file_service.generate_path_from_uid(uid)
                 self._add_files_to_tar(path_list, system_path, tar, uid in symlinks)
 
-    def pack_included_files_recursively(self, fw_uid: str, output_file: str) -> None:
+    def pack_included_files_recursively(self, fw_uid: str, output: BinaryIO) -> None:
         if not self.db.is_firmware(fw_uid):
             raise RuntimeError(f'FW with UID {fw_uid} not found')
         all_files = self.db.get_all_files_in_fw(fw_uid)
@@ -36,7 +37,7 @@ class TarPacker:
         vfps = self.db.get_vfps_for_uid_list(all_files)
         symlinks = set(self.db.get_all_files_of_type_in_fw(fw_uid, 'inode/symlink'))
 
-        with tarfile.open(output_file, 'w:gz') as tar:
+        with tarfile.open(fileobj=output, mode='w:gz') as tar:
             for uid, file_tree_path_list in file_tree_paths.items():
                 system_path = self.file_service.generate_path_from_uid(uid)
                 for file_tree_path in file_tree_path_list:

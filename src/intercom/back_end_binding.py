@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import difflib
 import logging
+from io import BytesIO
 from multiprocessing import Manager
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
 import yara
-from common_helper_files import get_binary_from_file
 
 import config
 from helperFunctions.process import stop_processes
@@ -24,6 +23,7 @@ from unpacker.tar_repack import TarPacker
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from typing import BinaryIO
 
     from objects.firmware import Firmware
     from scheduler.analysis import AnalysisScheduler
@@ -246,12 +246,11 @@ class InterComBackEndRecursiveTarRepackTask(InterComListenerAndResponder):
         return _pack_to_bytes(task, packer.pack_included_files_recursively, 'InterComBackEndRecursiveTarRepackTask')
 
 
-def _pack_to_bytes(uid: str, pack_callable: Callable[[str, str], None], error_label: str) -> bytes:
+def _pack_to_bytes(uid: str, pack_callable: Callable[[str, BinaryIO], None], error_label: str) -> bytes:
     try:
-        with TemporaryDirectory(prefix=f'FACT_{error_label}', dir=config.backend.temp_dir_path) as tmp_dir:
-            output_file = Path(tmp_dir) / 'download.tar.gz'
-            pack_callable(uid, str(output_file))
-            return get_binary_from_file(output_file) if output_file.is_file() else b''
+        buffer = BytesIO()
+        pack_callable(uid, buffer)
+        return buffer.getvalue()
     except Exception as error:
         logging.error(f'[{error_label}]: Could not pack {uid}: {error}')
         return b''
