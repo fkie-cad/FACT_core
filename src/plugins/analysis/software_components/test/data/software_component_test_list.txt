@@ -8,6 +8,7 @@ Contiki/2.4
 EFI Shell Version 1.0
 FRRouting 7.2.1
 FileX ARM9/Green Hills Version G5.1.5.1
+GNU Privacy Guard's OpenPGP server 2.4.8
 GoAhead-Webs
 Hewlett-Packard FTP Print Server Version 3.0
 InterNiche Portable TCP/IP Demo for Multitasking DOS, v1.8
@@ -54,6 +55,7 @@ dhcp6s-V1.00
 dnsmasq-2.41
 dropbear_2014.63
 eCos Release: %d.%d.%d
+gpg.conf-1.4.7
 hostapd v0.5.9
 iptables-1.4.16.3
 iptables-1.4.5
