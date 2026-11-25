@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from pydantic import BaseModel, Field
 from semver import Version
@@ -11,7 +11,16 @@ from helperFunctions.hash import get_md5
 from helperFunctions.tag import TagColor
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
-from ..internal.key_parser import read_asn1_key, read_pkcs_cert, read_ssl_cert
+from ..internal.key_parser import (
+    read_asn1_key,
+    read_ec_der_key,
+    read_encrypted_private_key_marker,
+    read_openssh_private_key,
+    read_pkcs7,
+    read_pkcs7_pem,
+    read_pkcs_cert,
+    read_ssl_cert,
+)
 
 if TYPE_CHECKING:
     import io
@@ -23,13 +32,38 @@ STARTEND = [
     'PgpPublicKeyBlock_GnuPG',
     'genericPublicKey',
     'SshRsaPrivateKeyBlock',
+    'SshDsaPrivateKeyBlock',
     'SshEncryptedRsaPrivateKeyBlock',
     'SSLPrivateKey',
+    'EcPrivateKey',
+    'EncryptedPrivateKey',
+    'CertificateRequest',
+    'Tss2PrivateKey',
+    'Tss2KeyBlob',
+    'OpenVpnStaticKey',
 ]
-STARTONLY = ['SshRsaPublicKeyBlock']
+STARTONLY = ['SshPublicKey']
 PKCS8 = 'Pkcs8PrivateKey'
 PKCS12 = 'Pkcs12Certificate'
 SSLCERT = 'SSLCertificate'
+PKCS1_RSA = 'Pkcs1RsaPrivateKey'
+EC_DER = 'EcPrivateKeyDer'
+ENCRYPTED_PKCS8_DER = 'EncryptedPrivateKeyDer'
+OPENSSH_PRIVATE = 'OpenSshPrivateKey'
+PKCS7 = 'Pkcs7SignedData'
+PKCS7_PEM = 'Pkcs7Pem'
+
+_RULE_PARSERS = {
+    PKCS8: 'get_pkcs8_key',
+    PKCS12: 'get_pkcs12_cert',
+    SSLCERT: 'get_ssl_cert',
+    PKCS1_RSA: 'get_pkcs1_rsa_key',
+    EC_DER: 'get_ec_der_key',
+    ENCRYPTED_PKCS8_DER: 'get_encrypted_private_key_marker',
+    OPENSSH_PRIVATE: 'get_openssh_private_key',
+    PKCS7: 'get_pkcs7',
+    PKCS7_PEM: 'get_pkcs7_pem',
+}
 
 
 class Match(NamedTuple):
@@ -45,9 +79,9 @@ def _read_from_file(file_handle: io.FileIO, start: int, end: int) -> bytes:
 
 class CryptoMaterialMatch(BaseModel):
     rule: str = Field(description='The YARA rule that matched this crypto material')
-    material: List[str] = Field(description='An array with the contents of the matched keys/certificates')
+    material: list[str] = Field(description='An array with the contents of the matched keys/certificates')
     count: int = Field(description='The number of matched keys/certificates')
-    hashes: List[str] = Field(description='The MD5 hashes of the keys/certificates (in the same order as `material`)')
+    hashes: list[str] = Field(description='The MD5 hashes of the keys/certificates (in the same order as `material`)')
 
 
 class AnalysisPlugin(AnalysisPluginV0):
@@ -56,13 +90,13 @@ class AnalysisPlugin(AnalysisPluginV0):
     """
 
     class Schema(BaseModel):
-        matches: List[CryptoMaterialMatch] = Field(description='A list of matched crypto material')
+        matches: list[CryptoMaterialMatch] = Field(description='A list of matched crypto material')
 
     def __init__(self):
         metadata = self.MetaData(
             name='crypto_material',
             description='detects crypto material like SSH keys and SSL certificates',
-            version=Version(1, 0, 0),
+            version=Version(1, 1, 0),
             mime_blacklist=['filesystem', *MIME_BLACKLIST_COMPRESSED],
             Schema=self.Schema,
         )
@@ -100,16 +134,13 @@ class AnalysisPlugin(AnalysisPluginV0):
             return self.extract_labeled_keys
         if match in STARTONLY:
             return self.extract_start_only_key
-        if match == PKCS8:
-            return self.get_pkcs8_key
-        if match == PKCS12:
-            return self.get_pkcs12_cert
-        if match == SSLCERT:
-            return self.get_ssl_cert
-        logging.warning(f'Unknown crypto rule match: {match}')
-        return None
+        parser = _RULE_PARSERS.get(match)
+        if parser is None:
+            logging.warning(f'Unknown crypto rule match: {match}')
+            return None
+        return getattr(self, parser)
 
-    def extract_labeled_keys(self, matches: list[Match], file_handle: io.FileIO, min_key_len=128) -> list[str]:
+    def extract_labeled_keys(self, matches: list[Match], file_handle: io.FileIO, min_key_len: int = 128) -> list[str]:
         return [
             _read_from_file(file_handle, start, end).decode(encoding='utf_8', errors='replace')
             for start, end in self.get_offset_pairs(matches)
@@ -144,6 +175,58 @@ class AnalysisPlugin(AnalysisPluginV0):
             text_cert = read_ssl_cert(file_handle=file_handle, start=start_index, end=end_index)
             if text_cert is not None:
                 contents.append(text_cert)
+        return contents
+
+    @staticmethod
+    def get_pkcs1_rsa_key(matches: list[Match], file_handle: io.FileIO) -> list[str]:
+        return AnalysisPlugin._read_der_private_keys(matches, file_handle, read_asn1_key)
+
+    @staticmethod
+    def get_ec_der_key(matches: list[Match], file_handle: io.FileIO) -> list[str]:
+        return AnalysisPlugin._read_der_private_keys(matches, file_handle, read_ec_der_key)
+
+    @staticmethod
+    def _read_der_private_keys(
+        matches: list[Match], file_handle: io.FileIO, reader: Callable[[io.FileIO, int], str | None]
+    ) -> list[str]:
+        keys = []
+        for match in matches:
+            key = reader(file_handle, match.offset)
+            if key is not None:
+                keys.append(key)
+        return keys
+
+    @staticmethod
+    def get_encrypted_private_key_marker(matches: list[Match], file_handle: io.FileIO) -> list[str]:
+        markers = set()
+        for match in matches:
+            marker = read_encrypted_private_key_marker(file_handle=file_handle, offset=match.offset)
+            if marker is not None:
+                markers.add(marker)
+        return list(markers)
+
+    def get_openssh_private_key(self, matches: list[Match], file_handle: io.FileIO) -> list[str]:
+        contents = []
+        for start_index, end_index in self.get_offset_pairs(matches):
+            text_key = read_openssh_private_key(file_handle=file_handle, start=start_index, end=end_index)
+            if text_key is not None:
+                contents.append(text_key)
+        return contents
+
+    def get_pkcs7(self, matches: list[Match], file_handle: io.FileIO) -> list[str]:
+        contents = []
+        for match in matches:
+            text_pkcs7 = read_pkcs7(file_handle=file_handle, offset=match.offset)
+            if text_pkcs7 is not None:
+                contents.append(text_pkcs7)
+        return contents
+
+    def get_pkcs7_pem(self, matches: list[Match], file_handle: io.FileIO) -> list[str]:
+        contents = []
+        for start_index, end_index in self.get_offset_pairs(matches):
+            text_pkcs7 = read_pkcs7_pem(file_handle=file_handle, start=start_index, end=end_index)
+            if text_pkcs7 is not None:
+                contents.append(text_pkcs7)
         return contents
 
     @staticmethod

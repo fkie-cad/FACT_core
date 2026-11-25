@@ -1,5 +1,4 @@
-rule PgpPublicKeyBlock
-{
+rule PgpPublicKeyBlock {
 	meta:
 		author = "Raphael Ernst"
 		description = "Find PGP Public key"
@@ -9,13 +8,11 @@ rule PgpPublicKeyBlock
 	strings:
 		$start_string="-----BEGIN PGP PUBLIC KEY BLOCK-----"
 		$end_string="-----END PGP PUBLIC KEY BLOCK-----"
-
 	condition:
 		$start_string and $end_string in (@start_string..filesize)
 }
 
-rule PgpPrivateKeyBlock
-{
+rule PgpPrivateKeyBlock {
 	meta:
 		author = "Johannes vom Dorp"
 		description = "Find PGP Private key"
@@ -29,8 +26,7 @@ rule PgpPrivateKeyBlock
 		$start_string and $end_string in (@start_string..filesize)
 }
 
-rule PgpPublicKeyBlock_GnuPG
-{
+rule PgpPublicKeyBlock_GnuPG {
 	meta:
 		author = "Raphael Ernst"
 		description = "Find PGP Public key from GnuPG"
@@ -41,7 +37,6 @@ rule PgpPublicKeyBlock_GnuPG
 		$start_string="-----BEGIN PGP PUBLIC KEY BLOCK-----"
 		$end_string="-----END PGP PUBLIC KEY BLOCK-----"
 		$gnupg_version_string="Version: GnuPG"
-
 	condition:
 		$start_string and $gnupg_version_string in (@start_string..@end_string) and $end_string in (@start_string..filesize)
 }

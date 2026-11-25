@@ -1,5 +1,4 @@
-rule genericPublicKey
-{
+rule genericPublicKey {
 	meta:
 		author = "Joerg Stucke"
 		description = "Generic Public Key Block"
@@ -9,7 +8,6 @@ rule genericPublicKey
 	strings:
 		$start_string="-----BEGIN PUBLIC KEY-----"
 		$end_string="-----END PUBLIC KEY-----"
-
 	condition:
 		$start_string and $end_string in (@start_string..filesize)
 }
