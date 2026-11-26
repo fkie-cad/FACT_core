@@ -12,19 +12,24 @@ from pydantic.v1.utils import deep_update
 
 import config
 from analysis.plugin import AnalysisPluginV0
-from test.conftest import merge_markers
+from test.conftest import (
+    REDIS_TEST_DBS,
+    UNPACKING_PORT_OFFSET_PER_WORKER,
+    get_postgres_test_db,
+    get_redis_test_db,
+    get_xdist_worker_index,
+    merge_markers,
+)
 
-# Tests using these fixtures share the PostgreSQL test DB, Redis and the unpacking container ports
-_SHARED_STATE_FIXTURES = {'_database_interfaces', 'analysis_status'}
 
-
-@pytest.hookimpl(tryfirst=True)  # must run before xdist reads the xdist_group markers
-def pytest_collection_modifyitems(items: list[pytest.Item]):
-    """With ``--dist loadgroup`` (pytest-xdist), all tests in one group run on the same worker. Put all tests that
-    use shared state in one group so that they run sequentially while the other tests run in parallel."""
-    for item in items:
-        if _SHARED_STATE_FIXTURES.intersection(getattr(item, 'fixturenames', ())):
-            item.add_marker(pytest.mark.xdist_group('shared_state'))
+def pytest_configure(config):
+    # the hook argument must be called `config` (shadows the module here)
+    workers = config.getoption('numprocesses', default=None)  # pytest-xdist option `-n`; "auto" is resolved here
+    if workers and workers > len(REDIS_TEST_DBS):
+        raise pytest.UsageError(
+            f'Tests can run with at most {len(REDIS_TEST_DBS)} pytest-xdist workers (one Redis DB per worker), '
+            f'not {workers}: use `-n {len(REDIS_TEST_DBS)}` or less'
+        )
 
 
 @pytest.fixture
@@ -51,13 +56,15 @@ def common_config(request, docker_mount_base_dir) -> config.Common:
         raise ValueError('docker-mount-base-dir may not be changed with `@pytest.marker.common_config_overwrite`')
 
     config.load()
+    redis_test_db = get_redis_test_db(config.common.redis)
+    postgres_test_db = get_postgres_test_db(config.common.postgres)
     test_config = {
         'temp_dir_path': '/tmp',  # noqa: S108
         'docker_mount_base_dir': docker_mount_base_dir,
         'redis': dict(
             {
-                'fact_db': config.common.redis.test_db,
-                'test_db': config.common.redis.test_db,
+                'fact_db': redis_test_db,
+                'test_db': redis_test_db,
                 'host': config.common.redis.host,
                 'port': config.common.redis.port,
                 # FIXME Omitting the password might be wrong
@@ -78,8 +85,8 @@ def common_config(request, docker_mount_base_dir) -> config.Common:
         'postgres': {
             'server': config.common.postgres.server,
             'port': config.common.postgres.port,
-            'database': config.common.postgres.test_database,
-            'test_database': config.common.postgres.test_database,
+            'database': postgres_test_db,
+            'test_database': postgres_test_db,
             'ro_user': config.common.postgres.ro_user,
             'ro_pw': config.common.postgres.ro_pw,
             'rw_user': config.common.postgres.rw_user,
@@ -125,7 +132,7 @@ def backend_config(request, common_config, firmware_file_storage_directory) -> c
             'memory_limit': 2048,
             'throttle_limit': 50,
             'delay': 0.0,
-            'base_port': 9900,
+            'base_port': 9900 + UNPACKING_PORT_OFFSET_PER_WORKER * (get_xdist_worker_index() or 0),
             'docker_image': 'fkiecad/fact_extractor:latest',
         },
         'binary_search': {'max_strings_per_match': 10},

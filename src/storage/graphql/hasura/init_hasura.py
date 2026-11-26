@@ -104,7 +104,7 @@ class HasuraSetup:
             return {'from_env': 'FACT_DB_URL'}
         user = config.common.postgres.ro_user
         pw = config.common.postgres.ro_pw
-        return f'postgresql://{user}:{pw}@/fact_test?host=/var/run/postgresql'
+        return f'postgresql://{user}:{pw}@/{self.db_name}?host=/var/run/postgresql'
 
     def drop_database(self) -> None:
         query = {

@@ -1,7 +1,7 @@
 # Tests
 
 - `unit/`: no DB needed (DB and intercom are mocked). `integration/` and `acceptance/`: use the real test DB
-  (`fact_test`), which is emptied after every test.
+  (`fact_test`, or `fact_test_<N>` per pytest-xdist worker), which is emptied after every test.
 - Config is always the test config from `src/conftest.py`. Override values with
   `@pytest.mark.common_config_overwrite({...})`, `backend_config_overwrite`, `frontend_config_overwrite`.
   Markers on module, class and function level are merged (closest wins).

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from multiprocessing import Event, Queue, Value
 from pathlib import Path
 from typing import NamedTuple, TypeVar
@@ -8,6 +9,7 @@ import pytest
 from pydantic import BaseModel, ConfigDict
 
 import config
+from init_postgres import _init_users
 from scheduler.analysis import AnalysisScheduler
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.comparison_scheduler import ComparisonScheduler
@@ -28,6 +30,34 @@ from test.common_helper import clear_test_tables, setup_test_tables
 from test.integration.common import MockDbInterface as BackEndDbInterfaceMock
 
 T = TypeVar('T')
+
+#: Each pytest-xdist worker uses its own Redis DB, so this also limits the number of workers
+REDIS_TEST_DBS = (11, 12, 13, 14)
+#: Each pytest-xdist worker uses its own unpacking container ports, starting at this offset
+UNPACKING_PORT_OFFSET_PER_WORKER = 10
+
+
+def get_xdist_worker_index() -> int | None:
+    """Returns the index of the pytest-xdist worker running the tests or ``None`` if they don't run in parallel."""
+    worker_id = os.environ.get('PYTEST_XDIST_WORKER')  # set by pytest-xdist, e.g. "gw0"
+    return None if worker_id is None else int(worker_id.removeprefix('gw'))
+
+
+def get_postgres_test_db(postgres: config.Common.Postgres) -> str:
+    """Each xdist worker uses its own PostgreSQL test DB (created by the ``_database_interfaces`` fixture)."""
+    index = get_xdist_worker_index()
+    return postgres.test_database if index is None else f'{postgres.test_database}_{index}'
+
+
+def get_redis_test_db(redis: config.Common.Redis) -> int:
+    """Each xdist worker uses its own Redis DB from :py:data:`REDIS_TEST_DBS`."""
+    index = get_xdist_worker_index()
+    if index is None:
+        return redis.test_db
+    test_db = REDIS_TEST_DBS[index]
+    if test_db == redis.fact_db:
+        raise ValueError(f'Redis DB {test_db} is the fact-db, but tests would clear it: change fact-db in the config')
+    return test_db
 
 
 def _assert_fixture_is_requested(request: pytest.FixtureRequest, fixture: str):
@@ -138,13 +168,15 @@ def _database_interfaces():
     # We just patch it here.
     with pytest.MonkeyPatch.context() as mpk:
         config.load()
+        test_db = get_postgres_test_db(config.common.postgres)
+        redis_test_db = get_redis_test_db(config.common.redis)
         # Make sure to match the config here with the one in src/conftest.py:common_config
         sections = {
             'postgres': {
                 'server': config.common.postgres.server,
                 'port': config.common.postgres.port,
-                'database': config.common.postgres.test_database,
-                'test-database': config.common.postgres.test_database,
+                'database': test_db,
+                'test-database': test_db,
                 'ro-user': config.common.postgres.ro_user,
                 'ro-pw': config.common.postgres.ro_pw,
                 'rw-user': config.common.postgres.rw_user,
@@ -155,8 +187,8 @@ def _database_interfaces():
                 'admin-pw': config.common.postgres.admin_pw,
             },
             'redis': {
-                'fact-db': config.common.redis.test_db,  # Note: This is unused in testing
-                'test-db': config.common.redis.test_db,  # Note: This is unused in production
+                'fact-db': redis_test_db,  # Note: This is unused in testing
+                'test-db': redis_test_db,  # Note: This is unused in production
                 'host': config.common.redis.host,
                 'port': config.common.redis.port,
             },
@@ -166,6 +198,11 @@ def _database_interfaces():
         common_cfg = ConfigCommonMock(**sections)
 
         mpk.setattr('config._common', common_cfg)
+
+        postgres_setup = DbSetup(db_name='postgres', isolation_level='AUTOCOMMIT')
+        if not postgres_setup.database_exists(test_db):
+            postgres_setup.create_database(test_db)
+            _init_users(postgres_setup, [test_db])
 
         db_setup = DbSetup()
 

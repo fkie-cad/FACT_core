@@ -12,7 +12,8 @@ Unpacking itself is done by the separate fact_extractor project (Docker); unpack
   shebang or call venv tools by name and would pick up the system Python.
 - Code must support the minimum Python version (`target-version` in `pyproject.toml`).
 - Tests: run only the relevant ones. They need PostgreSQL db `fact_test` and Redis db 13.
-  `pytest` runs in parallel (`-n auto` in `pyproject.toml`); pass `-n 0` for a few tests or when debugging.
+  `pytest` runs in parallel (`-n 4` in `pyproject.toml`, at most 4 workers); pass `-n 0` for a few tests or when
+  debugging. Each worker uses its own PostgreSQL db `fact_test_<N>` (created automatically) and Redis db `11 + N`.
   Tests never use the real config: `src/conftest.py` patches it. Override values with the markers
   `common_config_overwrite` / `backend_config_overwrite` / `frontend_config_overwrite`; don't monkeypatch `config`.
 - Lint the files you changed: `ruff check --fix <files>` and `ruff format <files>`. The pre-commit hook checks
