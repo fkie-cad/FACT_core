@@ -19,6 +19,12 @@ FLAGS_TO_STR = {
     E_FLAGS.EF_MIPS_ARCH_64R2: 'MIPS 64bit R2',
 }
 
+ARM_ATTRIBUTE_TO_STR = {
+    'TAG_CPU_ARCH': 'Tag_CPU_arch',
+    'TAG_CPU_NAME': 'Tag_CPU_name',
+    'TAG_CPU_ARCH_PROFILE': 'Tag_CPU_arch_profile',
+}
+
 
 def _mips_flags_to_str(flags: int) -> str:
     return ', '.join(
@@ -47,9 +53,12 @@ def _get_arm_isa(elffile: ELFFile) -> str | None:
         for sub_sec in sec.iter_subsections():
             for sub_sub_sec in sub_sec.iter_subsubsections():
                 for attribute in sub_sub_sec.iter_attributes():
-                    if attribute.tag not in ['TAG_CPU_ARCH', 'TAG_CPU_NAME', 'TAG_CPU_ARCH_PROFILE']:
+                    if attribute.tag not in ARM_ATTRIBUTE_TO_STR:
                         continue
-                    descr = describe_attr_tag_arm(attribute.tag, attribute.value, attribute.extra)
+                    try:
+                        descr = describe_attr_tag_arm(attribute.tag, attribute.value, attribute.extra)
+                    except KeyError:  # value unknown to pyelftools (e.g. newer architecture versions)
+                        descr = f'{ARM_ATTRIBUTE_TO_STR[attribute.tag]}: {attribute.value}'
                     result += f'{descr}\n'
         return result
     except (ELFParseError, ELFError):  # file is probably missing section information

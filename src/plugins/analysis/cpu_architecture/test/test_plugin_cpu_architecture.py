@@ -68,6 +68,22 @@ def test_elf_construct_result(expected_str, path):
         assert expected_str in key
 
 
+def test_elf_construct_result_unknown_arm_arch(tmp_path):
+    # pyelftools only knows Tag_CPU_arch values up to 17 (v8-M.mainline)
+    content = (Path(__file__).parent / 'data/hello_world_arm32').read_bytes()
+    # in .ARM.attributes: Tag_CPU_name (5) "cortex-a75" followed by Tag_CPU_arch (6) 14 (v8)
+    attributes = b'\x05cortex-a75\x00\x06\x0e'
+    assert content.count(attributes) == 1
+    test_file = tmp_path / 'hello_world_arm32_unknown_arch'
+    test_file.write_bytes(content.replace(attributes, b'\x05cortex-a75\x00\x06\x14'))  # unknown value 20
+
+    result = elf.construct_result(test_file)
+    assert len(result) == 1
+    key = next(iter(result))
+    assert 'Tag_CPU_arch: 20' in key
+    assert 'Tag_CPU_name: "cortex-a75"' in key
+
+
 @pytest.mark.parametrize(
     ('architecture', 'bitness', 'endianness', 'full_file_type'),
     [
