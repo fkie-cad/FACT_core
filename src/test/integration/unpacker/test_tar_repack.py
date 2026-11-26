@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import tarfile
 from io import BytesIO
+from pathlib import PurePosixPath
 
 import pytest
 
+from objects.file import FileObject
 from objects.firmware import Firmware
-from test.common_helper import get_test_data_dir
+from test.common_helper import create_test_firmware, generate_analysis_entry, get_test_data_dir
+from test.integration.storage.helper import add_included_file
 from unpacker.tar_repack import TarPacker
 
 
@@ -49,3 +52,57 @@ def _pack_included_files_recursively(packer, uid):
         'testfile1.zip_extracted/testfile1',
         'testfile2',
     ]
+
+
+@pytest.fixture
+def firmware(backend_db):
+    fw = create_test_firmware()
+    backend_db.insert_object(fw)
+    return fw
+
+
+@pytest.fixture
+def store_file(backend_db, file_service, firmware):
+    """
+    Stores a File Object with `contents` at `path` in `parent` (default: the firmware) in the DB and the file storage,
+    with a `file_type` result (`mime`) and the results in `analyses` (plugin → result)
+    """
+
+    def _store(contents: bytes, path: str, parent: FileObject | None = None, mime: str = 'text/plain', analyses=None):
+        fo = FileObject.from_file(file_contents=contents, file_name=PurePosixPath(path).name)
+        add_included_file(fo, parent or firmware, firmware, [path])
+        for plugin, result in {'file_type': {'mime': mime, 'full': ''}, **(analyses or {})}.items():
+            fo.processed_analysis[plugin] = generate_analysis_entry(analysis_result=result)
+        backend_db.insert_object(fo)
+        file_service.store_file(contents, fo.uid)
+        return fo
+
+    return _store
+
+
+def _pack(packer: TarPacker, uid: str, recursive: bool = False) -> dict[str, tarfile.TarInfo]:
+    buffer = BytesIO()
+    if recursive:
+        packer.pack_included_files_recursively(uid, buffer)
+    else:
+        packer.pack_included_files(uid, buffer)
+    buffer.seek(0)
+    with tarfile.open(fileobj=buffer, mode='r:gz') as tar:
+        return {member.name: member for member in tar.getmembers()}
+
+
+@pytest.fixture
+def packer(common_db, file_service):
+    return TarPacker(db=common_db, file_service=file_service)
+
+
+@pytest.mark.parametrize('recursive', [False, True])
+def test_symlink_target_with_spaces(packer, store_file, firmware, recursive):
+    file_system = store_file(b'squashfs', '/rootfs.squashfs', mime='filesystem/squashfs')
+    store_file(b'symbolic link -> /mnt/my data/config', '/etc/config', parent=file_system, mime='inode/symlink')
+
+    members = _pack(packer, firmware.uid, recursive=True) if recursive else _pack(packer, file_system.uid)
+
+    link = members['rootfs.squashfs_extracted/etc/config' if recursive else 'etc/config']
+    assert link.issym()
+    assert link.linkname == '/mnt/my data/config'

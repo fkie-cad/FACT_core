@@ -58,7 +58,8 @@ class TarPacker:
     @classmethod
     def _add_files_to_tar(cls, paths: list[str], system_path: Path, tar: tarfile.TarFile, is_symlink: bool) -> None:
         if is_symlink:
-            link_target = system_path.read_text().split(' ')[-1]
+            # stored by the unpacker as `symbolic link -> <target>` (see unpacker/unpack.py)
+            link_target = system_path.read_text().removeprefix('symbolic link -> ')
             for path in paths:
                 logging.debug(f'Adding file {path} as symlink to {link_target}')
                 tar.addfile(cls._create_symlink(path, link_target))
