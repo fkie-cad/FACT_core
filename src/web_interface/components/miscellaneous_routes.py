@@ -62,9 +62,9 @@ class MiscellaneousRoutes(ComponentBase):
         return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['delete'])
-    @AppRoute('/admin/delete_comment/<uid>/<timestamp>', GET)
-    def delete_comment(self, uid: str, timestamp: str) -> Response:
-        self.db.editing.delete_comment(uid, timestamp)
+    @AppRoute('/admin/delete_comment/<uid>/<comment_id>', GET)
+    def delete_comment(self, uid: str, comment_id: str) -> Response:
+        self.db.editing.delete_comment(uid, comment_id)
         return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['delete'])

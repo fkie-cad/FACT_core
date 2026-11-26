@@ -94,16 +94,16 @@
                         </td>
                         <td class="m-0 p-0 align-middle">
                             {# Comment Delete Button #}
-                            <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}"
+                            <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.id }}"
                                     class="btn btn-sm">
                                 <i class="fas fa-trash-alt text-danger"></i>
                             </button>
                         </td>
                         <td class="m-0 p-0">
                             {# Comment Delete Confirm Button #}
-                            <div class="collapse" id="delete-button-div-{{ comment.time }}">
+                            <div class="collapse" id="delete-button-div-{{ comment.id }}">
                                 <button class="btn btn-danger" type="button"
-                                        onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
+                                        onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.id }}";'>
                                     <i class="fas fa-check"></i> Click here to confirm!
                                 </button>
                             </div>

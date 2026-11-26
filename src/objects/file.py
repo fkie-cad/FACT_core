@@ -67,7 +67,8 @@ class FileObject:
     scheduled_analysis: list[str] = field(default_factory=list)
 
     #: List of comments that have been made on this file.
-    #: Comments are dicts with the keys time (float), author (str) and comment (str).
+    #: Comments are dicts with the keys id (str, unique), time (str, Unix time in seconds), author (str), comment (str)
+    #: and plugin (str, the plugin whose result the Comment refers to, or empty).
     #: They are not created during unpacking or analysis, so are only available when loading the object from the DB.
     comments: list[dict] = field(default_factory=list)
 

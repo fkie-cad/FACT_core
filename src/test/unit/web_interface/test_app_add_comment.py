@@ -6,7 +6,9 @@ from test.common_helper import AUTHENTICATION_CONFIG, TEST_FW, TEST_SUPERUSER_AP
 class DbMock(CommonDatabaseMock):
     @staticmethod
     def add_comment_to_object(_, comment, author, time, plugin):
-        TEST_FW.comments.append({'time': str(time), 'author': author, 'comment': comment, 'plugin': plugin})
+        new_comment = {'id': f'id{len(TEST_FW.comments)}', 'time': str(time), 'author': author, 'comment': comment}
+        TEST_FW.comments.append({**new_comment, 'plugin': plugin})
+        return TEST_FW.comments[-1]
 
 
 @pytest.fixture(autouse=True)
