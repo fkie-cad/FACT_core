@@ -14,6 +14,18 @@ import config
 from analysis.plugin import AnalysisPluginV0
 from test.conftest import merge_markers
 
+# Tests using these fixtures share the PostgreSQL test DB, Redis and the unpacking container ports
+_SHARED_STATE_FIXTURES = {'_database_interfaces', 'analysis_status'}
+
+
+@pytest.hookimpl(tryfirst=True)  # must run before xdist reads the xdist_group markers
+def pytest_collection_modifyitems(items: list[pytest.Item]):
+    """With ``--dist loadgroup`` (pytest-xdist), all tests in one group run on the same worker. Put all tests that
+    use shared state in one group so that they run sequentially while the other tests run in parallel."""
+    for item in items:
+        if _SHARED_STATE_FIXTURES.intersection(getattr(item, 'fixturenames', ())):
+            item.add_marker(pytest.mark.xdist_group('shared_state'))
+
 
 @pytest.fixture
 def docker_mount_base_dir() -> str:
