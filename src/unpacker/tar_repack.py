@@ -28,7 +28,8 @@ class TarPacker:
     taking the files from the file storage and their paths from the database. Files get their original modes from the
     `file_system_metadata` result of their container if it has one for them (e.g. for file systems that the plugin can
     mount), otherwise 0755 for executables, shared libraries and scripts and 0644 for all other files. Stored symbolic
-    links become symbolic links again.
+    links become symbolic links again. Empty directories are missing: FACT stores no directories, and the
+    `file_system_metadata` result only lists files.
     """
 
     def __init__(self, db: DbInterfaceCommon, file_service: FileService):
