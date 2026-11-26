@@ -1,6 +1,12 @@
+import hashlib
 import logging
 import os
+import platform
+import shutil
 import subprocess
+import tempfile
+import urllib.request
+import zipfile
 from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
@@ -25,10 +31,15 @@ INSTALL_DIR = Path(__file__).resolve().parent
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 STATIC_WEB_DIR = INSTALL_DIR.parent / 'web_interface' / 'static'
 BUN_VERSION_FILE = INSTALL_DIR / 'bun-version.txt'
-BUN_INSTALL_DIR = INSTALL_DIR / '.tools' / 'bun'
+BUN_INSTALL_DIR = Path(__file__).resolve().parent.parent / 'bin'
+BUN_BINARY = BUN_INSTALL_DIR / 'bun'
 CONFIG_DIR = INSTALL_DIR.parent / 'config'
 MIME_ICON_DIR = STATIC_WEB_DIR / 'file_icons'
 ICON_THEME_INSTALL_PATH = Path('/usr/share/icons/Papirus/24x24')
+BUN_SHA256 = {
+    'x86_64': '3e730528d89775f03f87f05c06787c4df4099d0a37f3f252e7b829cb23816e18',
+    'aarch64': 'efa9813da5ed72423bf847f916e8d2c47c0d776add972354026a75e10da9aa21',
+}
 
 
 def execute_commands_and_raise_on_return_code(commands: list[str], error: str | None = None) -> None:
@@ -165,52 +176,52 @@ def _copy_mime_icons() -> None:
         run_cmd_with_logging(f'cp -rL {ICON_THEME_INSTALL_PATH / source} {MIME_ICON_DIR / target}')
 
 
+def extract_bun_bin(version: str, expected_sha256: str, asset: str) -> None:
+    url = f'https://github.com/oven-sh/bun/releases/download/bun-v{version}/{asset}.zip'
+
+    BUN_INSTALL_DIR.mkdir(parents=True, exist_ok=True)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        zip_path = Path(tmp) / 'bun.zip'
+        urllib.request.urlretrieve(url, zip_path)  # noqa: S310
+
+        sha256 = hashlib.sha256(zip_path.read_bytes()).hexdigest()
+        if sha256.lower() != expected_sha256.lower():
+            raise InstallationError('Bun SHA256 checksum mismatch')
+
+        with zipfile.ZipFile(zip_path) as archive:
+            file = next(name for name in archive.namelist() if Path(name).name == 'bun')
+            with archive.open(file) as source, BUN_BINARY.open('wb') as target:
+                shutil.copyfileobj(source, target)
+
+    BUN_BINARY.chmod(0o755)
+
+
 def _install_bun() -> None:
-    logging.info('Installing Bun')
+    logging.info('Installing bun')
     bun_version = BUN_VERSION_FILE.read_text(encoding='utf-8').strip()
-    bun_executable = BUN_INSTALL_DIR / 'bin' / 'bun'
 
-    env = {
-        **os.environ,
-        'BUN_INSTALL': str(BUN_INSTALL_DIR),
-        'PATH': f'{bun_executable.parent}{os.pathsep}{os.environ.get("PATH", os.defpath)}',
-    }
+    arch = platform.machine()
 
-    try:
-        proc = subprocess.run(  # noqa: S603
-            [str(bun_executable), '--version'],
-            capture_output=True,
-            text=True,
-            check=True,
-            env=env,
-        )
-        installed_version = proc.stdout.strip()
-    except (subprocess.CalledProcessError, OSError):
-        installed_version = None
+    asset = {
+        'x86_64': 'bun-linux-x64',
+        'aarch64': 'bun-linux-aarch64',
+    }.get(arch)
 
-    if installed_version != bun_version:
-        logging.info('Installing Bun %s', bun_version)
+    if not asset:
+        raise InstallationError(f'Unsupported architecture: {arch}')
 
-        installer = subprocess.run(
-            ['curl', '-fsSL', 'https://bun.com/install'],  # noqa: S607
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout
-
-        run_cmd_with_logging(
-            f'bash -s bun-v{bun_version}',
-            env=env,
-            input=installer,
+    if not BUN_BINARY.exists():
+        extract_bun_bin(
+            version=bun_version,
+            expected_sha256=BUN_SHA256[arch],
+            asset=asset,
         )
 
     run_cmd_with_logging(
-        f'{bun_executable} install --frozen-lockfile',
-        env=env,
+        f'{BUN_BINARY} install --frozen-lockfile',
         cwd=STATIC_WEB_DIR,
     )
-
-    logging.info('Bun installation complete')
 
 
 def _init_hasura() -> None:
