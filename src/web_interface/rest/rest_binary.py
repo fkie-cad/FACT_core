@@ -55,8 +55,9 @@ class RestBinary(RestResourceBase):
         The archive contains the files extracted from the target (one layer) at their paths, stored symbolic links as
         symbolic links. With recursive=true (only for firmware), it contains the files of all layers, the contents of
         each container below `<path of the container>_extracted/` (the paths keep the carver's names, e.g.
-        `01310868-10109076.squashfs_v4_le_extracted/`). Files get the modes of the stored files, not their original
-        ones (executables lose the executable bit), and empty directories are missing.
+        `01310868-10109076.squashfs_v4_le_extracted/`). Files get their original modes if the file_system_metadata
+        plugin found them in their container, otherwise 0755 for executables, shared libraries, and scripts and 0644
+        for other files. Empty directories are missing.
         The return format will be {"binary": b64_encoded_binary_or_tar_gz, "file_name": file_name}
         """
         if not self.db.frontend.exists(uid):

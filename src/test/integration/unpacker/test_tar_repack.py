@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tarfile
+from base64 import b64encode
 from io import BytesIO
 from pathlib import PurePosixPath
 
@@ -106,3 +107,46 @@ def test_symlink_target_with_spaces(packer, store_file, firmware, recursive):
     link = members['rootfs.squashfs_extracted/etc/config' if recursive else 'etc/config']
     assert link.issym()
     assert link.linkname == '/mnt/my data/config'
+
+
+def _metadata(path: str, mode: str) -> dict:
+    """An entry of the `file_system_metadata` result of a container for the file at `path` (with file type bits)"""
+    return {'path': path, 'name': PurePosixPath(path).name, 'mode': mode, 'key': b64encode(path.encode()).decode()}
+
+
+@pytest.mark.parametrize('recursive', [False, True])
+def test_modes_from_file_system_metadata(packer, store_file, firmware, recursive):
+    metadata = {'files': [_metadata('bin/busybox', '104755'), _metadata('etc/shadow', '100600')]}
+    file_system = store_file(
+        b'squashfs', '/rootfs.squashfs', mime='filesystem/squashfs', analyses={'file_system_metadata': metadata}
+    )
+    store_file(b'\x7fELF busybox', '/bin/busybox', parent=file_system, mime='application/x-executable')
+    store_file(b'root:*:0:0', '/etc/shadow', parent=file_system)
+
+    members = _pack(packer, firmware.uid, recursive=True) if recursive else _pack(packer, file_system.uid)
+
+    prefix = 'rootfs.squashfs_extracted/' if recursive else ''
+    assert members[f'{prefix}bin/busybox'].mode == 0o4755
+    assert members[f'{prefix}etc/shadow'].mode == 0o600
+
+
+@pytest.mark.parametrize('recursive', [False, True])
+def test_executable_bit_without_file_system_metadata(packer, store_file, firmware, recursive):
+    file_system = store_file(b'squashfs', '/rootfs.squashfs', mime='filesystem/squashfs')
+    store_file(b'\x7fELF busybox', '/bin/busybox', parent=file_system, mime='application/x-executable')
+    store_file(b'\x7fELF pie', '/bin/pie', parent=file_system, mime='application/x-pie-executable')
+    store_file(b'\x7fELF libc', '/lib/libc.so.0', parent=file_system, mime='application/x-sharedlib')
+    store_file(b'#!/bin/sh\necho', '/etc/init.d/rcS', parent=file_system, mime='text/x-shellscript')
+    store_file(b'root::0:0', '/etc/passwd', parent=file_system)
+
+    members = _pack(packer, firmware.uid, recursive=True) if recursive else _pack(packer, file_system.uid)
+
+    prefix = 'rootfs.squashfs_extracted/' if recursive else ''
+    modes = {name.removeprefix(prefix): member.mode for name, member in members.items() if name.startswith(prefix)}
+    assert modes == {
+        'bin/busybox': 0o755,
+        'bin/pie': 0o755,
+        'lib/libc.so.0': 0o755,
+        'etc/init.d/rcS': 0o755,
+        'etc/passwd': 0o644,
+    }
