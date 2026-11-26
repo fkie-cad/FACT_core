@@ -38,8 +38,13 @@
                                     Author:
                                 </label>
                                 <div class="col-xs-12 col-sm-10">
-                                    <input type="text" name="author" class="form-control" id="author" required
-                                           style="position: relative; z-index: 1;" value="anonymous">
+                                    {# with authentication, FACT sets the author (the logged-in user) #}
+                                    {% if '' | auth_enabled %}
+                                        <input type="text" class="form-control-plaintext" id="author" value="{{ current_user.email }}" readonly>
+                                    {% else %}
+                                        <input type="text" name="author" class="form-control" id="author" required
+                                               style="position: relative; z-index: 1;" value="anonymous">
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -61,13 +66,6 @@
                                     </select>
                                 </div>
                             </div>
-
-                            {% if current_user.is_authenticated %}
-                                <script type="text/javascript">
-                                    document.getElementById('author').value = '{{ current_user.email }}';
-                                    document.getElementById('author').setAttribute("readonly", true);
-                                </script>
-                            {% endif %}
                         </form>
                     </div>
                     <div>

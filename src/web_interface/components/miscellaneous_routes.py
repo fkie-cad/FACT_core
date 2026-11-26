@@ -11,6 +11,7 @@ import config
 from helperFunctions.database import get_shared_session
 from helperFunctions.web_interface import format_time
 from statistic.update import StatsUpdater
+from web_interface.comment_author import get_comment_author
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -55,7 +56,7 @@ class MiscellaneousRoutes(ComponentBase):
     @AppRoute('/comment/<uid>', POST)
     def post_comment(self, uid: str) -> Response:
         comment = request.form['comment']
-        author = request.form['author']
+        author = get_comment_author(request.form.get('author'))
         plugin = request.form['plugin']
         self.db.editing.add_comment_to_object(uid, comment, author, round(time()), plugin)
         return redirect(url_for('show_analysis', uid=uid))

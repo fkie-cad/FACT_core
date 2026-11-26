@@ -26,6 +26,17 @@ def get_test_data_dir() -> Path:
     return Path(get_src_dir()) / 'test/data'
 
 
+#: Frontend config overwrite that enables authentication with the users from ``test/data/user_test.db``
+#: (``t_guest``: guest, ``t_guest_analyst``: guest_analyst, ``t_superuser``: superuser; password: ``test``)
+AUTHENTICATION_CONFIG = {
+    'authentication': {
+        'enabled': True,
+        'user_database': f'sqlite:///{get_test_data_dir()}/user_test.db',
+    }
+}
+TEST_SUPERUSER_API_KEY = 'k2GKnNaA5UlENStVI4AEJKQ7BP9ZqO+21Cx746BjJDo='
+
+
 def create_test_firmware(
     device_class='Router',
     device_name='test_router',
