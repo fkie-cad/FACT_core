@@ -413,15 +413,23 @@ class DatabaseRoutes(ComponentBase):
         """
         excluded_proxy_headers = {'Host', 'Authorization'}
         req_headers = {k: v for (k, v) in request.headers if k not in excluded_proxy_headers}
-        response = requests.request(
-            method=request.method,
-            url=f'http://localhost:{config.frontend.hasura.port}/v1/graphql',
-            headers={**req_headers, 'X-Hasura-Role': 'ro_user'},
-            data=request.get_data(),
-            cookies=request.cookies,
-            allow_redirects=False,
-            timeout=60,
-        )
+        try:
+            response = requests.request(
+                method=request.method,
+                url=f'http://localhost:{config.frontend.hasura.port}/v1/graphql',
+                headers={**req_headers, 'X-Hasura-Role': 'ro_user'},
+                data=request.get_data(),
+                cookies=request.cookies,
+                allow_redirects=False,
+                timeout=60,
+            )
+        except requests.RequestException as error:
+            logging.warning(f'GraphQL proxy: no response from Hasura: {error}')
+            message = (
+                "FACT's GraphQL service (Hasura) is not reachable or did not answer in time: try again later or ask "
+                'the FACT administrator to start it'
+            )
+            return Response(json.dumps({'errors': [{'message': message}]}), 503, mimetype='application/json')
         excluded_headers = {
             'connection',
             'content-encoding',
