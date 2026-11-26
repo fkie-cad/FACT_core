@@ -7,6 +7,7 @@ from urllib.parse import quote
 import pytest
 
 from test.common_helper import TEST_FW, CommonDatabaseMock
+from test.unit.conftest import CommonIntercomMock
 
 TEST_FW_PAYLOAD = {
     'binary': standard_b64encode(b'\x01\x23\x45\x67\x89').decode(),
@@ -113,6 +114,26 @@ class TestRestFirmware:
     def test_submit_success(self, test_client):
         result = test_client.put('/rest/firmware', json=TEST_FW_PAYLOAD).json
         assert result['status'] == 0
+
+    @pytest.mark.parametrize(
+        ('backend_answer', 'status_code', 'message'),
+        [
+            (None, HTTPStatus.SERVICE_UNAVAILABLE, 'the backend did not answer in time'),
+            (False, HTTPStatus.INTERNAL_SERVER_ERROR, 'the backend could not store the file'),
+        ],
+    )
+    def test_submit_storing_fails(self, test_client, monkeypatch, backend_answer, status_code, message):
+        monkeypatch.setattr(CommonIntercomMock, 'store_file', lambda *_: backend_answer)
+        response = test_client.put('/rest/firmware', json=TEST_FW_PAYLOAD)
+        assert response.status_code == status_code
+        assert response.json['status'] == 1
+        assert message in response.json['error_message']
+        assert 'binary' not in response.json['request']
+
+    def test_submit_invalid_binary_is_not_sent_back(self, test_client):
+        response = test_client.put('/rest/firmware', json={**TEST_FW_PAYLOAD, 'binary': 'invalid_base64'})
+        assert response.json['status'] == 1
+        assert 'binary' not in response.json['request']
 
     def test_request_update(self, test_client):
         requested_analysis = json.dumps(['optional_plugin'])

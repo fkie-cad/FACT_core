@@ -3,6 +3,7 @@ from __future__ import annotations
 import binascii
 import logging
 from base64 import standard_b64decode
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 from flask import request
@@ -28,6 +29,16 @@ from web_interface.security.privileges import PRIVILEGES
 
 if TYPE_CHECKING:
     from werkzeug.datastructures import ImmutableMultiDict
+
+
+class UploadError(Exception):
+    """A firmware upload failed. The message and status code are meant for a REST response."""
+
+    def __init__(self, message: str, status_code: HTTPStatus = HTTPStatus.BAD_REQUEST):
+        super().__init__(message)
+        self.message = message
+        self.status_code = status_code
+
 
 api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
 
@@ -121,37 +132,46 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
             logging.error(f'REST|firmware|PUT: Error in payload data: {error}')
             return error_message(str(error), self.URL)
 
+        binary = data.pop('binary')  # don't send the firmware binary back
         available_plugins = set(self.intercom.get_available_analysis_plugins()) - {'unpacker'}
         unavailable_plugins = set(data['requested_analysis_systems']) - available_plugins
         if unavailable_plugins:
             return error_message(
                 f'The requested analysis plugins are not available: {", ".join(unavailable_plugins)}',
                 self.URL,
-                request_data={k: v for k, v in data.items() if k != 'binary'},  # don't send the firmware binary back
+                request_data=data,
             )
 
-        result = self._process_data(data)
-        if 'error_message' in result:
-            logging.warning('Submission not according to API guidelines! (data could not be parsed)')
-            return error_message(result['error_message'], self.URL, request_data=data)
+        try:
+            uid = self._store_and_schedule(binary, data)
+        except UploadError as error:
+            logging.warning(f'REST|firmware|PUT: upload failed: {error.message}')
+            return error_message(error.message, self.URL, data, return_code=error.status_code)
 
         logging.debug('Upload Successful!')
-        return success_message(result, self.URL, request_data=data)
+        return success_message({'uid': uid}, self.URL, request_data=data)
 
-    def _process_data(self, data: dict) -> dict[str, str]:
+    def _store_and_schedule(self, binary: str, data: dict) -> str:
         try:
-            file_contents = standard_b64decode(data['binary'])
-        except binascii.Error:
-            return {'error_message': 'Could not parse binary (must be valid base64!)'}
+            file_contents = standard_b64decode(binary)
+        except binascii.Error as error:
+            raise UploadError('Could not parse binary (must be valid base64!)') from error
         uid = create_uid(file_contents)
-        if not self.intercom.store_file(file_contents, uid):
-            return error_message('Storing file failed.', self.URL, request_data=data)
+        stored = self.intercom.store_file(file_contents, uid)
+        if stored is None:
+            raise UploadError(
+                'Storing the file failed: the backend did not answer in time. Check that the FACT backend is running '
+                'and upload again',
+                HTTPStatus.SERVICE_UNAVAILABLE,
+            )
+        if not stored:
+            raise UploadError(
+                'Storing the file failed: the backend could not store the file (see the backend log)',
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
         data['uid'] = uid
-        firmware_object = convert_analysis_task_to_fw_obj(data)
-        self.intercom.add_analysis_task(firmware_object)
-        data.pop('binary')
-
-        return {'uid': firmware_object.uid}
+        self.intercom.add_analysis_task(convert_analysis_task_to_fw_obj(data))
+        return uid
 
 
 @api.route('/<string:uid>', doc={'description': '', 'params': {'uid': 'Firmware UID'}})
