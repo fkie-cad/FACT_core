@@ -3,10 +3,10 @@ import os
 import subprocess
 from subprocess import PIPE, STDOUT
 
-import init_postgres
 import pytest
-import update_statistic
 
+import init_postgres
+import update_statistic
 from helperFunctions.fileSystem import get_src_dir
 
 
@@ -20,7 +20,7 @@ from helperFunctions.fileSystem import get_src_dir
     ],
 )
 def test_start_script_help_and_version(script, expected_str):
-    cmd_process = subprocess.run(
+    cmd_process = subprocess.run(  # noqa: S602
         f'{os.path.join(get_src_dir(), script)} -h',  # noqa: PTH118
         timeout=5,
         shell=True,
@@ -32,7 +32,7 @@ def test_start_script_help_and_version(script, expected_str):
     assert cmd_process.returncode == 0
     assert f'usage: {script}' in cmd_process.stdout
 
-    cmd_process = subprocess.run(
+    cmd_process = subprocess.run(  # noqa: S602
         f'{os.path.join(get_src_dir(), script)} -V',  # noqa: PTH118
         timeout=5,
         shell=True,
@@ -55,8 +55,8 @@ def test_start_scripts_with_main(script):
 
 @pytest.mark.skip(reason='Not working in CI')
 def test_fact_complete_start():
-    cmd_process = subprocess.run(
-        f"{os.path.join(get_src_dir(), 'start_fact.py')} -d -t",  # noqa: PTH118
+    cmd_process = subprocess.run(  # noqa: S602
+        f'{os.path.join(get_src_dir(), "start_fact.py")} -d -t',  # noqa: PTH118
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
