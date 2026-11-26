@@ -127,3 +127,16 @@ class TestAnalysisPluginsKnownVulnerabilities:
 
         assert 'XZ Backdoor' in vulns_by_name
         assert 'XZ Backdoor' in summary
+
+    def test_xz_backdoor_both(self, analysis_plugin):
+        dependencies = {
+            'file_hashes': HashPlugin.Schema(md5='1234', sha256='1234'),
+            'software_components': SoftwarePlugin.Schema(
+                software_components=[{'name': 'liblzma', 'versions': ['5.6.1'], 'rule': '', 'matching_strings': []}]
+            ),
+        }
+        results = analysis_plugin.analyze(FileIO(str(TEST_DATA_DIR / 'xz_backdoor_test_file')), {}, dependencies)
+        names = [v.name for v in results.vulnerabilities]
+
+        assert 'xz_backdoor' in names
+        assert 'XZ Backdoor' not in names, 'the secondary detection should be skipped if the YARA rule matched'

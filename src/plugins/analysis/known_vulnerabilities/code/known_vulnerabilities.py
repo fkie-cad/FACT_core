@@ -4,7 +4,7 @@ import json
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from docker.errors import DockerException
 from docker.types import Mount
@@ -26,23 +26,23 @@ VULNERABILITIES = vulnerabilities()
 
 class Vulnerability(BaseModel):
     name: str
-    link: Optional[str] = None
-    score: Optional[str] = None
-    description: Optional[str] = None
-    reliability: Optional[str] = None
-    additional_data: Optional[dict] = None
+    link: str | None = None
+    score: str | None = None
+    description: str | None = None
+    reliability: str | None = None
+    additional_data: dict | None = None
 
 
 class AnalysisPlugin(AnalysisPluginV0):
     class Schema(BaseModel):
-        vulnerabilities: List[Vulnerability]
+        vulnerabilities: list[Vulnerability]
 
     def __init__(self):
         metadata = self.MetaData(
             name='known_vulnerabilities',
             description='Rule based detection of known vulnerabilities like Heartbleed',
             dependencies=['file_hashes', 'software_components'],
-            version=Version(1, 0, 0),
+            version=Version(1, 0, 1),
             Schema=self.Schema,
         )
         super().__init__(metadata=metadata)
@@ -81,7 +81,7 @@ class AnalysisPlugin(AnalysisPluginV0):
             matched_vulnerabilities.extend(self._check_netusb_vulnerability(path))
 
         # CVE-2024-3094 XZ Backdoor secondary detection
-        if 'liblzma' in software_by_name and not any(vuln == 'xz_backdoor' for vuln, _ in yara_result):
+        if 'liblzma' in software_by_name and not any(vuln.name == 'xz_backdoor' for vuln in yara_result):
             matched_vulnerabilities.extend(_check_xz_backdoor(software_by_name['liblzma']))
         return matched_vulnerabilities
 
