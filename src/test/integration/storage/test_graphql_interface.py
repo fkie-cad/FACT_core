@@ -5,6 +5,9 @@ from storage.graphql.interface import TABLE_TO_QUERY, GraphQlInterface
 from test.common_helper import generate_analysis_entry
 from test.integration.storage.helper import create_fw_with_child_fo, insert_test_fw
 
+# Hasura has global GraphQL names: tests that add a source must not run in parallel
+pytestmark = pytest.mark.xdist_group('hasura')
+
 
 @pytest.fixture
 def _init_hasura(_database_interfaces):

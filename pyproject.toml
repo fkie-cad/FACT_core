@@ -1,5 +1,5 @@
 [tool.pytest.ini_options]
-addopts = "-v"
+addopts = "-v -n 4 --dist loadgroup"
 testpaths = [
     "src/test",
     "src/plugins/**/test",
