@@ -157,6 +157,14 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return None
         return analysis_entry_to_dict(entry)
 
+    def get_analysis_results_for_uid_list(self, uid_list: Iterable[str], plugin: str) -> dict[str, dict]:
+        """Get the results of `plugin` for the files in `uid_list` (only for files that have a result)"""
+        with self.get_read_only_session() as session:
+            query = select(AnalysisEntry.uid, AnalysisEntry.result).filter(
+                AnalysisEntry.uid.in_(list(uid_list)), AnalysisEntry.plugin == plugin
+            )
+            return {uid: result or {} for uid, result in session.execute(query)}
+
     def get_vfps(self, uid: str, parent_uid: str | None = None, root_uid: str | None = None) -> dict[str, list[str]]:
         """
         Get all virtual file paths of file with UID `uid` in all parent files. If `parent_uid` is set, returns only the
@@ -302,34 +310,10 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             query = select(fw_files_table.c.file_uid).where(fw_files_table.c.root_uid == fw_uid)
             return set(session.execute(query).scalars())
 
-    def get_all_files_of_type_in_fw(self, fw_uid: str, mime: str) -> list[str]:
-        """Get a list of UIDs of all files (recursively) contained in a firmware that have a specific MIME type."""
-        with self.get_read_only_session() as session:
-            query = (
-                select(fw_files_table.c.file_uid)
-                .join(AnalysisEntry, AnalysisEntry.uid == fw_files_table.c.file_uid)
-                .filter(fw_files_table.c.root_uid == fw_uid)
-                .filter(AnalysisEntry.plugin == 'file_type')
-                .filter(AnalysisEntry.result['mime'].astext == mime)
-            )
-            return list(session.execute(query).scalars())
-
     def get_all_files_in_fo(self, fo: FileObject) -> set[str]:
         """Get a set of UIDs of all files (recursively) contained in a file"""
         with self.get_read_only_session() as session:
             return self._get_files_in_files(session, fo.files_included).union({fo.uid, *fo.files_included})
-
-    def get_all_files_of_type_in_fo(self, uid: str, mime: str) -> list[str]:
-        """Get a list of UIDs of all files directly included in (i.e. unpacked from) a file of a specific MIME type."""
-        with self.get_read_only_session() as session:
-            query = (
-                select(included_files_table.c.child_uid)
-                .join(AnalysisEntry, AnalysisEntry.uid == included_files_table.c.child_uid)
-                .filter(included_files_table.c.parent_uid == uid)
-                .filter(AnalysisEntry.plugin == 'file_type')
-                .filter(AnalysisEntry.result['mime'].astext == mime)
-            )
-            return list(session.execute(query).scalars())
 
     def _get_files_in_files(self, session: Session, uid_set: set[str], recursive: bool = True) -> set[str]:
         if not uid_set:
