@@ -22,7 +22,7 @@ from helperFunctions.fileSystem import get_src_dir
 def test_start_script_help_and_version(script, expected_str):
     cmd_process = subprocess.run(  # noqa: S602
         f'{os.path.join(get_src_dir(), script)} -h',  # noqa: PTH118
-        timeout=5,
+        timeout=30,  # starting the script can take a while when tests run in parallel
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
@@ -34,7 +34,7 @@ def test_start_script_help_and_version(script, expected_str):
 
     cmd_process = subprocess.run(  # noqa: S602
         f'{os.path.join(get_src_dir(), script)} -V',  # noqa: PTH118
-        timeout=5,
+        timeout=30,  # starting the script can take a while when tests run in parallel
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,

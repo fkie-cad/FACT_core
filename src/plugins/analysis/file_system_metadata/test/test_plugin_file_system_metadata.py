@@ -20,6 +20,9 @@ from ..code.file_system_metadata import (
     _tag_should_be_set,
 )
 
+# Concurrent loop mounts in privileged containers can fail (`failed to setup loop device`)
+pytestmark = pytest.mark.xdist_group('loop_mount')
+
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 EXPECTED_FILE_COUNT = 5
 
