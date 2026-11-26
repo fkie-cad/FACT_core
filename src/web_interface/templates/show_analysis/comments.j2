@@ -38,8 +38,13 @@
                                     Author:
                                 </label>
                                 <div class="col-xs-12 col-sm-10">
-                                    <input type="text" name="author" class="form-control" id="author" required
-                                           style="position: relative; z-index: 1;" value="anonymous">
+                                    {# with authentication, FACT sets the author (the logged-in user) #}
+                                    {% if '' | auth_enabled %}
+                                        <input type="text" class="form-control-plaintext" id="author" value="{{ current_user.email }}" readonly>
+                                    {% else %}
+                                        <input type="text" name="author" class="form-control" id="author" required
+                                               style="position: relative; z-index: 1;" value="anonymous">
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -61,13 +66,6 @@
                                     </select>
                                 </div>
                             </div>
-
-                            {% if current_user.is_authenticated %}
-                                <script type="text/javascript">
-                                    document.getElementById('author').value = '{{ current_user.email }}';
-                                    document.getElementById('author').setAttribute("readonly", true);
-                                </script>
-                            {% endif %}
                         </form>
                     </div>
                     <div>
@@ -96,16 +94,16 @@
                         </td>
                         <td class="m-0 p-0 align-middle">
                             {# Comment Delete Button #}
-                            <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}"
+                            <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.id }}"
                                     class="btn btn-sm">
                                 <i class="fas fa-trash-alt text-danger"></i>
                             </button>
                         </td>
                         <td class="m-0 p-0">
                             {# Comment Delete Confirm Button #}
-                            <div class="collapse" id="delete-button-div-{{ comment.time }}">
+                            <div class="collapse" id="delete-button-div-{{ comment.id }}">
                                 <button class="btn btn-danger" type="button"
-                                        onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
+                                        onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.id }}";'>
                                     <i class="fas fa-check"></i> Click here to confirm!
                                 </button>
                             </div>

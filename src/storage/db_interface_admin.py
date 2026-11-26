@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
@@ -10,15 +11,18 @@ from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import ComparisonEntry, FileObjectEntry
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
 
 class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
-    def __init__(self, connection: DbConnection | None = None, intercom=None):
+    def __init__(self, connection: DbConnection | None = None, intercom: InterComFrontEndBinding | None = None):
         self.intercom = InterComFrontEndBinding() if intercom is None else intercom
         super().__init__(connection=connection or ReadWriteDeleteConnection())
 
     # ===== Delete / DELETE =====
 
-    def delete_object(self, uid: str):
+    def delete_object(self, uid: str) -> None:
         with self.get_read_write_session() as session:
             fo_entry = session.get(FileObjectEntry, uid)
             if fo_entry is not None:
@@ -46,7 +50,7 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         return len(still_in_db), len(uids_to_delete)
 
     @staticmethod
-    def _find_files_still_in_db(included_files: set[str], session) -> set[str]:
+    def _find_files_still_in_db(included_files: set[str], session: Session) -> set[str]:
         """
         :param included_files: A set of UIDs of all files included in the FW
         :param session: The current DB session
@@ -56,7 +60,7 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         query = select(FileObjectEntry.uid).filter(FileObjectEntry.uid.in_(included_files))
         return set(session.execute(query).scalars() or [])
 
-    def delete_comparison(self, comparison_id: str):
+    def delete_comparison(self, comparison_id: str) -> None:
         try:
             with self.get_read_write_session() as session:
                 session.delete(session.get(ComparisonEntry, comparison_id))
