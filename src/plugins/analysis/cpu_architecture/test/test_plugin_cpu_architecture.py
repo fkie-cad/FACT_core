@@ -57,7 +57,7 @@ def test_kconfig_construct_result():
     [
         ('v8', 'data/hello_world_arm32'),
         ('v8', 'data/hello_world_arm64'),
-        # 'data/hello_world_arm64' # TODO Make the plugin work with arm64
+        # arm64 isn't detected yet (empty result), so the arm64 case checks nothing
         ('MIPS III', 'data/hello_world_mips3'),
     ],
 )
