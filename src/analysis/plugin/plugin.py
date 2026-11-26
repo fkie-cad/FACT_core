@@ -54,7 +54,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         description: str
         #: Pydantic model of the object returned by :py:func:`analyse`.
         # Note that we cannot allow pydantic dataclasses because they lack the `schema` method
-        Schema: typing.Type
+        Schema: type
         #: The version of the plugin.
         #: It MUST be a `semver <https://semver.org/>`_ version.
         #: Here is a quick summary how semver relates to plugins.
@@ -67,9 +67,9 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
         version: semver.Version
         #: The version of the backing analysis system.
         #: E.g. for yara plugins this would be the yara version.
-        system_version: typing.Optional[str] = None
+        system_version: str | None = None
         #: A list of all plugins that this plugin depends on
-        dependencies: typing.List = pydantic.Field(default_factory=list)
+        dependencies: list = pydantic.Field(default_factory=list)
         #: List of mimetypes that should not be processed
         mime_blacklist: list = pydantic.Field(default_factory=list)
         #: List of mimetypes that should be processed
@@ -80,7 +80,7 @@ class AnalysisPluginV0(metaclass=abc.ABCMeta):
 
         @field_validator('version', mode='before')
         @classmethod
-        def _version_validator(cls, value):
+        def _version_validator(cls, value: str | semver.Version) -> semver.Version:
             if isinstance(value, str):
                 return semver.Version.parse(value)
 

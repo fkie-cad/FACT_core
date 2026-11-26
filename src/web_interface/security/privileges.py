@@ -17,7 +17,7 @@ PRIVILEGES = {
     'view_logs': ['superuser'],
 }
 
-for privilege in PRIVILEGES:
-    for role in PRIVILEGES[privilege]:
+for roles in PRIVILEGES.values():
+    for role in roles:
         if role not in ROLES:
             raise RuntimeError('typo or error in privilege definition')

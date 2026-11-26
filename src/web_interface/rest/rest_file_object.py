@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from flask import request
 from flask_restx import Namespace
 
@@ -7,6 +11,9 @@ from web_interface.rest.helper import error_message, get_paging, get_query, succ
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+if TYPE_CHECKING:
+    from objects.file import FileObject
 
 api = Namespace('rest/file_object', description='Browse the file database or request specific file')
 
@@ -24,7 +31,7 @@ class RestFileObjectWithoutUid(RestResourceBase):
             'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'},
         },
     )
-    def get(self):
+    def get(self) -> tuple[dict, int]:
         """
         Browse the file database
         """
@@ -63,7 +70,7 @@ class RestFileObjectWithUid(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
-    def get(self, uid):
+    def get(self, uid: str) -> tuple[dict, int]:
         """
         Request a specific file
         Get the analysis results of a specific file by providing the corresponding uid
@@ -76,7 +83,7 @@ class RestFileObjectWithUid(RestResourceBase):
         return success_message({'file_object': fitted_file_object}, self.URL, request_data={'uid': uid})
 
     @staticmethod
-    def _fit_file_object(file_object):
+    def _fit_file_object(file_object: FileObject) -> dict:
         meta = create_meta_dict(file_object)
         analysis = file_object.processed_analysis
         return {'meta_data': meta, 'analysis': analysis}

@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from semver import Version
@@ -93,8 +93,8 @@ class AnalysisPlugin(AnalysisPluginV0):
     """
 
     class Schema(BaseModel):
-        path_artifacts: List[Artifact]
-        url_artifacts: List[Artifact]
+        path_artifacts: list[Artifact]
+        url_artifacts: list[Artifact]
 
     def __init__(self):
         super().__init__(

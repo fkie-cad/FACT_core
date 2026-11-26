@@ -78,7 +78,7 @@ def test_hash_unsupported():
 
 def test_crack_hash_success():
     passwd_entry = (
-        'test:$dynamic_82$2c93b2efec757302a527be320b005a935567f370f268a13936fa42ef331cc703'
+        'test:$dynamic_82$2c93b2efec757302a527be320b005a935567f370f268a13936fa42ef331cc703'  # noqa: S105
         '6ec75a65f8112ce511ff6088c92a6fe1384fbd0f70a9bc7ac41aa6103384aa8c$HEX$010203040506'
     )
     pw, error = crack_hash(passwd_entry.encode(), '--format=dynamic_82')

@@ -54,7 +54,7 @@ def test_summarize():
     plugin = DummyPlugin()
     extended_plugin = ExtendedDummyPlugin()
 
-    assert (
-        plugin.summarize(plugin.Schema(foo='foo')) == []
-    ), 'if the plugin does not implement summarize, it should return an empty list'
+    assert plugin.summarize(plugin.Schema(foo='foo')) == [], (
+        'if the plugin does not implement summarize, it should return an empty list'
+    )
     assert extended_plugin.summarize(plugin.Schema(foo='foo')) == ['foo']

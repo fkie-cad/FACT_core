@@ -26,7 +26,7 @@ class RestBinarySearchPost(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @api.expect(binary_search_model)
-    def post(self):
+    def post(self) -> tuple[dict, int]:
         """
         Start a binary search
         The parameter `uid` is optional and can be specified if the user wants to search the files of a single firmware
@@ -62,7 +62,7 @@ class RestBinarySearchGet(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @api.doc(responses={200: 'Success', 400: 'Unknown search ID'})
-    def get(self, search_id=None):
+    def get(self, search_id: str) -> tuple[dict, int]:
         """
         Get the results of a previously initiated binary search
         The `search_id` is needed to fetch the corresponding search result

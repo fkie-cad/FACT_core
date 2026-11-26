@@ -101,14 +101,14 @@ def get_query(request_parameters: ImmutableMultiDict) -> dict:
     """
     try:
         query = request_parameters.get('query')
-        query = json.loads(query if query else '{}')
+        query = json.loads(query or '{}')
     except (AttributeError, KeyError):
         return {}
     except json.JSONDecodeError as error:
         raise ValueError('Query must be a json document') from error
     if not isinstance(query, dict):
         raise ValueError('Query must be a json document')
-    return query if query else {}
+    return query or {}
 
 
 def get_boolean_from_request(request_parameters: ImmutableMultiDict, name: str) -> bool:

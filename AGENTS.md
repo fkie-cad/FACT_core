@@ -16,6 +16,8 @@ Unpacking itself is done by the separate fact_extractor project (Docker); unpack
   `common_config_overwrite` / `backend_config_overwrite` / `frontend_config_overwrite`; don't monkeypatch `config`.
 - Lint the files you changed: `ruff check --fix <files>` and `ruff format <files>`. The pre-commit hook checks
   whole files, so existing findings in a file you touch must be fixed too; don't touch files you don't otherwise change.
+  `TODO` marks work to be done within this repo (ruff flags it, FIX002); `FIXME` marks future work and is allowed:
+  turn an out-of-scope `TODO` into a `FIXME` instead of adding `# noqa: FIX002`.
 - Config: `src/config/fact-core-config.toml`.
 - If your change makes a statement in an `AGENTS.md` wrong (moved/renamed files or classes, changed
   conventions, config keys, fixtures), update that statement in the same change. Don't add new content unasked.

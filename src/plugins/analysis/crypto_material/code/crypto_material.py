@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from pydantic import BaseModel, Field
 from semver import Version
@@ -45,9 +45,9 @@ def _read_from_file(file_handle: io.FileIO, start: int, end: int) -> bytes:
 
 class CryptoMaterialMatch(BaseModel):
     rule: str = Field(description='The YARA rule that matched this crypto material')
-    material: List[str] = Field(description='An array with the contents of the matched keys/certificates')
+    material: list[str] = Field(description='An array with the contents of the matched keys/certificates')
     count: int = Field(description='The number of matched keys/certificates')
-    hashes: List[str] = Field(description='The MD5 hashes of the keys/certificates (in the same order as `material`)')
+    hashes: list[str] = Field(description='The MD5 hashes of the keys/certificates (in the same order as `material`)')
 
 
 class AnalysisPlugin(AnalysisPluginV0):
@@ -56,7 +56,7 @@ class AnalysisPlugin(AnalysisPluginV0):
     """
 
     class Schema(BaseModel):
-        matches: List[CryptoMaterialMatch] = Field(description='A list of matched crypto material')
+        matches: list[CryptoMaterialMatch] = Field(description='A list of matched crypto material')
 
     def __init__(self):
         metadata = self.MetaData(
@@ -109,7 +109,7 @@ class AnalysisPlugin(AnalysisPluginV0):
         logging.warning(f'Unknown crypto rule match: {match}')
         return None
 
-    def extract_labeled_keys(self, matches: list[Match], file_handle: io.FileIO, min_key_len=128) -> list[str]:
+    def extract_labeled_keys(self, matches: list[Match], file_handle: io.FileIO, min_key_len: int = 128) -> list[str]:
         return [
             _read_from_file(file_handle, start, end).decode(encoding='utf_8', errors='replace')
             for start, end in self.get_offset_pairs(matches)
