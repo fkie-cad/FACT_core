@@ -2,9 +2,11 @@ import logging
 from multiprocessing import Event, Lock, Manager
 
 import pytest
+from docker.errors import DockerException
 
 from objects.firmware import Firmware
 from test.common_helper import create_test_file_object, get_test_data_dir
+from test.leftovers import TEST_EXTRACTOR_PORTS
 
 TEST_FW = Firmware.from_path(get_test_data_dir() / 'container/test_zip.7z')
 
@@ -93,3 +95,28 @@ def test_cancel_unpacking(unpacking_scheduler, caplog):
     with caplog.at_level(logging.DEBUG):
         unpacking_scheduler.work_thread(test_fo, None)
     assert any('Cancelling unpacking' in m for m in caplog.messages)
+
+
+class ContainerFake:
+    def __init__(self, id_: int, error: Exception | None = None):
+        self.id_ = id_
+        self.port = TEST_EXTRACTOR_PORTS.start + id_
+        self.container_id = f'container_{id_}'
+        self.error = error
+        self.stopped = False
+
+    def stop(self):
+        if self.error is not None:
+            raise self.error
+        self.stopped = True
+
+
+def test_failing_container_stop_is_logged(unpacking_scheduler, caplog):
+    workers = [ContainerFake(0, error=DockerException('stop timed out')), ContainerFake(1)]
+    unpacking_scheduler.workers = workers
+
+    with caplog.at_level(logging.ERROR):
+        unpacking_scheduler.stop_containers()
+
+    assert workers[1].stopped, 'the other containers are stopped anyway'
+    assert 'Could not stop unpack worker 0 (container container_0, port 19900): stop timed out' in caplog.text
