@@ -10,13 +10,16 @@ from requests.adapters import HTTPAdapter, Retry
 
 try:
     import config
+    from storage.graphql.util import get_db_url
 except ImportError:
     SRC_DIR = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_DIR))
     import config
+    from storage.graphql.util import get_db_url
 
 HTML_OK = 200
 HTML_BAD_REQUEST = 400
+REQUEST_TIMEOUT = 60  # seconds
 TRACKED_TABLES = ('analysis', 'file_object', 'firmware', 'fw_files', 'included_files', 'virtual_file_path')
 RELATIONSHIPS = {
     'pg_create_object_relationship': [
@@ -56,7 +59,7 @@ class HasuraSetup:
         }
         self.testing = testing
 
-    def init_hasura(self, db_args: dict | None = None):
+    def init_hasura(self, db_args: dict | None = None) -> None:
         logging.info('Waiting for Hasura...')
         self._wait_for_hasura()
         logging.info('Initializing Hasura...')
@@ -67,7 +70,7 @@ class HasuraSetup:
         self._add_ro_user_role_to_tables()
         logging.info('Hasura initialization successful')
 
-    def _wait_for_hasura(self):
+    def _wait_for_hasura(self) -> None:
         # Hasura is not ready for connections directly after starting the container, so we may need to wait a bit
         # hasura will return code 200 OK or 500 ERROR on this health check endpoint
         healthcheck_url = self.url.replace('/v1/metadata', '/healthz')
@@ -80,7 +83,7 @@ class HasuraSetup:
         except (ConnectionRefusedError, ConnectionResetError) as _error:
             raise HasuraInitError('Could not reach Hasura') from _error
 
-    def _add_database(self, additional_args: dict | None = None):
+    def _add_database(self, additional_args: dict | None = None) -> None:
         query = {
             'type': 'pg_add_source',
             'args': {
@@ -94,18 +97,17 @@ class HasuraSetup:
                 **(additional_args or {}),
             },
         }
-        response = requests.post(self.url, headers=self.headers, json=query)
+        response = requests.post(self.url, headers=self.headers, json=query, timeout=REQUEST_TIMEOUT)
         if response.status_code != HTML_OK:
             raise HasuraInitError(f'Failed to add database: {response.json().get("error")}')
 
-    def _get_db_url(self):
+    def _get_db_url(self) -> dict | str:
         if not self.testing:
             return {'from_env': 'FACT_DB_URL'}
-        user = config.common.postgres.ro_user
-        pw = config.common.postgres.ro_pw
-        return f'postgresql://{user}:{pw}@/fact_test?host=/var/run/postgresql'
+        postgres = config.common.postgres
+        return get_db_url(postgres.test_database, postgres.ro_user, postgres.ro_pw)
 
-    def drop_database(self):
+    def drop_database(self) -> None:
         query = {
             'type': 'pg_drop_source',
             'args': {
@@ -113,11 +115,11 @@ class HasuraSetup:
                 'cascade': True,
             },
         }
-        response = requests.post(self.url, headers=self.headers, json=query)
+        response = requests.post(self.url, headers=self.headers, json=query, timeout=REQUEST_TIMEOUT)
         if response.status_code != HTML_OK:
             raise HasuraInitError(f'Failed to drop database: {response.json().get("error")}')
 
-    def _track_tables(self):
+    def _track_tables(self) -> None:
         for table in TRACKED_TABLES:
             query = {
                 'type': 'pg_track_table',
@@ -129,13 +131,13 @@ class HasuraSetup:
             if self.testing:
                 # we need to use another name during testing to avoid naming conflicts
                 query['args']['configuration'] = {'custom_name': self._prefix(table)}
-            response = requests.post(self.url, headers=self.headers, json=query)
+            response = requests.post(self.url, headers=self.headers, json=query, timeout=REQUEST_TIMEOUT)
             if response.status_code != HTML_OK:
                 if _was_already_added(response):
                     continue
                 raise HasuraInitError(f'Failed to track table {table}: {response.json().get("error")}')
 
-    def _add_relationships(self):
+    def _add_relationships(self) -> None:
         for action, relation_list in RELATIONSHIPS.items():
             for table, name, *constraints in relation_list:
                 if len(constraints) == 1:
@@ -155,7 +157,7 @@ class HasuraSetup:
                         'using': {'foreign_key_constraint_on': constraint},
                     },
                 }
-                response = requests.post(self.url, headers=self.headers, json=query)
+                response = requests.post(self.url, headers=self.headers, json=query, timeout=REQUEST_TIMEOUT)
                 if response.status_code != HTML_OK:
                     if _was_already_added(response):
                         continue
@@ -165,13 +167,13 @@ class HasuraSetup:
 
     def _db_was_already_added(self) -> bool:
         query = {'type': 'pg_get_source_tables', 'args': {'source': self.db_name}}
-        response = requests.post(self.url, headers=self.headers, json=query)
+        response = requests.post(self.url, headers=self.headers, json=query, timeout=REQUEST_TIMEOUT)
         if response.status_code not in {HTML_OK, HTML_BAD_REQUEST}:
             raise HasuraInitError('No connection to Hasura API. Is it running?')
         data = response.json()
         return not (isinstance(data, dict) and 'error' in data)
 
-    def _add_ro_user_role_to_tables(self):
+    def _add_ro_user_role_to_tables(self) -> None:
         for table in TRACKED_TABLES:
             query = {
                 'type': 'pg_create_select_permission',
@@ -182,7 +184,7 @@ class HasuraSetup:
                     'permission': {'columns': '*', 'filter': {}, 'allow_aggregations': True},
                 },
             }
-            response = requests.post(self.url, headers=self.headers, json=query)
+            response = requests.post(self.url, headers=self.headers, json=query, timeout=REQUEST_TIMEOUT)
             if response.status_code != HTML_OK:
                 if _was_already_added(response):
                     continue
