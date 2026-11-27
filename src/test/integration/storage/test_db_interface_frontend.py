@@ -496,9 +496,10 @@ def test_get_number_of_total_matches(frontend_db, backend_db, query, expected, e
 
 
 def test_rest_get_file_object_uids(frontend_db, backend_db):
-    insert_test_fo(backend_db, 'fo1', 'file_name_1', size=10)
+    # insert out of uid order so that the result order does not match the insertion order by chance
     insert_test_fo(backend_db, 'fo2', size=10)
     insert_test_fo(backend_db, 'fo3', size=11)
+    insert_test_fo(backend_db, 'fo1', 'file_name_1', size=10)
 
     assert sorted(frontend_db.rest_get_file_object_uids(offset=None, limit=None)) == ['fo1', 'fo2', 'fo3']
     assert frontend_db.rest_get_file_object_uids(offset=1, limit=1) == ['fo2']
